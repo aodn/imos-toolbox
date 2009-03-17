@@ -1,5 +1,5 @@
 #summary Overview of the IMOS Toolbox
-#labels Featured,Phase-Requirements
+#labels Featured,Requirements
 
 <wiki:toc max_depth="2"/>
 
