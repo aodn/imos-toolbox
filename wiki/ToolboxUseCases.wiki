@@ -1,5 +1,5 @@
 #summary Use cases for the IMOS Toolbox
-#labels Phase-Requirements
+#labels Requirements
 
 <wiki:toc max_depth="2"/>
 
