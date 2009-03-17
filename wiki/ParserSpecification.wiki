@@ -1,0 +1,105 @@
+#summary Low level overview of the Toolbox architecture.
+#labels Specification
+
+<wiki:toc max_depth="2"/>
+
+= Parser =
+
+== Overview ==
+
+One parser file exists for each supported instrument. The file/function name is of the format `[instrument_name]Parse.m` where `[instrument_name]` is a unique name for the instrument. The file/function name format is important, as the list of supported instruments is automatically generated from files in the parser subdirectory which adhere to the file name format.
+
+For example, the parser function to parse SBE37 data is contained in the file `SBE37Parse.m`; the function then, is called `SBE37Parse`.
+
+== Function format ==
+
+Parser functions must adhere to the following format, with regard to input and output arguments:
+
+ `[sample_data cal_data] = instParse ( raw_data_file )`
+
+where:
+
+  * `raw_data_file` is the name of the file which contains the raw instrument data.
+  * `sample_data` is a struct which contains the sample data.
+  * `cal_data` is a struct which contains the instrument calibration data, or is an empty struct if this is not applicable to the instrument.
+
+== Sample data ==
+
+The `sample_data` struct should contain a vector of time values, and a vector of parameter structs, which contain the following fields:
+
+  * `name`: (IMOS compliant) parameter name
+  * `comment`: (optional) Any useful comments about the data
+  * `data`: data
+
+The contents of the name field must follow the naming conventions outlined in the IMOS NetCDF User's Manual. The data must be in the corresponding IMOS unit of measurement for the parameter.
+
+=== Example ===
+
+As an example, let's take the following hypothetical CTD data:
+
+{{{
+  time                 cond    temp   pressure
+  2008-01-16 00:00:05  40.612  16.52  10.12
+  2008-01-16 00:00:10  40.012  16.05  10.13
+  2008-01-16 00:00:15  39.351  15.47  10.11
+}}}
+
+For this data, the `sample_data` struct would look like this (timestamps have been converted via the `datenum` function):
+
+{{{
+  >> sample_data
+
+  sample_data = 
+
+      parameters: [1x3 struct]
+            time: [7.3342e+05 7.3342e+05 7.3342e+05]
+
+  >> sample_data.parameters(1)
+
+  ans = 
+
+               name: 'TEMP'
+               data: [16.5200 16.0500 15.4700]
+
+  >> sample_data.parameters(2)
+
+  ans = 
+
+               name: 'CNDC'
+               data: [40.6120 40.0120 39.3510]
+
+  >> sample_data.parameters(3)
+
+  ans = 
+
+               name: 'PRES'
+               data: [10.1200 10.1300 10.1100]
+}}}
+
+In the case that there are a different number of samples for different parameters, the data fields should be padded so that all parameters have the same number of samples. For example, if we have the following data:
+
+{{{
+  time                 cond    temp   pressure
+  2008-01-16 00:00:05  40.612  16.52  
+  2008-01-16 00:00:10  40.012  16.05  10.13
+  2008-01-16 00:00:15  39.351  15.47  
+}}}
+
+the conductivity and temperature parameter structs would be identical to those above, but the pressure struct would be as follows:
+
+{{{
+  >> sample_data.parameters(3)
+
+  ans = 
+
+               name: 'PRES'
+               data: [0.0 10.1300 0.0]
+}}}
+
+== Calibration Data ==
+
+The `cal_data` struct should contain general information about the instrument (e.g. model name, serial number) and calibration information about each sensor. The contents of `cal_data` will vary with the information that is available for a given instrument, but at least the following fields should be present for all instruments:
+
+   * `instrument_make`: e.g. 'Seabird Electronics'
+   * `instrument_model`: e.g. 'SBE39-IM'
+   * `instrument_serial_no`: e.g. '6097'
