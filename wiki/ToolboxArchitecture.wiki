@@ -1,0 +1,6 @@
+#summary High level Toolbox system architecture diagram
+#labels Design
+
+This diagram provides a high level view of the Toolbox architecture and the normal execution flow.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/imos_flow.png
