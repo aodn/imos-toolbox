@@ -9,6 +9,21 @@ Data is passed around the Toolbox in two Matlab structs:
  * `sample_data`: Contains the sample data.
  * `cal_data`: Contains calibration and metadata.
 
+I made the choice to separate sample data from calibration data for coupling/cohesion reasons. It may end up being a better idea to just put all the data into one struct, but I'm going with the two for now.
+
 == `sample_data` ==
 
+`sample_data` is a vector of structs which contain sample data. Each element in the sample_data vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
+
+The `sample_data` struct elements have the following structure:
+ * `sample_data`: struct
+   * `level`: Data process level (String or Numeric?)
+   * `time`: row vector of time (Numeric, as provided by the `datenum` function)
+   * `parameters`: vector of structs
+     * `name`: IMOS compliant parameter name (String)
+     * `comment`: Optional human readable comment (String)
+     * `data`: row vector of data (Numeric)
+
 == `cal_data` ==
+
+The `cal_data` struct has the following structure.
