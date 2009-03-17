@@ -2,6 +2,7 @@
 
  * Overview
    * ToolboxOverview
+   * ToolboxSchedule
  * Design
    * ToolboxUseCases
    * [ToolboxGUIMockups]
