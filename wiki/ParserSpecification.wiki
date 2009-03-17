@@ -1,4 +1,4 @@
-#summary Low level overview of the Toolbox architecture.
+#summary Low level specification of the Parser module.
 #labels Specification
 
 <wiki:toc max_depth="2"/>
