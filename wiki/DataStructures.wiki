@@ -13,12 +13,15 @@ I made the choice to separate sample data from calibration data for coupling/coh
 
 == `sample_data` ==
 
-`sample_data` is a vector of structs which contain sample data. Each element in the sample_data vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
+`sample_data` is a vector of structs which contain sample data. Each element in the `sample_data` vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
 
 The `sample_data` struct elements have the following structure:
  * `sample_data`: struct
    * `level`: Data process level (String or Numeric?)
    * `time`: row vector of time (Numeric, as provided by the `datenum` function)
+   * `depth`: Scalar or vector of depth (Numeric)
+   * `latitude`: Scalar or vector of latitude.
+   * `longitude`: Scalar or vector of longitude.
    * `parameters`: vector of structs
      * `name`: IMOS compliant parameter name (String)
      * `comment`: Optional human readable comment (String)
@@ -26,4 +29,17 @@ The `sample_data` struct elements have the following structure:
 
 == `cal_data` ==
 
-The `cal_data` struct has the following structure.
+The `cal_data` struct contains instrument/deployment metadata information, and instrument calibration information (if this information is available). The contents of `cal_data`  may be different depending on how much calibration information is available in the raw data file and the deployment database.
+
+A minimal `cal_data` struct should contain the following:
+ * `cal_data`
+   * `instrument_make`:
+   * `instrument_model`:
+   * `instrument_firmware`:
+   * `instrument_serial`:
+   * `in_water_time`:
+   * `out_water_time`:
+   * `parameters`:
+     * `name`:
+     * `max_value`:
+     * `min_value`:
