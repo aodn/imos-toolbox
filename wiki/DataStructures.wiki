@@ -1,0 +1,14 @@
+#summary Specification of the Toolbox's internal Matlab data structures.
+
+<wiki:toc max_depth="2"/>
+
+= Toolbox Data Structures =
+
+Data is passed around the Toolbox in two Matlab structs:
+
+ * `sample_data`: Contains the sample data.
+ * `cal_data`: Contains calibration and metadata.
+
+== `sample_data` ==
+
+== `cal_data` ==
