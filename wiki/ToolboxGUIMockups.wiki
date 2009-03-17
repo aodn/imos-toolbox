@@ -1,0 +1,59 @@
+#summary First go at the Toolbox GUI design
+#labels Featured,Phase-Design
+
+<wiki:toc max_depth="2"/>
+
+= Overview =
+
+This document outlines initial design ideas for the Toolbox GUI. These are extremely rough sketches, and probably do just as much to highlight my ineptitude at using gimp than they do at conveying my thoughts on how the GUI will function. In particular, please do not take the colour scheme seriously; the colours were just arbitrary choices.
+
+If you have any thoughts, comments, opinions or suggestions on the mockups, please feel free to add them to this page. I can provide the .xcf (gimp source) files if you wish to demonstrate any ideas you have.
+
+= Load input file =
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_start.png
+
+This is the first screen that will be displayed to users, prompting them to provide an input file, an instrument type, and an identifier of some sort which links to the deployment database.
+
+Upon providing the requested information, the user will be presented with a simple 'Loading' dialog:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_load.png
+
+= View Level 0 Data =
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_level_0.png
+
+Once the data file has been loaded, the user will be presented with the main application window, which provides the ability to view the data in a number of different ways (customised to the type of data being viewed), and to further process the data.
+
+The main window consists of the following areas:
+ * *Navigation Menu* Down the left is the 'navigation menu' which allows the user to proceed through the stages of data processing, from level 0 to level 3, and then generation of NetCDF files and submission to eMII. The blurring effect on some of the options indicate that those options are currently unavailable.
+ * *View Menu* Across the top is the 'view menu' which allows the user to view the current data in a variety of different ways.
+ * *Parameter Menu* At the bottom right is the 'parameter menu' which allows the user to select/deselect currently displayed parameters, and, at any time, to export the currently displayed graph as an image file.
+
+= View Metadata =
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_meta.png
+
+At any time, the user is able to view the metadata associated with the data set. The intent is to allow the user to edit each of the fields present in this section, and for the user to add new fields. The field names will be the same as those specified in the IMOS NetCDF User's Manual.
+
+= Configure Automatic QC process =
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_auto_qc.png
+
+When the user clicks on the 'L0' button in the navigation pane, he/she will be presented with the dialog above, allowing them to select which automatic QC procedures to execute over the data. The intent is that there will be a standard set of auto-QC procedures, so unless there is a special reason for customisation, the user will simply need to click the 'Apply' button. 
+
+= Manual QC process =
+
+When the data has passed through the automatic QC procedures, the user will be able to perform manual QC, and comment/flag data regions via an interactive graph, as demonstrated in the examples below:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_level_2_1.png
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_level_2_2.png
+
+= Export to NetCDF =
+
+When the user is happy with the data set, he/she can export the data to a set of IMOS-compliant NetCDF files (one per process level). When the 'NetCDF' button is clicked, the user will be presented with the following dialog:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_export.png
+
+The file name format is mandated by IMOS, so cannot be customised; the user can, however, choose which process levels to export.
