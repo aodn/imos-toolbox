@@ -1,0 +1,7 @@
+#summary Navigation sidebar.
+
+ * [ToolboxOverview Overview]
+ * Design
+   * [ToolboxUsecases Use Cases]
+   * [ToolboxGUIMockups GUI Mockups]
+   * [ToolboxArchitecture System Architecture]
