@@ -1,5 +1,5 @@
 #summary First go at the Toolbox GUI design
-#labels Featured,Phase-Design
+#labels Featured,Design
 
 <wiki:toc max_depth="2"/>
 
