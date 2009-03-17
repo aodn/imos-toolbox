@@ -2,6 +2,6 @@
 
  * [ToolboxOverview Overview]
  * Design
-   * [ToolboxUsecases Use Cases]
+   * [ToolboxUseCases Use Cases]
    * [ToolboxGUIMockups GUI Mockups]
    * [ToolboxArchitecture System Architecture]
