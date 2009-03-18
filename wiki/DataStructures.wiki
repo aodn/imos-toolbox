@@ -12,7 +12,7 @@ Data is passed around the Toolbox in two Matlab structs:
 
 I made the choice to separate sample data from calibration data for coupling/cohesion reasons. It may end up being a better idea to just put all the data into one struct, but I'm going with the two for now.
 
-Both of these structs originate in the [ParserSpecification Parser] module, when the input data is read in.
+Both of these structs originate in the [ParserSpecification Parser] module, when the input data is first loaded.
 
 == `sample_data` ==
 
@@ -29,18 +29,18 @@ The `sample_data` struct elements have the following structure:
      * `name`: IMOS compliant parameter name (String)
      * `comment`: Optional human readable comment (String)
      * `data`: row vector of data (Numeric)
-     * `flags`: Matrix of flagged data ranges ((Numeric,Numeric,Numeric) tuple - see below)
+     * `flags`: Matrix of flagged data ranges ((Numeric,Numeric,String,String) tuple - see below)
 
 === Flagged data ===
 
 The `flags` matrix in the `parameters` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). The `flags` matrix is a Nx3 matrix with the following format:
 
-|| *Low index* || *High index* || *Flag* ||
-|| Lower bound of flagged data range - index into `data` vector || Upper bound of flagged data range - index into `data` vector  || Flag value ||
+|| *Low index* || *High index* || *Flag* || *Comment* ||
+|| Lower bound of flagged data range - index into `data` vector || Upper bound of flagged data range - index into `data` vector  || Flag value || Human readable comment ||
 
 When a single sample is to be flagged the low index and high index will be equal.
 
-The flag value needs to be defined but I'm going home. See pg 30 of the IMOS NetCDF User's Manual.
+The flag value is defined in Section 6.2 of the IMOS NetCDF User's Manual. Meanings of flag values differ depending on the Quality Control Set in use (see the `qc_set` field in the `cal_data` struct below).
 
 == `cal_data` ==
 
@@ -54,6 +54,7 @@ A minimal `cal_data` struct should contain the following:
    * `instrument_serial`: e.g. '6082' (String)
    * `in_water_time`: Time that the instrument was first in the water. This time is used to determine the time of the first valid sample (Numeric)
    * `out_water_time`: Time that the instrument was first out of the water. This time is used to determine the time of the last valid sample (Numeric)
+   * `qc_set`: Quality Control set in use (Numeric - see section 6.2 of the IMOS NetCDF User's Manual)
    * `parameters`: Vector of structs
      * `name`: IMOS compliant parameter name (String)
      * `max_value`: Minimum allowable value (Numeric)
