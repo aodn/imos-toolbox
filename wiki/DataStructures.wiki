@@ -20,13 +20,13 @@ The `sample_data` struct elements have the following structure:
    * `level`: Data process level (String or Numeric?)
    * `time`: row vector of time (Numeric, as provided by the `datenum` function)
    * `depth`: Scalar or vector of depth (Numeric)
-   * `latitude`: Scalar or vector of latitude.
-   * `longitude`: Scalar or vector of longitude.
+   * `latitude`: Scalar or vector of latitude (Numeric)
+   * `longitude`: Scalar or vector of longitude (Numeric)
    * `parameters`: vector of structs
      * `name`: IMOS compliant parameter name (String)
      * `comment`: Optional human readable comment (String)
      * `data`: row vector of data (Numeric)
-     * `flags`: matrix of flagged data ranges - indices into the `data` vector (Numeric,Numeric,String ?)
+     * `flags`: Vector of flagged data ranges - indices into the `data` vector ((Numeric,Numeric,String) tuple)
 
 == `cal_data` ==
 
