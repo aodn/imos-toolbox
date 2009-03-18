@@ -47,3 +47,5 @@ A minimal `cal_data` struct should contain the following:
      * `name`: IMOS compliant parameter name (String)
      * `max_value`: Minimum allowable value (Numeric)
      * `min_value`: Maximum allowable value (Numeric)
+
+The `parameters` structs in both `sample_data` and `cal_data` contain the same parameters, in the same order.
