@@ -12,6 +12,8 @@ Data is passed around the Toolbox in two Matlab structs:
 
 I made the choice to separate sample data from calibration data for coupling/cohesion reasons. It may end up being a better idea to just put all the data into one struct, but I'm going with the two for now.
 
+Both of these structs originate in the [ParserSpecification Parser] module, when the input data is read in.
+
 == `sample_data` ==
 
 `sample_data` is a vector of structs which contain sample data. Each element in the `sample_data` vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
