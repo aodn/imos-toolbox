@@ -1,4 +1,5 @@
 #summary Specification of the Toolbox's internal Matlab data structures.
+#labels Specification
 
 <wiki:toc max_depth="2"/>
 
