@@ -8,5 +8,5 @@
    * [ToolboxGUIMockups]
    * ToolboxArchitecture
  * Specifications
-   * ParserSpecification
    * DataStructures
+   * ParserSpecification
