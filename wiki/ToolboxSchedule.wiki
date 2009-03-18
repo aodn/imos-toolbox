@@ -5,7 +5,7 @@ The development schedule is as follows:
 || *Date* || *Task* || *Issue Number* ||
 || March 20^th^ 2009 || Project/source repository set up || ||
 || March 31^st^ 2009 || System design finalised || issue 1 ||
-||  || GUI mockups designed || [issue 2 bal] ||
+||  || GUI mockups designed || issue 2 ||
 ||  || Initial set of parsers completed, including support for SBE37, SBE39 and WQM instruments || issue 3 ||
 || April 30^th^ 2009 || Initial auto-QC functionality completed, including flagging of outliers, spikes, in/out of water. || issue 4 ||
 ||  || Initial NetCDF converters completed for generation of IMOS-compliant NetCDF files. || issue 5 ||
