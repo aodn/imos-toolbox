@@ -13,7 +13,7 @@ If you have any thoughts, comments, opinions or suggestions on the mockups, plea
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_start.png
 
-This is the first screen that will be displayed to users, prompting them to provide an input file, an instrument type, and an identifier of some sort which links to the deployment database.
+This is the first screen that will be displayed to users, prompting them to provide a a directory containing input files  and a deployment identifier (the list of possible deployment identifiers is retrieved from the deployment database).
 
 Upon providing the requested information, the user will be presented with a simple 'Loading' dialog:
 
