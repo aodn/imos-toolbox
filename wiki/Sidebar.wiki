@@ -9,5 +9,5 @@
    * ToolboxArchitecture
  * Specifications
    * DataStructures
-   * [AutoQCFilterSpecification]
+   * [AutoQCSpecification]
    * ParserSpecification
