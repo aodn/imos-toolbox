@@ -15,7 +15,7 @@ For example, the parser function to parse SBE37 data is contained in the file `S
 
 Parser functions must adhere to the following format, with regard to input and output arguments:
 
- `[sample_data cal_data] = instParse ( raw_data_file )`
+ `function [sample_data cal_data] = instParse ( raw_data_file )`
 
 where:
 
