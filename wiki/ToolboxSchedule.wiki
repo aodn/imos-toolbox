@@ -4,13 +4,13 @@ The development schedule is as follows:
 
 || *Date* || *Task* || *Issue Number* ||
 || March 20^th^ 2009 || Project/source repository set up || ||
-|| March 31^st^ 2009 || System design finalised || [issue:1] ||
-||  || GUI mockups designed || [issue:2] ||
-||  || Initial set of parsers completed, including support for SBE37, SBE39 and WQM instruments || [issue:3] ||
-|| April 30^th^ 2009 || Initial auto-QC functionality completed, including flagging of outliers, spikes, in/out of water. || [issue:4] ||
-||  || Initial NetCDF converters completed for generation of IMOS-compliant NetCDF files. || [issue:5] ||
-|| May 31^st^ 2009 || Initial visualisation functionality completed, providing ability to view each process level of data, and invoke automatic and manual QC procedures. || [issue:6] ||
-||  || Initial manual-QC functionality completed, including de-trending, linear calibration correction, and manual flagging of points/regions. || [issue:7] ||
-|| June 30^th^ 2009 || Alpha version released for review to immediate community. || [issue:8] ||
+|| March 31^st^ 2009 || System design finalised || issue 1 ||
+||  || GUI mockups designed || issue 2 ||
+||  || Initial set of parsers completed, including support for SBE37, SBE39 and WQM instruments || issue 3 ||
+|| April 30^th^ 2009 || Initial auto-QC functionality completed, including flagging of outliers, spikes, in/out of water. || issue 4 ||
+||  || Initial NetCDF converters completed for generation of IMOS-compliant NetCDF files. || issue 5 ||
+|| May 31^st^ 2009 || Initial visualisation functionality completed, providing ability to view each process level of data, and invoke automatic and manual QC procedures. || issue 6 ||
+||  || Initial manual-QC functionality completed, including de-trending, linear calibration correction, and manual flagging of points/regions. || issue 7 ||
+|| June 30^th^ 2009 || Alpha version released for review to immediate community. || issue 8 ||
 || July 31^st^ 2009 || Prototype system working for demonstration at AMSA workshop (this date to be confirmed). || ||
 || November 30^th^ 2009 || Possible journal paper written and submitted. || ||
