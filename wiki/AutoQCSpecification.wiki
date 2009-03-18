@@ -1,0 +1,26 @@
+#summary Specification of the automatic QC module
+#labels Specification
+
+<wiki:toc max_depth="2"/>
+
+= Automatic Quality Control =
+
+== Overview ==
+
+One file exists for each automatic QC procedure. The procedures act as filters on the data. Data is passed through a chain of filters; this chain is configured by the user. The file/function name is of the form `[filter_name]QC.m` where `filter_name` is a unique name for the filter.
+
+For example, the range checking filter file is titled `rangeQC.m`, and the function is called `rangeQC`.
+
+When a filter is executed, it is passed the entire data set. An alternate design would be to stream individual samples (or blocks of samples) through the filter chain, but I do'nt believe that this would provide much of a performance benefit, and would not be appropriate for some types of filter (e.g. in/out of water removal).
+
+== Function format ==
+
+All auto-QC filter functions must adhere to the following format:
+
+ `function sample_data = nameQC ( raw_data, cal_data )`
+
+where:
+ * `raw_data` is a struct which contains the initial data set.
+ * `cal_data` is a struct containing calibration and metadata information.
+ * `sample_data` is a struct containing the filtered data set.
+ 
