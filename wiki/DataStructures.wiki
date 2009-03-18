@@ -22,14 +22,25 @@ The `sample_data` struct elements have the following structure:
  * `sample_data`: struct
    * `level`: Data process level (String or Numeric?)
    * `time`: row vector of time (Numeric, as provided by the `datenum` function)
-   * `depth`: Scalar or vector of depth (Numeric)
-   * `latitude`: Scalar or vector of latitude (Numeric)
-   * `longitude`: Scalar or vector of longitude (Numeric)
+   * `depth`: Scalar or row vector of depth (Numeric)
+   * `latitude`: Scalar or row vector of latitude (Numeric)
+   * `longitude`: Scalar or row vector of longitude (Numeric)
    * `parameters`: vector of structs
      * `name`: IMOS compliant parameter name (String)
      * `comment`: Optional human readable comment (String)
      * `data`: row vector of data (Numeric)
-     * `flags`: Vector of flagged data ranges - indices into the `data` vector ((Numeric,Numeric,String) tuple)
+     * `flags`: Matrix of flagged data ranges ((Numeric,Numeric,Numeric) tuple - see below)
+
+=== Flagged data ===
+
+The `flags` matrix in the `parameters` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). The `flags` matrix is a Nx3 matrix with the following format:
+
+|| *Low index* || *High index* || *Flag* ||
+|| Lower bound of flagged data range - index into `data` vector || Upper bound of flagged data range - index into `data` vector  || Flag value ||
+
+When a single sample is to be flagged the low index and high index will be equal.
+
+The flag value needs to be defined but I'm going home. See pg 30 of the IMOS NetCDF User's Manual.
 
 == `cal_data` ==
 
