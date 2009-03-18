@@ -40,7 +40,7 @@ A minimal `cal_data` struct should contain the following:
    * `instrument_serial`: e.g. '6082' (String)
    * `in_water_time`: Time that the instrument was first in the water. This time is used to determine the time of the first valid sample (Numeric)
    * `out_water_time`: Time that the instrument was first out of the water. This time is used to determine the time of the last valid sample (Numeric)
-   * `parameters`: String
+   * `parameters`: Vector of structs
      * `name`: IMOS compliant parameter name (String)
      * `max_value`: Minimum allowable value (Numeric)
      * `min_value`: Maximum allowable value (Numeric)
