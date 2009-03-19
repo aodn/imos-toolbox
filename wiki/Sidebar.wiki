@@ -8,6 +8,7 @@
    * [ToolboxGUIMockups]
    * ToolboxArchitecture
  * Specifications
+   * [MFileTemplate]
    * DataStructures
    * [AutoQCSpecification]
    * ParserSpecification
