@@ -1,4 +1,5 @@
 #summary File template for the Matlab code base
+#labels Specification
 
 = Matlab File Template =
 
