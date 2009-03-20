@@ -1,4 +1,4 @@
-#summary Low level specification of the Parser module.
+#summary Specification of the Parser module.
 #labels Specification
 
 <wiki:toc max_depth="2"/>
