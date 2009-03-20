@@ -1,0 +1,53 @@
+%
+% A list of all IMOS compliant parameter names, standard names and units of 
+% measurement. This list has been copied verbatim from IMOS NetCDF User's 
+% manual. Entries are in the following format:
+% 
+%   parameter name, long parameter name, units of measurement
+%
+
+AIRT,     air_temperature,                                  Celsius
+ATMP,     air_pressure,                                     Pascal
+ATMS,     air_pressure_at_sea_level,                        Pascal
+CDIR,     direction_of_sea_water_velocity,                  Degrees clockwise from true North in the direction of the current
+CNDC,     sea_water_electrical_conductivity,                S m^-1
+CPHL,     concentration_of_clorophyll_in_sea_water,         mg m^-3
+CSPD,     sea_water_speed,                                  m s^-1
+DEPH,     depth,                                            m
+DEWT,     dew_point_temperature,                            Celsius
+DOX2,     moles_of_oxygen_per_unit_mass_in_sea_water,       mol kg^-1
+DOXY,     mass_concentration_of_oxygen_in_sea_water,        kg m^-3
+DOXY_TEMP,temperature_of_sensor_for_oxygen_in_sea_water,    Celsius
+DRYT,     dry_bulb_temperature,                             Celsius
+DYNHT,    dynamic_height,                                   m
+EWCT,     eastward_sea_water_velocity,                      m s^-1
+FLU2,     fluorescence,                                     mg m^-3
+HEAT,     heat_content,                                     10^10 J m^-2
+HCSP,     sea_water_speed,                                  m s^-1
+ISO17,    isotherm_depth,                                   m
+LW,       surface_downwelling_longwave_flux_in_air,         W m^-2
+NSCT,     northward_sea_water_velocity,                     m s^-1
+NTRI,     mole_concentration_of_nitrate_in_sea_water,       mole m^-3
+OPBS,     optical_backscattering_coefficient,               
+PCO2,     surface_partial_pressure_of_carbon_dioxide_in_air,Pascal
+PHOS,     moles_of_phosphate_per_unit_mass_in_sea_water,    mole kg^-1
+PRES,     sea_water_pressure,                               dbar
+PSQL,     sea_water_salinity,                               1e^-3
+RAIN,     rainfall_rate,                                    mm s^-1
+RAIT,     thickness_of_rainfall_amount,                     m
+RELH,     relative_humidity,                                %
+SDFA,     surface_downwelling_shortwave_flux_in_air,        W m^-2
+SLCA,     mole_concentration_of_silicate_in_sea_water,      mole m^-3
+SRAD,     isotropic_shortwave_radiance_in_air,              W m^-1 sr^-1
+TEMP,     sea_water_temperature,                            Celsius
+TIME,     time,                                             s
+UCUR,     eastward_sea_water_velocity,                      m s^-1
+UWND,     eastward_wind,                                    m s^-1
+VAVH,     sea_surface_wave_significant_height,              m
+VAVT,     sea_surface_wave_zeo_upcrossing_period,           s
+VCUR,     northward_sea_water_velocity,                     m s^-1
+VDEN,     sea_surface_wave_variance_spectral_density,       m^2 s
+VDIR,     sea_surface_wave_from_direction,                  Degree clockwise from true Norh
+VWND,     northward_wind,                                   m s^-1
+WDIR,     wind_to_direction,                                Degree clockwise from true Norh
+WSPD,     wind_speed,                                       m s^-1
