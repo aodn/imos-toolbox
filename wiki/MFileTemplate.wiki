@@ -3,7 +3,9 @@
 
 = Matlab File Template =
 
-All Matlab files should conform to the template listed below.
+All Matlab files should conform to the template listed below. Some other conventions that should be followed:
+
+ * No tabs - use 2 space indenting
 
 {{{
 %
