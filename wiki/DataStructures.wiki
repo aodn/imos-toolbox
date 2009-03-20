@@ -35,6 +35,10 @@ The `sample_data` struct elements have the following structure:
        * `flag`: flag value (String)
        * `comment`: Human readable comment
 
+=== Notes ===
+
+ * The length of the `time`, and all `data` vectors are the same. If the `depth`, `latitude` and `longitude` fields are vectors, they are also of the same length.
+
 === Flagged data ===
 
 The `flags` vector in the `parameters` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). When a single sample is to be flagged the low index and high index will be equal.
@@ -59,4 +63,6 @@ A minimal `cal_data` struct should contain the following:
      * `max_value`: Minimum allowable value (Numeric)
      * `min_value`: Maximum allowable value (Numeric)
 
-The `parameters` structs in both `sample_data` and `cal_data` contain the same parameters, in the same order.
+=== Notes ===
+
+ * The `parameters` structs in both `sample_data` and `cal_data` contain the same parameters, in the same order.
