@@ -1,7 +1,7 @@
 #summary Specification of the Toolbox's internal Matlab data structures.
 #labels Specification
 
-<wiki:toc max_depth="2"/>
+<wiki:toc max_depth="3"/>
 
 = Toolbox Data Structures =
 
@@ -14,7 +14,7 @@ I made the choice to separate sample data from calibration data for coupling/coh
 
 Both of these structs originate in the [ParserSpecification Parser] module, when the input data is first loaded.
 
-== `sample_data` ==
+== sample_data ==
 
 `sample_data` is a vector of structs which contain sample data. Each element in the `sample_data` vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
 
@@ -41,7 +41,7 @@ The `flags` vector in the `parameters` structs refers to data which has been fla
 
 The flag value is defined in Section 6.2 of the IMOS NetCDF User's Manual. Meanings of flag values differ depending on the Quality Control Set in use (see the `qc_set` field in the `cal_data` struct below).
 
-== `cal_data` ==
+== cal_data ==
 
 The `cal_data` struct contains instrument/deployment metadata information, and instrument calibration information (if this information is available). The contents of `cal_data`  may be different depending on how much calibration information is available in the raw data file and the deployment database.
 
