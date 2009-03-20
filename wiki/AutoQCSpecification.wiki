@@ -17,10 +17,9 @@ When a filter is executed, it is passed the entire data set. An alternate design
 
 All auto-QC filter functions must adhere to the following format:
 
- `function sample_data = nameQC ( raw_data, cal_data )`
+ `function sample_data = nameQC ( sample_data, cal_data )`
 
 where:
- * `raw_data` is a struct which contains the initial data set.
  * `cal_data` is a struct containing calibration and metadata information.
- * `sample_data` is a struct containing the filtered data set.
+ * `sample_data` is a struct containing the data set. Because this is both an input and output parameter, this implies that filter functions modify the data set which is passed in.
  
