@@ -29,16 +29,15 @@ The `sample_data` struct elements have the following structure:
      * `name`: IMOS compliant parameter name (String)
      * `comment`: Optional human readable comment (String)
      * `data`: row vector of data (Numeric)
-     * `flags`: Matrix of flagged data ranges ((Numeric,Numeric,String,String) tuple - see below)
+     * `flags`: vector of structs (see below)
+       * `low_idx`: lower bound of flagged data range (Numeric)
+       * `high_idx`: upper bound of flagged data range (Numeric)
+       * `flag`: flag value (String)
+       * `comment`: Human readable comment
 
 === Flagged data ===
 
-The `flags` matrix in the `parameters` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). The `flags` matrix is a Nx3 matrix with the following format:
-
-|| *Low index* || *High index* || *Flag* || *Comment* ||
-|| Lower bound of flagged data range - index into `data` vector || Upper bound of flagged data range - index into `data` vector  || Flag value || Human readable comment ||
-
-When a single sample is to be flagged the low index and high index will be equal.
+The `flags` vector in the `parameters` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). When a single sample is to be flagged the low index and high index will be equal.
 
 The flag value is defined in Section 6.2 of the IMOS NetCDF User's Manual. Meanings of flag values differ depending on the Quality Control Set in use (see the `qc_set` field in the `cal_data` struct below).
 
