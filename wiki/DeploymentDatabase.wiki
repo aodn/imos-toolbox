@@ -83,3 +83,25 @@ The build process is the same under both Windows and Linux, although. Under Wind
 sudo apt-get install build-essential
 sudo apt-get install mdbtools mdbtools-dev
 }}}
+
+To build, run the following from  the `Java` subdirectory:
+{{{
+ant clean
+ant compile
+ant test
+}}}
+
+If the test succeeded, you should see a whole lot of output of some random entries from the DDB.
+
+=== Building `libmdbsql_wrapper` ===
+
+DDB access under Linux/Unix turned out to be a little more complex than I had hoped. 
+
+ODBC under linux works nicely with [http://www.unixodbc.org/ unixODBC] and the ODBC driver included with [http://mdbtools.sourceforge.net/install/ mdbtools]. Because of this, I assumed that, using unixODBC and the mdbtools ODBC driver, I would be able to use the JDBC-ODBC bridge just like in Windows; however, there appears to be a number of problems when doing this. I'm not sure where the problems are occurring, but the fact that ODBC access by other means works well seems to point to a problem with the JDBC-ODBC bridge.
+
+To get around this problem, I decided to write an interface, `libmdbsql_wrapper` to the mdbtools API, and use JNI to call that interface, essentially providing direct access to the MS Access file. This seems to work quite nicely. To build the interface, run the following from the `Java/mdbsql` subdirectory:
+{{{
+make clean
+make
+make install
+}}}
