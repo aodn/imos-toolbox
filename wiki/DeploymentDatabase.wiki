@@ -120,3 +120,10 @@ make clean
 make
 make install
 }}}
+
+== Configuration ==
+
+You must tell matlab two things:
+
+ * The location of the compiled java class files - add the directory path `Java/bin` to the file `toolbox/local/classpath.txt` in your matlab installation
+ * The location of the compiled .so file (only if using Linux) - add the directory path `Java/bin` to the file `toolbox/local/librarypath.txt` in your matlab installation.
