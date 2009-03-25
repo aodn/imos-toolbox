@@ -26,7 +26,7 @@ Within the toolbox, the DDB is accessed through a driver written in Java. The im
                  |
                  |
         --------------------
-        [http://imos-toolbox.googlecode.com/svn/trunk/Java/src/org/imos/ddb/JDBCDDB.java org.imos.ddb.JDBCDDB]
+        org.imos.ddb.JDBCDDB
         --------------------
                  |
                  |
