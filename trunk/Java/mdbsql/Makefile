@@ -1,5 +1,5 @@
 
-JAVA_HOME=/home/paul/jdk1.6.0_02
+JAVA_HOME=/usr/lib/jvm/java-6-sun
 WRAPPER_HOME=..
 
 CFLAGS=-I$(JAVA_HOME)/include \
