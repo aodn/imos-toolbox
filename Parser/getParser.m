@@ -1,3 +1,19 @@
+function handle = getParser( name )
+%GETPARSER - returns a function handle to the parser for the instrument
+% with the given name.
+% 
+% Creates a function handle to the parser function for the instrument with 
+% the given name. If a parser does not exist, the handle is still created,
+% but calls to the function will fail.
+%
+% Inputs:
+%   name   - name of the instrument.
+%
+% Outputs:
+%   handle - a function handle to the parser for the given instrument.
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -26,23 +42,6 @@
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
-%
-
-function handle = getParser( name )
-%GETPARSER - returns a function handle to the parser for the instrument
-% with the given name.
-% 
-% Creates a function handle to the parser function for the instrument with 
-% the given name. If a parser does not exist, the handle is still created,
-% but calls to the function will fail.
-%
-% Inputs:
-%   name   - name of the instrument.
-%
-% Outputs:
-%   handle - a function handle to the parser for the given instrument.
-%
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
 
 %convert the instrument name to the parser function 

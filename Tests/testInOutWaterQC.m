@@ -1,3 +1,12 @@
+function testInOutWaterQC()
+%TESTINOUTWATER Unit test for in/out of water auto QC routines.
+%
+% Creates a dummy set of sample data, passes it through the inWaterQC
+% and outWaterQC routines, and verifies that the in/out of water samples 
+% were flagged.
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -28,16 +37,6 @@
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-function testInOutWaterQC()
-%TESTINOUTWATER Unit test for in/out of water auto QC routines.
-%
-% Creates a dummy set of sample data, passes it through the inWaterQC
-% and outWaterQC routines, and verifies that the in/out of water samples 
-% were removed.
-%
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-%
-
 disp(' ');
 disp(['-- ' mfilename ' --']);
 disp(' ');
@@ -47,13 +46,13 @@ disp(' ');
 %
 params = {'CNDC', 'TEMP', 'PRES'};
 
-num_samples = 2000;
-start_idx = 143;
-end_idx = 1757;
+num_samples = 10;
+start_idx = 2;
+end_idx = 8;
 
 [sample_data cal_data] = genTestData(...
   num_samples,...
-  {'TEMP','COND','PRES'},...
+  params,...
   start_idx,...
   end_idx,...
   [0,0,0],...
@@ -62,34 +61,39 @@ end_idx = 1757;
   [1000,1000,1000]);
 
 % call in water and out water routines
-disp(['filtering data set - result should be '...
-      num2str(end_idx - start_idx + 1) ' samples']);
+disp(['filtering data set']);
     
 filtered_data = inWaterQC( sample_data,   cal_data);
 filtered_data = outWaterQC(filtered_data, cal_data);
-
-disp(['filtered data set is ' num2str(length(filtered_data.time)) ' samples']);
 
 % verify that they did their jobs
 
 disp('verifying filtered data set');
 
-% time vector
-if ~sample_data.time(start_idx:end_idx) == filtered_data.time
-  error('filtered time vector is invalid');
-end
-
-% data vectors
+% check each parameter
 for k = 1:length(filtered_data.parameters)
   
-  if ~sample_data.parameters(k).data(start_idx:end_idx) == ...
-      filtered_data.parameters(k).data
+  % there should be only 2 flags - one for in 
+  % water range, one for out water range
+  if length(filtered_data.parameters(k).flags) ~= 2
     
     error(...
       ['filtered data vector (' ...
         filtered_data.parameters(k).name...
         ') is invalid']);
-    
+  end
+  
+  % check that flag ranges are correct
+  if filtered_data.parameters(k).flags(1).low_index  ~= 1         ||...
+     filtered_data.parameters(k).flags(1).high_index ~= start_idx ||...
+     filtered_data.parameters(k).flags(2).low_index  ~= end_idx   ||...
+     filtered_data.parameters(k).flags(2).high_index ~= num_samples
+   
+    error(...
+      ['filtered data vector (' ...
+        filtered_data.parameters(k).name...
+        ') is invalid']);
+   
   end
     
 end

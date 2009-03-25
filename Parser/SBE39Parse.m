@@ -1,3 +1,25 @@
+function [sample_data cal_data] = SBE39Parse( filename )
+%SBE39PARSE Parse a raw '.asc' file containing SBE39 data.
+%
+% This function can read in data that has been downloaded from an SBE39
+% temperature/pressure sensor.
+%
+% The output format for the SBE39 is very similar to the SBE37, so this
+% function simply delegates the parsing to the SBE3x function, which parses
+% data from both instrument types.
+%
+% Inputs:
+%   filename    - name of the input file to be parsed
+%
+% Outputs:
+%   sample_data - struct containing the sample data
+%
+%   cal_data    - struct containing calibration and metadata
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
+% See SBE3x.m
+%
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -27,27 +49,5 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-
-function [sample_data cal_data] = SBE39Parse( filename )
-%SBE39PARSE Parse a raw '.asc' file containing SBE39 data.
-%
-% This function can read in data that has been downloaded from an SBE39
-% temperature/pressure sensor.
-%
-% The output format for the SBE39 is very similar to the SBE37, so this
-% function simply delegates the parsing to the SBE3x function, which parses
-% data from both instrument types.
-%
-% Inputs:
-%   filename    - name of the input file to be parsed
-%
-% Outputs:
-%   sample_data - struct containing the sample data
-%
-%   cal_data    - struct containing calibration and metadata
-%
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-%
-% See SBE3x.m
 
   [sample_data cal_data] = SBE3x(filename);
