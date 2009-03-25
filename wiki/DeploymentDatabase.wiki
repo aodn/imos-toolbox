@@ -1,0 +1,85 @@
+#summary Overview of the deployment database
+
+<wiki:toc />
+
+= Deployment Database =
+
+== Overview ==
+
+The Deployment Database (DDB) is an MS-Access database which contains information about all deployments, instruments, personnel and sites for a specific location. 
+
+== Schema ==
+
+The DDB conforms to the following schema:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/ddb_schema.png
+
+== Interface ==
+
+Within the toolbox, the DDB is accessed through a driver written in Java. The implementation differs depending on the platform:
+
+ * Under Windows, Sun's [http://java.sun.com/javase/6/docs/technotes/guides/jdbc/bridge.html JDBC-ODBC bridge] driver is used:
+{{{
+              ------
+              matlab
+              ------
+                 |
+                 |
+        --------------------
+        org.imos.ddb.JDBCDDB
+        --------------------
+                 |
+                 |
+    ----------------------------
+    sun.jdbc.odbc.JdbcOdbcDriver
+    ----------------------------
+                 |
+                 |
+                ----
+                ODBC
+                ----
+                 |
+                 |
+             --------
+             DDB file
+             --------
+}}}
+ * Under Linux, libmdbsql, from [http://mdbtools.sourceforge.net/install/ mdbtools] is used, via a JNI wrapper, and a simplified native C wrapper:
+{{{
+              ------
+              matlab
+              ------
+                 |
+                 |
+       ----------------------
+       org.imos.ddb.MDBSQLDDB
+       ----------------------
+                 |
+                 |
+                ---
+                JNI
+                ---
+                 |
+                 |
+         -----------------
+         libmdbsql_wrapper
+         -----------------
+                 |
+                 |
+             ---------
+             libmdbsql
+             ---------
+                 |
+                 |
+             --------
+             DDB file
+             --------
+}}}
+
+== Building ==
+
+The build process is the same under both Windows and Linux, although. Under Windows, you need a JDK (>= 5.0) and ant. Under linux, you will also need gcc, make, glib (will usually be installed by default) and mdbtools-dev. Under Ubuntu:
+{{{
+sudo apt-get install build-essential
+sudo apt-get install mdbtools mdbtools-dev
+}}}
