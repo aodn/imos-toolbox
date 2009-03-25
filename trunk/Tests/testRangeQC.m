@@ -1,3 +1,11 @@
+function testRangeQC ()
+%TESTRANGEQC Unit test for the auto range-checking QC routine.
+%
+% Creates a dummy data set, passes it to the rangeQC routine, then verifies
+% that the routine successfully flagged all out of bounds values.
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -26,15 +34,6 @@
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
-%
-
-function testRangeQC ()
-%TESTRANGEQC Unit test for the auto range-checking QC routine.
-%
-% Creates a dummy data set, passes it to the rangeQC routine, then verifies
-% that the routine successfully flagged all out of bounds values.
-%
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
 
 disp(' ');

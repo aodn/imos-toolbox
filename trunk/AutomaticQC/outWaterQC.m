@@ -1,3 +1,22 @@
+function sample_data = outWaterQC( sample_data, cal_data )
+%OUTWATERQC Flags samples which were taken after the instrument was taken
+% out of the water.
+%
+% Flags all samples from the data set which have a time that is after the 
+% out water time. Assumes that all of these samples will be at the end of the 
+% data set.
+%
+% Inputs:
+%   sample_data - struct containing a vector of parameter structs, which in
+%   turn contain the data.
+%
+%   cal_data - struct which contains the out water time, and the qc set in use.
+%
+% Outputs:
+%   sample_data - same as input, with out water samples flagged.
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -26,26 +45,6 @@
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
-%
-
-function sample_data = outWaterQC( sample_data, cal_data )
-%OUTWATERQC Flags samples which were taken after the instrument was taken
-% out of the water.
-%
-% Flags all samples from the data set which have a time that is after the 
-% out water time. Assumes that all of these samples will be at the end of the 
-% data set.
-%
-% Inputs:
-%   sample_data - struct containing a vector of parameter structs, which in
-%   turn contain the data.
-%
-%   cal_data - struct which contains the out water time, and the qc set in use.
-%
-% Outputs:
-%   sample_data - same as input, with out water samples flagged.
-%
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
 
 % start index of samples which were taken out of water

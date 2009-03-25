@@ -1,3 +1,14 @@
+function parsers = listParsers
+%LISTPARSERS - List all available instrument parsers.
+%
+% This function searches the parser subdirectory, and returns an array which 
+% contains the names of all instruments for which parsers are available.
+%
+% Outputs:
+%   parsers - A String array of all the supported instruments.
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -26,18 +37,6 @@
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
-%
-
-function parsers = listParsers
-%LISTPARSERS - List all available instrument parsers.
-%
-% This function searches the parser subdirectory, and returns an array which 
-% contains the names of all instruments for which parsers are available.
-%
-% Outputs:
-%   parsers - A String array of all the supported instruments.
-%
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
 
 parsers = {};

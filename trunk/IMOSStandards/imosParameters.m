@@ -1,3 +1,26 @@
+function [ standard_name uom ] = imosParameters( short_name )
+%IMOSPARAMETERS Returns IMOS compliant standard name and units of measurement
+% given the short parameter name.
+%
+% The list of all IMOS parameters is stored in a file 'imosParameters.txt'
+% which is in the same directory as this m-file.
+%
+% The file imosParameters.txt contains a list of all parameters for which an
+% IMOS compliant identifier (the short_name) exists. This function looks up the 
+% given short_name and returns the corresponding standard name and units of 
+% measurement. If the given short_name is not in the list of IMOS parameters,
+% the standard_name is set to the given short_name, and uom is left empty.
+%
+% Inputs:
+%   short_name - the IMOS parameter name
+%
+% Outputs:
+%   standard_name - the IMOS standard name for the parameter
+%
+%   uom - Units of measurement
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -26,30 +49,6 @@
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
-%
-
-function [ standard_name uom ] = imosParameters( short_name )
-%IMOSPARAMETERS Returns IMOS compliant standard name and units of measurement
-% given the short parameter name.
-%
-% The list of all IMOS parameters is stored in a file 'imosParameters.txt'
-% which is in the same directory as this m-file.
-%
-% The file imosParameters.txt contains a list of all parameters for which an
-% IMOS compliant identifier (the short_name) exists. This function looks up the 
-% given short_name and returns the corresponding standard name and units of 
-% measurement. If the given short_name is not in the list of IMOS parameters,
-% the standard_name is set to the given short_name, and uom is left empty.
-%
-% Inputs:
-%   short_name - the IMOS parameter name
-%
-% Outputs:
-%   standard_name - the IMOS standard name for the parameter
-%
-%   uom - Units of measurement
-%
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
 
 error(nargchk(1, 1, nargin));

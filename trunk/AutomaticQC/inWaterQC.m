@@ -1,3 +1,22 @@
+function sample_data = inWaterQC( sample_data, cal_data )
+%INWATERQC Flags samples which were taken before the instrument was placed
+% in the water.
+%
+% Flags all samples from the data set which have a time that is before the 
+% in water time. Assumes that these samples will be at the beginning of the
+% data set.
+%
+% Inputs:
+%   sample_data - struct containing a vector of parameter structs, which in
+%   turn contain the data.
+%
+%   cal_data - struct which contains the in water time.
+%
+% Outputs:
+%   sample_data - same as input, with in water samples flagged.
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -26,26 +45,6 @@
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
-%
-
-function sample_data = inWaterQC( sample_data, cal_data )
-%INWATERQC Flags samples which were taken before the instrument was placed
-% in the water.
-%
-% Flags all samples from the data set which have a time that is before the 
-% in water time. Assumes that these samples will be at the beginning of the
-% data set.
-%
-% Inputs:
-%   sample_data - struct containing a vector of parameter structs, which in
-%   turn contain the data.
-%
-%   cal_data - struct which contains the in water time.
-%
-% Outputs:
-%   sample_data - same as input, with in water samples flagged.
-%
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
 
 % index of first sample which was taken in water

@@ -1,3 +1,23 @@
+function testParsers()
+% TESTPARSERS Unit test for parser functions.
+%
+% Executes every parser, using the data sets contained in the 'sample_data' 
+% subdirectory.
+%
+% The sample data files contained in the 'sample_data' subdirectory must 
+% follow this naming convention:
+%
+%   [instrument_name]_sample_data.[extension]
+%
+% where:
+%
+%   instrument_name is the instrument name (e.g. SBE37)
+%
+%   extension is any file extension (if multiple files for the same instrument
+%             exist, with different extensions, only the first will be used).
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -26,27 +46,6 @@
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
-%
-
-function testParsers()
-% TESTPARSERS Unit test for parser functions.
-%
-% Executes every parser, using the data sets contained in the 'sample_data' 
-% subdirectory.
-%
-% The sample data files contained in the 'sample_data' subdirectory must 
-% follow this naming convention:
-%
-%   [instrument_name]_sample_data.[extension]
-%
-% where:
-%
-%   instrument_name is the instrument name (e.g. SBE37)
-%
-%   extension is any file extension (if multiple files for the same instrument
-%             exist, with different extensions, only the first will be used).
-%
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
 
 disp(' ');
