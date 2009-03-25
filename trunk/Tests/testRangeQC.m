@@ -42,13 +42,13 @@ disp(' ');
 
 % generate test data, ensuring that some values will be out of bounds
 [sample_data cal_data] = genTestData(...
-  20,...
+  2000,...
   {'TEMP','COND','PRES'},...
   1,...
-  20,...
+  2000,...
   [0,0,0],...
   [1000,1000,1000],...
-  [20,20,20],...
+  [150,150,150],...
   [900,900,900]);
 
 disp('running data through rangeQC filter');
@@ -64,30 +64,60 @@ for k = 1:length(sample_data.parameters)
   c = cal_data.parameters(k);
   fd = filtered_data.parameters(k);
   
-  outOfBounds = [find(s.data > c.max_value) find(s.data < c.min_value)];
-  
-  disp(['checking ' s.name ...
-        ' - num flags should be ' num2str(length(outOfBounds))]);
+  disp(['checking ' s.name]);
   disp(['num flags for ' s.name ' is ' num2str(length(fd.flags))]);
   
-  % first check that the number of flagged values is correct
-  if ~length(outOfBounds) == length(fd.flags)
-    error(['flagged values for ' s.name ' don''t match']);
+  % check that the filter didn't modify the data
+  if ~(sample_data.parameters(k).data == filtered_data.parameters(k).data)
+    error('filter changed the data');
   end
   
-  % for each out of bound value
-  for m = 1:length(outOfBounds)
+  % for every value
+  for m = 1:length(filtered_data.parameters(k).data)
     
-    % check that the corresponding flag is valid
-    f = fd.flags(m);
+    d = filtered_data.parameters(k).data(m);
     
-    if f.low_idx ~= outOfBounds(m) || f.high_idx ~= outOfBounds(m)
-     error('invalid flag found');
+    % if out of bounds, check that it has been flagged
+    if d < cal_data.parameters(k).min_value...
+    || d > cal_data.parameters(k).max_value
+  
+      found = 0;
+    
+      for n = 1:length(filtered_data.parameters(k).flags)
+        
+        f = filtered_data.parameters(k).flags(n);
+        
+        if m >= f.low_idx && m <= f.high_idx
+          found = 1;
+          break;
+        end
+      end
+      
+      if ~found
+        error(['out of range value (' ...
+              num2str(m) ':' num2str(d) ...
+              ' in ' filtered_data.parameters(k).name ...
+              ') has not been flagged']);
+      end
+      
+    % if within bounds, check that it has not been flagged
+    else
+      
+      for n = 1:length(filtered_data.parameters(k).flags)
+        
+        f = filtered_data.parameters(k).flags(n);
+        
+        if m >= f.low_idx && m <= f.high_idx
+        error(['within range value (' 
+              num2str(m) ':' num2str(d) 
+              ' in ' filtered_data.parameters(k).name
+              ') has been flagged']);
+          break;
+        end        
+      end
     end
-    
   end
   
   disp(['flags for ' s.name ' are valid']);
-  
   
 end

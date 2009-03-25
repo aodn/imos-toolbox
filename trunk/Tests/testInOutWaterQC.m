@@ -46,9 +46,9 @@ disp(' ');
 %
 params = {'CNDC', 'TEMP', 'PRES'};
 
-num_samples = 10;
-start_idx = 2;
-end_idx = 8;
+num_samples = 1000;
+start_idx = 95;
+end_idx = 924;
 
 [sample_data cal_data] = genTestData(...
   num_samples,...
@@ -61,14 +61,14 @@ end_idx = 8;
   [1000,1000,1000]);
 
 % call in water and out water routines
-disp(['filtering data set']);
+disp(['running data through inWaterQC and outWaterQC']);
     
 filtered_data = inWaterQC( sample_data,   cal_data);
 filtered_data = outWaterQC(filtered_data, cal_data);
 
 % verify that they did their jobs
 
-disp('verifying filtered data set');
+disp('checking flags');
 
 % check each parameter
 for k = 1:length(filtered_data.parameters)
@@ -78,7 +78,7 @@ for k = 1:length(filtered_data.parameters)
   if length(filtered_data.parameters(k).flags) ~= 2
     
     error(...
-      ['filtered data vector (' ...
+      ['number of flags (' ...
         filtered_data.parameters(k).name...
         ') is invalid']);
   end
@@ -90,13 +90,13 @@ for k = 1:length(filtered_data.parameters)
      filtered_data.parameters(k).flags(2).high_index ~= num_samples
    
     error(...
-      ['filtered data vector (' ...
+      ['flag values (' ...
         filtered_data.parameters(k).name...
-        ') is invalid']);
+        ') are invalid']);
    
   end
     
 end
 
-disp('filtered data set is valid');
+disp('flags are valid');
 
