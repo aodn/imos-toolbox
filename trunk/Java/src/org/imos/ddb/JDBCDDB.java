@@ -53,7 +53,7 @@ import java.util.List;
  * 
  * @see http://java.sun.com/javase/6/docs/technotes/guides/jdbc/bridge.html
  */
-class JDBCDDB extends DDB {
+public class JDBCDDB extends DDB {
   
   /**The ODBC database name*/
   private final String dbName;

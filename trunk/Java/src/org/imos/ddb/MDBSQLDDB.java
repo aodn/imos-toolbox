@@ -53,14 +53,11 @@ import java.util.List;
  * 
  * @see http://mdbtools.sourceforge.net/install/book1.htm
  */
-class MDBSQLDDB extends DDB {
+public class MDBSQLDDB extends DDB {
   
   /*load the .so file */
   static {
-    System.load(
-      System.getProperty("user.dir") + 
-      File.separator + 
-      "libmdbsql_wrapper.so");
+    System.loadLibrary("mdbsql_wrapper");
   }
   
   /**File name of the access DB - set in the constructor.*/
