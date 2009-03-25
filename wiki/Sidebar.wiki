@@ -10,5 +10,6 @@
  * Specifications
    * [MFileTemplate]
    * DataStructures
+   * DeploymentDatabase
    * [AutoQCSpecification]
    * ParserSpecification
