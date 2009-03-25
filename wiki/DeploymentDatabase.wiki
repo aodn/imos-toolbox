@@ -88,8 +88,10 @@ To build, run the following from  the `Java` subdirectory:
 {{{
 ant clean
 ant compile
-ant test
+ant test -D[imos-ddb]
 }}}
+
+where `[imos-ddb]` is the deployment database ODBC DSN (under Windows), or the deployment database filename (under Linux).
 
 If the test succeeded, you should see a whole lot of output of some random entries from the DDB.
 
@@ -112,9 +114,9 @@ SQLRETURN SQL_API SQLGetInfo(
 }
 }}}
 
-There are a lot more functions like this as well. So the problem is not caused by a 'bug', so to speak; rather, it is caused by the fact that the mdbtools ODBC driver is incomplete.
+There are a lot more functions like this as well. So the problem is not caused by a 'bug' so to speak; rather, it is caused by the fact that the mdbtools ODBC driver is incomplete.
 
-To get around this problem, I decided to write an interface, `libmdbsql_wrapper` to the mdbtools API, and use JNI to call that interface, essentially providing direct access to the MS Access file. This seems to work quite nicely. To build the interface, run the following from the `Java/mdbsql` subdirectory. Check the Makefile to ensure that the `JAVA_HOME` variable is valid on your system, otherwise it won't compile:
+To get around this problem, I decided to write an interface, `libmdbsql_wrapper` which talks directly to the mdbtools API, and use JNI to call that interface, essentially providing direct access to the MS Access file. This seems to work quite nicely. To build the interface, run the following from the `Java/mdbsql` subdirectory. Check the Makefile to ensure that the `JAVA_HOME` variable is valid on your system, otherwise it won't compile:
 {{{
 make clean
 make
