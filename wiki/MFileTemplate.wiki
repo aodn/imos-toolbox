@@ -8,6 +8,25 @@ All Matlab files should conform to the template listed below. Some other convent
  * No tabs - use 2 space indenting
 
 {{{
+function return_types = function_name( input_args )
+%FUNCTIONNAME one line description of function
+%
+% Detailed description of function
+%
+% Inputs:
+%   input_arg1 - description of input arg
+%
+%   input_arg2 - description of input arg
+%
+%   ...
+%
+% Outputs:
+%   output_arg1 - description of output arg
+%
+%   output_arg2 - description of output arg
+%
+% Author: author name <author email>
+%
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -36,25 +55,5 @@ All Matlab files should conform to the template listed below. Some other convent
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
-%
-
-function return_types = function_name( input_args )
-%FUNCTIONNAME one line description of function
-%
-% Detailed description of function
-%
-% Inputs:
-%   input_arg1 - description of input arg
-%
-%   input_arg2 - description of input arg
-%
-%   ...
-%
-% Outputs:
-%   output_arg1 - description of output arg
-%
-%   output_arg2 - description of output arg
-%
-% Author: author name <author email>
 %
 }}}
