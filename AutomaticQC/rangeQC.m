@@ -59,22 +59,37 @@ for k = 1:length(sample_data.parameters)
   tooHigh = find(p.data > cal_data.parameters(k).max_value);
   tooLow  = find(p.data < cal_data.parameters(k).min_value);
   
-  % flag all of the out-of-range values
-  for m = 1:length(tooHigh)
-    
-    sample_data.parameters(k).flags(end+1).low_idx = tooHigh(m);
-    sample_data.parameters(k).flags(end).high_idx  = tooHigh(m);
-    sample_data.parameters(k).flags(end).flag      = flag;
-    sample_data.parameters(k).flags(end).comment   = 'out of range - too high';
-    
-  end
+  % do them in a loop - avoid code duplication
+  indexSets = {tooHigh, tooLow};
+  comments  = {'out of range - too high', 'out of range - too low'};
   
-  for m = 1:length(tooLow)
+  for m = 1:length(indexSets)
     
-    sample_data.parameters(k).flags(end+1).low_idx = tooLow(m);
-    sample_data.parameters(k).flags(end).high_idx  = tooLow(m);
-    sample_data.parameters(k).flags(end).flag      = flag;
-    sample_data.parameters(k).flags(end).comment   = 'out of range - too low';
+    indices = indexSets{m};
+  
+    % flag all of the out-of-range values
+    for n = 1:length(indices)
     
+      %
+      % merge consecutive out of range indices into a single flag
+      %
+      if ~isempty(sample_data.parameters(k).flags) ...
+      && sample_data.parameters(k).flags(end).high_idx == indices(n) - 1 ...
+      && sample_data.parameters(k).flags(end).flag     == flag ...
+      && n > 1 % avoid merging a too-low index into a too-high flag
+      
+        sample_data.parameters(k).flags(end).high_idx = indices(n);
+        continue;
+      end
+
+      %
+      % if not consecutive, create a new flag
+      %
+      sample_data.parameters(k).flags(end+1).low_idx = indices(n);
+      sample_data.parameters(k).flags(end).high_idx  = indices(n);
+      sample_data.parameters(k).flags(end).flag      = flag;
+      sample_data.parameters(k).flags(end).comment   = comments{m};
+
+    end
   end
 end
