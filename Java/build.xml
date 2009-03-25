@@ -45,7 +45,7 @@
 	  description="--> Runs a test case - pass
 		the name of the database like so: 'ant run -Dddb='imos-ddb'">
 		
-		<java classname="org.imos.ddb.Test" classpathref="classpath">
+    <java classname="org.imos.ddb.Test" classpathref="classpath" fork="true" dir="${targetdir}">
 			<arg value="${ddb}"/>
 		</java>
 		
