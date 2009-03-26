@@ -1,4 +1,5 @@
 #summary How to set up a TortoiseSVN client for Windows.
+#labels Support
 
 = Introduction =
 
