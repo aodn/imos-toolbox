@@ -19,9 +19,10 @@ Filter procedures should not add/remove data; rather, they should simply flag re
 
 All auto-QC filter functions must adhere to the following format:
 
- `function sample_data = nameQC ( sample_data, cal_data )`
+ `function sample_data = nameQC ( sample_data, cal_data, varargin )`
 
 where:
  * `cal_data` is a struct containing calibration and metadata information.
  * `sample_data` is a struct containing the data set. Because this is both an input and output parameter, this implies that filter functions are able to modify the data set which is passed in.
+ * `varargin` is a set of configuration parameters for the filter. If the filter has no parameters, this argument may be omitted. If the filter does have parameters, the filter *must* be able to be called without specifying any parameters, i.e. all of the parameters must be optional.
  
