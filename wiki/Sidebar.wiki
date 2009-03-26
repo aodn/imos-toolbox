@@ -13,4 +13,6 @@
    * DeploymentDatabase
    * [AutoQCSpecification]
    * ParserSpecification
+ * Help
+   * tortoiseSVN
  
