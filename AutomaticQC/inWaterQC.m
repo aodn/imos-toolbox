@@ -8,9 +8,9 @@ function sample_data = inWaterQC( sample_data, cal_data )
 %
 % Inputs:
 %   sample_data - struct containing a vector of parameter structs, which in
-%   turn contain the data.
+%                 turn contain the data.
 %
-%   cal_data - struct which contains the in water time.
+%   cal_data    - struct which contains the in water time.
 %
 % Outputs:
 %   sample_data - same as input, with in water samples flagged.
@@ -46,6 +46,10 @@ function sample_data = inWaterQC( sample_data, cal_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+
+error(nargchk(2, 2, nargin));
+if ~isstruct(sample_data), error('sample_data must be a struct'); end
+if ~isstruct(cal_data),    error('cal_data must be a struct');    end
 
 % index of first sample which was taken in water
 start = 0;

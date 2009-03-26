@@ -7,10 +7,10 @@ function sample_data = rangeQC ( sample_data, cal_data )
 %
 % Inputs:
 %   sample_data - struct containing a vector of parameter structs, which in
-%   turn contain the data.
+%                 turn contain the data.
 %
-%   cal_data - struct which contains the max_value and min_value fields for 
-%              each parameter, and the qc_set in use.
+%   cal_data    - struct which contains the max_value and min_value fields for 
+%                 each parameter, and the qc_set in use.
 %
 % Outputs:
 %   sample_data - same as input, with flags added for out of range data.
@@ -46,6 +46,10 @@ function sample_data = rangeQC ( sample_data, cal_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+
+error(nargchk(2, 2, nargin));
+if ~isstruct(sample_data), error('sample_data must be a struct'); end
+if ~isstruct(cal_data),    error('cal_data must be a struct');    end
 
 % get the flag value with which we flag out of range data
 flag = imosQCFlag('bound', cal_data.qc_set);

@@ -12,12 +12,12 @@ function [ standard_name uom ] = imosParameters( short_name )
 % the standard_name is set to the given short_name, and uom is left empty.
 %
 % Inputs:
-%   short_name - the IMOS parameter name
+%   short_name    - the IMOS parameter name
 %
 % Outputs:
 %   standard_name - the IMOS standard name for the parameter
 %
-%   uom - Units of measurement
+%   uom           - Units of measurement
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
