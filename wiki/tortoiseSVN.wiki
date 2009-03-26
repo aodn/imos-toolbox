@@ -2,10 +2,21 @@
 
 = Introduction =
 
-Add your content here.
+This project Subversion (SVN) as a version control system. To download source code and commit your own changes you will need to install a SVN client on your local computer. There are several of these available, this guide should get you up and running with TortoiseSVN which is freely available under the GNU General Public Licence. 
+
+= Details =
+
+1. Download TortoiseSVN installer from http://tortoisesvn.net/downloads
+
+2. Run the installer then restart your PC
+
+3. 
+
 
 
 = Details =
+
+
 
 Add your content here.  Format your content with:
   * Text in *bold* or _italic_
