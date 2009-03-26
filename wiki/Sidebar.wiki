@@ -14,4 +14,4 @@
    * [AutoQCSpecification]
    * ParserSpecification
  * Help
-   * HowToSetUpTortoiseSVN
+   * TortoiseSVN
