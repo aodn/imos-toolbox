@@ -8,9 +8,10 @@ function sample_data = outWaterQC( sample_data, cal_data )
 %
 % Inputs:
 %   sample_data - struct containing a vector of parameter structs, which in
-%   turn contain the data.
+%                 turn contain the data.
 %
-%   cal_data - struct which contains the out water time, and the qc set in use.
+%   cal_data    - struct which contains the out water time, and the qc set in 
+%                 use.
 %
 % Outputs:
 %   sample_data - same as input, with out water samples flagged.
@@ -46,6 +47,10 @@ function sample_data = outWaterQC( sample_data, cal_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+
+error(nargchk(2, 2, nargin));
+if ~isstruct(sample_data), error('sample_data must be a struct'); end
+if ~isstruct(cal_data),    error('cal_data must be a struct');    end
 
 % start index of samples which were taken out of water
 start = 0;
