@@ -2,7 +2,7 @@
 
 = Introduction =
 
-This project Subversion (SVN) as a version control system. To download source code and commit your own changes you will need to install a SVN client on your local computer. There are several of these available, this guide should get you up and running with TortoiseSVN which is freely available under the GNU General Public Licence. 
+This project uses Subversion (SVN) as a version control system. To ensure that you are using the latest source code you will need to install a SVN client on your local computer. This is also necessary for members who want to commit their own changes to the code. There are several of these available, this guide should get you up and running with TortoiseSVN which is freely available under the GNU General Public Licence. TortoiseSVN integrates with Windows explorer so theres no command line interface necessary.
 
 = Details =
 
@@ -10,15 +10,23 @@ This project Subversion (SVN) as a version control system. To download source co
 
 2. Run the installer then restart your PC
 
-3. 
+3. Sign in to Google Code. Go to Profile->Settings. Take a note of this password. This is distinct from the password you sign in with.
 
+4. Select or create a directory that you want to check out the source code to.
+   Right click and select TortoiseSVN->Checkout.
 
+5. A dialoge box will ask you for the URL of the repository. 
+   Enter
+   https://imos-toolbox.googlecode.com/svn/trunk/
 
-= Details =
+   [if you're not a project member you can check out anonomously - replace https with http]
 
+6. Leave checkout depth as 'fully recursive' if you want the whole toolbox. Hit OK.
 
+7. You'll be asked for authentication. Enter your google username and the password from step 3.
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+8. You should now have a local version of the toolbox. A little green tick is added to the folder icon to show that it a fresh checked out version.
+
+9. Periodically you should update your local version to get the latest changes. To do this, right click on your directory and select SVN Update.
+
+10. This is just a quick start guide. You can upload any changes you make to the code using SVN commit, but if you are not familar with SVN please refer to the manual before attempting this.
