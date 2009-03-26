@@ -16,10 +16,8 @@ This project uses Subversion (SVN) as a version control system. To ensure that y
    Right click and select TortoiseSVN->Checkout.
 
 5. A dialoge box will ask you for the URL of the repository. 
-   Enter
-   https://imos-toolbox.googlecode.com/svn/trunk/
-
-   [if you're not a project member you can check out anonomously - replace https with http]
+   Enter https://imos-toolbox.googlecode.com/svn/trunk/
+   (if you're not a project member you can check out anonomously - replace https with http)
 
 6. Leave checkout depth as 'fully recursive' if you want the whole toolbox. Hit OK.
 
