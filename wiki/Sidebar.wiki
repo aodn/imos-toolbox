@@ -13,3 +13,5 @@
    * DeploymentDatabase
    * [AutoQCSpecification]
    * ParserSpecification
+ * Help
+   * HowToSetUpTortoiseSVN
