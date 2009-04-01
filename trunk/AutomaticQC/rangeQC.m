@@ -17,6 +17,7 @@ function sample_data = rangeQC ( sample_data, cal_data )
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
+
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
