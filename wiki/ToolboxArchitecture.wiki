@@ -4,3 +4,22 @@
 This diagram provides a high level view of the Toolbox architecture and the normal execution flow.
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/imos_flow.png
+
+
+This diagram shows the program structure.
+
+The *Flow Manager* controls program flow, for example, ensuring that the user cannot apply manual QC procedures before running automatic QC procedures.
+
+The *Parser* module imports data from raw instrument files.
+
+The *Display Manager* manages data visualisation.
+
+The *Process Manager* manages transitions between data process levels (i.e. raw, auto-QC'd, manual-QC'd etc.).
+
+The *Automatic QC* module provides procedures for automatic flagging of suspect data.
+
+The *Manual QC* module provides procedures allowing the user to manually flag/correct suspect data.
+
+The *NetCDF Exporter* exports data to IMOS compliant NetCDF files.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/imos_system_arch.png
