@@ -1,10 +1,17 @@
-#summary High level Toolbox system architecture diagram
+#summary High level Toolbox system architecture diagrams
 #labels Design
+
+<wiki:toc/>
+
+= IMOS Toolbox System Architecture = 
+
+== System Flow ==
 
 This diagram provides a high level view of the Toolbox architecture and the normal execution flow.
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/imos_flow.png
 
+== System Architecture ==
 
 This diagram shows the program structure.
 
