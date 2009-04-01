@@ -27,6 +27,7 @@ function return_types = function_name( input_args )
 %
 % Author: author name <author email>
 %
+
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
