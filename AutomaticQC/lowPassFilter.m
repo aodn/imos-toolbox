@@ -21,6 +21,7 @@ function lpf = lowPassFilter (data, alpha)
 % http://en.wikipedia.org/wiki/Wikipedia:Text_of_the_GNU_Free_Documentation_Lic
 % ense.
 %
+
 % 
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).

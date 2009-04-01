@@ -82,6 +82,7 @@ function [sample_data cal_data] = SBE3x( filename )
 % See http://www.seabird.com/products/ModelList.htm for a list of SBE variants 
 % and manuals for each.
 %
+
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
