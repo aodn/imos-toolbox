@@ -88,7 +88,7 @@ To build, run the following from  the `Java` subdirectory:
 {{{
 ant clean
 ant compile
-ant test -D[imos-ddb]
+ant test -Dddb=[imos-ddb]
 }}}
 
 where `[imos-ddb]` is the deployment database ODBC DSN (under Windows), or the deployment database filename (under Linux).
