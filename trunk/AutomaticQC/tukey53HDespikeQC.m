@@ -15,7 +15,7 @@ function [sample_data hipa u3arr delt] = tukey53HDespikeQC( sample_data, cal_dat
 %                 each parameter, and the qc_set in use.
 %
 %   'k_param'   - Filter threshold (see the journal article). If not provided,
-%                 a default value of XXX is used.
+%                 a default value of 1.5 is used.
 %
 % Outputs:
 %   sample_data - same as input, with flags added for out of range data.
@@ -58,7 +58,7 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isstruct(cal_data),    error('cal_data must be a struct');    end
 
 p = inputParser;
-p.addOptional('k_param', 1.3, @isnumeric);
+p.addOptional('k_param', 1.5, @isnumeric);
 
 p.parse(varargin{:});
 

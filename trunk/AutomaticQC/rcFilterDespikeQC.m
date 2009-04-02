@@ -17,7 +17,7 @@ function sample_data = rcFilterDespikeQC( sample_data, cal_data, varargin )
 %                 each parameter, and the qc_set in use.
 %
 %   'k_param'   - Filter parameter (see the journal article). If not provided,
-%                 a default value of 20 is used.
+%                 a default value of 3 is used.
 %
 % Outputs:
 %   sample_data - same as input, with flags added for out of range data.
@@ -60,7 +60,7 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isstruct(cal_data),    error('cal_data must be a struct');    end
 
 p = inputParser;
-p.addOptional('k_param', 0.4, @isnumeric);
+p.addOptional('k_param', 3, @isnumeric);
 
 p.parse(varargin{:});
 
