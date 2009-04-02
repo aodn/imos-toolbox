@@ -60,7 +60,7 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isstruct(cal_data),    error('cal_data must be a struct');    end
 
 p = inputParser;
-p.addOptional('k_param', 20, @isnumeric);
+p.addOptional('k_param', 0.4, @isnumeric);
 
 p.parse(varargin{:});
 

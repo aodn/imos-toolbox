@@ -1,4 +1,4 @@
-function sample_data = tukey53HDespikeQC( sample_data, cal_data, varargin )
+function [sample_data hipa u3arr delt] = tukey53HDespikeQC( sample_data, cal_data, varargin )
 %TUKEY53HDESPIKEQC Detects spikes in the given data using the Tukey 53H method.
 %
 % Detects spikes in the given data using the Tukey 53H method, as described in
@@ -58,7 +58,7 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isstruct(cal_data),    error('cal_data must be a struct');    end
 
 p = inputParser;
-p.addOptional('k_param', 0.5, @isnumeric);
+p.addOptional('k_param', 1.3, @isnumeric);
 
 p.parse(varargin{:});
 
@@ -87,7 +87,7 @@ for k = 1:length(sample_data.parameters)
     
     u3 = 0.25 * (u2(1) + 2*u2(2) + u2(3));
     
-    delta = abs(data(k) - u3);
+    delta = abs(data(m) - u3);
     
     if delta > k_param * stddev
       
