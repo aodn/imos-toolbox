@@ -11,6 +11,7 @@
    * [MFileTemplate]
    * DataStructures
    * DeploymentDatabase
+   * TestSpecification
    * [AutoQCSpecification]
    * ParserSpecification
  * Help
