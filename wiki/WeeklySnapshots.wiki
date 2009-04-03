@@ -11,13 +11,13 @@ As of the 3rd of April, 2009, weekly snapshots of the Toolbox codebase will be a
 
 The snapshots are zip files which contain the contents of the SVN `trunk` directory, minus the `Tests/sample_data` directory. 
 
-The Java files (and the Linux `libmdbsql_wrapper` library) are automatically compiled when the snapshot file is created, so there is no need to do any compilation. If, during the week, a bug has been introduced into the Java/C code causing compilation to fail, that week's snapshot will simply not contain the binaries.
+The Java files (and the Linux `libmdbsql_wrapper` library) are automatically compiled when the snapshot file is created, so there is no need to do any compilation. If, during the week, a bug has been introduced into the Java/C code, causing compilation to fail, that week's snapshot will simply not contain the binaries.
 
 == Technical details ==
 
 The snapshots are created on a server in Hobart, called `wharfie`, which runs Ubuntu 8.04 (x86). Snapshot creation is triggered by a weekly cronjob, which executes the simple python script listed below. This script exports the SVN trunk, compiles the Java files, creates the archive, and then calls another python script which uploads the file to the project website. This upload script is conveniently provided by [http://code.google.com/p/support/wiki/ScriptedUploads Google Code].
 
-Compilation software is as follows:
+The Java/C code is compiled with the following:
  * Sun Java SDK 1.5.0_18
  * gcc 4.2.4
  * mdbtools-dev 0.5.99.06pre1.0.20051109-4
