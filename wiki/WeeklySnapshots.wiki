@@ -18,7 +18,7 @@ The Java files (and the Linux `libmdbsql_wrapper` library) are automatically com
 The snapshots are created on a server in Hobart, called `wharfie`, which runs Ubuntu 8.04 (x86). Snapshot creation is triggered by a weekly cronjob, which executes the simple python script listed below. This script exports the SVN trunk, compiles the Java files, creates the archive, and then calls another python script which uploads the file to the project website. This upload script is conveniently provided by [http://code.google.com/p/support/wiki/ScriptedUploads Google Code].
 
 Compilation software is as follows:
- * Sun Java SDK 1.6.0_07
+ * Sun Java SDK 1.5.0_18
  * gcc 4.2.4
  * mdbtools-dev 0.5.99.06pre1.0.20051109-4
 
@@ -37,9 +37,18 @@ import time
 lt = time.localtime()
 at = time.asctime()
 
+# imos-toolbox specific
+# add java 5.0 at the front of the path, and set the 
+jhome = '%s/jdk1.5.0_18' % os.getcwd()
+jpath = '%s/bin:%s/jre/bin' % (jhome,jhome)
+
+os.environ['PATH'] = '%s:%s' % (jpath, os.environ['PATH'])
+os.environ['JAVA_HOME'] = jhome
+# imos-toolbox specific
+
 project  = 'imos-toolbox'
 username = 'pauld.mccarthy'
-password = '[my_google_password]'
+password = 'yQ9SM2MH7qm8'
 summary  = 'IMOS Toolbox SVN snapshot from %s' % at 
 
 url      = 'http://%s.googlecode.com/svn/trunk' % project
@@ -81,4 +90,5 @@ os.system(cmd)
 print('\n--removing local SVN tree and archive')
 os.system('rm -rf %s' % project)
 os.system('rm %s' % archive)
+
 }}}
