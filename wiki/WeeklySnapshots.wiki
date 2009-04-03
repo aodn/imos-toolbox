@@ -48,7 +48,7 @@ os.environ['JAVA_HOME'] = jhome
 
 project  = 'imos-toolbox'
 username = 'pauld.mccarthy'
-password = 'yQ9SM2MH7qm8'
+password = '[my google code password]'
 summary  = 'IMOS Toolbox SVN snapshot from %s' % at 
 
 url      = 'http://%s.googlecode.com/svn/trunk' % project
