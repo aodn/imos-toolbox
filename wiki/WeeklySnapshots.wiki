@@ -1,0 +1,84 @@
+#summary Weekly SVN snapshots
+#labels Featured,Support
+
+<wiki:toc/>
+
+= Weekly SVN Snapshots =
+
+As of the 3rd of April, 2009, weekly snapshots of the Toolbox codebase will be available from the [Downloads] page. The snapshots are created every Friday at 18:00 (AEST).
+
+== File format and contents ==
+
+The snapshots are zip files which contain the contents of the SVN `trunk` directory, minus the `Tests/sample_data` directory. 
+
+The Java files (and the Linux `libmdbsql_wrapper` library) are automatically compiled when the snapshot file is created, so there is no need to do any compilation. If, during the week, a bug has been introduced into the Java/C code causing compilation to fail, that week's snapshot will simply not contain the binaries.
+
+== Technical details ==
+
+The snapshots are created on a server in Hobart, called `wharfie`, which runs Ubuntu 8.04 (x86). Snapshot creation is triggered by a weekly cronjob, which executes the simple python script listed below. This script exports the SVN trunk, compiles the Java files, creates the archive, and then calls another python script which uploads the file to the project website. This upload script is conveniently provided by [http://code.google.com/p/support/wiki/ScriptedUploads Google Code].
+
+Compilation software is as follows:
+ * Sun Java SDK 1.6.0_07
+ * gcc 4.2.4
+ * mdbtools-dev 0.5.99.06pre1.0.20051109-4
+
+=== Submission script ===
+
+{{{
+#!/usr/bin/python
+
+import os
+import sys
+import time
+
+# Exports a google project from SVN, archives it, and submits it back 
+# to the project as a file download. Useful for nightly/weekly snapshots.
+
+lt = time.localtime()
+at = time.asctime()
+
+project  = 'imos-toolbox'
+username = 'pauld.mccarthy'
+password = '[my_google_password]'
+summary  = 'IMOS Toolbox SVN snapshot from %s' % at 
+
+url      = 'http://%s.googlecode.com/svn/trunk' % project
+path     = '%s' % project
+archive  = '%04i-%02i-%02i_weekly.zip' % (lt[0], lt[1], lt[2])
+labels   = 'Type-Snapshot'
+
+print('\n--exporting tree from %s to %s' % (url, path))
+os.system('svn export %s %s' % (url, path))
+
+
+# imos-toolbox specific
+print('\n--removing test sample data')
+os.system('rm -rf %s/Tests/sample_data' % path)
+
+print('\n--building DDB interface')
+compiled = os.system('cd %s/Java && ant compile' % path)
+
+if compiled is not 0:
+  print('\n--DDB interface compilation failed - cleaning')
+  os.system('cd %s/Java && ant clean' % path)
+# imos-toolbox specific
+
+
+print('\n--archiving SVN tree')
+os.system('zip -r %s %s/' % (archive, path))
+
+print('\n--submitting archive to google')
+cmd = './googlecode_upload.py'
+cmd = ' %s -s \'%s\'' % (cmd,summary)
+cmd = ' %s -p %s' %     (cmd,project)
+cmd = ' %s -u %s' %     (cmd,username)
+cmd = ' %s -w %s' %     (cmd,password)
+cmd = ' %s -l \'%s\'' % (cmd,labels)
+cmd = ' %s %s'        % (cmd,archive)
+
+os.system(cmd)
+
+print('\n--removing local SVN tree and archive')
+os.system('rm -rf %s' % project)
+os.system('rm %s' % archive)
+}}}
