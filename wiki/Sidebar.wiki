@@ -15,5 +15,6 @@
    * [AutoQCSpecification]
    * ParserSpecification
  * Help
+   * WeeklySnapshots
    * [tortoiseSVN]
  
