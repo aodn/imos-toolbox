@@ -5,7 +5,7 @@
 
 = Weekly SVN Snapshots =
 
-As of the 3rd of April, 2009, weekly snapshots of the Toolbox codebase will be available from the [Downloads] page. The snapshots are created every Friday at 18:00 (AEST).
+As of the 3rd of April, 2009, weekly snapshots of the Toolbox codebase will be available from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. The snapshots are created every Friday at 18:00 (AEST).
 
 == File format and contents ==
 
