@@ -4,12 +4,12 @@
 
 The IMOS NetCDF File Naming Convention (v1.1) defines five data process levels:
 
-||*Level*||*File Version*||*Brief Description*||*Detailed Description*||
-||0||FV00||Raw Data||Raw data is defined as unprocessed data and data products that have not undergone quality control. The data may be in engineering units or physical units, time and locations details can be in relative units and values can be pre-calibration measurements. Level 0 data is not suitable for public access within IMOS.||
-||1||FV01||Quality Controlled Data||Quality controlled data have passed quality assurance procedures such as routine estimation of timing and sensor calibration or visual inspection and removal of obvious errors. The data are in physical units using standard SI metric units with calibration and other routine pre-processing applied, all time and location values are in absolute coordinates to agreed to standards and datum, metadata exists for the data or for the higher level dataset that the data belongs to. This is the standard IMOS data level and is what should be made available to eMII and to the IMOS community.||
-||2||FV02||Derived Products||Derived products require scientific and technical interpretation. Normally these will be defined by the community that collects or utilises the data.||
-||3||FV03||Interpreted Products||These products require researcher driven analysis and interpretation, model based interpretation using other data and / or strong prior assumptions.||
-||4||FV04||Knowledge Products||These products require researcrher driven scientific interpretation and multidisciplinary data integration and include model-based interpretation using other data and / or strong prior assumptions.||
+|| *Level* || *File Version* || *Brief Description* || *Detailed Description* ||
+|| 0 || FV00 || Raw Data || Raw data is defined as unprocessed data and data products that have not undergone quality control. The data may be in engineering units or physical units, time and locations details can be in relative units and values can be pre-calibration measurements. Level 0 data is not suitable for public access within IMOS. ||
+|| 1 || FV01 || Quality Controlled Data||Quality controlled data have passed quality assurance procedures such as routine estimation of timing and sensor calibration or visual inspection and removal of obvious errors. The data are in physical units using standard SI metric units with calibration and other routine pre-processing applied, all time and location values are in absolute coordinates to agreed to standards and datum, metadata exists for the data or for the higher level dataset that the data belongs to. This is the standard IMOS data level and is what should be made available to eMII and to the IMOS community. ||
+|| 2 || FV02 || Derived Products || Derived products require scientific and technical interpretation. Normally these will be defined by the community that collects or utilises the data. ||
+|| 3 || FV03 || Interpreted Products || These products require researcher driven analysis and interpretation, model based interpretation using other data and / or strong prior assumptions. ||
+|| 4 || FV04 || Knowledge Products || These products require researcrher driven scientific interpretation and multidisciplinary data integration and include model-based interpretation using other data and / or strong prior assumptions. ||
 
 One NetCDF file will only contain one process level. This means that the output from processing a data set could consist of up to five NetCDF files.
 
