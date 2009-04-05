@@ -20,7 +20,7 @@ function sample_data = rcFilterDespikeQC( sample_data, cal_data, varargin )
 %                 a default value of 3 is used.
 %
 % Outputs:
-%   sample_data - same as input, with flags added for out of range data.
+%   sample_data - same as input, with flags added for data spikes.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %

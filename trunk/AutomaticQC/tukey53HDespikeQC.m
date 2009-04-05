@@ -18,7 +18,7 @@ function [sample_data hipa u3arr delt] = tukey53HDespikeQC( sample_data, cal_dat
 %                 a default value of 1.5 is used.
 %
 % Outputs:
-%   sample_data - same as input, with flags added for out of range data.
+%   sample_data - same as input, with flags added for data spikes.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
