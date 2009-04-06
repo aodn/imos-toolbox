@@ -3,7 +3,7 @@ function testInOutWaterQC()
 %
 % Creates a dummy set of sample data, passes it through the inWaterQC
 % and outWaterQC routines, and verifies that the in/out of water samples 
-% were flagged.
+% were removed.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -69,35 +69,24 @@ filtered_data = outWaterQC(filtered_data, cal_data);
 
 % verify that they did their jobs
 
-disp('checking flags');
+disp('checking filtered data sets');
+
+disp(['time dim length: ' num2str(length(filtered_data.time))]);
 
 % check each parameter
 for k = 1:length(filtered_data.parameters)
   
-  % there should be only 2 flags - one for in 
-  % water range, one for out water range
-  if length(filtered_data.parameters(k).flags) ~= 2
-    
-    error(...
-      ['number of flags (' ...
-        filtered_data.parameters(k).name...
-        ') is invalid']);
+  orig = sample_data.parameters(k).data;
+  filt = filtered_data.parameters(k).data;
+  
+  disp([filtered_data.parameters(k).name ...
+      ' filtered set length: ' num2str(length(filt))]);
+  
+  if filt ~= orig(start_idx:end_idx)
+    error('data has not been filtered correctly');
   end
   
-  % check that flag ranges are correct
-  if filtered_data.parameters(k).flags(1).low_index  ~= 1         ||...
-     filtered_data.parameters(k).flags(1).high_index ~= start_idx ||...
-     filtered_data.parameters(k).flags(2).low_index  ~= end_idx   ||...
-     filtered_data.parameters(k).flags(2).high_index ~= num_samples
-   
-    error(...
-      ['flag values (' ...
-        filtered_data.parameters(k).name...
-        ') are invalid']);
-   
-  end
-    
 end
 
-disp('flags are valid');
+disp('filtered data sets are valid');
 
