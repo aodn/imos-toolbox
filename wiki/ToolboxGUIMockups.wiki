@@ -40,7 +40,7 @@ At any time, the user is able to view the metadata associated with the data set.
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_auto_qc.png
 
-When the user clicks on the 'Raw' button in the navigation pane, he/she will be presented with the dialog above, allowing them to select which automatic QC procedures to execute over the data. The intent is that there will be a standard set of auto-QC procedures, so unless there is a special reason for customisation, the user will simply need to click the 'Apply' button. 
+When the user clicks on the 'Auto QC' button in the navigation pane, he/she will be presented with the dialog above, allowing them to select which automatic QC procedures to execute over the data. The intent is that there will be a standard set of auto-QC procedures, so unless there is a special reason for customisation, the user will simply need to click the 'Apply' button. 
 
 = Manual QC process =
 
