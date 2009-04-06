@@ -13,7 +13,7 @@ For example, the range checking filter file is titled `rangeQC.m`, and the funct
 
 When a filter is executed, it is passed the entire data set. An alternate design would be to stream individual samples (or blocks of samples) through the filter chain, but I do'nt believe that this would provide much of a performance benefit, and would not be appropriate for some types of filter (e.g. in/out of water removal).
 
-Filter procedures should not add/remove data; rather, they should simply flag regions of data which do not pass through the filter (see the [DataStructures data structures spec] for information on flagged data).
+Filter procedures are able to modify/remove data, or simply flag regions of data which do not pass through the filter (see the [DataStructures data structures spec] for information on flagged data).
 
 == Function format ==
 
@@ -23,6 +23,6 @@ All auto-QC filter functions must adhere to the following format:
 
 where:
  * `cal_data` is a struct containing calibration and metadata information.
- * `sample_data` is a struct containing the data set. Because this is both an input and output parameter, this implies that filter functions are able to modify the data set which is passed in.
+ * `sample_data` is a struct containing the data set. Because this is both an input and output parameter, this implies that filter functions are able to modify the data set which is passed in. 
  * `varargin` is a set of configuration parameters for the filter. If the filter has no parameters, this argument may be omitted. If the filter does have parameters, the filter *must* be able to be called without specifying any parameters, i.e. all of the parameters must be optional.
  
