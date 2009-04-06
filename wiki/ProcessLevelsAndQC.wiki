@@ -1,5 +1,7 @@
 #summary Thoughts on Process Levels and Quality Control
 
+<wiki:toc/>
+
 = Process Levels =
 
 The IMOS NetCDF File Naming Convention (v1.1) defines five data process levels:
@@ -14,3 +16,22 @@ The IMOS NetCDF File Naming Convention (v1.1) defines five data process levels:
 One NetCDF file will only contain one process level. This means that the output from processing a data set could consist of up to five NetCDF files.
 
 The IMOS Toolbox produces data to fit within the first two levels - raw and QC'd data. Raw (level 0) data is that which has been retrieved directly from the instrument(s). QC-d (level 1) data is that which has been passed through automatic and manual quality control procedures.
+
+The manual and automatic quality control procedures will potentially flag, remove and/or modify data in the dataset, for example to flag outliers and to remove spikes.
+
+= Quality Control =
+
+Every data point in an IMOS NetCDF has an associated quality control flag value, which indicates the trustworthiness of the data. There are a number of different sets of QC flags which are available for use; the default IMOS set is shown below:
+|| *Flag Value* || *Meaning* || *Description* ||
+|| 0 || No QC performed || The level at which all data enter the working archive. They have not yet been quality controlled. ||
+|| 1 || Good data || Top quality data in which no malfunctions have been identified and all real features have been verified during the quality control process. ||
+|| 2 || Probably good data || Good data in which some features (probably real) are present but these are unconfirmed. Code 2 data are also data in which minor malfunctions may be present but these errors are small and / or can be successfully corrected without seriously affecting the overall quality of the data. ||
+|| 3 || Bad data that are potentially correctable || Suspect data in which unusual, and probably erroneous features are observed. ||
+|| 4 || Bad data || Obviously erroneous values are observed. ||
+|| 5 || Value Changed || Altered by a QC Centre, with original values (before the change) preserved in the history record of the profile. ||
+|| 6 || Not used || Flag 6 is reserved for future use. ||
+|| 7 || Not used || Flag 7 is reserved for future use. ||
+|| 8 || Not used || Flag 8 is reserved for future use. ||
+|| 9 || Missing Value || Indicates that the element is missing. ||
+
+Each file can contain one 'blanket' value which is relevant to every point, or each individual point can be assigned a value. For example, in a raw data file, every point will have the same QC flag, the equivalent of 0 if using the standard IMOS QC set.
