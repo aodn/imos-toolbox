@@ -11,8 +11,7 @@ function [sample_data hipa u3arr delt] = tukey53HDespikeQC( sample_data, cal_dat
 %   sample_data - struct containing a vector of parameter structs, which in
 %                 turn contain the data.
 %
-%   cal_data    - struct which contains the max_value and min_value fields for 
-%                 each parameter, and the qc_set in use.
+%   cal_data    - struct which contains calibration and metadata.
 %
 %   'k_param'   - Filter threshold (see the journal article). If not provided,
 %                 a default value of 1.5 is used.
