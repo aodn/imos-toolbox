@@ -6,6 +6,7 @@
 All Matlab files should conform to the template listed below. Some other conventions that should be followed:
 
  * No tabs - use 2 space indenting
+ * Maximum line length of 80 characters
 
 {{{
 function return_types = function_name( input_args )
