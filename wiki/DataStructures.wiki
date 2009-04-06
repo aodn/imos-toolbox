@@ -16,7 +16,7 @@ Both of these structs originate in the [ParserSpecification Parser] module, when
 
 == sample_data ==
 
-`sample_data` is a vector of structs which contain sample data. Each element in the `sample_data` vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
+`sample_data` is a row vector of structs which contain sample data. Each element in the `sample_data` vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
 
 The `sample_data` struct elements have the following structure:
  * `sample_data`: struct
