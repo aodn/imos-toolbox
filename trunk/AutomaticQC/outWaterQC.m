@@ -1,8 +1,8 @@
 function sample_data = outWaterQC( sample_data, cal_data )
-%OUTWATERQC Flags samples which were taken after the instrument was taken
+%OUTWATERQC Removes samples which were taken after the instrument was taken
 % out of the water.
 %
-% Flags all samples from the data set which have a time that is after the 
+% Removes all samples from the data set which have a time that is after the 
 % out water time. Assumes that all of these samples will be at the end of the 
 % data set.
 %
@@ -14,7 +14,7 @@ function sample_data = outWaterQC( sample_data, cal_data )
 %                 use.
 %
 % Outputs:
-%   sample_data - same as input, with out water samples flagged.
+%   sample_data - same as input, with out water samples removed.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -68,12 +68,10 @@ for k = length(sample_data.time):-1:1
   end
 end
 
-% add flags for each of the parameters
+% remove all of those samples
+sample_data.time = sample_data.time(1:start);
 for k = 1:length(sample_data.parameters)
   
-  sample_data.parameters(k).flags(end+1).low_index = start;
-  sample_data.parameters(k).flags(end).high_index  = length(sample_data.time);
-  sample_data.parameters(k).flags(end).comment     = 'taken after out of water';
-  sample_data.parameters(k).flags(end).flag        = imosQCFlag(...
-                                                     'bound', cal_data.qc_set);
+  sample_data.parameters(k).data = sample_data.parameters(k).data(1:start);
+  
 end

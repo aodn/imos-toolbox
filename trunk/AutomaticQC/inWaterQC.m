@@ -1,8 +1,8 @@
 function sample_data = inWaterQC( sample_data, cal_data )
-%INWATERQC Flags samples which were taken before the instrument was placed
+%INWATERQC Removes samples which were taken before the instrument was placed
 % in the water.
 %
-% Flags all samples from the data set which have a time that is before the 
+% Removes all samples from the data set which have a time that is before the 
 % in water time. Assumes that these samples will be at the beginning of the
 % data set.
 %
@@ -13,7 +13,7 @@ function sample_data = inWaterQC( sample_data, cal_data )
 %   cal_data    - struct which contains the in water time.
 %
 % Outputs:
-%   sample_data - same as input, with in water samples flagged.
+%   sample_data - same as input, with in water samples removed.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -67,12 +67,10 @@ for k = 1:length(sample_data.time)
   end
 end
 
-% add flags for each of the parameters
+% remove all of those samples
+sample_data.time = sample_data.time(start:end);
 for k = 1:length(sample_data.parameters)
   
-  sample_data.parameters(k).flags(end+1).low_index = 1;
-  sample_data.parameters(k).flags(end).high_index  = start;
-  sample_data.parameters(k).flags(end).comment     = 'taken before in water';
-  sample_data.parameters(k).flags(end).flag        = imosQCFlag(...
-                                                     'bound', cal_data.qc_set);
+  sample_data.parameters(k).data = sample_data.parameters(k).data(start:end);
+  
 end
