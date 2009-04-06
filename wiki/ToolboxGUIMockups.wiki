@@ -1,11 +1,11 @@
-#summary First go at the Toolbox GUI design
+#summary Rough Toolbox GUI design
 #labels Featured,Design
 
 <wiki:toc max_depth="2"/>
 
 = Overview =
 
-This document outlines initial design ideas for the Toolbox GUI. These are extremely rough sketches, and probably do just as much to highlight my ineptitude at using gimp than they do at conveying my thoughts on how the GUI will function. In particular, please do not take the colour scheme seriously; the colours were just arbitrary choices.
+This document outlines design ideas for the Toolbox GUI. These are extremely rough sketches, and probably do just as much to highlight my ineptitude at using gimp than they do at conveying my thoughts on how the GUI will function. In particular, please do not take the colour scheme seriously; the colours were just arbitrary choices.
 
 If you have any thoughts, comments, opinions or suggestions on the mockups, please feel free to add them to this page. I can provide the .xcf (gimp source) files if you wish to demonstrate any ideas you have.
 
@@ -13,20 +13,20 @@ If you have any thoughts, comments, opinions or suggestions on the mockups, plea
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_start.png
 
-This is the first screen that will be displayed to users, prompting them to provide a a directory containing input files  and a deployment identifier (the list of possible deployment identifiers is retrieved from the deployment database).
+This is the first screen that will be displayed to users, prompting them to provide a a directory containing input files  and a field trip identifier (the list of possible field trip identifiers is retrieved from the deployment database).
 
 Upon providing the requested information, the user will be presented with a simple 'Loading' dialog:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_load.png
 
-= View Level 0 Data =
+= View Raw Data =
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_level_0.png
 
 Once the data file has been loaded, the user will be presented with the main application window, which provides the ability to view the data in a number of different ways (customised to the type of data being viewed), and to further process the data.
 
 The main window consists of the following areas:
- * *Navigation Menu* Down the left is the 'navigation menu' which allows the user to proceed through the stages of data processing, from level 0 to level 3, and then generation of NetCDF files and submission to eMII. The blurring effect on some of the options indicate that those options are currently unavailable.
+ * *Navigation Menu* Down the left is the 'navigation menu' which allows the user to proceed through the stages of data processing, from raw to manual QC, and then generation of NetCDF files and submission to eMII. 
  * *View Menu* Across the top is the 'view menu' which allows the user to view the current data in a variety of different ways.
  * *Parameter Menu* At the bottom right is the 'parameter menu' which allows the user to select/deselect currently displayed parameters, and, at any time, to export the currently displayed graph as an image file.
 
@@ -40,7 +40,7 @@ At any time, the user is able to view the metadata associated with the data set.
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_auto_qc.png
 
-When the user clicks on the 'L0' button in the navigation pane, he/she will be presented with the dialog above, allowing them to select which automatic QC procedures to execute over the data. The intent is that there will be a standard set of auto-QC procedures, so unless there is a special reason for customisation, the user will simply need to click the 'Apply' button. 
+When the user clicks on the 'Raw' button in the navigation pane, he/she will be presented with the dialog above, allowing them to select which automatic QC procedures to execute over the data. The intent is that there will be a standard set of auto-QC procedures, so unless there is a special reason for customisation, the user will simply need to click the 'Apply' button. 
 
 = Manual QC process =
 
