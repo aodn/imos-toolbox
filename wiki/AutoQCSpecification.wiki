@@ -13,7 +13,7 @@ For example, the range checking filter file is titled `rangeQC.m`, and the funct
 
 When a filter is executed, it is passed the entire data set. An alternate design would be to stream individual samples (or blocks of samples) through the filter chain, but I do'nt believe that this would provide much of a performance benefit, and would not be appropriate for some types of filter (e.g. in/out of water removal).
 
-Filter procedures are able to modify/remove data, or simply flag regions of data which do not pass through the filter (see the [DataStructures data structures spec] for information on flagged data).
+Filter procedures are able to modify/remove data, or simply flag regions of data which do not pass through the filter. When a filter modifies/removes data, it should add a human readable entry to the `log` field in the `sample_data` struct, (see the [DataStructures data structures spec] for information on flagged data and log entries). 
 
 == Function format ==
 
