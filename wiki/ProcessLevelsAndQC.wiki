@@ -4,7 +4,11 @@
 
 = Process Levels =
 
-The IMOS NetCDF File Naming Convention (v1.1) defines five data process levels:
+The IMOS NetCDF File Naming Convention (v1.1) defines five data process levels, as described in the table below. One NetCDF file will only contain one process level. This means that the output from processing a data set could consist of up to five NetCDF files.
+
+The IMOS Toolbox produces data to fit only within the first two levels - raw and QC'd data. Raw (level 0) data is that which has been retrieved directly from the instrument(s). QC-d (level 1) data is that which has been passed through automatic and manual quality control procedures. The manual and automatic quality control procedures will potentially flag, remove and/or modify data in the dataset, for example to flag outliers and to remove spikes.
+
+== IMOS data process level definitions ==
 
 || *Level* || *File Version* || *Brief Description* || *Detailed Description* ||
 || 0 || FV00 || Raw Data || Raw data is defined as unprocessed data and data products that have not undergone quality control. The data may be in engineering units or physical units, time and locations details can be in relative units and values can be pre-calibration measurements. Level 0 data is not suitable for public access within IMOS. ||
@@ -13,15 +17,14 @@ The IMOS NetCDF File Naming Convention (v1.1) defines five data process levels:
 || 3 || FV03 || Interpreted Products || These products require researcher driven analysis and interpretation, model based interpretation using other data and / or strong prior assumptions. ||
 || 4 || FV04 || Knowledge Products || These products require researcrher driven scientific interpretation and multidisciplinary data integration and include model-based interpretation using other data and / or strong prior assumptions. ||
 
-One NetCDF file will only contain one process level. This means that the output from processing a data set could consist of up to five NetCDF files.
-
-The IMOS Toolbox produces data to fit within the first two levels - raw and QC'd data. Raw (level 0) data is that which has been retrieved directly from the instrument(s). QC-d (level 1) data is that which has been passed through automatic and manual quality control procedures.
-
-The manual and automatic quality control procedures will potentially flag, remove and/or modify data in the dataset, for example to flag outliers and to remove spikes.
-
 = Quality Control =
 
-Every data point in an IMOS NetCDF has an associated quality control flag value, which indicates the trustworthiness of the data. There are a number of different sets of QC flags which are available for use; the default IMOS set is shown below:
+Every data point in an IMOS NetCDF file has an associated quality control flag value which indicates the trustworthiness of the data. There are a number of different sets of QC flags which are available for use; the standard IMOS set is shown below. 
+
+A file can either contain one 'blanket' QC value which is attributed to every data point, or an individual QC value for every data point. For example, in a raw data file, every point will have the same QC flag, ('0' if using the standard IMOS QC set).
+
+== IMOS standard QC set ==
+
 || *Flag Value* || *Meaning* || *Description* ||
 || 0 || No QC performed || The level at which all data enter the working archive. They have not yet been quality controlled. ||
 || 1 || Good data || Top quality data in which no malfunctions have been identified and all real features have been verified during the quality control process. ||
@@ -33,5 +36,3 @@ Every data point in an IMOS NetCDF has an associated quality control flag value,
 || 7 || Not used || Flag 7 is reserved for future use. ||
 || 8 || Not used || Flag 8 is reserved for future use. ||
 || 9 || Missing Value || Indicates that the element is missing. ||
-
-Each file can contain one 'blanket' value which is relevant to every point, or each individual point can be assigned a value. For example, in a raw data file, every point will have the same QC flag, the equivalent of 0 if using the standard IMOS QC set.
