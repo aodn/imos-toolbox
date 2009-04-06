@@ -1,4 +1,4 @@
-function [sample_data hipa u3arr delt] = tukey53HDespikeQC( sample_data, cal_data, varargin )
+function [sample_data] = tukey53HDespikeQC( sample_data, cal_data, varargin )
 %TUKEY53HDESPIKEQC Detects spikes in the given data using the Tukey 53H method.
 %
 % Detects spikes in the given data using the Tukey 53H method, as described in
