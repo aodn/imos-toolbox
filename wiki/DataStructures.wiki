@@ -25,6 +25,7 @@ The `sample_data` struct elements have the following structure:
    * `depth`: Scalar or row vector of depth (Numeric)
    * `latitude`: Scalar or row vector of latitude (Numeric)
    * `longitude`: Scalar or row vector of longitude (Numeric)
+   * `log`: Row cell array of strings forming a log of the processing which has occurred on the data.
    * `parameters`: vector of structs
      * `name`: IMOS compliant parameter name (String)
      * `comment`: Optional human readable comment (String)
@@ -38,6 +39,7 @@ The `sample_data` struct elements have the following structure:
 === Notes ===
 
  * The length of the `time`, and all `data` vectors are the same. If the `depth`, `latitude` and `longitude` fields are vectors, they are also of the same length.
+ * Automatic and manual QC procedures should add to the log array when they modify any data.
 
 === Flagged data ===
 
