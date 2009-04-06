@@ -1,7 +1,7 @@
 #summary Overview of the IMOS Toolbox
 #labels Featured,Requirements
 
-<wiki:toc max_depth="2"/>
+<wiki:toc/>
 
 = IMOS Matlab Toolbox Overview =
 
@@ -87,9 +87,7 @@ It is intended that the visualisation aspect of the Toolbox will be usable durin
 The following levels of processed data will be saved as separate NetCDF files:
 
  * Level 0: Raw (unprocessed) data
- * Level 1: Automatic QC'd data
- * Level 2: Manually QC'd data
- * Level 3: Tidal/atmospheric correction
+ * Level 1: QC'd data
 
 These levels (and the output files) map directly to the Processed Data levels defined in the IMOS NetCDF User's Manual. Other process levels may be added as deemed appropriate.
 
