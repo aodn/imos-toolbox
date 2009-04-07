@@ -34,7 +34,7 @@ The main window consists of the following areas:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mockup_meta.png
 
-At any time, the user is able to view the metadata associated with the data set. The intent is to allow the user to edit each of the fields present in this section, and for the user to add new fields. The field names will be the same as those specified in the IMOS NetCDF User's Manual.
+At any time, the user is able to view the metadata associated with the data set. The intent is to allow the user to edit each of the fields present in this section, and for the user to add new fields. 
 
 = Configure Automatic QC process =
 
