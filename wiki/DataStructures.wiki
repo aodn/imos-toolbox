@@ -5,12 +5,14 @@
 
 = Toolbox Data Structures =
 
-Data is passed around the Toolbox in two Matlab structs:
+Data is passed around the Toolbox in the two Matlab structs:
 
  * `sample_data`: Contains the sample data.
  * `cal_data`: Contains calibration and metadata.
 
 I made the choice to separate sample data from calibration data for coupling/cohesion reasons. It may end up being a better idea to just put all the data into one struct, but I'm going with the two for now.
+
+There is a one to one relationship between a (vector of) `sample_data` struct(s) and a `cal_data` struct; in other words, these structs always come in pairs. A `sample_data`/`cal_data` pair maps directly to one entry in the !DeploymentData table in the [DeploymentDatabase DDB], thus by extension, maps directly to one entry in the Instruments table.
 
 Both of these structs originate in the [ParserSpecification Parser] module, when the input data is first loaded.
 
@@ -20,7 +22,6 @@ Both of these structs originate in the [ParserSpecification Parser] module, when
 
 The `sample_data` struct elements have the following structure:
  * `sample_data`: struct
-   * `field_trip`: Field trip ID (Numeric)
    * `level`: Data process level (String or Numeric?)
    * `time`: row vector of time (Numeric, as provided by the `datenum` function)
    * `depth`: Scalar or row vector of depth (Numeric)
@@ -54,6 +55,7 @@ The `cal_data` struct contains instrument/deployment metadata information, and i
 
 A minimal `cal_data` struct should contain the following:
  * `cal_data`
+   * `field_trip`: Field trip ID (Numeric)
    * `instrument_make`: e.g. 'Seabird (String)
    * `instrument_model`: e.g. 'SBE37' (String)
    * `instrument_firmware`: e.g. '2.6a' (String)
