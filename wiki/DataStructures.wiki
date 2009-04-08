@@ -20,6 +20,7 @@ Both of these structs originate in the [ParserSpecification Parser] module, when
 
 The `sample_data` struct elements have the following structure:
  * `sample_data`: struct
+   * `field_trip`: Field trip ID (Numeric)
    * `level`: Data process level (String or Numeric?)
    * `time`: row vector of time (Numeric, as provided by the `datenum` function)
    * `depth`: Scalar or row vector of depth (Numeric)
