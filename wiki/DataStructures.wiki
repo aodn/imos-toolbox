@@ -23,10 +23,11 @@ Both of these structs originate in the [ParserSpecification Parser] module, when
 The `sample_data` struct elements have the following structure:
  * `sample_data`: struct
    * `level`: Data process level (String or Numeric?)
-   * `time`: row vector of time (Numeric, as provided by the `datenum` function)
-   * `depth`: Scalar or row vector of depth (Numeric)
-   * `latitude`: Scalar or row vector of latitude (Numeric)
-   * `longitude`: Scalar or row vector of longitude (Numeric)
+   * `dimensions`: single struct
+     * `time`: row vector of time (Numeric, as provided by the `datenum` function)
+     * `depth`: Scalar or row vector of depth (Numeric)
+     * `latitude`: Scalar or row vector of latitude (Numeric)
+     * `longitude`: Scalar or row vector of longitude (Numeric)
    * `log`: Row cell array of strings forming a log of the processing which has occurred on the data.
    * `parameters`: vector of structs
      * `name`: IMOS compliant parameter name (String)
