@@ -47,6 +47,7 @@
 		
     <java classname="org.imos.ddb.Test" classpathref="classpath" fork="true" dir="${targetdir}">
 			<arg value="${ddb}"/>
+      <sysproperty key="java.library.path" value="${targetdir}"/>
 		</java>
 		
 	</target>
