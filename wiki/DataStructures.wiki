@@ -55,7 +55,7 @@ The `cal_data` struct contains instrument/deployment metadata information, and i
 
 A minimal `cal_data` struct should contain the following:
  * `cal_data`
-   * `field_trip`: Field trip ID (Numeric)
+   * `deployment_id`: Deployment ID (Numeric - key into DDB !DeploymentData table)
    * `instrument_make`: e.g. 'Seabird (String)
    * `instrument_model`: e.g. 'SBE37' (String)
    * `instrument_firmware`: e.g. '2.6a' (String)
