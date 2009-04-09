@@ -58,9 +58,9 @@ start = 0;
 
 % step through the end of the data set until we find a sample 
 % which has a time less than or equal to the out water time
-for k = length(sample_data.time):-1:1
+for k = length(sample_data.dimensions.time):-1:1
   
-  if sample_data.time(k) <= cal_data.out_water_time
+  if sample_data.dimensions.time(k) <= cal_data.out_water_time
     
     start = k;
     break;
@@ -69,7 +69,7 @@ for k = length(sample_data.time):-1:1
 end
 
 % remove all of those samples
-sample_data.time = sample_data.time(1:start);
+sample_data.dimensions.time = sample_data.dimensions.time(1:start);
 for k = 1:length(sample_data.parameters)
   
   sample_data.parameters(k).data = sample_data.parameters(k).data(1:start);
