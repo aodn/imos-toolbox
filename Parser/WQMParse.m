@@ -125,9 +125,9 @@ samples = textscan(fid, format);
 fclose(fid);
 
 %fill in sample and cal data
-sample_data = struct;
+sample_data            = struct;
 sample_data.parameters = [];
-cal_data    = struct;
+cal_data               = struct;
 
 cal_data.instrument_make      = 'WQM';
 cal_data.instrument_model     = 'WET Labs';
@@ -164,7 +164,7 @@ end
 
 % convert and save the time data
 time = cellstr(samples{2});
-sample_data.time = datenum(time, 'mmddyy HHMMSS')';
+sample_data.dimensions.time = datenum(time, 'mmddyy HHMMSS')';
 
 %
 %% getFormat generates a format for textscan from the file header

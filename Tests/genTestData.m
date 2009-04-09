@@ -66,6 +66,7 @@ disp(['generating test data set of ' num2str(size) ' samples']);
 
 sample_data.time        = 1:size;
 sample_data.parameters  = [];
+sample_data.log         = {};
 
 cal_data.in_water_time  = in_water_time;
 cal_data.out_water_time = out_water_time;
