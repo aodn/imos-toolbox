@@ -12,8 +12,6 @@ Data is passed around the Toolbox in the two Matlab structs:
 
 I made the choice to separate sample data from calibration data for coupling/cohesion reasons. It may end up being a better idea to just put all the data into one struct, but I'm going with the two for now.
 
-There is a one to one relationship between a (vector of) `sample_data` struct(s) and a `cal_data` struct; in other words, these structs always come in pairs. A `sample_data`/`cal_data` pair maps directly to one entry in the !DeploymentData table in the [DeploymentDatabase DDB], thus by extension, maps directly to one entry in the Instruments table.
-
 Both of these structs originate in the [ParserSpecification Parser] module, when the input data is first loaded.
 
 == sample_data ==
@@ -72,3 +70,9 @@ A minimal `cal_data` struct should contain the following:
 === Notes ===
 
  * The `parameters` structs in both `sample_data` and `cal_data` contain the same parameters, in the same order.
+
+== Relationship ==
+
+There is a one to one relationship between a vector of `sample_data` structs and a `cal_data` struct; in other words, these structs always come in pairs. A `sample_data`/`cal_data` pair maps directly to one entry in the !DeploymentData table in the [DeploymentDatabase DDB], thus by extension, maps directly to one entry in the Instruments table. This relationship continues on to the output NetCDF files; i.e. one `sample_data`/`cal_data` pair maps to one set of output NetCDF files (one file per process level).
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/data_structure_relationship.png
