@@ -148,13 +148,13 @@ pressure_cal_expr = ['^[\*]\s*pressure\s+S/N\s+(\d+)'... % serial number
 %
 sample_expr = '%21c';
 
-sample_data = struct;
+sample_data            = struct;
 sample_data.parameters = [];
-cal_data    = struct;
-temperature  = [];
-conductivity = [];
-pressure     = [];
-time         = [];
+cal_data               = struct;
+temperature            = [];
+conductivity           = [];
+pressure               = [];
+time                   = [];
 
 % The instrument_model field will be overwritten 
 % as the calibration data is read in
@@ -445,7 +445,7 @@ if ~isempty(conductivity), conductivity(nsamples:end) = []; end
 if ~isempty(pressure),     pressure(    nsamples:end) = []; end
 
 % copy the data into the sample_data struct
-sample_data.time = time;
+sample_data.dimensions.time = time;
 for k = 1:length(sample_data.parameters)
   
   switch sample_data.parameters(k).name
