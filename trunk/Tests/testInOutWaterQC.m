@@ -71,7 +71,7 @@ filtered_data = outWaterQC(filtered_data, cal_data);
 
 disp('checking filtered data sets');
 
-disp(['time dim length: ' num2str(length(filtered_data.time))]);
+disp(['time dim length: ' num2str(length(filtered_data.dimensions.time))]);
 
 % check each parameter
 for k = 1:length(filtered_data.parameters)
