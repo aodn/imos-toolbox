@@ -1,5 +1,5 @@
-function [ standard_name uom ] = imosParameters( short_name )
-%IMOSPARAMETERS Returns IMOS compliant standard name and units of measurement
+function value = imosParameters( short_name, field )
+%IMOSPARAMETERS Returns IMOS compliant standard name or units of measurement
 % given the short parameter name.
 %
 % The list of all IMOS parameters is stored in a file 'imosParameters.txt'
@@ -7,17 +7,19 @@ function [ standard_name uom ] = imosParameters( short_name )
 %
 % The file imosParameters.txt contains a list of all parameters for which an
 % IMOS compliant identifier (the short_name) exists. This function looks up the 
-% given short_name and returns the corresponding standard name and units of 
+% given short_name and returns the corresponding standard name or units of 
 % measurement. If the given short_name is not in the list of IMOS parameters,
-% the standard_name is set to the given short_name, and uom is left empty.
+% an error is raised.
 %
 % Inputs:
-%   short_name    - the IMOS parameter name
+%   short_name  the IMOS parameter name
+%
+%   field      - either 'standard_name' or 'uom'.
 %
 % Outputs:
-%   standard_name - the IMOS standard name for the parameter
+%   value      - the IMOS standard name or unit of measurement, whichever was 
+%                requested.
 %
-%   uom           - Units of measurement
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -52,11 +54,11 @@ function [ standard_name uom ] = imosParameters( short_name )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(1, 1, nargin));
+error(nargchk(2, 2, nargin));
 if ~ischar(short_name), error('short_name must be a string'); end
+if ~ischar(field),      error('field must be a string');      end
 
-standard_name = short_name;
-uom           = '';
+value = '';
 
 % get the location of this m-file, which is 
 % also the location of imosParamaters.txt
@@ -76,8 +78,14 @@ for k = 1:length(names)
   
   if strcmp(short_name, names{k})
     
-    standard_name = standard_names{k};
-    uom           = uoms{k};
+    switch field
+      case 'standard_name', value = standard_names{k};
+      case 'uom',           value = uoms{k};
+    end
     break;
   end
+end
+
+if strcmp(value,'')
+  error([short_name ' is not a recognised IMOS parameter']); 
 end
