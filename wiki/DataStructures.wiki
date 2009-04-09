@@ -24,9 +24,9 @@ The `sample_data` struct elements have the following structure:
    * `log`: Row cell array of strings forming a log of the processing which has occurred on the data.
    * `dimensions`: single struct
      * `time`: row vector of time (Numeric, as provided by the `datenum` function)
-     * `depth`: Scalar or row vector of depth (Numeric)
-     * `latitude`: Scalar or row vector of latitude (Numeric)
-     * `longitude`: Scalar or row vector of longitude (Numeric)
+     * `depth`: optional row vector of depth (Numeric)
+     * `latitude`: optional row vector of latitude (Numeric)
+     * `longitude`: optional row vector of longitude (Numeric)
    * `parameters`: vector of structs
      * `name`: IMOS compliant parameter name (String)
      * `comment`: Optional human readable comment (String)
@@ -39,7 +39,7 @@ The `sample_data` struct elements have the following structure:
 
 === Notes ===
 
- * The length of the `time`, and all `data` vectors are the same. If the `depth`, `latitude` and `longitude` fields are vectors, they are also of the same length.
+ * The length of the `time`, and all `data` vectors are the same. If the `depth`, `latitude` and `longitude` vectors are present, they are also of the same length.
  * Automatic and manual QC procedures should add to the log array when they modify any data.
 
 === Flagged data ===
@@ -54,6 +54,7 @@ The `cal_data` struct contains instrument/deployment metadata information, and i
 
 A minimal `cal_data` struct should contain the following:
  * `cal_data`
+   * `creation_date`: Date that this data set was created
    * `deployment_id`: Deployment ID (Numeric - key into DDB !DeploymentData table)
    * `instrument_make`: e.g. 'Seabird (String)
    * `instrument_model`: e.g. 'SBE37' (String)
