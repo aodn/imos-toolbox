@@ -55,7 +55,7 @@ The `cal_data` struct contains instrument/deployment metadata information, and i
 A minimal `cal_data` struct should contain the following:
  * `cal_data`
    * `creation_date`: Date that this data set was created
-   * `deployment_id`: Deployment ID (Numeric - key into DDB !DeploymentData table)
+   * `field_trip_id`: Field Trip ID (Numeric - key into DDB !FieldTrip table)
    * `instrument_make`: e.g. 'Seabird (String)
    * `instrument_model`: e.g. 'SBE37' (String)
    * `instrument_firmware`: e.g. '2.6a' (String)
@@ -64,6 +64,7 @@ A minimal `cal_data` struct should contain the following:
    * `out_water_time`: Time that the instrument was first out of the water. This time is used to determine the time of the last valid sample (Numeric)
    * `qc_set`: Quality Control set in use (Numeric - see section 6.2 of the IMOS NetCDF User's Manual)
    * `parameters`: Vector of structs
+     * `deployment_id`: Deployment ID (String - key into DDB !DeploymentData table)
      * `name`: IMOS compliant parameter name (String)
      * `max_value`: Minimum allowable value (Numeric)
      * `min_value`: Maximum allowable value (Numeric)
@@ -74,6 +75,8 @@ A minimal `cal_data` struct should contain the following:
 
 == Relationship ==
 
-There is a one to one relationship between a vector of `sample_data` structs and a `cal_data` struct; in other words, these structs always come in pairs. A `sample_data`/`cal_data` pair maps directly to one entry in the !DeploymentData table in the [DeploymentDatabase DDB], thus by extension, maps directly to one entry in the Instruments table. This relationship continues on to the output NetCDF files; i.e. one `sample_data`/`cal_data` pair maps to one set of output NetCDF files (one file per process level).
+There is a one to one relationship between a vector of `sample_data` structs and a `cal_data` struct; in other words, these structs always come in pairs. A `sample_data`/`cal_data` pair contains data corresponding to one physical instrument, e.g. an SBE37. One instrument may have multiple sensors; each element in the `parameters` vector corresponds to one sensor.
+
+A `sample_data`/`cal_data` pair maps directly to one entry in the !FieldTrip table in the [DeploymentDatabase DDB]. There will likely be multiple instruments per field trip, so multiple `sample_data`/`cal_data` pairs may map to the same field trip. Each `parameter` vector maps to one entry in the !DeploymentData table, thus maps to one entry in each of the Instruments and Sensors tables.
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/data_structure_relationship.png
