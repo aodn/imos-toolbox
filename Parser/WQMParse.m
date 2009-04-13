@@ -117,6 +117,7 @@ REQUIRED = {
 % open file, get header and use it to generate a 
 % format string which we can pass to textscan
 fid = fopen(filename);
+if fid == -1, error(['couldn''t open ' filename 'for reading']); end
 
 [fields format] = getFormat(fid);
 
