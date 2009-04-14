@@ -70,6 +70,7 @@ sample_data.log             = {};
 
 cal_data.in_water_time  = in_water_time;
 cal_data.out_water_time = out_water_time;
+cal_data.creation_date  = now;
 cal_data.qc_set         = 1;
 cal_data.parameters     = [];
 
