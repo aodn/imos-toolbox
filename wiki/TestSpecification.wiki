@@ -20,9 +20,9 @@ Test functions should adhere to the following format:
 function testTarget ()
 }}}
 
-where `Target` is the name of whatever is being tested. For example, the `rangeQC` unit test is called `testRangeQC`.
+where `Target` is the name of whatever is being tested. For example, the `rangeQC` unit test is called `testRangeQC`. This convention is not necessary; it just makes the test case names less ambiguous.
 
-Unit test functions do not have a return value. The test result is either success or failure, and is determined simply by whether the test function threw an error.
+Unit test functions do not have a return value. The test result is either success or failure, and is determined simply by whether the test function threw an error. Unit test functions may assume that they are being executed from the `Tests` subdirectory (this is how mtest works).
 
 While does its job well, mtest doesn't provide very nice output while the test cases are executing. To alleviate this somewhat, I've been following the convention of inserting the following at the start of every test case:
 {{{
