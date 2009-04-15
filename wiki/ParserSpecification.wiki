@@ -25,7 +25,7 @@ where:
 
 == Sample data ==
 
-The `sample_data` struct should contain a vector of time values, and a vector of parameter structs, which contain the following fields:
+The `sample_data` struct should contain a vector of time values, and other dimensions, and a vector of parameter structs, which contain the following fields:
 
   * `name`: (IMOS compliant) parameter name
   * `comment`: (optional) Any useful comments about the data
@@ -52,7 +52,12 @@ For this data, the `sample_data` struct would look like this (timestamps have be
   sample_data = 
 
       parameters: [1x3 struct]
-            time: [7.3342e+05 7.3342e+05 7.3342e+05]
+      dimensions: [1x1 struct]
+
+  >> sample_data.dimensions
+
+  ans =
+      time: [7.3342e+05 7.3342e+05 7.3342e+05]
 
   >> sample_data.parameters(1)
 
