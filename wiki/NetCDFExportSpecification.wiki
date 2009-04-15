@@ -6,3 +6,103 @@
 = NetCDF Exporter =
 
 The NetCDF exporter generates IMOS compliant NetCDF files, using information from `sample_data`/`cal_data` structs, and from corresponding entries in the deployment database.
+
+The exporter uses a set of 'template' files, which specify NetCDF attribute values in three different ways:
+ * Literal strings
+ * Matlab expressions
+ * Deployment Database queries.
+
+When required, the exporter reads in a template, runs any DDB queries and executes any matlab expressions which are specified in the template, and produces the NetCDF file from the values provided by the template.
+
+A template file is a list of `name=value` pairs. The `value` section may contain, as listed above, literal strings, matlab expressions, database queries, or a combination of all three.
+
+== Literal Strings ==
+
+An example template attribute definition which simply provides a literal string:
+{{{
+project = Integrated Marine Observing System (IMOS)
+}}}
+
+== DDB Queries ==
+
+The syntax for setting an attribute value to be the value of a field within the deployment database is (the square brackets indicate optional sections):
+
+{{{
+attribute_name = {ddb field [related_table [related_pkey] related_field]}
+}}}
+
+where 
+
+ * `field` is a field within the `DeploymentData` table, the value of which is to be used as the attribute value (unless `related_table` and `related_field` are specified).
+ * `related_table` is the name of a table to which the field should be considered a foreign key.
+ * `related_pkey` is the name of the related_table primary key. If omitted, it is assumed to be the same as field.
+ * `related_field` is the name of the field within the related_table, the value of which is to be used as the attribute value.
+
+A couple of examples:
+
+1. For the attribute definition:
+  {{{
+local_time_zone = {ddb TimeZone}
+  }}}
+the value will be translated into a query to the deployment database of the form:
+  {{{
+select TimeZone from DeploymentData 
+where DeploymentID = cal_data.deployment_id
+  }}}
+
+2. For the attribute definition:
+  {{{
+institution = {ddb PersonnelDownload Personnel StaffID Organisation}
+  }}}
+the value will be translated into the following query:
+  {{{
+select Organisation from Personnel where StaffID = 
+(
+  select PersonnelDownload from DeploymentData
+  where DeploymentID = cal_data.deployment_id
+)
+  }}}
+
+== Matlab Expressions ==
+
+You can set the attribute value to be the result of a matlab statement like
+so:
+{{{
+  attribute_name = {mat statement}
+}}}
+
+*Note:* The result of the statement must be a matlab string.
+
+The following 'workspace' is available to these embedded statements:
+
+ * `sample_data`: the struct containing sample data, which is passed to this function.
+ * `cal_data`: the struct containing calibration/metadata, which is passed to this function.
+ * `k`: (only if the template is a data attribute template) the parameter index passed to this function.
+
+For example, for the attribute definition:
+{{{
+  quality_control_set = {mat num2str(cal_data.qc_set)}
+}}}
+
+the attribute value will be the value of the matlab statment:
+{{{
+  num2str(cal_data.qc_set)
+}}}
+
+== Combinations ==
+
+You can combine each method of defining values, as shown in the following examples:
+
+ #. 
+ {{{
+qc_param_name = {mat sample_data.parameters(k).name}_QC
+ }}}
+ #.
+ {{{
+author = {ddb PersonnelDownload Personnel StaffID FirstName} \
+         {ddb PersonnelDownload Personnel StaffID LastName}
+ }}}
+ #. 
+ {{{
+title = {mat cal_data.field_trip_id}: {ddb Site Sites ResearchActivity}
+ }}}
