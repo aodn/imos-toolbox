@@ -8,12 +8,17 @@
    * [ToolboxGUIMockups]
    * ToolboxArchitecture
  * Specifications
-   * [MFileTemplate]
-   * DataStructures
-   * DeploymentDatabase
-   * TestSpecification
-   * [AutoQCSpecification]
-   * ParserSpecification
+   * General
+     * [MFileTemplate]
+     * DataStructures
+     * TestSpecification
+   * Input
+     * DeploymentDatabase
+     * ParserSpecification
+   * Processing
+     * [AutoQCSpecification]
+   * Output
+     * [NetCDFExportSpecification]
  * Help
    * WeeklySnapshots
    * [tortoiseSVN]
