@@ -1,0 +1,8 @@
+#summary Specification of the NetCDF exporter.
+#labels Specification
+
+<wiki:toc/>
+
+= NetCDF Exporter =
+
+The NetCDF exporter generates IMOS compliant NetCDF files, using information from `sample_data`/`cal_data` structs, and from corresponding entries in the deployment database.
