@@ -1,0 +1,12 @@
+standard_name   = latitude
+long_name       = latitude
+units           = degrees_north
+axis            = Y
+valid_min       = -90
+valid_max       = 90
+_FillValue      = 99999.0
+comment         = 
+QC_set          = {mat num2str(cal_data.qc_set)}
+QC_indicator    = 
+uncertainty     =
+reference_datum = geographical coordinates, WGS84 projection
