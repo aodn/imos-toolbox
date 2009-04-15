@@ -1,27 +1,27 @@
 #summary Navigation sidebar.
 
-* Overview
- * ToolboxOverview
- * ToolboxSchedule
-* Design
- * ToolboxUseCases
- * [ToolboxGUIMockups]
- * ToolboxArchitecture
-* Specifications
- * General
-  * [MFileTemplate]
-  * DataStructures
-  * TestSpecification
- * Input
-  * DeploymentDatabase
-  * ParserSpecification
- * Processing
-  * [AutoQCSpecification]
- * Output
-  * [NetCDFExportSpecification]
-* Help
- * WeeklySnapshots
- * [tortoiseSVN]
-* Other
- * [ProcessLevelsAndQC]
+ * Overview
+  * ToolboxOverview
+  * ToolboxSchedule
+ * Design
+  * ToolboxUseCases
+  * [ToolboxGUIMockups]
+  * ToolboxArchitecture
+ * Specifications
+  * General
+   * [MFileTemplate]
+   * DataStructures
+   * TestSpecification
+  * Input
+   * DeploymentDatabase
+   * ParserSpecification
+  * Processing
+   * [AutoQCSpecification]
+  * Output
+   * [NetCDFExportSpecification]
+ * Help
+  * WeeklySnapshots
+  * [tortoiseSVN]
+ * Other
+  * [ProcessLevelsAndQC]
  
