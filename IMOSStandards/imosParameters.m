@@ -63,10 +63,18 @@ value = '';
 % also the location of imosParamaters.txt
 path = fileparts(which(mfilename));
 
-fid = fopen([path filesep 'imosParameters.txt']);
-if fid == -1, return; end
-
-params = textscan(fid, '%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
+fid = -1;
+params = [];
+try
+  fid = fopen([path filesep 'imosParameters.txt']);
+  if fid == -1, return; end
+  
+  params = textscan(fid, '%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
+  fclose(fid);
+catch e
+  if fid ~= -1, fclose(fid); end
+  rethrow(e);
+end
 
 names          = params{1};
 standard_names = params{2};
@@ -75,9 +83,9 @@ data_codes     = params{4};
 
 % search the list for a match
 for k = 1:length(names)
-  
+
   if strcmp(short_name, names{k})
-    
+
     switch field
       case 'standard_name', value = standard_names{k};
       case 'uom',           value = uoms{k};
