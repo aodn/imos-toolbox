@@ -116,14 +116,23 @@ REQUIRED = {
 
 % open file, get header and use it to generate a 
 % format string which we can pass to textscan
-fid = fopen(filename);
-if fid == -1, error(['couldn''t open ' filename 'for reading']); end
+fid     = -1;
+samples = [];
+fields  = [];
+format  = [];
+try
+  fid = fopen(filename);
+  if fid == -1, error(['couldn''t open ' filename 'for reading']); end
 
-[fields format] = getFormat(fid);
+  [fields format] = getFormat(fid);
 
-% read in the data
-samples = textscan(fid, format);
-fclose(fid);
+  % read in the data
+  samples = textscan(fid, format);
+  fclose(fid);
+catch e
+  if fid ~= -1, fclose(fid); end
+  rethrow(e);
+end
 
 %fill in sample and cal data
 sample_data            = struct;
