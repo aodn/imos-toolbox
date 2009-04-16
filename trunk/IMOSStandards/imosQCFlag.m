@@ -62,24 +62,33 @@ error(nargchk(2, 2, nargin));
 if ~ischar(qc_class),  error('qc_class must be a string'); end
 if ~isnumeric(qc_set), error('qc_set must be numeric'); end
 
-flag = '';
-desc = '';
+flag     = '';
+desc     = '';
+set_desc = '';
 
 % open the IMOSQCSets file - it should be 
 % in the same directory as this m-file
 path = fileparts(which(mfilename));
 
-fid = fopen([path filesep 'imosQCSets.txt']);
-if fid == -1, return; end
+fid = -1;
+flags = [];
+sets = [];
+try
+  fid = fopen([path filesep 'imosQCSets.txt']);
+  if fid == -1, return; end
 
-% read in the QC sets
-sets = textscan(fid, '%f%s', 'delimiter', ',', 'commentStyle', '%');
+  % read in the QC sets and flag values for each set
+  sets = textscan(fid, '%f%s', 'delimiter', ',', 'commentStyle', '%');
+  flags = textscan(fid, '%f%s%s%s', 'delimiter', ',', 'commentStyle', '%');
+  fclose(fid);
+
+catch e
+  if fid ~= -1, fclose(fid); end
+  rethrow(e);
+end
 
 % no set definitions in file
 if isempty(sets{1}), return; end
-
-% read in the flag values for each set
-flags = textscan(fid, '%f%s%s%s', 'delimiter', ',', 'commentStyle', '%');
 
 % no flag definitions in file
 if isempty(flags{1}), return; end
