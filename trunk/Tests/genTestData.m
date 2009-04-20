@@ -84,8 +84,9 @@ for k = 1:length(params)
   sample_data.parameters(k).data   = data;
   sample_data.parameters(k).flags  = [];
   
-  cal_data.parameters(k).name      = params{k};
-  cal_data.parameters(k).min_value = min_bounds(k);
-  cal_data.parameters(k).max_value = max_bounds(k);
+  cal_data.parameters(k).name          = params{k};
+  cal_data.parameters(k).min_value     = min_bounds(k);
+  cal_data.parameters(k).max_value     = max_bounds(k);
+  cal_data.parameters(k).deployment_id = 'A0089FFD-C7C5-42D3-B0ED-008E23678959';
   
 end
