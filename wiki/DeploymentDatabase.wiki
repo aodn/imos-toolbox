@@ -128,15 +128,14 @@ make install
 I recently started having problems with `libmdb` and `libmdbsql` segfaulting. I spent a bit of time digging into the cause, and found that in `libmdb/index.c` there is some kind of indexing error occuring, causing parts of the program's memory to be corrupted (the segfault is incidental, caused by a pointer overwrite). My quick fix was to apply the following patch, which is probably not correct, but appears to make the libraries more stable:
 {{{
 --- mdbtools-orig/src/libmdb/index.c	2009-04-17 16:21:25.000000000 +1000
-+++ mdbtools-local/src/libmdb/index.c	2009-04-20 16:06:01.000000000 +1000
-@@ -119,21 +119,11 @@
++++ mdbtools-local/src/libmdb/index.c	2009-04-20 16:07:13.000000000 +1000
+@@ -119,21 +119,10 @@
  	mdb_read_alt_pg(mdb, entry->table_pg);
  	mdb_read_pg(mdb, index_start_pg);
  	cur_pos = table->index_start;
 -	idx_num=0;
 +
  	for (i=0;i<table->num_real_idxs;i++) {
-+    //if (table->num_real_idxs != table->num_idxs) printf("get fucked (real %i), %i\n", table->num_real_idxs, table->num_idxs);
  		if (IS_JET4(mdb)) cur_pos += 4;
 -		do {
 -			pidx = g_ptr_array_index (table->indices, idx_num++);
