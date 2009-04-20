@@ -33,6 +33,7 @@ package org.imos.ddb;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import org.imos.ddb.schema.DeploymentData;
 import org.imos.ddb.schema.Personnel;
 import org.imos.ddb.schema.Sensors;
 import org.imos.ddb.schema.Sites;
@@ -74,6 +75,9 @@ public class Test {
     startFreeMem = Runtime.getRuntime().freeMemory();
     
     try {
+
+      List<DeploymentData> deps = mdb.executeQuery("DeploymentData", null, null);
+      for (DeploymentData d : deps) printObj(d);
       
       List<Personnel> people = mdb.executeQuery("Personnel", null, null);
       for (Personnel p : people) printObj(p);
