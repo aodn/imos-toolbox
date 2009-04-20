@@ -125,7 +125,7 @@ make install
 
 === Hacking `mdbtools` ===
 
-I recently started having problems with `libmdb` and `libmdbsql` segfaulting. I spent a bit of time digging into the cause, and found that in `libmdb/index.c` there is some kind of indexing error occuring, causing parts of the program's memory to be corrupted (the segfault is incidental, caused by a pointer overwrite). My quick fix was to apply the following patch, which is probably not correct, but appears to make the libraries more stable:
+I recently started having problems with `libmdb` segfaulting. I spent a bit of time digging into the cause, and found that in `libmdb/index.c` there is some kind of indexing error occuring, causing parts of the program's memory to be corrupted (the segfault is incidental, caused by a pointer overwrite). My quick fix was to apply the following patch to `mdb_read_indices`, which is almost certainly not correct, but appears to make the library more stable:
 {{{
 --- mdbtools-orig/src/libmdb/index.c	2009-04-17 16:21:25.000000000 +1000
 +++ mdbtools-local/src/libmdb/index.c	2009-04-20 16:07:13.000000000 +1000
@@ -153,9 +153,11 @@ I recently started having problems with `libmdb` and `libmdbsql` segfaulting. I 
  
  		pidx->num_rows = mdb_get_int32(mdb->alt_pg_buf, 
  				fmt->tab_cols_start_offset +
-
 }}}
 
+==== Details ====
+
+The problem which was occurring was that the value of the `pidx` pointer returned from `g_ptr_array_index` had overflowed past the bounds of the `table->indices` array, and was actually pointing (in my case) to a `MdbColumn` struct. Further on in `mdb_read_indices`, a particular write to a field of the `MdbIndex` struct pointed to by `pidx` was setting an int pointer in the `MdbColumn` struct to `0x01` (`MdbColumn->len_ptr`). Later on, when that column struct was accessed (in my case, in the function `mdb_xfer_bound_data` in `libmdb/data.c`), an attempt was made to write to that int pointer, which, as `0x01` is generally not a valid memory location for a user space program, was generating a segfault.
 
 == Configuration ==
 
