@@ -16,7 +16,7 @@ Both of these structs originate in the [ParserSpecification Parser] module, when
 
 == sample_data ==
 
-`sample_data` is a row vector of structs which contain sample data. Each element in the `sample_data` vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
+`sample_data` is a scalar or row vector of structs which contain sample data. Each element in the `sample_data` vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
 
 The `sample_data` struct elements have the following structure:
  * `sample_data`: struct
@@ -27,26 +27,24 @@ The `sample_data` struct elements have the following structure:
      * `depth`: optional row vector of depth (Numeric)
      * `latitude`: optional row vector of latitude (Numeric)
      * `longitude`: optional row vector of longitude (Numeric)
+     * `...`: Any other dimensions
    * `parameters`: vector of structs
      * `name`: IMOS compliant parameter name (String)
      * `comment`: Optional human readable comment (String)
-     * `data`: row vector of data (Numeric)
-     * `flags`: vector of structs (see below)
-       * `low_idx`: lower bound of flagged data range (Numeric)
-       * `high_idx`: upper bound of flagged data range (Numeric)
-       * `flag`: flag value (String)
-       * `comment`: Human readable comment
+     * `dimensions`: Cell array of Strings containing the names of the dimensions of this parameter.
+     * `data`: Matrix of data (Numeric)
+     * `flags`: Single flag, or matrix of flags (Single character - see below)
 
 === Notes ===
 
- * The length of the `time`, and all `data` vectors are the same. If the `depth`, `latitude` and `longitude` vectors are present, they are also of the same length.
+ * The parameter `dimensions` array should be in the order of slowest changing to fastest changing.
  * Automatic and manual QC procedures should add to the log array when they modify any data.
 
 === Flagged data ===
 
-The `flags` vector in the `parameters` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). When a single sample is to be flagged the low index and high index will be equal.
+The `flags` field in the `parameters` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). If the `flags` field is a single character, that flag value applies to all of the data. Otherwise, if it is a matrix, a single flag value is proivided for every element in the `data` matrix.
 
-The flag value is defined in Section 6.2 of the IMOS NetCDF User's Manual. Meanings of flag values differ depending on the Quality Control Set in use (see the `qc_set` field in the `cal_data` struct below).
+The flag values are defined in Section 6.2 of the IMOS NetCDF User's Manual. Meanings of flag values differ depending on the Quality Control Set in use (see the `qc_set` field in the `cal_data` struct below).
 
 == cal_data ==
 
