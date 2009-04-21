@@ -25,13 +25,25 @@ where:
 
 == Sample data ==
 
-The `sample_data` struct should contain a vector of time values, and other dimensions, and a vector of parameter structs, which contain the following fields:
+The `sample_data` struct must contain at least the following fields:
 
-  * `name`: (IMOS compliant) parameter name
-  * `comment`: (optional) Any useful comments about the data
-  * `data`: data
+  * `dimensions` Scalar struct containing dimension data:
+    * `time`: Row vector of time (Numeric, as provided by the `datenum` function)
+    * `latitude`: Row vector of latitude values if applicable (Numeric).
+    * `longitude`: Row vector of longitude values if applicable (Numeric).
+    * `depth`:  Row vector of depth values if applicable (Numeric).
+  * `parameters`: Row vector of structs:
+    * `name`: (IMOS compliant) parameter name
+    * `comment`: (optional) Any useful comments about the data
+    * `dimensions`: Cell array of strings containing the names of the dimensions of this data.
+    * `data`: Row vector or matrix of data
 
-The contents of the name field must follow the naming conventions outlined in the IMOS NetCDF User's Manual. The data must be in the corresponding IMOS unit of measurement for the parameter.
+*Notes*
+
+  * The contents of the name field must follow the naming conventions outlined in the IMOS NetCDF User's Manual. 
+  * The names of the fields in the `dimensions` struct must be NetCDF compliant dimension names in lower case (e.g. `time` for `TIME`).
+  * The elements of the `parameters.dimensions` array must be the same name as the corresponding vector field in the `dimensions` struct.
+  * The data must be in the corresponding IMOS unit of measurement for the parameter.
 
 === Example ===
 
@@ -64,6 +76,7 @@ For this data, the `sample_data` struct would look like this (timestamps have be
   ans = 
 
                name: 'TEMP'
+         dimensions: {'time'}
                data: [16.5200 16.0500 15.4700]
 
   >> sample_data.parameters(2)
@@ -71,6 +84,7 @@ For this data, the `sample_data` struct would look like this (timestamps have be
   ans = 
 
                name: 'CNDC'
+         dimensions: {'time'}
                data: [40.6120 40.0120 39.3510]
 
   >> sample_data.parameters(3)
@@ -78,6 +92,7 @@ For this data, the `sample_data` struct would look like this (timestamps have be
   ans = 
 
                name: 'PRES'
+         dimensions: {'time'}
                data: [10.1200 10.1300 10.1100]
 }}}
 
@@ -98,6 +113,7 @@ the conductivity and temperature parameter structs would be identical to those a
   ans = 
 
                name: 'PRES'
+         dimensions: {'time'}
                data: [0.0 10.1300 0.0]
 }}}
 
