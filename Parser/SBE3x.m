@@ -128,6 +128,7 @@ fid = fopen(filename);
 TEMPERATURE_NAME  = 'TEMP';
 CONDUCTIVITY_NAME = 'CNDC';
 PRESSURE_NAME     = 'PRES';
+TIME_NAME         = 'TIME';
 
 %
 % regular expressions used for parsing metadata
@@ -445,8 +446,12 @@ if ~isempty(conductivity), conductivity(nsamples:end) = []; end
 if ~isempty(pressure),     pressure(    nsamples:end) = []; end
 
 % copy the data into the sample_data struct
-sample_data.dimensions.time = time;
+sample_data.dimensions(1).name = TIME_NAME;
+sample_data.dimensions(1).data = time;
+
 for k = 1:length(sample_data.parameters)
+  
+  sample_data.parameters(k).dimensions = [1];
   
   switch sample_data.parameters(k).name
     case TEMPERATURE_NAME,  sample_data.parameters(k).data = temperature;

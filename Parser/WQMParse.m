@@ -167,14 +167,16 @@ for k = 4:length(fields)
       
   end
   
-  sample_data.parameters(k-3).comment = comment;
-  sample_data.parameters(k-3).name    = name;
-  sample_data.parameters(k-3).data    = data;
+  sample_data.parameters(k-3).dimensions = [1];
+  sample_data.parameters(k-3).comment    = comment;
+  sample_data.parameters(k-3).name       = name;
+  sample_data.parameters(k-3).data       = data;
 end
 
 % convert and save the time data
 time = cellstr(samples{2});
-sample_data.dimensions.time = datenum(time, 'mmddyy HHMMSS')';
+sample_data.dimensions(1).name = 'TIME';
+sample_data.dimensions(1).data = datenum(time, 'mmddyy HHMMSS')';
 
 %
 %% getFormat generates a format for textscan from the file header
