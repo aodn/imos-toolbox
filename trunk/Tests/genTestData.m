@@ -64,7 +64,9 @@ function [sample_data cal_data] = genTestData(...
 
 disp(['generating test data set of ' num2str(size) ' samples']);
 
-sample_data.dimensions.time = 1:size;
+sample_data.dimensions = [];
+sample_data.dimensions(1).name = 'TIME';
+sample_data.dimensions(1).data = 1:size;
 sample_data.parameters      = [];
 sample_data.log             = {};
 sample_data.level           = 0;
@@ -80,9 +82,10 @@ for k = 1:length(params)
   % generate random data set between min_value and max_value
   data = min_values(k) + (max_values(k)-min_values(k)).*rand(1,size);
   
-  sample_data.parameters(k).name   = params{k};
-  sample_data.parameters(k).data   = data;
-  sample_data.parameters(k).flags  = [];
+  sample_data.parameters(k).name       = params{k};
+  sample_data.parameters(k).dimensions = [1];
+  sample_data.parameters(k).data       = data;
+  sample_data.parameters(k).flags      = [];
   
   cal_data.parameters(k).name          = params{k};
   cal_data.parameters(k).min_value     = min_bounds(k);
