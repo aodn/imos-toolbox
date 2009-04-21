@@ -20,15 +20,18 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 %   == Value definition ==
 %
 % The attribute_value field has a syntax of its own. It can be a plain string
-% (without quotes), a pointer to a field within the deployment database, a one 
-% line matlab statement, or a combination of all three. 
+% (without quotes), and can also contain 'tokens' which either point to a field 
+% within the deployment database, or contain a one line matlab statement.
+% Tokens are parts of the attribute value which are contained within curly
+% braces (i.e. '{}').
 %
-%   === Getting values from the DDB ===
+%   === DDB tokens ===
 %
-% The syntax for setting an attribute value to be the value of a field within 
-% the deployment database is (the square brackets indicate optional sections):
+% The token syntax for setting an attribute value to be the value of a field 
+% within the deployment database is (the square brackets indicate optional 
+% sections):
 %
-%   attribute_name = {ddb field [related_table [related_pkey] related_field]}
+%   attribute_value  = {ddb field [related_table [related_pkey] related_field]}
 %
 % where 
 %
@@ -69,7 +72,7 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 %          where DeploymentID = cal_data.deployment_id
 %        )
 %
-% === Getting values from Matlab ===
+% === Matlab tokens ===
 %
 % You can set the attribute value to be the result of a matlab statement like
 % so:
@@ -100,7 +103,7 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 % === Combinations ===
 %
 % You can combine each method of defining values, as shown in the following 
-% examples:
+% examples. One constraint - you cannot have identical 
 %
 % 1. qc_param_name = {mat sample_data.parameters(k).name}_QC
 % 
@@ -167,44 +170,51 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 
   % if k isn't provided, provide a dummy value
   if nargin == 3, k = -1; end
+  
+  fid = -1;
 
-  % open file for reading
-  fid = fopen(file, 'r');
-  if fid == -1, error(['couldn''t open ' file ' for reading']); end
+  try 
+    % open file for reading
+    fid = fopen(file, 'r');
+    if fid == -1, error(['couldn''t open ' file ' for reading']); end
 
-  template = struct;
+    template = struct;
 
-  % read in and parse each line
-  line = readline(fid);
-  while ischar(line)
+    % read in and parse each line
+    line = readline(fid);
+    while ischar(line)
 
-    % extract the attribute name and value
-    tkns = regexp(line, '^\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
+      % extract the attribute name and value
+      tkns = regexp(line, '^\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
 
-    % ignore bad lines
-    if isempty(tkns), 
+      % ignore bad lines
+      if isempty(tkns), 
+        line = readline(fid);
+        continue; 
+      end
+
+      name = tkns{1}{1};
+      val  = tkns{1}{2};
+
+      % Parse the value, put it into the template struct. Matlab doesn't allow 
+      % field names (or variable names) to start with an underscore. This is 
+      % unfortunate, because some of the NetCDF attribute names do start with an 
+      % underscore. I'm getting around this problem with a horrible hack: if the 
+      % name starts with an underscore, remove the underscore from the name 
+      % start, and put it at the name end. We can reverse this process when the 
+      % NetCDF file is exported.
+      if name(1) == '_', name = [name(2:end) '_']; end
+      template.(name) = parseAttributeValue(val, sample_data, cal_data, k);
+
+      % get the next line
       line = readline(fid);
-      continue; 
     end
 
-    name = tkns{1}{1};
-    val  = tkns{1}{2};
-
-    % Parse the value, put it into the template struct. Matlab doesn't allow 
-    % field names (or variable names) to start with an underscore. This is 
-    % unfortunate, because some of the NetCDF attribute names do start with an 
-    % underscore. I'm getting around this problem with a horrible hack: if the 
-    % name starts with an underscore, remove the underscore from the name 
-    % start, and put it at the name end. We can reverse this process when the 
-    % NetCDF file is exported.
-    if name(1) == '_', name = [name(2:end) '_']; end
-    template.(name) = parseAttributeValue(val, sample_data, cal_data, k);
-
-    % get the next line
-    line = readline(fid);
+    fclose(fid);
+  catch e
+    if fid ~= -1, fclose(fid); end
+    rethrow(e);
   end
-  
-  fclose(fid);
 end
 
 function value = parseAttributeValue(line, sample_data, cal_data, k)
@@ -273,9 +283,24 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
 
   value = '';
 
-  % HACK libmdb has started failing on linux; not sure why
-  value = '*parsedt*';
-  if 1, return; end
+  %
+  % HACK libmdb is failing on linux. It's a memory corruption issue that is 
+  % manifesting itself in the mdb_xfer_bound_data function (data.c). The
+  % MdbColumn->len_ptr field is being read as '1', and an attempt is made to
+  % write to the pointer address, resulting in a SIGSEGV. 
+  %
+  % In my case, the field has been written to one in the mdb_read_indices 
+  % function (index.c). For some inexplicable reason, the MdbIndex struct 
+  % (g_malloc0'ed at line 94 of index.c) is given the /same/ address as the 
+  % MdbColumn struct (g_malloc0'ed at line 227 in table.c), meaning that writes 
+  % to the MdbIndex struct overwrite fields in the MdbColumn struct, and 
+  % vice-versa. 
+  %
+  % I haven't looked any further into it, as i've got other work to do, but i 
+  % have verified that the MdbColumn struct in mdb_xfer_bound_data is valid; 
+  % i.e. it has not already been freed
+  % 
+  %if isunix, value = '*parsedt*'; return; end
 
   % get the relevant deployment
   deployment = ddb.executeQuery('DeploymentData', ...
@@ -313,13 +338,14 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
   end
 
   % simple query - just a field in the DeploymentData table
-  if simple_query, value = deployment.(field); return; end
+  if simple_query, value = char(deployment.(field)); return; end
 
   % complex query - join with another table, get the field from that table
   result = ddb.executeQuery(related_table, related_pkey, deployment.(field));
   if result.size() ~= 1, return; end
 
-  value = result.(related_field);
+  result = result.get(0);
+  value = char(result.(related_field));
 
 end
 
