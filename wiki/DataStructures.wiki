@@ -34,6 +34,7 @@ The `sample_data` struct elements have the following structure:
 
 === Notes ===
 
+ * It is currently assumed that time is always the first element of the `dimensions` struct, and the first element of every `parameters.dimensions` vector.
  * The `parameters.dimensions` array should be in the order of slowest changing to fastest changing.
  * Automatic and manual QC procedures should add to the log array when they modify any data.
 
