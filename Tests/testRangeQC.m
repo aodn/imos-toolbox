@@ -74,47 +74,29 @@ for k = 1:length(sample_data.parameters)
   end
   
   % for every value
-  for m = 1:length(filtered_data.parameters(k).data)
+  for m = 1:length(filtered_data.parameters(k).data(:))
     
-    d = filtered_data.parameters(k).data(m);
+    d = filtered_data.parameters(k).data( m);
+    f = filtered_data.parameters(k).flags(m);
     
     % if out of bounds, check that it has been flagged
     if d < cal_data.parameters(k).min_value...
     || d > cal_data.parameters(k).max_value
   
-      found = 0;
-    
-      for n = 1:length(filtered_data.parameters(k).flags)
-        
-        f = filtered_data.parameters(k).flags(n);
-        
-        if m >= f.low_idx && m <= f.high_idx
-          found = 1;
-          break;
-        end
-      end
       
-      if ~found
-        error(['out of range value (' ...
-              num2str(m) ':' num2str(d) ...
-              ' in ' filtered_data.parameters(k).name ...
-              ') has not been flagged']);
+      if f == '0'
+        error(['out of range value (d(' ...
+               num2str(m) ')=' num2str(d) ...
+               ') has not been flagged']); 
       end
       
     % if within bounds, check that it has not been flagged
     else
       
-      for n = 1:length(filtered_data.parameters(k).flags)
-        
-        f = filtered_data.parameters(k).flags(n);
-        
-        if m >= f.low_idx && m <= f.high_idx
-        error(['within range value (' 
-              num2str(m) ':' num2str(d) 
-              ' in ' filtered_data.parameters(k).name
-              ') has been flagged']);
-          break;
-        end        
+      if f ~= '0'
+        error(['good value (d(' ...
+               num2str(m) ')=' num2str(d) ...
+               ') has been flagged']); 
       end
     end
   end

@@ -1,5 +1,5 @@
 function [sample_data cal_data] = genTestData(...
-  size,...
+  nsamples,...
   params,...
   in_water_time,...
   out_water_time,...
@@ -14,7 +14,7 @@ function [sample_data cal_data] = genTestData(...
 % in_water_time and out_water_time parameters should be given on this scale.
 %
 % Inputs:
-%   size           - Number of samples
+%   nsamples       - Number of samples
 %   params         - String array of parameter names
 %   in_water_time  - In water time
 %   out_water_time - Out water time
@@ -62,11 +62,11 @@ function [sample_data cal_data] = genTestData(...
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-disp(['generating test data set of ' num2str(size) ' samples']);
+disp(['generating test data set of ' num2str(nsamples) ' samples']);
 
 sample_data.dimensions = [];
 sample_data.dimensions(1).name = 'TIME';
-sample_data.dimensions(1).data = 1:size;
+sample_data.dimensions(1).data = 1:nsamples;
 sample_data.parameters      = [];
 sample_data.log             = {};
 sample_data.level           = 0;
@@ -80,12 +80,13 @@ cal_data.parameters     = [];
 for k = 1:length(params)
   
   % generate random data set between min_value and max_value
-  data = min_values(k) + (max_values(k)-min_values(k)).*rand(1,size);
+  data = min_values(k) + (max_values(k)-min_values(k)).*rand(1,nsamples);
   
   sample_data.parameters(k).name       = params{k};
   sample_data.parameters(k).dimensions = [1];
   sample_data.parameters(k).data       = data;
-  sample_data.parameters(k).flags      = [];
+  sample_data.parameters(k).flags      = zeros(size(data));
+  sample_data.parameters(k).flags(:)   = '0';
   
   cal_data.parameters(k).name          = params{k};
   cal_data.parameters(k).min_value     = min_bounds(k);
