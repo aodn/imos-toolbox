@@ -2,9 +2,10 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 %PARSETEMPLATE Parses the given NetCDF attribute template file.
 %
 % Parses the given NetCDF attribute template file, inserting data where
-% required.
+% required. Assumes that a global variable called 'ddb' exists, and points to
+% an org.imos.ddb.DDB object.
 %
-% A number of template files exist in the NetCDF/templates subdirectory. These
+% A number of template files exist in the NetCDF/template subdirectory. These
 % files list the NetCDF attribute names and provide default values to be
 % exported in the output NetCDF files.
 %
@@ -102,8 +103,10 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 %
 % === Combinations ===
 %
-% You can combine each method of defining values, as shown in the following 
-% examples. One constraint - you cannot have identical 
+% An attribute value can contain combinations of plain strings and tokens, as 
+% shown in the following examples. The following constraints exist:
+%   - Tokens cannot be repeated in a single attribute definition
+%   - Tokens cannot be nested within other tokens.
 %
 % 1. qc_param_name = {mat sample_data.parameters(k).name}_QC
 % 
@@ -283,25 +286,6 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
 
   value = '';
 
-  %
-  % HACK libmdb is failing on linux. It's a memory corruption issue that is 
-  % manifesting itself in the mdb_xfer_bound_data function (data.c). The
-  % MdbColumn->len_ptr field is being read as '1', and an attempt is made to
-  % write to the pointer address, resulting in a SIGSEGV. 
-  %
-  % In my case, the field has been written to one in the mdb_read_indices 
-  % function (index.c). For some inexplicable reason, the MdbIndex struct 
-  % (g_malloc0'ed at line 94 of index.c) is given the /same/ address as the 
-  % MdbColumn struct (g_malloc0'ed at line 227 in table.c), meaning that writes 
-  % to the MdbIndex struct overwrite fields in the MdbColumn struct, and 
-  % vice-versa. 
-  %
-  % I haven't looked any further into it, as i've got other work to do, but i 
-  % have verified that the MdbColumn struct in mdb_xfer_bound_data is valid; 
-  % i.e. it has not already been freed
-  % 
-  %if isunix, value = '*parsedt*'; return; end
-
   % get the relevant deployment
   deployment = ddb.executeQuery('DeploymentData', ...
                                  'DeploymentId', ...
@@ -378,7 +362,7 @@ function line = readline(fid)
 % over multiple lines with line break escapes ('\').
 %
 % Matlab does not provide any functionality to interpret line break escapes, so
-% I had to write my own.
+% I wrote my own.
 %
 % Inputs:
 %
