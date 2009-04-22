@@ -16,25 +16,25 @@ Both of these structs originate in the [ParserSpecification Parser] module, when
 
 == sample_data ==
 
-`sample_data` is a scalar or row vector of structs which contain sample data. If a vector, each element in the `sample_data` vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
+`sample_data` is a scalar or vector of structs which contain sample data. If a vector, each element in the `sample_data` vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
 
 The `sample_data` struct elements have the following structure:
  * `sample_data`: struct
    * `level`: Data process level (Numeric)
-   * `log`: Row cell array of strings forming a log of the processing which has occurred on the data.
-   * `dimensions`: Row vector of structs:
+   * `log`: Cell array of strings forming a log of the processing which has occurred on the data.
+   * `dimensions`: Vector of structs:
      * `name`: IMOS compliant dimension name (String)
-     * `data`: Row vector of dimension data (Numeric)
+     * `data`: Vector of dimension data (Numeric)
    * `parameters`: vector of structs
      * `name`: IMOS compliant parameter name (String)
      * `comment`: Optional human readable comment (String)
-     * `dimensions`: Row vector of indices into the `dimensions` vector (Numeric)
+     * `dimensions`: Vector of indices into the `dimensions` vector (Numeric)
      * `data`: Matrix of data (Numeric)
      * `flags`: Single flag, or matrix of flags (Single character - see below)
 
 === Notes ===
 
- * It is currently assumed that time is always the first element of the `dimensions` struct, and the first element of every `parameters.dimensions` vector.
+ * It is assumed that time is always the first element of the `dimensions` struct, the first element of every `parameters.dimensions` vector, and the first dimension of the `parameters.data` matrices. This implies that single dimensional data must be stored as column vectors.
  * The `parameters.dimensions` array should be in the order of slowest changing to fastest changing.
  * Automatic and manual QC procedures should add to the log array when they modify any data.
 
