@@ -148,7 +148,7 @@ cal_data.instrument_serial_no = samples{1}{1};
 for k = 4:length(fields)
   
   [name comment] = getParamDetails(fields{k});  
-  data = samples{k-1}';
+  data = samples{k-1};
   
   % some parameters are not in IMOS uom - scale them so that they are
   switch name
