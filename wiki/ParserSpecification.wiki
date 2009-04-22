@@ -27,19 +27,20 @@ where:
 
 The `sample_data` struct must contain at least the following fields:
 
-  * `dimensions` Row vector of structs containing dimension data:
+  * `dimensions` Vector of structs containing dimension data:
     * `name`: (IMOS compliant) dimension name
-    * `data`: Row vector of dimension data
-  * `parameters`: Row vector of structs:
+    * `data`: Vector of dimension data (always one dimensional, so orientation does not matter)
+  * `parameters`: Vector of structs:
     * `name`: (IMOS compliant) parameter name
     * `comment`: (optional) Any relevant comments about the data
-    * `dimensions`: Row vector of indices into the `sample_data.dimensions` struct, indicating the dimensions of this data
-    * `data`: Matrix of data (row vector if one-dimensional)
+    * `dimensions`: Vector of indices into the `sample_data.dimensions` struct, indicating the dimensions of this data
+    * `data`: Matrix of data (column vector if one-dimensional)
 
 *Notes*
 
   * The contents of the name fields in both the `dimensions` and `parameters` structs must follow the naming conventions outlined in the IMOS NetCDF User's Manual. 
   * All data must be in the corresponding IMOS unit of measurement for the parameter.
+  * See the [DataStructuresSpecification data structures spec] for more information.
 
 === Example ===
 
@@ -74,7 +75,7 @@ For this data, the `sample_data` struct would look like this (timestamps have be
 
                name: 'TEMP'
          dimensions: 1
-               data: [16.5200 16.0500 15.4700]
+               data: [3x1 double]
 
   >> sample_data.parameters(2)
 
@@ -82,7 +83,7 @@ For this data, the `sample_data` struct would look like this (timestamps have be
 
                name: 'CNDC'
          dimensions: 1
-               data: [40.6120 40.0120 39.3510]
+               data: [3x1 double]
 
   >> sample_data.parameters(3)
 
@@ -90,7 +91,7 @@ For this data, the `sample_data` struct would look like this (timestamps have be
 
                name: 'PRES'
          dimensions: 1
-               data: [10.1200 10.1300 10.1100]
+               data: [3x1 double]
 }}}
 
 In the case that there are a different number of samples for different parameters, the data fields should be padded so that all parameters have the same number of samples. For example, if we have the following data:
@@ -102,17 +103,7 @@ In the case that there are a different number of samples for different parameter
   2008-01-16 00:00:15  39.351  15.47  
 }}}
 
-the conductivity and temperature parameter structs would be identical to those above, but the pressure struct would be as follows:
-
-{{{
-  >> sample_data.parameters(3)
-
-  ans = 
-
-               name: 'PRES'
-         dimensions: 1
-               data: [0.0 10.1300 0.0]
-}}}
+the conductivity and temperature parameter structs would be identical to those above, but the pressure data would be padded with `0.0`'s
 
 == Calibration Data ==
 
