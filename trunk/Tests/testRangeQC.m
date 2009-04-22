@@ -54,37 +54,37 @@ disp(' ');
 
 disp('running data through rangeQC filter');
 
-% run the data through the range filter
-filtered_data = rangeQC(sample_data, cal_data);
-
-% run through the data, ensuring that the range routine flagged every value
-% that is out of bounds, and no more
+rangeFlag = imosQCFlag('bound', cal_data.qc_set);
+goodFlag  = imosQCFlag('good', cal_data.qc_set);
 
 for k = 1:length(sample_data.parameters)
+  
+  data = sample_data.parameters(k).data;
+
+  % run the data through the range filter
+  [data flags log] = rangeQC(sample_data, cal_data, data, k);
+
+  % run through the data, ensuring that the range routine flagged every value
+  % that is out of bounds, and no more
   s = sample_data.parameters(k);
   c = cal_data.parameters(k);
-  fd = filtered_data.parameters(k);
   
   disp(['checking ' s.name]);
-  disp(['num flags for ' s.name ' is ' num2str(length(fd.flags))]);
+  disp(['num flags for ' s.name ' is ' num2str(length(flags))]);
   
   % check that the filter didn't modify the data
-  if ~(sample_data.parameters(k).data == filtered_data.parameters(k).data)
-    error('filter changed the data');
-  end
+  if ~(s.data == data), error('filter changed the data'); end
   
   % for every value
-  for m = 1:length(filtered_data.parameters(k).data(:))
+  for m = 1:length(data)
     
-    d = filtered_data.parameters(k).data( m);
-    f = filtered_data.parameters(k).flags(m);
+    d = data( m);
+    f = flags(m);
     
     % if out of bounds, check that it has been flagged
-    if d < cal_data.parameters(k).min_value...
-    || d > cal_data.parameters(k).max_value
+    if d < c.min_value || d > c.max_value
   
-      
-      if f == '0'
+      if f ~= rangeFlag
         error(['out of range value (d(' ...
                num2str(m) ')=' num2str(d) ...
                ') has not been flagged']); 
@@ -93,7 +93,7 @@ for k = 1:length(sample_data.parameters)
     % if within bounds, check that it has not been flagged
     else
       
-      if f ~= '0'
+      if f ~= goodFlag
         error(['good value (d(' ...
                num2str(m) ')=' num2str(d) ...
                ') has been flagged']); 

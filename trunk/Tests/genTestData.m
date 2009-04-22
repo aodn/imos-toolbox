@@ -64,12 +64,12 @@ function [sample_data cal_data] = genTestData(...
 
 disp(['generating test data set of ' num2str(nsamples) ' samples']);
 
-sample_data.dimensions = [];
+sample_data.dimensions         = [];
 sample_data.dimensions(1).name = 'TIME';
-sample_data.dimensions(1).data = 1:nsamples;
-sample_data.parameters      = [];
-sample_data.log             = {};
-sample_data.level           = 0;
+sample_data.dimensions(1).data = (1:nsamples)';
+sample_data.parameters         = [];
+sample_data.log                = {};
+sample_data.level              = 0;
 
 cal_data.in_water_time  = in_water_time;
 cal_data.out_water_time = out_water_time;
@@ -81,6 +81,7 @@ for k = 1:length(params)
   
   % generate random data set between min_value and max_value
   data = min_values(k) + (max_values(k)-min_values(k)).*rand(1,nsamples);
+  data = data';
   
   sample_data.parameters(k).name       = params{k};
   sample_data.parameters(k).dimensions = [1];

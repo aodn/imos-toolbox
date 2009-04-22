@@ -1,4 +1,5 @@
-function sample_data = flatlineQC( sample_data, cal_data, varargin )
+function [data, flags, log] = ...
+flatlineQC( sample_data, cal_data, data, k, varargin )
 %FLATLINEQC Flags flatline regions in the given data set.
 %
 % Simple filter which finds and flags any 'flatline' regions in the given data.
@@ -6,10 +7,13 @@ function sample_data = flatlineQC( sample_data, cal_data, varargin )
 % value.
 %
 % Inputs:
-%   sample_data - struct containing a vector of parameter structs, which in
-%                 turn contain the data.
+%   sample_data - struct containing the entire data set and dimension data.
 %
 %   cal_data    - struct which contains calibration and metadata.
+%
+%   data        - the vector of data to check.
+%
+%   k           - Index into the cal_data/sample_data.parameters vectors.
 %
 %   'nsamples'  - Minimum number of consecutive samples with the same value
 %                 that will be detected by the filter. If not provided, a
@@ -17,7 +21,12 @@ function sample_data = flatlineQC( sample_data, cal_data, varargin )
 %                 value of 2 is used.
 %
 % Outputs:
-%   sample_data - same as input, with flags added for flatline regions.
+%   data        - same as input.
+%
+%   flags       - Vector the same length as data, with flags for flatline 
+%                 regions..
+%
+%   log         - Empty cell array.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -52,9 +61,11 @@ function sample_data = flatlineQC( sample_data, cal_data, varargin )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(2, 4, nargin));
-if ~isstruct(sample_data), error('sample_data must be a struct'); end
-if ~isstruct(cal_data),    error('cal_data must be a struct');    end
+error(nargchk(4, 6, nargin));
+if ~isstruct(sample_data),        error('sample_data must be a struct'); end
+if ~isstruct(cal_data),           error('cal_data must be a struct');    end
+if ~isvector(data),               error('data must be a vector');        end
+if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
 p = inputParser;
 p.addOptional('nsamples', 5, @isnumeric);
@@ -64,43 +75,31 @@ p.parse(varargin{:});
 nsamples = p.Results.nsamples;
 if nsamples < 2, nsamples = 2; end
 
-flag = imosQCFlag('probablyBad', cal_data.qc_set);
+goodFlag = imosQCFlag('good',        cal_data.qc_set);
+flatFlag = imosQCFlag('probablyBad', cal_data.qc_set);
+
+log      = {};
+flags    = zeros(length(data), 1);
+flags(:) = goodFlag;
 
 % size of the current flatline region we are stepping through
 flatlineSize = 1;
 
-% check data in every parameter
-for k = 1:length(sample_data.parameters)
+for m = 2:length(data)
   
-  data = sample_data.parameters(k).data;
-  
-  for m = 2:length(data)
-    
-    % this data point is the same as the last one
-    if data(m-1) == data(m)
-      
-      % increase current number of consecutive points
-      flatlineSize = flatlineSize + 1;
-      
-      % the number of consecutive points is big 
-      % enough to warrent flagging it as a flatline
-      if flatlineSize == nsamples
-        
-        sample_data.parameters(k).flags(end+1).low_idx = m - nsamples + 1;
-        sample_data.parameters(k).flags(end).high_idx  = m;
-        sample_data.parameters(k).flags(end).flag      = flag;
-        sample_data.parameters(k).flags(end).comment   = 'flatline detected';
-      
-      % extend the flag range as long as the 
-      % flatline continues; don't reflag it
-      elseif flatlineSize > nsamples
-        
-        sample_data.parameters(k).flags(end).high_idx = m;
-        
-      end
-    
-    % this data point is different from the last one - reset the count
-    else flatlineSize = 1; end
-    
-  end
+  % this data point is the same as the last one
+  if data(m-1) == data(m);
+
+    % increase current number of consecutive points
+    flatlineSize = flatlineSize + 1;
+
+    % the number of consecutive points is big 
+    % enough to warrent flagging it as a flatline
+    if     flatlineSize  > nsamples, flags(m)                  = flatFlag;
+    elseif flatlineSize == nsamples, flags(m-flatlineSize+1:m) = flatFlag;
+    end
+
+  % this data point is different from the last one - reset the count
+  else flatlineSize = 1; end
+
 end

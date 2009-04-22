@@ -41,13 +41,16 @@ disp(' ');
 disp(['-- ' mfilename ' --']);
 disp(' ');
 
-num_samples = 1000;
+num_samples = 2000;
 min_flatline_size = 5;
 
 % generate test data
 [sample_data cal_data] = genTestData(...
   num_samples,{'TEMP', 'COND', 'PRES'},1,num_samples,...
   [10,10,10],[100,100,100],[10,10,10],[100,100,100]);
+
+goodFlag = imosQCFlag('good',        cal_data.qc_set);
+flatFlag = imosQCFlag('probablyBad', cal_data.qc_set);
 
 % each element is a Nx2 matrix, one for each parameter
 % N == num flatline regions for this parameter
@@ -93,52 +96,49 @@ for k = 1:length(sample_data.parameters)
 
   end
   
+  nflatlines = ...
+    sum(pflatlines(:,2)) - sum(pflatlines(:,1)) + length(pflatlines(:,1));
   disp([num2str(length(pflatlines(:,1))) ' flatlines inserted for ' ...
-        sample_data.parameters(k).name]);
+        sample_data.parameters(k).name ...
+        ' (' num2str(nflatlines) ') points in total']);
   
   flatlines{end+1} = pflatlines;
 end
 
-% run dataset through the flatline filter
-filtered_data = ...
-  flatlineQC(sample_data, cal_data, 'nsamples', min_flatline_size);
-
+% run dataset through the flatline filter for each parameter
 % check that flags have been created for each of the flatlines, and no more
-for k = 1:length(filtered_data.parameters)
+for k = 1:length(sample_data.parameters)
+  
+  s = sample_data.parameters(k);
+  
+  data = s.data;
+  [data flags log] = ...
+    flatlineQC(sample_data, cal_data, data, k, 'nsamples', min_flatline_size);
   
   pflatlines = flatlines{k};
   
-  flags = filtered_data.parameters(k).flags;
-  
-  disp([num2str(length(flags)) ' flatlines detected for ' ...
-        filtered_data.parameters(k).name]);
+  disp([num2str(length(flags(flags == flatFlag))) ...
+    ' flatline samples detected for ' s.name]);
   
   % check that the correct number of flatlines were detected
-  if length(flags) ~= length(pflatlines(:,1))
+  nflatlines = ...
+    sum(pflatlines(:,2)) - sum(pflatlines(:,1)) + length(pflatlines(:,1));
+  if nflatlines ~= length(flags(flags == flatFlag))
     error(['invalid number of flatlines detected for ' ...
-           filtered_data.parameters(k).name ': ' num2str(length(flags))...
-           ' (should be ' num2str(length(pflatlines)) ')']);
+           s.name ': ' num2str(length(flags(flags == flatFlag)))...
+           ' (should be ' num2str(nflatlines) ')']);
   end
   
-  % check that each flatline is valid
-  for m = 1:length(flags)
+  % check that every sample in each flatline has been flagged
+  for m = 1:length(pflatlines(:,1))
     
-    lidx = find(pflatlines(:,1) == flags(m).low_idx);
+    lidx = pflatlines(m,1);
+    hidx = pflatlines(m,2);
     
-    % low index check
-    if isempty(lidx)
-      error(['invalid flatline flag (low_idx) for ' ...
-        filtered_data.parameters(k).name ': '...
-        num2str(flags(m).low_idx)  '-' num2str(flags(m).high_idx)]);
-    end
-    
-    hidx = pflatlines(lidx,2);
-    
-    % high index check
-    if flags(m).high_idx ~= hidx
-      error(['invalid flatline flag (high_idx) for ' ...
-        filtered_data.parameters(k).name ': '...
-        num2str(flags(m).low_idx) '-' num2str(flags(m).high_idx)]);
+    if ~all(flags(lidx:hidx) == flatFlag)
+      error (['flatline region ' ...
+              num2str(lidx) '-' num2str(hidx) ...
+               ' has not been correctly flagged: ' mat2str(flags(lidx:hidx))]);
     end
   end
 end

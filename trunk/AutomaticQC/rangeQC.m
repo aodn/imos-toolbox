@@ -1,19 +1,27 @@
-function sample_data = rangeQC ( sample_data, cal_data )
+function [data, flags, log] = rangeQC ( sample_data, cal_data, data, k )
 %RANGEQC Flags data which is out of the parameter's valid range.
 %
-% Iterates through the given data set, and adds flags for any samples which
+% Iterates through the given data, and returns flags for any samples which
 % do not fall within the max_value and min_value fields in the given cal_data 
-% struct; this is done for each parameter.
+% struct.
 %
 % Inputs:
-%   sample_data - struct containing a vector of parameter structs, which in
-%                 turn contain the data.
+%   sample_data - struct containing the entire data set and dimension data.
 %
 %   cal_data    - struct which contains the max_value and min_value fields for 
 %                 each parameter, and the qc_set in use.
 %
+%   data        - the vector of data to check.
+%
+%   k           - Index into the cal_data/sample_data.parameters vectors.
+%
 % Outputs:
-%   sample_data - same as input, with flags added for out of range data.
+%   data        - same as input.
+%
+%   flags       - Vector the same length as data, with flags for corresponding
+%                 data which is out of range.
+%
+%   log         - Empty cell array.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -48,22 +56,25 @@ function sample_data = rangeQC ( sample_data, cal_data )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(2, 2, nargin));
-if ~isstruct(sample_data), error('sample_data must be a struct'); end
-if ~isstruct(cal_data),    error('cal_data must be a struct');    end
+error(nargchk(4, 4, nargin));
+if ~isstruct(sample_data),        error('sample_data must be a struct'); end
+if ~isstruct(cal_data),           error('cal_data must be a struct');    end
+if ~isvector(data),               error('data must be a vector');        end
+if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
-% get the flag value with which we flag out of range data
-flag = imosQCFlag('bound', cal_data.qc_set);
+log = {};
 
-% iterate through each paramter in the data set
-for k = 1:length(sample_data.parameters)
-  
-  data = sample_data.parameters(k).data;
-  max  = cal_data.parameters(k).max_value;
-  min  = cal_data.parameters(k).min_value;
-  
-  % add flags for out of range values
-  sample_data.parameters(k).flags(data > max) = flag;
-  sample_data.parameters(k).flags(data < min) = flag;
-  
-end
+% get the flag values with which we flag good and out of range data
+rangeFlag = imosQCFlag('bound', cal_data.qc_set);
+goodFlag  = imosQCFlag('good',  cal_data.qc_set);
+
+% initialise all flags to good
+flags    = zeros(length(data),1);
+flags(:) = goodFlag;
+
+max  = cal_data.parameters(k).max_value;
+min  = cal_data.parameters(k).min_value;
+
+% add flags for out of range values
+flags(data > max) = rangeFlag;
+flags(data < min) = rangeFlag;
