@@ -35,7 +35,7 @@ The `sample_data` struct elements have the following structure:
 === Notes ===
 
  * It is assumed that time is always the first element of the `dimensions` struct, the first element of every `parameters.dimensions` vector, and the first dimension of the `parameters.data` matrices. This implies that single dimensional data must be stored as column vectors.
- * The `parameters.dimensions` array should be in the order of slowest changing to fastest changing.
+ * The `parameters.dimensions` array must be in the same order as the `parameters.data` matrix indices.
  * Automatic and manual QC procedures should add to the log array when they modify any data.
 
 === Flagged data ===
