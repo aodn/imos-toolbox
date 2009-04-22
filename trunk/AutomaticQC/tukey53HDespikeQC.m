@@ -1,4 +1,5 @@
-function [sample_data] = tukey53HDespikeQC( sample_data, cal_data, varargin )
+function [data, flags, log] = ...
+tukey53HDespikeQC( sample_data, cal_data, data, k, varargin )
 %TUKEY53HDESPIKEQC Detects spikes in the given data using the Tukey 53H method.
 %
 % Detects spikes in the given data using the Tukey 53H method, as described in
@@ -8,16 +9,24 @@ function [sample_data] = tukey53HDespikeQC( sample_data, cal_data, varargin )
 %   pp 117-126.
 %
 % Inputs:
-%   sample_data - struct containing a vector of parameter structs, which in
-%                 turn contain the data.
+%   sample_data - struct containing the entire data set and dimension data.
 %
 %   cal_data    - struct which contains calibration and metadata.
+%
+%   data        - the vector of data to check.
+%
+%   k           - Index into the cal_data/sample_data.parameters vectors.
 %
 %   'k_param'   - Filter threshold (see the journal article). If not provided,
 %                 a default value of 1.5 is used.
 %
 % Outputs:
-%   sample_data - same as input, with flags added for data spikes.
+%   data        - same as input.
+%
+%   flags       - Vector the same length as data, with flags for corresponding
+%                 data which has been detected as spiked.
+%
+%   log         - Empty cell array.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -52,9 +61,11 @@ function [sample_data] = tukey53HDespikeQC( sample_data, cal_data, varargin )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(2, 4, nargin));
-if ~isstruct(sample_data), error('sample_data must be a struct'); end
-if ~isstruct(cal_data),    error('cal_data must be a struct');    end
+error(nargchk(4, 6, nargin));
+if ~isstruct(sample_data),        error('sample_data must be a struct'); end
+if ~isstruct(cal_data),           error('cal_data must be a struct');    end
+if ~isvector(data),               error('data must be a vector');        end
+if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
 p = inputParser;
 p.addOptional('k_param', 1.5, @isnumeric);
@@ -63,38 +74,34 @@ p.parse(varargin{:});
 
 k_param = p.Results.k_param;
 
-flag = imosQCFlag('spike', cal_data.qc_set);
+% we need to modify the data set, so work with a copy
+fdata = data;
 
-for k = 1:length(sample_data.parameters)
-  
-  data = sample_data.parameters(k).data;
-  
-  % remove mean, and apply a mild high pass 
-  % filter before applying spike detection
-  data = highPassFilter(data, 0.99);
-  data = data - mean(data);
-  
-  stddev = std(data);
-  
-  for m = 3:(length(data)-2)
-    
-    u1 = data(m-2:m+2);
-    u2 =   u1(  2:  4);
-    
-    u1(3) = median(u1);
-    u2(2) = median(u2);
-    
-    u3 = 0.25 * (u2(1) + 2*u2(2) + u2(3));
-    
-    delta = abs(data(m) - u3);
-    
-    if delta > k_param * stddev
-      
-      sample_data.parameters(k).flags(end+1).low_idx = m;
-      sample_data.parameters(k).flags(end).high_idx  = m;
-      sample_data.parameters(k).flags(end).flag      = flag;
-      sample_data.parameters(k).flags(end).comment   = ...
-                                           'Spike detected (Tukey 53H)';
-    end
-  end
+goodFlag  = imosQCFlag('good',  cal_data.qc_set);
+spikeFlag = imosQCFlag('spike', cal_data.qc_set);
+
+flags    = zeros(length(fdata), 1);
+flags(:) = goodFlag;
+log      = {};
+
+% remove mean, and apply a mild high pass 
+% filter before applying spike detection
+fdata = highPassFilter(fdata, 0.99);
+fdata = data - mean(fdata);
+
+stddev = std(fdata);
+
+for m = 3:(length(fdata)-2)
+
+  u1 = fdata(m-2:m+2);
+  u2 =    u1(  2:  4);
+
+  u1(3) = median(u1);
+  u2(2) = median(u2);
+
+  u3 = 0.25 * (u2(1) + 2*u2(2) + u2(3));
+
+  delta = abs(fdata(m) - u3);
+
+  if delta > k_param * stddev, flags(m) = spikeFlag; end
 end
