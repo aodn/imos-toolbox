@@ -1,4 +1,5 @@
-function sample_data = rcFilterDespikeQC( sample_data, cal_data, varargin )
+function [data flags log] = ...
+rcFilterDespikeQC( sample_data, cal_data, data, k, varargin )
 %RCFILTERDESPIKEQC Uses an RC filter technique to detect spikes in the given
 %data.
 %
@@ -10,16 +11,24 @@ function sample_data = rcFilterDespikeQC( sample_data, cal_data, varargin )
 %   pp 117-126.
 %
 % Inputs:
-%   sample_data - struct containing a vector of parameter structs, which in
-%                 turn contain the data.
+%   sample_data - struct containing the entire data set and dimension data.
 %
 %   cal_data    - struct which contains calibration and metadata.
+%
+%   data        - the vector of data to check.
+%
+%   k           - Index into the cal_data/sample_data.parameters vectors.
 %
 %   'k_param'   - Filter parameter (see the journal article). If not provided,
 %                 a default value of 3 is used.
 %
 % Outputs:
-%   sample_data - same as input, with flags added for data spikes.
+%   data        - same as input.
+%
+%   flags       - Vector the same length as data, with flags for corresponding
+%                 data which has been detected as spiked.
+%
+%   log         - Empty cell array.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -54,9 +63,11 @@ function sample_data = rcFilterDespikeQC( sample_data, cal_data, varargin )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(2, 4, nargin));
-if ~isstruct(sample_data), error('sample_data must be a struct'); end
-if ~isstruct(cal_data),    error('cal_data must be a struct');    end
+error(nargchk(4, 6, nargin));
+if ~isstruct(sample_data),        error('sample_data must be a struct'); end
+if ~isstruct(cal_data),           error('cal_data must be a struct');    end
+if ~isvector(data),               error('data must be a vector');        end
+if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
 p = inputParser;
 p.addOptional('k_param', 3, @isnumeric);
@@ -65,48 +76,47 @@ p.parse(varargin{:});
 
 k_param = p.Results.k_param;
 
-flag = imosQCFlag('spike', cal_data.qc_set);
+% we need to modify the data set, so work with a copy
+fdata = data;
 
-% apply filter to every parameter
-for k = 1:length(sample_data.parameters)
-  
-  data = sample_data.parameters(k).data;
+goodFlag  = imosQCFlag('good',  cal_data.qc_set);
+spikeFlag = imosQCFlag('spike', cal_data.qc_set);
 
-  % remove the mean and run a mild high pass filter 
-  % over the data before applying spike detection
-  data = highPassFilter(data, 0.99);
-  data = data - mean(data);
-  
-  % we need four data sets:
-  %   - lowpass(data)
-  %   - square(data)
-  %   - lowpass(square(data))
-  %   - square(lowpass(data))
-  %
-  % We use a fairly extreme low pass filter to reduce the 
-  % likelihood of insignificant spikes being flagged
-  
-  lp   = lowPassFilter(data, 0.2);
-  sq   = data .* data;
-  lpsq = lowPassFilter(sq, 0.2);
-  sqlp = lp .* lp;
-  
-  for m = 1:(length(data) - 1)
+flags    = zeros(length(fdata), 1);
+flags(:) = goodFlag;
+log      = {};
+
+% remove the mean and run a mild high pass filter 
+% over the data before applying spike detection
+fdata = highPassFilter(fdata, 0.99);
+fdata = fdata - mean(fdata);
+
+% we need four data sets:
+%   - lowpass(data)
+%   - square(data)
+%   - lowpass(square(data))
+%   - square(lowpass(data))
+%
+% We use a fairly extreme low pass filter to reduce the 
+% likelihood of insignificant spikes being flagged
+
+lp   = lowPassFilter(fdata, 0.2);
+sq   = fdata .* fdata;
+lpsq = lowPassFilter(sq, 0.2);
+sqlp = lp .* lp;
+
+for m = 1:(length(fdata) - 1)
+
+  variance = lpsq(m) - sqlp(m);
+
+  % check that data is good
+  low_bound  = lp(m) - (k_param * (variance .^ 0.5));
+  high_bound = lp(m) + (k_param * (variance .^ 0.5));
+
+  % if bad, flag it
+  if fdata(m+1) <= low_bound || fdata(m+1) >= high_bound
+
+    flags(m+1) = spikeFlag;
     
-    variance = lpsq(m) - sqlp(m);
-    
-    % check that data is good
-    low_bound  = lp(m) - (k_param * (variance .^ 0.5));
-    high_bound = lp(m) + (k_param * (variance .^ 0.5));
-    
-    % if bad, flag it
-    if data(m+1) <= low_bound || data(m+1) >= high_bound
-      
-      sample_data.parameters(k).flags(end+1).low_idx  = m+1;
-      sample_data.parameters(k).flags(end).high_idx   = m+1;
-      sample_data.parameters(k).flags(end).flag       = flag;
-      sample_data.parameters(k).flags(end).comment    = ...
-                                           'Spike detected (RC Filter)';
-    end
   end
 end

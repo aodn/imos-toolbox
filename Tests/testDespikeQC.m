@@ -63,6 +63,8 @@ step = 0.01;
 % function
 [sam cal] = genTestData(num_samples, {'TEMP'}, 0, num_samples, 0,0,0,0);
 
+spikeFlag = imosQCFlag('spike', cal.qc_set);
+
 % parameters for trig function in the range 0.1 to 5
 params = 0.1+4.9*rand(1,8);
 
@@ -115,10 +117,12 @@ if nargin == 0
     func = str2func(name);
     
     % run filter
-    filtered = func(sam,cal);
+    data = sam.parameters(1).data;
+    [data,flags,log] = func(sam,cal,data,1);
     
-    disp([name ' detected ' ...
-          num2str(length(filtered.parameters(1).flags)) ' spikes']);
+    flags = find(flags == spikeFlag);
+    
+    disp([name ' detected ' num2str(length(flags)) ' spikes']);
     
   end
 
@@ -127,11 +131,11 @@ else
   
   routine = [routine 'DespikeQC'];
   spikeFunc = str2func(routine);
+ 
+  data = sam.parameters(1).data;
+  [data,flags,log] = spikeFunc(sam, cal,data,1);
   
-  filtered = spikeFunc(sam, cal);
-  
-  data  =  filtered.parameters(1).data;
-  flags = [filtered.parameters(1).flags.low_idx];
+  flags = find(flags == spikeFlag);
   
   disp([routine ' filter found ' num2str(length(flags)) ' spikes']);
 
