@@ -29,4 +29,12 @@ where:
  * `varargin` is a set of configuration parameters for the filter. If the filter has no parameters, this argument may be omitted. If the filter does have parameters, the filter *must* be able to be called without specifying any parameters, i.e. all of the parameters must be optional.
  * `flags` is a column vector, the same length as `data`, which contains QC flags for each point in the data. All data points which pass the filter should have a corresponding flag that labels that point as 'good' for the QC set in use.
  * `log` is a cell array of Strings containing comments on any data which has been modified or removed. A log entry is not required for data which is simply flagged.
- 
+
+At the very least, all QC functions should perform the following input checking (the allowable number of arguments may be more than four, depending on optional arguments):
+{{{
+error(nargchk(4, 4, nargin));
+if ~isstruct(sample_data),        error('sample_data must be a struct'); end
+if ~isstruct(cal_data),           error('cal_data must be a struct');    end
+if ~isvector(data),               error('data must be a vector');        end
+if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+}}}
