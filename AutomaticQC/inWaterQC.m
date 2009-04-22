@@ -1,4 +1,4 @@
-function sample_data = inWaterQC( sample_data, cal_data )
+function [data flags log] = inWaterQC( sample_data, cal_data, data, k )
 %INWATERQC Removes samples which were taken before the instrument was placed
 % in the water.
 %
@@ -7,13 +7,21 @@ function sample_data = inWaterQC( sample_data, cal_data )
 % data set.
 %
 % Inputs:
-%   sample_data - struct containing a vector of parameter structs, which in
-%                 turn contain the data.
+%   sample_data - struct containing the entire data set and dimension data.
 %
 %   cal_data    - struct which contains the in water time.
 %
+%   data        - the vector of data to check.
+%
+%   k           - Index into the cal_data/sample_data.parameters vectors.
+%
 % Outputs:
-%   sample_data - same as input, with in water samples removed.
+%   data        - same as input, with before in-water samples removed.
+%
+%   flags       - Empty vector.
+%
+%   log         - Cell array with a log entry detailing how many samples were 
+%                 removed.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -48,29 +56,44 @@ function sample_data = inWaterQC( sample_data, cal_data )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(2, 2, nargin));
-if ~isstruct(sample_data), error('sample_data must be a struct'); end
-if ~isstruct(cal_data),    error('cal_data must be a struct');    end
+error(nargchk(4, 4, nargin));
+if ~isstruct(sample_data),        error('sample_data must be a struct'); end
+if ~isstruct(cal_data),           error('cal_data must be a struct');    end
+if ~isvector(data),               error('data must be a vector');        end
+if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
-% index of first sample which was taken in water
-start = 0;
+% end index of samples which were taken before in water
+sEnd = 0;
+
+% time range of samples which have been removed (for log entry)
+startTime = 0;
+endTime   = 0;
+
+origLength = length(data);
 
 % step through the start of the data set until we find a sample 
 % which has a time greater than or equal to the in water time
-for k = 1:length(sample_data.dimensions.time)
+time = sample_data.dimensions(1).data;
+
+startTime = time(1);
+
+for k = 1:length(time)
   
-  if sample_data.dimensions.time(k) >= cal_data.in_water_time
+  if time(k) >= cal_data.in_water_time
     
-    start = k;
+    sEnd    = k;
+    endTime = time(k);
     break;
     
   end
 end
 
 % remove all of those samples
-sample_data.dimensions.time = sample_data.dimensions.time(start:end);
-for k = 1:length(sample_data.parameters)
-  
-  sample_data.parameters(k).data = sample_data.parameters(k).data(start:end);
-  
-end
+data = data(sEnd:end);
+
+flags = [];
+log   = {};
+
+log{end+1} = ['inWaterQC: removed ' num2str(origLength - length(data)) ...
+              ' in-water samples from ' datestr(startTime,30) ...
+              ' to ' datestr(endTime,30)];

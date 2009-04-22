@@ -63,27 +63,24 @@ end_idx = 924;
 
 % call in water and out water routines
 disp(['running data through inWaterQC and outWaterQC']);
-    
-filtered_data = inWaterQC( sample_data,   cal_data);
-filtered_data = outWaterQC(filtered_data, cal_data);
 
-% verify that they did their jobs
-
-disp('checking filtered data sets');
-
-disp(['time dim length: ' num2str(length(filtered_data.dimensions.time))]);
-
-% check each parameter
-for k = 1:length(filtered_data.parameters)
+for k = 1:length(sample_data.parameters)
   
-  orig = sample_data.parameters(k).data;
-  filt = filtered_data.parameters(k).data;
+  s = sample_data.parameters(k);
+  data = s.data;
   
-  disp([filtered_data.parameters(k).name ...
-      ' filtered set length: ' num2str(length(filt))]);
+  idata = inWaterQC( sample_data, cal_data, data, k);
+  odata = outWaterQC(sample_data, cal_data, data, k);
+
+  disp([s.name ' in-water set length:  ' num2str(length(idata))]);
+  disp([s.name ' out-water set length: ' num2str(length(odata))]);
   
-  if filt ~= orig(start_idx:end_idx)
-    error('data has not been filtered correctly');
+  if idata ~= data(start_idx:end)
+    error('in-water data has not been filtered correctly');
+  end
+  
+  if odata ~= data(1:end_idx)
+    error('out-water data has not been filtered correctly');
   end
   
 end
