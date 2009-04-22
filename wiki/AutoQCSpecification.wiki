@@ -19,9 +19,10 @@ Filter procedures are able to modify/remove data, or simply flag regions of data
 
 All auto-QC filter functions must adhere to the following format:
 
- `function [data, flags, log] = nameQC ( cal_data, data, k, varargin )`
+ `function [data, flags, log] = nameQC ( sample_data, cal_data, data, k, varargin )`
 
 where:
+ * `sample_data` is a struct containing the entire data set, including dimension data.
  * `cal_data` is a struct containing calibration and metadata information.
  * `data` is a column vector containing the data. As `data` is both an input and output argument, this implies that the QC procedure can modify the data.
  * `k` is the parameter number, which can be used as an index into the `cal_data.parameters` vector to retrieve parameter specific metadata.
