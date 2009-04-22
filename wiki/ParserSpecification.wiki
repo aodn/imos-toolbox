@@ -40,7 +40,7 @@ The `sample_data` struct must contain at least the following fields:
 
   * The contents of the name fields in both the `dimensions` and `parameters` structs must follow the naming conventions outlined in the IMOS NetCDF User's Manual. 
   * All data must be in the corresponding IMOS unit of measurement for the parameter.
-  * See the [DataStructuresSpecification data structures spec] for more information.
+  * See the [DataStructures data structures spec] for more information.
 
 === Example ===
 
