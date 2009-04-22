@@ -60,7 +60,8 @@ if ~isvector(data), error('data must be a vector'); end
 if nargin == 1
   alpha = 0.5;
 else
-  if ~isnumeric(alpha), error('alpha must be numeric'); end
+  if ~isnumeric(alpha)...
+  || ~isscalar( alpha), error('alpha must be a scalar numeric'); end
   if (alpha <= 0.0)... 
   || (alpha > 1.0),     error('alpha must be 0.0 < alpha <= 1.0'); end
 end
