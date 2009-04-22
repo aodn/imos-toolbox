@@ -287,8 +287,8 @@ fseek(fid, -length(line) - 1, 'cof');
 nsamples = int32(filesize / 30);
 
 % others are allocated below as needed
-time        = zeros(1,nsamples);
-temperature = zeros(1,nsamples);
+time        = zeros(nsamples,1);
+temperature = zeros(nsamples,1);
 
 %
 % separate loops for sbe37/sbe39 with/without pressure to minimise the 
@@ -300,7 +300,7 @@ if strncmp('SBE37', cal_data.instrument_model, 5)
   % sbe37 with temperature and conductivity
   if length(sample_data.parameters) == 2
     
-    conductivity = zeros(1,nsamples);
+    conductivity = zeros(nsamples,1);
     
     % the nsamples index points to the next free space in the parameter arrays
     nsamples = 1;
@@ -336,8 +336,8 @@ if strncmp('SBE37', cal_data.instrument_model, 5)
   % sbe37 with temperature, conductivity and pressure
   elseif length(sample_data.parameters) == 3
     
-    conductivity = zeros(1,nsamples);
-    pressure     = zeros(1,nsamples);
+    conductivity = zeros(nsamples,1);
+    pressure     = zeros(nsamples,1);
     
     nsamples = 1;
       
@@ -403,7 +403,7 @@ elseif strncmp('SBE39', cal_data.instrument_model, 5)
   % sbe39 with temperature and pressure
   elseif length(sample_data.parameters) == 2
     
-    pressure = zeros(1,nsamples);
+    pressure = zeros(nsamples,1);
     
     nsamples = 1;
       
