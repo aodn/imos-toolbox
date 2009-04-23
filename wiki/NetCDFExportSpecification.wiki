@@ -23,8 +23,6 @@ An example template attribute definition which simply provides a literal string:
 project = Integrated Marine Observing System (IMOS)
 }}}
 
-If the literal string contains a scalar numeric value, it will be added to the NetCDF file as a numeric type.
-
 == DDB Queries ==
 
 The syntax for setting an attribute value to be the value of a field within the deployment database is (the square brackets indicate optional sections):
