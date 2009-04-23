@@ -73,7 +73,7 @@ so:
   attribute_name = {mat statement}
 }}}
 
-*Note:* The result of the statement must be a matlab string or a scalar numeric value.
+*Note:* The result of the statement must be a matlab string.
 
 The following 'workspace' is available to these embedded statements:
 
@@ -83,12 +83,12 @@ The following 'workspace' is available to these embedded statements:
 
 For example, for the attribute definition:
 {{{
-  quality_control_set = {mat cal_data.qc_set}
+  quality_control_set = {mat num2str(cal_data.qc_set)}
 }}}
 
 the attribute value will be the value of the matlab statment:
 {{{
-  cal_data.qc_set
+  num2str(cal_data.qc_set)
 }}}
 
 == Combinations ==
