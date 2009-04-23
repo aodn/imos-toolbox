@@ -41,10 +41,6 @@ function testParseNetCDFTemplate()
   disp(' ');
   disp(['-- ' mfilename ' --']);
   disp(' ');
-  
-  global ddb;
-  ddb = org.imos.ddb.DDB.getDDB(...
-    '/home/paul/Documents/imos/OceanographyUncontrolled.mdb');
 
   % test data
   [sam cal] = genTestData(100, {'TEMP', 'CNDC'}, 1, 100, ...

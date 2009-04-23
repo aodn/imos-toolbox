@@ -2,8 +2,7 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 %PARSETEMPLATE Parses the given NetCDF attribute template file.
 %
 % Parses the given NetCDF attribute template file, inserting data where
-% required. Assumes that a global variable called 'ddb' exists, and points to
-% an org.imos.ddb.DDB object.
+% required. 
 %
 % A number of template files exist in the NetCDF/template subdirectory. These
 % files list the NetCDF attribute names and provide default values to be
@@ -261,6 +260,8 @@ function value = parseAttributeValue(line, sample_data, cal_data, k)
     value = strrep(value, ['{' tkn '}'], val);
 
   end
+  
+  value = translateValue(value);
 end
 
 function value = parseDDBToken(token, sample_data, cal_data, k)
@@ -282,7 +283,7 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
 %   value       - the value of the token as contained in the DDB.
 %
 
-  global ddb;
+  ddb = org.imos.ddb.DDB.getDDB(toolboxProperties('ddb'));
 
   value = '';
 
@@ -354,6 +355,28 @@ function value = parseMatToken(token, sample_data, cal_data, k)
   % if the expression is erroneous, ignore it
   try      value = eval(token);
   catch e, value = e.message;
+  end
+end
+
+function value = translateValue(value)
+%TRANSLATEVALUE Given a string, translates it into a scalar numeric if
+%necessary. Otherwise leaves the input value unchanged.
+%
+% Inputs:
+%
+%   value - Anything.
+%
+% Outputs:
+%
+%   value - If the input was a string, and that string contained a scalar 
+%           numeric, returns a scalar numeric. Otherwise returns the input 
+%           unchanged.
+%
+  if ischar(value)
+    
+    dub = str2double(value);
+    if ~isnan(dub), value = dub; end
+    
   end
 end
 
