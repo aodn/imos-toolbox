@@ -23,6 +23,8 @@ An example template attribute definition which simply provides a literal string:
 project = Integrated Marine Observing System (IMOS)
 }}}
 
+If the literal string contains a scalar numeric value, it will be added to the NetCDF file as a numeric type.
+
 == DDB Queries ==
 
 The syntax for setting an attribute value to be the value of a field within the deployment database is (the square brackets indicate optional sections):
@@ -71,7 +73,7 @@ so:
   attribute_name = {mat statement}
 }}}
 
-*Note:* The result of the statement must be a matlab string.
+*Note:* The result of the statement must be a matlab string or a scalar numeric value.
 
 The following 'workspace' is available to these embedded statements:
 
@@ -81,12 +83,12 @@ The following 'workspace' is available to these embedded statements:
 
 For example, for the attribute definition:
 {{{
-  quality_control_set = {mat num2str(cal_data.qc_set)}
+  quality_control_set = {mat cal_data.qc_set}
 }}}
 
 the attribute value will be the value of the matlab statment:
 {{{
-  num2str(cal_data.qc_set)
+  cal_data.qc_set
 }}}
 
 == Combinations ==
