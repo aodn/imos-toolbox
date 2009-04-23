@@ -94,6 +94,7 @@ data = data(sEnd:end);
 flags = [];
 log   = {};
 
+dateFmt    = toolboxProperties('dateFormat');
 log{end+1} = ['inWaterQC: removed ' num2str(origLength - length(data)) ...
-              ' in-water samples from ' datestr(startTime,30) ...
-              ' to ' datestr(endTime,30)];
+              ' in-water samples from ' datestr(startTime,dateFmt) ...
+              ' to ' datestr(endTime,dateFmt)];

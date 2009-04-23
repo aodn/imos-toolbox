@@ -3,7 +3,7 @@ project                   = Integrated Marine Observing System (IMOS)
 conventions               = IMOS version 1.1
 title                     = {ddb Site}: {ddb Site Sites ResearchActivity}
 institution               = {ddb PersonnelDownload Personnel StaffID Organisation}
-date_created              = {mat datestr(cal_data.creation_date, 30)}
+date_created              = {mat datestr(cal_data.creation_date, toolboxProperties('dateFormat'))}
 abstract                  = 
 history                   = 
 comment                   = {ddb Comment}
@@ -29,8 +29,8 @@ geospatial_vertical_min = {ddb Site Sites Depth}
 geospatial_vertical_max = {ddb Site Sites Depth}
 
 % when
-time_coverage_start = {mat datestr(sample_data.dimensions.time(1), 30)}
-time_coverage_end   = {mat datestr(sample_data.dimensions.time(end), 30)}
+time_coverage_start = {mat datestr(sample_data.dimensions(1).data(1),   toolboxProperties('dateFormat'))}
+time_coverage_end   = {mat datestr(sample_data.dimensions(1).data(end), toolboxProperties('dateFormat'))}
 local_time_zone     = {ddb TimeZone}
 
 % who

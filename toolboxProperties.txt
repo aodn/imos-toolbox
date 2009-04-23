@@ -1,0 +1,5 @@
+% format in which all dates should be exported
+dateFormat = 'yyyy-mm-ddTHH:MM:SS'
+
+% filename or ODBC DSN of deployment database
+ddb = /home/paul/Documents/imos/OceanographyUncontrolled.mdb
