@@ -1,5 +1,8 @@
 % format in which all dates should be exported
-dateFormat = 'yyyy-mm-ddTHH:MM:SS'
+dateFormat = yyyy-mm-ddTHH:MM:SS
+
+% different date format for NetCDF file names
+fileDateFormat = yyyymmddTHHMMSS
 
 % filename or ODBC DSN of deployment database
 ddb = /home/paul/Documents/imos/OceanographyUncontrolled.mdb
