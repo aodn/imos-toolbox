@@ -4,6 +4,9 @@ tukey53HDespikeQC( sample_data, cal_data, data, k, varargin )
 %
 % Detects spikes in the given data using the Tukey 53H method, as described in
 % 
+%   Otnes RK & Enochson Loren, 1978 'Applied Time Series Analysis Volume 1:
+%   Basic Techniques', pgs 96-97, Wiley.:
+%
 %   Goring DG & Nikora VI 2002 'Despiking Acoustic Doppler Velocimeter Data',
 %   Journal of Hydraulic Engineering, January 2002, vol 128, issue 1, 
 %   pp 117-126.
@@ -17,8 +20,8 @@ tukey53HDespikeQC( sample_data, cal_data, data, k, varargin )
 %
 %   k           - Index into the cal_data/sample_data.parameters vectors.
 %
-%   'k_param'   - Filter threshold (see the journal article). If not provided,
-%                 a default value of 1.5 is used.
+%   'k_param'   - Filter threshold (see the text). If not provided, a default 
+%                 value of 1.5 is used.
 %
 % Outputs:
 %   data        - same as input.
@@ -91,17 +94,20 @@ fdata = data - mean(fdata);
 
 stddev = std(fdata);
 
-for m = 3:(length(fdata)-2)
+u1 = [];
+u2 = [];
+u3 = [];
 
-  u1 = fdata(m-2:m+2);
-  u2 =    u1(  2:  4);
+% calculate x', x'' and x'''
+% could be pipelined, but i'm lazy, and it's not too slow
+for m = 3:(length(fdata)-2), u1(m-2) = median(fdata(m-2:m+2));              end
+for m = 2:(length(u1)-1),    u2(m-1) = median(u1(m-1:m+1));                 end
+for m = 2:(length(u2)-1),    u3(m-1) = 0.25 *(u2(m-1) + 2*u2(m) + u2(m+1)); end
 
-  u1(3) = median(u1);
-  u2(2) = median(u2);
-
-  u3 = 0.25 * (u2(1) + 2*u2(2) + u2(3));
-
-  delta = abs(fdata(m) - u3);
-
-  if delta > k_param * stddev, flags(m) = spikeFlag; end
+% search the data for spikes
+for m = 4:(length(fdata)-5)
+  
+  delta = abs(fdata(m) - u3(m-3));
+  if delta > k_param * stddev, flags(m) = spikeFlag; end;
+  
 end
