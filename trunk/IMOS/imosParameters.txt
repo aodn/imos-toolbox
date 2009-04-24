@@ -54,6 +54,7 @@ SW_NET,    surface_net_upward_shortwave_flux,                  W m^-2,          
 TAU,       magnitude_of_surface_downward_stress,               Pascal,                                                            F
 TEMP,      sea_water_temperature,                              Celsius,                                                           T
 TIME,      time,                                               s,                                                                 E
+TURB,      turbidity,                                          NTU,                                                               U
 UCUR,      eastward_sea_water_velocity,                        m s^-1,                                                            V
 UWND,      eastward_wind,                                      m s^-1,                                                            M
 VAVH,      sea_surface_wave_significant_height,                m,                                                                 W
