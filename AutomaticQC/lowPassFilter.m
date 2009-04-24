@@ -1,25 +1,24 @@
 function lpf = lowPassFilter (data, alpha)
 %LOWPASSFILTER Simple low pass RC filter.
 %
-% Runs a low pass RC filter over the given data.
+% Runs a low pass RC filter over the given data. The filter used is as
+% described in:
+%
+%   Otnes RK & Enochson Loren, 1978 'Applied Time Series Analysis Volume 1:
+%   Basic Techniques', pgs 108-109, Wiley.
 %
 % Inputs:
 %
 %   data  - Array of data.
 %
 %   alpha - Smoothing factor between 0.0 (exclusive) and 1.0 (inclusive). A 
-%           lower value means more filtering. A value of 1.0 equals no 
+%           higher value means more filtering. A value of 1.0 equals no 
 %           filtering. Optional - if omitted, defaults to 0.5.
 %
 % Outputs:
 %   lpf   - Filtered data
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
-%
-% Based on pseudocode at http://en.wikipedia.org/wiki/Low-pass_filter, which
-% is released under the GNU Free Documentation License, described at 
-% http://en.wikipedia.org/wiki/Wikipedia:Text_of_the_GNU_Free_Documentation_Lic
-% ense.
 %
 
 % 
@@ -77,7 +76,7 @@ lpf(1) = data(1);
 
 for k = 2:length(data)
   
-  lpf(k) = alpha * data(k) + (1 - alpha) * lpf(k-1);  
+  lpf(k) = (1 - alpha) * data(k) + (alpha) * lpf(k-1);
   
 end
 

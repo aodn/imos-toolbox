@@ -6,9 +6,8 @@ rcFilterDespikeQC( sample_data, cal_data, data, k, varargin )
 % This function applies a spike detection filter based on the RC filter 
 % despiking method described in:
 %
-%   Goring DG & Nikora VI 2002 'Despiking Acoustic Doppler Velocimeter Data',
-%   Journal of Hydraulic Engineering, January 2002, vol 128, issue 1, 
-%   pp 117-126.
+%   Otnes RK & Enochson Loren, 1978 'Applied Time Series Analysis Volume 1:
+%   Basic Techniques', pgs 95-96, Wiley.
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
@@ -19,8 +18,8 @@ rcFilterDespikeQC( sample_data, cal_data, data, k, varargin )
 %
 %   k           - Index into the cal_data/sample_data.parameters vectors.
 %
-%   'k_param'   - Filter parameter (see the journal article). If not provided,
-%                 a default value of 3 is used.
+%   'k_param'   - Filter parameter (see the text). If not provided, a default 
+%                 value of 3 is used.
 %
 % Outputs:
 %   data        - same as input.
@@ -100,9 +99,9 @@ fdata = fdata - mean(fdata);
 % We use a fairly extreme low pass filter to reduce the 
 % likelihood of insignificant spikes being flagged
 
-lp   = lowPassFilter(fdata, 0.2);
+lp   = lowPassFilter(fdata, 0.8);
 sq   = fdata .* fdata;
-lpsq = lowPassFilter(sq, 0.2);
+lpsq = lowPassFilter(sq, 0.8);
 sqlp = lp .* lp;
 
 for m = 1:(length(fdata) - 1)
