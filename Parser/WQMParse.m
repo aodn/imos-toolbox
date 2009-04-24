@@ -17,6 +17,7 @@ function [sample_data cal_data] = WQMParse( filename )
 %   Salinity          (floating point, PSS)
 %   Dissolved Oxygen  (floating point, milligrams/Litre)
 %   Chlorophyll       (floating point, micrograms/Litre)
+%   Turbidity         (floating point, NTU)
 %
 % Any other parameters which are present in the input file will be ignored.
 %
@@ -25,7 +26,7 @@ function [sample_data cal_data] = WQMParse( filename )
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
-%                 vector of up to seven parameter structs, containing sample 
+%                 vector of up to eight parameter structs, containing sample 
 %                 times and data. The possible parameters are as follows:
 %
 %                   Conductivity      ('CNDC'): S m^-1
@@ -35,6 +36,7 @@ function [sample_data cal_data] = WQMParse( filename )
 %                   Dissolved Oxygen  ('DOXY'): kg/m^3
 %                   Chlorophyll       ('CPHL'): mg/m^3   (user coefficient)
 %                   Chlorophyll       ('CPHL'): mg/m^3   (factory coefficient)
+%                   Turbidity         ('TURB') NTU
 %
 %   cal_data    - contains instrument metadata. The '.dat' output format does 
 %                 not contain any calibration information, so this struct only 
@@ -104,6 +106,7 @@ PARAMS.put('Sal(PSU)',        {'PSAL', ''});
 PARAMS.put('DO(mg/l)',        {'DOXY', ''});
 PARAMS.put('F-Cal-CHL(ug/l)', {'CPHL', 'Factory coefficient'});
 PARAMS.put('U-Cal-CHL(ug/l)', {'CPHL', 'User coefficient'});
+PARAMS.put('NTU',             {'TURB', ''});
 
 %
 % This array contains the column headers which must be in the input file.
