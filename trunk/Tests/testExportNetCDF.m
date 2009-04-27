@@ -1,7 +1,9 @@
 function testExportNetCDF()
 %TESTEXPORTNETCDF Tests NetCDF export functionality.
 %
-% Detailed description of function
+% Creates a test dataset and attempts to export it to a NetCDF file using
+% the exportNetCDF function. If the export is successful, prints out the
+% NetCDF file (using ncdump), and then deletes the file.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
