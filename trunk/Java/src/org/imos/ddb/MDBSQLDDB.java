@@ -163,8 +163,13 @@ public class MDBSQLDDB extends DDB {
     
     //build query
     String query = "select * from " + tableName;
-    if (fieldName != null)
-      query += " where " + fieldName + " = '" + fieldValue + "'";
+    if (fieldName != null) {
+
+      //wrap strings in single quotes
+      if (fieldValue instanceof String) fieldValue = "'" + fieldValue + "'";
+
+      query += " where " + fieldName + " = " + fieldValue;
+    }
 
     //execute query
     if (mdbsql_query(query) != 0)
