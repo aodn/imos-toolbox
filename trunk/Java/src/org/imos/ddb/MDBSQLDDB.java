@@ -153,6 +153,9 @@ public class MDBSQLDDB extends DDB {
     throws Exception {
     
     List results = null;
+
+    if (tableName == null) 
+      throw new Exception("a tableName must be provided");
     
     Class clazz = Class.forName("org.imos.ddb.schema." + tableName);
    
@@ -160,6 +163,9 @@ public class MDBSQLDDB extends DDB {
     //build query
     String query = "select * from " + tableName;
     if (fieldName != null) {
+
+      if (fieldValue == null) 
+        throw new Exception("a fieldValue must be provided");
 
       //wrap strings in single quotes
       if (fieldValue instanceof String) fieldValue = "'" + fieldValue + "'";
