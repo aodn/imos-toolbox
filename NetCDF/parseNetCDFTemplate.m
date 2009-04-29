@@ -326,6 +326,12 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
   if simple_query, value = char(deployment.(field)); return; end
 
   % complex query - join with another table, get the field from that table
+  field_value = deployment.(field);
+  
+  % if the field value is empty, we can't use it as 
+  % a foreign key, so our only choice is to give up
+  if isempty(field_value), return; end
+  
   result = ddb.executeQuery(related_table, related_pkey, deployment.(field));
   if result.size() ~= 1, return; end
 
