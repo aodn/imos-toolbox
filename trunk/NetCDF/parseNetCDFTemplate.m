@@ -283,7 +283,7 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
 %   value       - the value of the token as contained in the DDB.
 %
 
-  ddb = org.imos.ddb.DDB.getDDB(toolboxProperties('ddb'));
+  ddb = org.imos.ddb.DDB.getDDB(readToolboxProperty('ddb'));
 
   value = '';
 
