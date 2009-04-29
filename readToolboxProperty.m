@@ -1,4 +1,4 @@
-open function value = readToolboxProperty(prop)
+function value = readToolboxProperty(prop)
 %READTOOLBOXPROPERTY Return the value of the specified global toolbox 
 % property.
 %
