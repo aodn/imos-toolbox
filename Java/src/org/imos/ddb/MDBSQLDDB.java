@@ -156,10 +156,6 @@ public class MDBSQLDDB extends DDB {
     
     Class clazz = Class.forName("org.imos.ddb.schema." + tableName);
    
-    //open mdb file
-    if (mdbsql_open(dbFile)!= 0) {
-      throw new Exception("error opening ddb file: " + dbFile);
-    }
     
     //build query
     String query = "select * from " + tableName;
@@ -171,32 +167,41 @@ public class MDBSQLDDB extends DDB {
       query += " where " + fieldName + " = " + fieldValue;
     }
 
-    //execute query
-    if (mdbsql_query(query) != 0)
-      throw new Exception("error executing query: " + query);
-    
-    results = new ArrayList();
-    
-    //fetch the results one by one
-    while (mdbsql_fetch() != 0) {
+    try {
+
+      //open mdb file
+      if (mdbsql_open(dbFile)!= 0) {
+        throw new Exception("error opening ddb file: " + dbFile);
+      }
+
+      //execute query
+      if (mdbsql_query(query) != 0)
+        throw new Exception("error executing query: " + query);
       
-      //create an instance representing this row
-      Object instance = clazz.newInstance();
-      results.add(instance);
+      results = new ArrayList();
       
-      Field [] fields = clazz.getDeclaredFields();
-      
-      //set the fields of the instance from the row data
-      for (Field f : fields) {
+      //fetch the results one by one
+      while (mdbsql_fetch() != 0) {
         
-        if (f.isSynthetic()) continue;
+        //create an instance representing this row
+        Object instance = clazz.newInstance();
+        results.add(instance);
         
-        String s = mdbsql_value(f.getName());
-        f.set(instance, createFieldValue(f, s));
+        Field [] fields = clazz.getDeclaredFields();
+        
+        //set the fields of the instance from the row data
+        for (Field f : fields) {
+          
+          if (f.isSynthetic()) continue;
+          
+          String s = mdbsql_value(f.getName());
+          f.set(instance, createFieldValue(f, s));
+        }
       }
     }
-    
-    mdbsql_close();
+
+    //always attempt to close file, even on error
+    finally {mdbsql_close();}
     
     return results;
   }
