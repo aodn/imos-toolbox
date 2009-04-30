@@ -1,4 +1,4 @@
-function [fieldTrip dataDir] = startDialog( dataDir )
+function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
 %STARTDIALOG Displays a dialog prompting the user to select a Field Trip ID
 % and a directory which contains raw data files.
 %
@@ -11,7 +11,10 @@ function [fieldTrip dataDir] = startDialog( dataDir )
 % Inputs:
 %
 %   dataDir   - Optional. The default raw data directory to display. If
-%               not provided, the current working directory (pwd) is used,.
+%               not provided, the current working directory (pwd) is used.
+%
+%   fieldTrip - Optional. The default field trip to display. If not
+%               provided, the first field trip is used.
 %
 % Outputs:
 %
@@ -52,12 +55,16 @@ function [fieldTrip dataDir] = startDialog( dataDir )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(0,1,nargin));
+  error(nargchk(0,2,nargin));
   
-  % use pwd if dataDir is not provided
-  if nargin == 0, dataDir = pwd; end
+  % default values if args not provided
+  if nargin == 0, dataDir = pwd;  end
+  if nargin < 2,  fieldTrip = 1;  end
+  
+  defaultFieldTrip = 1;
 
-  if ~ischar(dataDir), error('defaultDir must be a string'); end
+  if ~ischar(dataDir),      error('defaultDir must be a string'); end
+  if ~isnumeric(fieldTrip), error('fieldTrip must be a numeric'); end
 
   % check that dataDir is a directory
   [stat atts] = fileattrib(dataDir);
@@ -81,6 +88,12 @@ function [fieldTrip dataDir] = startDialog( dataDir )
     f = fieldTrips{k};
     fieldTrips{k} = [num2str(double(f.FieldTripID)) ...
                      ': ' char(f.FieldDescription)];
+    
+    % save default field trip selection
+    if double(f.FieldTripID) == fieldTrip
+      defaultFieldTrip = k; 
+      fieldTrip = fieldTrips{k};
+    end
   end
   
   %% Dialog creation
@@ -94,8 +107,10 @@ function [fieldTrip dataDir] = startDialog( dataDir )
              'WindowStyle', 'Modal');
 
   % create the widgets
-  fidLabel      = uicontrol('Style', 'text',       'String', 'Field Trip ID');
-  fidMenu       = uicontrol('Style', 'popupmenu',  'String',  fieldTrips);
+  fidLabel      = uicontrol('Style',  'text',       'String', 'Field Trip ID');
+  fidMenu       = uicontrol('Style',  'popupmenu', ...
+                            'String', fieldTrips,...
+                            'Value',  defaultFieldTrip);
 
   dirLabel      = uicontrol('Style', 'text',       'String', 'Data Directory');
   dirText       = uicontrol('Style', 'edit',       'String',  dataDir);
@@ -141,9 +156,6 @@ function [fieldTrip dataDir] = startDialog( dataDir )
   set(dirButton,     'KeyPressFcn',     @keyPressCallback);
   set(cancelButton,  'KeyPressFcn',     @keyPressCallback);
   set(confirmButton, 'KeyPressFcn',     @keyPressCallback);
-  
-  fieldTrip = fieldTrips{1};
-  dataDir   = dataDir;
 
   % display the dialog and wait for user input
   set(f, 'Visible', 'on');
