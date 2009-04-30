@@ -66,4 +66,18 @@ public class DeploymentData {
   public String  Comment;
   public Date    Modified;
   public Boolean Complete;
+
+  public boolean equals(Object o) {
+
+    if (o == null || !(o instanceof DeploymentData)) return false;
+    return DeploymentId.equals(((DeploymentData)o).DeploymentId);
+  }
+
+  public int hashCode() {
+
+    return DeploymentId == null
+      ? 0
+      : DeploymentId.hashCode();
+  }
 }
+
