@@ -2,8 +2,11 @@ function writeToolboxProperty( prop, val )
 %WRITETOOLBOXPROPERTY Updates the value of a toolbox property.
 %
 % Updates the value of a toolbox property, which is stored in a file called
-% toolboxProperties.txt. If the property name is not a valid toolbox property 
-% name, the file is left unchanged.
+% toolboxProperties.txt. If the property does not already exist in the
+% file, it is added to the end. If the property appears more than once in
+% the file, all occurrences are updated. This function does not support
+% instances where the existing property value is the property name (e.g.
+% 'prop_name = prop_name').
 %
 % Inputs:
 %   prop - name of the property to update
@@ -64,7 +67,9 @@ if nfid == -1,
   error(['could not open ' newFile ' for writing']); 
 end
 
+% iterate through every line of the file
 line = fgets(fid);
+updated = 0;
 while line ~= -1
   
   tkns = regexp(line, '^\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
@@ -74,6 +79,7 @@ while line ~= -1
   if ~isempty(tkns) ...
   &&  strcmp(tkns{1}{1},prop)
     line = strrep(line, tkns{1}{2}, val);
+    updated = 1;
   end
   
   % write out to the replacement file
@@ -81,6 +87,9 @@ while line ~= -1
   line = fgets(fid);
   
 end
+
+% if a new property, add it to the end
+if ~updated, fprintf(nfid, '\n%s = %s', prop, val); end
 
 fclose(fid);
 fclose(nfid);
