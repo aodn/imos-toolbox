@@ -223,8 +223,8 @@ function value = parseAttributeValue(line, sample_data, cal_data, k)
 %PARSEATTRIBUTEVALUE Parse an attribute value.
 %
 % Parses an attribute value as read from a template file. Searches for and 
-% interprets tokens' which point to the deployment database or which contain a
-% matlab expression.
+% interprets 'tokens' which point to the deployment database or which contain 
+% a matlab expression.
 %
 % Inputs:
 %
@@ -257,11 +257,11 @@ function value = parseAttributeValue(line, sample_data, cal_data, k)
     end
     
     % replace the token from the original line with its value
-    value = strrep(value, ['{' tkn '}'], val);
+    value = strrep(value, ['{' tkn '}'], stringify(val));
 
   end
   
-  value = translateValue(value);
+  value = numify(value);
 end
 
 function value = parseDDBToken(token, sample_data, cal_data, k)
@@ -283,19 +283,15 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
 %   value       - the value of the token as contained in the DDB.
 %
 
-  ddb = org.imos.ddb.DDB.getDDB(readToolboxProperty('ddb'));
-
   value = '';
 
   % get the relevant deployment
-  deployment = ddb.executeQuery('DeploymentData', ...
-                                 'DeploymentId', ...
-                                 cal_data.parameters(k).deployment_id);
+  deployment = executeDDBQuery('DeploymentData', ...
+                               'DeploymentId', ...
+                               cal_data.parameters(k).deployment_id);
 
   % no such deployment exists in the ddb, or multiple hits
-  if deployment.size() ~= 1, return; end
-
-  deployment = deployment.get(0);
+  if length(deployment) ~= 1, return; end
 
   % split the token up into its individual elements
   tkns = regexp(token, '\s+', 'split');
@@ -323,7 +319,7 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
   end
 
   % simple query - just a field in the DeploymentData table
-  if simple_query, value = char(deployment.(field)); return; end
+  if simple_query, value = deployment.(field); return; end
 
   % complex query - join with another table, get the field from that table
   field_value = deployment.(field);
@@ -332,11 +328,10 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
   % a foreign key, so our only choice is to give up
   if isempty(field_value), return; end
   
-  result = ddb.executeQuery(related_table, related_pkey, deployment.(field));
-  if result.size() ~= 1, return; end
+  result = executeDDBQuery(related_table, related_pkey, deployment.(field));
+  if length(result) ~= 1, return; end
 
-  result = result.get(0);
-  value = char(result.(related_field));
+  value = result.(related_field);
 
 end
 
@@ -364,9 +359,9 @@ function value = parseMatToken(token, sample_data, cal_data, k)
   end
 end
 
-function value = translateValue(value)
-%TRANSLATEVALUE Given a string, translates it into a scalar numeric if
-%necessary. Otherwise leaves the input value unchanged.
+function value = numify(value)
+%NUMIFY Given a string, translates it into a scalar numeric if possible. 
+% Otherwise leaves the input value unchanged.
 %
 % Inputs:
 %
@@ -384,6 +379,25 @@ function value = translateValue(value)
     if ~isnan(dub), value = dub; end
     
   end
+end
+
+function value = stringify(value)
+%STRINGIFY Given a numeric, turns it into a string. If an empty matrix, turns
+% it into an empty string. Otherwise leaves it unchanged.
+%
+% Intputs:
+%
+%   value - Anything.
+%
+% Outputs:
+%
+%   value - If the input was a numeric or emptry matrix, returns a string 
+%           representation the input. Otherwise returns the input unchanged.
+%
+  if     isempty(value), value = '';
+  elseif isnumeric(value), value = num2str(value); 
+  end
+
 end
 
 function line = readline(fid)
