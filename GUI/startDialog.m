@@ -58,11 +58,9 @@ function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
   error(nargchk(0,2,nargin));
   
   % default values if args not provided
-  if nargin == 0, dataDir = pwd;  end
-  if nargin < 2,  fieldTrip = 1;  end
+  if nargin == 0, dataDir   = pwd;     end
+  if nargin < 2,  fieldTrip = -99999;  end
   
-  defaultFieldTrip = 1;
-
   if ~ischar(dataDir),      error('defaultDir must be a string'); end
   if ~isnumeric(fieldTrip), error('fieldTrip must be a numeric'); end
 
@@ -73,28 +71,32 @@ function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
   end
 
   % retrieve all field trip IDs; they are displayed as a drop down menu
-  ddb = org.imos.ddb.DDB.getDDB(readToolboxProperty('ddb'));
-
-  fieldTrips = ddb.executeQuery('FieldTrip', [], []);
+  fieldTrips = executeDDBQuery('FieldTrip', [], []);
   
-  if fieldTrips.size() == 0, error('No field trip entries in DDB'); end
+  if isempty(fieldTrips), error('No field trip entries in DDB'); end
   
-  fieldTrips = struct(fieldTrips.toArray());
+  defaultFieldTrip     = 1;
+  defaultFieldTripDesc = ...
+    [num2str(fieldTrips(1).FieldTripID) ': ' fieldTrips(1).FieldDescription];
 
   % create a cell array containing descriptions of all available field
   % trips; these are the entries of the field trip drop down menu
+  fieldTripDescs = cell(size(fieldTrips));
   for k = 1:length(fieldTrips)
 
-    f = fieldTrips{k};
-    fieldTrips{k} = [num2str(double(f.FieldTripID)) ...
-                     ': ' char(f.FieldDescription)];
+    f = fieldTrips(k);
+    fieldTripDescs{k} = [num2str(f.FieldTripID) ': ' f.FieldDescription];
     
     % save default field trip selection
-    if double(f.FieldTripID) == fieldTrip
-      defaultFieldTrip = k; 
-      fieldTrip = fieldTrips{k};
+    if f.FieldTripID == fieldTrip
+      defaultFieldTrip     = k; 
+      defaultFieldTripDesc = fieldTripDescs{k};
     end
-  end
+  end  
+  
+  fieldTrip = defaultFieldTripDesc;
+  clear fieldTrips;
+  clear defaultFieldTripDesc;
   
   %% Dialog creation
   %
@@ -109,7 +111,7 @@ function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
   % create the widgets
   fidLabel      = uicontrol('Style',  'text',       'String', 'Field Trip ID');
   fidMenu       = uicontrol('Style',  'popupmenu', ...
-                            'String', fieldTrips,...
+                            'String', fieldTripDescs,...
                             'Value',  defaultFieldTrip);
 
   dirLabel      = uicontrol('Style', 'text',       'String', 'Data Directory');
