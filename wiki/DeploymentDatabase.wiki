@@ -6,7 +6,7 @@
 
 == Overview ==
 
-The Deployment Database (DDB) is an MS-Access database which contains information about all deployments, instruments, personnel and sites for a specific location. 
+The Deployment Database (DDB) is an MS-Access database which contains information about all deployments, instruments, personnel and sites for a specific location. In the toolbox, the DDB/executeDDBQuery function acts as a wrapper around the DDB, and returns query results as vectors of matlab structs. This means that no conversion between Java-Matlab types is necessary.
 
 == Schema ==
 
