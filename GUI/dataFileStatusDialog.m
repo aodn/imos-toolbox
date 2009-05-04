@@ -136,7 +136,9 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   % the dialog is closed. This is done by delegating to the cancelCallback
   % function.
   %
-    if strcmp(ev.Key, 'escape'), cancelCallback(source,ev); end
+    if     strcmp(ev.Key, 'escape'), cancelCallback( source,ev);
+    elseif strcmp(ev.Key, 'return'), confirmCallback(source,ev); 
+    end
   end
 
   function keyPressListCallback(source,ev)
@@ -156,8 +158,10 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   %CANCELCALLBACK Discards any changes the user may have made, and
   % closes the dialog.
   %
-    deployments = origDeployments;
-    files       = origFiles;
+    %deployments = origDeployments;
+    %files       = origFiles;
+    deployments = [];
+    files       = {};
     delete(f);
   end
 
@@ -242,7 +246,7 @@ function descs = genDepDescriptions(deployments, files)
   % set values for lists
   descs = strcat(...
     {deployments.DeploymentId},...
-    ':', {deployments.Comment},...
+    ':', {deployments.InstrumentID},...
     '(', {deployments.FileName}, ')'...
   );
 
