@@ -250,10 +250,47 @@ function descs = genDepDescriptions(deployments, files)
     '(', {deployments.FileName}, ')'...
   );
 
-  % highlight deployments which have no associated files
+  % highlight deployments which have no associated 
+  % files or which have more than one associated file
+  nofile   = readToolboxProperty('filestatusdialog.nofileformat');
+  multiple = readToolboxProperty('filestatusdialog.multiplefileformat');
+  
+  [nofileStart   nofileEnd]   = genTags(nofile);
+  [multipleStart multipleEnd] = genTags(multiple);
+  
   for k = 1:length(files)
-    if isempty(files{k})
-      descs{k} = ['<html><b>' descs{k} '</b></html>']; 
+    
+    if     isempty(files{k})
+      descs{k} = [nofileStart   descs{k} nofileEnd];
+      
+    elseif length(files{k}) > 1
+      descs{k} = [multipleStart descs{k} multipleEnd];
+      
     end
+  end
+  
+  function [startTag endTag] = genTags(formatSpec)
+  %GENTAGS Generates HTML tags for the given format specification.
+  %
+  
+  startTag = '';
+  endTag   = '';
+  
+    switch (formatSpec)
+      
+      case 'normal', 
+      case 'bold', 
+        startTag = '<html><b>';
+        endTag   = '</b></html>';
+      case 'italic'
+        startTag = '<html><i>';
+        endTag   = '</i></html>';
+        
+      % otherwise assume it's a html colour
+      otherwise
+        startTag = ['<html><font color=''' formatSpec '''>'];
+        endTag   = '</font></html>';
+    end
+    
   end
 end
