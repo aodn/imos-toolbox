@@ -81,7 +81,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   fileRemoveButton  = uicontrol('Style', 'pushbutton', 'String', 'Remove file');
   fileAddButton     = uicontrol('Style', 'pushbutton', 'String', 'Add file...');
   cancelButton      = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
-  confirmButton     = uicontrol('Style', 'pushbutton', 'String', 'Confirm');
+  confirmButton     = uicontrol('Style', 'pushbutton', 'String', 'Ok');
 
   depList           = uicontrol('Style', 'listbox', 'Min', 1, 'Max', 1);
   fileList          = uicontrol('Style', 'listbox', 'Min', 1, 'Max', 3);
