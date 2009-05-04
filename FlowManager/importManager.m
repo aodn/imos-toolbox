@@ -66,8 +66,8 @@ function [sample_data cal_data skipped] = importManager()
 
   % if default values exist for data dir and field trip, use them
   try 
-    dataDir   =            readToolboxProperty('dataDir'); 
-    fieldTrip = str2double(readToolboxProperty('fieldTrip'));
+    dataDir   =            readToolboxProperty('import.dataDir'); 
+    fieldTrip = str2double(readToolboxProperty('import.fieldTrip'));
   catch
   end
 
@@ -79,8 +79,8 @@ function [sample_data cal_data skipped] = importManager()
   if isempty(fieldTrip) || isempty(dataDir), return; end
 
   % persist the user's directory and field trip selection
-  writeToolboxProperty('dataDir',   dataDir);
-  writeToolboxProperty('fieldTrip', num2str(fieldTrip));
+  writeToolboxProperty('import.dataDir',   dataDir);
+  writeToolboxProperty('import.fieldTrip', num2str(fieldTrip));
 
   % query the ddb for all deployments related to this field trip
   deps    = executeDDBQuery('DeploymentData', 'StartFieldTrip', fieldTrip);
