@@ -229,7 +229,7 @@ function filename = genFileName(sample_data, cal_data)
   %
   % all dates should be in ISO 8601 format
   %
-  dateFmt       = readToolboxProperty('fileDateFormat');
+  dateFmt       = readToolboxProperty('netcdf.fileDateFormat');
   start_date    = datestr(sample_data.dimensions(1).data(1),   dateFmt);
   end_date      = datestr(sample_data.dimensions(1).data(end), dateFmt);
   creation_date = datestr(cal_data.creation_date,              dateFmt);
