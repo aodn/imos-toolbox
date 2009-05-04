@@ -170,7 +170,9 @@ function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
   %KEYPRESSCALLBACK If the user pushes escape while the dialog has focus,
   % the dialog is closed. This is done by delegating to the cancelCallback
   % function.
-    if strcmp(ev.Key, 'escape'), cancelCallback(source,ev); end
+    if     strcmp(ev.Key, 'escape'), cancelCallback( source,ev); 
+    elseif strcmp(ev.Key, 'return'), confirmCallback(source,ev); 
+    end
   end
   
   function fidMenuCallback(source,ev)
