@@ -214,6 +214,10 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     
     set(fileList, 'String', files{dep});
     set(fileList, 'Value', 1);
+    
+    % update deplist view (the deployment's status may have changed)
+    set(depList, 'Value',  dep);
+    set(depList, 'String', genDepDescriptions(deployments, files));
   end
 
   function fileAddCallback(source,ev)
@@ -235,6 +239,10 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     % add new file to deployment's file list
     files{dep}{end+1} = [path newFile];
     set(fileList, 'String', files{dep});
+    
+    % update deplist view (the deployment's status may have changed)
+    set(depList, 'Value',  dep);
+    set(depList, 'String', genDepDescriptions(deployments, files));
   end
 end
 
