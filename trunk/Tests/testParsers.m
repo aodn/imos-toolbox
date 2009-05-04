@@ -67,7 +67,7 @@ for k = 1:length(parsers)
   parserFunc = getParser(parser);
   
   tic;
-  [sam cal] = parserFunc(filename);
+  [sam cal] = parserFunc({filename});
   time = toc;
   disp([parser 'Parse passed with ' filename ...
        ' (num samples ' int2str(length(sam.dimensions(1).data)) ...
