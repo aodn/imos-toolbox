@@ -115,9 +115,13 @@ function [sample_data cal_data] = SBE3x( filename )
 
 %% Check input, set up data structures
 
-% ensure that there is exactly one argument, and that it is a string
+% ensure that there is exactly one argument, 
+% and that it is a cell array of strings
 error(nargchk(1, 1, nargin));
-if ~ischar(filename), error('filename must be a string'); end
+if ~iscell(filename), error('filename must be a cell array'); end
+
+filename = filename{1};
+if ~ischar(filename), error('filename must contain a string'); end
 
 % save file size and open file; this will throw an error if file doesn't exist
 filesize = dir(filename);

@@ -81,9 +81,13 @@ function [sample_data cal_data] = WQMParse( filename )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-% ensure that there is exactly one argument, and that it is a string
+% ensure that there is exactly one argument, 
+% and that it is a cell array of strings
 error(nargchk(1, 1, nargin));
-if ~ischar(filename), error('filename must be a string'); end
+if ~iscell(filename), error('filename must be a cell array'); end
+
+filename = filename{1};
+if ~ischar(filename), error('filename must contain a string'); end
 
 % Lookup table/array for supported and required parameters
 global PARAMS;
