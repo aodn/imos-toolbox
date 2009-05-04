@@ -1,0 +1,43 @@
+#summary Matlab environment configuration
+
+<wiki:toc />
+
+= Matlab Environment Configuration =
+
+This information is for my own reference, but may be of use for others.
+
+== Matlab startup script ==
+
+I call matlab from a script which preconfigures the matlab path:
+{{{
+#!/bin/sh
+MATLAB_HOME=/home/paul/matlab
+MATLAB_WORKSPACE=/home/paul/matlab-workspace
+IMOS_WORKSPACE=$MATLAB_WORKSPACE/imos-toolbox/trunk
+
+MATLABPATH=$MATLAB_WORKSPACE/m2html
+MATLABPATH=$MATLABPATH:$MATLAB_WORKSPACE/mtest
+MATLABPATH=$MATLABPATH:$IMOS_WORKSPACE
+
+DIRS=`ls $IMOS_WORKSPACE`
+for D in $DIRS
+do
+  D=$IMOS_WORKSPACE/$D
+  if [ -d $D ]
+  then
+    MATLABPATH=$MATLABPATH:$D
+  fi
+
+done
+
+export MATLABPATH
+cd $IMOS_WORKSPACE
+$MATLAB_HOME/bin/matlab -desktop -nosplash
+}}}
+
+== Matlab classpath and library path ==
+
+I have added the following to the top of both `matlab/toolbox/local/classpath.txt` and `matlab/toolbox/local/librarypath.txt`:
+{{{
+/home/paul/matlab-workspace/imos-toolbox/trunk/Java/bin
+}}}
