@@ -4,7 +4,7 @@
 
 = Matlab Environment Configuration =
 
-This information is for my own reference, but may be of use for others.
+This information is for my own reference, but may be of use to others.
 
 == Matlab startup script ==
 
