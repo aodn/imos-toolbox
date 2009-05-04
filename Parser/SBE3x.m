@@ -26,7 +26,7 @@ function [sample_data cal_data] = SBE3x( filename )
 % format and downloading data. This function will only parse sample data
 % which is in the following format:
 %
-%   temperature[, conductivity][, pressure], date, time
+%   temperature[, conductivity][, pressure][, salinity], date, time
 %
 % where
 %
@@ -34,6 +34,8 @@ function [sample_data cal_data] = SBE3x( filename )
 %   conductivity: floating point, S/m (only on SBE37)
 %   pressure:     floating point, decibars, optional (present on instruments
 %                 with optional pressure sensor)
+%   salinity:     floating point, PSU, optional (may be present on SBE37
+%                 instruments with firmware >= 3.0)
 %   date:         dd mmm yyyy (e.g. 01 Jan 2008)
 %   time:         hh:mm:ss    (e.g. 15:45:03)
 %
@@ -47,7 +49,7 @@ function [sample_data cal_data] = SBE3x( filename )
 %
 %   OutputFormat=1
 %   OutputDepth=N   (if sensor supports this command)
-%   OutputSal=N
+%   OutputSal=N     (if sensor supports this command - Y if you want salinity)
 %   OutputSV=N
 %   OutputDensity=N (if sensor supports this command)
 %   OutputTime=Y    (if sensor supports this command)
@@ -62,7 +64,7 @@ function [sample_data cal_data] = SBE3x( filename )
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
-%                 vector of up to three parameter structs, containing sample 
+%                 vector of up to four parameter structs, containing sample 
 %                 data. The parameters are as follows:
 %
 %                   Temperature  ('TEMP'): Degrees Celsius ITS-90 (always 
@@ -72,6 +74,9 @@ function [sample_data cal_data] = SBE3x( filename )
 %
 %                   Pressure     ('PRES'): decibars (only if optional 
 %                                          pressure sensor is present)
+%
+%                   Salinity     ('PSAL'): PSU (only on SBE37 sensors which
+%                                          support the 'OutputSal' command)
 %
 %   cal_data    - contains instrument metadata and calibration coefficients, 
 %                 if this data is present in the input file header.
@@ -132,6 +137,7 @@ fid = fopen(filename);
 TEMPERATURE_NAME  = 'TEMP';
 CONDUCTIVITY_NAME = 'CNDC';
 PRESSURE_NAME     = 'PRES';
+SALINITY_NAME     = 'PSAL';
 TIME_NAME         = 'TIME';
 
 %
@@ -140,6 +146,7 @@ TIME_NAME         = 'TIME';
 header_expr       = '^[\*]\s*(SBE\S+)\s+V\s+(\S+)\s+(\d+)$';
 cal_coeff_expr    = '^[\*]\s*(\w+)\s*=\s*(\S+)\s*$';
 sensor_cal_expr   = '^[\*]\s*(\w+):\s*(.+)\s*$';
+salinity_expr     = '^* output salinity.*$';
 pressure_cal_expr = ['^[\*]\s*pressure\s+S/N\s+(\d+)'... % serial number
                      ',\s*range\s*=\s*(\d+)'         ... % pressure range
                      '\s+psia:\s*(.+)\s*$'];             % cal date
@@ -159,7 +166,14 @@ cal_data               = struct;
 temperature            = [];
 conductivity           = [];
 pressure               = [];
+salinity               = [];
 time                   = [];
+
+% booleans used to determine whether to expect 
+% the corresponding parameter in the data
+read_sal  = 0;
+read_cond = 0;
+read_pres = 0;
 
 % The instrument_model field will be overwritten 
 % as the calibration data is read in
@@ -168,7 +182,7 @@ cal_data.instrument_model = 'SBE3x';
 
 %% Read file header (which contains sensor and calibration information)
 %
-% The header section contains three different line formats that we want to 
+% The header section contains four different line formats that we want to 
 % capture. The first format contains the sensor type, firmware version and 
 % serial number. It is of the format:
 %
@@ -183,7 +197,12 @@ cal_data.instrument_model = 'SBE3x';
 % just a calibration date. The (optional) pressure sensor also contains a 
 % serial number and pressure range.
 %
-% The third type of line is a name-value pair of a particular calibration
+% The third type of line is an indication of whether salinity is output in
+% the data. It is literally:
+%
+%   * output salinity with each sample
+%
+% The fourth type of line is a name-value pair of a particular calibration
 % coefficient. These lines have the format:
 %
 %   name = value
@@ -224,6 +243,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
       
     elseif strcmp('conductivity', tkn{1}{1})
       
+      read_cond = 1;
       sample_expr = ['%f' sample_expr];
       sample_data.parameters(end+1).name = CONDUCTIVITY_NAME;
       
@@ -239,6 +259,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
   tkn = regexp(line, pressure_cal_expr, 'tokens');
   if ~isempty(tkn)
     
+    read_pres = 1;
     sample_expr = ['%f' sample_expr];
     sample_data.parameters(end+1).name = PRESSURE_NAME;
     
@@ -251,7 +272,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
   end
   
   %
-  % finally, try sensor info
+  % ok, try instrument info
   %
   tkn = regexp(line, header_expr, 'tokens');
   if ~isempty(tkn)
@@ -260,6 +281,18 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
     cal_data.instrument_firmware  = tkn{1}{2};
     cal_data.instrument_serial_no = tkn{1}{3};
 
+  end
+  
+  %
+  % finally, try salinity info
+  %
+  tkn = regexp(line, salinity_expr, 'tokens');
+  if ~isempty(tkn)
+    
+    read_sal = 1;
+    sample_expr = ['%f' sample_expr];
+    sample_data.parameters(end+1).name = SALINITY_NAME;
+    
   end
 
   line = fgetl(fid);
@@ -294,148 +327,54 @@ nsamples = int32(filesize / 30);
 time        = zeros(nsamples,1);
 temperature = zeros(nsamples,1);
 
-%
-% separate loops for sbe37/sbe39 with/without pressure to minimise the 
-% amount of in-loop processing involved, so the loop runs as quickly as
-% possible. ugly, but faster.
-%
-if strncmp('SBE37', cal_data.instrument_model, 5)
+if read_pres, pressure     = zeros(nsamples,1); end
+if read_cond, conductivity = zeros(nsamples,1); end
+if read_sal,  salinity     = zeros(nsamples,1); end
+
+% the nsamples index points to the next 
+% free space in the parameter arrays
+nsamples = 1;
+
+while ~feof(fid)
+
+  % temperature[, conductivity][, pressure][, salinity], date, time
+  samples = textscan(fid, sample_expr, 'delimiter', ',');
+
+  block = 1;
   
-  % sbe37 with temperature and conductivity
-  if length(sample_data.parameters) == 2
-    
-    conductivity = zeros(nsamples,1);
-    
-    % the nsamples index points to the next free space in the parameter arrays
-    nsamples = 1;
-    
-    while ~feof(fid)
+  temp_block = samples{block}; block = block+1;
+  
+  if read_cond, cond_block = samples{block}; block = block+1; end
+  if read_pres, pres_block = samples{block}; block = block+1; end
+  if read_sal,  sal_block  = samples{block}; block = block+1; end
+  
+  time_block = cellstr(samples{block});
 
-      % temperature, conductivity, date, time
-      samples = textscan(fid, sample_expr, 'delimiter', ',');
-
-      temp_block = samples{1};
-      cond_block = samples{2};
-      time_block = cellstr(samples{3});
-      
-      % error on most recent line - discard it and continue
-      if ~feof(fid)
-        time_block = time_block(1:end-1);
-        temp_block = temp_block(1:length(time_block));
-        cond_block = cond_block(1:length(time_block));
-        fgetl(fid);
-      end
-      
-      % convert date to numeric representation
-      time_block = datenum(time_block, 'dd mmm yyyy, HH:MM:SS');
-
-      % copy data in to sample_data struct
-      temperature( nsamples:nsamples+length(temp_block)-1) = temp_block;
-      conductivity(nsamples:nsamples+length(cond_block)-1) = cond_block;
-      time(        nsamples:nsamples+length(time_block)-1) = time_block;
-              
-      nsamples = nsamples + length(time_block);
-    end
+  % error on most recent line - discard it and continue
+  if ~feof(fid)
+    time_block = time_block(1:end-1);
+    temp_block = temp_block(1:length(time_block));
     
-  % sbe37 with temperature, conductivity and pressure
-  elseif length(sample_data.parameters) == 3
-    
-    conductivity = zeros(nsamples,1);
-    pressure     = zeros(nsamples,1);
-    
-    nsamples = 1;
-      
-    while ~feof(fid)
-
-      % temperature, conductivity, pressure, date, time
-      samples = textscan(fid, sample_expr, 'delimiter', ',');
-      
-      temp_block = samples{1};
-      cond_block = samples{2};
-      pres_block = samples{3};
-      time_block = cellstr(samples{4});
-      
-      % error on most recent line - discard it and continue
-      if ~feof(fid)
-        time_block = time_block(1:end-1);
-        temp_block = temp_block(1:length(time_block));
-        cond_block = cond_block(1:length(time_block));
-        pres_block = pres_block(1:length(time_block));
-        fgetl(fid);
-      end
-      
-      time_block = datenum(time_block, 'dd mmm yyyy, HH:MM:SS');
-
-      temperature( nsamples:nsamples+length(temp_block)-1) = temp_block;
-      conductivity(nsamples:nsamples+length(cond_block)-1) = cond_block;
-      pressure(    nsamples:nsamples+length(pres_block)-1) = pres_block;
-      time(        nsamples:nsamples+length(time_block)-1) = time_block;
-
-      nsamples = nsamples + length(time_block);
-    end
+    if read_cond, cond_block = cond_block(1:length(time_block)); end
+    if read_pres, pres_block = pres_block(1:length(time_block)); end
+    if read_sal,  sal_block  = sal_block( 1:length(time_block)); end
+    fgetl(fid);
   end
+
+  time_block = datenum(time_block, 'dd mmm yyyy, HH:MM:SS');
+
+  temperature(   nsamples:nsamples+length(temp_block)-1) = temp_block;
   
-elseif strncmp('SBE39', cal_data.instrument_model, 5)
+  if read_cond
+    conductivity(nsamples:nsamples+length(cond_block)-1) = cond_block; end
+  if read_pres
+    pressure(    nsamples:nsamples+length(pres_block)-1) = pres_block; end
+  if read_sal
+    salinity(    nsamples:nsamples+length(sal_block) -1) = sal_block;  end
   
-  % sbe39 with temperature
-  if length(sample_data.parameters) == 1
-    
-    nsamples = 1;
-    
-    while ~feof(fid)
+  time(          nsamples:nsamples+length(time_block)-1) = time_block;
 
-      % temperature, date, time
-      samples = textscan(fid, sample_expr, 'delimiter', ',');
-      temp_block = samples{1};
-      time_block = cellstr(samples{2});
-      
-      % error on most recent line - discard it and continue
-      if ~feof(fid)
-        time_block = time_block(1:end-1);
-        temp_block = temp_block(1:length(time_block));
-        fgetl(fid);
-      end
-      
-      time_block = datenum(time_block, 'dd mmm yyyy, HH:MM:SS');
-
-      temperature(nsamples:nsamples+length(temp_block)-1) = temp_block;
-      time(       nsamples:nsamples+length(time_block)-1) = time_block;
-
-      nsamples = nsamples + length(time_block);
-    end
-    
-  % sbe39 with temperature and pressure
-  elseif length(sample_data.parameters) == 2
-    
-    pressure = zeros(nsamples,1);
-    
-    nsamples = 1;
-      
-    while ~feof(fid)
-
-      % temperature, pressure, date, time
-      samples = textscan(fid, sample_expr, 'delimiter', ',');
-      temp_block = samples{1};
-      pres_block = samples{2};
-      time_block = cellstr(samples{3});
-      
-      % error on most recent line - discard it and continue
-      if ~feof(fid)
-        time_block = time_block(1:end-1);
-        temp_block = temp_block(1:length(time_block));
-        pres_block = pres_block(1:length(time_block));
-        fgetl(fid);
-      end
-      
-      time_block = datenum(time_block, 'dd mmm yyyy, HH:MM:SS');
-
-      temperature(nsamples:nsamples+length(temp_block)-1) = temp_block;
-      pressure(   nsamples:nsamples+length(pres_block)-1) = pres_block;
-      time(       nsamples:nsamples+length(time_block)-1) = time_block;
-
-      nsamples = nsamples + length(time_block);
-    end
-  end
+  nsamples = nsamples + length(time_block);
 end
 
 %% Clean up
@@ -448,6 +387,7 @@ time(nsamples:end) = [];
 if ~isempty(temperature),  temperature( nsamples:end) = []; end
 if ~isempty(conductivity), conductivity(nsamples:end) = []; end
 if ~isempty(pressure),     pressure(    nsamples:end) = []; end
+if ~isempty(salinity),     salinity(    nsamples:end) = []; end
 
 % copy the data into the sample_data struct
 sample_data.dimensions(1).name = TIME_NAME;
@@ -461,5 +401,6 @@ for k = 1:length(sample_data.parameters)
     case TEMPERATURE_NAME,  sample_data.parameters(k).data = temperature;
     case CONDUCTIVITY_NAME, sample_data.parameters(k).data = conductivity;
     case PRESSURE_NAME,     sample_data.parameters(k).data = pressure;
+    case SALINITY_NAME,     sample_data.parameters(k).data = salinity;
   end
 end
