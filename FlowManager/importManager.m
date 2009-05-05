@@ -71,8 +71,15 @@ function [sample_data cal_data skipped] = importManager( deployments, dataDir )
 % POSSIBILITY OF SUCH DAMAGE.
 %
   error(nargchk(0,2,nargin));
+  
+  sample_data = {};
+  cal_data    = {};
+  skipped     = [];
 
-  if     nargin == 0, [deployments dataDir] = getDeployments();
+  if     nargin == 0, 
+    [deployments dataDir] = getDeployments();
+    if isempty(deployments), return; end
+    
   elseif nargin == 1, dataDir = readToolboxProperty('import.dataDir');
   elseif nargin == 2, 
   end
@@ -80,10 +87,6 @@ function [sample_data cal_data skipped] = importManager( deployments, dataDir )
   if ~isstruct(deployments) || isempty(deployments),
     error('deployments is either not a struct, or contains no elements');
   end
-  
-  sample_data = {};
-  cal_data    = {};
-  skipped     = [];
   
   % deps is easier to type
   deps = deployments;
@@ -193,40 +196,9 @@ function [deployments dataDir] = getDeployments()
     deployments(end+1) = d;
   end
   
-  % remove invalid deployments
-  deployments = removeBadDeployments(deployments);
-  
   if isempty(deployments)
     error(['no deployments related to field trip ' num2str(fieldTrip)]); 
   end
-end
-
-function deployments = removeBadDeployments(deployments)
-%REMOVEBADDEPLOYMENTS Removes deployments which do not have a valid 
-% FileName field.
-%
-% Inputs:
-%   deployments - vector of deployment structs.
-%
-% Outputs:
-%   deployments - same as input, with bad deployments removed.
-% 
-
-  % find deployments with an empty FileName field, or 
-  % which contain the (case insensitive string) 'No data'
-  toRemove = [];
-  for k = 1:length(deployments)
-    
-    d = deployments(k);
-    f = d.FileName;
-    
-    if isempty(f) || ~isempty(strfind(lower(f), 'no data'))
-      toRemove(end+1) = k; 
-    end
-  end
-  
-  % remove said deployments
-  deployments(toRemove) = [];
 end
 
 function hits = fsearch(pattern, root)
