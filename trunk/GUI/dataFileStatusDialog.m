@@ -173,11 +173,18 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
 
   function depListCallback(source,ev)
   %DEPLISTCALLBACK Called when the deployment selection changes. Updates
-  % the file list with files from the newly selected deployment.
+  % the file list with files from the newly selected deployment. If the
+  % user double clicks on a deployment, the fileAddCallback is executed.
   %
-    dep = get(depList, 'Value');
-    set(fileList, 'String', files{dep});
-    set(fileList, 'Value',  1);
+    selection = get(f, 'SelectionType');
+    
+    switch(selection)
+      case 'open', fileAddCallback(source,ev);
+      otherwise
+        dep = get(depList, 'Value');
+        set(fileList, 'String', files{dep});
+        set(fileList, 'Value',  1); 
+    end
   end
 
   function depRemoveCallback(source,ev)
