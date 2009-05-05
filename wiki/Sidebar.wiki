@@ -17,6 +17,7 @@
   * [NetCDFExportSpecification]
  * Help
   * WeeklySnapshots
+  * [Readme]
   * [tortoiseSVN]
   * MatlabEnvironment
  * Other
