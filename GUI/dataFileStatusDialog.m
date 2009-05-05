@@ -269,13 +269,18 @@ function descs = genDepDescriptions(deployments, files)
   % files or which have more than one associated file
   nofile   = readToolboxProperty('filestatusdialog.nofileformat');
   multiple = readToolboxProperty('filestatusdialog.multiplefileformat');
+  invalid  = readToolboxProperty('filestatusdialog.invalidfilenameformat');
   
   [nofileStart   nofileEnd]   = genTags(nofile);
   [multipleStart multipleEnd] = genTags(multiple);
+  [invalidStart  invalidEnd]  = genTags(invalid);
   
-  for k = 1:length(files)
+  for k = 1:length(deployments)
     
-    if     isempty(files{k})
+    if ~isValidDeployment(deployments(k))
+      descs{k} = [invalidStart  descs{k} invalidEnd];
+      
+    elseif isempty(files{k})
       descs{k} = [nofileStart   descs{k} nofileEnd];
       
     elseif length(files{k}) > 1
@@ -283,29 +288,50 @@ function descs = genDepDescriptions(deployments, files)
       
     end
   end
+end
   
-  function [startTag endTag] = genTags(formatSpec)
-  %GENTAGS Generates HTML tags for the given format specification.
-  %
-  
-  startTag = '';
-  endTag   = '';
-  
-    switch (formatSpec)
-      
-      case 'normal', 
-      case 'bold', 
-        startTag = '<html><b>';
-        endTag   = '</b></html>';
-      case 'italic'
-        startTag = '<html><i>';
-        endTag   = '</i></html>';
-        
-      % otherwise assume it's a html colour
-      otherwise
-        startTag = ['<html><font color=''' formatSpec '''>'];
-        endTag   = '</font></html>';
-    end
-    
+function [startTag endTag] = genTags(formatSpec)
+%GENTAGS Generates HTML tags for the given format specification.
+%
+
+startTag = '';
+endTag   = '';
+
+  switch (formatSpec)
+
+    case 'normal', 
+    case 'bold', 
+      startTag = '<html><b>';
+      endTag   = '</b></html>';
+    case 'italic'
+      startTag = '<html><i>';
+      endTag   = '</i></html>';
+
+    % otherwise assume it's a html colour
+    otherwise
+      startTag = ['<html><font color=''' formatSpec '''>'];
+      endTag   = '</font></html>';
+  end
+end
+
+function valid = isValidDeployment(deployment)
+%REMOVEBADDEPLOYMENTS Returns logical true if the given deployment's
+%FileName field is valid
+%
+% Inputs:
+%   deployments - deployment struct.
+%
+% Outputs:
+%   valid       - 1 if the given deployment's FileName field is valid, 0
+%                 otherwise.
+% 
+
+  valid = 1;
+  % the deployment is invalid if its FileName field is empty, or 
+  % if it contains the (case insensitive string) 'No data'
+  f = deployment.FileName;
+
+  if isempty(f) || ~isempty(strfind(lower(f), 'no data'))
+    valid = 0; 
   end
 end

@@ -119,13 +119,13 @@ function [sample_data cal_data skipped] = importManager( deployments, dataDir )
   for k = 1:length(deps)
     
     try
+      fileDisplay = '';
       if isempty(files{k}), error('no files to import'); end
 
       % update progress dialog
-      fileDisplay = '';
       for m = 1:length(files{k})
         [path name ext] = fileparts(files{k}{m});
-        fileDisplay = [fileDisplay ', ' name '.' ext];
+        fileDisplay = [fileDisplay ', ' name ext];
       end
       fileDisplay = fileDisplay(3:end);
       waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
