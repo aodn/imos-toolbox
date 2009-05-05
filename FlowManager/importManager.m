@@ -1,9 +1,13 @@
-function [sample_data cal_data skipped] = importManager()
+function [sample_data cal_data skipped] = importManager( deployments, dataDir )
 %IMPORTMANAGER Manages the import of raw instrument data into the toolbox.
 %
-% Imports raw data. Prompts the user to select a field trip and a directory
-% containing raw data, then matches up deployments (retrieved from the DDB)
-% with raw data files and imports and returns the data.
+% Imports raw data. If no inputs are given, prompts the user to select a 
+% field trip and a directory containing raw data, then matches up deployments 
+% (retrieved from the DDB) with raw data files and imports and returns the 
+% data.
+%
+% If a vector of deployments and a data directory are given, the user is
+% not prompted for a field trip or directory.
 %
 % Deployments which do not specify a FileName field, or which have a 
 % FileName fild that contains the (case insensitive) substring 'no data'
@@ -11,6 +15,15 @@ function [sample_data cal_data skipped] = importManager()
 %
 % If something goes wrong, an error is raised. If the user cancels the 
 % operation, empty arrays are returned.
+%
+% Inputs:
+%   deployments - Optional. If provided, the user is not prompted for a
+%                 field trip ID or data directory.
+%
+%   dataDir     - Optional. If provided, the user is not prompted for a
+%                 field trip ID or data directory. If deployments is
+%                 provided and dataDir is not provided, the import.dataDir
+%                 toolbox property is used as a default.
 %
 % Outputs:
 %   sample_data - Cell array of sample_data structs, each containing sample
@@ -57,53 +70,25 @@ function [sample_data cal_data skipped] = importManager()
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+  error(nargchk(0,2,nargin));
 
-  dataDir = pwd;
-  fieldTrip = 1;
+  if     nargin == 0, [deployments dataDir] = getDeployments();
+  elseif nargin == 1, dataDir = readToolboxProperty('import.dataDir');
+  elseif nargin == 2, 
+  end
+  
+  if ~isstruct(deployments) || isempty(deployments),
+    error('deployments is either not a struct, or contains no elements');
+  end
   
   sample_data = {};
   cal_data    = {};
-
-  % if default values exist for data dir and field trip, use them
-  try 
-    dataDir   =            readToolboxProperty('import.dataDir'); 
-    fieldTrip = str2double(readToolboxProperty('import.fieldTrip'));
-  catch
-  end
-
-  % prompt the user to select a field trip and 
-  % directory which contains raw data files
-  [fieldTrip dataDir] = startDialog(dataDir, fieldTrip);
+  skipped     = [];
   
-  % user cancelled start dialog
-  if isempty(fieldTrip) || isempty(dataDir), return; end
-
-  % persist the user's directory and field trip selection
-  writeToolboxProperty('import.dataDir',   dataDir);
-  writeToolboxProperty('import.fieldTrip', num2str(fieldTrip));
-
-  % query the ddb for all deployments related to this field trip
-  deps    = executeDDBQuery('DeploymentData', 'StartFieldTrip', fieldTrip);
-  endDeps = executeDDBQuery('DeploymentData', 'EndFieldTrip',   fieldTrip);
-  
-  % merge end field trip deployments with start field 
-  % trip deployments; ensure there are no duplicates
-  for k = 1:length(endDeps)
+  % deps is easier to type
+  deps = deployments;
+  clear deployments;
     
-    d = endDeps(k);
-    if find(ismember({deps.DeploymentId}, d.DeploymentId)), continue; end
-    deps(end+1) = d;
-  end
-  
-  clear endDeps;
-  
-  % remove invalid deployments
-  deps = removeBadDeployments(deps);
-
-  if isempty(deps)
-    error(['no deployments related to field trip ' num2str(fieldTrip)]); 
-  end
-  
   % find physical files for each deployment
   files = cell(size(deps));
   for k = 1:length(deps)
@@ -121,20 +106,99 @@ function [sample_data cal_data skipped] = importManager()
   
   % user cancelled file dialog
   if isempty(deps), return; end
-
+  
+  % display progress dialog
+  progress = waitbar(0, 'importing data');
+  
   % parse file for each deployment, sample/cal pair for each.
   % if a parser can't be found for a deployment, don't bail; 
   % just ignore it for the time being
-  skipped = [];
   for k = 1:length(deps)
     
-    try      [sample_data{end+1} cal_data{end+1}] = parse(deps(k), files{k});
-    catch e, skipped(end+1) = k;
+    try
+      if isempty(files{k}), error('no files to import'); end
+
+      % update progress dialog
+      fileDisplay = '';
+      for m = 1:length(files{k})
+        [path name ext] = fileparts(files{k}{m});
+        fileDisplay = [fileDisplay ', ' name '.' ext];
+      end
+      fileDisplay = fileDisplay(3:end);
+      waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
+      disp(['importing ' fileDisplay]);
+
+      % import data
+      [sample_data{end+1} cal_data{end+1}] = parse(deps(k), files{k});
+    
+    % failure is not fatal
+    catch e
+      disp(['skipping ' fileDisplay '(' e.message ')']);
+      skipped(end+1) = k;
     end
   end
   
+  % close progress dialog
+  close(progress);
+  
   % return the deployments that were skipped
   skipped = deps(skipped);
+end
+
+function [deployments dataDir] = getDeployments()
+%GETDEPLOYMENTS Prompts the user for a field trip ID and data directory.
+% Retrieves and returns all deployments from the DDB that are related to the 
+% field trip, along with the selected data directory.
+%
+% Outputs:
+%   deployments - vector of deployment structs.
+%   dataDir     - String containing data directory path selected by user.
+%
+
+  dataDir   = pwd;
+  fieldTrip = 1;
+  
+  % if default values exist for data dir and field trip, use them
+  try 
+    dataDir   =            readToolboxProperty('import.dataDir'); 
+    fieldTrip = str2double(readToolboxProperty('import.fieldTrip'));
+  catch
+  end
+  
+  deployments = [];
+
+  % prompt the user to select a field trip and 
+  % directory which contains raw data files
+  [fieldTrip dataDir] = startDialog(dataDir, fieldTrip);
+  
+  % user cancelled start dialog
+  if isempty(fieldTrip) || isempty(dataDir), return; end
+
+  % persist the user's directory and field trip selection
+  writeToolboxProperty('import.dataDir',   dataDir);
+  writeToolboxProperty('import.fieldTrip', num2str(fieldTrip));
+
+  % query the ddb for all deployments related to this field trip
+  deployments = executeDDBQuery('DeploymentData', 'StartFieldTrip', fieldTrip);
+  endDeps     = executeDDBQuery('DeploymentData', 'EndFieldTrip',   fieldTrip);
+  
+  % merge end field trip deployments with start field 
+  % trip deployments; ensure there are no duplicates
+  for k = 1:length(endDeps)
+    
+    d = endDeps(k);
+    if find(ismember({deployments.DeploymentId}, d.DeploymentId))
+      continue; 
+    end
+    deployments(end+1) = d;
+  end
+  
+  % remove invalid deployments
+  deployments = removeBadDeployments(deployments);
+  
+  if isempty(deployments)
+    error(['no deployments related to field trip ' num2str(fieldTrip)]); 
+  end
 end
 
 function deployments = removeBadDeployments(deployments)
@@ -164,7 +228,6 @@ function deployments = removeBadDeployments(deployments)
   % remove said deployments
   deployments(toRemove) = [];
 end
-
 
 function hits = fsearch(pattern, root)
 %FSEARCH Recursive file/directory search.
@@ -222,8 +285,7 @@ function [sam cal] = parse(deployment, files)
 %
 % Outputs:
 %   sam        - Struct containing sample data.
-%   cal        - Struct containing calibration/metadata.
-  sam = 0;
+%   cal        - Struct containing calibration/metadata.w  sam = 0;
   cal = 0;
 
   % get the appropriate parser function
