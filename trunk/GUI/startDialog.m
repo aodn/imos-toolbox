@@ -338,7 +338,7 @@ function [fieldTrips fieldTripDescs] = ...
   startDates = {fieldTrips.DateStart};
   endDates   = {fieldTrips.DateEnd};
   
-  dateFormat = readToolboxProperty('netcdf.dateFormat');
+  dateFormat = readToolboxProperty('exportNetCDF.dateFormat');
   
   toRemove = [];
   
@@ -374,7 +374,7 @@ function descs = genFieldTripDescs(fieldTrips)
 %
   descs = {};
   
-  dateFormat = readToolboxProperty('netcdf.dateFormat');
+  dateFormat = readToolboxProperty('exportNetCDF.dateFormat');
   
   for k = 1:length(fieldTrips)
     

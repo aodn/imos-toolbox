@@ -234,7 +234,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   %
   
     [newFile path] = uigetfile('*', 'Select Data File',...
-                               readToolboxProperty('import.dataDir'),...
+                               readToolboxProperty('startDialog.dataDir'),...
                                'MultiSelect', 'on');
     
     % user cancelled dialog
@@ -267,9 +267,9 @@ function descs = genDepDescriptions(deployments, files)
 
   % highlight deployments which have no associated 
   % files or which have more than one associated file
-  nofile   = readToolboxProperty('filestatusdialog.nofileformat');
-  multiple = readToolboxProperty('filestatusdialog.multiplefileformat');
-  invalid  = readToolboxProperty('filestatusdialog.invalidfilenameformat');
+  nofile   = readToolboxProperty('dataFileStatusDialog.noFileFormat');
+  multiple = readToolboxProperty('dataFileStatusDialog.multipleFileFormat');
+  invalid  = readToolboxProperty('dataFileStatusDialog.invalidFileNameFormat');
   
   [nofileStart   nofileEnd]   = genTags(nofile);
   [multipleStart multipleEnd] = genTags(multiple);

@@ -88,7 +88,7 @@ function strs = java2struct(list)
   
   if list.size() == 0, return; end;
   
-  dateFmt = readToolboxProperty('netcdf.dateFormat');
+  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
 
   % it's horribly ugly, but this is the only way that I know of to turn
   % Java fields of arbitrary types into matlab fields: a big, ugly switch

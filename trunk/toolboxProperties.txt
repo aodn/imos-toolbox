@@ -1,8 +1,8 @@
 % format in which all dates should be exported
-netcdf.dateFormat = yyyy-mm-ddTHH:MM:SS
+exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SS
 
 % different date format for NetCDF file names
-netcdf.fileDateFormat = yyyymmddTHHMMSS
+exportNetCDF.fileDateFormat = yyyymmddTHHMMSS
 
 % filename or ODBC DSN of deployment database
 toolbox.ddb = /home/paul/Documents/imos/OceanographyUncontrolled.mdb
@@ -10,7 +10,11 @@ toolbox.ddb = /home/paul/Documents/imos/OceanographyUncontrolled.mdb
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
 % 'blue' etc)
-filestatusdialog.invalidfilenameformat = red
-filestatusdialog.nofileformat          = bold
-filestatusdialog.multiplefileformat    = italic
+dataFileStatusDialog.invalidFileNameFormat = red
+dataFileStatusDialog.noFileFormat          = bold
+dataFileStatusDialog.multipleFileFormat    = italic
 
+startDialog.dataDir = /home/paul/Documents/imos/aims_matlab_code/GM6Trip4814
+startDialog.fieldTrip = 4814
+startDialog.lowDate = 730486
+startDialog.highDate = 734138

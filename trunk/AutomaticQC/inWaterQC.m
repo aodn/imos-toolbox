@@ -1,4 +1,4 @@
-efunction [data flags log] = inWaterQC( sample_data, cal_data, data, k )
+function [data flags log] = inWaterQC( sample_data, cal_data, data, k )
 %INWATERQC Removes samples which were taken before the instrument was placed
 % in the water.
 %
@@ -94,7 +94,7 @@ data = data(sEnd:end);
 flags = [];
 log   = {};
 
-dateFmt    = readToolboxProperty('netcdf.dateFormat');
+dateFmt    = readToolboxProperty('exportNetCDF.dateFormat');
 log{end+1} = ['inWaterQC: removed ' num2str(origLength - length(data)) ...
               ' in-water samples from ' datestr(startTime,dateFmt) ...
               ' to ' datestr(endTime,dateFmt)];
