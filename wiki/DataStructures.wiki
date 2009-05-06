@@ -14,9 +14,13 @@ I made the choice to separate sample data from calibration data for coupling/coh
 
 Both of these structs originate in the [ParserSpecification Parser] module, when the input data is first loaded.
 
+These structs may be passed around in different ways depending on where you are in the toolbox; for example,the automatic QC routines work on a single `sample_data`/`cal_data` pair, whereas the `importManager` returns a cell array of `sample_data`/`cal_data` pairs, as the different pairs are sourced from different instruments. 
+
+The following sections define scalar instances of `sample_data`/`cal_data` structs.
+
 == sample_data ==
 
-`sample_data` is a scalar or vector of structs which contain sample data. If a vector, each element in the `sample_data` vector corresponds to one data process level (e.g. raw, auto-QC'd etc).
+`sample_data` is a scalar struct which contain sample data. 
 
 The `sample_data` struct elements have the following structure:
  * `sample_data`: struct
@@ -71,8 +75,8 @@ A minimal `cal_data` struct should contain the following:
 
 == Relationship ==
 
-There is a one to one relationship between a vector of `sample_data` structs and a `cal_data` struct; in other words, these structs always come in pairs. A `sample_data`/`cal_data` pair contains data corresponding to one physical instrument, e.g. an SBE37. One instrument may have multiple sensors; each element in the `parameters` vector corresponds to one sensor.
+There is a one to one relationship between a `sample_data` struct and a `cal_data` struct; in other words, these structs always come in pairs. A `sample_data`/`cal_data` pair contains data corresponding to one physical instrument, e.g. an SBE37. One instrument may have multiple sensors; each element in the `parameters` vector corresponds to one sensor.
 
-A `sample_data`/`cal_data` pair maps directly to one entry in the !FieldTrip table in the [DeploymentDatabase DDB]. There will likely be multiple instruments per field trip, so multiple `sample_data`/`cal_data` pairs may map to the same field trip. Each `parameter` vector maps to one entry in the !DeploymentData table, thus maps to one entry in each of the Instruments and Sensors tables.
+A `sample_data`/`cal_data` pair maps directly to one entry in the !FieldTrip table in the [DeploymentDatabase DDB]. There will likely be multiple instruments per field trip, so multiple `sample_data`/`cal_data` pairs may map to the same field trip. These pairs may be passed around within the toolbox as a pair of cell arrays of each type of struct. Each `parameter` vector maps to one entry in the !DeploymentData table, thus maps to one entry in each of the Instruments and Sensors tables.
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/data_structure_relationship.png
