@@ -80,7 +80,7 @@ function [sample_data cal_data skipped] = importManager( deployments, dataDir )
     [deployments dataDir] = getDeployments();
     if isempty(deployments), return; end
     
-  elseif nargin == 1, dataDir = readToolboxProperty('import.dataDir');
+  elseif nargin == 1, dataDir = readToolboxProperty('startDialog.dataDir');
   elseif nargin == 2, 
   end
   
@@ -157,29 +157,14 @@ function [deployments dataDir] = getDeployments()
 %   deployments - vector of deployment structs.
 %   dataDir     - String containing data directory path selected by user.
 %
-
-  dataDir   = pwd;
-  fieldTrip = 1;
-  
-  % if default values exist for data dir and field trip, use them
-  try 
-    dataDir   =            readToolboxProperty('import.dataDir'); 
-    fieldTrip = str2double(readToolboxProperty('import.fieldTrip'));
-  catch
-  end
-  
   deployments = [];
 
   % prompt the user to select a field trip and 
   % directory which contains raw data files
-  [fieldTrip dataDir] = startDialog(dataDir, fieldTrip);
+  [fieldTrip dataDir] = startDialog();
   
   % user cancelled start dialog
   if isempty(fieldTrip) || isempty(dataDir), return; end
-
-  % persist the user's directory and field trip selection
-  writeToolboxProperty('import.dataDir',   dataDir);
-  writeToolboxProperty('import.fieldTrip', num2str(fieldTrip));
 
   % query the ddb for all deployments related to this field trip
   deployments = executeDDBQuery('DeploymentData', 'StartFieldTrip', fieldTrip);
