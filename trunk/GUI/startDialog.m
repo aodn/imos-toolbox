@@ -1,20 +1,12 @@
-function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
+function [fieldTrip dataDir] = startDialog()
 %STARTDIALOG Displays a dialog prompting the user to select a Field Trip ID
 % and a directory which contains raw data files.
 %
-% The user is able to choose from a list of field trip IDs; these are 
-% retrieved from the deployment database. When the user confirms the
-% dialog, the selected field trip ID and data directory are returned. 
-% If the user cancels the dialog, both the fieldTrip and dataDir return 
-% values will be empty matrices.
-%
-% Inputs:
-%
-%   dataDir   - Optional. The default raw data directory to display. If
-%               not provided, the current working directory (pwd) is used.
-%
-%   fieldTrip - Optional. The default field trip to display. If not
-%               provided, the first field trip is used.
+% The user is able to choose from a list of field trip IDs, limited by a 
+% date range; the field trips are retrieved from the deployment database. 
+% When the user confirms the dialog, the selected field trip ID and data 
+% directory are returned.  If the user cancels the dialog, both the 
+% fieldTrip and dataDir return values will be empty matrices.
 %
 % Outputs:
 %
@@ -57,17 +49,18 @@ function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
 %
   error(nargchk(0,2,nargin));
   
-  % default values if args not provided
-  if nargin == 0, dataDir   = pwd;     end
-  if nargin < 2,  fieldTrip = -99999;  end
-  
-  if ~ischar(dataDir),      error('defaultDir must be a string'); end
-  if ~isnumeric(fieldTrip), error('fieldTrip must be a numeric'); end
-
-  % check that dataDir is a directory
-  [stat atts] = fileattrib(dataDir);
-  if ~stat || ~atts.directory || ~atts.UserRead
-    error([dataDir ' does not exist, is not a directory, or is not readable']);
+  dataDir     = pwd;
+  fieldTripId = 1;
+  lowDate     = 0;
+  highDate    = now;
+    
+  % if default values exist for data dir and field trip, use them
+  try 
+    dataDir     =            readToolboxProperty('startDialog.dataDir'); 
+    fieldTripId = str2double(readToolboxProperty('startDialog.fieldTrip'));
+    lowDate     = str2double(readToolboxProperty('startDialog.lowDate'));
+    highDate    = str2double(readToolboxProperty('startDialog.highDate'));
+  catch
   end
 
   % retrieve all field trip IDs; they are displayed as a drop down menu
@@ -75,28 +68,39 @@ function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
   
   if isempty(fieldTrips), error('No field trip entries in DDB'); end
   
-  defaultFieldTrip     = 1;
-  defaultFieldTripDesc = ...
-    [num2str(fieldTrips(1).FieldTripID) ': ' fieldTrips(1).FieldDescription];
-
-  % create a cell array containing descriptions of all available field
-  % trips; these are the entries of the field trip drop down menu
-  fieldTripDescs = cell(size(fieldTrips));
-  for k = 1:length(fieldTrips)
-
-    f = fieldTrips(k);
-    fieldTripDescs{k} = [num2str(f.FieldTripID) ': ' f.FieldDescription];
-    
-    % save default field trip selection
-    if f.FieldTripID == fieldTrip
-      defaultFieldTrip     = k; 
-      defaultFieldTripDesc = fieldTripDescs{k};
-    end
-  end  
+  % generate field trip descriptions - we don't want to do it every time
+  % the field trip list is regenerated, as it results in poor performance
+  % (a bit of a lag when the user changes the date range). Instead, we
+  % generate the descriptions now, and maintain a list of descriptions in
+  % parallel with the list of field trips (and filtered field trips)
+  fieldTripDescs = genFieldTripDescs(fieldTrips);
   
-  fieldTrip = defaultFieldTripDesc;
-  clear fieldTrips;
-  clear defaultFieldTripDesc;
+  % generate initial field trip list; after the first 
+  % time, this is handled by the dateStartCallback and
+  % dateEndCallback functions
+  [filteredFieldTrips filteredFieldTripDescs] = ...
+    filterFieldTrips(fieldTrips, fieldTripDescs, lowDate, highDate);
+  
+  
+  % currently selected field trip
+  fieldTripIdx = 1;
+  
+  % find the default field trip
+  fieldTrip = filteredFieldTrips(1);
+  
+  if fieldTripId ~= -99999
+    for k = 1:length(filteredFieldTrips)
+
+      f = filteredFieldTrips(k);
+
+      % save default field trip selection
+      if f.FieldTripID == fieldTripId
+        fieldTripIdx = k; 
+        fieldTrip    = f;
+        break;
+      end
+    end  
+  end
   
   %% Dialog creation
   %
@@ -109,10 +113,18 @@ function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
              'WindowStyle', 'Modal');
 
   % create the widgets
-  fidLabel      = uicontrol('Style',  'text',       'String', 'Field Trip ID');
+  dateFmt = 'dd mmm yyyy';
+  dateStartButton = uicontrol('Style',  'pushbutton', ...
+                              'String', ...
+                              ['Field trip start: ' datestr(lowDate, dateFmt)]);
+  dateEndButton   = uicontrol('Style', 'pushbutton', 'String', ...
+                              ['Field trip end: ' datestr(highDate, dateFmt)]);
+  
+  fidLabel      = uicontrol('Style',  'text',...
+                            'String', 'Field Trip ID');
   fidMenu       = uicontrol('Style',  'popupmenu', ...
-                            'String', fieldTripDescs,...
-                            'Value',  defaultFieldTrip);
+                            'String', filteredFieldTripDescs,...
+                            'Value',  fieldTripIdx);
 
   dirLabel      = uicontrol('Style', 'text',       'String', 'Data Directory');
   dirText       = uicontrol('Style', 'edit',       'String',  dataDir);
@@ -125,39 +137,47 @@ function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
   set([fidLabel, dirLabel, dirText], 'HorizontalAlignment', 'Left');
 
   % use normalised coordinates
-  set(f,                              'Units', 'normalized');
-  set([fidLabel,fidMenu],             'Units', 'normalized');
-  set([dirLabel, dirText, dirButton], 'Units', 'normalized');
-  set([cancelButton, confirmButton],  'Units', 'normalized');
+  set(f,                                'Units', 'normalized');
+  set([fidLabel,fidMenu],               'Units', 'normalized');
+  set([dirLabel, dirText, dirButton],   'Units', 'normalized');
+  set([cancelButton, confirmButton],    'Units', 'normalized');
+  set([dateStartButton, dateEndButton], 'Units', 'normalized');
 
   % position the widgets
-  set(f,             'Position', [0.4,  0.45, 0.25,  0.08]);
+  set(f,               'Position', [0.3,  0.45, 0.4,  0.08]);
 
-  set(cancelButton,  'Position', [0.0,  0.0,  0.5,   0.34]);
-  set(confirmButton, 'Position', [0.5,  0.0,  0.5,   0.34]);
+  set(cancelButton,    'Position', [0.0,  0.0,  0.5,   0.25]);
+  set(confirmButton,   'Position', [0.5,  0.0,  0.5,   0.25]);
 
-  set(dirLabel,      'Position', [0.0,  0.35, 0.199, 0.33]);
-  set(dirText,       'Position', [0.2,  0.35, 0.65,  0.33]);
-  set(dirButton,     'Position', [0.85, 0.35, 0.15,  0.33]);
+  set(dirLabel,        'Position', [0.0,  0.25, 0.199, 0.25]);
+  set(dirText,         'Position', [0.2,  0.25, 0.65,  0.25]);
+  set(dirButton,       'Position', [0.85, 0.25, 0.15,  0.25]);
 
-  set(fidLabel,      'Position', [0.0,  0.70, 0.199, 0.30]);
-  set(fidMenu,       'Position', [0.2,  0.70, 0.8,   0.30]);
+  set(fidLabel,        'Position', [0.0,  0.50, 0.199, 0.25]);
+  set(fidMenu,         'Position', [0.2,  0.50, 0.8,   0.25]);
+  
+  set(dateStartButton, 'Position', [0.0,  0.75, 0.50,  0.25]);
+  set(dateEndButton,   'Position', [0.5,  0.75, 0.50,  0.25]);
   
   % set widget callbacks
-  set(f,             'CloseRequestFcn', @cancelCallback);
-  set(fidMenu,       'Callback',        @fidMenuCallback);
-  set(dirText,       'Callback',        @dirTextCallback);
-  set(dirButton,     'Callback',        @dirButtonCallback);
-  set(cancelButton,  'Callback',        @cancelCallback);
-  set(confirmButton, 'Callback',        @confirmCallback);
+  set(f,               'CloseRequestFcn', @cancelCallback);
+  set(dateStartButton, 'Callback',        @dateStartCallback);
+  set(dateEndButton,   'Callback',        @dateEndCallback);
+  set(fidMenu,         'Callback',        @fidMenuCallback);
+  set(dirText,         'Callback',        @dirTextCallback);
+  set(dirButton,       'Callback',        @dirButtonCallback);
+  set(cancelButton,    'Callback',        @cancelCallback);
+  set(confirmButton,   'Callback',        @confirmCallback);
   
   % user can hit escape to quit dialog. matlab sucks arse
-  set(f,             'KeyPressFcn',     @keyPressCallback);
-  set(fidMenu,       'KeyPressFcn',     @keyPressCallback);
-  set(dirText,       'KeyPressFcn',     @keyPressCallback);
-  set(dirButton,     'KeyPressFcn',     @keyPressCallback);
-  set(cancelButton,  'KeyPressFcn',     @keyPressCallback);
-  set(confirmButton, 'KeyPressFcn',     @keyPressCallback);
+  set(f,               'KeyPressFcn',     @keyPressCallback);
+  set(dateStartButton, 'KeyPressFcn',     @keyPressCallback);
+  set(dateEndButton,   'KeyPressFcn',     @keyPressCallback);
+  set(fidMenu,         'KeyPressFcn',     @keyPressCallback);
+  set(dirText,         'KeyPressFcn',     @keyPressCallback);
+  set(dirButton,       'KeyPressFcn',     @keyPressCallback);
+  set(cancelButton,    'KeyPressFcn',     @keyPressCallback);
+  set(confirmButton,   'KeyPressFcn',     @keyPressCallback);
 
   % display the dialog and wait for user input
   set(f, 'Visible', 'on');
@@ -167,21 +187,75 @@ function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
   %
   
   function keyPressCallback(source,ev)
-  %KEYPRESSCALLBACK If the user pushes escape while the dialog has focus,
-  % the dialog is closed. This is done by delegating to the cancelCallback
-  % function.
+  %KEYPRESSCALLBACK If the user pushes escape/return while the dialog has 
+  % focus, the dialog is cancelled/confirmed. This is done by delegating 
+  % to the cancelCallback/confirmCallback functions.
+  %
     if     strcmp(ev.Key, 'escape'), cancelCallback( source,ev); 
     elseif strcmp(ev.Key, 'return'), confirmCallback(source,ev); 
     end
+  end
+
+  function dateStartCallback(source,ev)
+  %DATESTARTCALLBACK Called when the date end button is pushed. Prompts the
+  % user to enter a date, then updates the field trip list so that it only
+  % displays field trips with a start date after the entered date. 
+  % 
+    [y m d] = datevec(lowDate);
+    [y m d] = datePromptDialog(y,m,d);
+    newLowDate = datenum(y,m,d);
+    
+    if newLowDate == lowDate, return; end
+    
+    lowDate = newLowDate;
+    
+    % update button display
+    set(dateStartButton, 'String', datestr(lowDate, dateFmt));
+    
+    % update field trip list
+    [filteredFieldTrips filteredFieldTripDescs] = ...
+      filterFieldTrips(fieldTrips, fieldTripDescs, lowDate, highDate);
+    set(fidMenu, 'Value', 1);
+    set(fidMenu, 'String', filteredFieldTripDescs);
+    
+    % update field trip menu
+    fidMenuCallback(source,ev);
+  
+  end
+
+  function dateEndCallback(source,ev)
+  %DATEENDCALLBACK Called when the date end button is pushed. Prompts the
+  % user to enter a date, then updates the field trip list so that it only
+  % displays field trips with an end date before the entered date. 
+  % 
+    [y m d] = datevec(highDate);
+    [y m d] = datePromptDialog(y,m,d);
+    newHighDate = datenum(y,m,d);
+    
+    if newHighDate == highDate, return; end
+    
+    highDate = newHighDate;
+    
+    % update button display
+    set(dateEndButton, 'String', datestr(highDate, dateFmt));
+    
+    % update field trip list
+    [filteredFieldTrips filteredFieldTripDescs] = ...
+      filterFieldTrips(fieldTrips, fieldTripDescs, lowDate, highDate);
+    set(fidMenu, 'Value', 1);
+    set(fidMenu, 'String', filteredFieldTripDescs);
+    
+    % update field trip menu
+    fidMenuCallback(source,ev);
+    
   end
   
   function fidMenuCallback(source,ev)
   % FIDMENUCALLBACK Field Trip ID popup menu callback. Saves the currently 
   % selected field trip.
   %
-    str = get(source, 'String');
-    val = get(source, 'Value');
-    fieldTrip = str{val};
+    fieldTripIdx = get(fidMenu, 'Value');
+    fieldTrip    = filteredFieldTrips(fieldTripIdx);
   end
 
   function dirTextCallback(source,ev)
@@ -238,8 +312,86 @@ function [fieldTrip dataDir] = startDialog( dataDir, fieldTrip )
   % if user cancelled, return empty matrices
   if isempty(dataDir) || isempty(fieldTrip), return; end
     
-  % extract the field trip number from the description string
-  colonIdx = find(fieldTrip == ':');
-  fieldTrip = int32(str2double(fieldTrip(1:colonIdx(1)-1)));
+  % extract the field trip number from the field trip struct
+  fieldTrip = fieldTrip.FieldTripID;
+  
+  % persist the user's directory and field trip selection
+  writeToolboxProperty('startDialog.dataDir',   dataDir);
+  writeToolboxProperty('startDialog.fieldTrip', num2str(fieldTrip));
+  writeToolboxProperty('startDialog.lowDate',   num2str(lowDate));
+  writeToolboxProperty('startDialog.highDate',  num2str(highDate));
   
 end
+
+function [fieldTrips fieldTripDescs] = ...
+  filterFieldTrips(fieldTrips, fieldTripDescs, lowDate, highDate)
+%FILTERFIELDTRIPS Filters the given field trip structs. returning those
+% which have an end date after the given low date, or which have a start
+% date before the given high date.
+%
+
+  % some of the DateStart/DateEnd fields may not have been set, 
+  % so we can't process them in a nice array type manner. Field 
+  % trips which do not have a start/end date automatically pass 
+  % through the filter
+  
+  startDates = {fieldTrips.DateStart};
+  endDates   = {fieldTrips.DateEnd};
+  
+  dateFormat = readToolboxProperty('netcdf.dateFormat');
+  
+  toRemove = [];
+  
+  for k = 1:length(fieldTrips)
+    
+    startDate = startDates{k};
+    endDate   = endDates{k};
+    
+    % pass incomplete entries
+    if isempty(startDate) && isempty(endDate), continue; end
+    
+    % check that field trip start is before high limit
+    if ~isempty(startDate)
+      startDate = datenum(startDate, dateFormat);
+      if startDate > highDate, toRemove(end+1) = k; continue; end
+    end
+    
+    % check that field trip end is after low limit
+    if ~isempty(endDate)
+      endDate = datenum(endDate, dateFormat);
+      if endDate < lowDate, toRemove(end+1) = k; continue; end
+    end
+  end
+  
+  % return the filtered list
+  fieldTrips(    toRemove) = [];
+  fieldTripDescs(toRemove) = [];
+end
+
+function descs = genFieldTripDescs(fieldTrips)
+%GENFIELDTRIPDESCS Generate descriptions of the given field trips for use
+%in the dialog's field trip menu.
+%
+  descs = {};
+  
+  dateFormat = readToolboxProperty('netcdf.dateFormat');
+  
+  for k = 1:length(fieldTrips)
+    
+    f = fieldTrips(k);
+    if isempty(f.DateStart), startDate = '';
+    else startDate = datestr(datenum(f.DateStart, dateFormat), 'dd mmm yyyy');
+    end
+    
+    if isempty(f.DateEnd),   endDate = '';
+    else endDate   = datestr(datenum(f.DateEnd,   dateFormat), 'dd mmm yyyy');
+    end
+    
+    dateRange = [startDate  ' - ' endDate];
+    
+    desc = [num2str(f.FieldTripID) ' (' dateRange ') ' f.FieldDescription];
+    
+    descs{end+1} = desc;
+  end
+end
+
