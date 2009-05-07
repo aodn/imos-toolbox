@@ -1,4 +1,5 @@
 #summary Matlab environment configuration
+#labels Support
 
 <wiki:toc />
 
