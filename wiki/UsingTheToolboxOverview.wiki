@@ -33,14 +33,14 @@ Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the fo
 Under Windows, the deployment database (hereafter referred to as the ddb) is accessed as an ODBC data source:
 
  * Start
-   * Control Panel
-     * Administrative Tools
-       * Data Sources (ODBC)
-         * User DSN
-           * Add 
-             * Driver: "Microsoft Access Driver (`*`.mdb)"
-             * Data Source Name: "imos-ddb" (or whatever you wish to call it)
-             * Select -> navigate to the ddb MS Access file
+  * Control Panel
+   * Administrative Tools
+    * Data Sources (ODBC)
+     * User DSN
+      * Add 
+       * Driver: "Microsoft Access Driver (`*`.mdb)"
+       * Data Source Name: "imos-ddb" (or whatever you wish to call it)
+       * Select -> navigate to the ddb MS Access file
 
 Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name.
 
