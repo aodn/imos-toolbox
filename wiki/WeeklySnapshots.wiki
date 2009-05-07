@@ -1,5 +1,5 @@
 #summary Weekly SVN snapshots
-#labels Featured,Support
+#labels Support
 
 <wiki:toc/>
 
