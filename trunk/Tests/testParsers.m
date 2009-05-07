@@ -102,3 +102,36 @@ for set = datasets'
     break;
   end
 end
+
+function parsers = listParsers
+%LISTPARSERS - List all available instrument parsers.
+%
+% Outputs:
+%   parsers - A String array of all the supported instruments.
+%
+parsers = {};
+
+% get the location of the Parser directory
+path = [fileparts(which(mfilename)) filesep '..' filesep 'Parser'];
+
+% get the contents of the Parser directory
+files = dir(path);
+
+%iterate through each element in the parser directory
+for file = files'
+
+  %skip subdirectories
+  if file.isdir == 1
+    continue;
+  end
+
+  %if name is of the pattern "*Parse.m", add 
+  %it to the list of available parsers
+  token = regexp(file.name, '^(.+)Parse\.m$', 'tokens');
+
+  %add the parser name to the list
+  if ~isempty(token)
+    parsers{end + 1} = token{1}{1};
+  end
+
+end
