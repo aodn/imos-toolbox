@@ -5,6 +5,9 @@ toolbox.ddb = /home/paul/Documents/imos/OceanographyUncontrolled.mdb
 toolbox.dateFormat = dd mmm yyyy
 toolbox.timeFormat = yyyy-mm-ddTHH:MM:SS
 
+% QC set in use - see section 6.2 of the IMOS NetCDF User's Manual
+toolbox.qc_set = 1
+
 % format in which all dates should be exported in NetCDF attributes
 exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SS
 
