@@ -79,6 +79,14 @@ The top half of the dialog contains the list of all deployments related to the f
 
 Some of the deployments are highlighed:
 
- * A red deployment indicates that the information in the ddb was invalid.
- * A bold deployment indicates that the toolbox could not find any files related to that deployment.
- * An italicised deployment indicates that multiple files were found for that deployment. This will be the norm for e.g. ADCP instruments which store their data over multiple files. For other instruments (e.g. CTDs) this may indicate an error in the ddb, or in the data file naming scheme.
+ * A <font color="red">red deployment</font> indicates that the information in the ddb was invalid.
+ * A *bold deployment* indicates that the toolbox could not find any files related to that deployment.
+ * An _italicised deployment_ indicates that multiple files were found for that deployment. This will be the norm for e.g. ADCP instruments which store their data over multiple files. For other instruments (e.g. CTDs) this may indicate an error in the ddb, or in the data file naming scheme.
+
+The dialog allows you to resolve any discrepancies between the information in ddb and the raw data files, by removing deployments, and adding/removing files to/from deployments.
+
+When you are happy with the list of deployments for which data is to be imported, confirm the dialog; you will be presented with a progress bar while the data is imported:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_importProgress.png
+
+When the data has been imported, you will be presented ... no, wait ... from here on in, you're on your own.
