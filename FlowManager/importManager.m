@@ -304,7 +304,7 @@ function [sam cal] = finaliseData(sam, cal, fieldTrip, deployment)
 %FINALISEDATA Adds all required/relevant information from the given field
 %trip and deployment structs to the given sample/calibration data.
 %
-  qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+  qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
   
   % process level == raw
   sam.level                  = 0;
@@ -314,8 +314,8 @@ function [sam cal] = finaliseData(sam, cal, fieldTrip, deployment)
   cal.field_trip_description = fieldTrip.FieldDescription;
   
   % should we use Time[First|Last]GoodData ?
-  cal.in_water_time          = str2num(deployment.TimeFirstInPos);
-  cal.out_water_time         = str2num(deployment.TimeLastInPos);
+  cal.in_water_time          = str2double(deployment.TimeFirstInPos);
+  cal.out_water_time         = str2double(deployment.TimeLastInPos);
   
   for k = 1:length(sam.parameters)
     
