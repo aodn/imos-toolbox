@@ -74,3 +74,11 @@ Choose the field trip in which you are interested, and the directory which conta
 Once you have selected a field trip and data directory, the toolbox will attempt to match up deployments with raw data files. You will then be presented with the following dialog:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_dataFileStatusDialog.png
+
+The top half of the dialog contains the list of all deployments related to the field trip; the bottom half contains the list of all files which were found, that correspond to the currently selected deployment.
+
+Some of the deployments are highlighed:
+
+ * A red deployment indicates that the information in the ddb was invalid.
+ * A bold deployment indicates that the toolbox could not find any files related to that deployment.
+ * An italicised deployment indicates that multiple files were found for that deployment. This will be the norm for e.g. ADCP instruments which store their data over multiple files. For other instruments (e.g. CTDs) this may indicate an error in the ddb, or in the data file naming scheme.
