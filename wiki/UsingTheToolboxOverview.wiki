@@ -67,4 +67,6 @@ The importManager returns 3 output arguments:
 
 When you start the import manager, you are first presented with the following dialog:
 
-http://code.google.com/p/imos-toolbox/source/browse/wiki/images/gui_startDialog.png
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_startDialog.png
+
+Choose the field trip in which you are interested, and the directory which contains the raw data related to that field trip. You are able to use the top buttons to select a date range over which to filter the list of field trips to choose from.
