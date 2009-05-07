@@ -53,6 +53,7 @@ function [fieldTrip dataDir] = startDialog()
   fieldTripId = 1;
   lowDate     = 0;
   highDate    = now;
+  dateFmt     = readToolboxProperty('toolbox.dateFormat');
     
   % if default values exist for data dir and field trip, use them
   try 
@@ -73,7 +74,7 @@ function [fieldTrip dataDir] = startDialog()
   % (a bit of a lag when the user changes the date range). Instead, we
   % generate the descriptions now, and maintain a list of descriptions in
   % parallel with the list of field trips (and filtered field trips)
-  fieldTripDescs = genFieldTripDescs(fieldTrips);
+  fieldTripDescs = genFieldTripDescs(fieldTrips, dateFmt);
   
   % generate initial field trip list; after the first 
   % time, this is handled by the dateStartCallback and
@@ -113,7 +114,6 @@ function [fieldTrip dataDir] = startDialog()
              'WindowStyle', 'Modal');
 
   % create the widgets
-  dateFmt = 'dd mmm yyyy';
   dateStartButton = uicontrol('Style',  'pushbutton', ...
                               'String', ...
                               ['Field trip start: ' datestr(lowDate, dateFmt)]);
@@ -338,8 +338,6 @@ function [fieldTrips fieldTripDescs] = ...
   startDates = {fieldTrips.DateStart};
   endDates   = {fieldTrips.DateEnd};
   
-  dateFormat = readToolboxProperty('exportNetCDF.dateFormat');
-  
   toRemove = [];
   
   for k = 1:length(fieldTrips)
@@ -352,13 +350,13 @@ function [fieldTrips fieldTripDescs] = ...
     
     % check that field trip start is before high limit
     if ~isempty(startDate)
-      startDate = datenum(startDate, dateFormat);
+      startDate = str2num(startDate);
       if startDate > highDate, toRemove(end+1) = k; continue; end
     end
     
     % check that field trip end is after low limit
     if ~isempty(endDate)
-      endDate = datenum(endDate, dateFormat);
+      endDate = str2num(endDate);
       if endDate < lowDate, toRemove(end+1) = k; continue; end
     end
   end
@@ -368,23 +366,21 @@ function [fieldTrips fieldTripDescs] = ...
   fieldTripDescs(toRemove) = [];
 end
 
-function descs = genFieldTripDescs(fieldTrips)
+function descs = genFieldTripDescs(fieldTrips, dateFmt)
 %GENFIELDTRIPDESCS Generate descriptions of the given field trips for use
 %in the dialog's field trip menu.
 %
   descs = {};
   
-  dateFormat = readToolboxProperty('exportNetCDF.dateFormat');
-  
   for k = 1:length(fieldTrips)
     
     f = fieldTrips(k);
     if isempty(f.DateStart), startDate = '';
-    else startDate = datestr(datenum(f.DateStart, dateFormat), 'dd mmm yyyy');
+    else startDate = datestr(str2num(f.DateStart), dateFmt);
     end
     
     if isempty(f.DateEnd),   endDate = '';
-    else endDate   = datestr(datenum(f.DateEnd,   dateFormat), 'dd mmm yyyy');
+    else endDate   = datestr(str2num(f.DateEnd), dateFmt);
     end
     
     dateRange = [startDate  ' - ' endDate];
