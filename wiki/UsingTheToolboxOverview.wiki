@@ -61,7 +61,7 @@ Start the toolbox like so:
 >> [s c m] = importManager
 }}}
 
-The importManager returns 3 output arguments:
+The import manager returns 3 output arguments:
  * `s`: A cell array of `sample_data` structs, one for the data that was imported from each physical instrument.
  * `c`: A cell array of `cal_data` structs, corresponding to the `sample_data` structs in `s`.
  * `m`: A vector of `DeploymentData` structs, containing any deployments for which the data could not be imported (e.g. if the information in the ddb was incorrect, or the raw data files were missing).
