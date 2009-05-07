@@ -6,7 +6,7 @@
 
 This page gives a brief overview on how to configure and use the toolbox. As development of the toolbox progresses, this page will be updated. Additionally, my aim is to reduce the amount of work required to configure the toolbox.
 
-This page also provides the current state of the toolbox GUI. Feedback, both positive and negative, is more than welcome. Please make criticisms, suggestions and comments, if you have any, so that I can design the GUI to be as useful as possible.
+This page also shows the current state of the toolbox GUI. Feedback, both positive and negative, is more than welcome. Please make criticisms, suggestions and comments, if you have any, so that I can design the GUI to be as useful as possible.
 
 == Configuration ==
 
