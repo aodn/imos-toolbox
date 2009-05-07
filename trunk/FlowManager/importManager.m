@@ -144,7 +144,8 @@ function [fieldTrip sample_data cal_data skipped] = ...
       % import data
       [sam cal] = parse(deps(k), files{k});
       [sam cal] = finaliseData(sam, cal, fieldTrip, deps(k));
-      [sample_data{end+1} cal_data{end+1}] = parse(deps(k), files{k});
+      sample_data{end+1} = sam;
+      cal_data   {end+1} = cal;
     
     % failure is not fatal
     catch e
