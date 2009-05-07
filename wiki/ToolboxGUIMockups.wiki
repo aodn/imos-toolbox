@@ -1,5 +1,5 @@
 #summary Rough Toolbox GUI design
-#labels Featured,Design
+#labels Design
 
 <wiki:toc max_depth="2"/>
 
