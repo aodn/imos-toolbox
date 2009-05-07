@@ -16,10 +16,10 @@
   * [AutoQCSpecification]
   * [NetCDFExportSpecification]
  * Help
-  * WeeklySnapshots
-  * [UsingTheToolboxOverview]
+  * UsingTheToolboxOverview
   * [tortoiseSVN]
   * MatlabEnvironment
+  * WeeklySnapshots
  * Other
   * [ProcessLevelsAndQC]
  
