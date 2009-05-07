@@ -1,4 +1,5 @@
 #summary Specification for unit test functions
+#labels Specification
 
 <wiki:toc/>
 
