@@ -94,7 +94,7 @@ data = data(1:start);
 flags = [];
 log   = {};
 
-dateFmt    = readToolboxProperty('exportNetCDF.dateFormat');
+dateFmt    = readToolboxProperty('toolbox.timeFormat');
 log{end+1} = ['outWaterQC: removed ' num2str(origLength - length(data)) ...
               ' out-water samples from ' datestr(startTime,dateFmt) ...
               ' to ' datestr(endTime,dateFmt)];

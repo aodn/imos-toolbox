@@ -1,11 +1,15 @@
-% format in which all dates should be exported
+% filename or ODBC DSN of deployment database
+toolbox.ddb = /home/paul/Documents/imos/OceanographyUncontrolled.mdb
+
+% date and time formats used internally and for GUI display
+toolbox.dateFormat = dd mmm yyyy
+toolbox.timeFormat = yyyy-mm-ddTHH:MM:SS
+
+% format in which all dates should be exported in NetCDF attributes
 exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SS
 
 % different date format for NetCDF file names
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSS
-
-% filename or ODBC DSN of deployment database
-toolbox.ddb = /home/paul/Documents/imos/OceanographyUncontrolled.mdb
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 

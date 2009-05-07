@@ -94,7 +94,7 @@ data = data(sEnd:end);
 flags = [];
 log   = {};
 
-dateFmt    = readToolboxProperty('exportNetCDF.dateFormat');
+dateFmt    = readToolboxProperty('toolbox.timeFormat');
 log{end+1} = ['inWaterQC: removed ' num2str(origLength - length(data)) ...
               ' in-water samples from ' datestr(startTime,dateFmt) ...
               ' to ' datestr(endTime,dateFmt)];
