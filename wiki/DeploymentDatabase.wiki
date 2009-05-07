@@ -1,4 +1,5 @@
 #summary Overview of the deployment database
+#labels Specification,Support
 
 <wiki:toc />
 
