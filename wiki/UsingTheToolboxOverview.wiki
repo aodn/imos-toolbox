@@ -70,3 +70,7 @@ When you start the import manager, you are first presented with the following di
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_startDialog.png
 
 Choose the field trip in which you are interested, and the directory which contains the raw data related to that field trip. You are able to use the top buttons to select a date range over which to filter the list of field trips to choose from.
+
+Once you have selected a field trip and data directory, the toolbox will attempt to match up deployments with raw data files. You will then be presented with the following dialog:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_dataFileStatusDialog.png
