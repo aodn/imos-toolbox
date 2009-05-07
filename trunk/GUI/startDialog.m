@@ -1,16 +1,17 @@
 function [fieldTrip dataDir] = startDialog()
-%STARTDIALOG Displays a dialog prompting the user to select a Field Trip ID
+%STARTDIALOG Displays a dialog prompting the user to select a Field Trip 
 % and a directory which contains raw data files.
 %
 % The user is able to choose from a list of field trip IDs, limited by a 
 % date range; the field trips are retrieved from the deployment database. 
-% When the user confirms the dialog, the selected field trip ID and data 
-% directory are returned.  If the user cancels the dialog, both the 
+% When the user confirms the dialog, the selected field trip and data 
+% directory are returned. If the user cancels the dialog, both the 
 % fieldTrip and dataDir return values will be empty matrices.
 %
 % Outputs:
 %
-%   fieldTrip - a numeric value; the field trip ID selected by the user..
+%   fieldTrip - struct containing information about the field trip selected
+%               by the user.
 %
 %   dataDir   - a string containing the location of the directory selected
 %               by the user.
@@ -311,13 +312,10 @@ function [fieldTrip dataDir] = startDialog()
   
   % if user cancelled, return empty matrices
   if isempty(dataDir) || isempty(fieldTrip), return; end
-    
-  % extract the field trip number from the field trip struct
-  fieldTrip = fieldTrip.FieldTripID;
   
   % persist the user's directory and field trip selection
   writeToolboxProperty('startDialog.dataDir',   dataDir);
-  writeToolboxProperty('startDialog.fieldTrip', num2str(fieldTrip));
+  writeToolboxProperty('startDialog.fieldTrip', num2str(fieldTrip.FieldTripID));
   writeToolboxProperty('startDialog.lowDate',   num2str(lowDate));
   writeToolboxProperty('startDialog.highDate',  num2str(highDate));
   

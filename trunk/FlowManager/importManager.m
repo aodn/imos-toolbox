@@ -1,4 +1,5 @@
-function [sample_data cal_data skipped] = importManager( deployments, dataDir )
+function [fieldTrip sample_data cal_data skipped] = ...
+  importManager( deployments, dataDir )
 %IMPORTMANAGER Manages the import of raw instrument data into the toolbox.
 %
 % Imports raw data. If no inputs are given, prompts the user to select a 
@@ -26,6 +27,8 @@ function [sample_data cal_data skipped] = importManager( deployments, dataDir )
 %                 toolbox property is used as a default.
 %
 % Outputs:
+%   fieldTrip   - Struct containing information about the selected field
+%                 trip.
 %   sample_data - Cell array of sample_data structs, each containing sample
 %                 data for one instrument. 
 %
@@ -72,14 +75,12 @@ function [sample_data cal_data skipped] = importManager( deployments, dataDir )
 %
   error(nargchk(0,2,nargin));
   
+  fieldTrip   = [];
   sample_data = {};
   cal_data    = {};
   skipped     = [];
 
-  if     nargin == 0, 
-    [deployments dataDir] = getDeployments();
-    if isempty(deployments), return; end
-    
+  if     nargin == 0, [fieldTrip deployments dataDir] = getDeployments();
   elseif nargin == 1, dataDir = readToolboxProperty('startDialog.dataDir');
   elseif nargin == 2, 
   end
@@ -87,10 +88,19 @@ function [sample_data cal_data skipped] = importManager( deployments, dataDir )
   if ~isstruct(deployments) || isempty(deployments),
     error('deployments is either not a struct, or contains no elements');
   end
-  
+    
   % deps is easier to type
   deps = deployments;
   clear deployments;
+  
+  % if the user provided a set of deployments, 
+  % we need to retrieve the related field trip
+  if isempty(fieldTrip)
+    fieldTrip = ...
+      executeDDBQuery('FieldTrip', 'FieldTripID', deps(1).EndFieldTrip);
+    
+    if length(fieldTrip) ~= 1, error('invalid field trip ID'); end
+  end
     
   % find physical files for each deployment
   files = cell(size(deps));
@@ -132,6 +142,8 @@ function [sample_data cal_data skipped] = importManager( deployments, dataDir )
       disp(['importing ' fileDisplay]);
 
       % import data
+      [sam cal] = parse(deps(k), files{k});
+      [sam cal] = finaliseData(sam, cal, fieldTrip, deps(k));
       [sample_data{end+1} cal_data{end+1}] = parse(deps(k), files{k});
     
     % failure is not fatal
@@ -148,13 +160,15 @@ function [sample_data cal_data skipped] = importManager( deployments, dataDir )
   skipped = deps(skipped);
 end
 
-function [deployments dataDir] = getDeployments()
+function [fieldTrip deployments dataDir] = getDeployments()
 %GETDEPLOYMENTS Prompts the user for a field trip ID and data directory.
-% Retrieves and returns all deployments from the DDB that are related to the 
-% field trip, along with the selected data directory.
+% Retrieves and returns the field trip, all deployments from the DDB that 
+% are related to the field trip, and the selected data directory.
 %
 % Outputs:
-%   deployments - vector of deployment structs.
+%   fieldTrip   - field trip struct - the field trip selected by the user.
+%   deployments - vector of deployment structs related to the selected 
+%                 field trip.
 %   dataDir     - String containing data directory path selected by user.
 %
   deployments = [];
@@ -162,13 +176,15 @@ function [deployments dataDir] = getDeployments()
   % prompt the user to select a field trip and 
   % directory which contains raw data files
   [fieldTrip dataDir] = startDialog();
-  
+    
   % user cancelled start dialog
   if isempty(fieldTrip) || isempty(dataDir), return; end
+  
+  fId = fieldTrip.FieldTripID;
 
   % query the ddb for all deployments related to this field trip
-  deployments = executeDDBQuery('DeploymentData', 'StartFieldTrip', fieldTrip);
-  endDeps     = executeDDBQuery('DeploymentData', 'EndFieldTrip',   fieldTrip);
+  deployments = executeDDBQuery('DeploymentData', 'StartFieldTrip', fId);
+  endDeps     = executeDDBQuery('DeploymentData', 'EndFieldTrip',   fId);
   
   % merge end field trip deployments with start field 
   % trip deployments; ensure there are no duplicates
@@ -182,7 +198,7 @@ function [deployments dataDir] = getDeployments()
   end
   
   if isempty(deployments)
-    error(['no deployments related to field trip ' num2str(fieldTrip)]); 
+    error(['no deployments related to field trip ' num2str(fId)]); 
   end
 end
 
@@ -282,4 +298,33 @@ function parser = getParserFunc(deployment)
   
   % get the parser function handle
   parser = getParser(parser);
+end
+
+function [sam cal] = finaliseData(sam, cal, fieldTrip, deployment)
+%FINALISEDATA Adds all required/relevant information from the given field
+%trip and deployment structs to the given sample/calibration data.
+%
+  qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+  
+  % process level == raw
+  sam.level                  = 0;
+
+  cal.qc_set                 = qc_set;
+  cal.field_trip_id          = fieldTrip.FieldTripID;
+  cal.field_trip_description = fieldTrip.FieldDescription;
+  
+  % should we use Time[First|Last]GoodData ?
+  cal.in_water_time          = str2num(deployment.TimeFirstInPos);
+  cal.out_water_time         = str2num(deployment.TimeLastInPos);
+  
+  for k = 1:length(sam.parameters)
+    
+    cal.parameters(k).name          = sam.parameters(k).name;
+    cal.parameters(k).deployment_id = deployment.DeploymentId;
+    
+    % we currently have no access to this information
+    cal.parameters(k).min_value = -99999.0;
+    cal.parameters(k).max_value =  99999.0;
+  end
+
 end
