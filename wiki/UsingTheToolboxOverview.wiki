@@ -5,7 +5,7 @@
 
 = Using the Toolbox =
 
-This page describes the state of the toolbox at r271 (07 May 2009). The trunk changes quickly, so these instructions are likely already out of date.
+This page describes the state of the toolbox at [http://code.google.com/p/imos-toolbox/source/browse/?r=270 revision 270] (07 May 2009). The trunk changes quickly, so these instructions are likely already out of date.
 
 This page gives a brief overview on how to configure and use the toolbox. As development of the toolbox progresses, this page will be updated. Additionally, my aim is to reduce the amount of work required to configure the toolbox.
 
