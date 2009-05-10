@@ -1,0 +1,129 @@
+#summary Graphing in matlab
+
+<wiki:toc />
+
+= Graphing in Matlab =
+
+I'm surprised at Matlab's poor support for the graphing of multiple parameters on the same set of axes. It is possible to do so without a great deal of work, but getting other functionality such as zooming, selecting etc seems to be an intractable problem. The main purpose of this page is simply as a place to store the code that I've written to graph multiple paramaters on the one axes; it doesn't exist in SVN, and I'm hesitant to throw it away, as it may come in handy in the future.
+
+== Lining up time series data ==
+
+{{{
+function graphs = graphTimeSeries( ...
+  parent, sample_data, cal_data, dimension, params )
+%GRAPHTIMESERIES Graphs the given data in a time series style.
+%
+% Inputs:
+%   parent       - handle to the parent container.
+%   sample_data  - struct containing sample data.
+%   cal_data     - struct containing sample metadata.
+%   dimension    - index into the sample_data.dimensions vector, indicating
+%                  which dimension should be the x axis.
+%   params       - Optional. indices of parameters that should be graphed. 
+%                  If omitted, all parameters are graphed.
+%
+% Outputs:
+%   graphs      - handles to axes on which the data has been graphed.
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
+  error(nargchk(4,5,nargin));
+  
+  if ~ishandle( parent),       error('parent must be a handle');            end
+  if ~isstruct( sample_data),  error('sample_data must be a struct');       end
+  if ~isstruct( cal_data),     error('cal_data must be a struct');          end
+  if ~isnumeric(dimension)...
+  || ~isscalar( dimension),    error('dimension must be a scalar numeric'); end
+
+  if     nargin == 4         params = 1:length(sample_data.parameters); 
+  elseif ~isnumeric(params), error('params must be a numeric'); 
+  end
+  
+  % get rid of parameters that we should ignore
+  sample_data.parameters = sample_data.parameters(params);
+  cal_data   .parameters = cal_data   .parameters(params);
+  
+  offset = 0.02;
+  
+  graphs = [];
+  lines  = [];
+
+  for k = 1:length(sample_data.parameters)
+    
+    name = sample_data.parameters(k).name;
+    uom  = imosParameters(name, 'uom');
+    
+    % create the axes
+    graphs(k) = axes('Parent', parent,...
+                     'Color', 'none', ...
+                     'Units', 'normalized',...
+                     'XTick', []);
+    
+    set(get(graphs(k), 'YLabel'), 'String', [name ' ' uom]);
+    
+    % make sure line colour alternates; because we are creating 
+    % multiple axes, this is not done automatically for us
+    col = get(graphs(k), 'ColorOrder');
+    col = col(mod(k,length(col))+1,:);
+    
+    set(graphs(k), 'YColor', col);
+    
+    % create the data plot
+    lines(k) = line(sample_data.dimensions(dimension).data, ...
+                    sample_data.parameters(k)        .data,...
+                    'Color', col);
+    
+    % set y ticks
+    yLimits = get(graphs(k), 'YLim');
+    yStep   = (yLimits(2) - yLimits(1)) / 5;
+    yTicks  = yLimits(1):yStep:yLimits(2);
+    set(graphs(k), 'YTick', yTicks);
+    
+    get(graphs(k), 'TightInset')
+    get(graphs(k), 'Position')
+           
+    if k == 1, continue; end;
+    
+    % resize all previous axes to make 
+    % room for the y axis for this axis
+    for m = 1:k-1
+      pos = get(graphs(m), 'Position');
+      pos(1) = pos(1) + offset;
+      pos(3) = pos(3) - offset;
+      set(graphs(m), 'Position', pos);
+    end
+    
+    % scale this axis' x limits so the data in this 
+    % axis lines up horizontally with the data from 
+    % the previous axes
+    oldLim = get(graphs(1), 'XLim');
+    pos    = get(graphs(1), 'Position');
+    
+    newLim(1) = oldLim(1) - (k-1) * offset * (oldLim(2) - oldLim(1)) / pos(3);
+    newLim(2) = oldLim(2);
+      
+    set(graphs(k), 'XLim', newLim);
+  end
+  
+  % set x labels and ticks on graph 1
+  xLabel = sample_data.dimensions(dimension).name;
+  set(get(graphs(1), 'XLabel'), 'String', xLabel);
+  
+  xLimits = get(graphs(1), 'XLim');
+  xStep   = (xLimits(2) - xLimits(1)) / 5;
+  xTicks = [xLimits(1):xStep:xLimits(2)];
+  
+  set(graphs(1), 'XTick', xTicks);
+  
+  % if the x dimension is time, convert 
+  % the tick labels into strings
+  if strcmpi(xLabel, 'time')
+    xTicks = datestr(xTicks); 
+    set(graphs(1), 'XTickLabel', xTicks);
+  end
+  
+  % add a legend
+  legend(lines, {sample_data.parameters.name});
+  
+end
+}}}
