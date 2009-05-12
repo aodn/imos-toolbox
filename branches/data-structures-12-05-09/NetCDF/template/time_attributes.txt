@@ -1,0 +1,13 @@
+standard_name   = time
+long_name       = time
+units           = days since 1950-01-01T00:00:00Z
+axis            = T
+valid_min       = 0
+valid_max       = 90000.0
+_FillValue      = 999999.0
+calendar        = gregorian
+comment         = 
+QC_set          = {mat num2str(cal_data.qc_set)}
+QC_indicator    = 
+uncertainty     =
+local_time_zone =
