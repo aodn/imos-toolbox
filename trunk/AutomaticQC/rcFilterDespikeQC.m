@@ -1,5 +1,5 @@
 function [data flags log] = ...
-rcFilterDespikeQC( sample_data, cal_data, data, k, varargin )
+rcFilterDespikeQC( sample_data, data, k, varargin )
 %RCFILTERDESPIKEQC Uses an RC filter technique to detect spikes in the given
 %data.
 %
@@ -12,11 +12,9 @@ rcFilterDespikeQC( sample_data, cal_data, data, k, varargin )
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
 %
-%   cal_data    - struct which contains calibration and metadata.
-%
 %   data        - the vector of data to check.
 %
-%   k           - Index into the cal_data/sample_data.parameters vectors.
+%   k           - Index into the sample_data.variables vector.
 %
 %   'k_param'   - Filter parameter (see the text). If not provided, a default 
 %                 value of 3 is used.
@@ -62,9 +60,8 @@ rcFilterDespikeQC( sample_data, cal_data, data, k, varargin )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(4, 6, nargin));
+error(nargchk(3, 5, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isstruct(cal_data),           error('cal_data must be a struct');    end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
@@ -78,8 +75,9 @@ k_param = p.Results.k_param;
 % we need to modify the data set, so work with a copy
 fdata = data;
 
-goodFlag  = imosQCFlag('good',  cal_data.qc_set);
-spikeFlag = imosQCFlag('spike', cal_data.qc_set);
+qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+goodFlag  = imosQCFlag('good',  qc_set);
+spikeFlag = imosQCFlag('spike', qc_set);
 
 flags    = zeros(length(fdata), 1);
 flags(:) = goodFlag;

@@ -1,6 +1,6 @@
-function [sample_data cal_data] = genTestData(...
+function sample_data = genTestData(...
   nsamples,...
-  params,...
+  vars,...
   in_water_time,...
   out_water_time,...
   min_values,...
@@ -15,7 +15,7 @@ function [sample_data cal_data] = genTestData(...
 %
 % Inputs:
 %   nsamples       - Number of samples
-%   params         - String array of parameter names
+%   vars           - String array of variable names
 %   in_water_time  - In water time
 %   out_water_time - Out water time
 %   min_values     - Vector of min values for each parameter
@@ -25,9 +25,7 @@ function [sample_data cal_data] = genTestData(...
 %
 % Outputs:
 %   sample_data    - struct containing sample data for the given number of
-%                    parameters
-%
-%   cal_data       - struct containing calibration data
+%                    variables
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -67,31 +65,26 @@ disp(['generating test data set of ' num2str(nsamples) ' samples']);
 sample_data.dimensions         = [];
 sample_data.dimensions(1).name = 'TIME';
 sample_data.dimensions(1).data = (1:nsamples)';
-sample_data.parameters         = [];
-sample_data.log                = {};
+sample_data.variables          = [];
 sample_data.level              = 0;
 
-cal_data.in_water_time  = in_water_time;
-cal_data.out_water_time = out_water_time;
-cal_data.creation_date  = now;
-cal_data.qc_set         = 1;
-cal_data.parameters     = [];
+sample_data.time_coverage_start  = in_water_time;
+sample_data.time_coverage_end    = out_water_time;
+sample_data.date_created         = now;
+sample_data.variables            = [];
 
-for k = 1:length(params)
+for k = 1:length(vars)
   
   % generate random data set between min_value and max_value
   data = min_values(k) + (max_values(k)-min_values(k)).*rand(1,nsamples);
   data = data';
   
-  sample_data.parameters(k).name       = params{k};
-  sample_data.parameters(k).dimensions = [1];
-  sample_data.parameters(k).data       = data;
-  sample_data.parameters(k).flags      = zeros(size(data));
-  sample_data.parameters(k).flags(:)   = '0';
-  
-  cal_data.parameters(k).name          = params{k};
-  cal_data.parameters(k).min_value     = min_bounds(k);
-  cal_data.parameters(k).max_value     = max_bounds(k);
-  cal_data.parameters(k).deployment_id = 'A0089FFD-C7C5-42D3-B0ED-008E23678959';
+  sample_data.variables(k).name       = vars{k};
+  sample_data.variables(k).dimensions = [1];
+  sample_data.variables(k).data       = data;
+  sample_data.variables(k).flags      = zeros(size(data));
+  sample_data.variables(k).flags(:)   = '0';
+  sample_data.variables(k).valid_min  = min_bounds(k);
+  sample_data.variables(k).valid_max  = max_bounds(k);
   
 end

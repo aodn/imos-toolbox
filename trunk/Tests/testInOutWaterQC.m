@@ -51,7 +51,7 @@ num_samples = 1000;
 start_idx = 95;
 end_idx = 924;
 
-[sample_data cal_data] = genTestData(...
+sample_data = genTestData(...
   num_samples,...
   params,...
   start_idx,...
@@ -64,13 +64,13 @@ end_idx = 924;
 % call in water and out water routines
 disp(['running data through inWaterQC and outWaterQC']);
 
-for k = 1:length(sample_data.parameters)
+for k = 1:length(sample_data.variables)
   
-  s = sample_data.parameters(k);
+  s = sample_data.variables(k);
   data = s.data;
   
-  idata = inWaterQC( sample_data, cal_data, data, k);
-  odata = outWaterQC(sample_data, cal_data, data, k);
+  idata = inWaterQC( sample_data, data, k);
+  odata = outWaterQC(sample_data, data, k);
 
   disp([s.name ' in-water set length:  ' num2str(length(idata))]);
   disp([s.name ' out-water set length: ' num2str(length(odata))]);

@@ -1,4 +1,4 @@
-function [sample_data cal_data] = WQMParse( filename )
+function sample_data = WQMParse( filename )
 %WQMParse Parse a .dat file retrieved from a Wetlabs WQM instrument.
 %
 % This function is able to parse data retrieved from a Wetlabs WQM CTD/ECO 
@@ -26,8 +26,8 @@ function [sample_data cal_data] = WQMParse( filename )
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
-%                 vector of up to eight parameter structs, containing sample 
-%                 times and data. The possible parameters are as follows:
+%                 vector of up to eight variable structs, containing sample 
+%                 data. The possible parameters are as follows:
 %
 %                   Conductivity      ('CNDC'): S m^-1
 %                   Temperature       ('TEMP'): Degrees Celsius
@@ -37,10 +37,10 @@ function [sample_data cal_data] = WQMParse( filename )
 %                   Chlorophyll       ('CPHL'): mg/m^3   (user coefficient)
 %                   Chlorophyll       ('CPHL'): mg/m^3   (factory coefficient)
 %                   Turbidity         ('TURB') NTU
-%
-%   cal_data    - contains instrument metadata. The '.dat' output format does 
-%                 not contain any calibration information, so this struct only 
-%                 contains the following:
+%                 
+%                 Also contains some metadata fields. The '.dat' output 
+%                 format does not contain any calibration information, so 
+%                 only the following are present:
 %   
 %                   instrument_make:      'WET Labs'
 %                   instrument_model:     'WQM'
@@ -142,13 +142,12 @@ catch e
 end
 
 %fill in sample and cal data
-sample_data            = struct;
-sample_data.parameters = [];
-cal_data               = struct;
+sample_data           = struct;
+sample_data.variables = struct;
 
-cal_data.instrument_make      = 'WQM';
-cal_data.instrument_model     = 'WET Labs';
-cal_data.instrument_serial_no = samples{1}{1};
+sample_data.instrument_make      = 'WQM';
+sample_data.instrument_model     = 'WET Labs';
+sample_data.instrument_serial_no = samples{1}{1};
 
 % create a parameters struct in sample_data for each parameter in the file
 % start index at 4 to skip serial, date and time
@@ -174,10 +173,10 @@ for k = 4:length(fields)
       
   end
   
-  sample_data.parameters(k-3).dimensions = [1];
-  sample_data.parameters(k-3).comment    = comment;
-  sample_data.parameters(k-3).name       = name;
-  sample_data.parameters(k-3).data       = data;
+  sample_data.variables(k-3).dimensions = [1];
+  sample_data.variables(k-3).comment    = comment;
+  sample_data.variables(k-3).name       = name;
+  sample_data.variables(k-3).data       = data;
 end
 
 % convert and save the time data

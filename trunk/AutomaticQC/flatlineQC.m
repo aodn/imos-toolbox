@@ -1,5 +1,5 @@
 function [data, flags, log] = ...
-flatlineQC( sample_data, cal_data, data, k, varargin )
+flatlineQC( sample_data, data, k, varargin )
 %FLATLINEQC Flags flatline regions in the given data set.
 %
 % Simple filter which finds and flags any 'flatline' regions in the given data.
@@ -7,13 +7,11 @@ flatlineQC( sample_data, cal_data, data, k, varargin )
 % value.
 %
 % Inputs:
-%   sample_data - struct containing the entire data set and dimension data.
-%
-%   cal_data    - struct which contains calibration and metadata.
+%   sample_data - struct containing the data set.
 %
 %   data        - the vector of data to check.
 %
-%   k           - Index into the cal_data/sample_data.parameters vectors.
+%   k           - Index into the sample_data variable vector.
 %
 %   'nsamples'  - Minimum number of consecutive samples with the same value
 %                 that will be detected by the filter. If not provided, a
@@ -24,7 +22,7 @@ flatlineQC( sample_data, cal_data, data, k, varargin )
 %   data        - same as input.
 %
 %   flags       - Vector the same length as data, with flags for flatline 
-%                 regions..
+%                 regions.
 %
 %   log         - Empty cell array.
 %
@@ -61,9 +59,8 @@ flatlineQC( sample_data, cal_data, data, k, varargin )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(4, 6, nargin));
+error(nargchk(3, 5, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isstruct(cal_data),           error('cal_data must be a struct');    end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
@@ -75,8 +72,9 @@ p.parse(varargin{:});
 nsamples = p.Results.nsamples;
 if nsamples < 2, nsamples = 2; end
 
-goodFlag = imosQCFlag('good',        cal_data.qc_set);
-flatFlag = imosQCFlag('probablyBad', cal_data.qc_set);
+qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+goodFlag = imosQCFlag('good',        qc_set);
+flatFlag = imosQCFlag('probablyBad', qc_set);
 
 log      = {};
 flags    = zeros(length(data), 1);

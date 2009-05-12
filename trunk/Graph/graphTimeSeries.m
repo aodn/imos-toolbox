@@ -1,12 +1,11 @@
 function graphs = graphTimeSeries( ...
-  parent, sample_data, cal_data, params, dimension )
+  parent, sample_data, vars, dimension )
 %GRAPHTIMESERIES Graphs the given data in a time series style using subplots.
 %
 % Inputs:
 %   parent       - handle to the parent container.
 %   sample_data  - struct containing sample data.
-%   cal_data     - struct containing sample metadata.
-%   params       - Indices of parameters that should be graphed..
+%   vars         - Indices of variables that should be graphed..
 %   dimension    - index into the sample_data.dimensions vector, indicating
 %                  which dimension should be the x axis.
 %
@@ -45,32 +44,30 @@ function graphs = graphTimeSeries( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(5,5,nargin));
+  error(nargchk(4,4,nargin));
   
   if ~ishandle( parent),       error('parent must be a handle');            end
   if ~isstruct( sample_data),  error('sample_data must be a struct');       end
-  if ~isstruct( cal_data),     error('cal_data must be a struct');          end
   if ~isnumeric(dimension)...
   || ~isscalar( dimension),    error('dimension must be a scalar numeric'); end
 
-  if ~isnumeric(params),       error('params must be a numeric');           end
+  if ~isnumeric(vars),         error('vars must be a numeric');             end
   
   graphs = [];
   lines  = [];
   
-  if isempty(params), return; end
+  if isempty(vars), return; end
   
-  % get rid of parameters that we should ignore
-  sample_data.parameters = sample_data.parameters(params);
-  cal_data   .parameters = cal_data   .parameters(params);
+  % get rid of variables that we should ignore
+  sample_data.variables = sample_data.variables(vars);
   
-  for k = 1:length(sample_data.parameters)
+  for k = 1:length(sample_data.variables)
     
-    name = sample_data.parameters(k).name;
+    name = sample_data.variables(k).name;
     uom  = imosParameters(name, 'uom');
     
     % create the axes
-    graphs(k) = subplot(length(sample_data.parameters), 1, k);
+    graphs(k) = subplot(length(sample_data.variables), 1, k);
     
     set(graphs(k), 'Parent', parent,...
                    'Color',  'none',...
@@ -85,7 +82,7 @@ function graphs = graphTimeSeries( ...
     
     % create the data plot
     lines(k) = line(sample_data.dimensions(dimension).data, ...
-                    sample_data.parameters(k)        .data,...
+                    sample_data.variables(k)         .data,...
                     'Color', col);
     
     % set x labels and ticks on graph 1
@@ -118,5 +115,5 @@ function graphs = graphTimeSeries( ...
   linkaxes(graphs, 'x');
   
   % add a legend
-  legend(lines, {sample_data.parameters.name});
+  legend(lines, {sample_data.variables.name});
 end

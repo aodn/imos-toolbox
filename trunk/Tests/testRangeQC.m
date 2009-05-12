@@ -42,7 +42,7 @@ disp(['-- ' mfilename ' --']);
 disp(' ');
 
 % generate test data, ensuring that some values will be out of bounds
-[sample_data cal_data] = genTestData(...
+sample_data = genTestData(...
   2000,...
   {'TEMP','COND','PRES'},...
   1,...
@@ -54,20 +54,20 @@ disp(' ');
 
 disp('running data through rangeQC filter');
 
-rangeFlag = imosQCFlag('bound', cal_data.qc_set);
-goodFlag  = imosQCFlag('good', cal_data.qc_set);
+qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+rangeFlag = imosQCFlag('bound', qc_set);
+goodFlag  = imosQCFlag('good', qc_set);
 
-for k = 1:length(sample_data.parameters)
+for k = 1:length(sample_data.variables)
   
-  data = sample_data.parameters(k).data;
+  data = sample_data.variables(k).data;
 
   % run the data through the range filter
-  [data flags log] = rangeQC(sample_data, cal_data, data, k);
+  [data flags log] = rangeQC(sample_data, data, k);
 
   % run through the data, ensuring that the range routine flagged every value
   % that is out of bounds, and no more
-  s = sample_data.parameters(k);
-  c = cal_data.parameters(k);
+  s = sample_data.variables(k);
   
   disp(['checking ' s.name]);
   disp(['num flags for ' s.name ' is ' num2str(length(flags))]);
@@ -82,7 +82,7 @@ for k = 1:length(sample_data.parameters)
     f = flags(m);
     
     % if out of bounds, check that it has been flagged
-    if d < c.min_value || d > c.max_value
+    if d < s.valid_min || d > s.valid_max
   
       if f ~= rangeFlag
         error(['out of range value (d(' ...
