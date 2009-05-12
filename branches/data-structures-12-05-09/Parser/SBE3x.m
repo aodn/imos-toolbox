@@ -234,7 +234,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
   tkn = regexp(line, sensor_cal_expr, 'tokens');
   if ~isempty(tkn)
     
-    sample_data.misc.([tkn{1}{1} '_calibration_date']) = strtrim(tkn{1}{2});
+    sample_data.([tkn{1}{1} '_calibration_date']) = strtrim(tkn{1}{2});
      
     if strcmp('temperature', tkn{1}{1})
       
