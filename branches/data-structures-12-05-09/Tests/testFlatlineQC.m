@@ -45,20 +45,21 @@ num_samples = 2000;
 min_flatline_size = 5;
 
 % generate test data
-[sample_data cal_data] = genTestData(...
+sample_data = genTestData(...
   num_samples,{'TEMP', 'COND', 'PRES'},1,num_samples,...
   [10,10,10],[100,100,100],[10,10,10],[100,100,100]);
 
-goodFlag = imosQCFlag('good',        cal_data.qc_set);
-flatFlag = imosQCFlag('probablyBad', cal_data.qc_set);
+qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+goodFlag = imosQCFlag('good',        qc_set);
+flatFlag = imosQCFlag('probablyBad', qc_set);
 
-% each element is a Nx2 matrix, one for each parameter
-% N == num flatline regions for this parameter
+% each element is a Nx2 matrix, one for each variable
+% N == num flatline regions for this variable
 % first column is start flatline index, second column is end flatline index
 flatlines = {};
 
 % insert some flatlines
-for k = 1:length(sample_data.parameters)
+for k = 1:length(sample_data.variables)
   
   pflatlines = [];
   
@@ -72,7 +73,7 @@ for k = 1:length(sample_data.parameters)
     start = 1 + int32((num_samples-1-size)*rand(1,1));
     
     % insert flatline of consecutive random value
-    sample_data.parameters(k).data(start:size + start-1) = 0.0;
+    sample_data.variables(k).data(start:size + start-1) = 0.0;
     
     % save for later validation  
     pflatlines(end+1,1) = start;
@@ -99,21 +100,21 @@ for k = 1:length(sample_data.parameters)
   nflatlines = ...
     sum(pflatlines(:,2)) - sum(pflatlines(:,1)) + length(pflatlines(:,1));
   disp([num2str(length(pflatlines(:,1))) ' flatlines inserted for ' ...
-        sample_data.parameters(k).name ...
+        sample_data.variables(k).name ...
         ' (' num2str(nflatlines) ') points in total']);
   
   flatlines{end+1} = pflatlines;
 end
 
-% run dataset through the flatline filter for each parameter
+% run dataset through the flatline filter for each variable
 % check that flags have been created for each of the flatlines, and no more
-for k = 1:length(sample_data.parameters)
+for k = 1:length(sample_data.variables)
   
-  s = sample_data.parameters(k);
+  s = sample_data.variables(k);
   
   data = s.data;
   [data flags log] = ...
-    flatlineQC(sample_data, cal_data, data, k, 'nsamples', min_flatline_size);
+    flatlineQC(sample_data, data, k, 'nsamples', min_flatline_size);
   
   pflatlines = flatlines{k};
   
