@@ -1,5 +1,4 @@
-function [fieldTrip sample_data cal_data skipped] = ...
-  importManager( deployments, dataDir )
+function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
 %IMPORTMANAGER Manages the import of raw instrument data into the toolbox.
 %
 % Imports raw data. If no inputs are given, prompts the user to select a 
@@ -31,10 +30,6 @@ function [fieldTrip sample_data cal_data skipped] = ...
 %                 trip.
 %   sample_data - Cell array of sample_data structs, each containing sample
 %                 data for one instrument. 
-%
-%   cal_data    - Cell array of cal_data structs the sample length as the
-%                 sample_data vector, each containing calibration/metadata
-%                 for one instrument.
 %
 %   skipped     - Vector of deployment structs, containing the deployments
 %                 for which data could not be imported (i.e. for which a
@@ -77,7 +72,6 @@ function [fieldTrip sample_data cal_data skipped] = ...
   
   fieldTrip   = [];
   sample_data = {};
-  cal_data    = {};
   skipped     = [];
 
   if     nargin == 0, [fieldTrip deployments dataDir] = getDeployments();
@@ -142,10 +136,9 @@ function [fieldTrip sample_data cal_data skipped] = ...
       disp(['importing ' fileDisplay]);
 
       % import data
-      [sam cal] = parse(deps(k), files{k});
-      [sam cal] = finaliseData(sam, cal, fieldTrip, deps(k));
+      sam = parse(deps(k), files{k});
+      sam = finaliseData(sam, fieldTrip, deps(k));
       sample_data{end+1} = sam;
-      cal_data   {end+1} = cal;
     
     % failure is not fatal
     catch e
@@ -250,8 +243,8 @@ function hits = fsearch(pattern, root)
   end
 end
 
-function [sam cal] = parse(deployment, files)
-%PARSE Parses a raw data file, returns sample_data/cal_data structs.
+function sam = parse(deployment, files)
+%PARSE Parses a raw data file, returns a sample_data struct.
 %
 % Inputs:
 %   deployment - Struct containing deployment data.
@@ -259,8 +252,6 @@ function [sam cal] = parse(deployment, files)
 %
 % Outputs:
 %   sam        - Struct containing sample data.
-%   cal        - Struct containing calibration/metadata.w  sam = 0;
-  cal = 0;
 
   % get the appropriate parser function
   parser = getParserFunc(deployment);
@@ -269,7 +260,7 @@ function [sam cal] = parse(deployment, files)
   end
 
   % parse the data; let errors propagate
-  [sam cal] = parser(files);
+  sam = parser(files);
 
 end
 
@@ -301,31 +292,29 @@ function parser = getParserFunc(deployment)
   parser = getParser(parser);
 end
 
-function [sam cal] = finaliseData(sam, cal, fieldTrip, deployment)
+function sam = finaliseData(sam, fieldTrip, deployment)
 %FINALISEDATA Adds all required/relevant information from the given field
-%trip and deployment structs to the given sample/calibration data.
+%trip and deployment structs to the given sample data.
 %
   qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
   
   % process level == raw
   sam.level                  = 0;
 
-  cal.qc_set                 = qc_set;
-  cal.field_trip_id          = fieldTrip.FieldTripID;
-  cal.field_trip_description = fieldTrip.FieldDescription;
+  sam.field_trip_id          = fieldTrip.FieldTripID;
+  sam.field_trip_description = fieldTrip.FieldDescription;
   
   % should we use Time[First|Last]GoodData ?
-  cal.in_water_time          = str2double(deployment.TimeFirstInPos);
-  cal.out_water_time         = str2double(deployment.TimeLastInPos);
+  sam.in_water_time          = str2double(deployment.TimeFirstInPos);
+  sam.out_water_time         = str2double(deployment.TimeLastInPos);
   
-  for k = 1:length(sam.parameters)
+  for k = 1:length(sam.variables)
     
-    cal.parameters(k).name          = sam.parameters(k).name;
-    cal.parameters(k).deployment_id = deployment.DeploymentId;
+    sam.variables(k).deployment_id = deployment.DeploymentId;
     
     % we currently have no access to this information
-    cal.parameters(k).min_value = -99999.0;
-    cal.parameters(k).max_value =  99999.0;
+    sam.variables(k).valid_min = -99999.0;
+    sam.variables(k).valid_max =  99999.0;
   end
 
 end

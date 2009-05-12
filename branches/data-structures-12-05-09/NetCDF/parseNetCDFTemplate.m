@@ -1,4 +1,4 @@
-function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
+function template = parseNetCDFTemplate ( file, sample_data, k )
 %PARSETEMPLATE Parses the given NetCDF attribute template file.
 %
 % Parses the given NetCDF attribute template file, inserting data where
