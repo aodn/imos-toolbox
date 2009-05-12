@@ -114,12 +114,7 @@ function [year month day] = datePromptDialog(year,month,day)
   set(dayMenu,       'Callback',        @dayCallback);
   
   % enable use of return/escape to confirm/cancel dialog
-  set(f,             'KeyPressFcn', @keyPressCallback);
-  set(cancelButton,  'KeyPressFcn', @keyPressCallback);
-  set(confirmButton, 'KeyPressFcn', @keyPressCallback);
-  set(yearMenu,      'KeyPressFcn', @keyPressCallback);
-  set(dayMenu,       'KeyPressFcn', @keyPressCallback);
-  set(monthMenu,     'KeyPressFcn', @keyPressCallback);
+  set(f, 'WindowKeyPressFcn', @keyPressCallback);
   
   set(f, 'Visible', 'on');
   uiwait(f);

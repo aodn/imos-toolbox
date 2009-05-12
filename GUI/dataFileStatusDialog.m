@@ -116,14 +116,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   set(confirmButton,    'Callback',        @confirmCallback);
 
   % user can hit escape to quit dialog
-  set(f,                'KeyPressFcn',     @keyPressCallback);
-  set(depRemoveButton,  'KeyPressFcn',     @keyPressCallback);
-  set(depList,          'KeyPressFcn',     @keyPressListCallback);
-  set(fileRemoveButton, 'KeyPressFcn',     @keyPressCallback);
-  set(fileAddButton,    'KeyPressFcn',     @keyPressCallback);
-  set(fileList,         'KeyPressFcn',     @keyPressListCallback);
-  set(cancelButton,     'KeyPressFcn',     @keyPressCallback);
-  set(confirmButton,    'KeyPressFcn',     @keyPressCallback);
+  set(f, 'WindowKeyPressFcn', @keyPressCallback);
 
   % display the dialog and wait for user input
   set(f, 'Visible', 'on');
