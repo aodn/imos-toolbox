@@ -1,10 +1,10 @@
 function mainWindow(...
-  fieldTrip, sample_data, cal_data, states, startState, selectionCallback)
+  fieldTrip, sample_data, states, startState, selectionCallback)
 %DATAWINDOW Displays a window which allows the user to view data.
 %
 % The mainWindow is the main toolbox window. It provides menus allowing the
 % user to select the data set to use and the graph type to display (if a
-% graph is being displayed), enable/disable parameters, and choose the
+% graph is being displayed), enable/disable variables, and choose the
 % dimension to graph against.
 %
 % The central area of the mainWindow is left empty, it is up to the
@@ -20,7 +20,6 @@ function mainWindow(...
 %   fieldTrip         - Struct containing information about the field trip 
 %                       from which data is being displayed.
 %   sample_data       - Cell array of structs of sample data.
-%   cal_data          - Cell array of structs of calibration/metadata.
 %   states            - Cell array of strings containing state names.
 %   startState        - Index into states array, specifying initial state.
 %   selectionCallback - A function which is called when the user pushes a 
@@ -29,9 +28,8 @@ function mainWindow(...
 %                         panel       - A uipanel on which things can be drawn.
 %                         state       - Currently selected state (String)
 %                         sample_data - currently selected sample data
-%                         cal_data    - currently selected sample data
 %                         graphType   - Currently selected graph type (String)
-%                         params      - Currently selected parameters
+%                         vars        - Currently selected variables
 %                         dim         - Currently selected dimension
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
@@ -66,13 +64,11 @@ function mainWindow(...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(6,6,nargin));
+  error(nargchk(5,5,nargin));
 
   if ~isstruct(fieldTrip),   error('fieldTrip must be a struct');           end
   if ~iscell(sample_data)...
   || isempty(sample_data),   error('sample_data must be a cell array');     end
-  if ~iscell(cal_data)...
-  || isempty(cal_data),      error('cal_data must be a cell array');        end
   if ~iscellstr(states),     error('states must be a cell array');          end
   if ~isnumeric(startState), error('initialState must be a numeric');       end
   if ~isa(selectionCallback,... 
@@ -83,8 +79,8 @@ function mainWindow(...
   timeFmt = readToolboxProperty('toolbox.timeFormat');
   fId     = fieldTrip.FieldTripID;
   
-  % sample menu entries (1-1 mapping to sample_data/cal_data structs)
-  sampleDataDescs = genSampleDataDescs(sample_data, cal_data, timeFmt);
+  % sample menu entries (1-1 mapping to sample_data structs)
+  sampleDataDescs = genSampleDataDescs(sample_data, timeFmt);
 
   % window figure
   fig = figure(...
@@ -119,8 +115,8 @@ function mainWindow(...
       'String', states{k});
   end
   
-  % parameter selection panel - created in createParamPanel
-  paramPanel = uipanel(sidePanel);
+  % variable selection panel - created in createVarPanel
+  varPanel = uipanel(sidePanel);
   
   % main display
   mainPanel = uipanel(fig);
@@ -129,7 +125,7 @@ function mainWindow(...
   set(fig,          'Units', 'normalized');
   set(sidePanel,    'Units', 'normalized');
   set(mainPanel,    'Units', 'normalized');
-  set(paramPanel,   'Units', 'normalized');
+  set(varPanel,     'Units', 'normalized');
   set(sampleMenu,   'Units', 'normalized');
   set(graphMenu,    'Units', 'normalized');
   set(stateButtons, 'Units', 'normalized');
@@ -141,8 +137,8 @@ function mainWindow(...
   set(sampleMenu, 'Position', [0.0,  0.95, 0.5,  0.05]);
   set(graphMenu,  'Position', [0.5,  0.95, 0.5,  0.05]);
   
-  % paramPanel and stateButtons are positioned relative to sidePanel
-  set(paramPanel, 'Position', [0.0,  0.0,  1.0,  0.3 ]);
+  % varPanel and stateButtons are positioned relative to sidePanel
+  set(varPanel, 'Position', [0.0,  0.0,  1.0,  0.3 ]);
   
   n = length(stateButtons);
   for k = 1:n
@@ -156,7 +152,7 @@ function mainWindow(...
   set(stateButtons, 'Callback', @stateButtonCallback);
   
   set(fig, 'Visible', 'on');
-  createParamPanel(sample_data{1});
+  createVarPanel(sample_data{1});
   selectionChange();
   uiwait(fig);
   
@@ -167,23 +163,23 @@ function mainWindow(...
   % selectionCallback.
   % 
     state        = currentState;
-    [sam cal]    = getSelectedData();
-    [params dim] = getSelectedParams();
+    sam          = getSelectedData();
+    [vars dim] = getSelectedVars();
     graph        = getSelectedGraphType();
     
     % clear main panel
     children = get(mainPanel, 'Children');
     for k = 1:length(children), delete(children(k)); end
     
-    selectionCallback(mainPanel, state, sam, cal, graph, params, dim);
+    selectionCallback(mainPanel, state, sam, graph, vars, dim);
   end
   
   function sampleMenuCallback(source,ev)
   %SAMPLEMENUCALLBACK Called when a dataset is selected from the sample
   % menu. Updates the parameters panel, then delegates to selectionChange.
   % 
-    [sam cal] = getSelectedData();
-    createParamPanel(sam);
+    sam = getSelectedData();
+    createVarPanel(sam);
     selectionChange();
   end
 
@@ -202,8 +198,8 @@ function mainWindow(...
     selectionChange();
   end
 
-  function paramPanelCallback(source,ev)
-  %PARAMPANELCALLBACK Called when the parameter or dimension selection 
+  function varPanelCallback(source,ev)
+  %PARAMPANELCALLBACK Called when the variable or dimension selection 
   % changes. Delegates to selectionChange.
   %
     selectionChange();
@@ -211,14 +207,12 @@ function mainWindow(...
 
   %% Retrieving current selection
 
-  function [sam cal] = getSelectedData()
-  %GETSELECTEDDATA Returns the currently selected sample_data/cal_data
-  %pair.
+  function sam = getSelectedData()
+  %GETSELECTEDDATA Returns the currently selected sample_data.
   %
     idx = get(sampleMenu, 'Value');
     
     sam = sample_data{idx};
-    cal = cal_data   {idx};
   end
 
   function graphType = getSelectedGraphType()
@@ -231,74 +225,74 @@ function mainWindow(...
     
   end
 
-  function [params dim] = getSelectedParams()
-  %GETSELECTEDPARAMS Returns a vector containing the indices of the
-  % parameters and dimension which are selected.
+  function [vars dim] = getSelectedVars()
+  %GETSELECTEDVARS Returns a vector containing the indices of the
+  % variables and dimension which are selected.
   %
   
     % menu and checkboxes are stored in user data
-    fields     = get(paramPanel, 'UserData');
+    fields     = get(varPanel, 'UserData');
     dimMenu    = fields{1};
     checkboxes = fields{2};
     
     dim = get(dimMenu, 'Value');
     
-    params = [];
+    vars = [];
     
     for k = 1:length(checkboxes)
-      if get(checkboxes(k), 'Value'), params(end+1) = k; end
+      if get(checkboxes(k), 'Value'), vars(end+1) = k; end
     end
   end
 
   %% Miscellaneous
   
-  function createParamPanel(sam)
-  %CREATEPARAMPANEL Creates the parameter selection panel. Called when the
+  function createVarPanel(sam)
+  %CREATEVARPANEL Creates the variable selection panel. Called when the
   % selected dataset changes. The panel allows users to select which
-  % parameters should be displayed, and against which dimension they should 
+  % variables should be displayed, and against which dimension they should 
   % be graphed.
   %
     % delete checkboxes and dim menu from previous data set
-    checkboxes = get(paramPanel, 'Children');
+    checkboxes = get(varPanel, 'Children');
     for k = 1:length(checkboxes), delete(checkboxes(k)); end
     
     % create checkboxes for new data set. The order in which the checkboxes
-    % are created is the same as the order of the parameters - this is
+    % are created is the same as the order of the variables - this is
     % important, as the getSelectedParams function assumes that the indices 
     % line up.
     checkboxes(:) = [];
-    n = length(sam.parameters);
+    n = length(sam.variables);
     for k = 1:n
       
       checkboxes(k) = uicontrol(...
-        'Parent',   paramPanel,...
+        'Parent',   varPanel,...
         'Style',    'checkbox',...
-        'String',   sam.parameters(k).name,...
+        'String',   sam.variables(k).name,...
         'Value',    1,...
-        'Callback', @paramPanelCallback,...
+        'Callback', @varPanelCallback,...
         'Units',    'normalized',...
         'Position', [0.0, (n-k+1)/(n+1), 1.0, 1/(n+1)]);
     end
         
-    % add dimension menu - again, the getSelectedParams  function assumes
+    % add dimension menu - again, the getSelectedVars function assumes
     % that the indices into the menu options line up with the 
     % sample_data.dimension vector
     dims = {sam.dimensions.name};
     dimMenu = uicontrol(...
-      'Parent',   paramPanel,...
+      'Parent',   varPanel,...
       'Style',    'popupmenu',...
       'String',   dims,...
       'Value',    1,...
       'Units',    'normalized',...
-      'Callback', @paramPanelCallback,...
+      'Callback', @varPanelCallback,...
       'Position', [0.0, 0.0, 1.0, 1/(n+1)]);
     
     % the dimension menu and checkboxes are saved in UserData field to 
-    % make them easy to retrieve in the getSelectedParams function
-    set(paramPanel, 'UserData', {dimMenu checkboxes});
+    % make them easy to retrieve in the getSelectedVars function
+    set(varPanel, 'UserData', {dimMenu checkboxes});
   end
 
-  function descs = genSampleDataDescs(sam, cal, dateFmt)
+  function descs = genSampleDataDescs(sam, dateFmt)
   %GENSAMPLEDATADESCS Generates descriptions for the given datasets, for use
   % in the sample menu.
   %
@@ -306,10 +300,9 @@ function mainWindow(...
 
     for k = 1:length(sam)
       s = sam{k};
-      c = cal{k};
 
-      descs{k} = [c.instrument_make  ' ' ...
-                  c.instrument_model ' ' ...
+      descs{k} = [s.instrument_make  ' ' ...
+                  s.instrument_model ' ' ...
                   datestr(s.dimensions(1).data(1),   dateFmt) ' - ' ...
                   datestr(s.dimensions(1).data(end), dateFmt)];
     end

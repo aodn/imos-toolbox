@@ -1,4 +1,4 @@
-function [sample_data cal_data] = SBE39Parse( filename )
+function sample_data = SBE39Parse( filename )
 %SBE39PARSE Parse a raw '.asc' file containing SBE39 data.
 %
 % This function can read in data that has been downloaded from an SBE39
@@ -13,8 +13,6 @@ function [sample_data cal_data] = SBE39Parse( filename )
 %
 % Outputs:
 %   sample_data - struct containing the sample data
-%
-%   cal_data    - struct containing calibration and metadata
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -50,5 +48,4 @@ function [sample_data cal_data] = SBE39Parse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-
-  [sample_data cal_data] = SBE3x(filename);
+sample_data = SBE3x(filename);

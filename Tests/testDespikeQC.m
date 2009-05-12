@@ -61,19 +61,20 @@ step = 0.01;
 % random data is too random, so we're going to discard the random data which
 % is generated, and replace it with a smoother, randomised trigonometric 
 % function
-[sam cal] = genTestData(num_samples, {'TEMP'}, 0, num_samples, 0,0,0,0);
+sam = genTestData(num_samples, {'TEMP'}, 0, num_samples, 0,0,0,0);
 
-spikeFlag = imosQCFlag('spike', cal.qc_set);
+qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+spikeFlag = imosQCFlag('spike', qc_set);
 
 % parameters for trig function in the range 0.1 to 5
 params = 0.1+4.9*rand(1,8);
 
 % new data set
 x = 0.0:step*pi:step*pi*(num_samples-1);
-sam.parameters(1).data = params(1)*sin(params(2)*x) + ...
-                         params(3)*cos(params(4)*x) - ...
-                         params(5)*sin(params(6)*x) + ...
-                         params(7)*cos(params(8)*x);
+sam.variables(1).data = params(1)*sin(params(2)*x) + ...
+                        params(3)*cos(params(4)*x) - ...
+                        params(5)*sin(params(6)*x) + ...
+                        params(7)*cos(params(8)*x);
 
 disp('data set generated with: ');
 disp([num2str(params(1)) '*sin(' num2str(params(2)) '*x) + '...
@@ -82,8 +83,8 @@ disp([num2str(params(1)) '*sin(' num2str(params(2)) '*x) + '...
       num2str(params(7)) '*cos(' num2str(params(8)) '*x)']);
     
 
-maxval = max(sam.parameters(1).data);
-minval = min(sam.parameters(1).data);
+maxval = max(sam.variables(1).data);
+minval = min(sam.variables(1).data);
 range = abs(maxval - minval);
 
 % randomly insert 5 % spikes
@@ -94,8 +95,8 @@ disp([num2str(num_samples) ' samples, ' ...
 
 for k = 1:length(spikes)
   
-  if mod(k,2), sam.parameters(1).data(spikes(k)) = maxval + range*rand(1,1);
-  else         sam.parameters(1).data(spikes(k)) = minval - range*rand(1,1);
+  if mod(k,2), sam.variables(1).data(spikes(k)) = maxval + range*rand(1,1);
+  else         sam.variables(1).data(spikes(k)) = minval - range*rand(1,1);
   end
   
 end
@@ -117,8 +118,8 @@ if nargin == 0
     func = str2func(name);
     
     % run filter
-    data = sam.parameters(1).data;
-    [data,flags,log] = func(sam,cal,data,1);
+    data = sam.variables(1).data;
+    [data,flags,log] = func(sam,data,1);
     
     flags = find(flags == spikeFlag);
     
@@ -132,8 +133,8 @@ else
   routine = [routine 'DespikeQC'];
   spikeFunc = str2func(routine);
  
-  data = sam.parameters(1).data;
-  [data,flags,log] = spikeFunc(sam, cal,data,1);
+  data = sam.variables(1).data;
+  [data,flags,log] = spikeFunc(sam, data,1);
   
   flags = find(flags == spikeFlag);
   

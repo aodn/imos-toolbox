@@ -1,19 +1,16 @@
-function [data, flags, log] = rangeQC ( sample_data, cal_data, data, k )
-%RANGEQC Flags data which is out of the parameter's valid range.
+function [data, flags, log] = rangeQC ( sample_data, data, k )
+%RANGEQC Flags data which is out of the variable's valid range.
 %
 % Iterates through the given data, and returns flags for any samples which
-% do not fall within the max_value and min_value fields in the given cal_data 
-% struct.
+% do not fall within the valid_min and valid_max fields for the given
+% variable.
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
 %
-%   cal_data    - struct which contains the max_value and min_value fields for 
-%                 each parameter, and the qc_set in use.
-%
 %   data        - the vector of data to check.
 %
-%   k           - Index into the cal_data/sample_data.parameters vectors.
+%   k           - Index into the sample_data.variables vector.
 %
 % Outputs:
 %   data        - same as input.
@@ -56,24 +53,24 @@ function [data, flags, log] = rangeQC ( sample_data, cal_data, data, k )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(4, 4, nargin));
+error(nargchk(3, 3, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isstruct(cal_data),           error('cal_data must be a struct');    end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
 log = {};
 
 % get the flag values with which we flag good and out of range data
-rangeFlag = imosQCFlag('bound', cal_data.qc_set);
-goodFlag  = imosQCFlag('good',  cal_data.qc_set);
+qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+rangeFlag = imosQCFlag('bound', qc_set);
+goodFlag  = imosQCFlag('good',  qc_set);
 
 % initialise all flags to good
 flags    = zeros(length(data),1);
 flags(:) = goodFlag;
 
-max  = cal_data.parameters(k).max_value;
-min  = cal_data.parameters(k).min_value;
+max  = sample_data.variables(k).valid_max;
+min  = sample_data.variables(k).valid_min;
 
 % add flags for out of range values
 flags(data > max) = rangeFlag;
