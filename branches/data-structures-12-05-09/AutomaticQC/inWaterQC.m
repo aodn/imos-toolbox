@@ -1,4 +1,4 @@
-function [data flags log] = inWaterQC( sample_data, cal_data, data, k )
+function [data flags log] = inWaterQC( sample_data, data, k )
 %INWATERQC Removes samples which were taken before the instrument was placed
 % in the water.
 %
@@ -9,11 +9,9 @@ function [data flags log] = inWaterQC( sample_data, cal_data, data, k )
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
 %
-%   cal_data    - struct which contains the in water time.
-%
 %   data        - the vector of data to check.
 %
-%   k           - Index into the cal_data/sample_data.parameters vectors.
+%   k           - Index into the sample_data.variables vector.
 %
 % Outputs:
 %   data        - same as input, with before in-water samples removed.
@@ -56,9 +54,8 @@ function [data flags log] = inWaterQC( sample_data, cal_data, data, k )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(4, 4, nargin));
+error(nargchk(3, 3, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isstruct(cal_data),           error('cal_data must be a struct');    end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
@@ -79,7 +76,7 @@ startTime = time(1);
 
 for k = 1:length(time)
   
-  if time(k) >= cal_data.in_water_time
+  if time(k) >= sample_data.time_coverage_start
     
     sEnd    = k;
     endTime = time(k);
