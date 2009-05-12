@@ -170,15 +170,8 @@ function [fieldTrip dataDir] = startDialog()
   set(cancelButton,    'Callback',        @cancelCallback);
   set(confirmButton,   'Callback',        @confirmCallback);
   
-  % user can hit escape to quit dialog. matlab sucks arse
-  set(f,               'KeyPressFcn',     @keyPressCallback);
-  set(dateStartButton, 'KeyPressFcn',     @keyPressCallback);
-  set(dateEndButton,   'KeyPressFcn',     @keyPressCallback);
-  set(fidMenu,         'KeyPressFcn',     @keyPressCallback);
-  set(dirText,         'KeyPressFcn',     @keyPressCallback);
-  set(dirButton,       'KeyPressFcn',     @keyPressCallback);
-  set(cancelButton,    'KeyPressFcn',     @keyPressCallback);
-  set(confirmButton,   'KeyPressFcn',     @keyPressCallback);
+  % user can hit escape to quit dialog
+  set(f, 'WindowKeyPressFcn', @keyPressCallback);
 
   % display the dialog and wait for user input
   set(f, 'Visible', 'on');
