@@ -1,8 +1,8 @@
-function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
+function template = parseNetCDFTemplate ( file, sample_data, k )
 %PARSETEMPLATE Parses the given NetCDF attribute template file.
 %
-% Parses the given NetCDF attribute template file, inserting data where
-% required. 
+% Parses the given NetCDF attribute template file, inserting data into 
+% the given sample_data struct where required. 
 %
 % A number of template files exist in the NetCDF/template subdirectory. These
 % files list the NetCDF attribute names and provide default values to be
@@ -58,7 +58,7 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 %      the form:
 %
 %        select TimeZone from DeploymentData 
-%        where DeploymentID = cal_data.deployment_id
+%        where DeploymentID = sample_data.variables(k).deployment_id
 %
 %   2. For the attribute definition:
 %
@@ -69,7 +69,7 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 %        select Organisation from Personnel where StaffID = 
 %        (
 %          select PersonnelDownload from DeploymentData
-%          where DeploymentID = cal_data.deployment_id
+%          where DeploymentID = sample_data.variables(k).deployment_id
 %        )
 %
 % === Matlab tokens ===
@@ -86,19 +86,16 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 %   sample_data - the struct containing sample data, which is passed to this 
 %                 function.
 %
-%   cal_data    - the struct containing calibration/metadata, which is passed
-%                 to this function.
-%
 %   k           - (only if the template is a data attribute template) the
-%                 parameter index passed to this function.
+%                 variable index passed to this function.
 %
 % For example, for the attribute definition:
 % 
-%   quality_control_set = {mat num2str(cal_data.qc_set)}
+%   quality_control_set = {mat readToolboxProperty('toolbox.qc_set')}
 %
 % the attribute value will be the value of the matlab statment:
 %
-%   num2str(cal_data.qc_set)
+%   readToolboxProperty('toolbox.qc_set')
 %
 % === Combinations ===
 %
@@ -107,7 +104,7 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 %   - Tokens cannot be repeated in a single attribute definition
 %   - Tokens cannot be nested within other tokens.
 %
-% 1. qc_param_name = {mat sample_data.parameters(k).name}_QC
+% 1. qc_param_name = {mat sample_data.variables(k).name}_QC
 % 
 % 2. author = {ddb PersonnelDownload Personnel StaffID FirstName} \
 %             {ddb PersonnelDownload Personnel StaffID LastName}
@@ -119,17 +116,13 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 %
 %   sample_data - A single struct containing sample data. 
 %
-%   cal_data    - A struct containing the calibration/metadata that corresponds
-%                 to the given sample data.
-%
-%   k           - Optional. If the template is a data attribute template, this 
-%                 value is an index into the parameters vectors in both the 
-%                 sample_data and cal_data structs to the corresponding 
-%                 parameter data.
+%   k           - Optional. If the template is a data attribute template, 
+%                 this value is an index into the variables vectors in the 
+%                 sample_data struct to the corresponding variable struct.
 %
 % Outputs:
-%   template    - a struct containing all of the fields and values specified 
-%                 in the template file.
+%   template    - Struct containing the attribute-value pairs that were 
+%                 defined in the template file.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -163,12 +156,11 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3, 4, nargin));
+  error(nargchk(2, 3, nargin));
 
   if ~ischar(file),                error('file must be a string');        end
   if ~isstruct(sample_data),       error('sample_data must be a struct'); end
-  if ~isstruct(cal_data),          error('cal_data must be a struct');    end
-  if nargin == 4 && ~isnumeric(k), error('k must be numeric');            end
+  if nargin == 3 && ~isnumeric(k), error('k must be numeric');            end
 
   % if k isn't provided, provide a dummy value
   if nargin == 3, k = -1; end
@@ -198,15 +190,15 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
       name = tkns{1}{1};
       val  = tkns{1}{2};
 
-      % Parse the value, put it into the template struct. Matlab doesn't allow 
-      % field names (or variable names) to start with an underscore. This is 
-      % unfortunate, because some of the NetCDF attribute names do start with an 
-      % underscore. I'm getting around this problem with a horrible hack: if the 
-      % name starts with an underscore, remove the underscore from the name 
-      % start, and put it at the name end. We can reverse this process when the 
-      % NetCDF file is exported.
+      % Parse the value, put it into the template struct. Matlab doesn't 
+      % allow field names (or variable names) to start with an underscore. 
+      % This is unfortunate, because some of the NetCDF attribute names do 
+      % start with an underscore. I'm getting around this problem with a 
+      % horrible hack: if the name starts with an underscore, remove the 
+      % underscore from the name start, and put it at the name end. We can 
+      %reverse this process when the NetCDF file is exported.
       if name(1) == '_', name = [name(2:end) '_']; end
-      template.(name) = parseAttributeValue(val, sample_data, cal_data, k);
+      template.(name) = parseAttributeValue(val, sample_data, k);
 
       % get the next line
       line = readline(fid);
@@ -219,7 +211,7 @@ function template = parseNetCDFTemplate ( file, sample_data, cal_data, k )
   end
 end
 
-function value = parseAttributeValue(line, sample_data, cal_data, k)
+function value = parseAttributeValue(line, sample_data, k)
 %PARSEATTRIBUTEVALUE Parse an attribute value.
 %
 % Parses an attribute value as read from a template file. Searches for and 
@@ -229,9 +221,7 @@ function value = parseAttributeValue(line, sample_data, cal_data, k)
 % Inputs:
 %
 %   sample_data - A single struct containing sample data. 
-%   cal_data    - A struct containing the calibration/metadata that corresponds
-%                 to the given sample data.
-%   k           - Index into parameters vectors.
+%   k           - Index into sample_data.variable vector.
 %
 % Outputs:
 %
@@ -251,8 +241,8 @@ function value = parseAttributeValue(line, sample_data, cal_data, k)
     val = '';
 
     switch tkn(1:3)
-      case 'ddb', val = parseDDBToken(tkn(5:end), sample_data, cal_data, k);
-      case 'mat', val = parseMatToken(tkn(5:end), sample_data, cal_data, k);
+      case 'ddb', val = parseDDBToken(tkn(5:end), sample_data, k);
+      case 'mat', val = parseMatToken(tkn(5:end), sample_data, k);
       otherwise,  val = '';
     end
     
@@ -264,7 +254,7 @@ function value = parseAttributeValue(line, sample_data, cal_data, k)
   value = numify(value);
 end
 
-function value = parseDDBToken(token, sample_data, cal_data, k)
+function value = parseDDBToken(token, sample_data, k)
 %PARSEDDBTOKEN Parse a token pointing to the DDB.
 %
 % Interprets a token which contains a pointer to an entry in the deployment
@@ -274,9 +264,7 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
 % Inputs:
 %
 %   sample_data - A single struct containing sample data. 
-%   cal_data    - A struct containing the calibration/metadata that corresponds
-%                 to the given sample data.
-%   k           - Index into parameters vectors.
+%   k           - Index into sample_data.variables vector.
 %
 % Outputs:
 %
@@ -288,7 +276,7 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
   % get the relevant deployment
   deployment = executeDDBQuery('DeploymentData', ...
                                'DeploymentId', ...
-                               cal_data.parameters(k).deployment_id);
+                               sample_data.variables(k).deployment_id);
 
   % no such deployment exists in the ddb, or multiple hits
   if length(deployment) ~= 1, return; end
@@ -335,7 +323,7 @@ function value = parseDDBToken(token, sample_data, cal_data, k)
 
 end
 
-function value = parseMatToken(token, sample_data, cal_data, k)
+function value = parseMatToken(token, sample_data, k)
 %PARSEMATTOKEN Parse a token containing a matlab expression.
 %
 % Parses a token, which has been extracted from an attribute value, and which 
@@ -344,9 +332,7 @@ function value = parseMatToken(token, sample_data, cal_data, k)
 % Inputs:
 %
 %   sample_data - A single struct containing sample data. 
-%   cal_data    - A struct containing the calibration/metadata that corresponds
-%                 to the given sample data.
-%   k           - Index into parameters vectors.
+%   k           - Index into sample_data.variables vector.
 %
 % Outputs:
 %
