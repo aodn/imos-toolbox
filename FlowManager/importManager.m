@@ -300,6 +300,8 @@ function sam = finaliseData(sam, fieldTrip, deployment)
   
   % process level == raw
   sam.level                  = 0;
+  
+  sam.date_created           = now;
 
   sam.field_trip_id          = fieldTrip.FieldTripID;
   sam.field_trip_description = fieldTrip.FieldDescription;
@@ -316,5 +318,8 @@ function sam = finaliseData(sam, fieldTrip, deployment)
     sam.variables(k).valid_min = -99999.0;
     sam.variables(k).valid_max =  99999.0;
   end
+  
+  % add IMOS-compliant parameters
+  sam = makeNetCDFCompliant(sam);
 
 end

@@ -1,11 +1,12 @@
 function sample_data = makeNetCDFCompliant( sample_data )
-%MAKENETCDFCOMPLIANT Adds/modifies fields in the given sample_data struct
-% to make it compliant with the IMOS NetCDF standard.
+%MAKENETCDFCOMPLIANT Adds fields in the given sample_data struct to make 
+% it compliant with the IMOS NetCDF standard.
 %
 % Uses the template files contained in the NetCDF/templates subdirectory to
-% add/modify fields in the given sample_data struct to make it compliant
-% with the IMOS NetCDF standard. See the parseNetCDFTemplate function for
-% more details on the template files.
+% add fields in the given sample_data struct to make it compliant  with the 
+% IMOS NetCDF standard. If a field already exists in the sample_data struct, 
+% it is not overwritten, and the template value is discarded. See the 
+% parseNetCDFTemplate function for more details on the template files.
 %
 % Inputs:
 %   sample_data - a struct containing sample data.
@@ -102,6 +103,9 @@ function target = mergeAtts ( target, atts, k )
   fields = fieldnames(atts);
   
   for m = 1:length(fields)
+    
+    % don't overwrite existing fields in the target
+    if isfield(target(k), fields{m}), continue; end;
     
     target(k).(fields{m}) = atts.(fields{m});
   end

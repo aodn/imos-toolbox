@@ -163,7 +163,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
   if nargin == 3 && ~isnumeric(k), error('k must be numeric');            end
 
   % if k isn't provided, provide a dummy value
-  if nargin == 2, k = -1; end
+  if nargin == 2, k = 1; end
   
   fid = -1;
 
@@ -233,9 +233,9 @@ function value = parseAttributeValue(line, sample_data, k)
   % get all tokens in the value (substrings that are contained within { })
   tkns = regexp(line, '{([^{}]*)}', 'tokens');
 
-  for k = 1:length(tkns)
+  for m = 1:length(tkns)
 
-    tkn = tkns{k}{1};
+    tkn = tkns{m}{1};
 
     % translate the token into an actual value
     val = '';
