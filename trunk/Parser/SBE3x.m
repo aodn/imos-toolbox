@@ -65,7 +65,7 @@ function sample_data = SBE3x( filename )
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
 %                 vector of up to four variable structs, containing sample 
-%                 data. The parameters are as follows:
+%                 data. The variables are as follows:
 %
 %                   Temperature  ('TEMP'): Degrees Celsius ITS-90 (always 
 %                                          present)
@@ -170,7 +170,7 @@ salinity               = [];
 time                   = [];
 
 % booleans used to determine whether to expect 
-% the corresponding parameter in the data
+% the corresponding variable in the data
 read_sal  = 0;
 read_cond = 0;
 read_pres = 0;
@@ -332,7 +332,7 @@ if read_cond, conductivity = zeros(nsamples,1); end
 if read_sal,  salinity     = zeros(nsamples,1); end
 
 % the nsamples index points to the next 
-% free space in the parameter arrays
+% free space in the variable arrays
 nsamples = 1;
 
 while ~feof(fid)

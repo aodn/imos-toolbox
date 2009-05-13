@@ -145,7 +145,7 @@ function mainWindow(...
     set(stateButtons(k), 'Position', [0.0, 0.3+(n-k)*(0.7/n), 1.0, 0.7/n]);
   end
   
-  % set callbacks - parameter panel widget 
+  % set callbacks - variable panel widget 
   % callbacks are set in createParamPanel
   set(sampleMenu,   'Callback', @sampleMenuCallback);
   set(graphMenu,    'Callback', @graphMenuCallback);
@@ -162,10 +162,10 @@ function mainWindow(...
   %Retrieves the current selection, clears the main panel, and calls 
   % selectionCallback.
   % 
-    state        = currentState;
-    sam          = getSelectedData();
+    state      = currentState;
+    sam        = getSelectedData();
     [vars dim] = getSelectedVars();
-    graph        = getSelectedGraphType();
+    graph      = getSelectedGraphType();
     
     % clear main panel
     children = get(mainPanel, 'Children');
@@ -176,7 +176,7 @@ function mainWindow(...
   
   function sampleMenuCallback(source,ev)
   %SAMPLEMENUCALLBACK Called when a dataset is selected from the sample
-  % menu. Updates the parameters panel, then delegates to selectionChange.
+  % menu. Updates the variables panel, then delegates to selectionChange.
   % 
     sam = getSelectedData();
     createVarPanel(sam);
