@@ -115,8 +115,15 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   set(cancelButton,     'Callback',        @cancelCallback);
   set(confirmButton,    'Callback',        @confirmCallback);
 
-  % user can hit escape to quit dialog
-  set(f, 'WindowKeyPressFcn', @keyPressCallback);
+  % user can hit return/escape to confirm/quit dialog, and delete
+  % to remove files/deployments
+  set(f,                'KeyPressFcn',     @keyPressCallback);
+  set(depList,          'KeyPressFcn',     @keyPressCallback);
+  set(depRemoveButton,  'KeyPressFcn',     @keyPressCallback);
+  set(fileRemoveButton, 'KeyPressFcn',     @keyPressCallback);
+  set(fileAddButton,    'KeyPressFcn',     @keyPressCallback);
+  set(cancelButton,     'KeyPressFcn',     @keyPressCallback);
+  set(confirmButton,    'KeyPressFcn',     @keyPressCallback);
 
   % display the dialog and wait for user input
   set(f, 'Visible', 'on');
@@ -131,6 +138,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   %
     if     strcmp(ev.Key, 'escape'), cancelCallback( source,ev);
     elseif strcmp(ev.Key, 'return'), confirmCallback(source,ev); 
+    else   keyPressListCallback(source,ev);
     end
   end
 
@@ -143,7 +151,6 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
       if     source == depList,  depRemoveCallback( source,ev);
       elseif source == fileList, fileRemoveCallback(source,ev);
       end
-    else keyPressCallback(source,ev); 
     end
   end
 
