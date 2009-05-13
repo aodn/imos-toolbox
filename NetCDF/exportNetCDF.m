@@ -1,6 +1,5 @@
-function filename = exportNetCDF( sample_data, cal_data, dest )
-%EXPORTNETCDF Export the given sample and calibration data to a set of NetCDF
-% files.
+function filename = exportNetCDF( sample_data, dest )
+%EXPORTNETCDF Export the given sample data to a NetCDF file.
 %
 % Export the given sample and calibration data to a NetCDF file. The file is 
 % saved to the given destination directory. The file is named according to the 
@@ -8,8 +7,6 @@ function filename = exportNetCDF( sample_data, cal_data, dest )
 %
 % Inputs:
 %   sample_data - a struct containing sample data for one process level.
-%
-%   cal_data    - a struct containing calibration and metadata.
 %
 %   dest        - Destination directory to save the file.
 %
@@ -48,10 +45,9 @@ function filename = exportNetCDF( sample_data, cal_data, dest )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3, 3, nargin));
+  error(nargchk(2, 2, nargin));
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
-  if ~isstruct(cal_data),    error('cal_data must be a struct');    end
   if ~ischar(dest),          error('dest must be a string');        end
 
   % check that destination is a directory
@@ -60,25 +56,8 @@ function filename = exportNetCDF( sample_data, cal_data, dest )
     error([dest ' does not exist, is not a directory, or is not writeable']);
   end
 
-  % figure out the path to the template subdirectory, relative to this m-file
-  templatePath = [fileparts(which(mfilename)) filesep 'template'];
-
-  % set the creation date
-  cal_data.creation_date = now();
-
-  % get global attribute template
-  globalTemplate = parseNetCDFTemplate(...
-    [templatePath filesep 'global_attributes.txt'],...
-    sample_data,...
-    cal_data);
-  
-  % fill in some cal data values required to generate the file name
-  cal_data.institution   = globalTemplate.institution;
-  cal_data.platform_code = globalTemplate.platform_code;
-  cal_data.product_type  = '';
-
   % generate the filename
-  filename = genFileName(sample_data, cal_data);
+  filename = genFileName(sample_data);
   filename = [dest filesep filename];
   
   disp(['creating ' filename]);
@@ -100,7 +79,10 @@ function filename = exportNetCDF( sample_data, cal_data, dest )
     % global attributes
     %
     disp('writing global attributes');
-    putAtts(fid, globConst, globalTemplate);
+    globAtts = sample_data;
+    globAtts = rmfield(globAtts, 'variables');
+    globAtts = rmfield(globAtts, 'dimensions');
+    putAtts(fid, globConst, globAtts);
 
     %
     % dimension and coordinate variable definitions
@@ -110,11 +92,9 @@ function filename = exportNetCDF( sample_data, cal_data, dest )
 
       disp(['creating dimension: ' dims(m).name ...
             ' (length: ' num2str(length(dims(m).data)) ')']);
-
-      dimTemplate = parseNetCDFTemplate(...
-        [templatePath filesep lower(dims(m).name) '_attributes.txt'],...
-        sample_data,...
-        cal_data);
+          
+      dimAtts = dims(m);
+      dimAtts = rmfield(dimAtts, 'data');
 
       % create dimension
       did = netcdf.defDim(fid, upper(dims(m).name), length(dims(m).data));
@@ -125,34 +105,31 @@ function filename = exportNetCDF( sample_data, cal_data, dest )
 
       % create coordinate variable and attributes
       vid = netcdf.defVar(fid, upper(dims(m).name), 'double', did);
-      putAtts(fid, vid, dimTemplate);
+      putAtts(fid, vid, dimAtts);
     end
 
     %
     % variable definitions
     %
     dims = sample_data.dimensions;
-    pars = sample_data.parameters;
-    for m = 1:length(pars)
+    vars = sample_data.variables;
+    for m = 1:length(vars)
 
-      varname = pars(m).name;
+      varname = vars(m).name;
       disp(['creating variable: ' varname]);
-
+      
       % get the dimensions for this variable
-      dids = [dims(pars(m).dimensions).did];
-
+      dids = [dims(vars(m).dimensions).did];
+      
       % create the variable
       vid = netcdf.defVar(fid, varname, 'double', dids);
 
-      % generate variable attributes from the template
-      varTemplate = parseNetCDFTemplate(...
-        [templatePath filesep 'variable_attributes.txt'],...
-        sample_data,...
-        cal_data,...
-        m);
+      varAtts = vars(m);
+      varAtts = rmfield(varAtts, 'data');
+      varAtts = rmfield(varAtts, 'dimensions');
 
       % add the attributes
-      putAtts(fid, vid, varTemplate);
+      putAtts(fid, vid, varAtts);
     end
 
     % we're finished defining dimensionss/attributes/variables
@@ -175,11 +152,11 @@ function filename = exportNetCDF( sample_data, cal_data, dest )
     %
     % variable data
     %
-    pars = sample_data.parameters;
-    for m = 1:length(pars)
+    vars = sample_data.variables;
+    for m = 1:length(vars)
 
-      varname = pars(m).name;
-      data    = pars(m).data;
+      varname = vars(m).name;
+      data    = vars(m).data;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
 
       vid = netcdf.inqVarID(fid, varname);
@@ -198,7 +175,7 @@ function filename = exportNetCDF( sample_data, cal_data, dest )
   end
 end
 
-function filename = genFileName(sample_data, cal_data)
+function filename = genFileName(sample_data)
 %GENFILENAME Generate an IMOS compliant NetCDF file name for the given data set.
 %
 % Generates an IMOS compliant file name for the given data set. See the IMOS
@@ -207,41 +184,38 @@ function filename = genFileName(sample_data, cal_data)
 % Inputs:
 %   sample_data - Single struct containing sample data.
 %
-%   cal_data    - struct containing calibration and metadata.
-%
 % Outputs:
 %   filename    - an IMOS compliant filename.
 %
-  error(nargchk(2,2,nargin));
+  error(nargchk(1,1,nargin));
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
-  if ~isstruct(cal_data),    error('cal_data must be a struct');    end
 
   %
   % get all the individual components that make up the filename
   %
 
   file_version  = ['FV0' num2str(sample_data.level)];
-  facility_code = cal_data.institution;
-  platform_code = cal_data.platform_code;
-  product_type  = cal_data.product_type;
+  facility_code = sample_data.institution;
+  platform_code = sample_data.platform_code;
+  product_type  = '';
 
   %
   % all dates should be in ISO 8601 format
   %
   dateFmt       = readToolboxProperty('exportNetCDF.fileDateFormat');
-  start_date    = datestr(sample_data.dimensions(1).data(1),   dateFmt);
-  end_date      = datestr(sample_data.dimensions(1).data(end), dateFmt);
-  creation_date = datestr(cal_data.creation_date,              dateFmt);
+  start_date    = datestr(sample_data.time_coverage_start, dateFmt);
+  end_date      = datestr(sample_data.time_coverage_end,   dateFmt);
+  creation_date = datestr(sample_data.date_created,        dateFmt);
 
   %
   % one data code for each parameter
   %
   data_code     = '';
-  for k = 1:length(sample_data.parameters)
+  for k = 1:length(sample_data.variables)
 
     % get the data code for this parameter; don't add duplicate codes
-    code = imosParameters(sample_data.parameters(k).name, 'data_code');
+    code = imosParameters(sample_data.variables(k).name, 'data_code');
     if strfind(data_code, code), continue; end
 
     data_code(end+1) = code;
