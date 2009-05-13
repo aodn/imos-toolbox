@@ -19,7 +19,7 @@ function sample_data = WQMParse( filename )
 %   Chlorophyll       (floating point, micrograms/Litre)
 %   Turbidity         (floating point, NTU)
 %
-% Any other parameters which are present in the input file will be ignored.
+% Any other fields which are present in the input file will be ignored.
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
@@ -27,7 +27,7 @@ function sample_data = WQMParse( filename )
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
 %                 vector of up to eight variable structs, containing sample 
-%                 data. The possible parameters are as follows:
+%                 data. The possible variables are as follows:
 %
 %                   Conductivity      ('CNDC'): S m^-1
 %                   Temperature       ('TEMP'): Degrees Celsius
@@ -89,12 +89,12 @@ if ~iscell(filename), error('filename must be a cell array'); end
 filename = filename{1};
 if ~ischar(filename), error('filename must contain a string'); end
 
-% Lookup table/array for supported and required parameters
+% Lookup table/array for supported and required fields
 global PARAMS;
 global REQUIRED;
 
 %
-% this table provides mappings from the WQM parameter name (the column header 
+% this table provides mappings from the WQM field name (the column header 
 % in the input file) to the IMOS compliant parameter name. It also contains 
 % comments for some parameters.
 %
@@ -149,14 +149,14 @@ sample_data.instrument_make      = 'WQM';
 sample_data.instrument_model     = 'WET Labs';
 sample_data.instrument_serial_no = samples{1}{1};
 
-% create a parameters struct in sample_data for each parameter in the file
+% create a variables struct in sample_data for each field in the file
 % start index at 4 to skip serial, date and time
 for k = 4:length(fields)
   
   [name comment] = getParamDetails(fields{k});  
   data = samples{k-1};
   
-  % some parameters are not in IMOS uom - scale them so that they are
+  % some fields are not in IMOS uom - scale them so that they are
   switch name
     
     % WQM provides conductivity in mS/m; we need it in S/m.
@@ -190,14 +190,14 @@ sample_data.dimensions(1).data = datenum(time, 'mmddyy HHMMSS')';
 
 function [fields format] = getFormat(fid)
 %GETFORMAT Figures out the format pattern to give to textscan, based on the 
-% list of parameters that are present in the file header (tokens contained in 
+% list of fields that are present in the file header (tokens contained in 
 % the first line of the file).
 %
 % The function checks that all of the required columns are present in the file.
 %
 % Returns a list of all the fields to expect, and the textscan format to use.
 %
-% The list of required parameters are listed in the global REQUIRED_PARAMETERS 
+% The list of required fields are listed in the global REQUIRED_PARAMETERS 
 % variable which is defined in the main function above.
 %
 global REQUIRED;
@@ -233,7 +233,7 @@ format = [format '%s%13c'];
 %
 % floating point values, or ignore if unsupported, for all other fields.
 % start index at 4 to skip serial number, date and time.
-% keep track of indices of unsupported parameters - we remove them afterwards
+% keep track of indices of unsupported fields - we remove them afterwards
 %
 unsupported = [];
 for k = 4:length(fields)
@@ -245,18 +245,18 @@ for k = 4:length(fields)
   end
 end
 
-%remove unsupported parameters from header list
+%remove unsupported fields from header list
 fields(unsupported) = [];
 
 %
 %% getParamDetails returns the IMOS parameter name, and an optional 
-% comment for the given WQM parameter name.
+% comment for the given WQM field name.
 %
 
 function [name comment] = getParamDetails(param)
 %GETPARAMDETAILS
 % Returns the IMOS-compliant name, and an optional comment for the given WQM
-% parameter.
+% field.
 %
 % The mappings are provided in the global PARAMS variable (a 
 % java.util.Hashtable), which is defined in the main function.
@@ -278,18 +278,17 @@ if ~isempty(entry)
 end
 
 %
-%% isSupported determines whether the given WQM parameter is 
-% supported.
+%% isSupported determines whether the given WQM field is supported.
 %
 
-function supported = isSupported(param)
-%ISSUPPORTED returns logical true (1) if the given WQM parameter is supported,
+function supported = isSupported(field)
+%ISSUPPORTED returns logical true (1) if the given WQM field is supported,
 % false (0) otherwise.
 %
-% If a parameter is supported, it will be contained in the global PARAMS 
+% If a field is supported, it will be contained in the global PARAMS 
 % variable.
 %
 
 global PARAMS;
 
-supported = PARAMS.containsKey(param);
+supported = PARAMS.containsKey(field);
