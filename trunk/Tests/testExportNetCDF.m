@@ -43,14 +43,15 @@ disp(['-- ' mfilename ' --']);
 disp(' ');
 
 % create test data
-[sam cal] = genTestData(100, {'TEMP', 'CNDC'}, 1, 100, ...
+sam = genTestData(100, {'TEMP', 'CNDC'}, 1, 100, ...
                         [1,1],[100,100],[1,1],[100,100]);
 
+sam = makeNetCDFCompliant(sam);
 % save the netcdf file in the test directory
 dest = fileparts(which(mfilename));
 
 % create the netcdf file
-file = exportNetCDF(sam,cal,dest);
+file = exportNetCDF(sam,dest);
 
 % display a dump of the file
 disp(evalc(['!ncdump ' file]));
