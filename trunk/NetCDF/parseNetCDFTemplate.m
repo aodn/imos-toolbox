@@ -163,7 +163,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
   if nargin == 3 && ~isnumeric(k), error('k must be numeric');            end
 
   % if k isn't provided, provide a dummy value
-  if nargin == 3, k = -1; end
+  if nargin == 2, k = -1; end
   
   fid = -1;
 
