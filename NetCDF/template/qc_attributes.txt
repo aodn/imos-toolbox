@@ -1,5 +1,5 @@
 long_name     = 
-standard_name = {mat imosParameters(sample_data.parameters(k).name, 'standard_name')}_status_flag
+standard_name = {mat imosParameters(sample_data.variables(k).name, 'standard_name')}_status_flag
 conventions   = 
 _FillValue    = 
 valid_min     = 

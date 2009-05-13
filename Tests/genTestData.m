@@ -18,10 +18,10 @@ function sample_data = genTestData(...
 %   vars           - String array of variable names
 %   in_water_time  - In water time
 %   out_water_time - Out water time
-%   min_values     - Vector of min values for each parameter
-%   max_values     - Vector of max values for each parameter
-%   min_bounds     - Vector of min bounds for each parameter
-%   max_bounds     - Vector of max bounds for each parameter
+%   min_values     - Vector of min values for each variable
+%   max_values     - Vector of max values for each variable
+%   min_bounds     - Vector of min bounds for each variable
+%   max_bounds     - Vector of max bounds for each variable
 %
 % Outputs:
 %   sample_data    - struct containing sample data for the given number of
@@ -79,12 +79,13 @@ for k = 1:length(vars)
   data = min_values(k) + (max_values(k)-min_values(k)).*rand(1,nsamples);
   data = data';
   
-  sample_data.variables(k).name       = vars{k};
-  sample_data.variables(k).dimensions = [1];
-  sample_data.variables(k).data       = data;
-  sample_data.variables(k).flags      = zeros(size(data));
-  sample_data.variables(k).flags(:)   = '0';
-  sample_data.variables(k).valid_min  = min_bounds(k);
-  sample_data.variables(k).valid_max  = max_bounds(k);
+  sample_data.variables(k).deployment_id = '0A0370A6-93E7-4B1F-BB47-3FB935F298F7';
+  sample_data.variables(k).name          = vars{k};
+  sample_data.variables(k).dimensions    = [1];
+  sample_data.variables(k).data          = data;
+  sample_data.variables(k).flags         = zeros(size(data));
+  sample_data.variables(k).flags(:)      = '0';
+  sample_data.variables(k).valid_min     = min_bounds(k);
+  sample_data.variables(k).valid_max     = max_bounds(k);
   
 end

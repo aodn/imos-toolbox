@@ -43,7 +43,7 @@ function testParseNetCDFTemplate()
   disp(' ');
 
   % test data
-  [sam cal] = genTestData(100, {'TEMP', 'CNDC'}, 1, 100, ...
+  sam = genTestData(100, {'TEMP', 'CNDC'}, 1, 100, ...
                           [1,1],[100,100],[1,1],[100,100]);
 
   % get the full path of the template subdirectory
@@ -60,7 +60,7 @@ function testParseNetCDFTemplate()
 
     disp(['parsing ' t]);
 
-    res = parseNetCDFTemplate(t, sam, cal, 1);
+    res = parseNetCDFTemplate(t, sam, 1);
     
     disp('');
     disp(res);
