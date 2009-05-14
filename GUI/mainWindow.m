@@ -104,7 +104,9 @@ function mainWindow(...
     'Value', 1);
   
   % side panel
-  sidePanel = uipanel(fig);
+  sidePanel = uipanel(...
+    'Parent',     fig,...
+    'BorderType', 'none');
   
   % state buttons
   stateButtons = [];
@@ -116,10 +118,14 @@ function mainWindow(...
   end
   
   % variable selection panel - created in createVarPanel
-  varPanel = uipanel(sidePanel);
+  varPanel = uipanel(...
+    'Parent',     sidePanel,...
+    'BorderType', 'none');
   
   % main display
-  mainPanel = uipanel(fig);
+  mainPanel = uipanel(...
+    'Parent',     fig,...
+    'BorderType', 'none');
   
   % use normalized units
   set(fig,          'Units', 'normalized');
