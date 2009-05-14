@@ -1,4 +1,4 @@
-function panel = tabbedPane( parent, tabs, tabNames )
+function panel = tabbedPane( parent, tabs, tabNames, useButtons )
 %TABBEDPANE Creates a tabbed pane containing the given tabs (uipanels).
 %
 % Creates a panel which contains a row of buttons along the top (labelled
@@ -6,12 +6,15 @@ function panel = tabbedPane( parent, tabs, tabNames )
 % corresponding tab is displayed in the panel.
 %
 % Inputs:
-%   parent   - Figure or uipanel to be used as the parent.
-%   tabs     - Vector of uipanel handles.
-%   tabNames - Cell array of tab names, the same length as the tabs vector.
+%   parent      - Figure or uipanel to be used as the parent.
+%   tabs        - Vector of uipanel handles.
+%   tabNames    - Cell array of tab names, the same length as the tabs vector.
+%   useButtons  - Optional. Boolean value. If true, each tab is displayed by 
+%                 pushing a button. If false, each tab is displayed by 
+%                 selecting from a drop-down menu instead.
 %
 % Outputs:
-%   panel    - Handle to the tabbed pane uipanel.
+%   panel       - Handle to the tabbed pane uipanel.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -45,7 +48,7 @@ function panel = tabbedPane( parent, tabs, tabNames )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,3,nargin));
+error(nargchk(3,4,nargin));
 
 if ~ishandle(parent),    error('parent must be a graphics handle');          end
 if ~isvector(tabs) ||...
@@ -54,26 +57,14 @@ if ~isvector(tabs) ||...
 if ~iscellstr(tabNames), error('tabNames must be a cell array of strings');  end
 if length(tabs) ~= length(tabNames)
                          error('tabs and tabNames must be the same length'); end
+if nargin == 3, useButtons = true;
+elseif ~islogical(useButtons), error('useButtons must be logical');          end
 
   % it's up to the caller to set the position
   panel = uipanel(...
-    'Parent', parent,...
-    'Units', 'normalized');
-  
-  buttons = [];
-  
-  % create tab button row along top
-  numTabs = length(tabNames);
-  for k = 1:length(tabNames)
-    
-    buttons(k) = uicontrol(...
-      'Parent',   panel,...
-      'Style',    'pushbutton',...
-      'String',   tabNames{k},...
-      'Units',    'normalized',...
-      'Position', [(k-1)/numTabs, 0.95, 1/numTabs, 0.05],...
-      'Callback', @tabCallback);
-  end
+    'Parent',     parent,...
+    'Units',      'normalized',...
+    'BorderType', 'none');
   
   % set tab positions and make all tabs invisible
   set(tabs,...
@@ -82,14 +73,48 @@ if length(tabs) ~= length(tabNames)
     'Position', [0.0, 0.0, 1.0, 0.95],...
     'Visible',  'off');
   
-  % initialise so the first tab is displayed
-  tabCallback(buttons(1), []);
+  
+  buttons = [];
 
+  % create tab button row/popup menu along top
+  if useButtons
+    
+    numTabs = length(tabNames);
+    for k = 1:numTabs
+      buttons(k) = uicontrol(...
+        'Parent',   panel,...
+        'Style',    'pushbutton',...
+        'String',   tabNames{k},...
+        'Units',    'normalized',...
+        'Position', [(k-1)/numTabs, 0.95, 1/numTabs, 0.05],...
+        'Callback', @tabCallback);
+    end
+    
+    tabCallback(buttons(1), []);
+    
+  %popup menu instead of buttons
+  else
+    menu = uicontrol(...
+      'Parent',   panel,...
+      'Style',    'popupmenu',...
+      'String',   tabNames,...
+      'Value',    1,...
+      'Units',    'normalized',...
+      'Position', [0.0, 0.95, 1.0, 0.05],...
+      'Callback', @tabCallback);
+    
+    tabCallback(menu, []);
+  end
+  
   function tabCallback(source,ev)
   % Called when one of the tab buttons is clicked. Sets all but the selected 
   % tabs invisible.
+  
+    if useButtons, idx = find(buttons == source); 
+    else           idx = get(source, 'Value');
+    end
     
-    set(tabs,                    'Visible', 'off');
-    set(tabs(buttons == source), 'Visible', 'on');
+    set(tabs,      'Visible', 'off');
+    set(tabs(idx), 'Visible', 'on');
   end
 end
