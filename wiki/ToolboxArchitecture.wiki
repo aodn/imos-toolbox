@@ -17,7 +17,7 @@ This diagram shows the program structure.
 
 The *Flow Manager* controls program flow, for example, ensuring that the user cannot apply manual QC procedures before running automatic QC procedures.
 
-The *[ParserSpecification Parser]* module imports data from raw instrument files.
+The *Import Manager* manages the import of data into the toolbox; it uses the relevant  *[ParserSpecification Parser]* module to import instrument data from raw files.
 
 The *Display Manager* manages data visualisation.
 
