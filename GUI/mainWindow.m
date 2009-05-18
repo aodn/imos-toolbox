@@ -16,6 +16,12 @@ function mainWindow(...
 % options, the provided selectionCallback function is called with the new 
 % selection.
 %
+% The main window never modifies data, but must be kept informed of changes
+% to the data set. This is achieved by the updateCallback function handle
+% which is passed to the selectionCallback function. Whenever data is
+% changed, this function must be called in order to keep the main window 
+% display consistent.
+%
 % Inputs:
 %   fieldTrip         - Struct containing information about the field trip 
 %                       from which data is being displayed.
@@ -25,12 +31,20 @@ function mainWindow(...
 %   selectionCallback - A function which is called when the user pushes a 
 %                       state button. The function must take the following 
 %                       input arguments:
-%                         panel       - A uipanel on which things can be drawn.
-%                         state       - Currently selected state (String)
-%                         sample_data - currently selected sample data
-%                         graphType   - Currently selected graph type (String)
-%                         vars        - Currently selected variables
-%                         dim         - Currently selected dimension
+%                         panel          - A uipanel on which things can be 
+%                                          drawn.
+%                         updateCallback - Function to be called when data
+%                                          is updated. The function is of
+%                                          the form:
+%                                            function updateCallback(...
+%                                              sample_data)
+%                         state          - Currently selected state (String)
+%                         sample_data    - currently selected sample data
+%                         graphType      - Currently selected graph type 
+%                                          (String)
+%                         vars           - Currently selected variables
+%                         dim            - Currently selected dimension
+% 
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -81,6 +95,9 @@ function mainWindow(...
   
   % sample menu entries (1-1 mapping to sample_data structs)
   sampleDataDescs = genSampleDataDescs(sample_data, timeFmt);
+  
+  % add indices to each sample_data struct for later identification
+  for k = 1:length(sample_data), sample_data{k}.index = k; end
 
   % window figure
   fig = figure(...
@@ -162,7 +179,7 @@ function mainWindow(...
   selectionChange();
   uiwait(fig);
   
-  %% Callbacks
+  %% Widget Callbacks
   
   function selectionChange()
   %Retrieves the current selection, clears the main panel, and calls 
@@ -175,9 +192,10 @@ function mainWindow(...
     
     % clear main panel
     children = get(mainPanel, 'Children');
-    for k = 1:length(children), delete(children(k)); end
+    for m = 1:length(children), delete(children(m)); end
     
-    selectionCallback(mainPanel, state, sam, graph, vars, dim);
+    selectionCallback(...
+      mainPanel, @updateCallback, state, sam, graph, vars, dim);
   end
   
   function sampleMenuCallback(source,ev)
@@ -209,6 +227,19 @@ function mainWindow(...
   % changes. Delegates to selectionChange.
   %
     selectionChange();
+  end
+
+  %% Data update callback
+  
+  function updateCallback(sam)
+  %UPDATECALLBACK Called when a data set has been modified. Saves the new
+  % copy of the data set.
+  %
+    error(nargchk(1,1,nargin));
+    if ~isstruct(sam),         error('sam must be a struct');         end
+    if ~isfield(sam, 'index'), error('sam must have an index field'); end
+    
+    sample_data{sam.index} = sam;
   end
 
   %% Retrieving current selection
@@ -245,8 +276,8 @@ function mainWindow(...
     
     vars = [];
     
-    for k = 1:length(checkboxes)
-      if get(checkboxes(k), 'Value'), vars(end+1) = k; end
+    for m = 1:length(checkboxes)
+      if get(checkboxes(m), 'Value'), vars(end+1) = m; end
     end
   end
 
@@ -260,7 +291,7 @@ function mainWindow(...
   %
     % delete checkboxes and dim menu from previous data set
     checkboxes = get(varPanel, 'Children');
-    for k = 1:length(checkboxes), delete(checkboxes(k)); end
+    for m = 1:length(checkboxes), delete(checkboxes(m)); end
     
     % create checkboxes for new data set. The order in which the checkboxes
     % are created is the same as the order of the variables - this is
@@ -268,16 +299,16 @@ function mainWindow(...
     % line up.
     checkboxes(:) = [];
     n = length(sam.variables);
-    for k = 1:n
+    for m = 1:n
       
-      checkboxes(k) = uicontrol(...
+      checkboxes(m) = uicontrol(...
         'Parent',   varPanel,...
         'Style',    'checkbox',...
-        'String',   sam.variables(k).name,...
+        'String',   sam.variables(m).name,...
         'Value',    1,...
         'Callback', @varPanelCallback,...
         'Units',    'normalized',...
-        'Position', [0.0, (n-k+1)/(n+1), 1.0, 1/(n+1)]);
+        'Position', [0.0, (n-m+1)/(n+1), 1.0, 1/(n+1)]);
     end
         
     % add dimension menu - again, the getSelectedVars function assumes
@@ -304,10 +335,10 @@ function mainWindow(...
   %
     descs = {};
 
-    for k = 1:length(sam)
-      s = sam{k};
+    for m = 1:length(sam)
+      s = sam{m};
 
-      descs{k} = [s.instrument_make  ' ' ...
+      descs{m} = [s.instrument_make  ' ' ...
                   s.instrument_model ' ' ...
                   datestr(s.dimensions(1).data(1),   dateFmt) ' - ' ...
                   datestr(s.dimensions(1).data(end), dateFmt)];
