@@ -70,7 +70,7 @@ origLength = length(data);
 
 % step through the end of the data set until we find a sample 
 % which has a time less than or equal to the out water time
-time = sample_data.dimensions(1).data;
+time = sample_data.dimensions{1}.data;
 
 endTime = time(end);
 

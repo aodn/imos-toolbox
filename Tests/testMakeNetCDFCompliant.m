@@ -52,19 +52,21 @@ function testMakeNetCDFCompliant ()
   disp('--new globals--');
   disp(netcdf);
   
-  % display dimension atts
-  disp(' ');
-  disp('--old dimensions--');
-  disp(sam.dimensions);
-  disp('--new dimensions--');
-  disp(netcdf.dimensions);
+  % display variable atts
+  for k = 1:length(sam.dimensions)
+    disp(' ')
+    disp(['--old ' sam.dimensions{k}.name '--']);
+    disp(sam.dimensions{k});
+    disp(['--new ' sam.dimensions{k}.name '--']);
+    disp(netcdf.dimensions{k});
+  end
   
   % display variable atts
   for k = 1:length(sam.variables)
     disp(' ')
-    disp(['--old ' sam.variables(k).name '--']);
-    disp(sam.variables(k));
-    disp(['--new ' sam.variables(k).name '--']);
-    disp(netcdf.variables(k));
+    disp(['--old ' sam.variables{k}.name '--']);
+    disp(sam.variables{k});
+    disp(['--new ' sam.variables{k}.name '--']);
+    disp(netcdf.variables{k});
   end
   

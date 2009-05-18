@@ -73,7 +73,7 @@ for k = 1:length(sample_data.variables)
     start = 1 + int32((num_samples-1-size)*rand(1,1));
     
     % insert flatline of consecutive random value
-    sample_data.variables(k).data(start:size + start-1) = 0.0;
+    sample_data.variables{k}.data(start:size + start-1) = 0.0;
     
     % save for later validation  
     pflatlines(end+1,1) = start;
@@ -100,7 +100,7 @@ for k = 1:length(sample_data.variables)
   nflatlines = ...
     sum(pflatlines(:,2)) - sum(pflatlines(:,1)) + length(pflatlines(:,1));
   disp([num2str(length(pflatlines(:,1))) ' flatlines inserted for ' ...
-        sample_data.variables(k).name ...
+        sample_data.variables{k}.name ...
         ' (' num2str(nflatlines) ') points in total']);
   
   flatlines{end+1} = pflatlines;
@@ -110,7 +110,7 @@ end
 % check that flags have been created for each of the flatlines, and no more
 for k = 1:length(sample_data.variables)
   
-  s = sample_data.variables(k);
+  s = sample_data.variables{k};
   
   data = s.data;
   [data flags log] = ...
