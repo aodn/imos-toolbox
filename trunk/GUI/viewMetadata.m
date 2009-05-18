@@ -71,11 +71,12 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   globs = rmfield(globs, 'dimensions');
   
   dims = sample_data.dimensions;
-  dims = rmfield(dims, 'data');
+  for k = 1:length(dims), dims{k} = rmfield(dims{k}, 'data'); end
   
   vars = sample_data.variables;
-  vars = rmfield(vars, 'data');
-  vars = rmfield(vars, 'dimensions');
+  for k = 1:length(vars), 
+    vars{k} = rmfield(vars{k}, {'data', 'dimensions'}); 
+  end
   
   % create a cell array containing global attribute data
   globData = [...
@@ -87,8 +88,8 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   for k = 1:length(dims)
     
     dimData{k} = [...
-      fieldnames(dims(k))...
-      cellfun(@num2str,struct2cell(dims(k)), 'UniformOutput', false)];
+      fieldnames(dims{k})...
+      cellfun(@num2str,struct2cell(dims{k}), 'UniformOutput', false)];
   end
   
   % create cell array containing variable 
@@ -96,8 +97,8 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   for k = 1:length(vars)
     
     varData{k} = [...
-      fieldnames(vars(k))...
-      cellfun(@num2str,struct2cell(vars(k)), 'UniformOutput', false)];
+      fieldnames(vars{k})...
+      cellfun(@num2str,struct2cell(vars{k}), 'UniformOutput', false)];
   end
   
   %% create uitables
@@ -106,18 +107,16 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   tables(1) = createTable(globData, '');
   
   for k = 1:length(dims)
-    tables(end+1) = ...
-      createTable(dimData{k}, ['dimensions(' num2str(k) ')']);
+    tables(end+1) = createTable(dimData{k}, ['dimensions{' num2str(k) '}']);
   end
   
   for k = 1:length(vars)
-    tables(end+1) = ...
-      createTable(varData{k}, ['variables('  num2str(k) ')']);
+    tables(end+1) = createTable(varData{k}, ['variables{'  num2str(k) '}']);
   end
   
   tableNames = {'Global'};
-  for k = 1:length(dims), tableNames{end+1} = [dims(k).name ' dimension']; end
-  for k = 1:length(vars), tableNames{end+1} = [vars(k).name ' variable'];  end
+  for k = 1:length(dims), tableNames{end+1} = [dims{k}.name ' dimension']; end
+  for k = 1:length(vars), tableNames{end+1} = [vars{k}.name ' variable'];  end
   
   % create a tabbedPane which displays each table in a separate tab
   panel = tabbedPane(parent, tables, tableNames, true);
