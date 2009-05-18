@@ -87,7 +87,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
     
     temp = [path 'variable_attributes.txt'];
 
-    varAtts = parseNetCDFTemplate(temp, sample_data);
+    varAtts = parseNetCDFTemplate(temp, sample_data, k);
 
     % merge variable atts back into variable struct
     sample_data.variables{k} = mergeAtts(sample_data.variables{k}, varAtts);
