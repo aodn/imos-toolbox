@@ -5,12 +5,21 @@
 
 = NetCDF Compliance =
 
-A function called `makeNetCDFCompliant` is called after data has been imported; this function uses a set of 'template' files, which specify NetCDF attribute values in three different ways:
- * Literal strings
- * Matlab expressions
- * Deployment Database queries.
+A function called `makeNetCDFCompliant` is called after data has been imported; this function uses the NetCDF template engine, described below, to add NetCDF attributes to the `sample_data struct.
 
-When required, the template engine reads in a template, runs any DDB queries and executes any matlab expressions which are specified in the template, and adds the results to the `sample_data` struct in question.
+= NetCDF Exporter =
+
+The NetCDF exporter generates IMOS compliant NetCDF files, using information from the `sample_data` struct. The `sample_data` structs are maintained in more or less the same format that is required by the IMOS NetCDF standard, so the exporter's job is very simple.
+
+= NetCDF Template Engine =
+
+The template engine is executed after data has been imported; it is used to add NetCDF attributes to the `sample_data` struct in question. The template engine relies upon a set of 'template' files, which specify NetCDF attribute values in three different ways:
+
+    * Literal strings
+    * Matlab expressions 
+    * Deployment Database queries
+
+When required, the template engine reads in a template, runs any DDB queries and executes any matlab expressions which are specified in the template, and adds the results to the `sample_data` struct.
 
 A template file is a list of `name=value` pairs. The `value` section may contain, as listed above, literal strings, matlab expressions, database queries, or a combination of all three.
 
@@ -103,7 +112,3 @@ author = {ddb PersonnelDownload Personnel StaffID FirstName} \
  {{{
 title = {mat sample_data.field_trip_id}: {ddb Site Sites ResearchActivity}
  }}}
-
-= NetCDF Exporter =
-
-The NetCDF exporter generates IMOS compliant NetCDF files, using information from the `sample_data` struct. The `sample_data` structs are maintained in more or less the same format that is required by the IMOS NetCDF standard, so the exporter's job is very simple.
