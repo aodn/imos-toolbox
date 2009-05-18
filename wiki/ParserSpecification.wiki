@@ -15,32 +15,31 @@ For example, the parser function to parse SBE37 data is contained in the file `S
 
 Parser functions must adhere to the following format, with regard to input and output arguments:
 
- `function [sample_data cal_data] = instParse ( raw_data_file )`
+ `function sample_data = instParse ( raw_data_file )`
 
 where:
 
   * `raw_data_file` is a cell array of strings, each entry of which is the name of a file or directory which contains the raw instrument data.
-  * `sample_data` is a struct which contains the sample data.
-  * `cal_data` is a struct which contains the instrument calibration data, or is an empty struct if this is not applicable to the instrument.
+  * `sample_data` is a struct which contains the sample data and any metadata that was retrieved from the data file(s).
 
 == Sample data ==
 
 The `sample_data` struct must contain at least the following fields:
 
-  * `dimensions` Vector of structs containing dimension data:
+  * `dimensions` Cell array of structs containing dimension data:
     * `name`: (IMOS compliant) dimension name
     * `data`: Vector of dimension data (always one dimensional, so orientation does not matter)
-  * `parameters`: Vector of structs:
+  * `variables`: Cell array of structs:
     * `name`: (IMOS compliant) parameter name
     * `comment`: (optional) Any relevant comments about the data
-    * `dimensions`: Vector of indices into the `sample_data.dimensions` struct, indicating the dimensions of this data
+    * `dimensions`: Vector of indices into the `sample_data.dimensions` array, indicating the dimensions of this data
     * `data`: Matrix of data (column vector if one-dimensional)
 
 *Notes*
 
-  * The contents of the name fields in both the `dimensions` and `parameters` structs must follow the naming conventions outlined in the IMOS NetCDF User's Manual. 
+  * The contents of the name fields in both the `dimensions` and `variables` structs must follow the naming conventions outlined in the IMOS NetCDF User's Manual. 
   * All data must be in the corresponding IMOS unit of measurement for the parameter.
-  * The order of the `parameters.dimensions` vector must be the same as the order of the indices into the `parameters.data` matrix.
+  * The order of the `parameters.dimensions` array must be the same as the order of the indices into the `variables.data` matrix.
   * See the [DataStructures data structures spec] for more information.
 
 === Example ===
@@ -61,16 +60,16 @@ For this data, the `sample_data` struct would look like this (timestamps have be
 
   sample_data = 
 
-      parameters: [1x3 struct]
-      dimensions: [1x1 struct]
+       variables: {[1x1 struct]  [1x1 struct]  [1x1 struct]}
+      dimensions: {[1x1 struct]}
 
-  >> sample_data.dimensions
+  >> sample_data.dimensions{1}
 
   ans =
       name: 'TIME'
       data: [7.3342e+05 7.3342e+05 7.3342e+05]
 
-  >> sample_data.parameters(1)
+  >> sample_data.variables{1}
 
   ans = 
 
@@ -78,7 +77,7 @@ For this data, the `sample_data` struct would look like this (timestamps have be
          dimensions: 1
                data: [3x1 double]
 
-  >> sample_data.parameters(2)
+  >> sample_data.variables{2}
 
   ans = 
 
@@ -86,7 +85,7 @@ For this data, the `sample_data` struct would look like this (timestamps have be
          dimensions: 1
                data: [3x1 double]
 
-  >> sample_data.parameters(3)
+  >> sample_data.variables{3}
 
   ans = 
 
@@ -95,7 +94,7 @@ For this data, the `sample_data` struct would look like this (timestamps have be
                data: [3x1 double]
 }}}
 
-In the case that there are a different number of samples for different parameters, the data fields should be padded so that all parameters have the same number of samples. For example, if we have the following data:
+In the case that there are a different number of samples for different variables, the data fields should be padded so that all parameters have the same number of samples. For example, if we have the following data:
 
 {{{
   time                 cond    temp   pressure
@@ -104,12 +103,4 @@ In the case that there are a different number of samples for different parameter
   2008-01-16 00:00:15  39.351  15.47  
 }}}
 
-the conductivity and temperature parameter structs would be identical to those above, but the pressure data would be padded with `0.0`'s
-
-== Calibration Data ==
-
-The `cal_data` struct should contain general information about the instrument (e.g. model name, serial number) and calibration information about each sensor. The contents of `cal_data` will vary with the information that is available for a given instrument, but at least the following fields should be present for all instruments:
-
-   * `instrument_make`: e.g. 'Seabird Electronics'
-   * `instrument_model`: e.g. 'SBE39-IM'
-   * `instrument_serial_no`: e.g. '6097'
+the conductivity and temperature variable structs would be identical to those above, but the pressure data would be padded with `0.0`'s
