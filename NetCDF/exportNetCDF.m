@@ -90,21 +90,21 @@ function filename = exportNetCDF( sample_data, dest )
     dims = sample_data.dimensions;
     for m = 1:length(dims)
 
-      disp(['creating dimension: ' dims(m).name ...
-            ' (length: ' num2str(length(dims(m).data)) ')']);
+      disp(['creating dimension: ' dims{m}.name ...
+            ' (length: ' num2str(length(dims{m}.data)) ')']);
           
-      dimAtts = dims(m);
+      dimAtts = dims{m};
       dimAtts = rmfield(dimAtts, 'data');
 
       % create dimension
-      did = netcdf.defDim(fid, upper(dims(m).name), length(dims(m).data));
+      did = netcdf.defDim(fid, upper(dims{m}.name), length(dims{m}.data));
 
       % temporarily save the netcdf dimension ID in 
       % the dimension struct for later reference
-      sample_data.dimensions(m).did = did;
+      sample_data.dimensions{m}.did = did;
 
       % create coordinate variable and attributes
-      vid = netcdf.defVar(fid, upper(dims(m).name), 'double', did);
+      vid = netcdf.defVar(fid, upper(dims{m}.name), 'double', did);
       putAtts(fid, vid, dimAtts);
     end
 
@@ -115,16 +115,18 @@ function filename = exportNetCDF( sample_data, dest )
     vars = sample_data.variables;
     for m = 1:length(vars)
 
-      varname = vars(m).name;
+      varname = vars{m}.name;
       disp(['creating variable: ' varname]);
       
       % get the dimensions for this variable
-      dids = [dims(vars(m).dimensions).did];
+      dids = [];
+      dimIdxs = vars{m}.dimensions;
+      for n = 1:length(dimIdxs), dids(n) = dims{dimIdxs(n)}.did; end
       
       % create the variable
       vid = netcdf.defVar(fid, varname, 'double', dids);
 
-      varAtts = vars(m);
+      varAtts = vars{m};
       varAtts = rmfield(varAtts, 'data');
       varAtts = rmfield(varAtts, 'dimensions');
 
@@ -141,9 +143,9 @@ function filename = exportNetCDF( sample_data, dest )
     dims = sample_data.dimensions;
     for m = 1:length(dims)
 
-      varname = dims(m).name;
-      vid     = dims(m).did;
-      data    = dims(m).data;
+      varname = dims{m}.name;
+      vid     = dims{m}.did;
+      data    = dims{m}.data;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
 
       netcdf.putVar(fid, vid, data);
@@ -155,8 +157,8 @@ function filename = exportNetCDF( sample_data, dest )
     vars = sample_data.variables;
     for m = 1:length(vars)
 
-      varname = vars(m).name;
-      data    = vars(m).data;
+      varname = vars{m}.name;
+      data    = vars{m}.data;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
 
       vid = netcdf.inqVarID(fid, varname);
@@ -215,7 +217,7 @@ function filename = genFileName(sample_data)
   for k = 1:length(sample_data.variables)
 
     % get the data code for this parameter; don't add duplicate codes
-    code = imosParameters(sample_data.variables(k).name, 'data_code');
+    code = imosParameters(sample_data.variables{k}.name, 'data_code');
     if strfind(data_code, code), continue; end
 
     data_code(end+1) = code;

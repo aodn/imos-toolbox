@@ -1,19 +1,19 @@
 % what
 project                   = Integrated Marine Observing System (IMOS)
 conventions               = IMOS version 1.1
-title                     = {ddb Site}: {ddb Site Sites ResearchActivity}
-institution               = {ddb PersonnelDownload Personnel StaffID Organisation}
-date_created              = {mat datestr(sample_data.date_created, readToolboxProperty('exportNetCDF.dateFormat'))}
+title                     = [ddb Site]: [ddb Site Sites ResearchActivity]
+institution               = [ddb PersonnelDownload Personnel StaffID Organisation]
+date_created              = [mat datestr(sample_data.date_created, readToolboxProperty('exportNetCDF.dateFormat'))]
 abstract                  = 
 history                   = 
-comment                   = {ddb Comment}
-source                    = {ddb InstrumentID Instruments Make} \
-                            {ddb InstrumentID Instruments Model}
+comment                   = [ddb Comment]
+source                    = [ddb InstrumentID Instruments Make] \
+                            [ddb InstrumentID Instruments Model]
 keywords                  = 
 references                =
 netcdf_version            = 3.6
-quality_control_set       = {mat readToolboxProperty('toolbox.qc_set')}
-site_code                 = {ddb Site}
+quality_control_set       = [mat readToolboxProperty('toolbox.qc_set')]
+site_code                 = [ddb Site]
 platform_code             = 
 naming_authority          = IMOS
 cdm_data_type             = 
@@ -21,26 +21,26 @@ metadata                  =
 sensorML                  = 
 
 % where
-geospatial_lat_min      = {ddb Site Sites Latitude}
-geospatial_lat_max      = {ddb Site Sites Latitude}
-geospatial_lon_min      = {ddb Site Sites Longitude}
-geospatial_lon_max      = {ddb Site Sites Longitude}
-geospatial_vertical_min = {ddb Site Sites Depth}
-geospatial_vertical_max = {ddb Site Sites Depth}
+geospatial_lat_min      = [ddb Site Sites Latitude]
+geospatial_lat_max      = [ddb Site Sites Latitude]
+geospatial_lon_min      = [ddb Site Sites Longitude]
+geospatial_lon_max      = [ddb Site Sites Longitude]
+geospatial_vertical_min = [ddb Site Sites Depth]
+geospatial_vertical_max = [ddb Site Sites Depth]
 
 % when
-time_coverage_start = {mat datestr(sample_data.dimensions(1).data(1),   readToolboxProperty('exportNetCDF.dateFormat'))}
-time_coverage_end   = {mat datestr(sample_data.dimensions(1).data(end), readToolboxProperty('exportNetCDF.dateFormat'))}
-local_time_zone     = {ddb TimeZone}
+time_coverage_start = [mat datestr(sample_data.dimensions{1}.data(1),   readToolboxProperty('exportNetCDF.dateFormat'))]
+time_coverage_end   = [mat datestr(sample_data.dimensions{1}.data(end), readToolboxProperty('exportNetCDF.dateFormat'))]
+local_time_zone     = [ddb TimeZone]
 
 % who
 data_centre                 = eMarine Information Infrastructure (eMII)
 data_centre_email           = info@emii.org.au
 author_email                = 
-author                      = {ddb PersonnelDownload Personnel StaffID FirstName} \
-                              {ddb PersonnelDownload Personnel StaffID LastName}
-principal_investigator_name = {ddb PersonnelDownload Personnel StaffID FirstName} \
-                              {ddb PersonnelDownload Personnel StaffID LastName}
+author                      = [ddb PersonnelDownload Personnel StaffID FirstName] \
+                              [ddb PersonnelDownload Personnel StaffID LastName]
+principal_investigator_name = [ddb PersonnelDownload Personnel StaffID FirstName] \
+                              [ddb PersonnelDownload Personnel StaffID LastName]
 institution_references      = 
 
 % how

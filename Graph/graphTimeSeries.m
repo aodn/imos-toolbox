@@ -63,7 +63,7 @@ function graphs = graphTimeSeries( ...
   
   for k = 1:length(sample_data.variables)
     
-    name = sample_data.variables(k).name;
+    name = sample_data.variables{k}.name;
     uom  = imosParameters(name, 'uom');
     
     % create the axes
@@ -81,12 +81,12 @@ function graphs = graphTimeSeries( ...
     col = col(mod(k,length(col))+1,:);
     
     % create the data plot
-    lines(k) = line(sample_data.dimensions(dimension).data, ...
-                    sample_data.variables(k)         .data,...
+    lines(k) = line(sample_data.dimensions{dimension}.data, ...
+                    sample_data.variables{k}         .data,...
                     'Color', col);
     
     % set x labels and ticks on graph 1
-    xLabel = sample_data.dimensions(dimension).name;
+    xLabel = sample_data.dimensions{dimension}.name;
     set(get(graphs(k), 'XLabel'), 'String', xLabel);
 
     xLimits = get(graphs(k), 'XLim');
@@ -115,5 +115,9 @@ function graphs = graphTimeSeries( ...
   linkaxes(graphs, 'x');
   
   % add a legend
-  legend(lines, {sample_data.variables.name});
+  names = {};
+  for k = 1:length(sample_data.variables)
+    names{k} = sample_data.variables{k}.name;
+  end
+  legend(lines, names);
 end

@@ -69,14 +69,14 @@ function sample_data = makeNetCDFCompliant( sample_data )
   
   for k = 1:length(sample_data.dimensions)
 
-    dim = sample_data.dimensions(k);
+    dim = sample_data.dimensions{k};
     
     temp = [path lower(dim.name) '_attributes.txt'];
 
     dimAtts = parseNetCDFTemplate(temp, sample_data);
 
     % merge dimension atts back into dimension struct
-    sample_data.dimensions = mergeAtts(sample_data.dimensions, dimAtts, k);
+    sample_data.dimensions{k} = mergeAtts(sample_data.dimensions{k}, dimAtts);
   end
 
   %
@@ -90,23 +90,22 @@ function sample_data = makeNetCDFCompliant( sample_data )
     varAtts = parseNetCDFTemplate(temp, sample_data);
 
     % merge variable atts back into variable struct
-    sample_data.variables = mergeAtts(sample_data.variables, varAtts, k);
+    sample_data.variables{k} = mergeAtts(sample_data.variables{k}, varAtts);
   end
 end
 
-function target = mergeAtts ( target, atts, k )
+function target = mergeAtts ( target, atts )
 %MERGEATTS copies the fields in the given atts struct into the given target
-%struct. If k is provided, it is used as an index into targets.
+%struct.
 %
-  if nargin == 2, k = 1; end
 
   fields = fieldnames(atts);
   
   for m = 1:length(fields)
     
     % don't overwrite existing fields in the target
-    if isfield(target(k), fields{m}), continue; end;
+    if isfield(target, fields{m}), continue; end;
     
-    target(k).(fields{m}) = atts.(fields{m});
+    target.(fields{m}) = atts.(fields{m});
   end
 end

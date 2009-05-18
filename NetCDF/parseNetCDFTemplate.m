@@ -22,16 +22,16 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 % The attribute_value field has a syntax of its own. It can be a plain string
 % (without quotes), and can also contain 'tokens' which either point to a field 
 % within the deployment database, or contain a one line matlab statement.
-% Tokens are parts of the attribute value which are contained within curly
-% braces (i.e. '{}').
+% Tokens are parts of the attribute value which are contained within square
+% braces (i.e. '[]').
 %
 %   === DDB tokens ===
 %
 % The token syntax for setting an attribute value to be the value of a field 
-% within the deployment database is (the square brackets indicate optional 
-% sections):
+% within the deployment database is (the inner square brackets 
+% indicate optional sections):
 %
-%   attribute_value  = {ddb field [related_table [related_pkey] related_field]}
+%   attribute_value  = [ddb field [related_table [related_pkey] related_field]]
 %
 % where 
 %
@@ -52,24 +52,24 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %
 %   1. For the attribute definition:
 %
-%        local_time_zone = {ddb TimeZone}
+%        local_time_zone = [ddb TimeZone]
 %
 %      the value will be translated into a query to the deployment database of 
 %      the form:
 %
 %        select TimeZone from DeploymentData 
-%        where DeploymentID = sample_data.variables(k).deployment_id
+%        where DeploymentID = sample_data.variables{k}.deployment_id
 %
 %   2. For the attribute definition:
 %
-%        institution = {ddb PersonnelDownload Personnel StaffID Organisation}
+%        institution = [ddb PersonnelDownload Personnel StaffID Organisation]
 %
 %      the value will be translated into the following query:
 %
 %        select Organisation from Personnel where StaffID = 
 %        (
 %          select PersonnelDownload from DeploymentData
-%          where DeploymentID = sample_data.variables(k).deployment_id
+%          where DeploymentID = sample_data.variables{k}.deployment_id
 %        )
 %
 % === Matlab tokens ===
@@ -77,7 +77,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 % You can set the attribute value to be the result of a matlab statement like
 % so:
 % 
-%   attribute_name = {mat statement}
+%   attribute_name = [mat statement]
 %
 % The result of the statement must be a matlab string.
 %
@@ -91,7 +91,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %
 % For example, for the attribute definition:
 % 
-%   quality_control_set = {mat readToolboxProperty('toolbox.qc_set')}
+%   quality_control_set = [mat readToolboxProperty('toolbox.qc_set')]
 %
 % the attribute value will be the value of the matlab statment:
 %
@@ -104,12 +104,12 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %   - Tokens cannot be repeated in a single attribute definition
 %   - Tokens cannot be nested within other tokens.
 %
-% 1. qc_param_name = {mat sample_data.variables(k).name}_QC
+% 1. qc_param_name = [mat sample_data.variables{k}.name]_QC
 % 
-% 2. author = {ddb PersonnelDownload Personnel StaffID FirstName} \
-%             {ddb PersonnelDownload Personnel StaffID LastName}
+% 2. author = [ddb PersonnelDownload Personnel StaffID FirstName] \
+%             [ddb PersonnelDownload Personnel StaffID LastName]
 %
-% 3. title = {ddb Site}: {ddb Site Sites ResearchActivity}
+% 3. title = [ddb Site]: [ddb Site Sites ResearchActivity]
 %
 % Inputs:
 %   file        - name of the template file to parse.
@@ -207,6 +207,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
     fclose(fid);
   catch e
     if fid ~= -1, fclose(fid); end
+    disp(line);
     rethrow(e);
   end
 end
@@ -230,8 +231,8 @@ function value = parseAttributeValue(line, sample_data, k)
 
   value = line;
 
-  % get all tokens in the value (substrings that are contained within { })
-  tkns = regexp(line, '{([^{}]*)}', 'tokens');
+  % get all tokens in the value (substrings that are contained within [ ])
+  tkns = regexp(line, '\[([^\[\]]*)\]', 'tokens');
 
   for m = 1:length(tkns)
 
@@ -247,7 +248,7 @@ function value = parseAttributeValue(line, sample_data, k)
     end
     
     % replace the token from the original line with its value
-    value = strrep(value, ['{' tkn '}'], stringify(val));
+    value = strrep(value, ['[' tkn ']'], stringify(val));
 
   end
   
@@ -276,7 +277,7 @@ function value = parseDDBToken(token, sample_data, k)
   % get the relevant deployment
   deployment = executeDDBQuery('DeploymentData', ...
                                'DeploymentId', ...
-                               sample_data.variables(k).deployment_id);
+                               sample_data.variables{k}.deployment_id);
 
   % no such deployment exists in the ddb, or multiple hits
   if length(deployment) ~= 1, return; end
