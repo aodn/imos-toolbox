@@ -13,7 +13,7 @@ The following sections define scalar instances of `sample_data` structs.
 
 == sample_data ==
 
-`sample_data` is a scalar struct which contain sample data/metadata. The most important fields are as follows:
+`sample_data` is a scalar struct which contain sample data/metadata. The most important fields are listed below. Global NetCDF attributes are added as fields of `sample_data`; coordinate variable attributes are added as fields of each `dimensions` entry; variable attributes are added as fields of each `variables` entry.
 
  * `sample_data`: struct
    * `level`: Data process level (Numeric)
@@ -24,7 +24,7 @@ The following sections define scalar instances of `sample_data` structs.
    * `variables`: Cell array of structs:
      * `name`: IMOS compliant parameter name (String)
      * `dimensions`: Vector of indices into the `dimensions` array (Numeric)
-     * `data`: Matrix of data (Numeric)
+     * `data`: Vector/matrix of data (Numeric)
      * `flags`: Single flag, or matrix of flags (Single character - see below)
 
 === Notes ===
