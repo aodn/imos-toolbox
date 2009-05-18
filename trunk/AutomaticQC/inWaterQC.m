@@ -70,7 +70,7 @@ origLength = length(data);
 
 % step through the start of the data set until we find a sample 
 % which has a time greater than or equal to the in water time
-time = sample_data.dimensions(1).data;
+time = sample_data.dimensions{1}.data;
 
 startTime = time(1);
 

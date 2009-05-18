@@ -60,14 +60,14 @@ goodFlag  = imosQCFlag('good', qc_set);
 
 for k = 1:length(sample_data.variables)
   
-  data = sample_data.variables(k).data;
+  data = sample_data.variables{k}.data;
 
   % run the data through the range filter
   [data flags log] = rangeQC(sample_data, data, k);
 
   % run through the data, ensuring that the range routine flagged every value
   % that is out of bounds, and no more
-  s = sample_data.variables(k);
+  s = sample_data.variables{k};
   
   disp(['checking ' s.name]);
   disp(['num flags for ' s.name ' is ' num2str(length(flags))]);

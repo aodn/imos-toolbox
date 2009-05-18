@@ -62,16 +62,15 @@ function sample_data = genTestData(...
 
 disp(['generating test data set of ' num2str(nsamples) ' samples']);
 
-sample_data.dimensions         = [];
-sample_data.dimensions(1).name = 'TIME';
-sample_data.dimensions(1).data = (1:nsamples)';
-sample_data.variables          = [];
+sample_data.dimensions         = {};
+sample_data.dimensions{1}.name = 'TIME';
+sample_data.dimensions{1}.data = (1:nsamples)';
+sample_data.variables          = {};
 sample_data.level              = 0;
 
 sample_data.time_coverage_start  = in_water_time;
 sample_data.time_coverage_end    = out_water_time;
 sample_data.date_created         = now;
-sample_data.variables            = [];
 
 for k = 1:length(vars)
   
@@ -79,13 +78,13 @@ for k = 1:length(vars)
   data = min_values(k) + (max_values(k)-min_values(k)).*rand(1,nsamples);
   data = data';
   
-  sample_data.variables(k).deployment_id = '0A0370A6-93E7-4B1F-BB47-3FB935F298F7';
-  sample_data.variables(k).name          = vars{k};
-  sample_data.variables(k).dimensions    = [1];
-  sample_data.variables(k).data          = data;
-  sample_data.variables(k).flags         = zeros(size(data));
-  sample_data.variables(k).flags(:)      = '0';
-  sample_data.variables(k).valid_min     = min_bounds(k);
-  sample_data.variables(k).valid_max     = max_bounds(k);
+  sample_data.variables{k}.deployment_id = '0A0370A6-93E7-4B1F-BB47-3FB935F298F7';
+  sample_data.variables{k}.name          = vars{k};
+  sample_data.variables{k}.dimensions    = [1];
+  sample_data.variables{k}.data          = data;
+  sample_data.variables{k}.flags         = zeros(size(data));
+  sample_data.variables{k}.flags(:)      = '0';
+  sample_data.variables{k}.valid_min     = min_bounds(k);
+  sample_data.variables{k}.valid_max     = max_bounds(k);
   
 end

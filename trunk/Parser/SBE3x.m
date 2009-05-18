@@ -162,7 +162,8 @@ pressure_cal_expr = ['^[\*]\s*pressure\s+S/N\s+(\d+)'... % serial number
 sample_expr = '%21c';
 
 sample_data            = struct;
-sample_data.variables  = [];
+sample_data.variables  = {};
+sample_data.dimensions = {};
 temperature            = [];
 conductivity           = [];
 pressure               = [];
@@ -239,13 +240,13 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
     if strcmp('temperature', tkn{1}{1})
       
       sample_expr = ['%f' sample_expr];
-      sample_data.variables(end+1).name = TEMPERATURE_NAME;
+      sample_data.variables{end+1}.name = TEMPERATURE_NAME;
       
     elseif strcmp('conductivity', tkn{1}{1})
       
       read_cond = 1;
       sample_expr = ['%f' sample_expr];
-      sample_data.variables(end+1).name = CONDUCTIVITY_NAME;
+      sample_data.variables{end+1}.name = CONDUCTIVITY_NAME;
       
     end
     
@@ -261,7 +262,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
     
     read_pres = 1;
     sample_expr = ['%f' sample_expr];
-    sample_data.variables(end+1).name = PRESSURE_NAME;
+    sample_data.variables{end+1}.name = PRESSURE_NAME;
     
     sample_data.pressure_serial_no        = strtrim(tkn{1}{1});
     sample_data.pressure_range_psia       = str2double(tkn{1}{2});
@@ -291,7 +292,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
     
     read_sal = 1;
     sample_expr = ['%f' sample_expr];
-    sample_data.variables(end+1).name = SALINITY_NAME;
+    sample_data.variables{end+1}.name = SALINITY_NAME;
     
   end
 
@@ -390,17 +391,17 @@ if ~isempty(pressure),     pressure(    nsamples:end) = []; end
 if ~isempty(salinity),     salinity(    nsamples:end) = []; end
 
 % copy the data into the sample_data struct
-sample_data.dimensions(1).name = TIME_NAME;
-sample_data.dimensions(1).data = time;
+sample_data.dimensions{1}.name = TIME_NAME;
+sample_data.dimensions{1}.data = time;
 
 for k = 1:length(sample_data.variables)
   
-  sample_data.variables(k).dimensions = [1];
+  sample_data.variables{k}.dimensions = [1];
   
-  switch sample_data.variables(k).name
-    case TEMPERATURE_NAME,  sample_data.variables(k).data = temperature;
-    case CONDUCTIVITY_NAME, sample_data.variables(k).data = conductivity;
-    case PRESSURE_NAME,     sample_data.variables(k).data = pressure;
-    case SALINITY_NAME,     sample_data.variables(k).data = salinity;
+  switch sample_data.variables{k}.name
+    case TEMPERATURE_NAME,  sample_data.variables{k}.data = temperature;
+    case CONDUCTIVITY_NAME, sample_data.variables{k}.data = conductivity;
+    case PRESSURE_NAME,     sample_data.variables{k}.data = pressure;
+    case SALINITY_NAME,     sample_data.variables{k}.data = salinity;
   end
 end

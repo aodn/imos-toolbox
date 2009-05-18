@@ -69,8 +69,8 @@ goodFlag  = imosQCFlag('good',  qc_set);
 flags    = zeros(length(data),1);
 flags(:) = goodFlag;
 
-max  = sample_data.variables(k).valid_max;
-min  = sample_data.variables(k).valid_min;
+max  = sample_data.variables{k}.valid_max;
+min  = sample_data.variables{k}.valid_min;
 
 % add flags for out of range values
 flags(data > max) = rangeFlag;

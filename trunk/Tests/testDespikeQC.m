@@ -83,8 +83,8 @@ disp([num2str(params(1)) '*sin(' num2str(params(2)) '*x) + '...
       num2str(params(7)) '*cos(' num2str(params(8)) '*x)']);
     
 
-maxval = max(sam.variables(1).data);
-minval = min(sam.variables(1).data);
+maxval = max(sam.variables{1}.data);
+minval = min(sam.variables{1}.data);
 range = abs(maxval - minval);
 
 % randomly insert 5 % spikes
@@ -95,8 +95,8 @@ disp([num2str(num_samples) ' samples, ' ...
 
 for k = 1:length(spikes)
   
-  if mod(k,2), sam.variables(1).data(spikes(k)) = maxval + range*rand(1,1);
-  else         sam.variables(1).data(spikes(k)) = minval - range*rand(1,1);
+  if mod(k,2), sam.variables{1}.data(spikes(k)) = maxval + range*rand(1,1);
+  else         sam.variables{1}.data(spikes(k)) = minval - range*rand(1,1);
   end
   
 end
@@ -118,7 +118,7 @@ if nargin == 0
     func = str2func(name);
     
     % run filter
-    data = sam.variables(1).data;
+    data = sam.variables{1}.data;
     [data,flags,log] = func(sam,data,1);
     
     flags = find(flags == spikeFlag);
@@ -133,7 +133,7 @@ else
   routine = [routine 'DespikeQC'];
   spikeFunc = str2func(routine);
  
-  data = sam.variables(1).data;
+  data = sam.variables{1}.data;
   [data,flags,log] = spikeFunc(sam, data,1);
   
   flags = find(flags == spikeFlag);

@@ -66,7 +66,7 @@ disp(['running data through inWaterQC and outWaterQC']);
 
 for k = 1:length(sample_data.variables)
   
-  s = sample_data.variables(k);
+  s = sample_data.variables{k};
   data = s.data;
   
   idata = inWaterQC( sample_data, data, k);
