@@ -5,78 +5,44 @@
 
 = Toolbox Data Structures =
 
-Data is passed around the Toolbox in the two Matlab structs:
+Data from one deployment is passed around the Toolbox in a matlab struct called `sample_data`. This struct contains all of the data and metadata associated with a deployment; it is more or less in the same structure as the resulting NetCDF file.
 
- * `sample_data`: Contains the sample data.
- * `cal_data`: Contains calibration and metadata.
+The `sample_data` struct originates in the [ParserSpecification Parser] module, when the input data is first loaded. When data from multiple deployments are passed around, they are passed in a cell array.
 
-I made the choice to separate sample data from calibration data for coupling/cohesion reasons. It may end up being a better idea to just put all the data into one struct, but I'm going with the two for now.
-
-Both of these structs originate in the [ParserSpecification Parser] module, when the input data is first loaded.
-
-These structs may be passed around in different ways depending on where you are in the toolbox; for example,the automatic QC routines work on a single `sample_data`/`cal_data` pair, whereas the `importManager` returns a cell array of `sample_data`/`cal_data` pairs, as the different pairs are sourced from different instruments. 
-
-The following sections define scalar instances of `sample_data`/`cal_data` structs.
+The following sections define scalar instances of `sample_data` structs.
 
 == sample_data ==
 
-`sample_data` is a scalar struct which contain sample data. 
+`sample_data` is a scalar struct which contain sample data/metadata. The most important fields are as follows:
 
-The `sample_data` struct elements have the following structure:
  * `sample_data`: struct
    * `level`: Data process level (Numeric)
    * `log`: Cell array of strings forming a log of the processing which has occurred on the data.
-   * `dimensions`: Vector of structs:
+   * `dimensions`: Cell array of structs:
      * `name`: IMOS compliant dimension name (String)
      * `data`: Vector of dimension data (Numeric)
-   * `parameters`: vector of structs
+   * `variables`: Cell array of structs:
      * `name`: IMOS compliant parameter name (String)
-     * `comment`: Optional human readable comment (String)
-     * `dimensions`: Vector of indices into the `dimensions` vector (Numeric)
+     * `dimensions`: Vector of indices into the `dimensions` array (Numeric)
      * `data`: Matrix of data (Numeric)
      * `flags`: Single flag, or matrix of flags (Single character - see below)
 
 === Notes ===
 
- * It is assumed that time is always the first element of the `dimensions` struct, the first element of every `parameters.dimensions` vector, and the first dimension of the `parameters.data` matrices. This implies that single dimensional data must be stored as column vectors.
- * The `parameters.dimensions` array must be in the same order as the `parameters.data` matrix indices.
+ * It is assumed that time is always the first element of the `dimensions` array, the first element of every `variables.dimensions` vector, and the first dimension of the `variables.data` matrices. This implies that single dimensional data must be stored as column vectors.
+ * The `parameters.dimensions` array must be in the same order as the `variables.data` matrix indices.
  * Automatic and manual QC procedures should add to the log array when they modify any data.
 
 === Flagged data ===
 
-The `flags` field in the `parameters` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). If the `flags` field is a single character, that flag value applies to all of the data. Otherwise, if it is a matrix, a single flag value is proivided for every element in the `data` matrix.
+The `flags` field in the `variables` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). If the `flags` field is a single character, that flag value applies to all of the data. Otherwise, if it is a matrix, a single flag value is proivided for every element in the `data` matrix.
 
-The flag values are defined in Section 6.2 of the IMOS NetCDF User's Manual. Meanings of flag values differ depending on the Quality Control Set in use (see the `qc_set` field in the `cal_data` struct below).
-
-== cal_data ==
-
-The `cal_data` struct contains instrument/deployment metadata information, and instrument calibration information (if this information is available). The contents of `cal_data`  may be different depending on how much calibration information is available in the raw data file and the deployment database.
-
-A minimal `cal_data` struct should contain the following:
- * `cal_data`
-   * `creation_date`: Date that this data set was created
-   * `field_trip_id`: Field Trip ID (Numeric - key into DDB !FieldTrip table)
-   * `instrument_make`: e.g. 'Seabird (String)
-   * `instrument_model`: e.g. 'SBE37' (String)
-   * `instrument_firmware`: e.g. '2.6a' (String)
-   * `instrument_serial`: e.g. '6082' (String)
-   * `in_water_time`: Time that the instrument was first in the water. This time is used to determine the time of the first valid sample (Numeric)
-   * `out_water_time`: Time that the instrument was first out of the water. This time is used to determine the time of the last valid sample (Numeric)
-   * `qc_set`: Quality Control set in use (Numeric - see section 6.2 of the IMOS NetCDF User's Manual)
-   * `parameters`: Vector of structs
-     * `deployment_id`: Deployment ID (String - key into DDB !DeploymentData table)
-     * `name`: IMOS compliant parameter name (String)
-     * `max_value`: Minimum allowable value (Numeric)
-     * `min_value`: Maximum allowable value (Numeric)
-
-=== Notes ===
-
- * The `parameters` structs in both `sample_data` and `cal_data` contain the same parameters, in the same order.
+The flag values are defined in Section 6.2 of the IMOS NetCDF User's Manual. Meanings of flag values differ depending on the Quality Control Set in use.
 
 == Relationship ==
 
-There is a one to one relationship between a `sample_data` struct and a `cal_data` struct; in other words, these structs always come in pairs. A `sample_data`/`cal_data` pair contains data corresponding to one physical instrument, e.g. an SBE37. One instrument may have multiple sensors; each element in the `parameters` vector corresponds to one sensor.
+A `sample_data` struct contains data corresponding to one physical instrument, e.g. an SBE37. One instrument may have multiple sensors; each element in the `variables` array corresponds to one sensor.
 
-A `sample_data`/`cal_data` pair maps directly to one entry in the !FieldTrip table in the [DeploymentDatabase DDB]. There will likely be multiple instruments per field trip, so multiple `sample_data`/`cal_data` pairs may map to the same field trip. These pairs may be passed around within the toolbox as a pair of cell arrays of each type of struct. Each `parameter` vector maps to one entry in the !DeploymentData table, thus maps to one entry in each of the Instruments and Sensors tables.
+A `sample_data` struct maps directly to one entry in the !FieldTrip table in the [DeploymentDatabase DDB]. There will likely be multiple instruments per field trip, so multiple `sample_data` structs may map to the same field trip. These structs may be passed around within the toolbox as a cell array. Each `variables` struct maps to one entry in the !DeploymentData table, thus maps to one entry in each of the Instruments and Sensors tables.
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/data_structure_relationship.png
