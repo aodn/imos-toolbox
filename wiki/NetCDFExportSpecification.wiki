@@ -3,16 +3,14 @@
 
 <wiki:toc/>
 
-= NetCDF Exporter =
+= NetCDF Compliance =
 
-The NetCDF exporter generates IMOS compliant NetCDF files, using information from `sample_data`/`cal_data` structs, and from corresponding entries in the deployment database.
-
-The exporter uses a set of 'template' files, which specify NetCDF attribute values in three different ways:
+A function called `makeNetCDFCompliant` is called after data has been imported; this function uses a set of 'template' files, which specify NetCDF attribute values in three different ways:
  * Literal strings
  * Matlab expressions
  * Deployment Database queries.
 
-When required, the exporter reads in a template, runs any DDB queries and executes any matlab expressions which are specified in the template, and produces the NetCDF file from the values provided by the template.
+When required, the template engine reads in a template, runs any DDB queries and executes any matlab expressions which are specified in the template, and adds the results to the `sample_data` struct in question.
 
 A template file is a list of `name=value` pairs. The `value` section may contain, as listed above, literal strings, matlab expressions, database queries, or a combination of all three.
 
@@ -47,7 +45,7 @@ local_time_zone = {ddb TimeZone}
 the value will be translated into a query to the deployment database of the form:
   {{{
 select TimeZone from DeploymentData 
-where DeploymentID = cal_data.deployment_id
+where DeploymentID = sample_data.variables{k}.deployment_id
   }}}
 
 2. For the attribute definition:
@@ -59,7 +57,7 @@ the value will be translated into the following query:
 select Organisation from Personnel where StaffID = 
 (
   select PersonnelDownload from DeploymentData
-  where DeploymentID = cal_data.deployment_id
+  where DeploymentID = sample_data.variables{k}.deployment_id
 )
   }}}
 
@@ -76,17 +74,16 @@ so:
 The following 'workspace' is available to these embedded statements:
 
  * `sample_data`: the struct containing sample data, which is passed to this function.
- * `cal_data`: the struct containing calibration/metadata, which is passed to this function.
- * `k`: (only if the template is a data attribute template) the parameter index passed to this function.
+ * `k`: (only if the template is a data attribute template) the variable index passed to this function.
 
 For example, for the attribute definition:
 {{{
-  quality_control_set = {mat num2str(cal_data.qc_set)}
+  quality_control_set = {mat num2str(readToolboxProperty('toolbox.qc_set'))}
 }}}
 
 the attribute value will be the value of the matlab statment:
 {{{
-  num2str(cal_data.qc_set)
+  num2str(readToolboxProperty('toolbox.qc_set'))
 }}}
 
 == Combinations ==
@@ -95,7 +92,7 @@ You can combine each method of defining values, as shown in the following exampl
 
  #. 
  {{{
-qc_param_name = {mat sample_data.parameters(k).name}_QC
+qc_param_name = {mat sample_data.variables{k}.name}_QC
  }}}
  #.
  {{{
@@ -104,5 +101,9 @@ author = {ddb PersonnelDownload Personnel StaffID FirstName} \
  }}}
  #. 
  {{{
-title = {mat cal_data.field_trip_id}: {ddb Site Sites ResearchActivity}
+title = {mat sample_data.field_trip_id}: {ddb Site Sites ResearchActivity}
  }}}
+
+= NetCDF Exporter =
+
+The NetCDF exporter generates IMOS compliant NetCDF files, using information from the `sample_data` struct. The `sample_data` structs are maintained in more or less the same format that is required by the IMOS NetCDF standard, so the exporter's job is very simple.
