@@ -226,10 +226,6 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   %              be empty.
   %   newValue - new field value.
   %
-    disp(' ');
-    disp(['oldName: *' oldName  '*']);
-    disp(['newName: *' newName  '*']);
-    disp(['newValu: *' newValue '*']);
     
     % figure out the struct to which the changes are being applied
     structName = 'sample_data';
@@ -265,23 +261,18 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
     % new field
     if isempty(oldName)
       eval([structName '.' newName ' = ' newValue ';']);
-      disp([structName '.' newName ' = ' newValue ';']);
     
     % delete field
     elseif isempty(newName)
       eval([structName ' = rmfield(' structName, ',''' oldName ''');']);
-      disp([structName ' = rmfield(' structName, ',''' oldName ''');']);
 
     % existing value change
     elseif strcmp(oldName, newName)
       eval([structName '.' newName ' = ' newValue ';']);
-      disp([structName '.' newName ' = ' newValue ';']);
 
     % field name change
     else
-      disp([structName ' = rmfield(' structName ',''' oldName ''');']);
       eval([structName ' = rmfield(' structName ',''' oldName ''');']);
-      disp([structName '.' newName ' = ' newValue ';']);
       eval([structName '.' newName ' = ' newValue ';']);
     end
   end
