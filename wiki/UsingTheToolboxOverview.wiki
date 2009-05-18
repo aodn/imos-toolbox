@@ -24,7 +24,7 @@ Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the fo
   * `C:\imos-toolbox\AutomaticQC`
   * `C:\imos-toolbox\DDB`
   * `C:\imos-toolbox\FlowManager`
-  * 'C:\imos-toolbox\Graph'
+  * `C:\imos-toolbox\Graph`
   * `C:\imos-toolbox\GUI`
   * `C:\imos-toolbox\IMOS`
   * `C:\imos-toolbox\Java`
