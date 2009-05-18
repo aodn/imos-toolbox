@@ -5,7 +5,7 @@
 
 = Using the Toolbox =
 
-This page describes the state of the toolbox at [http://code.google.com/p/imos-toolbox/source/browse/?r=270 revision 270] (07 May 2009). The trunk changes quickly, so these instructions are likely already out of date.
+This page describes the state of the toolbox at [http://code.google.com/p/imos-toolbox/source/browse/?r=315 revision 315270] (18 May 2009 13:20). The trunk changes quickly, so these instructions may already be out of date.
 
 This page gives a brief overview on how to configure and use the toolbox. As development of the toolbox progresses, this page will be updated. Additionally, my aim is to reduce the amount of work required to configure the toolbox.
 
@@ -17,13 +17,14 @@ Before you can use the toolbox, you must configure the matlab path and deploymen
 
 === Matlab path ===
 
-The toolbox root, and every subdirectory within the toolbox root must be on the matlab path. In other words, you must add the following list of directories (valid as of the 7th May 2009) to your matlab path, either by setting the `MATLABPATH` environment variable, or, within matlab, using the 'Set Path' dialog, which is accessed via 'File'->'Set Path'. 
+The toolbox root, and every subdirectory within the toolbox root must be on the matlab path. In other words, you must add the following list of directories (valid as of the 18th May 2009) to your matlab path, either by setting the `MATLABPATH` environment variable, or, within matlab, using the 'Set Path' dialog, which is accessed via 'File'->'Set Path'. 
 
 Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the following directories to the path:
   * `C:\imos-toolbox\`
   * `C:\imos-toolbox\AutomaticQC`
   * `C:\imos-toolbox\DDB`
   * `C:\imos-toolbox\FlowManager`
+  * 'C:\imos-toolbox\Graph'
   * `C:\imos-toolbox\GUI`
   * `C:\imos-toolbox\IMOS`
   * `C:\imos-toolbox\Java`
@@ -54,21 +55,15 @@ C:\imos-toolbox\Java\bin
 
 == Startup ==
 
-The GUI is currently quite limited in what you can achieve. All you can really do is choose which data you wish to import; you are then left to your own devices in the matlab command window as to what you do with the data. 
-
-The toolbox is currently started via the `importManager` function, which prompts you for the data you wish to import, then loads and returns the data as `sample_data` and `cal_data` cell arrays (see the [DataStructures data structures] overview for the layout of these structures).
+The toolbox is currently started via the `flowManager` function, which prompts you for the data you wish to import, then loads and displays the data.
 
 Start the toolbox like so:
 {{{
->> [s c m] = importManager
+>> flowManager
 }}}
 
-The import manager returns 3 output arguments:
- * `s`: A cell array of `sample_data` structs, one for the data that was imported from each physical instrument.
- * `c`: A cell array of `cal_data` structs, corresponding to the `sample_data` structs in `s`.
- * `m`: A vector of `DeploymentData` structs, containing any deployments for which the data could not be imported (e.g. if the information in the ddb was incorrect, or the raw data files were missing).
 
-When you start the import manager, you are first presented with the following dialog:
+When you start the flow manager, you are first presented with the following dialog:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_startDialog.png
 
@@ -92,4 +87,10 @@ When you are happy with the list of deployments for which data is to be imported
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_importProgress.png
 
-When the data has been imported, you will be presented ... no, wait ... from here on in, you're on your own.
+When the data has been imported, you will be presented with the main window, which allows you to view the sample data:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window.png
+
+You can also view and modify metadata:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_metadata.png
