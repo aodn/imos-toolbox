@@ -91,7 +91,7 @@ function displayManager( fieldTrip, sample_data,...
         viewMetadata(panel, fieldTrip, sample_data, updateCallback);
         
       case 'Raw data' 
-        graphFunc = getGraph(graphType);
+        graphFunc = str2func(graphType);
         graphFunc(panel, sample_data, vars, dim);
 
     end

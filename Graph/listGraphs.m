@@ -63,7 +63,7 @@ for file = files'
 
   %if name is of the pattern "graph*.m", add 
   %it to the list of available graphs
-  token = regexp(file.name, '^graph(.+)\.m$', 'tokens');
+  token = regexp(file.name, '^(graph.+)\.m$', 'tokens');
 
   %add the graph name to the list
   if ~isempty(token), graphs{end + 1} = token{1}{1}; end
