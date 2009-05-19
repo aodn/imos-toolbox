@@ -134,7 +134,11 @@ public class JDBCDDB extends DDB {
           if (f.isSynthetic()) continue;
           
           Object o = rs.getObject(f.getName());
-          if (o != null) f.set(instance, o);
+
+          //all numeric values must be doubles
+          if (o instanceof Integer) o = (double)((Integer)o).intValue();
+            
+          f.set(instance, o);
         }
       }
     }
