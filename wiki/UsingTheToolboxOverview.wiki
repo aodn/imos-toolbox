@@ -52,7 +52,7 @@ THe ddb is accessed via Java code, thus you must also compile this code, and let
 
 ==== Compiling the Java code ====
 
-See the Building section on the DeploymentDatabase page for instructions on how to compile the Java DDB code.
+See the Building section on the DeploymentDatabase page for instructions on how to compile the Java DDB code. If you are unable to do this on your computer, [http://code.google.com/u/pauld.mccarthy/ email me] and I can send you the binary files.
 
 ==== Configuring Matlab ====
 
