@@ -148,14 +148,46 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
     
     % create the table
     table = uitable(...
-      'Visible',           'off',...
-      'RowName',          [],...
-      'RowStriping',      'on',...
-      'ColumnName',       {'Name', 'Value'},...
-      'ColumnEditable',   [true    true],...
-      'ColumnFormat',     {'char', 'char'},...
-      'CellEditCallback', @cellEditCallback,...
-      'Data',             data);
+      'Visible',                'off',...
+      'RowName',               [],...
+      'RowStriping',           'on',...
+      'ColumnName',            {'Name', 'Value'},...
+      'ColumnEditable',        [true    true],...
+      'ColumnFormat',          {'char', 'char'},...
+      'CellEditCallback',      @cellEditCallback,...
+      'CellSelectionCallback', @cellSelectCallback,...
+      'KeyPressFcn',           @keyPressCallback,...
+      'Data',                  data);
+    
+    selectedCells = [];
+    
+    function cellSelectCallback(source,ev)
+    %CELLSELECTCALLBACK Updates the selectedCells variable whenever the
+    % cell selection changes. The uitable provides no ability to query the
+    % currently selected cells, so we have to use this callback. Matlab
+    % sucks.
+      selectedCells = ev.Indices;
+    end
+    
+    function keyPressCallback(source,ev)
+    %KEYPRESSCALLBACK Allows the user to delete fields by selecting them
+    % and hitting the delete key.
+    %
+      if strcmp(ev.Key, 'delete')
+        
+        % get selected row numbers
+        selectedRows = selectedCells(:,1);
+        
+        % if any row names are empty, don't delete them (this preserves the 
+        % empty cell at the bottom that allows the user to add new fields)
+        selectedRows(cellfun(@isempty, {data{selectedRows,1}})) = [];
+        
+        % delete the selected fields, update the GUI
+        data(selectedRows,:) = [];
+        set(table, 'Data', data);
+        updateCallback(sample_data);
+      end
+    end
 
     function cellEditCallback(source,ev)
     %CELLEDITCALLBACK Called when the user edits a cell. 
@@ -176,7 +208,13 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
       end
       
       % apply the update
-      applyUpdate(prefix, oldName, newName, newValue);
+      try
+        applyUpdate(prefix, oldName, newName, newValue);
+      catch e
+        errordlg(e.message, 'Error');
+        set(table, 'Data', data);
+        return;
+      end
       
       % notify GUI of change to data
       updateCallback(sample_data);
