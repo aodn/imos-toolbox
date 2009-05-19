@@ -124,6 +124,8 @@ function strs = java2struct(list)
           strs(k+1).(field) = double(val.booleanValue());
         case 'java.util.Date',
           strs(k+1).(field) = num2str(datenum(char(val.toLocaleString())));
+        case 'java.sql.Timestamp',
+          strs(k+1).(field) = num2str(datenum(char(val.toLocaleString())));
       end
     end
   end
