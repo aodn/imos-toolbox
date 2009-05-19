@@ -105,8 +105,16 @@ public class JDBCDDB extends DDB {
       
       //build the query
       String query = "select * from " + tableName;
-      if (fieldName != null) 
-        query += " where " + fieldName + " = '" + fieldValue + "'";
+      if (fieldName != null) {
+
+        if (fieldValue == null)
+          throw new Exception("a fieldValue must be provided");
+
+        //wrap strings in quotes
+        if (fieldValue instanceof String) fieldValue = "'" + fieldValue + "'";
+
+        query += " where " + fieldName + " = " + fieldValue;
+      }
       
       //execute the query
       Statement stmt = conn.createStatement();
