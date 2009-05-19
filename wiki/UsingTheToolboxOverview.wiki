@@ -5,7 +5,7 @@
 
 = Using the Toolbox =
 
-This page describes the state of the toolbox at [http://code.google.com/p/imos-toolbox/source/browse/?r=315 revision 315] (18 May 2009 13:20). The trunk changes quickly, so these instructions may already be out of date.
+This page describes the state of the toolbox at [http://code.google.com/p/imos-toolbox/source/browse/?r=315 revision 322] (19 May 2009 10:22). The trunk changes quickly, so these instructions may already be out of date.
 
 This page gives a brief overview on how to configure and use the toolbox. As development of the toolbox progresses, this page will be updated. Additionally, my aim is to reduce the amount of work required to configure the toolbox.
 
@@ -48,7 +48,15 @@ Under Windows, the deployment database (hereafter referred to as the ddb) is acc
 
 Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name.
 
-THe ddb is accessed via Java code, thus you must also let Matlab know where the Java classes are, by editing `classpath.txt`. Assuming that matlab is installed in `C:\matlab`, and the toolbox is installed in `C:\imos-toolbox`, add the following line to the file `C:\matlab\toolbox\local\classpath.txt`:
+THe ddb is accessed via Java code, thus you must also compile this code, and let Matlab know where the Java classes are, by editing `classpath.txt`. 
+
+==== Compiling the Java code ====
+
+See the Building section on the DeploymentDatabase page for instructions on how to compile the Java DDB code.
+
+==== Configuring Matlab ====
+
+Assuming that matlab is installed in `C:\matlab`, and the toolbox is installed in `C:\imos-toolbox`, add the following line to the file `C:\matlab\toolbox\local\classpath.txt`:
 {{{
 C:\imos-toolbox\Java\bin
 }}}
