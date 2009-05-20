@@ -72,7 +72,7 @@ function displayManager( fieldTrip, sample_data,...
   mainWindow(fieldTrip, sample_data, states, 2, @selectCallback);
   
   function selectCallback(...
-    panel, updateCallback, state, sample_data, graphType, vars, dim)
+    panel, updateCallback, state, sample_data, graphType, set, vars, dim)
   %SELECTCALLBACK Called when the user pushes one of the 'state' buttons on
   % the main window. Populates the given panel as appropriate.
   %
@@ -80,19 +80,53 @@ function displayManager( fieldTrip, sample_data,...
   %   panel          - uipanel on which things can be drawn.
   %   updateCallback - function to be called when data is modified.
   %   state          - selected state (string).
-  %   sample_data    - current sample_data struct.
+  %   sample_data    - Cell array of sample_data structs
   %   graphType      - currently selected graph type (string).
+  %   set            - currently selected sample_data struct (index)
   %   vars           - currently selected variables (indices).
   %   dim            - currently selected dimension (index).
   %
     switch(state)
 
       case 'Metadata'
-        viewMetadata(panel, fieldTrip, sample_data, updateCallback);
+        viewMetadata(panel, fieldTrip, sample_data{set}, updateCallback);
         
       case 'Raw data' 
         graphFunc = str2func(graphType);
-        graphFunc(panel, sample_data, vars, dim);
+        graphFunc(panel, sample_data{set}, vars, dim);
+        
+      case 'Auto QC'
+        
+        % get the list of available routines, and 
+        % the default selection if it exists
+        routines = listAutoQCRoutines();
+        selected = [];
+        try
+          selected = str2num(readToolboxProperty('displayManager.autoQCChain'));
+        catch
+        end
+        
+        % open a dialog prompting the user to select a QC chain
+        selected = listSelectionDialog(...
+          'Select Automatic QC routines',...
+          routines,...
+          selected...
+        );
+      
+        % user cancelled dialog, or selected nothing
+        if isempty(selected), return; end
+      
+        % persist the selection
+        writeToolboxProperty('displayManager.autoQCChain', num2str(selected));
+        
+        selected = {routines{selected}};
+      
+        % run the QC chain
+        autoQCRequestCallback(sample_data, selected);
+        
+        % redisplay the data
+        graphFunc = str2func(graphType);
+        graphFunc(panel, sample_data{set}, vars, dim);
 
     end
   end
