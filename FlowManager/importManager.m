@@ -314,6 +314,8 @@ function sam = finaliseData(sam, fieldTrip, deployment)
     
     sam.variables{k}.deployment_id = deployment.DeploymentId;
     
+    sam.variables{k}.flags = [];
+    
     % we currently have no access to this information
     sam.variables{k}.valid_min = -99999.0;
     sam.variables{k}.valid_max =  99999.0;
