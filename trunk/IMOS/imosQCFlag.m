@@ -1,7 +1,7 @@
 function value = imosQCFlag( qc_class, qc_set, field )
-%IMOSQCFLAG Returns an appropriate QC flag value (String), description or set 
-% description for the given qc_class (String), using the given qc_set 
-% (integer).
+%IMOSQCFLAG Returns an appropriate QC flag value (String), description, color 
+% speck, or set description for the given qc_class (String), using the given 
+% qc_set (integer).
 
 % The QC sets definitions, descriptions, and valid flag values for each, are 
 % maintained in the file  'imosQCSets.txt' which is stored  in the same 
@@ -11,6 +11,7 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %   - the appropriate QC flag value to use for flagging data when using the 
 %     given QC set. 
 %   - a human readable description of the flag meaning.
+%   - a ColorSpec which should be used when displaying the flag
 %   - a human readable description of the qc set.
 %
 % Inputs:
@@ -24,7 +25,7 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %              the first qc set defined in the imosQCSets.txt file.
 %
 %   field    - String which defines what the return value is. Must be one
-%              of 'flag', 'desc' or 'set_desc'.
+%              of 'flag', 'desc', 'set_desc' or 'color'.
 %
 % Outputs:
 %   value    - One of the flag value, flag description, or set description.
@@ -81,8 +82,8 @@ try
   if fid == -1, return; end
 
   % read in the QC sets and flag values for each set
-  sets = textscan(fid, '%f%s', 'delimiter', ',', 'commentStyle', '%');
-  flags = textscan(fid, '%f%s%s%s', 'delimiter', ',', 'commentStyle', '%');
+  sets  = textscan(fid, '%f%s',       'delimiter', ',', 'commentStyle', '%');
+  flags = textscan(fid, '%f%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
   fclose(fid);
 
 catch e
@@ -103,11 +104,15 @@ if isempty(qc_set_idx), qc_set_idx = 1; end;
 set_desc = sets{2}(qc_set_idx);
 set_desc = set_desc{1};
 
+flag  = '';
+color = '';
+desc  = '';
+
 % find a flag entry with matching qc_set and qc_class values
 lines = find(flags{1} == qc_set);
 for k=1:length(lines)
   
-  classes = flags{4}{lines(k)};
+  classes = flags{5}{lines(k)};
   
   % dirty hack to get around matlab's lack of support for word boundaries
   classes = [' ' classes ' '];
@@ -115,8 +120,14 @@ for k=1:length(lines)
   % if this flag matches the class, we've found the flag value to return
   if ~isempty(regexpi(classes, ['\s' qc_class '\s'], 'match'))
     
-    flag = flags{2}{lines(k)};
-    desc = flags{3}{lines(k)};
+    flag  = flags{2}{lines(k)};
+    desc  = flags{3}{lines(k)};
+    color = flags{4}{lines(k)};
+    
+    % if color was specified numerically, convert it from a string
+    temp = str2num(color);
+    if ~isempty(temp), color = temp; end
+    
     break;
     
   end
@@ -125,5 +136,6 @@ end
 switch field
   case 'flag',     value = flag;
   case 'desc',     value = desc;
+  case 'color',    value = color;
   case 'set_desc', value = set_desc;
 end
