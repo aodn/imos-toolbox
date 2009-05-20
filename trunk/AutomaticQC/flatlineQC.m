@@ -73,8 +73,8 @@ nsamples = p.Results.nsamples;
 if nsamples < 2, nsamples = 2; end
 
 qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
-goodFlag = imosQCFlag('good',        qc_set);
-flatFlag = imosQCFlag('probablyBad', qc_set);
+goodFlag = imosQCFlag('good',        qc_set, 'flag');
+flatFlag = imosQCFlag('probablyBad', qc_set, 'flag');
 
 log      = {};
 flags    = zeros(length(data), 1);
