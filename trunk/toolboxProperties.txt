@@ -25,3 +25,4 @@ startDialog.dataDir = /home/paul/Documents/imos/aims_matlab_code/GM6Trip4814
 startDialog.fieldTrip = 4814
 startDialog.lowDate = 730486
 startDialog.highDate = 734138
+displayManager.autoQCChain = 1  2  3  4
