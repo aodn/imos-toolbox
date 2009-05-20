@@ -62,8 +62,8 @@ log = {};
 
 % get the flag values with which we flag good and out of range data
 qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
-rangeFlag = imosQCFlag('bound', qc_set);
-goodFlag  = imosQCFlag('good',  qc_set);
+rangeFlag = imosQCFlag('bound', qc_set, 'flag');
+goodFlag  = imosQCFlag('good',  qc_set, 'flag');
 
 % initialise all flags to good
 flags    = zeros(length(data),1);

@@ -1,11 +1,17 @@
-function [ flag desc set_desc ] = imosQCFlag( qc_class, qc_set )
-%IMOSQCFLAG Returns an appropriate QC flag value (String) for the given 
-% qc_class (String), using the given qc_set (integer).
+function value = imosQCFlag( qc_class, qc_set, field )
+%IMOSQCFLAG Returns an appropriate QC flag value (String), description or set 
+% description for the given qc_class (String), using the given qc_set 
+% (integer).
+
+% The QC sets definitions, descriptions, and valid flag values for each, are 
+% maintained in the file  'imosQCSets.txt' which is stored  in the same 
+% directory as this m-file.
 %
-% The value returned by this function is the appropriate QC flag value to use
-% for flagging data when using the given QC set. The QC sets, and valid flag 
-% values for each, are maintained in the file 'imosQCSets.txt' which is stored 
-% in the same directory as this m-file.
+% The value returned by this function is one of:
+%   - the appropriate QC flag value to use for flagging data when using the 
+%     given QC set. 
+%   - a human readable description of the flag meaning.
+%   - a human readable description of the qc set.
 %
 % Inputs:
 %
@@ -17,13 +23,11 @@ function [ flag desc set_desc ] = imosQCFlag( qc_class, qc_set )
 %              If it does not map to a supported QC set, it is assumed to be 
 %              the first qc set defined in the imosQCSets.txt file.
 %
+%   field    - String which defines what the return value is. Must be one
+%              of 'flag', 'desc' or 'set_desc'.
+%
 % Outputs:
-%   flag     - a String containing the appropriate flag value to use.
-%
-%   desc     - a String containing a human readable description of what the 
-%              flag means.
-%
-%   set_desc - a String containing a human readable description of the QC set.
+%   value    - One of the flag value, flag description, or set description.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -58,13 +62,12 @@ function [ flag desc set_desc ] = imosQCFlag( qc_class, qc_set )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(2, 2, nargin));
+error(nargchk(3, 3, nargin));
 if ~ischar(qc_class),  error('qc_class must be a string'); end
-if ~isnumeric(qc_set), error('qc_set must be numeric'); end
+if ~isnumeric(qc_set), error('qc_set must be numeric');    end
+if ~ischar(field),     error('field must be a string');    end
 
-flag     = '';
-desc     = '';
-set_desc = '';
+value = '';
 
 % open the IMOSQCSets file - it should be 
 % in the same directory as this m-file
@@ -117,4 +120,10 @@ for k=1:length(lines)
     break;
     
   end
+end
+
+switch field
+  case 'flag',     value = flag;
+  case 'desc',     value = desc;
+  case 'set_desc', value = set_desc;
 end

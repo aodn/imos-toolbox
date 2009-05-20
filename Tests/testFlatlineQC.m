@@ -50,8 +50,8 @@ sample_data = genTestData(...
   [10,10,10],[100,100,100],[10,10,10],[100,100,100]);
 
 qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
-goodFlag = imosQCFlag('good',        qc_set);
-flatFlag = imosQCFlag('probablyBad', qc_set);
+goodFlag = imosQCFlag('good',        qc_set, 'flag');
+flatFlag = imosQCFlag('probablyBad', qc_set, 'flag');
 
 % each element is a Nx2 matrix, one for each variable
 % N == num flatline regions for this variable

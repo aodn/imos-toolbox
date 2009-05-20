@@ -76,8 +76,8 @@ k_param = p.Results.k_param;
 fdata = data;
 
 qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
-goodFlag  = imosQCFlag('good',  qc_set);
-spikeFlag = imosQCFlag('spike', qc_set);
+goodFlag  = imosQCFlag('good',  qc_set, 'flag');
+spikeFlag = imosQCFlag('spike', qc_set, 'flag');
 
 flags    = zeros(length(fdata), 1);
 flags(:) = goodFlag;
