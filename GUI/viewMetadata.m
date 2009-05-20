@@ -75,7 +75,7 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   
   vars = sample_data.variables;
   for k = 1:length(vars), 
-    vars{k} = rmfield(vars{k}, {'data', 'dimensions'}); 
+    vars{k} = rmfield(vars{k}, {'data', 'dimensions', 'flags'}); 
   end
   
   % create a cell array containing global attribute data
