@@ -124,7 +124,9 @@ function selected = listSelectionDialog( title, allOpts, initialOpts )
 
   set(f, 'Visible', 'on');
   uiwait(f);
-  selected = find(ismember(allOpts,selected));
+  
+  % turn selections into indices into the original list of options
+  if ~isempty(selected), selected = find(ismember(allOpts,selected)); end
 
   %% Callback functions
   
