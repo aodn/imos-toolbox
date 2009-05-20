@@ -1,16 +1,21 @@
-function graphs = graphTimeSeries( ...
-  parent, sample_data, vars, dimension )
+function [graphs lines flags] = graphTimeSeries( ...
+  parent, sample_data, vars, dimension, displayFlags )
 %GRAPHTIMESERIES Graphs the given data in a time series style using subplots.
 %
 % Inputs:
-%   parent       - handle to the parent container.
-%   sample_data  - struct containing sample data.
-%   vars         - Indices of variables that should be graphed..
-%   dimension    - index into the sample_data.dimensions vector, indicating
-%                  which dimension should be the x axis.
+%   parent             - handle to the parent container.
+%   sample_data        - struct containing sample data.
+%   vars               - Indices of variables that should be graphed..
+%   dimension          - index into the sample_data.dimensions vector, 
+%                        indicating which dimension should be the x axis.
+%   displayFlags       - Optional. Boolean. If true, the 
+%                        sample_data.variables(x).flags values are displayed.
 %
 % Outputs:
-%   graphs      - handles to axes on which the data has been graphed.
+%   graphs             - handles to axes on which the data has been graphed.
+%   lines              - handles to lines which have been drawn.
+%   flags              - handles to flags which have been drawn. Empty if
+%                        no flags were drawn.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -44,7 +49,9 @@ function graphs = graphTimeSeries( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(4,4,nargin));
+  error(nargchk(4,5,nargin));
+  
+  if nargin == 4, displayFlags = false; end
   
   if ~ishandle( parent),       error('parent must be a handle');            end
   if ~isstruct( sample_data),  error('sample_data must be a struct');       end
@@ -52,9 +59,11 @@ function graphs = graphTimeSeries( ...
   || ~isscalar( dimension),    error('dimension must be a scalar numeric'); end
 
   if ~isnumeric(vars),         error('vars must be a numeric');             end
+  if ~islogical(displayFlags), error('displayFlags must be a logical');     end
   
   graphs = [];
   lines  = [];
+  flags  = [];
   
   if isempty(vars), return; end
   
@@ -84,6 +93,23 @@ function graphs = graphTimeSeries( ...
     lines(k) = line(sample_data.dimensions{dimension}.data, ...
                     sample_data.variables{k}         .data,...
                     'Color', col);
+    
+    % overlay flags if needed
+    if displayFlags
+      
+      dim  = sample_data.dimensions{dimension}.data;
+      f    = sample_data.variables{k}.flags;
+      data = sample_data.variables{k}.data;
+      
+      f = find(f);
+      
+      flags(k) = line(dim(f), data(f), ...
+        'LineStyle',       'none',...
+        'Marker',          'o',...
+        'MarkerEdgeColor', 'k',...
+        'MarkerFaceColor', 'g',...
+        'MarkerSize',       8);
+    end
     
     % set x labels and ticks on graph 1
     xLabel = sample_data.dimensions{dimension}.name;
