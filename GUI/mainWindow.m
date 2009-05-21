@@ -171,6 +171,17 @@ function mainWindow(...
     set(stateButtons(k), 'Position', [0.0, 0.3+(n-k)*(0.7/n), 1.0, 0.7/n]);
   end
   
+  % reset back to pixels
+  set(fig,          'Units', 'pixels');
+  set(sidePanel,    'Units', 'pixels');
+  set(mainPanel,    'Units', 'pixels');
+  set(varPanel,     'Units', 'pixels');
+  set(sampleMenu,   'Units', 'pixels');
+  set(graphMenu,    'Units', 'pixels');
+  set(stateButtons, 'Units', 'pixels');
+  set(varPanel,     'Units', 'pixels');
+  set(stateButtons, 'Units', 'pixels');
+  
   % set callbacks - variable panel widget 
   % callbacks are set in createParamPanel
   set(sampleMenu,   'Callback', @sampleMenuCallback);
@@ -318,6 +329,7 @@ function mainWindow(...
         'Units',    'normalized',...
         'Position', [0.0, (n-m+1)/(n+1), 1.0, 1/(n+1)]);
     end
+    set(checkboxes, 'Units', 'pixels');
         
     % add dimension menu - again, the getSelectedVars function assumes
     % that the indices into the menu options line up with the 
@@ -334,6 +346,7 @@ function mainWindow(...
       'Units',    'normalized',...
       'Callback', @varPanelCallback,...
       'Position', [0.0, 0.0, 1.0, 1/(n+1)]);
+    set(dimMenu, 'Units', 'pixels');
     
     % the dimension menu and checkboxes are saved in UserData field to 
     % make them easy to retrieve in the getSelectedVars function

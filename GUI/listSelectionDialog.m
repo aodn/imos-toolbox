@@ -104,6 +104,17 @@ function selected = listSelectionDialog( title, allOpts, initialOpts )
   set(remButton,     'Position', [0.4, 0.45, 0.1, 0.1]);
   set(addButton,     'Position', [0.4, 0.55, 0.1, 0.1]);
   
+  % reset back to pixels
+  set(f,             'Units', 'pixels');
+  set(selList,       'Units', 'pixels');
+  set(nSelList,      'Units', 'pixels');
+  set(addButton,     'Units', 'pixels');
+  set(remButton,     'Units', 'pixels');
+  set(upButton,      'Units', 'pixels');
+  set(downButton,    'Units', 'pixels');
+  set(confirmButton, 'Units', 'pixels');
+  set(cancelButton,  'Units', 'pixels');
+  
   % set callback functions
   set(f,             'WindowKeyPressFcn', @keyPressCallback);
   set(addButton,     'Callback',          @addButtonCallback);
