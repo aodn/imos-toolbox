@@ -105,6 +105,13 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   set(fileAddButton,    'Position', [0.5, 0.45, 0.5, 0.05]);
   set(depList,          'Position', [0.0, 0.50, 1.0, 0.45]);
   set(depRemoveButton,  'Position', [0.0, 0.95, 1.0, 0.05]);
+  
+  % reset back to pixel units
+  set(f,                                 'Units', 'pixels');
+  set([fileRemoveButton, fileAddButton], 'Units', 'pixels');
+  set([cancelButton, confirmButton],     'Units', 'pixels');
+  set(depRemoveButton,                   'Units', 'pixels');
+  set([depList, fileList],               'Units', 'pixels');
 
   % widget callbacks
   set(f,                'CloseRequestFcn', @cancelCallback);

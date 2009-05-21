@@ -120,17 +120,13 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   
   % create a tabbedPane which displays each table in a separate tab
   panel = tabbedPane(parent, tables, tableNames, true);
-
-  set(panel, 'Position', [0.0, 0.0, 1.0, 1.0]);
   
   % matlab is a piece of shit; column widths must be specified 
   % in pixels, so we have to get the table position in pixels 
   % to calculate the desired column width
   for k = 1:length(tables)
     
-    set(tables(k), 'Units', 'pixels');
     pos = get(tables(k), 'Position');
-    set(tables(k), 'Units', 'normalized');
     colWidth    = zeros(1,2);
     colWidth(1) = (pos(3) / 3);
     

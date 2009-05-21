@@ -105,6 +105,14 @@ function [year month day] = datePromptDialog(year,month,day)
   set(monthMenu,     'Position', [0.33, 0.5,  0.34, 0.5 ]);
   set(dayMenu,       'Position', [0.67, 0.5,  0.33, 0.5 ]);
   
+  % reset back to pixel units
+  set(f,             'Units', 'pixels');
+  set(yearMenu,      'Units', 'pixels');
+  set(monthMenu,     'Units', 'pixels');
+  set(dayMenu,       'Units', 'pixels');
+  set(cancelButton,  'Units', 'pixels');
+  set(confirmButton, 'Units', 'pixels');
+  
   % set widget callbacks
   set(f,             'CloseRequestFcn', @cancelCallback);
   set(cancelButton,  'Callback',        @cancelCallback);

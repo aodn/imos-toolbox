@@ -73,6 +73,8 @@ elseif ~islogical(useButtons), error('useButtons must be logical');          end
     'Position', [0.0, 0.0, 1.0, 0.95],...
     'Visible',  'off');
   
+  set(panel,   'Units', 'pixels');
+  set(tabs,    'Units', 'pixels');
   
   buttons = [];
 
@@ -90,6 +92,8 @@ elseif ~islogical(useButtons), error('useButtons must be logical');          end
         'Callback', @tabCallback);
     end
     
+    set(buttons, 'Units', 'pixels');
+    
     tabCallback(buttons(1), []);
     
   %popup menu instead of buttons
@@ -102,6 +106,8 @@ elseif ~islogical(useButtons), error('useButtons must be logical');          end
       'Units',    'normalized',...
       'Position', [0.0, 0.95, 1.0, 0.05],...
       'Callback', @tabCallback);
+    
+    set(menu, 'Units', 'pixels');
     
     tabCallback(menu, []);
   end

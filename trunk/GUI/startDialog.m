@@ -160,6 +160,13 @@ function [fieldTrip dataDir] = startDialog()
   set(dateStartButton, 'Position', [0.0,  0.75, 0.50,  0.25]);
   set(dateEndButton,   'Position', [0.5,  0.75, 0.50,  0.25]);
   
+  % reset back to pixels
+  set(f,                                'Units', 'pixels');
+  set([fidLabel,fidMenu],               'Units', 'pixels');
+  set([dirLabel, dirText, dirButton],   'Units', 'pixels');
+  set([cancelButton, confirmButton],    'Units', 'pixels');
+  set([dateStartButton, dateEndButton], 'Units', 'pixels');
+  
   % set widget callbacks
   set(f,               'CloseRequestFcn', @cancelCallback);
   set(dateStartButton, 'Callback',        @dateStartCallback);
