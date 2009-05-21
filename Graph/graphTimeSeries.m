@@ -50,7 +50,7 @@ function [graphs lines flags] = graphTimeSeries( ...
 % POSSIBILITY OF SUCH DAMAGE.
 %
   error(nargchk(4,5,nargin));
-  
+
   if nargin == 4, displayFlags = false; end
   
   if ~ishandle( parent),       error('parent must be a handle');            end
@@ -64,6 +64,8 @@ function [graphs lines flags] = graphTimeSeries( ...
   graphs = [];
   lines  = [];
   flags  = [];
+  
+  qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
   
   if isempty(vars), return; end
   
@@ -79,9 +81,9 @@ function [graphs lines flags] = graphTimeSeries( ...
     graphs(k) = subplot(length(sample_data.variables), 1, k);
     
     set(graphs(k), 'Parent', parent,...
-                   'Color',  'none',...
                    'Units',  'normalized',...
                    'XGrid',  'on',...
+                   'Color', 'none',...
                    'YGrid',  'on');
     
     % make sure line colour alternates; because we are creating 
@@ -97,18 +99,27 @@ function [graphs lines flags] = graphTimeSeries( ...
     % overlay flags if needed
     if displayFlags
       
+      hold on;
+      
       dim  = sample_data.dimensions{dimension}.data;
       f    = sample_data.variables{k}.flags;
       data = sample_data.variables{k}.data;
       
       f = find(f);
+      if isempty(f), continue; end
       
-      flags(k) = line(dim(f), data(f), ...
-        'LineStyle',       'none',...
-        'Marker',          'o',...
-        'MarkerEdgeColor', 'k',...
-        'MarkerFaceColor', 'g',...
-        'MarkerSize',       8);
+      fx = dim(f);
+      fy = data(f);
+      
+      % display flags in their appropriate colours
+      for m = 1:length(f)
+        
+        fc(m,:) = ...
+          imosQCFlag(sample_data.variables{k}.flags(f(m)), qc_set, 'color');
+      end
+      
+      flags(k) = scatter(graphs(k), fx, fy, 100, fc, 'filled',...
+        'MarkerEdgeColor', 'black');
     end
     
     % set x labels and ticks on graph 1

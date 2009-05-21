@@ -1,5 +1,12 @@
-function flowManager()
-%FLOWMANAGER Manages the overall flow of IMOS toolbox execution.
+function sample_data = autoQCManager( sample_data )
+%AUTOQCMANAGER Manages the execution of automatic QC routines over a set
+% of data.
+%
+% Inputs:
+%   sample_data - 
+%
+% Outputs:
+%   sample_data - 
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -33,40 +40,29 @@ function flowManager()
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+error(nargchk(1,1,nargin));
 
-  % import data
-  [fieldTrip sample_data skipped] = importManager();
-
-  % display data
-  displayManager(fieldTrip, sample_data,...
-                @autoQCRequestCallback,...
-                @manualQCRequestCallback,...
-                @exportRequestCallback);
+if ~iscell(sample_data)
+  error('sample_data must be a cell array of structs'); 
 end
 
-function sample_data = ...
-  autoQCRequestCallback(sample_data, updateCallback)
-%AUTOQCREQUESTCALLBACK Called when the user chooses to run auto QC
-% routines over the data. Delegates to the autoQCManager.
-%
-
-  sample_data = autoQCManager(sample_data);
+for k = 1:length(sample_data),
   
-  for k = 1:length(sample_data), updateCallback(sample_data{k}); end
-end
-
-function manualQCRequestCallback()
-  disp('manualQCRequestCallback');
-
-  %qcd_data = manualQCManager(selected_qc_routine data);
-  %display(qcd_data);
-
-end
-
-function exportRequestCallback()
-  disp('exportRequestCallback');
-
-  %for d in data
-  %  exportNetCDF(d);
-end
+  s = sample_data{k};
   
+  flagv = 1;
+  
+  for m = 1:length(s.variables)
+    v = s.variables{m};
+    
+    f = 1 + round(length(v.data) * rand(5,1));
+    
+    for n = 1:length(f)
+      v.flags(f(n)) = num2str(n);
+    end
+    
+    s.variables{m} = v;
+  end
+  
+  sample_data{k} = s;
+end
