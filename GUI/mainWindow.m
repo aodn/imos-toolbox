@@ -1,6 +1,6 @@
 function mainWindow(...
   fieldTrip, sample_data, states, startState, selectionCallback)
-%DATAWINDOW Displays a window which allows the user to view data.
+%MAINWINDOW Displays a window which allows the user to view data.
 %
 % The mainWindow is the main toolbox window. It provides menus allowing the
 % user to select the data set to use and the graph type to display (if a
