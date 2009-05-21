@@ -93,40 +93,16 @@ function displayManager( fieldTrip, sample_data,...
         
       case 'Raw data' 
         graphFunc = str2func(graphType);
-        graphFunc(panel, sample_data{set}, vars, dim);
+        graphFunc(panel, sample_data{set}, vars, dim, false);
         
       case 'Auto QC'
-        
-        % get the list of available routines, and 
-        % the default selection if it exists
-        routines = listAutoQCRoutines();
-        selected = [];
-        try
-          selected = str2num(readToolboxProperty('displayManager.autoQCChain'));
-        catch
-        end
-        
-        % open a dialog prompting the user to select a QC chain
-        selected = listSelectionDialog(...
-          'Select Automatic QC routines',...
-          routines,...
-          selected...
-        );
-      
-        % user cancelled dialog, or selected nothing
-        if isempty(selected), return; end
-      
-        % persist the selection
-        writeToolboxProperty('displayManager.autoQCChain', num2str(selected));
-        
-        selected = {routines{selected}};
       
         % run the QC chain
-        autoQCRequestCallback(sample_data, selected);
+        sample_data = autoQCRequestCallback(sample_data, updateCallback);
         
         % redisplay the data
         graphFunc = str2func(graphType);
-        graphFunc(panel, sample_data{set}, vars, dim);
+        graphFunc(panel, sample_data{set}, vars, dim, true);
 
     end
   end

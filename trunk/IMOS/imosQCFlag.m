@@ -1,6 +1,6 @@
 function value = imosQCFlag( qc_class, qc_set, field )
 %IMOSQCFLAG Returns an appropriate QC flag value (String), description, color 
-% speck, or set description for the given qc_class (String), using the given 
+% spec, or set description for the given qc_class (String), using the given 
 % qc_set (integer).
 
 % The QC sets definitions, descriptions, and valid flag values for each, are 
@@ -16,9 +16,10 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %
 % Inputs:
 %
-%   qc_class - must be one of the (case insensitive) strings listed in the 
-%              imosQCSets.txt file. If it is not equal to one of these strings, 
-%              the flag and desc return values will be empty.
+%   qc_class - If field is one of 'flag', 'desc' or 'set_desc', must be one 
+%              of the (case insensitive) strings listed in the imosQCSets.txt 
+%              file. If it is not equal to one of these strings, the return 
+%              value will be empty.
 %
 %   qc_set   - must be an integer identifier to one of the supported QC sets. 
 %              If it does not map to a supported QC set, it is assumed to be 
@@ -28,7 +29,8 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %              of 'flag', 'desc', 'set_desc' or 'color'.
 %
 % Outputs:
-%   value    - One of the flag value, flag description, or set description.
+%   value    - One of the flag value, flag description, color spec, or set 
+%              description.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -101,41 +103,43 @@ if isempty(flags{1}), return; end
 qc_set_idx = find(sets{1} == qc_set);
 if isempty(qc_set_idx), qc_set_idx = 1; end;
 
-set_desc = sets{2}(qc_set_idx);
-set_desc = set_desc{1};
-
-flag  = '';
-color = '';
-desc  = '';
+if strcmp(field, 'set_desc')
+  value = sets{2}(qc_set_idx);
+  value = value{1};
+  return;
+end
 
 % find a flag entry with matching qc_set and qc_class values
 lines = find(flags{1} == qc_set);
 for k=1:length(lines)
   
-  classes = flags{5}{lines(k)};
+  if strcmp(field, 'color')
+    
+    if strcmp(qc_class, flags{2}{lines(k)})
+      
+      value = flags{4}{lines(k)};
+
+      % if color was specified numerically, convert it from a string
+      temp = str2num(value);
+      if ~isempty(temp), value = temp; end
+      return;
+    end
+    continue;
+  end
   
+  classes = flags{5}{lines(k)};
+
   % dirty hack to get around matlab's lack of support for word boundaries
   classes = [' ' classes ' '];
-  
+
   % if this flag matches the class, we've found the flag value to return
   if ~isempty(regexpi(classes, ['\s' qc_class '\s'], 'match'))
-    
-    flag  = flags{2}{lines(k)};
-    desc  = flags{3}{lines(k)};
-    color = flags{4}{lines(k)};
-    
-    % if color was specified numerically, convert it from a string
-    temp = str2num(color);
-    if ~isempty(temp), color = temp; end
-    
-    break;
-    
-  end
-end
 
-switch field
-  case 'flag',     value = flag;
-  case 'desc',     value = desc;
-  case 'color',    value = color;
-  case 'set_desc', value = set_desc;
+    switch(field)
+      case 'flag', value = flags{2}{lines(k)};
+      case 'desc', value = flags{3}{lines(k)};
+    end
+
+    return;
+  end
 end
