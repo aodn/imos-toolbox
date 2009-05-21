@@ -2,7 +2,7 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %IMOSQCFLAG Returns an appropriate QC flag value (String), description, color 
 % spec, or set description for the given qc_class (String), using the given 
 % qc_set (integer).
-
+%
 % The QC sets definitions, descriptions, and valid flag values for each, are 
 % maintained in the file  'imosQCSets.txt' which is stored  in the same 
 % directory as this m-file.
