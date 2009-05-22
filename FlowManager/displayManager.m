@@ -68,13 +68,13 @@ function displayManager( fieldTrip, sample_data,...
   end
   
   % define the user options, and create the main window
-  states = {'Metadata', 'Raw data', 'Auto QC', 'Export'};
-  mainWindow(fieldTrip, sample_data, states, 2, @selectCallback);
+  states = {'Metadata', 'Raw data', 'Quality Control', 'Export'};
+  mainWindow(fieldTrip, sample_data, states, 2, @stateSelectCallback);
   
-  function selectCallback(...
+  function stateSelectCallback(...
     panel, updateCallback, state, sample_data, graphType, set, vars, dim)
-  %SELECTCALLBACK Called when the user pushes one of the 'state' buttons on
-  % the main window. Populates the given panel as appropriate.
+  %STATESELECTCALLBACK Called when the user pushes one of the 'state' buttons 
+  % on the main window. Populates the given panel as appropriate.
   %
   % Inputs:
   %   panel          - uipanel on which things can be drawn.
@@ -95,15 +95,27 @@ function displayManager( fieldTrip, sample_data,...
         graphFunc = str2func(graphType);
         graphFunc(panel, sample_data{set}, vars, dim, false);
         
-      case 'Auto QC'
+      case 'Quality Control'
       
         % run the QC chain
         sample_data = autoQCRequestCallback(sample_data, updateCallback);
         
         % redisplay the data
         graphFunc = str2func(graphType);
-        graphFunc(panel, sample_data{set}, vars, dim, true);
-
+        [graphs lines flags] = ...
+          graphFunc(panel, sample_data{set}, vars, dim, true);
+        
+        % add data selection functionality
+        selectData(@dataSelectCallback);
     end
+  end
+
+  function dataSelectCallback(ax, type, range)
+    
+    switch(type)
+      case 'normal', disp(['data range: ' num2str(range)]);
+      case 'alt',    disp(['flag range: ' num2str(range)]);
+    end
+    
   end
 end

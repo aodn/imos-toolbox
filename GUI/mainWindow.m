@@ -191,7 +191,7 @@ function mainWindow(...
   set(fig, 'Visible', 'on');
   createVarPanel(sample_data{1});
   selectionChange();
-  uiwait(fig);
+  %uiwait(fig);
   
   %% Widget Callbacks
   
