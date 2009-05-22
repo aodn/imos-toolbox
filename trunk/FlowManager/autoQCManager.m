@@ -40,29 +40,60 @@ function sample_data = autoQCManager( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+  error(nargchk(1,1,nargin));
 
-if ~iscell(sample_data)
-  error('sample_data must be a cell array of structs'); 
+  if ~iscell(sample_data)
+    error('sample_data must be a cell array of structs'); 
+  end
+
+  qcRoutines = listAutoQCRoutines();
+  qcChain    = [];
+
+  % get default filter chain if there is one
+  try   qcChain = str2num(readToolboxProperty('autoQCManager.autoQCChain'));
+  catch e
+  end
+
+  % prompt user to select QC filters to run
+  qcChain = listSelectionDialog(...
+    'Define the QC filter chain', qcRoutines, qcChain);
+
+  % user cancelled dialog
+  if isempty(qcChain), return; end
+
+  % save user's latest selection for next time
+  writeToolboxProperty('autoQCManager.autoQCChain', num2str(qcChain));
+  
+  qcRoutines = {qcRoutines{qcChain}};
+
+  % run each data set through the chain
+  for k = 1:length(sample_data),
+
+    s = sample_data{k};
+
+    flagv = 1;
+
+    for m = 1:length(s.variables)
+      v = s.variables{m};
+
+      f = 1 + round(length(v.data) * rand(5,1));
+
+      for n = 1:length(f)
+        v.flags(f(n)) = num2str(n);
+      end
+
+      s.variables{m} = v;
+    end
+    sample_data{k} = s;
+
+%     for m = 1:length(qcRoutines)
+%       sample_data{k} = qcFilter(sample_data{k}, qcRoutines{m});
+%     end
+  end
 end
 
-for k = 1:length(sample_data),
+function sam = qcFilter(sam, filter)
+%QCFILTER Runs the given data set through the given automatic QC filter.
+%
   
-  s = sample_data{k};
-  
-  flagv = 1;
-  
-  for m = 1:length(s.variables)
-    v = s.variables{m};
-    
-    f = 1 + round(length(v.data) * rand(5,1));
-    
-    for n = 1:length(f)
-      v.flags(f(n)) = num2str(n);
-    end
-    
-    s.variables{m} = v;
-  end
-  
-  sample_data{k} = s;
 end
