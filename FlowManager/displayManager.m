@@ -1,4 +1,6 @@
 function displayManager( fieldTrip, sample_data,...
+                         metadataUpdateCallback,...
+                         rawDataRequestCallback,...
                          autoQCRequestCallback,...
                          manualQCRequestCallback,...
                          exportRequestCallback)
@@ -12,6 +14,10 @@ function displayManager( fieldTrip, sample_data,...
 %   fieldTrip               - struct containing field trip information.
 %   sample_data             - Cell array of sample_data structs, one for
 %                             each instrument.
+%   metadataUpdateCallback  - Callback function which is called when a data
+%                             set's metadata is modified.
+%   rawDataRequestCallback  - Callback function which is called to retrieve
+%                             the raw data set.
 %   autoQCRequestCallback   - Callback function called when the user attempts 
 %                             to execute an automatic QC routine.
 %   manualQCRequestCallback - Callback function called when the user attempts 
@@ -51,12 +57,18 @@ function displayManager( fieldTrip, sample_data,...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(5,5,nargin));
+  error(nargchk(7,7,nargin));
 
   if ~isstruct(fieldTrip), error('fieldTrip must be a struct');       end
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), error('sample_data is empty');             end
-  
+
+  if ~isa(metadataUpdateCallback,  'function_handle')
+    error('metadataUpdateCallback must be a function handle'); 
+  end
+  if ~isa(rawDataRequestCallback,  'function_handle')
+    error('rawDataRequestCallback must be a function handle'); 
+  end
   if ~isa(autoQCRequestCallback,   'function_handle')
     error('autoQCRequestCallback must be a function handle'); 
   end
@@ -86,27 +98,60 @@ function displayManager( fieldTrip, sample_data,...
   %   vars           - currently selected variables (indices).
   %   dim            - currently selected dimension (index).
   %
+  
+    % clear any figure level mouse callbacks that may have been 
+    % added (this is mostly to remove the selectData callbacks)
+    set(f, 'WindowButtonDownFcn',   []);
+    set(f, 'WindowButtonMotionFcn', []);
+    set(f, 'WindowButtonUpFcn',     []);
+  
     switch(state)
 
       case 'Metadata'
-        viewMetadata(panel, fieldTrip, sample_data{set}, updateCallback);
+        
+        % display metadata viewer, allowing user to modify metadata
+        viewMetadata(...
+          panel, fieldTrip, sample_data{set}, @metadataUpdateWrapperCallback);
         
       case 'Raw data' 
+        
+        % request a copy of raw data
+        raw = rawDataRequestCallback();
+        
+        % update GUI with raw data set
+        for k = 1:length(raw), updateCallback(raw{k}); end
+        
+        % display selected raw data
         graphFunc = str2func(graphType);
-        graphFunc(panel, sample_data{set}, vars, dim, false);
+        graphFunc(panel, raw{set}, vars, dim, false);
         
       case 'Quality Control'
       
         % run the QC chain
-        sample_data = autoQCRequestCallback(sample_data, updateCallback);
+        autoQC = autoQCRequestCallback();
+        
+        % update GUI with QC'd data set
+        for k = 1:length(autoQC), updateCallback(autoQC{k}); end
         
         % redisplay the data
         graphFunc = str2func(graphType);
         [graphs lines flags] = ...
-          graphFunc(panel, sample_data{set}, vars, dim, true);
+          graphFunc(panel, autoQC{set}, vars, dim, true);
         
         % add data selection functionality
         selectData(@dataSelectCallback);
+    end
+    
+    function metadataUpdateWrapperCallback(sam)
+    %METADATAUPDATEWRAPPERCALLBACK Called by the viewMetadata display when
+    % metadata is updated. Calls the two subsequent metadata callback
+    % functions (mainWindow and flowManager).
+    
+      % notify of change to metadata
+      metadataUpdateCallback(sam);
+      
+      % update GUI with modified data set
+      updateCallback(sam);
     end
   end
 
