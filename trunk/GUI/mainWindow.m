@@ -98,9 +98,6 @@ function mainWindow(...
   
   % sample menu entries (1-1 mapping to sample_data structs)
   sampleDataDescs = genSampleDataDescs(sample_data, timeFmt);
-  
-  % add indices to each sample_data struct for later identification
-  for k = 1:length(sample_data), sample_data{k}.index = k; end
 
   % window figure
   fig = figure(...

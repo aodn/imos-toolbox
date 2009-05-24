@@ -1,5 +1,6 @@
 function flowManager()
-%FLOWMANAGER Manages the overall flow of IMOS toolbox execution.
+%FLOWMANAGER Manages the overall flow of IMOS toolbox execution and acts as 
+% the custodian for all data sets.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -31,42 +32,98 @@ function flowManager()
 % INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
-%
+% POSSIBILITY OF SUCH DAMAGE.`
+  rawData      = {};
+  autoQCData   = {};
+  manualQCData = {};
 
   % import data
-  [fieldTrip sample_data skipped] = importManager();
+  [fieldTrip rawData skipped] = importManager();
+  
+  % add an index field to each data struct
+  for k = 1:length(rawData), rawData{k}.index = k; end
 
   % display data
-  displayManager(fieldTrip, sample_data,...
+  displayManager(fieldTrip, rawData,...
+                @metadataUpdateCallback,...
+                @rawDataRequestCallback,...
                 @autoQCRequestCallback,...
                 @manualQCRequestCallback,...
                 @exportRequestCallback);
+              
+  function metadataUpdateCallback(sample_data)
+  %METADATAUPDATECALLBACK Called whenever a data set's metadata is updated.
+  % Synchronizes the change with the local copies of the data sets.
+  %
+    idx = sample_data.index;
+    
+    rawData{idx} = sync(sample_data, rawData{idx});
+    
+    if ~isempty(autoQCData)
+      autoQCData{idx} = sync(sample_data, autoQCData{idx}); 
+    end
+    
+    function target = sync(source, target)
+      
+      vars  = source.variables;
+      dims  = source.dimensions;
+
+      % variables
+      for k = 1:length(vars)
+
+        vars{k}.data       = target.variables{k}.data;
+        vars{k}.dimensions = target.variables{k}.dimensions;
+        vars{k}.flags      = target.variables{k}.flags;
+        target.variables{k} = vars{k};
+      end
+      
+      % dimensions
+      for k = 1:length(dims)
+
+        dims{k}.data = target.dimensions{k}.data;
+        target.dimensions{k} = dims{k};
+      end
+      
+      vars = target.variables;
+      dims = target.dimensions;
+
+      target            = source;
+      target.variables  = vars;
+      target.dimensions = dims;
+    end
+  end
+
+  function sample_data = rawDataRequestCallback()
+  %RAWDATAREQUESTCALLBACK Called when raw data is needed. Returns the raw
+  %data set.
+    
+    sample_data = rawData;
+  end
+
+  function sample_data = autoQCRequestCallback()
+  %AUTOQCREQUESTCALLBACK Called when the user chooses to run auto QC
+  % routines over the data. Delegates to the autoQCManager.
+  %
+    sample_data = autoQCData;
+    if ~isempty(autoQCData), return; end
+
+    autoQCData = autoQCManager(rawData);
+    
+    sample_data = autoQCData;
+  end
+
+  function manualQCRequestCallback()
+    disp('manualQCRequestCallback');
+
+    %qcd_data = manualQCManager(selected_qc_routine data);
+    %display(qcd_data);
+
+  end
+
+  function exportRequestCallback()
+    disp('exportRequestCallback');
+
+    %for d in data
+    %  exportNetCDF(d);
+  end
 end
-
-function sample_data = ...
-  autoQCRequestCallback(sample_data, updateCallback)
-%AUTOQCREQUESTCALLBACK Called when the user chooses to run auto QC
-% routines over the data. Delegates to the autoQCManager.
-%
-
-  sample_data = autoQCManager(sample_data);
-  
-  for k = 1:length(sample_data), updateCallback(sample_data{k}); end
-end
-
-function manualQCRequestCallback()
-  disp('manualQCRequestCallback');
-
-  %qcd_data = manualQCManager(selected_qc_routine data);
-  %display(qcd_data);
-
-end
-
-function exportRequestCallback()
-  disp('exportRequestCallback');
-
-  %for d in data
-  %  exportNetCDF(d);
-end
-  
