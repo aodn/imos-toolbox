@@ -298,17 +298,19 @@ function sam = finaliseData(sam, fieldTrip, deployment)
 %
   qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
   
+  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
+  
   % process level == raw
   sam.level                  = 0;
   sam.log                    = {};
-  sam.date_created           = now;
+  sam.date_created           = datestr(now, dateFmt);
 
   sam.field_trip_id          = fieldTrip.FieldTripID;
   sam.field_trip_description = fieldTrip.FieldDescription;
   
   % should we use Time[First|Last]GoodData ?
-  sam.time_coverage_start = str2double(deployment.TimeFirstInPos);
-  sam.time_coverage_end   = str2double(deployment.TimeLastInPos);
+  sam.time_coverage_start = deployment.TimeFirstInPos;
+  sam.time_coverage_end   = deployment.TimeLastInPos;
   
   for k = 1:length(sam.variables)
     

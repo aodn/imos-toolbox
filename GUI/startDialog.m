@@ -374,11 +374,11 @@ function descs = genFieldTripDescs(fieldTrips, dateFmt)
     
     f = fieldTrips(k);
     if isempty(f.DateStart), startDate = '';
-    else startDate = datestr(str2num(f.DateStart), dateFmt);
+    else startDate = f.DateStart;
     end
     
     if isempty(f.DateEnd),   endDate = '';
-    else endDate   = datestr(str2num(f.DateEnd), dateFmt);
+    else endDate   = f.DateEnd;
     end
     
     dateRange = [startDate  ' - ' endDate];
