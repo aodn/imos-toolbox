@@ -62,7 +62,7 @@ if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
 time_coverage_start = datenum(sample_data.time_coverage_start, dateFmt);
 
-qc_set  = str2num(readToolboxProperty('toolbox.qc_set'));
+qc_set  = str2double(readToolboxProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qc_set, 'flag');
 flagVal   = imosQCFlag('bad',   qc_set, 'flag');
 
@@ -70,11 +70,8 @@ flags    = zeros(length(data), 1);
 flags(:) = goodFlag;
 log      = {};
 
-% step through the start of the data set until we find a sample 
-% which has a time greater than or equal to the in water time
-time = sample_data.dimensions{1}.data;
-
 % find  end index of samples which were taken before in water
+time = sample_data.dimensions{1}.data;
 sEnd = find(time >= time_coverage_start, 1, 'first');
 
 % the entire data set is before the in water time
@@ -86,5 +83,5 @@ end
 
 % flag the samples that are before the in water time
 flags(1:sEnd-1) = flagVal;
-  
+
 end

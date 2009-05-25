@@ -70,11 +70,8 @@ flags    = zeros(length(data), 1);
 flags(:) = goodFlag;
 log      = {};
 
-% step through the end of the data set until we find a sample 
-% which has a time less than or equal to the out water time
-time = sample_data.dimensions{1}.data;
-
 % find start index of samples which were taken out of water
+time = sample_data.dimensions{1}.data;
 start = find(time <= time_coverage_end, 1, 'last');
 
 % the entire data set is before the out-water time
