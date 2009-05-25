@@ -205,10 +205,14 @@ function filename = genFileName(sample_data)
   %
   % all dates should be in ISO 8601 format
   %
-  dateFmt       = readToolboxProperty('exportNetCDF.fileDateFormat');
-  start_date    = datestr(sample_data.time_coverage_start, dateFmt);
-  end_date      = datestr(sample_data.time_coverage_end,   dateFmt);
-  creation_date = datestr(sample_data.date_created,        dateFmt);
+  dateFmt       = readToolboxProperty('exportNetCDF.dateFormat');
+  fileDateFmt   = readToolboxProperty('exportNetCDF.fileDateFormat');
+  start_date    = ...
+    datestr(datenum(sample_data.time_coverage_start, dateFmt), fileDateFmt);
+  end_date      = ...
+    datestr(datenum(sample_data.time_coverage_end, dateFmt),   fileDateFmt);
+  creation_date = ...
+    datestr(datenum(sample_data.date_created, dateFmt),        fileDateFmt);
 
   %
   % one data code for each parameter

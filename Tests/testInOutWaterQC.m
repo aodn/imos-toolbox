@@ -3,7 +3,7 @@ function testInOutWaterQC()
 %
 % Creates a dummy set of sample data, passes it through the inWaterQC
 % and outWaterQC routines, and verifies that the in/out of water samples 
-% were removed.
+% were flagged.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -69,19 +69,22 @@ for k = 1:length(sample_data.variables)
   s = sample_data.variables{k};
   data = s.data;
   
-  idata = inWaterQC( sample_data, data, k);
-  odata = outWaterQC(sample_data, data, k);
+  [d iFlags l] = inWaterQC( sample_data, data, k);
+  [d oFlags l] = outWaterQC(sample_data, data, k);
 
-  disp([s.name ' in-water set length:  ' num2str(length(idata))]);
-  disp([s.name ' out-water set length: ' num2str(length(odata))]);
+  iFlags = find(iFlags);
+  oFlags = find(oFlags);
   
-  if idata ~= data(start_idx:end)
-    error('in-water data has not been filtered correctly');
+  iShouldBe = 1:start_idx-1;
+  oShouldBe = end_idx+1:num_samples;
+  
+  if length(iFlags) ~= length(iShouldBe) || ~all(iFlags == iShouldBe)
+    error('in water flags are invalid'); 
+  end
+  if length(oFlags) ~= length(oShouldBe) || ~all(oFlags == oShouldBe)
+    error('out water flags are invalid');
   end
   
-  if odata ~= data(1:end_idx)
-    error('out-water data has not been filtered correctly');
-  end
   
 end
 
