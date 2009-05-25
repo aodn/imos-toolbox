@@ -1,8 +1,8 @@
 function [data flags log] = inWaterQC( sample_data, data, k )
-%INWATERQC Removes samples which were taken before the instrument was placed
+%INWATERQC Flags samples which were taken before the instrument was placed
 % in the water.
 %
-% Removes all samples from the data set which have a time that is before the 
+% Flags all samples from the data set which have a time that is before the 
 % in water time. Assumes that these samples will be at the beginning of the
 % data set.
 %
@@ -14,12 +14,12 @@ function [data flags log] = inWaterQC( sample_data, data, k )
 %   k           - Index into the sample_data.variables vector.
 %
 % Outputs:
-%   data        - same as input, with before in-water samples removed.
+%   data        - Same as input.
 %
-%   flags       - Empty vector.
+%   flags       - Vector the same size as data, with before in-water samples 
+%                 flagged. Empty if no values were flagged.
 %
-%   log         - Cell array with a log entry detailing how many samples were 
-%                 removed.
+%   log         - Empty cell array..
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -59,12 +59,17 @@ if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
+flags = char;
+log   = {};
+
 % end index of samples which were taken before in water
 sEnd = 0;
 
-% time range of samples which have been removed (for log entry)
-startTime = 0;
-endTime   = 0;
+dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
+time_coverage_start = datenum(sample_data.time_coverage_start, dateFmt);
+
+qc_set  = str2num(readToolboxProperty('toolbox.qc_set'));
+flagVal = imosQCFlag('bad', qc_set, 'flag');
 
 origLength = length(data);
 
@@ -76,7 +81,7 @@ startTime = time(1);
 
 for k = 1:length(time)
   
-  if time(k) >= sample_data.time_coverage_start
+  if time(k) >= time_coverage_start
     
     sEnd    = k;
     endTime = time(k);
@@ -85,13 +90,14 @@ for k = 1:length(time)
   end
 end
 
-% remove all of those samples
-data = data(sEnd:end);
+% the entire data set is before the in water time
+if sEnd == 0, sEnd = length(data)+1;
+  
+% the entire data set is after the in water time
+elseif sEnd == 1, return;
+end
 
-flags = [];
-log   = {};
-
-dateFmt    = readToolboxProperty('toolbox.timeFormat');
-log{end+1} = ['inWaterQC: removed ' num2str(origLength - length(data)) ...
-              ' in-water samples from ' datestr(startTime,dateFmt) ...
-              ' to ' datestr(endTime,dateFmt)];
+% flag the samples that are before the in water time
+flags(1:sEnd-1) = flagVal;
+  
+end
