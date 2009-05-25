@@ -75,7 +75,7 @@ time = sample_data.dimensions{1}.data;
 start = find(time <= time_coverage_end, 1, 'last');
 
 % the entire data set is before the out-water time
-if start == length(data), return; end
+if start == length(data), start = 0; end
   
 % flag the after out-water samples
 flags(start+1:length(data)) = flagVal;
