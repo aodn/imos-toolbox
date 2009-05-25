@@ -51,6 +51,9 @@ num_samples = 1000;
 start_idx = 95;
 end_idx = 924;
 
+qc_set  = str2num(readToolboxProperty('toolbox.qc_set'));
+goodFlag  = imosQCFlag('good',  qc_set, 'flag');
+
 sample_data = genTestData(...
   num_samples,...
   params,...
@@ -72,11 +75,11 @@ for k = 1:length(sample_data.variables)
   [d iFlags l] = inWaterQC( sample_data, data, k);
   [d oFlags l] = outWaterQC(sample_data, data, k);
 
-  iFlags = find(iFlags);
-  oFlags = find(oFlags);
+  iFlags = find(iFlags ~= goodFlag);
+  oFlags = find(oFlags ~= goodFlag);
   
-  iShouldBe = 1:start_idx-1;
-  oShouldBe = end_idx+1:num_samples;
+  iShouldBe = (1:start_idx-1)';
+  oShouldBe = (end_idx+1:num_samples)';
   
   if length(iFlags) ~= length(iShouldBe) || ~all(iFlags == iShouldBe)
     error('in water flags are invalid'); 
