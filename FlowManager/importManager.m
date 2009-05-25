@@ -300,7 +300,7 @@ function sam = finaliseData(sam, fieldTrip, deployment)
   
   % process level == raw
   sam.level                  = 0;
-  
+  sam.log                    = {};
   sam.date_created           = now;
 
   sam.field_trip_id          = fieldTrip.FieldTripID;
