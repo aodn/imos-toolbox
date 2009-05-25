@@ -89,6 +89,8 @@ function strs = java2struct(list)
   strs = struct;
   
   if list.size() == 0, return; end;
+  
+  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
 
   % it's horribly ugly, but this is the only way that I know of to turn
   % Java fields of arbitrary types into matlab fields: a big, ugly switch
@@ -123,9 +125,11 @@ function strs = java2struct(list)
         case 'java.lang.Boolean',
           strs(k+1).(field) = double(val.booleanValue());
         case 'java.util.Date',
-          strs(k+1).(field) = num2str(datenum(char(val.toLocaleString())));
+          strs(k+1).(field) = ...
+            datestr(datenum(char(val.toLocaleString())), dateFmt);
         case 'java.sql.Timestamp',
-          strs(k+1).(field) = num2str(datenum(char(val.toLocaleString())));
+          strs(k+1).(field) = ...
+            datestr(datenum(char(val.toLocaleString())), dateFmt);
       end
     end
   end

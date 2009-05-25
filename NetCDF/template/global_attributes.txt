@@ -29,8 +29,8 @@ geospatial_vertical_min = [ddb Site Sites Depth]
 geospatial_vertical_max = [ddb Site Sites Depth]
 
 % when
-time_coverage_start = [mat datestr(sample_data.dimensions{1}.data(1),   readToolboxProperty('exportNetCDF.dateFormat'))]
-time_coverage_end   = [mat datestr(sample_data.dimensions{1}.data(end), readToolboxProperty('exportNetCDF.dateFormat'))]
+time_coverage_start = [ddb TimeFirstInPos]
+time_coverage_end   = [ddb TimeLastInPos]
 local_time_zone     = [ddb TimeZone]
 
 % who
