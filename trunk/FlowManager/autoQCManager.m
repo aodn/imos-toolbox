@@ -1,4 +1,4 @@
-function sample_data = autoQCManager( sample_data )
+function qc_data = autoQCManager( sample_data )
 %AUTOQCMANAGER Manages the execution of automatic QC routines over a set
 % of data.
 %
@@ -6,7 +6,7 @@ function sample_data = autoQCManager( sample_data )
 %   sample_data - 
 %
 % Outputs:
-%   sample_data - 
+%   qc_data     - 
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -45,6 +45,8 @@ function sample_data = autoQCManager( sample_data )
   if ~iscell(sample_data)
     error('sample_data must be a cell array of structs'); 
   end
+  
+  qc_data = {};
 
   qcRoutines = listAutoQCRoutines();
   qcChain    = [];
@@ -89,6 +91,8 @@ function sample_data = autoQCManager( sample_data )
 %     for m = 1:length(qcRoutines)
 %       sample_data{k} = qcFilter(sample_data{k}, qcRoutines{m});
 %     end
+
+  qc_data = sample_data;
   end
 end
 

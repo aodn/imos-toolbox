@@ -98,13 +98,6 @@ function displayManager( fieldTrip, sample_data,...
   %   vars           - currently selected variables (indices).
   %   dim            - currently selected dimension (index).
   %
-  
-    % clear any figure level mouse callbacks that may have been 
-    % added (this is mostly to remove the selectData callbacks)
-    set(f, 'WindowButtonDownFcn',   []);
-    set(f, 'WindowButtonMotionFcn', []);
-    set(f, 'WindowButtonUpFcn',     []);
-  
     switch(state)
 
       case 'Metadata'
@@ -130,16 +123,24 @@ function displayManager( fieldTrip, sample_data,...
         % run the QC chain
         autoQC = autoQCRequestCallback();
         
-        % update GUI with QC'd data set
-        for k = 1:length(autoQC), updateCallback(autoQC{k}); end
+        % return value will be empty if user interrupted process
+        if ~isempty(autoQC)
         
-        % redisplay the data
-        graphFunc = str2func(graphType);
-        [graphs lines flags] = ...
-          graphFunc(panel, autoQC{set}, vars, dim, true);
-        
-        % add data selection functionality
-        selectData(@dataSelectCallback);
+          % update GUI with QC'd data set
+          for k = 1:length(autoQC), updateCallback(autoQC{k}); end
+
+          % redisplay the data
+          graphFunc = str2func(graphType);
+          [graphs lines flags] = ...
+            graphFunc(panel, autoQC{set}, vars, dim, true);
+
+          % add data selection functionality
+          selectData(@dataSelectCallback);
+        else
+          graphFunc = str2func(graphType);
+          [graphs lines flags] = ...
+            graphFunc(panel, sample_data{set}, vars, dim, false);
+        end
     end
     
     function metadataUpdateWrapperCallback(sam)

@@ -105,10 +105,17 @@ function flowManager()
   % routines over the data. Delegates to the autoQCManager.
   %
     sample_data = autoQCData;
-    if ~isempty(autoQCData), return; end
-
-    autoQCData = autoQCManager(rawData);
     
+    % if QC has already been executed prompt user if they want to keep old
+    % QC data, or redo QC
+    if ~isempty(autoQCData)
+      response = questdlg('Overwrite previous QC flags/mods?');
+      
+      if ~strcmp(response, 'Yes'), return; end
+    end
+
+    % run QC routines over raw data
+    autoQCData = autoQCManager(rawData);
     sample_data = autoQCData;
   end
 
