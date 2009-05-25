@@ -59,36 +59,23 @@ if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
-flags = char;
-log   = {};
-
-% start index of samples which were taken out of water
-start = 0;
-
 dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
 time_coverage_end = datenum(sample_data.time_coverage_end, dateFmt);
 
-qc_set  = str2num(readToolboxProperty('toolbox.qc_set'));
-flagVal = imosQCFlag('bad', qc_set, 'flag');
+qc_set    = str2num(readToolboxProperty('toolbox.qc_set'));
+goodFlag  = imosQCFlag('good',  qc_set, 'flag');
+flagVal   = imosQCFlag('bad',   qc_set, 'flag');
 
-origLength = length(data);
+flags    = zeros(length(data), 1);
+flags(:) = goodFlag;
+log      = {};
 
 % step through the end of the data set until we find a sample 
 % which has a time less than or equal to the out water time
 time = sample_data.dimensions{1}.data;
 
-endTime = time(end);
-
-for k = length(time):-1:1
-  
-  if time(k) <= time_coverage_end
-    
-    start     = k;
-    starttime = time(k);
-    break;
-    
-  end
-end
+% find start index of samples which were taken out of water
+start = find(time <= time_coverage_end, 1, 'last');
 
 % the entire data set is before the out-water time
 if start == length(data), return; end

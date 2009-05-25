@@ -17,7 +17,7 @@ function [data flags log] = inWaterQC( sample_data, data, k )
 %   data        - Same as input.
 %
 %   flags       - Vector the same size as data, with before in-water samples 
-%                 flagged. Empty if no values were flagged.
+%                 flagged. 
 %
 %   log         - Empty cell array..
 %
@@ -59,39 +59,26 @@ if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
-flags = char;
-log   = {};
-
-% end index of samples which were taken before in water
-sEnd = 0;
-
 dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
 time_coverage_start = datenum(sample_data.time_coverage_start, dateFmt);
 
 qc_set  = str2num(readToolboxProperty('toolbox.qc_set'));
-flagVal = imosQCFlag('bad', qc_set, 'flag');
+goodFlag  = imosQCFlag('good',  qc_set, 'flag');
+flagVal   = imosQCFlag('bad',   qc_set, 'flag');
 
-origLength = length(data);
+flags    = zeros(length(data), 1);
+flags(:) = goodFlag;
+log      = {};
 
 % step through the start of the data set until we find a sample 
 % which has a time greater than or equal to the in water time
 time = sample_data.dimensions{1}.data;
 
-startTime = time(1);
-
-for k = 1:length(time)
-  
-  if time(k) >= time_coverage_start
-    
-    sEnd    = k;
-    endTime = time(k);
-    break;
-    
-  end
-end
+% find  end index of samples which were taken before in water
+sEnd = find(time >= time_coverage_start, 1, 'first');
 
 % the entire data set is before the in water time
-if sEnd == 0, sEnd = length(data)+1;
+if isempty(sEnd), sEnd = length(data)+1;
   
 % the entire data set is after the in water time
 elseif sEnd == 1, return;
