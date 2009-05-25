@@ -11,7 +11,7 @@ toolbox.qc_set = 1
 % set to false to disable annoying prompt that is displayed every time you 
 % click on Quality Control. The disadvantage with disabling the prompt is 
 % that you won't be able to discard changes or re-run the auto QC routines
-flowManager.qcPrompt = true 
+flowManager.qcPrompt = true
 
 % format in which all dates should be exported in NetCDF attributes
 exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SS
@@ -30,4 +30,8 @@ startDialog.dataDir = /home/paul/Documents/imos/aims_matlab_code/GM6Trip4814
 startDialog.fieldTrip = 4814
 startDialog.lowDate = 730486
 startDialog.highDate = 734138
-autoQCManager.autoQCChain = 1  2  3  4
+autoQCManager.autoQCChain = 2  3
+
+% Maximum number of flags that can be displayed on a time series graph -
+% large numbers of flags severely affects performance
+graphTimeSeries.flagDisplayLimit = 1000
