@@ -106,10 +106,22 @@ function flowManager()
   %
     sample_data = autoQCData;
     
+    qcPrompt = true;
+    try
+      qcPrompt = str2num(readToolboxProperty('flowManager.qcPrompt'));
+    catch e
+    end
+    
     % if QC has already been executed prompt user if they want to keep old
     % QC data, or redo QC
-    if ~isempty(autoQCData)
-      response = questdlg('Overwrite previous QC flags/mods?');
+    if ~isempty(autoQCData) 
+      
+      % user can disable prompt via qcPrompt toolbox property - data is
+      % never overwritten
+      if ~qcPrompt, return; end
+      
+      response = questdlg(...
+        'Re-run auto-QC routines (existing flags/mods will be discarded)?');
       
       if ~strcmp(response, 'Yes'), return; end
     end

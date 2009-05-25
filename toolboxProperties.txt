@@ -8,6 +8,11 @@ toolbox.timeFormat = yyyy-mm-ddTHH:MM:SS
 % QC set in use - see section 6.2 of the IMOS NetCDF User's Manual
 toolbox.qc_set = 1
 
+% set to false to disable annoying prompt that is displayed every time you 
+% click on Quality Control. The disadvantage with disabling the prompt is 
+% that you won't be able to discard changes or re-run the auto QC routines
+flowManager.qcPrompt = true 
+
 % format in which all dates should be exported in NetCDF attributes
 exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SS
 
