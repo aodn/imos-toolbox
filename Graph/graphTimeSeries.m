@@ -66,6 +66,7 @@ function [graphs lines flags] = graphTimeSeries( ...
   flags  = [];
   
   qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
+  goodFlag = imosQCFlag('good', qc_set, 'flag');
   
   if isempty(vars), return; end
   
@@ -104,21 +105,43 @@ function [graphs lines flags] = graphTimeSeries( ...
       f    = sample_data.variables{k}.flags;
       data = sample_data.variables{k}.data;
       
-      f = find(f);
+      f = find(f ~= goodFlag);
       if isempty(f), continue; end
       
-      fx = dim(f);
-      fy = data(f);
-      
-      % display flags in their appropriate colours
-      for m = 1:length(f)
-        
-        fc(m,:) = ...
-          imosQCFlag(sample_data.variables{k}.flags(f(m)), qc_set, 'color');
+      flagDisplayLimit = 1000;
+      try
+        flagDisplayLimit = ...
+          str2double(readToolboxProperty('graphTimeSeries.flagDisplayLimit'));
+      catch e
       end
       
-      flags(k) = scatter(graphs(k), fx, fy, 100, fc, 'filled',...
-        'MarkerEdgeColor', 'black');
+      % too many flags, and matlab will grind to a halt - prompt the user
+      % if there are more than flagDisplayLimit flags
+      if length(f) > flagDisplayLimit
+        response = questdlg(...
+          ['A large number of flags are present (' num2str(length(f)) ')' ...
+         ' - performance may be poor. '...
+         'Do you want to display the flags anyway?'],...
+         'Display Flags?','Yes', 'No', 'No');
+         if ~strcmp(response, 'Yes'), displayFlags = false; end
+      end
+      
+      if displayFlags
+      
+        fx = dim(f);
+        fy = data(f);
+
+        % display flags in their appropriate colours
+        for m = 1:length(f)
+
+          fVal = char(sample_data.variables{k}.flags(f(m)));
+
+          fc(m,:) = imosQCFlag(fVal, qc_set, 'color');
+        end
+
+        flags(k) = scatter(graphs(k), fx, fy, 100, fc, 'filled',...
+          'MarkerEdgeColor', 'black');
+      end
     end
     
     % set x labels and ticks on graph 1
