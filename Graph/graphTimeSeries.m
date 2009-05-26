@@ -130,6 +130,7 @@ function [graphs lines flags] = graphTimeSeries( ...
       
         fx = dim(f);
         fy = data(f);
+        fc = [];
 
         % display flags in their appropriate colours
         for m = 1:length(f)
