@@ -2,11 +2,18 @@ function qc_data = autoQCManager( sample_data )
 %AUTOQCMANAGER Manages the execution of automatic QC routines over a set
 % of data.
 %
+% The user is prompted to select a chain of QC routines through which to
+% pass the data. The data is then passed through the selected filter chain
+% and returned.
+%
 % Inputs:
-%   sample_data - 
+%   sample_data - Cell array of sample data structs, containing the data
+%                 over which the qc routines are to be executed.
 %
 % Outputs:
-%   qc_data     - 
+%   qc_data     - Same as input, after QC routines have been run over it.
+%                 Will be empty if the user cancelled/interrupted the QC
+%                 process.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -48,6 +55,7 @@ function qc_data = autoQCManager( sample_data )
   
   qc_data = {};
 
+  % get all QC routines that exist
   qcRoutines = listAutoQCRoutines();
   qcChain    = [];
 
@@ -67,37 +75,72 @@ function qc_data = autoQCManager( sample_data )
   writeToolboxProperty('autoQCManager.autoQCChain', num2str(qcChain));
   
   qcRoutines = {qcRoutines{qcChain}};
+  
+  progress = waitbar(...
+    0, 'Running QC routines', ...
+    'CreateCancelBtn', ...
+    ['waitbar(1,gcbf,''Cancelling - please wait...'');'...
+     'setappdata(gcbf,''cancel'',true)']);
+  setappdata(progress,'cancel',false);
 
   % run each data set through the chain
   for k = 1:length(sample_data),
-
-    s = sample_data{k};
-
-    flagv = 1;
-
-    for m = 1:length(s.variables)
-      v = s.variables{m};
-
-      f = 1 + round(length(v.data) * rand(5,1));
-
-      for n = 1:length(f)
-        v.flags(f(n)) = num2str(n);
-      end
-
-      s.variables{m} = v;
+    
+    % user cancelled progress bar
+    if getappdata(progress, 'cancel'), sample_data = {}; break; end
+    
+    for m = 1:length(qcRoutines)
+      
+      % user cancelled progress bar
+      if getappdata(progress, 'cancel'), break; end
+      
+      % update progress bar
+      progVal = ...
+        (k*length(qcRoutines)+m) / (length(qcRoutines)*length(sample_data));
+      progStr = [sample_data{k}.instrument_make ' '...
+                 sample_data{k}.instrument_model ' ' qcRoutines{m}];
+      waitbar(progVal, progress, progStr);
+      disp(progStr);
+      
+      % run current QC routine over the current data set
+      sample_data{k} = qcFilter(sample_data{k}, qcRoutines{m});
     end
-    sample_data{k} = s;
-
-%     for m = 1:length(qcRoutines)
-%       sample_data{k} = qcFilter(sample_data{k}, qcRoutines{m});
-%     end
+  end
+  
+  delete(progress);
 
   qc_data = sample_data;
-  end
 end
 
 function sam = qcFilter(sam, filter)
 %QCFILTER Runs the given data set through the given automatic QC filter.
 %
+  % turn routine name into a function
+  filter = str2func(filter);
   
+  for k = 1:length(sam.variables)
+    
+    data = sam.variables{k}.data;
+    len = length(data);
+    
+    % the QC filters work on single vectors of data; 
+    % we must 'slice' the data up along its dimensions
+    data = data(:);
+    slices = length(data) / len;
+    
+    flags = zeros(length(data),1);
+    
+    for m = 1:length(slices)
+      
+      slice = data(len*(m-1)+1:len*(m));
+      
+      % log entries and any data changes that the routine generates
+      % are currently discarded; only the flags are retained
+      [d f l] = filter(sam, slice, k);
+      flags(len*(m-1)+1:len*(m)) = f;
+      
+    end
+    
+    sam.variables{k}.flags = reshape(flags, size(sam.variables{k}.data));
+  end
 end
