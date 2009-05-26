@@ -79,89 +79,128 @@ function displayManager( fieldTrip, sample_data,...
     error('exportRequestCallback must be a function handle'); 
   end
   
+  lastState  = '';
+  lastSetIdx = [];
+  lastVars   = [];
+  lastDim    = [];
+  
   % define the user options, and create the main window
   states = {'Metadata', 'Raw data', 'Quality Control', 'Export'};
   mainWindow(fieldTrip, sample_data, states, 2, @stateSelectCallback);
-  
-  function stateSelectCallback(...
-    panel, updateCallback, state, sample_data, graphType, set, vars, dim)
+      
+  function stateSelectCallback(event,...
+    panel, updateCallback, state, sample_data, graphType, setIdx, vars, dim)
   %STATESELECTCALLBACK Called when the user pushes one of the 'state' buttons 
   % on the main window. Populates the given panel as appropriate.
   %
   % Inputs:
+  %   event          - String describing what triggered the callback.
   %   panel          - uipanel on which things can be drawn.
   %   updateCallback - function to be called when data is modified.
   %   state          - selected state (string).
   %   sample_data    - Cell array of sample_data structs
   %   graphType      - currently selected graph type (string).
-  %   set            - currently selected sample_data struct (index)
+  %   setIdx         - currently selected sample_data struct (index)
   %   vars           - currently selected variables (indices).
   %   dim            - currently selected dimension (index).
   %
+  
     switch(state)
+      case 'Metadata',        metadataCallback();
+      case 'Raw data',        rawDataCallback();
+      case 'Quality Control', qcCallback();
+    end
+    
+    lastState  = state;
+    lastSetIdx = setIdx;
+  
+    function metadataCallback()
+    %METADATACALLBACK
+    
+      % display metadata viewer, allowing user to modify metadata
+      viewMetadata(panel, ...
+        fieldTrip, sample_data{setIdx}, @metadataUpdateWrapperCallback);
 
-      case 'Metadata'
+      function metadataUpdateWrapperCallback(sam)
+      %METADATAUPDATEWRAPPERCALLBACK Called by the viewMetadata display when
+      % metadata is updated. Calls the two subsequent metadata callback
+      % functions (mainWindow and flowManager).
+
+        % notify of change to metadata
+        metadataUpdateCallback(sam);
+
+        % update GUI with modified data set
+        updateCallback(sam);
+      end
+    end
+
+    function rawDataCallback()
+    %RAWDATACALLBACK
+    
+      % retrieve raw data on state change
+      if strcmp(lastState, state)
         
-        % display metadata viewer, allowing user to modify metadata
-        viewMetadata(...
-          panel, fieldTrip, sample_data{set}, @metadataUpdateWrapperCallback);
-        
-      case 'Raw data' 
-        
-        % request a copy of raw data
-        raw = rawDataRequestCallback();
-        
+        sample_data = rawDataRequestCallback();
+
         % update GUI with raw data set
-        for k = 1:length(raw), updateCallback(raw{k}); end
-        
-        % display selected raw data
-        graphFunc = str2func(graphType);
-        graphFunc(panel, raw{set}, vars, dim, false);
-        
-      case 'Quality Control'
+        for k = 1:length(sample_data), updateCallback(sample_data{k}); end
+      end
+
+      % display selected raw data
+      graphFunc = str2func(graphType);
+      graphFunc(panel, sample_data{setIdx}, vars, dim, false);
+    end
+
+    function qcCallback()
+    %QCCALLBACK
       
-        % run the QC chain
-        autoQC = autoQCRequestCallback();
-        
-        % return value will be empty if user interrupted process
-        if ~isempty(autoQC)
-        
-          % update GUI with QC'd data set
-          for k = 1:length(autoQC), updateCallback(autoQC{k}); end
+      % update qc data on state change
+      if strcmp(event, 'state')
+          
+        sample_data = autoQCRequestCallback(setIdx, ~strcmp(lastState,state));
 
-          % redisplay the data
-          graphFunc = str2func(graphType);
-          [graphs lines flags] = ...
-            graphFunc(panel, autoQC{set}, vars, dim, true);
+        % update GUI with QC'd data set
+        for k = 1:length(sample_data), updateCallback(sample_data{k}); end
+      end
 
-          % add data selection functionality
-          selectData(@dataSelectCallback);
-        else
-          graphFunc = str2func(graphType);
-          [graphs lines flags] = ...
-            graphFunc(panel, sample_data{set}, vars, dim, false);
+      % redisplay the data
+      graphFunc = str2func(graphType);
+      [graphs lines flags] = ...
+        graphFunc(panel, sample_data{setIdx}, vars, dim, true);
+
+      % save line/flag handles in axis userdata so the data select
+      % callback can retrieve them
+      for k = 1:length(graphs)
+        set(graphs(k), 'UserData', [lines(k), flags(k)]);
+      end
+
+      % add data selection functionality
+      selectData(@dataSelectCallback);
+
+      highlight = [];
+      function dataSelectCallback(ax, type, range)
+      %DATASELECTCALLBACK Called when the user selects a region of data.
+      % Highlights the selected region.
+      %
+        % line/flag handles are stored in the axis userdata
+        ud = get(ax, 'UserData');
+
+        % remove any previous highlight
+        if ~isempty(highlight), delete(highlight); end
+
+        handle = 0;
+
+        % on a left click, highlight data points;
+        % on a right click, highlight flags
+        switch(type)
+          case 'normal', handle = ud(1);
+          case 'alt',    handle = ud(2);
         end
-    end
-    
-    function metadataUpdateWrapperCallback(sam)
-    %METADATAUPDATEWRAPPERCALLBACK Called by the viewMetadata display when
-    % metadata is updated. Calls the two subsequent metadata callback
-    % functions (mainWindow and flowManager).
-    
-      % notify of change to metadata
-      metadataUpdateCallback(sam);
-      
-      % update GUI with modified data set
-      updateCallback(sam);
-    end
-  end
 
-  function dataSelectCallback(ax, type, range)
-    
-    switch(type)
-      case 'normal', disp(['data range: ' num2str(range)]);
-      case 'alt',    disp(['flag range: ' num2str(range)]);
+        if handle == 0.0, return; end
+
+        highlight = highlightData(range, handle);
+      end
     end
-    
   end
 end
