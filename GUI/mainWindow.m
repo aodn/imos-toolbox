@@ -31,6 +31,9 @@ function mainWindow(...
 %   selectionCallback - A function which is called when the user pushes a 
 %                       state button. The function must take the following 
 %                       input arguments:
+%                         event          - String describing what triggered
+%                                          the callback. One of 'state',
+%                                          'set', 'graph', or 'var'.
 %                         panel          - A uipanel on which things can be 
 %                                          drawn.
 %                         updateCallback - Function to be called when data
@@ -187,12 +190,11 @@ function mainWindow(...
   
   set(fig, 'Visible', 'on');
   createVarPanel(sample_data{1});
-  selectionChange();
-  %uiwait(fig);
+  selectionChange('state');
   
   %% Widget Callbacks
   
-  function selectionChange()
+  function selectionChange(event)
   %Retrieves the current selection, clears the main panel, and calls 
   % selectionCallback.
   % 
@@ -211,6 +213,7 @@ function mainWindow(...
     set(fig, 'WindowButtonUpFcn',     []);
     
     selectionCallback(...
+      event,...
       mainPanel, ...
       @updateCallback, ...
       state, ...
@@ -225,14 +228,14 @@ function mainWindow(...
   % 
     sam = getSelectedData();
     createVarPanel(sam);
-    selectionChange();
+    selectionChange('set');
   end
 
   function graphMenuCallback(source,ev)
   %GRAPHMENUCALLBACK Called when the user changes the graph type via the
   % graph selection menu. Delegates to selectionChange.
   %
-    selectionChange();
+    selectionChange('graph');
   end
 
   function stateButtonCallback(source, ev)
@@ -240,14 +243,14 @@ function mainWindow(...
   % the current state, then delegates to selectionChange.
   %
     currentState = get(source, 'String');
-    selectionChange();
+    selectionChange('state');
   end
 
   function varPanelCallback(source,ev)
   %PARAMPANELCALLBACK Called when the variable or dimension selection 
   % changes. Delegates to selectionChange.
   %
-    selectionChange();
+    selectionChange('var');
   end
 
   %% Data update callback
