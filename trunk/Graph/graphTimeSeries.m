@@ -106,7 +106,10 @@ function [graphs lines flags] = graphTimeSeries( ...
       data = sample_data.variables{k}.data;
       
       f = find(f ~= goodFlag);
-      if isempty(f), continue; end
+      
+      % if no flags to plot, put a dummy handle in - the 
+      % caller is responsible for checking and ignoring
+      if isempty(f), flags(k) = 0.0; continue; end
       
       flagDisplayLimit = 1000;
       try
@@ -142,6 +145,8 @@ function [graphs lines flags] = graphTimeSeries( ...
 
         flags(k) = scatter(graphs(k), fx, fy, 100, fc, 'filled',...
           'MarkerEdgeColor', 'black');
+      else
+        flags(k) = 0.0; 
       end
     end
     
