@@ -10,7 +10,8 @@ function highlight = highlightData( region, data )
 %
 % Outputs:
 %   highlight - Handle to a scatter object which overlays the highlighted
-%               data.
+%               data. If no data points lie within the highlight region, an
+%               empty matrix is returned.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -63,8 +64,16 @@ yidx  = find(ydata >= region(2) & ydata <= region(4));
 % figure out indices of all the points to be highlighted
 idx = intersect(xidx,yidx);
 
+% return nothing if no points to plot
+if isempty(idx), highlight = [];
+  
 % create the highlight scatter
-highlight = scatter(gca,...
-  xdata(idx),ydata(idx),...
-  'MarkerEdgeColor', 'white', ...
-  'MarkerFaceColor', 'white');
+else
+
+  highlight = line(xdata(idx),ydata(idx),...
+    'Parent',          gca,...
+    'LineStyle',       'none',...
+    'Marker',          'o',...
+    'MarkerEdgeColor', 'white', ...
+    'MarkerFaceColor', 'white');
+end
