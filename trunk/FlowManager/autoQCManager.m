@@ -53,6 +53,8 @@ function qc_data = autoQCManager( sample_data )
     error('sample_data must be a cell array of structs'); 
   end
   
+  goodFlag = imosQCFlag('good', str2double(readToolboxProperty('toolbox.qc_set')), 'flag');
+  
   qc_data = {};
 
   % get all QC routines that exist
@@ -103,7 +105,7 @@ function qc_data = autoQCManager( sample_data )
       disp(progStr);
       
       % run current QC routine over the current data set
-      sample_data{k} = qcFilter(sample_data{k}, qcRoutines{m});
+      sample_data{k} = qcFilter(sample_data{k}, qcRoutines{m}, goodFlag);
     end
   end
   
@@ -112,35 +114,51 @@ function qc_data = autoQCManager( sample_data )
   qc_data = sample_data;
 end
 
-function sam = qcFilter(sam, filter)
+function sam = qcFilter(sam, filterName, goodFlag)
 %QCFILTER Runs the given data set through the given automatic QC filter.
 %
   % turn routine name into a function
-  filter = str2func(filter);
-  
+  filter = str2func(filterName);
+
   for k = 1:length(sam.variables)
-    
+
     data = sam.variables{k}.data;
     len = length(data);
-    
+
     % the QC filters work on single vectors of data; 
     % we must 'slice' the data up along its dimensions
     data = data(:);
     slices = length(data) / len;
-    
+
     flags = zeros(length(data),1);
-    
+    flags(:) = goodFlag;
+
     for m = 1:length(slices)
-      
-      slice = data(len*(m-1)+1:len*(m));
-      
+
+      slice     = data( len*(m-1)+1:len*(m));
+      flagSlice = flags(len*(m-1)+1:len*(m));
+
       % log entries and any data changes that the routine generates
-      % are currently discarded; only the flags are retained
+      % are currently discarded; only the flags are retained. 
       [d f l] = filter(sam, slice, k);
-      flags(len*(m-1)+1:len*(m)) = f;
-      
+
+      % Flags are not overwritten - if a later routine flags the same 
+      % value as a previous routine, the latter value is discarded.s
+      sliceIdx = find(flagSlice == goodFlag);
+      flagIdx  = find(f         ~= goodFlag);
+      idx = intersect(sliceIdx,flagIdx);
+
+      disp([filterName ...
+            ' generated ' num2str(length(flagIdx)) ...
+            ' flags on ' sam.variables{k}.name ...
+            ' (applying ' num2str(length(idx)) ')']);
+
+      % set the flags
+      flagSlice(idx) = f(idx);
+      flags(len*(m-1)+1:len*(m)) = flagSlice;
+
     end
-    
+
     sam.variables{k}.flags = reshape(flags, size(sam.variables{k}.data));
   end
 end

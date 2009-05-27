@@ -90,8 +90,9 @@ function displayManager( fieldTrip, sample_data,...
       
   function stateSelectCallback(event,...
     panel, updateCallback, state, sample_data, graphType, setIdx, vars, dim)
-  %STATESELECTCALLBACK Called when the user pushes one of the 'state' buttons 
-  % on the main window. Populates the given panel as appropriate.
+  %STATESELECTCALLBACK Called when the user interacts with the main 
+  % window, by changing the state, the selected data set, the selected
+  % variables/dimension or the selected graph type.
   %
   % Inputs:
   %   event          - String describing what triggered the callback.
@@ -115,8 +116,9 @@ function displayManager( fieldTrip, sample_data,...
     lastSetIdx = setIdx;
   
     function metadataCallback()
-    %METADATACALLBACK
-    
+    %METADATACALLBACK Displays a metadata viewer/editor for the selected 
+    % data set.
+    %
       % display metadata viewer, allowing user to modify metadata
       viewMetadata(panel, ...
         fieldTrip, sample_data{setIdx}, @metadataUpdateWrapperCallback);
@@ -135,9 +137,11 @@ function displayManager( fieldTrip, sample_data,...
     end
 
     function rawDataCallback()
-    %RAWDATACALLBACK
-    
-      % retrieve raw data on state change
+    %RAWDATACALLBACK Displays raw data for the the current data set, using
+    %the current graph type.
+    %
+      % retrieve raw data on state change - if state was already raw data,
+      % main window already has the correct data set.
       if strcmp(lastState, state)
         
         sample_data = rawDataRequestCallback();
@@ -152,8 +156,11 @@ function displayManager( fieldTrip, sample_data,...
     end
 
     function qcCallback()
-    %QCCALLBACK
-      
+    %QCCALLBACK Displays QC'd data for the current data set, using the
+    % current graph type. If the state has changed, the autoQCRequestCallback
+    % function is called, which may trigger auto-QC routines to be
+    % executed.
+    %
       % update qc data on state change
       if strcmp(event, 'state')
           
@@ -186,7 +193,10 @@ function displayManager( fieldTrip, sample_data,...
         ud = get(ax, 'UserData');
 
         % remove any previous highlight
-        if ~isempty(highlight), delete(highlight); end
+        if ~isempty(highlight)
+          delete(highlight); 
+          highlight = [];
+        end
 
         handle = 0;
 
@@ -197,8 +207,11 @@ function displayManager( fieldTrip, sample_data,...
           case 'alt',    handle = ud(2);
         end
 
+        % the graphTimeSeries function sets the flags handle to 0.0 if
+        % there were no flags to graph - we must check for this 
         if handle == 0.0, return; end
 
+        % highlight the data, save the handle
         highlight = highlightData(range, handle);
       end
     end
