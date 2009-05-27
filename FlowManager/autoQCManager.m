@@ -102,7 +102,6 @@ function qc_data = autoQCManager( sample_data )
       progStr = [sample_data{k}.instrument_make ' '...
                  sample_data{k}.instrument_model ' ' qcRoutines{m}];
       waitbar(progVal, progress, progStr);
-      disp(progStr);
       
       % run current QC routine over the current data set
       sample_data{k} = qcFilter(sample_data{k}, qcRoutines{m}, goodFlag);
@@ -147,11 +146,6 @@ function sam = qcFilter(sam, filterName, goodFlag)
       sliceIdx = find(flagSlice == goodFlag);
       flagIdx  = find(f         ~= goodFlag);
       idx = intersect(sliceIdx,flagIdx);
-
-      disp([filterName ...
-            ' generated ' num2str(length(flagIdx)) ...
-            ' flags on ' sam.variables{k}.name ...
-            ' (applying ' num2str(length(idx)) ')']);
 
       % set the flags
       flagSlice(idx) = f(idx);
