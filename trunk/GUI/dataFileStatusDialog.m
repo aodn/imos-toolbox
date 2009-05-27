@@ -133,6 +133,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   set(confirmButton,    'KeyPressFcn',     @keyPressCallback);
 
   % display the dialog and wait for user input
+  uicontrol(depList);
   set(f, 'Visible', 'on');
   uiwait(f);
   
@@ -145,6 +146,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   %
     if     strcmp(ev.Key, 'escape'), cancelCallback( source,ev);
     elseif strcmp(ev.Key, 'return'), confirmCallback(source,ev); 
+    elseif strcmp(ev.Key, 'f'),      fileAddCallback(source,ev);
     else   keyPressListCallback(source,ev);
     end
   end
@@ -257,6 +259,9 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     % update deplist view (the deployment's status may have changed)
     set(depList, 'Value',  dep);
     set(depList, 'String', genDepDescriptions(deployments, files));
+    
+    % give focus back to deployment list
+    uicontrol(depList);
   end
 end
 
