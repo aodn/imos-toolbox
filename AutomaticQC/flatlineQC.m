@@ -91,13 +91,15 @@ for m = 2:length(data)
     % increase current number of consecutive points
     flatlineSize = flatlineSize + 1;
 
+  % this data point is different from the last one if the flatlineSize 
+  % is big enough, flag every point in the flatline; reset the count
+  else
+    
     % the number of consecutive points is big 
     % enough to warrent flagging it as a flatline
-    if     flatlineSize  > nsamples, flags(m)                  = flatFlag;
-    elseif flatlineSize == nsamples, flags(m-flatlineSize+1:m) = flatFlag;
-    end
-
-  % this data point is different from the last one - reset the count
-  else flatlineSize = 1; end
+    if flatlineSize >= nsamples, flags(m-flatlineSize:m-1) = flatFlag; end
+    
+    flatlineSize = 1; 
+  end
 
 end
