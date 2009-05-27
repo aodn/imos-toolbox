@@ -53,7 +53,8 @@ function qc_data = autoQCManager( sample_data )
     error('sample_data must be a cell array of structs'); 
   end
   
-  goodFlag = imosQCFlag('good', str2double(readToolboxProperty('toolbox.qc_set')), 'flag');
+  qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
+  goodFlag = imosQCFlag('good', qc_set, 'flag');
   
   qc_data = {};
 
@@ -91,6 +92,12 @@ function qc_data = autoQCManager( sample_data )
     % user cancelled progress bar
     if getappdata(progress, 'cancel'), sample_data = {}; break; end
     
+    for m = 1:length(sample_data{k}.variables)
+      sample_data{k}.variables{m}.flags = ...
+        zeros(size(sample_data{k}.variables{m}.data));
+      sample_data{k}.variables{m}.flags(:) = goodFlag;
+    end
+    
     for m = 1:length(qcRoutines)
       
       % user cancelled progress bar
@@ -98,7 +105,7 @@ function qc_data = autoQCManager( sample_data )
       
       % update progress bar
       progVal = ...
-        (k*length(qcRoutines)+m) / (length(qcRoutines)*length(sample_data));
+        ((k-1)*length(qcRoutines)+m) / (length(qcRoutines)*length(sample_data));
       progStr = [sample_data{k}.instrument_make ' '...
                  sample_data{k}.instrument_model ' ' qcRoutines{m}];
       waitbar(progVal, progress, progStr);
@@ -121,7 +128,8 @@ function sam = qcFilter(sam, filterName, goodFlag)
 
   for k = 1:length(sam.variables)
 
-    data = sam.variables{k}.data;
+    data  = sam.variables{k}.data;
+    flags = sam.variables{k}.flags;
     len = length(data);
 
     % the QC filters work on single vectors of data; 
@@ -129,10 +137,9 @@ function sam = qcFilter(sam, filterName, goodFlag)
     data = data(:);
     slices = length(data) / len;
 
-    flags = zeros(length(data),1);
-    flags(:) = goodFlag;
+    flags = flags(:);
 
-    for m = 1:length(slices)
+    for m = 1:slices
 
       slice     = data( len*(m-1)+1:len*(m));
       flagSlice = flags(len*(m-1)+1:len*(m));
@@ -146,13 +153,13 @@ function sam = qcFilter(sam, filterName, goodFlag)
       sliceIdx = find(flagSlice == goodFlag);
       flagIdx  = find(f         ~= goodFlag);
       idx = intersect(sliceIdx,flagIdx);
-
+      
       % set the flags
       flagSlice(idx) = f(idx);
       flags(len*(m-1)+1:len*(m)) = flagSlice;
 
     end
 
-    sam.variables{k}.flags = reshape(flags, size(sam.variables{k}.data));
+    sam.variables{k}.flags = reshape(flags, size(sam.variables{k}.flags));
   end
 end

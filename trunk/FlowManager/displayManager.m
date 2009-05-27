@@ -178,7 +178,7 @@ function displayManager( fieldTrip, sample_data,...
       % save line/flag handles in axis userdata so the data select
       % callback can retrieve them
       for k = 1:length(graphs)
-        set(graphs(k), 'UserData', [lines(k), flags(k)]);
+        set(graphs(k), 'UserData', {lines(k), flags(k,:)});
       end
 
       % add data selection functionality
@@ -203,13 +203,14 @@ function displayManager( fieldTrip, sample_data,...
         % on a left click, highlight data points;
         % on a right click, highlight flags
         switch(type)
-          case 'normal', handle = ud(1);
-          case 'alt',    handle = ud(2);
+          case 'normal', handle = ud{1};
+          case 'alt',    handle = ud{2};
         end
-
+        
         % the graphTimeSeries function sets the flags handle to 0.0 if
         % there were no flags to graph - we must check for this 
-        if handle == 0.0, return; end
+        handle = handle(handle ~= 0);
+        if isempty(handle), return; end
 
         % highlight the data, save the handle
         highlight = highlightData(range, handle);
