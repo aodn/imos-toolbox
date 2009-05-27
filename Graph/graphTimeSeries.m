@@ -12,10 +12,12 @@ function [graphs lines flags] = graphTimeSeries( ...
 %                        sample_data.variables(x).flags values are displayed.
 %
 % Outputs:
-%   graphs             - handles to axes on which the data has been graphed.
-%   lines              - handles to lines which have been drawn.
-%   flags              - handles to flags which have been drawn. Empty if
-%                        no flags were drawn.
+%   graphs             - A vector of handles to axes on which the data has 
+%                        been graphed.
+%   lines              - A vector or handles to lines which have been drawn,
+%                        the same length as graphs.
+%   flags              - Matrix of handles to flags which have been drawn.
+%                        Same number of rows as graphs.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -101,52 +103,37 @@ function [graphs lines flags] = graphTimeSeries( ...
       
       hold on;
       
-      dim  = sample_data.dimensions{dimension}.data;
-      f    = sample_data.variables{k}.flags;
-      data = sample_data.variables{k}.data;
+      dim   = sample_data.dimensions{dimension}.data;
+      flags = sample_data.variables{k}.flags;
+      data  = sample_data.variables{k}.data;
       
-      f = find(f ~= goodFlag);
+      % get a list of the different flag types to be graphed
+      flagTypes = unique(sample_data.variables{k}.flags);
       
       % if no flags to plot, put a dummy handle in - the 
       % caller is responsible for checking and ignoring
-      if isempty(f), flags(k) = 0.0; continue; end
-      
-      flagDisplayLimit = 1000;
-      try
-        flagDisplayLimit = ...
-          str2double(readToolboxProperty('graphTimeSeries.flagDisplayLimit'));
-      catch e
-      end
-      
-      % too many flags, and matlab will grind to a halt - prompt the user
-      % if there are more than flagDisplayLimit flags
-      if length(f) > flagDisplayLimit
-        response = questdlg(...
-          ['A large number of flags are present (' num2str(length(f)) ')' ...
-         ' - performance may be poor. '...
-         'Do you want to display the flags anyway?'],...
-         'Display Flags?','Yes', 'No', 'No');
-         if ~strcmp(response, 'Yes'), displayFlags = false; end
-      end
-      
-      if displayFlags
-      
+      flags(k,:) = 0.0;
+
+      % a different line for each flag type
+      for m = 1:length(flagTypes)
+        
+        % don't display good data flags
+        if flagTypes(m) == goodFlag, continue; end
+
+        f = find(sample_data.variables{k}.flags == flagTypes(m));
+
+        fc = imosQCFlag(char(flagTypes(m)), qc_set, 'color');
+
         fx = dim(f);
         fy = data(f);
-        fc = [];
+        
+        disp(['type: ' char(flagTypes(m)) ', nflags: ' num2str(length(f))]);
 
-        % display flags in their appropriate colours
-        for m = 1:length(f)
-
-          fVal = char(sample_data.variables{k}.flags(f(m)));
-
-          fc(m,:) = imosQCFlag(fVal, qc_set, 'color');
-        end
-
-        flags(k) = scatter(graphs(k), fx, fy, 100, fc, 'filled',...
+        flags(k,m) = line(fx, fy,...
+          'LineStyle', 'none',...
+          'Marker', 'o',...
+          'MarkerFaceColor', fc,...
           'MarkerEdgeColor', 'black');
-      else
-        flags(k) = 0.0; 
       end
     end
     

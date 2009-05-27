@@ -30,8 +30,5 @@ startDialog.dataDir = /home/paul/Documents/imos/aims_matlab_code/GM6Trip4814
 startDialog.fieldTrip = 4814
 startDialog.lowDate = 730486
 startDialog.highDate = 734138
-autoQCManager.autoQCChain = 2  3
+autoQCManager.autoQCChain = 1
 
-% Maximum number of flags that can be displayed on a time series graph -
-% large numbers of flags severely affects performance
-graphTimeSeries.flagDisplayLimit = 1000
