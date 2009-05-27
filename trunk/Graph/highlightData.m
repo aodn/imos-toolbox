@@ -5,11 +5,12 @@ function highlight = highlightData( region, data )
 % Inputs:
 %   region    - a vector of length 4, containing the selected data region. 
 %               Must be in the format: [lx ly hx hy]
-%   data      - A handle to the graphics object displaying the data (e.g. 
-%               line, scatter). Must contain 'XData' and 'YData' properties.
+%   data      - A handle, or vector of handles, to the graphics object(s) 
+%               displaying the data (e.g. line, scatter). Must contain 
+%               'XData' and 'YData' properties.
 %
 % Outputs:
-%   highlight - Handle to a scatter object which overlays the highlighted
+%   highlight - Handle to a line object which overlays the highlighted
 %               data. If no data points lie within the highlight region, an
 %               empty matrix is returned.
 %
@@ -56,6 +57,21 @@ if ~ishandle(data), error('data must be a graphics handle'); end
 % these will throw errors if the handle doesn't have XData/YData properties
 xdata = get(data, 'XData');
 ydata = get(data, 'YData');
+
+% if multiple handles were passed in, merge the data sets by combining x
+% and y into a Nx2 matrix, and using union to merge/sort the rows
+if iscell(xdata)
+  
+  % u stands for union
+  u = [xdata{1}' ydata{1}'];
+  for k = 2:length(xdata)
+    
+    u = union(u, [xdata{k}' ydata{k}'], 'rows'); 
+  end
+  
+  xdata = u(:,1);
+  ydata = u(:,2);
+end
 
 % figure out indices of all data points within the range
 xidx  = find(xdata >= region(1) & xdata <= region(3));

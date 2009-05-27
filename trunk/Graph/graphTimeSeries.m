@@ -104,11 +104,11 @@ function [graphs lines flags] = graphTimeSeries( ...
       hold on;
       
       dim   = sample_data.dimensions{dimension}.data;
-      flags = sample_data.variables{k}.flags;
+      fl    = sample_data.variables{k}.flags;
       data  = sample_data.variables{k}.data;
       
       % get a list of the different flag types to be graphed
-      flagTypes = unique(sample_data.variables{k}.flags);
+      flagTypes = unique(fl);
       
       % if no flags to plot, put a dummy handle in - the 
       % caller is responsible for checking and ignoring
@@ -120,7 +120,7 @@ function [graphs lines flags] = graphTimeSeries( ...
         % don't display good data flags
         if flagTypes(m) == goodFlag, continue; end
 
-        f = find(sample_data.variables{k}.flags == flagTypes(m));
+        f = find(fl == flagTypes(m));
 
         fc = imosQCFlag(char(flagTypes(m)), qc_set, 'color');
 
