@@ -70,7 +70,7 @@ end
 mn = mean(data);
 data = data - mn;
 
-hpf = [];
+hpf = zeros(size(data));
 
 hpf(1) = data(1);
 
