@@ -92,15 +92,17 @@ fdata = data - mean(fdata);
 
 stddev = std(fdata);
 
-u1 = [];
-u2 = [];
-u3 = [];
+u1 = zeros(length(fdata)-4,1);
+u2 = zeros(length(u1)-2, 1);
+u3 = zeros(length(u2)-1, 1);
 
 % calculate x', x'' and x'''
 % could be pipelined, but i'm lazy, and it's not too slow
 for m = 3:(length(fdata)-2), u1(m-2) = median(fdata(m-2:m+2));              end
 for m = 2:(length(u1)-1),    u2(m-1) = median(u1(m-1:m+1));                 end
 for m = 2:(length(u2)-1),    u3(m-1) = 0.25 *(u2(m-1) + 2*u2(m) + u2(m+1)); end
+
+
 
 % search the data for spikes
 for m = 4:(length(fdata)-5)
