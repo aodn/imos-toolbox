@@ -1,5 +1,4 @@
-function [data, flags, log] = ...
-flatlineQC( sample_data, data, k, varargin )
+function [data, flags, log] = flatlineQC( sample_data, data, k, varargin )
 %FLATLINEQC Flags flatline regions in the given data set.
 %
 % Simple filter which finds and flags any 'flatline' regions in the given data.
