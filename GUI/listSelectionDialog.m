@@ -15,9 +15,8 @@ function selected = listSelectionDialog( title, allOpts, initialOpts )
 %                 are selected.
 %
 % Outputs:
-%   selected    - Vector of indices into the allOpts array, defining the
-%                 options that the the user selected. If the user cancelled
-%                 the dialog, this vector is empty.
+%   selected    - Cell array containing the selected options If the user 
+%                 cancelled the dialog, this vector is empty.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -136,8 +135,7 @@ function selected = listSelectionDialog( title, allOpts, initialOpts )
   set(f, 'Visible', 'on');
   uiwait(f);
   
-  % turn selections into indices into the original list of options
-  if ~isempty(selected), selected = find(ismember(allOpts,selected)); end
+  return;
 
   %% Callback functions
   

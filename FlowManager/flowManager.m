@@ -117,14 +117,6 @@ function flowManager()
     % save data set selection
     lastSetIdx = lastAutoQCSetIdx;
     lastAutoQCSetIdx = setIdx;
-    
-    % user can disable prompt via qcPrompt toolbox 
-    % property - QC data can never be overwritten
-    qcPrompt = true;
-    try
-      qcPrompt = str2num(readToolboxProperty('flowManager.qcPrompt'));
-    catch e
-    end
 
     % if QC has not been run before, run QC over every data set
     if isempty(autoQCData)
@@ -140,10 +132,9 @@ function flowManager()
     % user if they want to keep old QC data, or redo QC, for this set only
     elseif lastSetIdx == setIdx
       
-      if ~qcPrompt, return; end
-      
       response = questdlg(...
-        'Re-run auto-QC routines (existing flags/mods will be discarded)?',...
+        ['Re-run auto-QC routines '...
+        '(existing flags/mods for this data set will be discarded)?'],...
         'Re-run QC Routines?', 'Yes', 'No', 'No');
       
       if ~strcmp(response, 'Yes'), return; end

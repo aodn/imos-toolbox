@@ -60,24 +60,29 @@ function qc_data = autoQCManager( sample_data )
 
   % get all QC routines that exist
   qcRoutines = listAutoQCRoutines();
-  qcChain    = [];
+  qcChain    = {};
 
   % get default filter chain if there is one
-  try   qcChain = str2num(readToolboxProperty('autoQCManager.autoQCChain'));
+  try
+    qcChain = textscan(readToolboxProperty('autoQCManager.autoQCChain'), '%s');
+    qcChain = qcChain{1};
   catch e
   end
 
-  % prompt user to select QC filters to run
+  % prompt user to select QC filters to run - the list of initially 
+  % selected options is stored in toolboxProperties as routine names, 
+  % but must be provided to the list selection dialog as indices
+  qcChainIdx = cellfun(@(x)(find(ismember(qcRoutines,x))),qcChain);
   qcChain = listSelectionDialog(...
-    'Define the QC filter chain', qcRoutines, qcChain);
+    'Define the QC filter chain', qcRoutines, qcChainIdx);
 
   % user cancelled dialog
   if isempty(qcChain), return; end
 
-  % save user's latest selection for next time
-  writeToolboxProperty('autoQCManager.autoQCChain', num2str(qcChain));
-  
-  qcRoutines = {qcRoutines{qcChain}};
+  % save user's latest selection for next time - turn the qcChain
+  % cell array into a space-separated string of the names
+  qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
+  writeToolboxProperty('autoQCManager.autoQCChain', [qcChainStr{:}]);
   
   progress = waitbar(...
     0, 'Running QC routines', ...
@@ -98,20 +103,20 @@ function qc_data = autoQCManager( sample_data )
       sample_data{k}.variables{m}.flags(:) = goodFlag;
     end
     
-    for m = 1:length(qcRoutines)
+    for m = 1:length(qcChain)
       
       % user cancelled progress bar
       if getappdata(progress, 'cancel'), break; end
       
       % update progress bar
       progVal = ...
-        ((k-1)*length(qcRoutines)+m) / (length(qcRoutines)*length(sample_data));
+        ((k-1)*length(qcChain)+m) / (length(qcChain)*length(sample_data));
       progStr = [sample_data{k}.instrument_make ' '...
-                 sample_data{k}.instrument_model ' ' qcRoutines{m}];
+                 sample_data{k}.instrument_model ' ' qcChain{m}];
       waitbar(progVal, progress, progStr);
       
       % run current QC routine over the current data set
-      sample_data{k} = qcFilter(sample_data{k}, qcRoutines{m}, goodFlag);
+      sample_data{k} = qcFilter(sample_data{k}, qcChain{m}, goodFlag);
     end
   end
   
