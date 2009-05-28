@@ -78,7 +78,9 @@ while line ~= -1
   % old property value with the new value
   if ~isempty(tkns) ...
   &&  strcmp(tkns{1}{1},prop)
-    line = strrep(line, tkns{1}{2}, val);
+    if isempty(tkns{1}{2}), line = [tkns{1}{1} ' = ' val];
+    else                    line = strrep(line, tkns{1}{2}, val);
+    end 
     updated = 1;
   end
   

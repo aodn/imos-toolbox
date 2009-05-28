@@ -8,16 +8,14 @@ toolbox.timeFormat = yyyy-mm-ddTHH:MM:SS
 % QC set in use - see section 6.2 of the IMOS NetCDF User's Manual
 toolbox.qc_set = 1
 
-% set to false to disable annoying prompt that is displayed every time you 
-% click on Quality Control. The disadvantage with disabling the prompt is 
-% that you won't be able to discard changes or re-run the auto QC routines
-flowManager.qcPrompt = true
-
 % format in which all dates should be exported in NetCDF attributes
 exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SS
 
 % different date format for NetCDF file names
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSS
+
+% default set of auto QC routines
+autoQCManager.autoQCChain = flatlineQC inWaterQC outWaterQC tukey53HDespikeQC 
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
@@ -26,9 +24,9 @@ dataFileStatusDialog.invalidFileNameFormat = red
 dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
+
+% default values for start dialog
 startDialog.dataDir = /home/paul/Documents/imos/aims_matlab_code/GM6Trip4814
 startDialog.fieldTrip = 4814
 startDialog.lowDate = 730486
 startDialog.highDate = 734138
-autoQCManager.autoQCChain = 1
-
