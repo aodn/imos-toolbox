@@ -91,7 +91,7 @@ function filename = genNetCDFFileName( sample_data )
   filename = [filename        file_version  '_'];
   filename = [filename        product_type  '_'];
   filename = [filename 'END-' end_date      '_'];
-  filename = [filename 'C-'   creation_date '_'];
+  filename = [filename 'C-'   creation_date];
   filename = [filename '.nc'];
 
 end
