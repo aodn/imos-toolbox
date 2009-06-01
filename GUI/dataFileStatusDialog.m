@@ -64,6 +64,12 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   origDeployments = deployments;
   origFiles       = files;
   
+  deploymentDescs = genDepDescriptions(deployments, files);
+  
+  nofile   = readToolboxProperty('dataFileStatusDialog.noFileFormat');
+  multiple = readToolboxProperty('dataFileStatusDialog.multipleFileFormat');
+  invalid  = readToolboxProperty('dataFileStatusDialog.invalidFileNameFormat');
+  
   %% Create GUI
 
   % dialog figure
@@ -86,8 +92,9 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   depList           = uicontrol('Style', 'listbox', 'Min', 1, 'Max', 1);
   fileList          = uicontrol('Style', 'listbox', 'Min', 1, 'Max', 3);
   % set list items
-  set(depList,  'String', genDepDescriptions(deployments, files), 'Value', 1);
-  set(fileList, 'String', files{1},                               'Value', 1);
+  set(depList,  'String', ...
+    annotateDepDescriptions(deployments, deploymentDescs), 'Value', 1);
+  set(fileList, 'String', files{1},                        'Value', 1);
 
   % use normalised coordinates
   set(f,                                 'Units', 'normalized');
@@ -205,8 +212,9 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     % if there is only one deployment, don't allow it to be removed
     if length(deployments) == 1, return; end
     
-    deployments(dep) = [];
-    files(      dep) = [];
+    deployments(    dep) = [];
+    deploymentDescs(dep) = [];
+    files(          dep) = [];
    
     % if it is the last deployment in the list being removed, make sure
     % that the selected deployment is within the valid range, otherwise
@@ -215,7 +223,8 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     
     % update the deployment and file list and deployment selection
     set(depList, 'Value',  dep);
-    set(depList, 'String', genDepDescriptions(deployments, files));
+    set(depList, 'String', ...
+      annotateDepDescriptions(deployments, deploymentDescs));
     depListCallback(source,ev);
   end
 
@@ -233,7 +242,8 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     
     % update deplist view (the deployment's status may have changed)
     set(depList, 'Value',  dep);
-    set(depList, 'String', genDepDescriptions(deployments, files));
+    set(depList, 'String', ...
+      annotateDepDescriptions(deployments, deploymentDescs));
   end
 
   function fileAddCallback(source,ev)
@@ -258,92 +268,120 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     
     % update deplist view (the deployment's status may have changed)
     set(depList, 'Value',  dep);
-    set(depList, 'String', genDepDescriptions(deployments, files));
+    set(depList, 'String', ...
+      annotateDepDescriptions(deployments, deploymentDescs));
     
     % give focus back to deployment list
     uicontrol(depList);
   end
-end
 
-function descs = genDepDescriptions(deployments, files)
-%GENDEPDESCRIPTIONS Creates a cell array of descriptions of the given
-% deployments, suitable for use in the deployments list.
-%
+  %% Description generation
 
-  % set values for lists
-  descs = strcat(...
-    {deployments.DeploymentId},...
-    ':', {deployments.InstrumentID},...
-    '(', {deployments.FileName}, ')'...
-  );
+  function descs = genDepDescriptions(deployments, files)
+  %GENDEPDESCRIPTIONS Creates a cell array of descriptions of the given
+  % deployments, suitable for use in the deployments list.
+  %
 
-  % highlight deployments which have no associated 
-  % files or which have more than one associated file
-  nofile   = readToolboxProperty('dataFileStatusDialog.noFileFormat');
-  multiple = readToolboxProperty('dataFileStatusDialog.multipleFileFormat');
-  invalid  = readToolboxProperty('dataFileStatusDialog.invalidFileNameFormat');
-  
-  [nofileStart   nofileEnd]   = genTags(nofile);
-  [multipleStart multipleEnd] = genTags(multiple);
-  [invalidStart  invalidEnd]  = genTags(invalid);
-  
-  for k = 1:length(deployments)
-    
-    if ~isValidDeployment(deployments(k))
-      descs{k} = [invalidStart  descs{k} invalidEnd];
-      
-    elseif isempty(files{k})
-      descs{k} = [nofileStart   descs{k} nofileEnd];
-      
-    elseif length(files{k}) > 1
-      descs{k} = [multipleStart descs{k} multipleEnd];
-      
+    % set values for lists
+
+    descs = {};
+    for k = 1:length(deployments)
+
+      dep = deployments(k);
+
+      % at the very least, the instrument and file name
+      descs{k} = dep.InstrumentID;
+      if ~isempty(dep.FileName) 
+        descs{k} = [descs{k} ' (' dep.FileName ')'];
+      end
+
+      % get some site information if it exists
+      site = executeDDBQuery('Sites', 'Site', dep.Site);
+
+      if ~isempty(site)
+
+        if ~isempty(site.SiteName), 
+          descs{k} = [site.SiteName ': ' descs{k}];
+
+        elseif ~isempty(site.Description)
+
+          if length(site.Description) > 30
+            site.Description = [site.Description(1:30) '...']; 
+          end
+
+          descs{k} = [site.Description ': ' descs{k}];
+        end
+      end
     end
   end
-end
   
-function [startTag endTag] = genTags(formatSpec)
-%GENTAGS Generates HTML tags for the given format specification.
-%
+  function descs = annotateDepDescriptions(deployments, descs)
+  %ANNOTATEDEPDESCRIPTIONS Highlights deployment descriptions based on the
+  % deployment status.
+  %
+    % highlight deployments which have no associated 
+    % files or which have more than one associated file
+    [nofileStart   nofileEnd]   = genTags(nofile);
+    [multipleStart multipleEnd] = genTags(multiple);
+    [invalidStart  invalidEnd]  = genTags(invalid);
 
-startTag = '';
-endTag   = '';
+    for k = 1:length(deployments)
 
-  switch (formatSpec)
+      if ~isValidDeployment(deployments(k))
+        descs{k} = [invalidStart  descs{k} invalidEnd];
 
-    case 'normal', 
-    case 'bold', 
-      startTag = '<html><b>';
-      endTag   = '</b></html>';
-    case 'italic'
-      startTag = '<html><i>';
-      endTag   = '</i></html>';
+      elseif isempty(files{k})
+        descs{k} = [nofileStart   descs{k} nofileEnd];
 
-    % otherwise assume it's a html colour
-    otherwise
-      startTag = ['<html><font color=''' formatSpec '''>'];
-      endTag   = '</font></html>';
+      elseif length(files{k}) > 1
+        descs{k} = [multipleStart descs{k} multipleEnd];
+
+      end
+    end
+
+    function [startTag endTag] = genTags(formatSpec)
+    %GENTAGS Generates HTML tags for the given format specification.
+    %
+
+    startTag = '';
+    endTag   = '';
+
+      switch (formatSpec)
+
+        case 'normal', 
+        case 'bold', 
+          startTag = '<html><b>';
+          endTag   = '</b></html>';
+        case 'italic'
+          startTag = '<html><i>';
+          endTag   = '</i></html>';
+
+        % otherwise assume it's a html colour
+        otherwise
+          startTag = ['<html><font color=''' formatSpec '''>'];
+          endTag   = '</font></html>';
+      end
+    end
   end
-end
 
-function valid = isValidDeployment(deployment)
-%REMOVEBADDEPLOYMENTS Returns logical true if the given deployment's
-%FileName field is valid
-%
-% Inputs:
-%   deployments - deployment struct.
-%
-% Outputs:
-%   valid       - 1 if the given deployment's FileName field is valid, 0
-%                 otherwise.
-% 
+  function valid = isValidDeployment(deployment)
+  %ISVALIDDEPLOYMENT Returns logical true if the given deployment's
+  % FileName field is valid.
+  %
+  % Inputs:
+  %   deployments - deployment struct.
+  %
+  % Outputs:
+  %   valid       - 1 if the given deployment's FileName field is valid, 0
+  %                 otherwise.
+  % 
+    valid = 1;
+    % the deployment is invalid if its FileName field is empty, or 
+    % if it contains the (case insensitive string) 'No data'
+    fn = deployment.FileName;
 
-  valid = 1;
-  % the deployment is invalid if its FileName field is empty, or 
-  % if it contains the (case insensitive string) 'No data'
-  f = deployment.FileName;
-
-  if isempty(f) || ~isempty(strfind(lower(f), 'no data'))
-    valid = 0; 
+    if isempty(fn) || ~isempty(strfind(lower(fn), 'no data'))
+      valid = 0; 
+    end
   end
 end
