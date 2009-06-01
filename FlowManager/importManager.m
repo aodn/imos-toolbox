@@ -138,6 +138,12 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
       % import data
       sam = parse(deps(k), files{k});
       sam = finaliseData(sam, fieldTrip, deps(k));
+      
+      % turn raw data files a into semicolon separated string
+      sam.raw_data_file = ...
+        cellfun(@(x)([x ';']), files{k}, 'UniformOutput', false);
+      sam.raw_data_file = [sam.raw_data_file{:}];
+      
       sample_data{end+1} = sam;
     
     % failure is not fatal
