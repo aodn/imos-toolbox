@@ -110,6 +110,7 @@ function displayManager( fieldTrip, sample_data,...
       case 'Metadata',        metadataCallback();
       case 'Raw data',        rawDataCallback();
       case 'Quality Control', qcCallback();
+      case 'Export',          exportCallback();
     end
     
     lastState  = state;
@@ -215,6 +216,17 @@ function displayManager( fieldTrip, sample_data,...
         % highlight the data, save the handle
         highlight = highlightData(range, handle);
       end
+    end
+    
+    function exportCallback()
+    % Called when the user clicks on the 'Export' button. Delegates to the 
+    % exportRequestCallback function.
+    %
+      exportRequestCallback();
+      
+      % redisplay data 
+      graphFunc = str2func(graphType);
+      graphFunc(panel, sample_data{setIdx}, vars, dim, true);
     end
   end
 end
