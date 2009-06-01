@@ -57,7 +57,7 @@ function filename = exportNetCDF( sample_data, dest )
   end
 
   % generate the filename
-  filename = genFileName(sample_data);
+  filename = genNetCDFFileName(sample_data);
   filename = [dest filesep filename];
   
   disp(['creating ' filename]);
@@ -175,70 +175,6 @@ function filename = exportNetCDF( sample_data, dest )
     netcdf.close(fid);
     rethrow e;
   end
-end
-
-function filename = genFileName(sample_data)
-%GENFILENAME Generate an IMOS compliant NetCDF file name for the given data set.
-%
-% Generates an IMOS compliant file name for the given data set. See the IMOS
-% NetCDF File Naming Convention document.
-%
-% Inputs:
-%   sample_data - Single struct containing sample data.
-%
-% Outputs:
-%   filename    - an IMOS compliant filename.
-%
-  error(nargchk(1,1,nargin));
-
-  if ~isstruct(sample_data), error('sample_data must be a struct'); end
-
-  %
-  % get all the individual components that make up the filename
-  %
-
-  file_version  = ['FV0' num2str(sample_data.level)];
-  facility_code = sample_data.institution;
-  platform_code = sample_data.platform_code;
-  product_type  = '';
-
-  %
-  % all dates should be in ISO 8601 format
-  %
-  dateFmt       = readToolboxProperty('exportNetCDF.dateFormat');
-  fileDateFmt   = readToolboxProperty('exportNetCDF.fileDateFormat');
-  start_date    = ...
-    datestr(datenum(sample_data.time_coverage_start, dateFmt), fileDateFmt);
-  end_date      = ...
-    datestr(datenum(sample_data.time_coverage_end, dateFmt),   fileDateFmt);
-  creation_date = ...
-    datestr(datenum(sample_data.date_created, dateFmt),        fileDateFmt);
-
-  %
-  % one data code for each parameter
-  %
-  data_code     = '';
-  for k = 1:length(sample_data.variables)
-
-    % get the data code for this parameter; don't add duplicate codes
-    code = imosParameters(sample_data.variables{k}.name, 'data_code');
-    if strfind(data_code, code), continue; end
-
-    data_code(end+1) = code;
-  end
-
-  % build the file name
-  filename = 'IMOS_';
-  filename = [filename        facility_code '_'];
-  filename = [filename        data_code     '_'];
-  filename = [filename        start_date    '_'];
-  filename = [filename        platform_code '_'];
-  filename = [filename        file_version  '_'];
-  filename = [filename        product_type  '_'];
-  filename = [filename 'END-' end_date      '_'];
-  filename = [filename 'C-'   creation_date '_'];
-  filename = [filename '.nc'];
-
 end
 
 function putAtts(fid, vid, template)
