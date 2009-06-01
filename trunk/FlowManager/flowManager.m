@@ -177,9 +177,8 @@ function flowManager()
   end
 
   function exportRequestCallback()
-    disp('exportRequestCallback');
-
-    %for d in data
-    %  exportNetCDF(d);
+  %EXPORTREQUESTCALLBACK
+    
+    exportManager(rawData, autoQCData);
   end
 end
