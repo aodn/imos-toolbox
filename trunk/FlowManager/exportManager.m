@@ -49,6 +49,21 @@ function exportManager(rawData, qcData)
     error('qcData must be empty, or the same length as rawData'); 
   end
   
+  % prompt user for export directory, and data sets to export
   [exportDir dataSets] = exportNetCDFDialog(rawData, qcData);
   
+  % user cancelled dialog or selected no data sets
+  if isempty(exportDir) || isempty(dataSets), return; end
+  
+  % write out each of the selected data sets
+  for k = 1:length(dataSets)
+    
+    try
+      filename = exportNetCDF(dataSets{k}, exportDir);
+      disp(['wrote ' exportDir filesep filename]);
+      
+    catch e
+      disp(['error while writing file: ' e.message]);
+    end
+  end
 end
