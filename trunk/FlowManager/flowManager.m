@@ -160,6 +160,9 @@ function flowManager()
     % if user interrupted process, return either raw data or old QC data
     if isempty(aqc), return; end
     
+    % set level on each QC'd data set
+    for k = 1:length(aqc), aqc{k}.level = 1; end
+    
     % otherwise return new QC data
     autoQCData(setIdx) = aqc;
     sample_data = autoQCData;
