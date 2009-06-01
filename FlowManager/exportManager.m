@@ -55,15 +55,26 @@ function exportManager(rawData, qcData)
   % user cancelled dialog or selected no data sets
   if isempty(exportDir) || isempty(dataSets), return; end
   
+  filenames = {};
+  
   % write out each of the selected data sets
   for k = 1:length(dataSets)
     
     try
-      filename = exportNetCDF(dataSets{k}, exportDir);
-      disp(['wrote ' exportDir filesep filename]);
+      filenames{k} = exportNetCDF(dataSets{k}, exportDir);
+      disp(['wrote ' filenames{k}]);
       
     catch e
       disp(['error while writing file: ' e.message]);
     end
   end
+  
+  % display message to user
+  if isempty(filenames)
+    h = msgbox('no files exported','Export', 'error', 'modal');
+  else
+    h = msgbox([num2str(length(filenames)) ' file(s) exported'], ...
+      'Export', 'modal');
+  end
+  uiwait(h);
 end
