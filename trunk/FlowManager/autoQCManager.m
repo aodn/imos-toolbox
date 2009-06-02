@@ -53,8 +53,8 @@ function qc_data = autoQCManager( sample_data )
     error('sample_data must be a cell array of structs'); 
   end
   
-  qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
-  goodFlag = imosQCFlag('good', qc_set, 'flag');
+  qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
+  goodFlag = imosQCFlag('good', qcSet, 'flag');
   
   qc_data = {};
 
@@ -96,12 +96,6 @@ function qc_data = autoQCManager( sample_data )
     
     % user cancelled progress bar
     if getappdata(progress, 'cancel'), sample_data = {}; break; end
-    
-    for m = 1:length(sample_data{k}.variables)
-      sample_data{k}.variables{m}.flags = ...
-        zeros(size(sample_data{k}.variables{m}.data));
-      sample_data{k}.variables{m}.flags(:) = goodFlag;
-    end
     
     for m = 1:length(qcChain)
       
@@ -154,7 +148,7 @@ function sam = qcFilter(sam, filterName, goodFlag)
       [d f l] = filter(sam, slice, k);
 
       % Flags are not overwritten - if a later routine flags the same 
-      % value as a previous routine, the latter value is discarded.s
+      % value as a previous routine, the latter value is discarded.
       sliceIdx = find(flagSlice == goodFlag);
       flagIdx  = find(f         ~= goodFlag);
       idx = intersect(sliceIdx,flagIdx);

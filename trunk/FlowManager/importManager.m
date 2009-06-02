@@ -117,6 +117,10 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
   % display progress dialog
   progress = waitbar(0, 'importing data');
   
+  dateFmt  = readToolboxProperty('exportNetCDF.dateFormat');
+  qcSet    = str2double(readToolboxProperty('toolbox.qc_set'));
+  goodFlag = imosQCFlag('good', qcSet, 'flag');
+  
   % parse file for each deployment, sample struct for each.
   % if a parser can't be found for a deployment, don't bail; 
   % just ignore it for the time being
@@ -137,7 +141,7 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
 
       % import data
       sam = parse(deps(k), files{k});
-      sam = finaliseData(sam, fieldTrip, deps(k));
+      sam = finaliseData(sam, fieldTrip, deps(k), dateFmt, goodFlag);
       
       % turn raw data files a into semicolon separated string
       sam.raw_data_file = ...
@@ -298,13 +302,10 @@ function parser = getParserFunc(deployment)
   parser = getParser(parser);
 end
 
-function sam = finaliseData(sam, fieldTrip, deployment)
+function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
 %FINALISEDATA Adds all required/relevant information from the given field
 %trip and deployment structs to the given sample data.
 %
-  qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
-  
-  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
   
   % process level == raw
   sam.level                  = 0;
@@ -322,11 +323,18 @@ function sam = finaliseData(sam, fieldTrip, deployment)
     
     sam.variables{k}.deployment_id = deployment.DeploymentId;
     
-    sam.variables{k}.flags = char;
+    sam.variables{k}.flags    = zeros(size(sam.variables{k}.data));
+    sam.variables{k}.flags(:) = flagVal;
     
     % we currently have no access to this information
     sam.variables{k}.valid_min = -99999.0;
     sam.variables{k}.valid_max =  99999.0;
+  end
+  
+  for k = 1:length(sam.dimensions)
+    
+    sam.dimensions{k}.flags    = zeros(size(sam.dimensions{k}.data));
+    sam.dimensions{k}.flags(:) = flagVal;
   end
   
   % add IMOS-compliant parameters
