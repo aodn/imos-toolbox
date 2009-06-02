@@ -126,16 +126,24 @@ end
 lines = find(flags{1} == qc_set);
 for k=1:length(lines)
   
-  if strcmp(field, 'color')
+  if strcmp(field, 'color') || strcmp(field, 'desc')
     
     if strcmp(qc_class, flags{2}{lines(k)})
       
-      value = flags{4}{lines(k)};
+      switch (field)
+        
+        case 'color'
+      
+          value = flags{4}{lines(k)};
 
-      % if color was specified numerically, convert it from a string
-      temp = str2num(value);
-      if ~isempty(temp), value = temp; end
-      return;
+          % if color was specified numerically, convert it from a string
+          temp = str2num(value);
+          if ~isempty(temp), value = temp; end
+          return;
+        case 'desc'
+          value = flags{3}{lines(k)};
+          return;
+      end
     end
     continue;
   end
@@ -150,7 +158,6 @@ for k=1:length(lines)
 
     switch(field)
       case 'flag', value = flags{2}{lines(k)};
-      case 'desc', value = flags{3}{lines(k)};
     end
 
     return;

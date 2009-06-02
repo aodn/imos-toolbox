@@ -63,13 +63,17 @@ function sample_data = genTestData(...
 disp(['generating test data set of ' num2str(nsamples) ' samples']);
 
 datefmt = readToolboxProperty('exportNetCDF.dateFormat');
+qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
 
-sample_data.dimensions         = {};
-sample_data.dimensions{1}.name = 'TIME';
-sample_data.dimensions{1}.data = (1:nsamples)';
-sample_data.variables          = {};
-sample_data.level              = 0;
+sample_data.dimensions             = {};
+sample_data.dimensions{1}.name     = 'TIME';
+sample_data.dimensions{1}.data     = (1:nsamples)';
+sample_data.dimensions{1}.flags    = zeros(nsamples, 1);
+sample_data.dimensions{1}.flags(:) = '0';
+sample_data.variables              = {};
+sample_data.level                  = 0;
 
+sample_data.quality_control_set  = qcSet;
 sample_data.time_coverage_start  = datestr(in_water_time, datefmt);
 sample_data.time_coverage_end    = datestr(out_water_time, datefmt);
 sample_data.date_created         = datestr(now, datefmt);

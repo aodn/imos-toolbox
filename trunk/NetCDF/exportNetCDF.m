@@ -95,6 +95,7 @@ function filename = exportNetCDF( sample_data, dest )
           
       dimAtts = dims{m};
       dimAtts = rmfield(dimAtts, 'data');
+      dimAtts = rmfield(dimAtts, 'flags');
 
       % create dimension
       did = netcdf.defDim(fid, upper(dims{m}.name), length(dims{m}.data));
@@ -106,10 +107,13 @@ function filename = exportNetCDF( sample_data, dest )
       % create coordinate variable and attributes
       vid = netcdf.defVar(fid, upper(dims{m}.name), 'double', did);
       putAtts(fid, vid, dimAtts);
+      
+      % create the ancillary QC variable
+      addQCVar(fid, sample_data, m, did, 'dim');
     end
 
     %
-    % variable definitions
+    % variable (and ancillary QC variable) definitions
     %
     dims = sample_data.dimensions;
     vars = sample_data.variables;
@@ -129,38 +133,67 @@ function filename = exportNetCDF( sample_data, dest )
       varAtts = vars{m};
       varAtts = rmfield(varAtts, 'data');
       varAtts = rmfield(varAtts, 'dimensions');
+      varAtts = rmfield(varAtts, 'flags');
 
       % add the attributes
       putAtts(fid, vid, varAtts);
+      
+      % create the ancillary QC variable
+      addQCVar(fid, sample_data, m, dids, 'var');
     end
 
-    % we're finished defining dimensionss/attributes/variables
+    % we're finished defining dimensions/attributes/variables
     netcdf.endDef(fid);
 
     %
-    % coordinate variable data
+    % coordinate variable (and ancillary variable) data
     %
     dims = sample_data.dimensions;
+    
+    % translate time from matlab serial time (days since 0000-00-00 00:00:00Z)
+    % to IMOS mandated time (days since 1950-01-01T00:00:00Z)
+    if strcmpi(dims{1}.name, 'TIME')
+      dims{1}.data = dims{1}.data - datenum('1950-01-01 00:00:00');
+    end
+    
     for m = 1:length(dims)
-
+      
+      % variable data
       varname = dims{m}.name;
       vid     = dims{m}.did;
       data    = dims{m}.data;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
 
       netcdf.putVar(fid, vid, data);
+      
+      % ancillary QC variable data
+      varname = [varname '_quality_control'];
+      data    = dims{m}.flags;
+      disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
+      
+      vid = netcdf.inqVarID(fid, varname);
+      netcdf.putVar(fid, vid, data);
     end
 
     %
-    % variable data
+    % variable (and ancillary variable) data
     %
     vars = sample_data.variables;
     for m = 1:length(vars)
 
+      % variable data
       varname = vars{m}.name;
       data    = vars{m}.data;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
 
+      vid = netcdf.inqVarID(fid, varname);
+      netcdf.putVar(fid, vid, data);
+      
+      % ancillary QC variable data
+      varname = [varname '_quality_control'];
+      data    = vars{m}.flags;
+      disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
+      
       vid = netcdf.inqVarID(fid, varname);
       netcdf.putVar(fid, vid, data);
     end
@@ -172,9 +205,64 @@ function filename = exportNetCDF( sample_data, dest )
   
   % ensure that the file is closed in the event of an error
   catch e
-    netcdf.close(fid);
+    try netcdf.close(fid); catch ex, end
     rethrow e;
   end
+end
+
+function vid = addQCVar(fid, sample_data, varIdx, dims, type)
+%ADDQCVAR Adds an ancillary variable for the variable with the given index.
+%
+% Inputs:
+%   fid         - NetCDF file identifier
+%   sample_data - Struct containing entire data set
+%   varIdx      - Index into sample_data.variables, specifying the
+%                 variable.
+%   dims        - Vector of NetCDF dimension identifiers.
+%   template    - either 'dim' or 'var', to differentiate between
+%                 coordinate variables and data variables.
+%
+% Outputs:
+%   vid         - NetCDF variable identifier of the QC variable that was 
+%                 created.
+%
+  switch(type)
+    case 'dim'
+      var = sample_data.dimensions{varIdx};
+      template = 'qc_coord_attributes.txt';
+    case 'var'
+      var = sample_data.variables{varIdx};
+      template = 'qc_attributes.txt';
+    otherwise
+      error(['invalid type: ' type]);
+  end
+  
+  path = [fileparts(which(mfilename)) filesep 'template' filesep];
+  
+  varname = [var.name '_quality_control'];
+  disp(['creating variable: ' varname]);
+  
+  qcAtts = parseNetCDFTemplate([path template], sample_data, varIdx);
+  
+  % get qc flag values
+  qcFlags = imosQCFlag('', sample_data.quality_control_set, 'values');
+  qcFlags = qcFlags;
+  qcDescs = {};
+  
+  % get flag descriptions
+  for k = 1:length(qcFlags)
+    qcDescs{k} = ...
+      imosQCFlag(qcFlags(k), sample_data.quality_control_set, 'desc');
+  end
+  
+  qcAtts.flag_values = double(qcFlags);
+  
+  % turn descriptions into newline separated string
+  qcDescs = cellfun(@(x)(sprintf('%s\n', x)), qcDescs, 'UniformOutput', false);
+  qcAtts.flag_meanings = [qcDescs{:}];
+  
+  vid = netcdf.defVar(fid, varname, 'byte', dims);
+  putAtts(fid, vid, qcAtts);
 end
 
 function putAtts(fid, vid, template)
