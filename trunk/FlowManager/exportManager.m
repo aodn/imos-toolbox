@@ -1,12 +1,15 @@
-function exportManager(rawData, qcData)
-%EXPORTMANAGER Manages the export of data to NetCDF files.
+function exportManager(dataSets, levelNames, output)
+%EXPORTMANAGER Manages the export of data to NetCDF or raw data files.
 %
 % Inputs:
-%   rawData   - Cell array containing raw data sets.
+%   dataSets   - Cell array containing the data levels, each of which is a 
+%                cell array of sample data structs. All of the sample data 
+%                cell arrays must be of the same length.
 %
-%   qcData    - Cell array containing qc'd data sets. If QC has not yet been
-%               performed, this array may be empty. Otherwise it must be the
-%               same length as rawData.
+%   levelNames - Cell array containing the names of each data level (e.g. 
+%                'raw', 'QC')
+%
+%   output     - either 'netcdf' or 'raw'.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -40,17 +43,37 @@ function exportManager(rawData, qcData)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,2,nargin));
+  error(nargchk(3,3,nargin));
 
-  if ~iscell(rawData), error('rawData must be a cell array'); end
-  if ~iscell(qcData),  error('qcData must be a cell array');  end
-
-  if ~isempty(qcData) && length(qcData) ~= length(rawData)
-    error('qcData must be empty, or the same length as rawData'); 
+  if ~iscell(dataSets),      error('dataSets must be a cell array');   end
+  if ~iscellstr(levelNames), error('levelNames must be a cell array'); end
+  if ~ischar(output),        error('output must be a string');         end
+  
+  if isempty(dataSets),      error('dataSets cannot be empty');        end
+  if length(dataSets) ~= length(levelNames)
+    error('dataSets and levelNames must be the same length'); 
+  end
+  
+  numLevels = length(dataSets);
+  numSets   = length(dataSets{1});
+  for k = 2:length(dataSets)
+    if length(dataSets{k}) ~= numSets, error('data set length mismatch'); end
+  end
+  
+  suffix = '';
+  switch (output)
+    case 'raw',    suffix = 'txt';
+    case 'netcdf', suffix = 'nc';
+    otherwise,     error(['unknown output type: ' output]);
+  end
+  
+  setNames = {};
+  for k = 1:numSets
+    setNames{k} = genIMOSFileName(dataSets{1}{k}, suffix);
   end
   
   % prompt user for export directory, and data sets to export
-  [exportDir dataSets] = exportNetCDFDialog(rawData, qcData);
+  [exportDir dataSets] = exportDialog(dataSets, levelNames, setNames);
   
   % user cancelled dialog or selected no data sets
   if isempty(exportDir) || isempty(dataSets), return; end
@@ -61,8 +84,14 @@ function exportManager(rawData, qcData)
   for k = 1:length(dataSets)
     
     try
-      filenames{k} = exportNetCDF(dataSets{k}, exportDir);
-      disp(['wrote ' filenames{k}]);
+      switch (output)
+        case 'netcdf'
+          filenames{end+1} = exportNetCDF(dataSets{k}, exportDir);
+        case 'raw'
+          disp('out raw');
+          filenames{end+1} = setNames{k};
+      end
+      disp(['wrote ' filenames{end}]);
       
     catch e
       disp(['error while writing file: ' e.message]);

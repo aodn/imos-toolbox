@@ -1,4 +1,4 @@
-function [exportDir sets] = exportDialog( dataSets, setNames )
+function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
 %EXPORTDIALOG Prompts the user to select an output directory in which to 
 % save the file(s) which are to be generated for the given data sets. 
 %
@@ -6,16 +6,23 @@ function [exportDir sets] = exportDialog( dataSets, setNames )
 % and which data sets that should be exported. The selected directory and 
 % data sets are returned.
 %
-% Inputs:
-%   dataSets - Cell array, where each element is a cell array of sample 
-%              data structs.
+% The dataSets input parameter is a cell array, where each entry is a cell
+% array of sample data structs. Each struct is referred to as a data set.
+% Each array of structs is referred to as a level (i.e. 'Raw' level, 'QC'
+% level). Each level must be of the same length.
 %
-%   setNames - Names of each data set.
+% Inputs:
+%   dataSets   - Cell array, where each element is a cell array of sample 
+%                data structs.
+%
+%   levelNames - Names of each data level (e.g. 'raw', 'qc').
+%
+%   setNames   - Names of each data set (e.g. filenames).
 %
 % Outputs:
-%   exportDir - absolute path to the selected output directory.
+%   exportDir  - absolute path to the selected output directory.
 %
-%   sets      - Cell array containnig the selected data sets to be exported.
+%   sets       - Cell array containing the selected data sets to be exported.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -49,13 +56,14 @@ function [exportDir sets] = exportDialog( dataSets, setNames )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,2,nargin));
+  error(nargchk(3,3,nargin));
 
-  if ~iscell(   dataSets), error('dataSets must be a cell array'); end
-  if ~iscellstr(setNames), error('setNames must be a cell array'); end
-  if isempty(dataSets),    error('dataSets cannot be empty');      end
-  if length(dataSets) ~= length(setNames)
-    error('dataSets and setNames must be sthe same length'); 
+  if ~iscell(dataSets),      error('dataSets must be a cell array');        end
+  if ~iscellstr(levelNames), error('levelNames must be a char cell array'); end
+  if ~iscellstr(setNames),   error('setNames must be a char cell array');   end
+  if isempty(dataSets),      error('dataSets cannot be empty');             end
+  if length(dataSets) ~= length(levelNames)
+    error('dataSets and levelNames must be the same length'); 
   end
   
   numLevels = length(dataSets);
@@ -63,6 +71,7 @@ function [exportDir sets] = exportDialog( dataSets, setNames )
   for k = 2:length(dataSets)
     if length(dataSets{k}) ~= numSets, error('data set length mismatch'); end
   end
+  if length(setNames) ~= numSets, error('set name length mismatch'); end
 
   exportDir         = pwd;
   selectedSets      = zeros(numSets, 1);
@@ -75,7 +84,7 @@ function [exportDir sets] = exportDialog( dataSets, setNames )
   catch e
   end
   
-  descs = genDataSetDescs(dataSets{1});
+  descs = genDataSetDescs(dataSets{1}, setNames);
   
   % dialog figure
   f = figure(...
@@ -106,11 +115,11 @@ function [exportDir sets] = exportDialog( dataSets, setNames )
   );
   
   levelCheckboxes = [];
-  for k = 1:length(setNames)
+  for k = 1:length(levelNames)
     
     levelCheckboxes(k) = uicontrol(...
       'Style',    'checkbox',...
-      'String',   setNames{k},...
+      'String',   levelNames{k},...
       'Value',    1,...
       'UserData', k ...
     );
@@ -138,13 +147,13 @@ function [exportDir sets] = exportDialog( dataSets, setNames )
   set(confirmButton,   'Units', 'normalized');
   
   % position widgets
-  set(f,             'Position', [0.4,  0.4, 0.2,  0.2]);
-  set(cancelButton,  'Position', [0.0,  0.0, 0.5,  0.1]);
-  set(confirmButton, 'Position', [0.5,  0.0, 0.5,  0.1]);
-  set(dirLabel,      'Position', [0.0,  0.1, 0.15, 0.1]);
-  set(dirText,       'Position', [0.15, 0.1, 0.8,  0.1]);
-  set(dirButton,     'Position', [0.85, 0.1, 0.15, 0.1]);
-  set(levelLabel,    'Position', [0.0,  0.2, 0.15, 0.1]);
+  set(f,             'Position', [0.35,  0.4, 0.3,  0.2]);
+  set(cancelButton,  'Position', [0.0,   0.0, 0.5,  0.1]);
+  set(confirmButton, 'Position', [0.5,   0.0, 0.5,  0.1]);
+  set(dirLabel,      'Position', [0.0,   0.1, 0.15, 0.1]);
+  set(dirText,       'Position', [0.15,  0.1, 0.8,  0.1]);
+  set(dirButton,     'Position', [0.85,  0.1, 0.15, 0.1]);
+  set(levelLabel,    'Position', [0.0,   0.2, 0.15, 0.1]);
     
   % position data level checkboxes
   for k = 1:length(levelCheckboxes)
@@ -274,7 +283,7 @@ function [exportDir sets] = exportDialog( dataSets, setNames )
     delete(f);
   end
   
-  function descs = genDataSetDescs(sets)
+  function descs = genDataSetDescs(sets, names)
   %GENDATASETDESCS Generates a description for the given data sets, to be
   %used in the dialog display.
   %
@@ -283,7 +292,7 @@ function [exportDir sets] = exportDialog( dataSets, setNames )
     for k = 1:length(sets)
       s = sets{k};
       
-      descs{k} = [s.instrument_model genNetCDFFileName(s)];
+      descs{k} = [s.instrument_model names{k}];
     end
   end
 end

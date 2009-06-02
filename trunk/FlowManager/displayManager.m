@@ -3,7 +3,8 @@ function displayManager( fieldTrip, sample_data,...
                          rawDataRequestCallback,...
                          autoQCRequestCallback,...
                          manualQCRequestCallback,...
-                         exportRequestCallback)
+                         exportNetCDFRequestCallback,...
+                         exportRawRequestCallback)
 %DISPLAYMANGER Manages the display of data.
 %
 % The display manager handles the interaction between the main window and
@@ -11,19 +12,21 @@ function displayManager( fieldTrip, sample_data,...
 % and how the system reacts when the user interacts with the main window.
 %
 % Inputs:
-%   fieldTrip               - struct containing field trip information.
-%   sample_data             - Cell array of sample_data structs, one for
-%                             each instrument.
-%   metadataUpdateCallback  - Callback function which is called when a data
-%                             set's metadata is modified.
-%   rawDataRequestCallback  - Callback function which is called to retrieve
-%                             the raw data set.
-%   autoQCRequestCallback   - Callback function called when the user attempts 
-%                             to execute an automatic QC routine.
-%   manualQCRequestCallback - Callback function called when the user attempts 
-%                             to execute a manual QC routine.
-%   exportRequestCallback   - Callback function called when the user attempts 
-%                             to export data.
+%   fieldTrip                   - struct containing field trip information.
+%   sample_data                 - Cell array of sample_data structs, one for
+%                                 each instrument.
+%   metadataUpdateCallback      - Callback function which is called when a 
+%                                 data set's metadata is modified.
+%   rawDataRequestCallback      - Callback function which is called to 
+%                                 retrieve the raw data set.
+%   autoQCRequestCallback       - Callback function called when the user 
+%                                 attempts to execute an automatic QC routine.
+%   manualQCRequestCallback     - Callback function called when the user 
+%                                 attempts to execute a manual QC routine.
+%   exportNetCDFRequestCallback - Callback function called when the user 
+%                                 attempts to export data.
+%   exportRawRequestCallback    - Callback function called when the user
+%                                 attempts to export raw data.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -57,26 +60,29 @@ function displayManager( fieldTrip, sample_data,...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(7,7,nargin));
+  error(nargchk(8,8,nargin));
 
   if ~isstruct(fieldTrip), error('fieldTrip must be a struct');       end
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), error('sample_data is empty');             end
 
-  if ~isa(metadataUpdateCallback,  'function_handle')
+  if ~isa(metadataUpdateCallback, 'function_handle')
     error('metadataUpdateCallback must be a function handle'); 
   end
-  if ~isa(rawDataRequestCallback,  'function_handle')
+  if ~isa(rawDataRequestCallback, 'function_handle')
     error('rawDataRequestCallback must be a function handle'); 
   end
-  if ~isa(autoQCRequestCallback,   'function_handle')
+  if ~isa(autoQCRequestCallback, 'function_handle')
     error('autoQCRequestCallback must be a function handle'); 
   end
   if ~isa(manualQCRequestCallback, 'function_handle')
     error('manualQCRequestCallback must be a function handle'); 
   end
-  if ~isa(exportRequestCallback,   'function_handle')
-    error('exportRequestCallback must be a function handle'); 
+  if ~isa(exportNetCDFRequestCallback, 'function_handle')
+    error('exportNetCDFRequestCallback must be a function handle'); 
+  end
+  if ~isa(exportRawRequestCallback, 'function_handle')
+    error('exportRawRequestCallback must be a function handle'); 
   end
   
   lastState  = '';
@@ -85,7 +91,8 @@ function displayManager( fieldTrip, sample_data,...
   lastDim    = [];
   
   % define the user options, and create the main window
-  states = {'Metadata', 'Raw data', 'Quality Control', 'Export'};
+  states = {'Metadata', 'Raw data', 'Quality Control', ...
+            'Export NetCDF', 'Export Raw'};
   mainWindow(fieldTrip, sample_data, states, 2, @stateSelectCallback);
       
   function stateSelectCallback(event,...
@@ -110,7 +117,8 @@ function displayManager( fieldTrip, sample_data,...
       case 'Metadata',        metadataCallback();
       case 'Raw data',        rawDataCallback();
       case 'Quality Control', qcCallback();
-      case 'Export',          exportCallback();
+      case 'Export NetCDF',   exportNetCDFCallback();
+      case 'Export Raw',      exportRawCallback();
     end
     
     lastState  = state;
@@ -218,15 +226,26 @@ function displayManager( fieldTrip, sample_data,...
       end
     end
     
-    function exportCallback()
-    % Called when the user clicks on the 'Export' button. Delegates to the 
-    % exportRequestCallback function.
+    function exportNetCDFCallback()
+    %EXPORTNETCDFCALLBACK Called when the user clicks on the 'Export NetCDF' 
+    % button. Delegates to the exportNetCDFRequestCallback function.
     %
-      exportRequestCallback();
+      exportNetCDFRequestCallback();
       
       % redisplay data 
       graphFunc = str2func(graphType);
       graphFunc(panel, sample_data{setIdx}, vars, dim, true);
+    end
+    
+    function exportRawCallback()
+    %EXPORTRAWCALLBACK Called when the user clicks on the 'Export Raw'
+    % button. Delegates to the exportRawRequestCallback function.
+    %
+      exportRawRequestCallback();
+      
+      % redisplay data 
+      graphFunc = str2func(graphType);
+      graphFunc(panel, sample_data{setIdx}, vars, dim, true); 
     end
   end
 end
