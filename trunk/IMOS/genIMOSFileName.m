@@ -1,12 +1,12 @@
-function filename = genNetCDFFileName( sample_data )
-%GENNETCDFFILENAME Generates a NetCDF file name for the given data set.
+function filename = genIMOSFileName( sample_data, suffix )
+%GENIMOSFILENAME Generates an IMOS file name for the given data set.
 %
-% Generates a NetCDF file name for the given data set. The file name is
-% geneated according to the IMOS NetCDF File Naming Convention, version
-% 1.3.
+% Generates a file name for the given data set. The file name is geneated 
+% according to the IMOS NetCDF File Naming Convention, version 1.3.
 %
 % Inputs:
 %   sample_data - the data set to generate a file name for.
+%   suffix      - file name suffix to use.
 %
 % Outputs:
 %   filename    - the generated file name.
@@ -44,9 +44,10 @@ function filename = genNetCDFFileName( sample_data )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-  error(nargchk(1,1,nargin));
+  error(nargchk(2,2,nargin));
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
+  if ~ischar(suffix),        error('suffix must be a string');      end
 
   %
   % get all the individual components that make up the filename
@@ -92,6 +93,6 @@ function filename = genNetCDFFileName( sample_data )
   filename = [filename        product_type  '_'];
   filename = [filename 'END-' end_date      '_'];
   filename = [filename 'C-'   creation_date];
-  filename = [filename '.nc'];
+  filename = [filename '.' suffix];
 
 end
