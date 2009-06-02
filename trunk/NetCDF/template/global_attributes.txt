@@ -34,14 +34,15 @@ time_coverage_end   = [ddb TimeLastInPos]
 local_time_zone     = [ddb TimeZone]
 
 % who
-data_centre                 = eMarine Information Infrastructure (eMII)
-data_centre_email           = info@emii.org.au
-author_email                = 
-author                      = [ddb PersonnelDownload Personnel StaffID FirstName] \
-                              [ddb PersonnelDownload Personnel StaffID LastName]
-principal_investigator_name = [ddb PersonnelDownload Personnel StaffID FirstName] \
-                              [ddb PersonnelDownload Personnel StaffID LastName]
-institution_references      = 
+data_centre                  = eMarine Information Infrastructure (eMII)
+data_centre_email            = info@emii.org.au
+author_email                 = 
+author                       = [ddb PersonnelDownload Personnel StaffID FirstName] \
+                               [ddb PersonnelDownload Personnel StaffID LastName]
+principal_investigator       = [ddb PersonnelDownload Personnel StaffID FirstName] \
+                               [ddb PersonnelDownload Personnel StaffID LastName]
+principal_investigator_email =
+institution_references       = 
 
 % how
 citation               =
