@@ -57,7 +57,7 @@ function filename = exportNetCDF( sample_data, dest )
   end
 
   % generate the filename
-  filename = genNetCDFFileName(sample_data);
+  filename = genIMOSFileName(sample_data, 'nc');
   filename = [dest filesep filename];
   
   disp(['creating ' filename]);
