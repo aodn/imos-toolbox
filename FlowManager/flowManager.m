@@ -51,7 +51,8 @@ function flowManager()
                 @rawDataRequestCallback,...
                 @autoQCRequestCallback,...
                 @manualQCRequestCallback,...
-                @exportRequestCallback);
+                @exportNetCDFRequestCallback,...
+                @exportRawRequestCallback);
               
   function metadataUpdateCallback(sample_data)
   %METADATAUPDATECALLBACK Called whenever a data set's metadata is updated.
@@ -176,9 +177,28 @@ function flowManager()
 
   end
 
-  function exportRequestCallback()
-  %EXPORTREQUESTCALLBACK
+  function exportNetCDFRequestCallback()
+  %EXPORTNETCDFREQUESTCALLBACK
+  
+    data = {};
+    names = {};
+    if isempty(autoQCData)
+      data = {rawData}; 
+      names = {'Raw'};
+    else
+      data = {rawData autoQCData};
+      names = {'Raw', 'QC'};
+    end
     
-    exportManager(rawData, autoQCData);
+    exportManager(data, names, 'netcdf');
+  end
+
+  function exportRawRequestCallback()
+  %EXPORTRAWREQUESTCALLBACK
+  
+    data  = {rawData};
+    names = {'raw'};
+    
+    exportManager(data, names, 'raw');
   end
 end
