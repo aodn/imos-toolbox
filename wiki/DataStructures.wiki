@@ -21,6 +21,7 @@ The following sections define scalar instances of `sample_data` structs.
    * `dimensions`: Cell array of structs:
      * `name`: IMOS compliant dimension name (String)
      * `data`: Vector of dimension data (Numeric)
+     * `flags`: Single flag, or vector of flag data (Single character - see below)
    * `variables`: Cell array of structs:
      * `name`: IMOS compliant parameter name (String)
      * `dimensions`: Vector of indices into the `dimensions` array (Numeric)
@@ -35,7 +36,7 @@ The following sections define scalar instances of `sample_data` structs.
 
 === Flagged data ===
 
-The `flags` field in the `variables` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). If the `flags` field is a single character, that flag value applies to all of the data. Otherwise, if it is a matrix, a single flag value is proivided for every element in the `data` matrix.
+The `flags` field in the `variables` and `dimensions` structs refers to data which has been flagged (either automatically or manually) as having some kind of problem (e.g. out of range). If the `flags` field is a single character, that flag value applies to all of the data. Otherwise, if it is a vector/matrix, a single flag value is proivided for every element in the `data` matrix.
 
 The flag values are defined in Section 6.2 of the IMOS NetCDF User's Manual. Meanings of flag values differ depending on the Quality Control Set in use.
 
