@@ -54,6 +54,7 @@ function qc_data = autoQCManager( sample_data )
   end
   
   qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
+  rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
   goodFlag = imosQCFlag('good', qcSet, 'flag');
   
   qc_data = {};
@@ -110,7 +111,7 @@ function qc_data = autoQCManager( sample_data )
       waitbar(progVal, progress, progStr);
       
       % run current QC routine over the current data set
-      sample_data{k} = qcFilter(sample_data{k}, qcChain{m}, goodFlag);
+      sample_data{k} = qcFilter(sample_data{k}, qcChain{m}, rawFlag, goodFlag);
     end
   end
   
@@ -119,7 +120,7 @@ function qc_data = autoQCManager( sample_data )
   qc_data = sample_data;
 end
 
-function sam = qcFilter(sam, filterName, goodFlag)
+function sam = qcFilter(sam, filterName, rawFlag, goodFlag)
 %QCFILTER Runs the given data set through the given automatic QC filter.
 %
   % turn routine name into a function
@@ -149,7 +150,7 @@ function sam = qcFilter(sam, filterName, goodFlag)
 
       % Flags are not overwritten - if a later routine flags the same 
       % value as a previous routine, the latter value is discarded.
-      sliceIdx = find(flagSlice == goodFlag);
+      sliceIdx = find(flagSlice == rawFlag);
       flagIdx  = find(f         ~= goodFlag);
       idx = intersect(sliceIdx,flagIdx);
       

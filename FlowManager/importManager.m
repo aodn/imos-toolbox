@@ -117,9 +117,9 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
   % display progress dialog
   progress = waitbar(0, 'importing data');
   
-  dateFmt  = readToolboxProperty('exportNetCDF.dateFormat');
-  qcSet    = str2double(readToolboxProperty('toolbox.qc_set'));
-  goodFlag = imosQCFlag('good', qcSet, 'flag');
+  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
+  qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
+  rawFlag = imosQCFlag('raw', qcSet, 'flag');
   
   % parse file for each deployment, sample struct for each.
   % if a parser can't be found for a deployment, don't bail; 
@@ -141,7 +141,7 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
 
       % import data
       sam = parse(deps(k), files{k});
-      sam = finaliseData(sam, fieldTrip, deps(k), dateFmt, goodFlag);
+      sam = finaliseData(sam, fieldTrip, deps(k), dateFmt, rawFlag);
       
       % turn raw data files a into semicolon separated string
       sam.raw_data_file = ...
