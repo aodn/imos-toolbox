@@ -13,10 +13,12 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %   - a human readable description of the flag meaning.
 %   - a ColorSpec which should be used when displaying the flag
 %   - a human readable description of the qc set.
+%   - a vector of characters, defining the different flag values that are
+%     possible in the qc set.
 %
 % Inputs:
 %
-%   qc_class - If field is one of 'flag', 'desc' or 'set_desc', must be one 
+%   qc_class - If field is one of 'flag', 'desc' or 'color', must be one 
 %              of the (case insensitive) strings listed in the imosQCSets.txt 
 %              file. If it is not equal to one of these strings, the return 
 %              value will be empty.
@@ -26,7 +28,7 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %              the first qc set defined in the imosQCSets.txt file.
 %
 %   field    - String which defines what the return value is. Must be one
-%              of 'flag', 'desc', 'set_desc' or 'color'.
+%              of 'flag', 'desc', 'set_desc', 'values' or 'color'.
 %
 % Outputs:
 %   value    - One of the flag value, flag description, color spec, or set 
@@ -84,7 +86,7 @@ try
   if fid == -1, return; end
 
   % read in the QC sets and flag values for each set
-  sets  = textscan(fid, '%f%s',       'delimiter', ',', 'commentStyle', '%');
+  sets  = textscan(fid, '%f%s%s',     'delimiter', ',', 'commentStyle', '%');
   flags = textscan(fid, '%f%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
   fclose(fid);
 
@@ -103,10 +105,21 @@ if isempty(flags{1}), return; end
 qc_set_idx = find(sets{1} == qc_set);
 if isempty(qc_set_idx), qc_set_idx = 1; end;
 
+% if the request was the set description, 
+% or set values, retrieve and return them 
 if strcmp(field, 'set_desc')
+  
   value = sets{2}(qc_set_idx);
   value = value{1};
   return;
+  
+elseif strcmp(field, 'values')
+  
+  value = sets{3}(qc_set_idx);
+  value = value{1};
+  value = value(value ~= ' ');
+  return;
+  
 end
 
 % find a flag entry with matching qc_set and qc_class values
