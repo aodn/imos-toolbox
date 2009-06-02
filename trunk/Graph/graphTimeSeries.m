@@ -68,7 +68,7 @@ function [graphs lines flags] = graphTimeSeries( ...
   flags  = [];
   
   qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
-  goodFlag = imosQCFlag('good', qc_set, 'flag');
+  rawFlag = imosQCFlag('raw', qc_set, 'flag');
   
   if isempty(vars), return; end
   
@@ -117,8 +117,8 @@ function [graphs lines flags] = graphTimeSeries( ...
       % a different line for each flag type
       for m = 1:length(flagTypes)
         
-        % don't display good data flags
-        if flagTypes(m) == goodFlag, continue; end
+        % don't display raw data flags
+        if flagTypes(m) == rawFlag, continue; end
 
         f = find(fl == flagTypes(m));
 
