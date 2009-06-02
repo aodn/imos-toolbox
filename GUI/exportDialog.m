@@ -1,18 +1,16 @@
-function [exportDir sets] = exportNetCDFDialog( rawData, qcData )
-%EXPORTNETCDFDIALOG Prompts the user to select an output directory in which
-% to save the NetCDF file(s) which are to be generated for the given data
-% sets. 
+function [exportDir sets] = exportDialog( dataSets, setNames )
+%EXPORTDIALOG Prompts the user to select an output directory in which to 
+% save the file(s) which are to be generated for the given data sets. 
 %
 % For the given data sets, prompts the user to select an output directory,
-% and which data sets and process levels that should be exported as NetCDF
-% files. The selected directory and data sets are returned.
+% and which data sets that should be exported. The selected directory and 
+% data sets are returned.
 %
 % Inputs:
-%   rawData   - Cell array containing raw data sets.
+%   dataSets - Cell array, where each element is a cell array of sample 
+%              data structs.
 %
-%   qcData    - Cell array containing qc'd data sets. If QC has not yet been
-%               performed, this array may be empty. Otherwise it must be the
-%               same length as rawData.
+%   setNames - Names of each data set.
 %
 % Outputs:
 %   exportDir - absolute path to the selected output directory.
@@ -53,24 +51,31 @@ function [exportDir sets] = exportNetCDFDialog( rawData, qcData )
 %
   error(nargchk(2,2,nargin));
 
-  if ~iscell(rawData), error('rawData must be a cell array'); end
-  if ~iscell(qcData),  error('qcData must be a cell array');  end
-
-  if ~isempty(qcData) && length(qcData) ~= length(rawData)
-    error('qcData must be empty, or the same length as rawData'); 
+  if ~iscell(   dataSets), error('dataSets must be a cell array'); end
+  if ~iscellstr(setNames), error('setNames must be a cell array'); end
+  if isempty(dataSets),    error('dataSets cannot be empty');      end
+  if length(dataSets) ~= length(setNames)
+    error('dataSets and setNames must be sthe same length'); 
+  end
+  
+  numLevels = length(dataSets);
+  numSets   = length(dataSets{1});
+  for k = 2:length(dataSets)
+    if length(dataSets{k}) ~= numSets, error('data set length mismatch'); end
   end
 
-  exportDir       = pwd;
-  selectedSets    = zeros(size(rawData));
-  selectedSets(:) = 1;
-  selectedLevels  = []; % populated when the level checkboxes are created
+  exportDir         = pwd;
+  selectedSets      = zeros(numSets, 1);
+  selectedSets(:)   = 1;
+  selectedLevels    = zeros(numLevels, 1);
+  selectedLevels(:) = 1;
   
   try
-    exportDir = readToolboxProperty('exportNetCDFDialog.defaultDir');
+    exportDir = readToolboxProperty('exportDialog.defaultDir');
   catch e
   end
   
-  descs = genDataSetDescs(rawData);
+  descs = genDataSetDescs(dataSets{1});
   
   % dialog figure
   f = figure(...
@@ -100,19 +105,15 @@ function [exportDir sets] = exportNetCDFDialog( rawData, qcData )
     'HorizontalAlignment', 'Left' ...
   );
   
-  levels{1} = 'Raw';
-  if ~isempty(qcData), levels{2} = 'QC'; end
-  
   levelCheckboxes = [];
-  for k = 1:length(levels)
+  for k = 1:length(setNames)
     
     levelCheckboxes(k) = uicontrol(...
       'Style',    'checkbox',...
-      'String',   levels{k},...
+      'String',   setNames{k},...
       'Value',    1,...
       'UserData', k ...
     );
-    selectedLevels(k) = 1;
   end
   
   % create text entry/directory browse button
@@ -193,18 +194,16 @@ function [exportDir sets] = exportNetCDFDialog( rawData, qcData )
   
   % get selected data sets
   sets = {};
-  rawData = rawData(logical(selectedSets));
-  if selectedLevels(1)
-    sets = rawData;
-  end
-  
-  if ~isempty(qcData) && selectedLevels(2)
-    qcData = qcData(logical(selectedSets)); 
-    sets = [sets qcData];
+  dataSets = dataSets(logical(selectedLevels));
+  for k = 1:length(dataSets)
+    
+    dataSet = dataSets{k};
+    dataSet = dataSet(logical(selectedSets));
+    sets    = [sets dataSet{:}];
   end
   
   % save the export directory for next time
-  writeToolboxProperty('exportNetCDFDialog.defaultDir', exportDir);
+  writeToolboxProperty('exportDialog.defaultDir', exportDir);
   
   return;
   
@@ -275,16 +274,16 @@ function [exportDir sets] = exportNetCDFDialog( rawData, qcData )
     delete(f);
   end
   
-  function descs = genDataSetDescs(dataSets)
+  function descs = genDataSetDescs(sets)
   %GENDATASETDESCS Generates a description for the given data sets, to be
   %used in the dialog display.
   %
     descs = {};
     
-    for k = 1:length(dataSets)
-      set = dataSets{k};
+    for k = 1:length(sets)
+      s = sets{k};
       
-      descs{k} = [set.instrument_model genNetCDFFileName(set)];
+      descs{k} = [s.instrument_model genNetCDFFileName(s)];
     end
   end
 end
