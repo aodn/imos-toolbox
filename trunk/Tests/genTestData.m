@@ -64,12 +64,13 @@ disp(['generating test data set of ' num2str(nsamples) ' samples']);
 
 datefmt = readToolboxProperty('exportNetCDF.dateFormat');
 qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
+rawFlag = imosQCFlag('raw', 1, 'flag');
 
 sample_data.dimensions             = {};
 sample_data.dimensions{1}.name     = 'TIME';
 sample_data.dimensions{1}.data     = (1:nsamples)';
 sample_data.dimensions{1}.flags    = zeros(nsamples, 1);
-sample_data.dimensions{1}.flags(:) = '0';
+sample_data.dimensions{1}.flags(:) = rawFlag;
 sample_data.variables              = {};
 sample_data.level                  = 0;
 
@@ -89,7 +90,7 @@ for k = 1:length(vars)
   sample_data.variables{k}.dimensions    = [1];
   sample_data.variables{k}.data          = data;
   sample_data.variables{k}.flags         = zeros(size(data));
-  sample_data.variables{k}.flags(:)      = '0';
+  sample_data.variables{k}.flags(:)      = rawFlag;
   sample_data.variables{k}.valid_min     = min_bounds(k);
   sample_data.variables{k}.valid_max     = max_bounds(k);
   
