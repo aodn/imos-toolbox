@@ -88,7 +88,7 @@ function exportManager(dataSets, levelNames, output)
         case 'netcdf'
           filenames{end+1} = exportNetCDF(dataSets{k}, exportDir);
         case 'raw'
-          disp('out raw');
+          exportRawData(dataSets{k}, exportDir, setNames{k});
           filenames{end+1} = setNames{k};
       end
       disp(['wrote ' filenames{end}]);
@@ -106,4 +106,30 @@ function exportManager(dataSets, levelNames, output)
       'Export', 'modal');
   end
   uiwait(h);
+end
+
+function exportRawData(sample_data, exportDir, dest)
+%EXPORTRAWDATA Copies the raw data file for the given sample_data to the
+% given exportDir/dest. Relies upon the existence of the field
+% sample_data.raw_data_file, which must contain a semi-colon separated string 
+% of absolute paths to the raw data files associated with the sample_data 
+% struct. 
+%
+
+  rawFiles = sample_data.raw_data_file;
+  
+  rawFiles = textscan(rawFiles, '%s', 'Delimiter', ';');
+  rawFiles = rawFiles{1};
+  
+  if length(rawFiles) == 1, copyfile(rawFiles{1}, [exportDir filesep dest]);
+    
+  else
+    for k = 1:length(rawFiles)
+      
+      % ugly hack to follow IMOS convention 
+      % for splitting over multiple files
+      d = [dest(1:end-4) '_PART' num2str(k) '.txt'];
+      copyfile(rawFiles{k}, [exportDir filesep dest]);
+    end
+  end
 end
