@@ -212,8 +212,10 @@ function displayManager( fieldTrip, sample_data,...
         % on a left click, highlight data points;
         % on a right click, highlight flags
         switch(type)
-          case 'normal', handle = ud{1};
-          case 'alt',    handle = ud{2};
+          case 'normaldrag',  handle = ud{1};
+          case 'altdrag',     handle = ud{2};
+          case 'normalclick', ;
+          case 'altclick',    ;
         end
         
         % the graphTimeSeries function sets the flags handle to 0.0 if
