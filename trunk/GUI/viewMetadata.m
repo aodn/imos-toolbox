@@ -71,7 +71,7 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   globs = rmfield(globs, 'dimensions');
   
   dims = sample_data.dimensions;
-  for k = 1:length(dims), dims{k} = rmfield(dims{k}, 'data'); end
+  for k = 1:length(dims), dims{k} = rmfield(dims{k}, {'data', 'flags'}); end
   
   vars = sample_data.variables;
   for k = 1:length(vars), 
