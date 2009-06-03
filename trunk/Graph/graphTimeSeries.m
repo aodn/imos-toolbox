@@ -122,7 +122,7 @@ function [graphs lines flags] = graphTimeSeries( ...
 
         f = find(fl == flagTypes(m));
 
-        fc = imosQCFlag(char(flagTypes(m)), qc_set, 'color');
+        fc = imosQCFlag(flagTypes(m), qc_set, 'color');
 
         fx = dim(f);
         fy = data(f);

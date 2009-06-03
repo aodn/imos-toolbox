@@ -68,9 +68,10 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %
 
 error(nargchk(3, 3, nargin));
-if ~ischar(qc_class),  error('qc_class must be a string'); end
-if ~isnumeric(qc_set), error('qc_set must be numeric');    end
-if ~ischar(field),     error('field must be a string');    end
+if ~ischar(qc_class)...
+&& ~isnumeric(qc_class), error('qc_class must be a string or numeric'); end
+if ~isnumeric(qc_set),   error('qc_set must be numeric');               end
+if ~ischar(field),       error('field must be a string');               end
 
 value = '';
 
@@ -128,7 +129,10 @@ for k=1:length(lines)
   
   if strcmp(field, 'color') || strcmp(field, 'desc')
     
-    if strcmp(qc_class, flags{2}{lines(k)})
+    % qc_class may have been passed in as a number or a character 
+    flagVal = num2str(qc_class);
+    
+    if strcmp(flagVal, flags{2}{lines(k)})
       
       switch (field)
         
