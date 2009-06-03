@@ -157,7 +157,12 @@ for k=1:length(lines)
   if ~isempty(regexpi(classes, ['\s' qc_class '\s'], 'match'))
 
     switch(field)
-      case 'flag', value = flags{2}{lines(k)};
+      case 'flag'
+        % try to convert to a number, on failure 
+        % just return the character
+        value = str2double(flags{2}{lines(k)});
+        if isnan(value), value = flags{2}{lines(k)};
+        end
     end
 
     return;
