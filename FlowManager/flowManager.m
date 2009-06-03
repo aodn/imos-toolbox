@@ -178,7 +178,9 @@ function flowManager()
   end
 
   function exportNetCDFRequestCallback()
-  %EXPORTNETCDFREQUESTCALLBACK
+  %EXPORTNETCDFREQUESTCALLBACK Called on a request to export data to NetCDF
+  % files. Passes the data to the export manager.
+  %
   
     data = {};
     names = {};
@@ -194,7 +196,9 @@ function flowManager()
   end
 
   function exportRawRequestCallback()
-  %EXPORTRAWREQUESTCALLBACK
+  %EXPORTRAWREQUESTCALLBACK Called on a request to export data to raw
+  % files. Passes the raw data to the export manager.
+  %
   
     data  = {rawData};
     names = {'raw'};
