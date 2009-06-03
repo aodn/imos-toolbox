@@ -168,7 +168,9 @@ function displayManager( fieldTrip, sample_data,...
     %QCCALLBACK Displays QC'd data for the current data set, using the
     % current graph type. If the state has changed, the autoQCRequestCallback
     % function is called, which may trigger auto-QC routines to be
-    % executed.
+    % executed. Adds callback functions to the figure allowing the user to
+    % interact with the graph (highlighting data/flags and 
+    % adding/modifying/removing flags).
     %
       % update qc data on state change
       if strcmp(event, 'state')
@@ -187,13 +189,18 @@ function displayManager( fieldTrip, sample_data,...
       % save line/flag handles and index in axis userdata 
       % so the data select callback can retrieve them
       for k = 1:length(graphs)
-        set(graphs(k), 'UserData', {lines(k), flags(k,:), k});
+        
+        % the graphTimeSeries function sets the flags handle to 0.0 if
+        % there were no flags to graph - remove these handles
+        f = flags(k,:);
+        f = f(f ~= 0);
+        set(graphs(k), 'UserData', {lines(k), f, k});
       end
 
       % add data selection functionality
-      selectData(@dataSelectCallback);
-
       highlight = [];
+      selectData(@dataSelectCallback, @dataClickCallback);
+
       function dataSelectCallback(ax, type, range)
       %DATASELECTCALLBACK Called when the user selects a region of data.
       % Highlights the selected region.
@@ -201,66 +208,74 @@ function displayManager( fieldTrip, sample_data,...
         % line/flag handles are stored in the axis userdata
         ud = get(ax, 'UserData');
         
-        idx = ud{3};
-        
-        % get the relevant handle - on a left click, work with 
-        % data points; on a right click, work with flags
+        % get the relevant handle - on a left drag, highlight
+        % data points; on a right drag, highlight flags
         handle = 0;
-        if     strfind(type, 'normal'), handle = ud{1};
-        elseif strfind(type, 'alt'),    handle = ud{2};
-        else   return;
+        switch (type)
+          case 'normal', handle = ud{1};
+          case 'alt',    handle = ud{2};
+          otherwise,     return;
         end
 
-        % the graphTimeSeries function sets the flags handle to 0.0 if
-        % there were no flags to graph - we must check for this 
-        handle = handle(handle ~= 0);
         if isempty(handle), return; end
 
-        % on a drag, update the highlight region
-        if strfind(type, 'drag')
-          
-          % remove any previous highlight
-          if ~isempty(highlight)
-            delete(highlight); 
-            highlight = [];
-          end
+        % remove any previous highlight
+        if ~isempty(highlight)
+          delete(highlight); 
+          highlight = [];
+        end
 
-          % highlight the data, save the handle and data indices
-          highlight = highlightData(range, handle); 
-          
-        % on a click, if on a highlighted region, display 
-        % a dialog allowing the user to add/modify flags; 
-        % otherwise, clear the highlighted region
-        elseif strfind(type, 'click')
-          
-          if isempty(highlight), return; end
-          
-          % get the click point, and the highlighted data
-          point = get(gca, 'CurrentPoint');
-          point = point([1 3]);
-          
-          highlightX = get(highlight, 'XData');
-          highlightY = get(highlight, 'YData');
-          
-          % figure out if the click was anywhere near the highlight 
-          % (within 1% of the current visible range on x and y)
-          xError = get(gca, 'XLim');
-          xError = abs(xError(1) - xError(2));
-          yError = get(gca, 'YLim');
-          yError = abs(yError(1) - yError(2));
+        % highlight the data, save the handle and data indices
+        highlight = highlightData(range, handle); 
+      end
+      
+      function dataClickCallback(ax, type, point)
+      %DATACLICKCALLBACK On a click, if on a highlighted region, displays 
+      % a dialog allowing the user to add/modify QC flags for that region. 
+      % Otherwise, the highlighted region is cleared. 
+      %
+        if isempty(highlight), return; end
 
-          % was click near highlight?
-          if any(abs(point(1)-highlightX) <= xError*0.01)...
-          && any(abs(point(2)-highlightY) <= yError*0.01)
+        % line/flag handles are stored in the axis userdata
+        ud = get(ax, 'UserData');
 
-            % popup flag modification dialog
+        % get the relevant handle - on a left click, highlight
+        % data points; on a right click, highlight flags
+        handle = 0;
+        switch (type)
+          case 'normal', handle = ud{1};
+          case 'alt',    handle = ud{2};
+          otherwise,     return;
+        end
         
-          % if the click wasn't near the 
-          % highlight, remove the higwhlight
-          else
-            delete(highlight); 
-            highlight = [];
-          end
+        if isempty(handle), return; end
+
+        % get the click point, and the highlighted data
+        point = get(gca, 'CurrentPoint');
+        point = point([1 3]);
+
+        highlightX = get(highlight, 'XData');
+        highlightY = get(highlight, 'YData');
+
+        % figure out if the click was anywhere near the highlight 
+        % (within 1% of the current visible range on x and y)
+        xError = get(gca, 'XLim');
+        xError = abs(xError(1) - xError(2));
+        yError = get(gca, 'YLim');
+        yError = abs(yError(1) - yError(2));
+
+        % was click near highlight?
+        if any(abs(point(1)-highlightX) <= xError*0.01)...
+        && any(abs(point(2)-highlightY) <= yError*0.01)
+
+          % popup flag modification dialog
+          flag = addFlagDialog([]);
+
+        % if the click wasn't near the 
+        % highlight, remove the higwhlight
+        else
+          delete(highlight); 
+          highlight = [];
         end
       end
     end

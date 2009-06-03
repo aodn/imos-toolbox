@@ -1,4 +1,4 @@
-function selectData( selectCallback )
+function selectData( selectCallback, clickCallback )
 %SELECTDATA Adds callbacks to the current figure, allowing the user
 % to interact with data in the current axis using the mouse.
 %
@@ -7,17 +7,16 @@ function selectData( selectCallback )
 %   - click on a single point in the current axis (gca).
 %   - click+drag to select a region in the current axis.
 %
-% The given selectCallback function is passed the selected point/region when 
-% this occurs. The type parameter can be used to differentiate between
-% left/right clicks/drags. The possible values for type are:
-%   - 'normalclick' - left click
-%   - 'normaldrag'  - left drag
-%   - 'altclick'    - right click
-%   - 'altdrag'     - right drag
+% The given selectCallback/clickCallback functions are called when the user 
+% clicks/selects on a point/region of points. The type parameter can be used 
+% to differentiate between left/right clicks/drags. The possible values for 
+% type are:
+%   - 'normal' - left click/drag
+%   - 'alt'    - right click/drag
 %
 % Inputs:
 %   selectCallback - function handle which is called when the user selects
-%                    data. Must have the following format:
+%                    a region. Must have the following format:
 %
 %                      function selectCallback(ax, type, range)
 %
@@ -25,9 +24,21 @@ function selectData( selectCallback )
 %                      ax    - axis in question
 %                      type  - the value of the figure's 'SelectionType'
 %                              property, which can be used to differentiate 
-%                              between left/right mouse clicks/drags.
+%                              between left/right mouse drags.
 %                      range - vector containing lower and upper x/y
 %                              coordinates ([lx ly ux uy])
+%
+%   clickCallback  - function handle which is called when the user clicks
+%                    on a point. Must have the following format:
+%
+%                      function clickCallback(ax, type, point)
+% 
+%                    where:
+%                      ax    - axis in question
+%                      type  - the value of the figure's 'SelectionType'
+%                              property, which can be used to differentiate 
+%                              between left/right mouse clicks.
+%                      point - Vector containing click coordinates ([x y])
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -61,10 +72,13 @@ function selectData( selectCallback )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(2,2,nargin));
 
   if ~isa(selectCallback, 'function_handle')
     error('selectCallback must be a function handle');
+  end
+  if ~isa(clickCallback, 'function_handle')
+    error('clickCallback must be a function handle');
   end
   
   % get handle to the current figure
@@ -136,16 +150,19 @@ function selectData( selectCallback )
     range = [min(startPoint, endPoint), max(startPoint, endPoint)];
     
     type = get(gcbf, 'SelectionType');
-    if startPoint == endPoint, type = [type 'click'];
-    else                       type = [type 'drag'];
-    end
+    
+    % click or drag?
+    click = false;
+    if startPoint == endPoint, click = true; end
     
     startPoint = [];
     endPoint   = [];
     drag       = false;
     delete(rect);
     rect       = [];
-        
-    selectCallback(gca, type, range);
+    
+    if click, clickCallback( gca, type, startPoint);
+    else      selectCallback(gca, type, range);
+    end
   end
 end
