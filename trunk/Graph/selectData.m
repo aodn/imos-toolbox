@@ -8,7 +8,12 @@ function selectData( selectCallback )
 %   - click+drag to select a region in the current axis.
 %
 % The given selectCallback function is passed the selected point/region when 
-% this occurs.
+% this occurs. The type parameter can be used to differentiate between
+% left/right clicks/drags. The possible values for type are:
+%   - 'normalclick' - left click
+%   - 'normaldrag'  - left drag
+%   - 'altclick'    - right click
+%   - 'altdrag'     - right drag
 %
 % Inputs:
 %   selectCallback - function handle which is called when the user selects
@@ -20,7 +25,7 @@ function selectData( selectCallback )
 %                      ax    - axis in question
 %                      type  - the value of the figure's 'SelectionType'
 %                              property, which can be used to differentiate 
-%                              between left/right mouse clicks.
+%                              between left/right mouse clicks/drags.
 %                      range - vector containing lower and upper x/y
 %                              coordinates ([lx ly ux uy])
 %
@@ -130,12 +135,17 @@ function selectData( selectCallback )
     
     range = [min(startPoint, endPoint), max(startPoint, endPoint)];
     
+    type = get(gcbf, 'SelectionType');
+    if startPoint == endPoint, type = [type 'click'];
+    else                       type = [type 'drag'];
+    end
+    
     startPoint = [];
     endPoint   = [];
     drag       = false;
     delete(rect);
-    rect =     [];
-    
-    selectCallback(gca, get(gcbf, 'SelectionType'), range);
+    rect       = [];
+        
+    selectCallback(gca, type, range);
   end
 end
