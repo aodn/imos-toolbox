@@ -232,9 +232,9 @@ function displayManager( fieldTrip, sample_data,...
     %
       exportNetCDFRequestCallback();
       
-      % redisplay data 
-      graphFunc = str2func(graphType);
-      graphFunc(panel, sample_data{setIdx}, vars, dim, true);
+      stateSelectCallback('', panel, updateCallback, lastState, ...
+        sample_data, graphType, setIdx, vars, dim);
+      state = lastState;
     end
     
     function exportRawCallback()
@@ -243,9 +243,9 @@ function displayManager( fieldTrip, sample_data,...
     %
       exportRawRequestCallback();
       
-      % redisplay data 
-      graphFunc = str2func(graphType);
-      graphFunc(panel, sample_data{setIdx}, vars, dim, true); 
+      stateSelectCallback('', panel, updateCallback, lastState, ...
+        sample_data, graphType, setIdx, vars, dim);
+      state = lastState;
     end
   end
 end
