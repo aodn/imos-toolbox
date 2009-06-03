@@ -83,7 +83,8 @@ function flowManager()
       % dimensions
       for k = 1:length(dims)
 
-        dims{k}.data = target.dimensions{k}.data;
+        dims{k}.data  = target.dimensions{k}.data;
+        dims{k}.flags = target.dimensions{k}.flags;
         target.dimensions{k} = dims{k};
       end
       
