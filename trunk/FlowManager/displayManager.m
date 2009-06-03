@@ -184,10 +184,10 @@ function displayManager( fieldTrip, sample_data,...
       [graphs lines flags] = ...
         graphFunc(panel, sample_data{setIdx}, vars, dim, true);
 
-      % save line/flag handles in axis userdata so the data select
-      % callback can retrieve them
+      % save line/flag handles and index in axis userdata 
+      % so the data select callback can retrieve them
       for k = 1:length(graphs)
-        set(graphs(k), 'UserData', {lines(k), flags(k,:)});
+        set(graphs(k), 'UserData', {lines(k), flags(k,:), k});
       end
 
       % add data selection functionality
@@ -200,31 +200,68 @@ function displayManager( fieldTrip, sample_data,...
       %
         % line/flag handles are stored in the axis userdata
         ud = get(ax, 'UserData');
-
-        % remove any previous highlight
-        if ~isempty(highlight)
-          delete(highlight); 
-          highlight = [];
-        end
-
-        handle = 0;
-
-        % on a left click, highlight data points;
-        % on a right click, highlight flags
-        switch(type)
-          case 'normaldrag',  handle = ud{1};
-          case 'altdrag',     handle = ud{2};
-          case 'normalclick', ;
-          case 'altclick',    ;
-        end
         
+        idx = ud{3};
+        
+        % get the relevant handle - on a left click, work with 
+        % data points; on a right click, work with flags
+        handle = 0;
+        if     strfind(type, 'normal'), handle = ud{1};
+        elseif strfind(type, 'alt'),    handle = ud{2};
+        else   return;
+        end
+
         % the graphTimeSeries function sets the flags handle to 0.0 if
         % there were no flags to graph - we must check for this 
         handle = handle(handle ~= 0);
         if isempty(handle), return; end
 
-        % highlight the data, save the handle
-        highlight = highlightData(range, handle);
+        % on a drag, update the highlight region
+        if strfind(type, 'drag')
+          
+          % remove any previous highlight
+          if ~isempty(highlight)
+            delete(highlight); 
+            highlight = [];
+          end
+
+          % highlight the data, save the handle and data indices
+          highlight = highlightData(range, handle); 
+          
+        % on a click, if on a highlighted region, display 
+        % a dialog allowing the user to add/modify flags; 
+        % otherwise, clear the highlighted region
+        elseif strfind(type, 'click')
+          
+          if isempty(highlight), return; end
+          
+          % get the click point, and the highlighted data
+          point = get(gca, 'CurrentPoint');
+          point = point([1 3]);
+          
+          highlightX = get(highlight, 'XData');
+          highlightY = get(highlight, 'YData');
+          
+          % figure out if the click was anywhere near the highlight 
+          % (within 1% of the current visible range on x and y)
+          xError = get(gca, 'XLim');
+          xError = abs(xError(1) - xError(2));
+          yError = get(gca, 'YLim');
+          yError = abs(yError(1) - yError(2));
+
+          % was click near highlight?
+          if any(abs(point(1)-highlightX) <= xError*0.01)...
+          && any(abs(point(2)-highlightY) <= yError*0.01)
+
+            % popup flag modification dialog
+        
+          % if the click wasn't near the 
+          % highlight, remove the higwhlight
+          else
+            delete(highlight); 
+            highlight = [];
+          end
+        end
       end
     end
     
