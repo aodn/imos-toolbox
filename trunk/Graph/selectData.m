@@ -109,6 +109,16 @@ function selectData( selectCallback, clickCallback )
   %BUTTONDOWN Captures the coordinates when the mouse is clicked on an
   % axes.
   % 
+    % bail if the user clicks another mouse button while dragging
+    if drag
+      startPoint = [];
+      endPoint   = [];
+      drag       = false;
+      delete(rect);
+      rect       = [];
+      return; 
+    end
+    
     startPoint = get(gca, 'CurrentPoint');
     startPoint = startPoint([1 3]);
     
@@ -144,6 +154,8 @@ function selectData( selectCallback, clickCallback )
   %BUTTONUP Captures coordinates when the mouse button is released.
   % Calls the selectCallback.
   %
+    if ~drag, return; end
+    
     endPoint = get(gca, 'CurrentPoint');
     endPoint = endPoint([1 3]);
     
