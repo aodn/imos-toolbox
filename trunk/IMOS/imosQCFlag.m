@@ -116,9 +116,15 @@ if strcmp(field, 'set_desc')
   
 elseif strcmp(field, 'values')
   
-  value = sets{3}(qc_set_idx);
-  value = value{1};
-  value = value(value ~= ' ');
+  val = sets{3}(qc_set_idx);
+  val = val{1};
+  
+  %value = val;
+  
+  % try to convert to a vector of numbers, otherwise return a string
+  value = str2num(val);
+  if isempty(value), value = val(val ~= ' '); end
+  
   return;
   
 end
