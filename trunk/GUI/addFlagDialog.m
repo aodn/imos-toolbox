@@ -3,16 +3,14 @@ function flagVal = addFlagDialog( defaultVal )
 % set of points.
 %
 % Displays a dialog which allows the user to choose a QC flag. Returns the
-% selected flag value, or the empty matrix if the user selected no flag
+% selected flag value, or the empty matrix if the user cancelled.
 %
 % Inputs:
-%   defaultVal - The initial value to use. Pass in the empty matrix for no
-%                flag.
+%   defaultVal - The initial value to use..
 %
 % Outputs:
-%   flagVal    - The selected value. If the user selected no flag, flagVal
-%                will be the empty matrix. If the user cancelled the
-%                dialog, flagVal will be equal to defaultVal (the input).
+%   flagVal    - The selected value. If the user cancelled the dialog, 
+%                flagVal will be the empty matrix.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -55,6 +53,10 @@ function flagVal = addFlagDialog( defaultVal )
   flagTypes  = imosQCFlag('', qcSet, 'values');
   flagDescs  = {};
   flagColors = {};
+  
+  if isempty(find(flagTypes == flagVal, 1))
+    error('defaultVal is not a member of the current QC set'); 
+  end
 
   % retrieve all the flag decsriptions and display colours
   for k = 1:length(flagTypes)
