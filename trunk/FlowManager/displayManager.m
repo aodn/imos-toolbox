@@ -89,6 +89,8 @@ function displayManager( fieldTrip, sample_data,...
   lastSetIdx = [];
   lastVars   = [];
   lastDim    = [];
+  qcSet      = str2double(readToolboxProperty('toolbox.qc_set'));
+  rawFlag    = imosQCFlag('raw', qcSet, 'flag');
   
   % define the user options, and create the main window
   states = {'Metadata', 'Raw data', 'Quality Control', ...
@@ -238,17 +240,10 @@ function displayManager( fieldTrip, sample_data,...
 
         % line/flag handles are stored in the axis userdata
         ud = get(ax, 'UserData');
-
-        % get the relevant handle - on a left click, highlight
-        % data points; on a right click, highlight flags
-        handle = 0;
-        switch (type)
-          case 'normal', handle = ud{1};
-          case 'alt',    handle = ud{2};
-          otherwise,     return;
-        end
         
-        if isempty(handle), return; end
+        % index into vars vector, telling us which 
+        % variable is on the axis in question
+        varIdx = ud{3};
 
         % get the click point, and the highlighted data
         point = get(gca, 'CurrentPoint');
@@ -267,10 +262,31 @@ function displayManager( fieldTrip, sample_data,...
         % was click near highlight?
         if any(abs(point(1)-highlightX) <= xError*0.01)...
         && any(abs(point(2)-highlightY) <= yError*0.01)
+      
+          % find the indices of the selected points
+          dataIdx = find(ismember(...
+            sample_data{setIdx}.dimensions{dim}.data, highlightX));
 
+          % find the most frequently occuring flag value to 
+          % pass to the flag dialog (to use as the default)
+          flag = sample_data{setIdx}.variables{vars(varIdx)}.flags(dataIdx);
+          flag = mode(flag);
+          
           % popup flag modification dialog
-          flag = addFlagDialog([]);
-
+          flag = addFlagDialog(flag);
+          
+          % if user didn't cancel, apply the new flag value to the data
+          if ~isempty(flag)
+            manualQCRequestCallback(setIdx,varIdx,dataIdx,flag);
+            
+            % update main window with modified data set
+            updateCallback(sample_data{setIdx});
+            
+            % update graph
+          end
+          
+          
+          
         % if the click wasn't near the 
         % highlight, remove the higwhlight
         else
