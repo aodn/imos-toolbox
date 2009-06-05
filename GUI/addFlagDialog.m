@@ -66,12 +66,11 @@ function flagVal = addFlagDialog( defaultVal )
   end
 
   % generate a menu description for each flag value
-  opts = {'No flag'};
   for k = 1:length(flagTypes)
     col = sprintf('#%02x%02x%02x', uint8(flagColors{k} * 255));
-    opts{k+1} = ['<html><font color="' col '">' ...
-                 num2str(flagTypes(k)) ': ' flagDescs{k} ...
-                 '</font></html>'];
+    opts{k} = ['<html><font color="' col '">' ...
+               num2str(flagTypes(k)) ': ' flagDescs{k} ...
+               '</font></html>'];
   end
 
   % dialog figure
@@ -83,14 +82,14 @@ function flagVal = addFlagDialog( defaultVal )
     'WindowStyle', 'Modal');
 
   % flag list
-  listOpt = 0;
+  listOpt = 1;
   if ~isempty(flagVal), listOpt = find(flagTypes == flagVal); end
-  if  isempty(listOpt), listOpt = 0; end
+  if  isempty(listOpt), listOpt = 1; end
   
   optList = uicontrol(...
     'Style', 'popupmenu',...
     'String', opts,...
-    'Value', listOpt+1);
+    'Value', listOpt);
 
   % ok/cancel buttons
   cancelButton  = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
@@ -136,11 +135,10 @@ function flagVal = addFlagDialog( defaultVal )
   function optListCallback(source,ev)
   %OPTLISTCALLBACK Called when the user selects an item from the flag drop
   % down list. Updates the currently selected flag value.
+  %
     idx = get(optList, 'Value');
+    flagVal = flagTypes(idx);
     
-    if idx == 1, flagVal = [];
-    else         flagVal = flagTypes(idx-1);
-    end
   end
   
   function cancelCallback(source,ev)
