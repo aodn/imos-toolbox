@@ -61,7 +61,7 @@ Assuming that matlab is installed in `C:\matlab`, and the toolbox is installed i
 C:\imos-toolbox\Java\bin
 }}}
 
-== Startup ==
+==== Starting the toolbox ====
 
 The toolbox is currently started via the `flowManager` function, which prompts you for the data you wish to import, then loads and displays the data.
 
@@ -102,3 +102,35 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window.png
 By clicking on the 'Metadata' button on the left, you can also view and modify metadata:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_metadata.png
+
+==== Quality Control ====
+
+By clicking on the 'Quality Control' button, you can choose to run the data through a set of automatic QC filters, which will automatically flag the data sets. The flags will be overlaid on the graphs:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_qc_dialog.png
+
+You can see that a few data points have been flagged. You can use the Matlab zoom mode to zoom in for a closer look.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_zoom.png
+
+When you deselect zoom mode, you can use click+drag a box around data points to select them. Use the left mouse button to select all data points, and the right mouse button to select already-flagged data points:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_select.png
+
+The selected data points are highlighted in white:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_selected.png
+
+Clicking on a set of selected data points will bring up a dialog, allowing you to set the QC flag on those points. The options will be different depending on which QC set you are using:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_flag_dialog.png
+
+When you confirm the flag dialog, you can see that the flag values for the selected data points have changed:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_flagged.png
+
+==== Export ====
+
+Ay any time, you can click the 'Export' button to export the data sets to IMOS compliant NetCDF files. You can choose to export raw data, QC'd data or both:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_export.png
