@@ -283,7 +283,7 @@ function displayManager( fieldTrip, sample_data,...
           
           % if user didn't cancel, apply the new flag value to the data
           if ~isempty(flag)
-            manualQCRequestCallback(setIdx,varIdx,dataIdx,flag);
+            manualQCRequestCallback(setIdx,vars(varIdx),dataIdx,flag);
             sample_data = autoQCRequestCallback(setIdx, true);
             
             % update main window with modified data set
