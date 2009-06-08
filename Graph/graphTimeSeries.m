@@ -1,5 +1,5 @@
-function [graphs lines flags] = graphTimeSeries( ...
-  parent, sample_data, vars, dimension, displayFlags )
+function [graphs lines] = graphTimeSeries( ...
+  parent, sample_data, vars, dimension )
 %GRAPHTIMESERIES Graphs the given data in a time series style using subplots.
 %
 % Inputs:
@@ -8,16 +8,12 @@ function [graphs lines flags] = graphTimeSeries( ...
 %   vars               - Indices of variables that should be graphed..
 %   dimension          - index into the sample_data.dimensions vector, 
 %                        indicating which dimension should be the x axis.
-%   displayFlags       - Optional. Boolean. If true, the 
-%                        sample_data.variables(x).flags values are displayed.
 %
 % Outputs:
 %   graphs             - A vector of handles to axes on which the data has 
 %                        been graphed.
 %   lines              - A vector or handles to lines which have been drawn,
 %                        the same length as graphs.
-%   flags              - Matrix of handles to flags which have been drawn.
-%                        Same number of rows as graphs.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -51,9 +47,7 @@ function [graphs lines flags] = graphTimeSeries( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(4,5,nargin));
-
-  if nargin == 4, displayFlags = false; end
+  error(nargchk(4,4,nargin));
   
   if ~ishandle( parent),       error('parent must be a handle');            end
   if ~isstruct( sample_data),  error('sample_data must be a struct');       end
@@ -61,15 +55,10 @@ function [graphs lines flags] = graphTimeSeries( ...
   || ~isscalar( dimension),    error('dimension must be a scalar numeric'); end
 
   if ~isnumeric(vars),         error('vars must be a numeric');             end
-  if ~islogical(displayFlags), error('displayFlags must be a logical');     end
   
   graphs = [];
   lines  = [];
-  flags  = [];
-  
-  qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
-  rawFlag = imosQCFlag('raw', qc_set, 'flag');
-  
+    
   if isempty(vars), return; end
   
   % get rid of variables that we should ignore
@@ -97,43 +86,6 @@ function [graphs lines flags] = graphTimeSeries( ...
     lines(k) = line(sample_data.dimensions{dimension}.data, ...
                     sample_data.variables{k}         .data,...
                     'Color', col);
-    
-    % overlay flags if needed
-    if displayFlags
-      
-      hold on;
-      
-      dim   = sample_data.dimensions{dimension}.data;
-      fl    = sample_data.variables{k}.flags;
-      data  = sample_data.variables{k}.data;
-      
-      % get a list of the different flag types to be graphed
-      flagTypes = unique(fl);
-      
-      % if no flags to plot, put a dummy handle in - the 
-      % caller is responsible for checking and ignoring
-      flags(k,:) = 0.0;
-
-      % a different line for each flag type
-      for m = 1:length(flagTypes)
-        
-        % don't display raw data flags
-        if flagTypes(m) == rawFlag, continue; end
-
-        f = find(fl == flagTypes(m));
-
-        fc = imosQCFlag(flagTypes(m), qc_set, 'color');
-
-        fx = dim(f);
-        fy = data(f);
-
-        flags(k,m) = line(fx, fy,...
-          'LineStyle', 'none',...
-          'Marker', 'o',...
-          'MarkerFaceColor', fc,...
-          'MarkerEdgeColor', 'black');
-      end
-    end
     
     % set x labels and ticks on graph 1
     xLabel = sample_data.dimensions{dimension}.name;
