@@ -8,11 +8,13 @@ function graphs = listGraphs()
 %   graph[GraphType].m
 %
 % This function simply searches the subdirectory looking for files which
-% match the above pattern, and returns the names of those files.
+% match the above pattern, and returns the names of those files, minus the 
+% 'graph' prefix, and the '.m' suffix.
 %
 % Outputs:
 %   graphs - cell array of strings, each of which is the name of a graph
-%            function.
+%            function. The caller must add the 'graph' prefix before
+%            converting the name into a callable function.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -63,7 +65,7 @@ for file = files'
 
   %if name is of the pattern "graph*.m", add 
   %it to the list of available graphs
-  token = regexp(file.name, '^(graph.+)\.m$', 'tokens');
+  token = regexp(file.name, '^graph(.+)\.m$', 'tokens');
 
   %add the graph name to the list
   if ~isempty(token), graphs{end + 1} = token{1}{1}; end

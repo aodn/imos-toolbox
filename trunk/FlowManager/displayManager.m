@@ -162,8 +162,8 @@ function displayManager( fieldTrip, sample_data,...
       end
 
       % display selected raw data
-      graphFunc = str2func(graphType);
-      graphFunc(panel, sample_data{setIdx}, vars, dim, false);
+      graphFunc = str2func(['graph' graphType]);
+      graphFunc(panel, sample_data{setIdx}, vars, dim);
     end
 
     function qcCallback()
@@ -174,6 +174,11 @@ function displayManager( fieldTrip, sample_data,...
     % interact with the graph (highlighting data/flags and 
     % adding/modifying/removing flags).
     %
+    
+      % the flags overlaid on the graphs need to 
+      % be refreshed when manual QC occurs
+      flags = [];
+    
       % update qc data on state change
       if strcmp(event, 'state')
           
@@ -184,9 +189,10 @@ function displayManager( fieldTrip, sample_data,...
       end
 
       % redisplay the data
-      graphFunc = str2func(graphType);
-      [graphs lines flags] = ...
-        graphFunc(panel, sample_data{setIdx}, vars, dim, true);
+      graphFunc = str2func(['graph' graphType]);
+      flagFunc  = str2func(['flag'  graphType]);
+      [graphs lines] = graphFunc(panel, sample_data{setIdx}, vars, dim);
+      flags          = flagFunc( panel, graphs, sample_data{setIdx}, vars, dim);
 
       % save line/flag handles and index in axis userdata 
       % so the data select callback can retrieve them
@@ -278,21 +284,20 @@ function displayManager( fieldTrip, sample_data,...
           % if user didn't cancel, apply the new flag value to the data
           if ~isempty(flag)
             manualQCRequestCallback(setIdx,varIdx,dataIdx,flag);
+            sample_data = autoQCRequestCallback(setIdx, true);
             
             % update main window with modified data set
             updateCallback(sample_data{setIdx});
             
             % update graph
+            if ~isempty(flags), delete(flags(flags ~= 0)); end
+            flags = flagFunc(panel, graphs, sample_data{setIdx}, vars, dim);
           end
-          
-          
-          
-        % if the click wasn't near the 
-        % highlight, remove the higwhlight
-        else
-          delete(highlight); 
-          highlight = [];
         end
+          
+        % remove the highlight, regardless of the click location
+        delete(highlight); 
+        highlight = [];
       end
     end
     

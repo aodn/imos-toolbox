@@ -170,18 +170,19 @@ function flowManager()
     sample_data = autoQCData;
   end
 
-  function manualQCRequestCallback(setIdx, var, range, flag)
+  function manualQCRequestCallback(setIdx, varIdx, dataIdx, flag)
   %MANUALQCREQUESTCALLBACK Called on a request to manually
   % modify/add/delete flags on a portion of a data set.
   %
   % Inputs:
-  %   setIdx - 
-  %   var    - 
-  %   range  -
+  %   setIdx  - 
+  %   varIdx  - 
+  %   dataIdx -
+  %   flag    -
   %
     if isempty(autoQCData), return; end
     
-
+    autoQCData{setIdx}.variables{varIdx}.flags(dataIdx) = flag;
 
   end
 
