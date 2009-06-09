@@ -158,10 +158,10 @@ function mainWindow(...
   
   % set window and widget positions
   set(fig,        'Position', [0.15, 0.15, 0.7,  0.7 ]);
-  set(sidePanel,  'Position', [0.0,  0.0,  0.1,  0.95]);
-  set(mainPanel,  'Position', [0.1,  0.0,  0.9,  0.95]);
-  set(sampleMenu, 'Position', [0.0,  0.95, 0.5,  0.05]);
-  set(graphMenu,  'Position', [0.5,  0.95, 0.5,  0.05]);
+  set(sidePanel,  'Position', [0.0,  0.0,  0.15, 0.95]);
+  set(mainPanel,  'Position', [0.15, 0.0,  0.85, 0.95]);
+  set(sampleMenu, 'Position', [0.0,  0.95, 0.75, 0.05]);
+  set(graphMenu,  'Position', [0.75, 0.95, 0.25, 0.05]);
   
   % varPanel and stateButtons are positioned relative to sidePanel
   set(varPanel, 'Position', [0.0,  0.0,  1.0,  0.3 ]);
@@ -367,10 +367,13 @@ function mainWindow(...
     for m = 1:length(sam)
       s = sam{m};
 
-      descs{m} = [s.instrument_make  ' ' ...
-                  s.instrument_model ' ' ...
+      descs{m} = ['(' s.instrument_model '): ' ...
                   datestr(s.dimensions{1}.data(1),   dateFmt) ' - ' ...
                   datestr(s.dimensions{1}.data(end), dateFmt)];
+      
+      if isfield(s.meta, 'site') 
+        descs{m} = [s.meta.site.SiteName ' ' descs{m}];
+      end
     end
   end
 end
