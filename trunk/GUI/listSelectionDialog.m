@@ -93,7 +93,7 @@ function selected = listSelectionDialog( title, allOpts, initialOpts )
   set(cancelButton,  'Units', 'normalized');
   
   % position the figure and widgets
-  set(f,             'Position', [0.3, 0.2,  0.4, 0.6]);
+  set(f,             'Position', [0.3, 0.36, 0.4, 0.28]);
   set(cancelButton,  'Position', [0.0, 0.0,  0.5, 0.1]);
   set(confirmButton, 'Position', [0.5, 0.0,  0.5, 0.1]);
   set(nSelList,      'Position', [0.0, 0.1,  0.4, 0.9]);
