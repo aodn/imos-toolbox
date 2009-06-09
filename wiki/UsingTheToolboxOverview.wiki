@@ -5,7 +5,7 @@
 
 = Using the Toolbox =
 
-This page describes the state of the toolbox at [http://code.google.com/p/imos-toolbox/source/browse/?r=322 revision 437 (10th June 2009, 08:10). The trunk changes quickly, so these instructions may already be out of date.
+This page describes the state of the toolbox at [http://code.google.com/p/imos-toolbox/source/browse/?r=437 revision 437 (10th June 2009, 08:10). The trunk changes quickly, so these instructions may already be out of date.
 
 This page gives a brief overview on how to configure and use the toolbox. As development of the toolbox progresses, this page will be updated. Additionally, my aim is to reduce the amount of work required to configure the toolbox.
 
@@ -17,7 +17,7 @@ Before you can use the toolbox, you must configure the matlab path and deploymen
 
 === Matlab path ===
 
-The toolbox root, and every subdirectory within the toolbox root must be on the matlab path. In other words, you must add the following list of directories (valid as of the 19th May 2009) to your matlab path, either by setting the `MATLABPATH` environment variable, or, within matlab, using the 'Set Path' dialog, which is accessed via 'File'->'Set Path'. 
+The toolbox root, and every subdirectory within the toolbox root must be on the matlab path. In other words, you must add the following list of directories (valid as of the 10th June 2009) to your matlab path, either by setting the `MATLABPATH` environment variable, or, within matlab, using the 'Set Path' dialog, which is accessed via 'File'->'Set Path'. 
 
 Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the following directories to the path:
   * `C:\imos-toolbox\`
