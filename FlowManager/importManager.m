@@ -319,6 +319,21 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
   sam.time_coverage_start = deployment.TimeFirstInPos;
   sam.time_coverage_end   = deployment.TimeLastInPos;
   
+  % add metadata to the sample data struct, to 
+  % eliminate the need for later DDB lookups
+  sam.meta.deployment = deployment;
+  sam.meta.fieldTrip  = fieldTrip;
+  sam.meta.site       = executeDDBQuery('Sites', 'Site', deployment.Site);
+  sam.meta.instrument = executeDDBQuery('Instruments', ...
+    'InstrumentID', deployment.InstrumentID);
+  
+  if isempty(sam.meta.site)
+    sam.meta = rmfield(sam.meta, 'site'); 
+  end
+  if isempty(sam.meta.instrument)
+    sam.meta = rmfield(sam.meta, 'instrument'); 
+  end
+  
   for k = 1:length(sam.variables)
     
     sam.variables{k}.deployment_id = deployment.DeploymentId;
