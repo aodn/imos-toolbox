@@ -101,10 +101,10 @@ function flagVal = addFlagDialog( defaultVal )
   set(cancelButton,  'Units', 'normalized');
   set(confirmButton, 'Units', 'normalized');
 
-  set(f,             'Position', [0.4, 0.48, 0.2, 0.04]);
-  set(cancelButton,  'Position', [0.0, 0.0,  0.5, 0.5 ]);
-  set(confirmButton, 'Position', [0.5, 0.0,  0.5, 0.5 ]);
-  set(optList,       'Position', [0.0, 0.5,  1.0, 0.5 ]);
+  set(f,             'Position', [0.34, 0.46, 0.28, 0.08]);
+  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.5 ]);
+  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.5 ]);
+  set(optList,       'Position', [0.0,  0.5,  1.0,  0.5 ]);
 
   % reset back to pixels
   set(f,             'Units', 'pixels');
