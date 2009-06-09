@@ -145,7 +145,7 @@ function [fieldTrip dataDir] = startDialog()
   set([dateStartButton, dateEndButton], 'Units', 'normalized');
 
   % position the widgets
-  set(f,               'Position', [0.3,  0.45, 0.4,  0.08]);
+  set(f,               'Position', [0.2,  0.4,  0.6,   0.2]);
 
   set(cancelButton,    'Position', [0.0,  0.0,  0.5,   0.25]);
   set(confirmButton,   'Position', [0.5,  0.0,  0.5,   0.25]);
