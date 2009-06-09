@@ -80,6 +80,7 @@ function filename = exportNetCDF( sample_data, dest )
     %
     disp('writing global attributes');
     globAtts = sample_data;
+    globAtts = rmfield(globAtts, 'meta');
     globAtts = rmfield(globAtts, 'variables');
     globAtts = rmfield(globAtts, 'dimensions');
     putAtts(fid, globConst, globAtts);
@@ -253,6 +254,12 @@ function vid = addQCVar(fid, sample_data, varIdx, dims, type)
   for k = 1:length(qcFlags)
     qcDescs{k} = ...
       imosQCFlag(qcFlags(k), sample_data.quality_control_set, 'desc');
+  end
+ 
+  % if all flag values are equal, add the 
+  % quality_control_indicator attribute 
+  if min(var.flags) == max(var.flags)
+    qcAtts.quality_control_indicator = min(var.flags);
   end
   
   qcAtts.flag_values = double(qcFlags);
