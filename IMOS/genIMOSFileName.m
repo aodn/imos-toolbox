@@ -71,9 +71,12 @@ function filename = genIMOSFileName( sample_data, suffix )
     datestr(datenum(sample_data.date_created, dateFmt),        fileDateFmt);
 
   %
-  % one data code for each parameter
+  % generate data code for the data set
   %
-  data_code     = '';
+  data_code = '';
+  
+  % code for raw data should contain 'R' for raw
+  if sample_data.level == 0, data_code = 'R'; end
   for k = 1:length(sample_data.variables)
 
     % get the data code for this parameter; don't add duplicate codes
@@ -90,7 +93,9 @@ function filename = genIMOSFileName( sample_data, suffix )
   filename = [filename        start_date    '_'];
   filename = [filename        platform_code '_'];
   filename = [filename        file_version  '_'];
-  filename = [filename        product_type  '_'];
+  if ~isempty(product_type)
+    filename = [filename      product_type  '_'];
+  end
   filename = [filename 'END-' end_date      '_'];
   filename = [filename 'C-'   creation_date];
   filename = [filename '.' suffix];
