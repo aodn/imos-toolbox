@@ -292,7 +292,11 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
     for k = 1:length(sets)
       s = sets{k};
       
-      descs{k} = [s.instrument_model names{k}];
+      descs{k} = ['(' s.instrument_model ')' names{k}];
+      
+      if isfield(s.meta, 'site')
+        descs{k} = [s.meta.site.SiteName ' ' descs{k}];
+      end
     end
   end
 end
