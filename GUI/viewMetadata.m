@@ -67,6 +67,7 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   %% create data sets
   
   globs = sample_data;
+  globs = rmfield(globs, 'meta');
   globs = rmfield(globs, 'variables');
   globs = rmfield(globs, 'dimensions');
   
