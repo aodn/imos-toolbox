@@ -86,7 +86,7 @@ function strs = java2struct(list)
 %   strs - A vector of matlab structs which are equivalent to the java
 %          objects.
 %
-  strs = struct;
+  strs = [];
   
   if list.size() == 0, return; end;
   
