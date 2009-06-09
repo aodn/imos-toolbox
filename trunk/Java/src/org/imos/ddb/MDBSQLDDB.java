@@ -175,6 +175,10 @@ public class MDBSQLDDB extends DDB {
 
     try {
 
+      //escape any spaces in the filename, 
+      //otherwise libmdb will spit 
+      dbFile = dbFile.replaceAll(" ", "\\\\ ");
+
       //open mdb file
       if (mdbsql_open(dbFile)!= 0) {
         throw new Exception("error opening ddb file: " + dbFile);
