@@ -79,7 +79,7 @@ parsers = lines{3};
 % search for a make/model match
 for k = 1:length(makes)
   
-  if strcmp(makes{k},  make) && strcmp(models(k), model)
+  if strcmpi(makes{k},  make) && strcmpi(models(k), model)
     parser = parsers{k};
     return;
   end
