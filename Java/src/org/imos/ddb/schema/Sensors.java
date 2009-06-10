@@ -43,7 +43,7 @@ public class Sensors {
   public String  Capability;
   public String  Description;
   public Boolean Status;
-  public String  image;
+  public String  Image;
   public String  Document;
   public Date    Modified;
 }
