@@ -73,6 +73,7 @@ sample_data.dimensions{1}.flags    = zeros(nsamples, 1);
 sample_data.dimensions{1}.flags(:) = rawFlag;
 sample_data.variables              = {};
 sample_data.level                  = 0;
+sample_data.meta                   = struct;
 
 sample_data.quality_control_set  = qcSet;
 sample_data.time_coverage_start  = datestr(in_water_time, datefmt);

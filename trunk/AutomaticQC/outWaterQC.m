@@ -62,7 +62,7 @@ if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
 time_coverage_end = datenum(sample_data.time_coverage_end, dateFmt);
 
-qc_set    = str2num(readToolboxProperty('toolbox.qc_set'));
+qc_set    = str2double(readToolboxProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qc_set, 'flag');
 flagVal   = imosQCFlag('bad',   qc_set, 'flag');
 
@@ -70,12 +70,11 @@ flags    = zeros(length(data), 1);
 flags(:) = goodFlag;
 log      = {};
 
-% find start index of samples which were taken out of water
+% find samples which were taken out of water
 time = sample_data.dimensions{1}.data;
-start = find(time <= time_coverage_end, 1, 'last');
+after = find(time > time_coverage_end);
 
-% the entire data set is before the out-water time
-if start == length(data), start = 0; end
+if isempty(after), return; end
   
 % flag the after out-water samples
-flags(start+1:length(data)) = flagVal;
+flags(after) = flagVal;
