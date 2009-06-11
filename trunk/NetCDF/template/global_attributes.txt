@@ -19,6 +19,7 @@ naming_authority          = IMOS
 cdm_data_type             = 
 metadata                  = 
 sensorML                  = 
+product_type              =
 
 % where
 geospatial_lat_min      = [ddb Site Sites Latitude]

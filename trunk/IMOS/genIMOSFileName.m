@@ -56,7 +56,7 @@ function filename = genIMOSFileName( sample_data, suffix )
   file_version  = ['FV0' num2str(sample_data.level)];
   facility_code = sample_data.institution;
   platform_code = sample_data.platform_code;
-  product_type  = '';
+  product_type  = sample_data.product_type;
 
   %
   % all dates should be in ISO 8601 format
