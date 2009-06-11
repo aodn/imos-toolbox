@@ -314,11 +314,7 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
 
   sam.field_trip_id          = fieldTrip.FieldTripID;
   sam.field_trip_description = fieldTrip.FieldDescription;
-  
-  % should we use Time[First|Last]GoodData ?
-  sam.time_coverage_start = deployment.TimeFirstInPos;
-  sam.time_coverage_end   = deployment.TimeLastInPos;
-  
+    
   % add metadata to the sample data struct, to 
   % eliminate the need for later DDB lookups
   sam.meta.deployment = deployment;
@@ -354,5 +350,26 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
   
   % add IMOS-compliant parameters
   sam = makeNetCDFCompliant(sam);
+  
+  % set the time coverage period - use the best field available
+  if ~isempty(deployment.TimeFirstGoodData)
+    sam.time_coverage_start = deployment.TimeFirstGoodData;
+  elseif ~isempty(deployment.TimeFirstInPos)
+    sam.time_coverage_start = deployment.TimeFirstInPos;
+  elseif ~isempty(deployment.TimeFirstWet)
+    sam.time_coverage_start = deployment.TimeFirstWet;
+  elseif ~isempty(deployment.TimeSwitchOn)
+    sam.time_coverage_start = deployment.TimeSwitchOn;
+  end
+  
+  if ~isempty(deployment.TimeLastGoodData)
+    sam.time_coverage_start = deployment.TimeLastGoodData;
+  elseif ~isempty(deployment.TimeLastInPos)
+    sam.time_coverage_start = deployment.TimeLastInPos;
+  elseif ~isempty(deployment.TimeOnDeck)
+    sam.time_coverage_start = deployment.TimeOnDeck;
+  elseif ~isempty(deployment.TimeSwitchOff)
+    sam.time_coverage_start = deployment.TimeSwitchOff;
+  end
 
 end
