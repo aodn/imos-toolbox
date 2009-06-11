@@ -363,13 +363,13 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
   end
   
   if ~isempty(deployment.TimeLastGoodData)
-    sam.time_coverage_start = deployment.TimeLastGoodData;
+    sam.time_coverage_end = deployment.TimeLastGoodData;
   elseif ~isempty(deployment.TimeLastInPos)
-    sam.time_coverage_start = deployment.TimeLastInPos;
+    sam.time_coverage_end = deployment.TimeLastInPos;
   elseif ~isempty(deployment.TimeOnDeck)
-    sam.time_coverage_start = deployment.TimeOnDeck;
+    sam.time_coverage_end = deployment.TimeOnDeck;
   elseif ~isempty(deployment.TimeSwitchOff)
-    sam.time_coverage_start = deployment.TimeSwitchOff;
+    sam.time_coverage_end = deployment.TimeSwitchOff;
   end
 
 end
