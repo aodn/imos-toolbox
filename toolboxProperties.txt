@@ -1,6 +1,6 @@
 % filename or ODBC DSN of deployment database
 toolbox.ddb = /home/paul/Documents/imos/OceanographyUncontrolled.mdb
-% toolbox.ddb = /home/paul/Documents/imos/May28.mdb
+% toolbox.ddb = /media/minke/ACCESS DATABASE/JUNE10.mdb
 
 % date and time formats used internally and for GUI display
 toolbox.dateFormat = dd mmm yyyy
@@ -16,7 +16,7 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SS
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSS
 
 % default set of auto QC routines
-autoQCManager.autoQCChain = tukey53HDespikeQC timeGapQC flatlineQC                                          
+autoQCManager.autoQCChain = tukey53HDespikeQC
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
@@ -32,4 +32,7 @@ startDialog.lowDate = 730486
 startDialog.highDate = 734138
 
 % default directory for file export
-exportDialog.defaultDir = /home/paul/matlab-workspace/imos-toolbox/trunk
+exportDialog.defaultDir = /home/paul
+
+% prompt user to select parser if an appropriate one cannot be found
+importManager.noParserPrompt = true

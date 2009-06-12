@@ -75,7 +75,10 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
   skipped     = [];
 
   if     nargin == 0, [fieldTrip deployments dataDir] = getDeployments();
-  elseif nargin == 1, dataDir = readToolboxProperty('startDialog.dataDir');
+  elseif nargin == 1
+    try dataDir = readToolboxProperty('startDialog.dataDir');
+    catch e, dataDir = pwd; 
+    end
   elseif nargin == 2, 
   end
   
@@ -121,6 +124,9 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
   qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
   rawFlag = imosQCFlag('raw', qcSet, 'flag');
   
+  parsers = listParsers();
+  noParserPrompt = eval(readToolboxProperty('importManager.noParserPrompt'));
+  
   % parse file for each deployment, sample struct for each.
   % if a parser can't be found for a deployment, don't bail; 
   % just ignore it for the time being
@@ -140,7 +146,7 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
       disp(['importing ' fileDisplay]);
 
       % import data
-      sam = parse(deps(k), files{k});
+      sam = parse(deps(k), files{k}, parsers, noParserPrompt);
       sam = finaliseData(sam, fieldTrip, deps(k), dateFmt, rawFlag);
       
       % turn raw data files a into semicolon separated string
@@ -253,18 +259,20 @@ function hits = fsearch(pattern, root)
   end
 end
 
-function sam = parse(deployment, files)
+function sam = parse(deployment, files, parsers, noParserPrompt)
 %PARSE Parses a raw data file, returns a sample_data struct.
 %
 % Inputs:
-%   deployment - Struct containing deployment data.
-%   files      - Cell array containing file names.
+%   deployment     - Struct containing deployment data.
+%   files          - Cell array containing file names.
+%   parsers        - Cell array of strings containing all available parsers.
+%   noParserPrompt - Whether to prompt the user if a parser cannot be found.
 %
 % Outputs:
 %   sam        - Struct containing sample data.
 
   % get the appropriate parser function
-  parser = getParserFunc(deployment);
+  parser = getParserFunc(deployment, parsers, noParserPrompt);
   if isnumeric(parser)
     error(['no parser found for instrument ' deployment.InstrumentID]); 
   end
@@ -274,12 +282,14 @@ function sam = parse(deployment, files)
 
 end
 
-function parser = getParserFunc(deployment)
+function parser = getParserFunc(deployment, parsers, noParserPrompt)
 %GETPARSERFUNC Searches for a parser function which is able to parse data 
 % for the given deployment.
 %
 % Inputs:
-%   deployment - struct containing information about the deployment.
+%   deployment     - struct containing information about the deployment.
+%   parsers        - Cell array of strings containing all available parsers.
+%   noParserPrompt - Whether to prompt the user if a parser cannot be found.
 %
 % Outputs:
 %   parser     - Function handle to the parser function, or 0 if a parser
@@ -296,7 +306,28 @@ function parser = getParserFunc(deployment)
   
   % get the parser name
   parser = getParserNameForInstrument(instrument.Make, instrument.Model);
-  if parser == 0, return; end
+  
+  % if there is no parser for the instrument, prompt the user to choose one
+  if parser == 0
+    if ~noParserPrompt, return; end
+    
+    parser = optionDialog(...
+      'Select a parser',...
+      ['A parser could not be found for the ' ...
+       instrument.Make ' ' instrument.Model ...
+       '. Please select one from the list.'],...
+      parsers, 1);
+    
+    % user cancelled dialog
+    if isempty(parser)
+      parser = 0;
+      return;
+    end
+    
+    % persist the instrument<->parser mapping for next time
+    setParserNameForInstrument(instrument.Make, instrument.Model, parser);
+    
+  end
   
   % get the parser function handle
   parser = getParser(parser);
