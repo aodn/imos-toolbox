@@ -327,7 +327,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
 
     for k = 1:length(deployments)
 
-      if ~isValidDeployment(deployments(k))
+      if ~isValidDeployment(deployments(k)) && isempty(files{k})
         descs{k} = [invalidStart  descs{k} invalidEnd];
 
       elseif isempty(files{k})
