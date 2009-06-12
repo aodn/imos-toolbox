@@ -64,8 +64,6 @@ try
   % append the new entry to the end of the file
   fprintf(fid, '%s, %s, %s\n', make, model, parser);
   
-  disp(['appended ' make ', ' model ', ' parser ' to instruments.txt']);
-  
   fclose(fid);
 catch e
   if fid ~= -1, fclose(fid); end
