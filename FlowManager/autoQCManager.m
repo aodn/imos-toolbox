@@ -83,7 +83,7 @@ function qc_data = autoQCManager( sample_data )
   % save user's latest selection for next time - turn the qcChain
   % cell array into a space-separated string of the names
   qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
-  writeToolboxProperty('autoQCManager.autoQCChain', [qcChainStr{:}]);
+  writeToolboxProperty('autoQCManager.autoQCChain', deblank([qcChainStr{:}]));
   
   progress = waitbar(...
     0, 'Running QC routines', ...
