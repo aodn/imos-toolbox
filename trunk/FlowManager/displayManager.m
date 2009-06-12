@@ -97,7 +97,7 @@ function displayManager( fieldTrip, sample_data,...
             'Export NetCDF', 'Export Raw'};
   mainWindow(fieldTrip, sample_data, states, 2, @stateSelectCallback);
       
-  function stateSelectCallback(event,...
+  function state = stateSelectCallback(event,...
     panel, updateCallback, state, sample_data, graphType, setIdx, vars, dim)
   %STATESELECTCALLBACK Called when the user interacts with the main 
   % window, by changing the state, the selected data set, the selected
@@ -113,6 +113,10 @@ function displayManager( fieldTrip, sample_data,...
   %   setIdx         - currently selected sample_data struct (index)
   %   vars           - currently selected variables (indices).
   %   dim            - currently selected dimension (index).
+  %
+  % Outputs:
+  %   state          - If a state change was forced, tells the main window
+  %                    to update its own state.
   %
   
     switch(state)
