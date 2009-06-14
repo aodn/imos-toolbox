@@ -82,7 +82,9 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
   elseif nargin == 2, 
   end
   
-  if ~isstruct(deployments) || isempty(deployments),
+  if isempty(deployments), return; end
+  
+  if ~isstruct(deployments)
     error('deployments is either not a struct, or contains no elements');
   end
     
