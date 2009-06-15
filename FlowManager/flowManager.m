@@ -70,7 +70,23 @@ function flowManager()
     
     if isempty(importedData), return; end
     
-    % check for duplicates in existing data set
+    % check for and remove duplicates
+    remove = [];
+    for k = 1:length(importedData)
+      for m = 1:length(rawData)
+        if strcmp(     rawData{m}.meta.deployment.DeploymentId,...
+                  importedData{k}.meta.deployment.DeploymentId)
+          remove(end+1) = k;
+        end
+      end
+    end
+    
+    if ~isempty(remove)
+      uiwait(msgbox('Duplicate data sets were removed during the import', ...
+             'Duplicate data sets removed', 'modal'));
+      importedData(remove) = [];
+    end
+    
     
     % add index to the newly imported data
     for k = 1:length(importedData)
