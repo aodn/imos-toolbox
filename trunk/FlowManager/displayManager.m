@@ -1,10 +1,4 @@
-function displayManager( fieldTrip, sample_data,...
-                         metadataUpdateCallback,...
-                         rawDataRequestCallback,...
-                         autoQCRequestCallback,...
-                         manualQCRequestCallback,...
-                         exportNetCDFRequestCallback,...
-                         exportRawRequestCallback)
+function displayManager( fieldTrip, sample_data, callbacks)
 %DISPLAYMANGER Manages the display of data.
 %
 % The display manager handles the interaction between the main window and
@@ -12,21 +6,39 @@ function displayManager( fieldTrip, sample_data,...
 % and how the system reacts when the user interacts with the main window.
 %
 % Inputs:
-%   fieldTrip                   - struct containing field trip information.
-%   sample_data                 - Cell array of sample_data structs, one for
-%                                 each instrument.
-%   metadataUpdateCallback      - Callback function which is called when a 
-%                                 data set's metadata is modified.
-%   rawDataRequestCallback      - Callback function which is called to 
-%                                 retrieve the raw data set.
-%   autoQCRequestCallback       - Callback function called when the user 
-%                                 attempts to execute an automatic QC routine.
-%   manualQCRequestCallback     - Callback function called when the user 
-%                                 attempts to execute a manual QC routine.
-%   exportNetCDFRequestCallback - Callback function called when the user 
-%                                 attempts to export data.
-%   exportRawRequestCallback    - Callback function called when the user
-%                                 attempts to export raw data.
+%   fieldTrip   - struct containing field trip information.
+%   sample_data - Cell array of sample_data structs, one for each instrument.
+%   callbacks   - struct containing the following function handles:
+%     importRequestCallback       - Callback function which is called when
+%                                   the user requests to import more data.
+%                                   Takes no parameters.
+%     metadataUpdateCallback      - Callback function which is called when a 
+%                                   data set's metadata is modified. Takes
+%                                   a single sample_data struct as the only
+%                                   parameter.
+%     rawDataRequestCallback      - Callback function which is called to 
+%                                   retrieve the raw data set. Takes no
+%                                   parameters.
+%     autoQCRequestCallback       - Callback function called when the user 
+%                                   attempts to execute an automatic QC 
+%                                   routine. Takes two parameters, setIdx
+%                                   (index into current sample_data
+%                                   struct). and stateChange (logical, to
+%                                   determine whether to prompt the user
+%                                   to (re-)run auto QC routines over the
+%                                   data).
+%     manualQCRequestCallback     - Callback function called when the user 
+%                                   attempts to execute a manual QC
+%                                   routine. Takes four parameters: setIdx 
+%                                   (sample_data index), varIdx (variable 
+%                                   index), dataIdx (data indices), flag (flag 
+%                                   value).
+%     exportNetCDFRequestCallback - Callback function called when the user 
+%                                   attempts to export data. Takes no
+%                                   parameters.
+%     exportRawRequestCallback    - Callback function called when the user
+%                                   attempts to export raw data. Takes no
+%                                   parameters.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -60,28 +72,32 @@ function displayManager( fieldTrip, sample_data,...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(8,8,nargin));
+  error(nargchk(3,3,nargin));
 
   if ~isstruct(fieldTrip), error('fieldTrip must be a struct');       end
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), error('sample_data is empty');             end
+  if ~isstruct(callbacks), error('callbacks must be a struct');       end
 
-  if ~isa(metadataUpdateCallback, 'function_handle')
+  if ~isa(callbacks.importRequestCallback, 'function_handle')
+    error('importRequestCallback must be a function handle'); 
+  end
+  if ~isa(callbacks.metadataUpdateCallback, 'function_handle')
     error('metadataUpdateCallback must be a function handle'); 
   end
-  if ~isa(rawDataRequestCallback, 'function_handle')
+  if ~isa(callbacks.rawDataRequestCallback, 'function_handle')
     error('rawDataRequestCallback must be a function handle'); 
   end
-  if ~isa(autoQCRequestCallback, 'function_handle')
+  if ~isa(callbacks.autoQCRequestCallback, 'function_handle')
     error('autoQCRequestCallback must be a function handle'); 
   end
-  if ~isa(manualQCRequestCallback, 'function_handle')
+  if ~isa(callbacks.manualQCRequestCallback, 'function_handle')
     error('manualQCRequestCallback must be a function handle'); 
   end
-  if ~isa(exportNetCDFRequestCallback, 'function_handle')
+  if ~isa(callbacks.exportNetCDFRequestCallback, 'function_handle')
     error('exportNetCDFRequestCallback must be a function handle'); 
   end
-  if ~isa(exportRawRequestCallback, 'function_handle')
+  if ~isa(callbacks.exportRawRequestCallback, 'function_handle')
     error('exportRawRequestCallback must be a function handle'); 
   end
   
@@ -93,9 +109,9 @@ function displayManager( fieldTrip, sample_data,...
   rawFlag    = imosQCFlag('raw', qcSet, 'flag');
   
   % define the user options, and create the main window
-  states = {'Metadata', 'Raw data', 'Quality Control', ...
+  states = {'Import', 'Metadata', 'Raw data', 'Quality Control', ...
             'Export NetCDF', 'Export Raw'};
-  mainWindow(fieldTrip, sample_data, states, 2, @stateSelectCallback);
+  mainWindow(fieldTrip, sample_data, states, 3, @stateSelectCallback);
       
   function state = stateSelectCallback(event,...
     panel, updateCallback, state, sample_data, graphType, setIdx, vars, dim)
@@ -120,6 +136,7 @@ function displayManager( fieldTrip, sample_data,...
   %
   
     switch(state)
+      case 'Import',          importCallback();
       case 'Metadata',        metadataCallback();
       case 'Raw data',        rawDataCallback();
       case 'Quality Control', qcCallback();
@@ -129,6 +146,28 @@ function displayManager( fieldTrip, sample_data,...
     
     lastState  = state;
     lastSetIdx = setIdx;
+    
+    function importCallback()
+    %IMPORTCALLBACK Called when the user clicks the 'Import' button. Calls
+    %the importRequestCallback function.
+    %
+      callbacks.importRequestCallback();
+      
+      switch (lastState)
+        case 'Raw data'
+          sample_data = callbacks.rawDataRequestCallback();
+        case 'Quality Control'
+          sample_data = callbacks.autoQCRequestCallback(0, true);
+        otherwise
+          sample_data = callbacks.rawDataRequestCallback();
+      end
+      
+      for k = 1:length(sample_data), updateCallback(sample_data{k}); end
+      
+      stateSelectCallback('state', panel, updateCallback, lastState, ...
+        sample_data, graphType, setIdx, vars, dim);
+      state = lastState;
+    end
   
     function metadataCallback()
     %METADATACALLBACK Displays a metadata viewer/editor for the selected 
@@ -144,7 +183,7 @@ function displayManager( fieldTrip, sample_data,...
       % functions (mainWindow and flowManager).
 
         % notify of change to metadata
-        metadataUpdateCallback(sam);
+        callbacks.metadataUpdateCallback(sam);
 
         % update GUI with modified data set
         updateCallback(sam);
@@ -159,7 +198,7 @@ function displayManager( fieldTrip, sample_data,...
       % main window already has the correct data set.
       if strcmp(lastState, state)
         
-        sample_data = rawDataRequestCallback();
+        sample_data = callbacks.rawDataRequestCallback();
 
         % update GUI with raw data set
         for k = 1:length(sample_data), updateCallback(sample_data{k}); end
@@ -186,7 +225,8 @@ function displayManager( fieldTrip, sample_data,...
       % update qc data on state change
       if strcmp(event, 'state')
           
-        sample_data = autoQCRequestCallback(setIdx, ~strcmp(lastState,state));
+        sample_data = ...
+          callbacks.autoQCRequestCallback(setIdx, ~strcmp(lastState,state));
 
         % update GUI with QC'd data set
         for k = 1:length(sample_data), updateCallback(sample_data{k}); end
@@ -287,8 +327,8 @@ function displayManager( fieldTrip, sample_data,...
           
           % if user didn't cancel, apply the new flag value to the data
           if ~isempty(flag)
-            manualQCRequestCallback(setIdx,vars(varIdx),dataIdx,flag);
-            sample_data = autoQCRequestCallback(setIdx, true);
+            callbacks.manualQCRequestCallback(setIdx,vars(varIdx),dataIdx,flag);
+            sample_data = callbacks.autoQCRequestCallback(setIdx, true);
             
             % update main window with modified data set
             updateCallback(sample_data{setIdx});
@@ -309,7 +349,7 @@ function displayManager( fieldTrip, sample_data,...
     %EXPORTNETCDFCALLBACK Called when the user clicks on the 'Export NetCDF' 
     % button. Delegates to the exportNetCDFRequestCallback function.
     %
-      exportNetCDFRequestCallback();
+      callbacks.exportNetCDFRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
         sample_data, graphType, setIdx, vars, dim);
@@ -320,7 +360,7 @@ function displayManager( fieldTrip, sample_data,...
     %EXPORTRAWCALLBACK Called when the user clicks on the 'Export Raw'
     % button. Delegates to the exportRawRequestCallback function.
     %
-      exportRawRequestCallback();
+      callbacks.exportRawRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
         sample_data, graphType, setIdx, vars, dim);

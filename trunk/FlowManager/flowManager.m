@@ -42,17 +42,49 @@ function flowManager()
   % import data
   [fieldTrip rawData skipped] = importManager();
   
+  if isempty(rawData), return; end
+  
   % add an index field to each data struct
   for k = 1:length(rawData), rawData{k}.index = k; end
 
   % display data
-  displayManager(fieldTrip, rawData,...
-                @metadataUpdateCallback,...
-                @rawDataRequestCallback,...
-                @autoQCRequestCallback,...
-                @manualQCRequestCallback,...
-                @exportNetCDFRequestCallback,...
-                @exportRawRequestCallback);
+  callbacks.importRequestCallback       = @importRequestCallback;
+  callbacks.metadataUpdateCallback      = @metdataUpdateCallback;
+  callbacks.rawDataRequestCallback      = @rawDataRequestCallback;
+  callbacks.autoQCRequestCallback       = @autoQCRequestCallback;
+  callbacks.manualQCRequestCallback     = @manualQCRequestCallback;
+  callbacks.exportNetCDFRequestCallback = @exportNetCDFRequestCallback;
+  callbacks.exportRawRequestCallback    = @exportRawRequestCallback;
+  
+  displayManager(fieldTrip, rawData, callbacks);
+  
+  function importRequestCallback()
+  %IMPORTREQUESTCALLBACK Called when the user wishes to import more data.
+  % Prompts the user to import more data, then adds the new data to the
+  % data sets. Forces a run of the auto QC routines over the new data if
+  % necessary.
+  %
+  
+    % prompt user to import more data
+    [fieldTrip importedData skipped] = importManager();
+    
+    if isempty(importedData), return; end
+    
+    % check for duplicates in existing data set
+    
+    % add index to the newly imported data
+    for k = 1:length(importedData)
+      importedData{k}.index = k + length(rawData);
+    end
+    
+    % insert the new data into the rawData array, and run QC if necessary
+    startIdx = (length(rawData)+1);
+    endIdx   = startIdx + length(importedData) - 1;
+    rawData = [rawData importedData];
+    
+    if ~isempty(autoQCData), autoQCRequestCallback(startIdx:endIdx, 0); end
+  
+  end
               
   function metadataUpdateCallback(sample_data)
   %METADATAUPDATECALLBACK Called whenever a data set's metadata is updated.
@@ -149,8 +181,8 @@ function flowManager()
         setIdx = 1:length(rawData);
       end
     
-    % otherwise return the existing auto QC data
-    else return;
+    % otherwise if no new data sets, return the existing auto QC data
+    elseif ~any(setIdx > length(autoQCData)), return;
     end
     
     % save data set selection
