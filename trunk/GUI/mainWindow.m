@@ -265,7 +265,14 @@ function mainWindow(...
     if ~isstruct(sam),         error('sam must be a struct');         end
     if ~isfield(sam, 'index'), error('sam must have an index field'); end
     
+    % a new data set is being added
+    updateMenus = 0;
+    if sam.index > length(sample_data), updateMenus = 1; end
+    
     sample_data{sam.index} = sam;
+    
+    set(sampleMenu, 'String', genSampleDataDescs(sample_data, timeFmt));
+    
   end
 
   %% Retrieving current selection
