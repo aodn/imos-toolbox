@@ -52,8 +52,12 @@ error(nargchk(5,5,nargin));
 if ~ishandle(parent),      error('parent must be a graphic handle');    end
 if ~ishandle(graphs),      error('graphs must be a graphic handle(s)'); end
 if ~isstruct(sample_data), error('sample_data must be a struct');       end
-if ~isvector(vars),        error('vars must be a vector of indices');   end
+if ~isnumeric(vars),       error('vars must be a numeric');             end
 if ~isnumeric(dimension),  error('dimension must be an index');         end
+
+flags = [];
+
+if isempty(vars), return; end
 
 sample_data.variables = sample_data.variables(vars);
 if length(graphs) ~= length(sample_data.variables)
@@ -62,8 +66,6 @@ end
   
 qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
-
-flags = [];
 
 hold on;
 
