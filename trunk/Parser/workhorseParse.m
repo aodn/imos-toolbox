@@ -108,11 +108,23 @@ error(nargchk(1,1,nargin));
     
     % currently assuming earth coordinate transform
     % / 1000.0, as the velocity samples are in millimetres per second
-    speed(k,:) = sqrt(velocity.velocity1.^2 + velocity.velocity2.^2) / 1000.0;
+    veast = velocity.velocity1;
+    vnrth = velocity.velocity2;
+    
+    %vnrth(vnrth == -32768) = 0;
+    %veast(veast == -32768) = 0;
+    speed(k,:) = sqrt(vnrth.^2 + veast.^2);
+    speed(k,vnrth == -32768) = -32768;
     
     % direction is in degrees clockwise from north
-    direction(k,:) = ((pi / 2) - ...
-      tan(velocity.velocity2 / velocity.velocity1)) * (pi / 180);
+    direction(k,:) = abs(atan(veast ./ vnrth)) .* (18000 / pi);
+    
+    arrayfun(@(x)(18000 - x), direction(k,vnrth <  0 & veast >= 0));
+    arrayfun(@(x)(18000 + x), direction(k,vnrth <  0 & veast <  0));
+    arrayfun(@(x)(36000 - x), direction(k,vnrth >= 0 & veast <  0));
+    
+    direction(k,vnrth == -32768) = -32768;
+    
   end
   
   % fill in the sample_data struct
@@ -145,3 +157,4 @@ error(nargchk(1,1,nargin));
   sample_data.variables{ 3}.data       = temperature;
   
 end
+  
