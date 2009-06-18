@@ -12,7 +12,7 @@ function ensembles = readWorkhorseEnsembles( filename )
 %
 % A raw Workhorse data file consists of a set of 'ensembles'. Each ensemble 
 % contains data for one sample period. An ensemble is made up of a number
-% of sections, the last four of which may or may not be present:
+% of sections, the last five of which may or may not be present:
 %   - Header:                Ensemble information (size/contents). Always 
 %                            present
 %   - Fixed Leader Data:     ADCP configuration, serial number etc. Always
@@ -79,10 +79,8 @@ function ensembles = readWorkhorseEnsembles( filename )
   if ~ischar(filename), error('filename must be a string'); 
   end
 
-  % save file size and open file; this will 
-  % throw an error if file doesn't exist
-  filesize = dir(filename);
-  filesize = filesize.bytes;
+  % check that file exists
+  if isempty(dir(filename)), error([filename ' does not exist']); end
   
   % read in the whole file into 'data'
   fid = -1;
@@ -93,6 +91,7 @@ function ensembles = readWorkhorseEnsembles( filename )
     fclose(fid);
   catch e
     if fid ~= -1, fclose(fid); end
+    rethrow e;
   end
   
   % for performance, the data vector is never sliced. all reads are

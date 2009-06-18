@@ -106,24 +106,33 @@ error(nargchk(1,1,nargin));
     
     velocity = ensemble.velocity;
     
+    %
+    % calculate velocity (speed and direction)
     % currently assuming earth coordinate transform
-    % / 1000.0, as the velocity samples are in millimetres per second
+    %
     veast = velocity.velocity1;
     vnrth = velocity.velocity2;
     
-    %vnrth(vnrth == -32768) = 0;
-    %veast(veast == -32768) = 0;
-    speed(k,:) = sqrt(vnrth.^2 + veast.^2);
-    speed(k,vnrth == -32768) = -32768;
+    % set all bad values to 0. might remove this later, 
+    % but it makes viewing the data much easier
+    vnrth(vnrth == -32768) = 0;
+    veast(veast == -32768) = 0;
+    
+    % / 1000.0, as the velocity samples are in millimetres per second
+    speed(k,:) = sqrt(vnrth.^2 + veast.^2) / 1000.0;
     
     % direction is in degrees clockwise from north
-    direction(k,:) = abs(atan(veast ./ vnrth)) .* (18000 / pi);
+    direction(k,:) = atan(abs(veast ./ vnrth)) .* (180 / pi);
     
-    arrayfun(@(x)(18000 - x), direction(k,vnrth <  0 & veast >= 0));
-    arrayfun(@(x)(18000 + x), direction(k,vnrth <  0 & veast <  0));
-    arrayfun(@(x)(36000 - x), direction(k,vnrth >= 0 & veast <  0));
+    se = vnrth <  0 & veast >= 0;
+    sw = vnrth <  0 & veast <  0;
+    nw = vnrth >= 0 & veast <  0;
     
-    direction(k,vnrth == -32768) = -32768;
+    direction(k,se) = arrayfun(@(x)(180 - x), direction(k,se));
+    direction(k,sw) = arrayfun(@(x)(180 + x), direction(k,sw));
+    direction(k,nw) = arrayfun(@(x)(360 - x), direction(k,nw));
+    
+    direction(k,vnrth == NaN) = 0;
     
   end
   
