@@ -132,15 +132,14 @@ error(nargchk(1,1,nargin));
     direction(k,sw) = arrayfun(@(x)(180 + x), direction(k,sw));
     direction(k,nw) = arrayfun(@(x)(360 - x), direction(k,nw));
     
-    direction(k,vnrth == NaN) = 0;
-    
+    direction(k,isnan(vnrth)) = 0;
   end
   
   % fill in the sample_data struct
   sample_data.meta.fixedLeader     = fixed;
   sample_data.instrument_make      = 'Teledyne RD';
   sample_data.instrument_model     = 'Workhorse ADCP';
-  sample_data.instrument_serial_no = num2str(fixed.instSerialNumber);
+  sample_data.instrument_serial_no =  num2str(fixed.instSerialNumber);
   sample_data.instrument_firmware  = [num2str(fixed.cpuFirmwareVersion) '.' ...
                                       num2str(fixed.cpuFirmwareRevision)];
                                     
@@ -164,6 +163,4 @@ error(nargchk(1,1,nargin));
   sample_data.variables{ 1}.data       = speed;
   sample_data.variables{ 2}.data       = direction;
   sample_data.variables{ 3}.data       = temperature;
-  
 end
-  
