@@ -2,6 +2,11 @@ function [graphs lines] = graphTimeSeries( ...
   parent, sample_data, vars, dimension )
 %GRAPHTIMESERIES Graphs the given data in a time series style using subplots.
 %
+% Graphs the given variables against the given dimension from the given
+% data set. Only really suited for single dimensional data (e.g. time
+% series data). The function will accept and graph multi-dimensional data,
+% however all lines on a multi-dimension graph will have the same colour.
+%
 % Inputs:
 %   parent             - handle to the parent container.
 %   sample_data        - struct containing sample data.
@@ -81,11 +86,18 @@ function [graphs lines] = graphTimeSeries( ...
     % multiple axes, this is not done automatically for us
     col = get(graphs(k), 'ColorOrder');
     col = col(mod(k,length(col))+1,:);
-    
-    % create the data plot
-    lines(k) = line(sample_data.dimensions{dimension}.data, ...
-                    sample_data.variables{k}         .data,...
-                    'Color', col);
+        
+    % if single dimensional, ensure that 
+    % the first dimension is selected
+    dim  = dimension;
+    if length(sample_data.variables{k}.dimensions) == 1, dim = 1; 
+    else                                                 dim = dimension;
+    end
+        
+    % create the data line
+    data       = sample_data.variables {k  }.data;
+    dimData    = sample_data.dimensions{dim}.data;
+    lines(k,:) = line(dimData, data, 'Color', col);
     
     % set x labels and ticks on graph 1
     xLabel = sample_data.dimensions{dimension}.name;
@@ -121,5 +133,5 @@ function [graphs lines] = graphTimeSeries( ...
   for k = 1:length(sample_data.variables)
     names{k} = sample_data.variables{k}.name;
   end
-  legend(lines, names);
+  legend(lines(:,1), names);
 end
