@@ -26,8 +26,8 @@ geospatial_lat_min      = [ddb Site Sites Latitude]
 geospatial_lat_max      = [ddb Site Sites Latitude]
 geospatial_lon_min      = [ddb Site Sites Longitude]
 geospatial_lon_max      = [ddb Site Sites Longitude]
-geospatial_vertical_min = [ddb Site Sites Depth]
-geospatial_vertical_max = [ddb Site Sites Depth]
+geospatial_vertical_min = [ddb InstrumentDepth]
+geospatial_vertical_max = [ddb InstrumentDepth]
 
 % when
 time_coverage_start = [ddb TimeFirstInPos]
