@@ -9,6 +9,10 @@ function sample_data = workhorseParse( filename )
 %   - temperature (at each time)
 %   - water speed (at each time and depth)
 %   - water direction (at each time and depth)
+%
+% The conversion from the ADCP velocity values currently assumes that the 
+% ADCP is using earth coordinates (see section 13.4 'Velocity Data Format' 
+% of the Workhorse H-ADCP Operation Manual).
 % 
 % Inputs:
 %   filename    - raw binary data file retrieved from a Workhorse.
@@ -55,6 +59,9 @@ error(nargchk(1,1,nargin));
   
   if isempty(ensembles), error('no ensembles found in file'); end
   
+  % currently we're only interested in velocity data
+  ensembles = ensembles(cellfun(@(x)(isfield(x, 'velocity')), ensembles));
+  
   % currently assuming that fixed leader 
   % data is the same for every ensemble
   fixed = ensembles{1}.fixedLeader;
@@ -99,10 +106,6 @@ error(nargchk(1,1,nargin));
     
     % / 10.0, as the temperature samples are in steps of 0.01 degrees
     temperature(k) = variable.temperature / 100.0;
-    
-    % sometimes (e.g. on the last ensemble) 
-    % there will be no velocity section. 
-    if ~isfield(ensemble, 'velocity'), continue; end
     
     velocity = ensemble.velocity;
     
