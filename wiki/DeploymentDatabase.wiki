@@ -11,7 +11,7 @@ The Deployment Database (DDB) is an MS-Access database which contains informatio
 
 == Schema ==
 
-The DDB must conform to the following schema:
+The complete DDB schema is shown below:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/ddb_schema.png
 
@@ -23,7 +23,7 @@ The following subsections detail the tables which are used by the toolbox, and t
 
 === !DeploymentData ===
 
-||<font color="red">!DeploymentId</font>||Text||
+||<font colwor="red">!DeploymentId</font>||Text||
 ||<font color="red">!StartFieldTrip</font>||Number||
 ||<font color="red">!EndFieldTrip</font>||Number||
 ||<font color="red">Site</font>||Text||
@@ -108,5 +108,5 @@ The following subsections detail the tables which are used by the toolbox, and t
 ||Document||Hyperlink||
 ||!ResearchActivity||Text||
 ||Completed||Yes/No||
-||Comment||Text|||
+||Comment||Text||
 ||Modified||Date/Time||
