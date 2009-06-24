@@ -1,0 +1,37 @@
+#summary Overview of Graph functions
+
+<wiki:toc/>
+
+= Graph Specification =
+
+The Graph subdirectory provides functions which allow the user to plot and interact with data. The Graph subdirectory (and naming convention) is organised as follows:
+
+ * `Graph/`
+  * `graphTimeSeries.m`
+  * `TimeSeries/`
+   * `plotTimeSeriesX.m`
+   * `plotTimeSeriesGeneric.m`
+   * `highlightTimeSeriesX.m`
+   * `highlightTimeSeriesGeneric.m`
+   * `selectTimeSeriesX.m`
+   * `selectTimeSeriesGeneric.m`
+   * `flagTimeSeries.m`
+   * `selectTimeSeriesGeneric.m`
+  * `OtherGraph/`
+   * `plotOtherGraphX.m`
+   * `plotOtherGraphGeneric.m`
+   * `highlightOtherGraphX.m`
+   * `highlightOtherGraphGeneric.m`
+   * `selectOtherGraphX.m`
+   * `selectOtherGraphGeneric.m`
+   * `flagOtherGraphX.m`
+   * `flagOtherGraphGeneric.m`
+  * ...
+   
+== `graph` functions ==
+
+Top level functions of the name `graphX.m` (where `X` is bthe graph type) define the graphing options which are made available to the user. Each graph type has its own directory (e.g. `Graph/graphTimeSeries.m` is mapped to the `Graph/TimeSeries/` directory), which contains functions related to that graph type.
+
+== `plot` functions ==
+
+Functions of the name `plotXY.m` (where `X` is the graph type, and `Y` is the parameter type) ... out of time, gotta go
