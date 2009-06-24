@@ -11,9 +11,107 @@ The Deployment Database (DDB) is an MS-Access database which contains informatio
 
 == Schema ==
 
-The DDB conforms to the following schema:
+The DDB must conform to the following schema:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/ddb_schema.png
+
+The following subsections detail the tables which are used by the toolbox, and the field types. All of these tables must be present, and the table/field names and field types must be correct.
+
+=== DeploymentData ===
+
+ * DeploymentId (Text)
+ * StartFieldTrip (Number)
+ * EndFieldTrip (Number)
+ * Site (Text)
+ * EndSite (Text)
+ * Station (Text)
+ * DeploymentType (Text)
+ * InstrumentID (Text)
+ * SensorID (Text)
+ * Sampling (Memo)
+ * Sampletype (Text)
+ * Capability (Text)
+ * FileName (Text)
+ * PersonnelSetup (Text)
+ * PersonnelDownload (Text)
+ * TimeSwitchOn (Date/Time)
+ * TimeFirstWet (Date/Time)
+ * TimeFirstInPos (Date/Time)
+ * TimeEstimatedRetrieval (Date/Time)
+ * TimeLastInPos (Date/Time)
+ * TimeOnDeck (Date/Time)
+ * TimeSwitchOff (Date/Time)
+ * TimeFirstGoodData (Date/Time)
+ * TimeLastGoodData (Date/Time)
+ * TimeZone (Text)
+ * InstrumentDepth (Number)
+ * DepthTxt (Text)
+ * LinkFile1 (Text)
+ * LinkFile2 (Text)
+ * Comment (Memo)
+ * Modified (Date/Time)
+ * Complete (Yes/No)
+
+=== FieldTrip ===
+
+ * FieldTripID (Number)
+ * FieldDescription (Memo)
+ * DateStart (Date/Time)
+ * DateEnd (Date/Time)
+ * Modified (Date/Time)
+
+=== FieldTripPersonnel ===
+
+ * FieldTripID (Number)
+ * StaffID (Text)
+ * Comment (Text)
+
+=== Instruments ===
+
+ * InstrumentID (Text)
+ * Make (Text)
+ * Model (Text)
+ * SerialNumber (Text)
+ * AssetNumber (Text)
+ * BarCode (Text)
+ * PurchaseDate (Date/Time)
+ * ExpiryDate;
+ * AssetLifeYears (Number)
+ * Category (Text)
+ * Sensors (Text)
+ * Description (Text)
+ * Capability (Text)
+ * Status (Yes/No)
+ * Image (Text)
+ * Comment (Text)
+ * Modified (Date/Time)
+
+=== Personnel ===
+
+ * StaffID (Text)
+ * LastName (Text)
+ * FirstName (Text)
+ * Organisation (Text)
+ * Comment (Text)
+
+=== Sites ===
+
+ * Site (Text)
+ * SiteName (Text)
+ * NominalLongitude (Number)
+ * NominalLatitude (Number)
+ * Longitude (Number)
+ * Latitude (Number)
+ * Datum (Text)
+ * Description (Text)
+ * Depth (Number)
+ * DepthTxt (Text)
+ * Image (Text)
+ * Document (Hyperlink)
+ * ResearchActivity (Text)
+ * Completed (Yes/No)
+ * Comment (Text)
+ * Modified (Date/Time)
 
 == Interface ==
 
