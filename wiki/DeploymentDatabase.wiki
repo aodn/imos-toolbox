@@ -48,7 +48,7 @@ The following subsections detail the tables which are used by the toolbox, and t
 ||!TimeFirstGoodData||Date/Time||
 ||!TimeLastGoodData||Date/Time||
 ||<font color="red">!TimeZone</font>||Text||
-||!InstrumentDepth||Number||
+||<font color="red">!InstrumentDepth</font>||Number||
 ||!DepthTxt||Text||
 ||!LinkFile1||Text||
 ||!LinkFile2||Text||
@@ -67,7 +67,7 @@ The following subsections detail the tables which are used by the toolbox, and t
 === Instruments ===
 
 ||<font color="red">InstrumentID</font>||Text||
-||color="red">Make</font>||Text||
+||<font color="red">Make</font>||Text||
 ||<font color="red">Model</font>||Text||
 ||<font color="red">!SerialNumber</font>||Text||
 ||!AssetNumber||Text||
