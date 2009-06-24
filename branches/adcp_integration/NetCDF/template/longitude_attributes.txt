@@ -1,0 +1,12 @@
+standard_name             = longitude
+long_name                 = longitude
+units                     = degrees_east
+axis                      = X
+valid_min                 = -180
+valid_max                 = 180
+_FillValue                = 999999.0
+comment                   = 
+quality_control_set       = [mat readToolboxProperty('toolbox.qc_set')]
+quality_control_indicator = 
+uncertainty               =
+reference_datum           = geographical coordinates, WGS84 projection

@@ -1,0 +1,15 @@
+% This file provides a mapping between instrument make/model entries in the 
+% deployment database, and the corresponding parsers to use for data that 
+% comes from those instruments. 
+%
+% Note that the assumption is made that instrument make/model fields will 
+% never contain a comma character.
+%
+% format: make, model, parser
+
+SEABIRD, SBE37 - CONDUCTIVITY TEMPERATURE AND PRESSURE RECORDER,   SBE37
+SEABIRD, SBE37IM - CONDUCTIVITY TEMPERATURE AND PRESSURE RECORDER, SBE37
+SEABIRD, SBE39 - TEMPERATURE RECORDER,                             SBE39
+WETLABS, WQM,                                                      WQM
+RDI,     ADCP - WORKHORSE,                                         workhorse
+RDI,     ADCP - QUARTERMASTER,                                     workhorse

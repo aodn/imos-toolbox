@@ -1,0 +1,13 @@
+standard_name             = depth
+long_name                 = depth
+units                     = metres
+axis                      = Z
+positive                  = down
+valid_min                 = 0
+valid_max                 = 12000
+_FillValue                = -99999.0
+comment                   = 
+quality_control_set       = [mat readToolboxProperty('toolbox.qc_set')]
+quality_control_indicator = 
+uncertainty               =
+reference_datum           = Mean Sea Level (MSL)

@@ -1,0 +1,55 @@
+<project name="imos-ddb-bridge" default="compile" basedir=".">
+
+	<description>
+    A set of Java classes which provide access to, and representation of,
+    the IMOS Deployment Database (DDB). Create an 'instance' of the DDB via
+    the static org.imos.ddb.DDB.getDDB(String) method, and use that instance
+		to query the DDB.
+		
+		If using Windows, only a JDK 1.5 is required. If using Linux, you will 
+		also need gcc, make, glib and mdbtools/mdbtools-dev.
+  </description>
+
+	<property name="sourcedir" value="${basedir}/src" />
+	<property name="targetdir" value="${basedir}/bin" />
+	<property name="mdbsqldir" value="${basedir}/mdbsql" />
+
+	<path id="classpath">
+		<pathelement path="${targetdir}" />
+		<pathelement path="${basedir}" />
+	</path>
+
+	<target name="clean" description="--> Clean up object code">
+		
+		<delete dir="${targetdir}" />
+		<mkdir dir="${targetdir}" />
+		
+		<exec os="Linux" executable="make" dir="${mdbsqldir}">
+			<arg value="clean"/>
+		</exec>
+		
+	</target>
+
+	<target name="compile" depends="clean" description="--> Compile all files">
+		<javac srcdir="${sourcedir}" destdir="${targetdir}" classpathref="classpath" />
+		
+		<exec os="Linux" executable="make" dir="${mdbsqldir}" failonerror="true"/>
+		
+		<exec os="Linux" executable="make" dir="${mdbsqldir}" failonerror="true">
+			<arg value="install"/>
+		</exec>
+		
+	</target>
+	
+	<target name="test" depends="compile" 
+	  description="--> Runs a test case - pass
+		the name of the database like so: 'ant run -Dddb='imos-ddb'">
+		
+    <java classname="org.imos.ddb.Test" classpathref="classpath" fork="true" dir="${targetdir}">
+			<arg value="${ddb}"/>
+      <sysproperty key="java.library.path" value="${targetdir}"/>
+		</java>
+		
+	</target>
+	
+</project>

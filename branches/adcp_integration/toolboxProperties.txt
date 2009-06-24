@@ -1,0 +1,38 @@
+% filename or ODBC DSN of deployment database
+toolbox.ddb = /home/paul/Documents/imos/OceanographyUncontrolled.mdb
+% toolbox.ddb = /media/minke/ACCESS DATABASE/JUNE10.mdb
+
+% date and time formats used internally and for GUI display
+toolbox.dateFormat = dd mmm yyyy
+toolbox.timeFormat = yyyy-mm-ddTHH:MM:SS
+
+% QC set in use - see section 6.2 of the IMOS NetCDF User's Manual
+toolbox.qc_set = 1
+
+% format in which all dates should be exported in NetCDF attributes
+exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SS
+
+% different date format for NetCDF file names
+exportNetCDF.fileDateFormat = yyyymmddTHHMMSS
+
+% default set of auto QC routines
+autoQCManager.autoQCChain = timeGapQC flatlineQC
+
+% file status dialog formatting styles
+% can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
+% 'blue' etc)
+dataFileStatusDialog.invalidFileNameFormat = red
+dataFileStatusDialog.noFileFormat          = bold
+dataFileStatusDialog.multipleFileFormat    = italic
+
+% default values for start dialog
+startDialog.dataDir = /home/paul/Documents/imos/aims_matlab_code/GM6Trip4814
+startDialog.fieldTrip = 4814
+startDialog.lowDate = 730486
+startDialog.highDate = 734138
+
+% default directory for file export
+exportDialog.defaultDir = /home/paul
+
+% prompt user to select parser if an appropriate one cannot be found
+importManager.noParserPrompt = true

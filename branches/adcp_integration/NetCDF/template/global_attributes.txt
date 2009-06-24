@@ -1,0 +1,54 @@
+% what
+project                   = Integrated Marine Observing System (IMOS)
+conventions               = IMOS version 1.1
+title                     = [ddb Site]: [ddb Site Sites ResearchActivity]
+institution               = [ddb PersonnelDownload Personnel StaffID Organisation]
+date_created              = [mat datestr(sample_data.date_created, readToolboxProperty('exportNetCDF.dateFormat'))]
+abstract                  = 
+history                   = 
+comment                   = [ddb Comment]
+source                    = [ddb InstrumentID Instruments Make] \
+                            [ddb InstrumentID Instruments Model]
+keywords                  = 
+references                =
+netcdf_version            = 3.6
+quality_control_set       = [mat readToolboxProperty('toolbox.qc_set')]
+site_code                 = [ddb Site]
+platform_code             = 
+naming_authority          = IMOS
+cdm_data_type             = 
+metadata                  = 
+sensorML                  = 
+product_type              =
+
+% where
+geospatial_lat_min      = [ddb Site Sites Latitude]
+geospatial_lat_max      = [ddb Site Sites Latitude]
+geospatial_lon_min      = [ddb Site Sites Longitude]
+geospatial_lon_max      = [ddb Site Sites Longitude]
+geospatial_vertical_min = [ddb InstrumentDepth]
+geospatial_vertical_max = [ddb InstrumentDepth]
+
+% when
+time_coverage_start = [ddb TimeFirstInPos]
+time_coverage_end   = [ddb TimeLastInPos]
+local_time_zone     = [ddb TimeZone]
+
+% who
+data_centre                  = eMarine Information Infrastructure (eMII)
+data_centre_email            = info@emii.org.au
+author_email                 = 
+author                       = [ddb PersonnelDownload Personnel StaffID FirstName] \
+                               [ddb PersonnelDownload Personnel StaffID LastName]
+principal_investigator       = [ddb PersonnelDownload Personnel StaffID FirstName] \
+                               [ddb PersonnelDownload Personnel StaffID LastName]
+principal_investigator_email =
+institution_references       = 
+
+% how
+citation               =
+acknowledgement        = Data was sourced from the Integrated Marine Observing \
+                         System (IMOS) - an initiative of the Australian \
+                         Government being conducted as part of the National \
+                         Collaborative Research Infrastructure Strategy.
+distribution_statement =
