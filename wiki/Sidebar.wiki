@@ -15,6 +15,7 @@
   * ParserSpecification
   * [AutoQCSpecification]
   * [NetCDFExportSpecification]
+  * GraphSpecification
  * Help
   * UsingTheToolboxOverview
   * [tortoiseSVN]
