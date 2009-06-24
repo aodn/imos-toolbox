@@ -15,252 +15,98 @@ The DDB must conform to the following schema:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/ddb_schema.png
 
-The following subsections detail the tables which are used by the toolbox, and the field types. All of these tables must be present, and the table/field names and field types must be correct.
+The following subsections detail the tables which are used by the toolbox, and the field types. 
+ * All of these tables must be present
+ * Table and field names must be identical (case sensitive)
+ * Field types must be identical
+ * Fields which are highlighted in <font color="red">red</font> must be populated with valid data (These are the fields used by the toolbox).
 
-=== DeploymentData ===
+=== !DeploymentData ===
 
- * DeploymentId (Text)
- * StartFieldTrip (Number)
- * EndFieldTrip (Number)
- * Site (Text)
- * EndSite (Text)
- * Station (Text)
- * DeploymentType (Text)
- * InstrumentID (Text)
- * SensorID (Text)
- * Sampling (Memo)
- * Sampletype (Text)
- * Capability (Text)
- * FileName (Text)
- * PersonnelSetup (Text)
- * PersonnelDownload (Text)
- * TimeSwitchOn (Date/Time)
- * TimeFirstWet (Date/Time)
- * TimeFirstInPos (Date/Time)
- * TimeEstimatedRetrieval (Date/Time)
- * TimeLastInPos (Date/Time)
- * TimeOnDeck (Date/Time)
- * TimeSwitchOff (Date/Time)
- * TimeFirstGoodData (Date/Time)
- * TimeLastGoodData (Date/Time)
- * TimeZone (Text)
- * InstrumentDepth (Number)
- * DepthTxt (Text)
- * LinkFile1 (Text)
- * LinkFile2 (Text)
- * Comment (Memo)
- * Modified (Date/Time)
- * Complete (Yes/No)
+||<font color="red">!DeploymentId</font>||Text||
+||<font color="red">!StartFieldTrip</font>||Number||
+||<font color="red">!EndFieldTrip</font>||Number||
+||<font color="red">Site</font>||Text||
+||!EndSite||Text||
+||Station||Text||
+||!DeploymentType||Text||
+||<font color="red">InstrumentID</font>||Text||
+||SensorID||Text||
+||Sampling||Memo||
+||Sampletype||Text||
+||Capability||Text||
+||<font color="red">!FileName</font>||Text||
+||!PersonnelSetup||Text||
+||<font color="red">!PersonnelDownload</font>||Text||
+||!TimeSwitchOn||Date/Time||
+||!TimeFirstWet||Date/Time||
+||<font color="red">!TimeFirstInPos</font>||Date/Time||
+||!TimeEstimatedRetrieval||Date/Time||
+||<font color="red">!TimeLastInPos</font>||Date/Time||
+||!TimeOnDeck||Date/Time||
+||!TimeSwitchOff||Date/Time||
+||!TimeFirstGoodData||Date/Time||
+||!TimeLastGoodData||Date/Time||
+||<font color="red">!TimeZone</font>||Text||
+||!InstrumentDepth||Number||
+||!DepthTxt||Text||
+||!LinkFile1||Text||
+||!LinkFile2||Text||
+||Comment||Memo||
+||Modified||Date/Time||
+||Complete||Yes/No||
 
-=== FieldTrip ===
+=== !FieldTrip ===
 
- * FieldTripID (Number)
- * FieldDescription (Memo)
- * DateStart (Date/Time)
- * DateEnd (Date/Time)
- * Modified (Date/Time)
-
-=== FieldTripPersonnel ===
-
- * FieldTripID (Number)
- * StaffID (Text)
- * Comment (Text)
+||<font color="red">FieldTripID</font>||Number||
+||<font color="red">!FieldDescription</font>||Memo||
+||<font color="red">!DateStart</font>||Date/Time||
+||<font color="red">!DateEnd</font>||Date/Time||
+||Modified||Date/Time||
 
 === Instruments ===
 
- * InstrumentID (Text)
- * Make (Text)
- * Model (Text)
- * SerialNumber (Text)
- * AssetNumber (Text)
- * BarCode (Text)
- * PurchaseDate (Date/Time)
- * ExpiryDate;
- * AssetLifeYears (Number)
- * Category (Text)
- * Sensors (Text)
- * Description (Text)
- * Capability (Text)
- * Status (Yes/No)
- * Image (Text)
- * Comment (Text)
- * Modified (Date/Time)
+||<font color="red">InstrumentID</font>||Text||
+||color="red">Make</font>||Text||
+||<font color="red">Model</font>||Text||
+||<font color="red">!SerialNumber</font>||Text||
+||!AssetNumber||Text||
+||!BarCode||Text||
+||!PurchaseDate||Date/Time||
+||!ExpiryDate||Date/Time||
+||!AssetLifeYears||Number||
+||Category||Text||
+||Sensors||Text||
+||Description||Text||
+||Capability||Text||
+||Status||Yes/No||
+||Image||Text||
+||Comment||Text||
+||Modified||Date/Time||
 
 === Personnel ===
 
- * StaffID (Text)
- * LastName (Text)
- * FirstName (Text)
- * Organisation (Text)
- * Comment (Text)
+||<font color="red">StaffID</font>||Text||
+||<font color="red">!LastName</font>||Text||
+||<font color="red">!FirstName</font>||Text||
+||<font color="red">Organisation</font>||Text||
+||Comment||Text||
 
 === Sites ===
 
- * Site (Text)
- * SiteName (Text)
- * NominalLongitude (Number)
- * NominalLatitude (Number)
- * Longitude (Number)
- * Latitude (Number)
- * Datum (Text)
- * Description (Text)
- * Depth (Number)
- * DepthTxt (Text)
- * Image (Text)
- * Document (Hyperlink)
- * ResearchActivity (Text)
- * Completed (Yes/No)
- * Comment (Text)
- * Modified (Date/Time)
-
-== Interface ==
-
-Within the toolbox, the DDB is accessed through a driver written in Java. The implementation differs depending on the platform:
-
- * Under Windows, Sun's [http://java.sun.com/javase/6/docs/technotes/guides/jdbc/bridge.html JDBC-ODBC bridge] driver is used:
-{{{
-              ------
-              matlab
-              ------
-                 |
-                 |
-        --------------------
-        org.imos.ddb.JDBCDDB
-        --------------------
-                 |
-                 |
-    ----------------------------
-    sun.jdbc.odbc.JdbcOdbcDriver
-    ----------------------------
-                 |
-                 |
-                ----
-                ODBC
-                ----
-                 |
-                 |
-             --------
-             DDB file
-             --------
-}}}
- * Under Linux, libmdbsql, from [http://mdbtools.sourceforge.net/install/ mdbtools] is used, via a JNI wrapper, and a simplified native C wrapper:
-{{{
-              ------
-              matlab
-              ------
-                 |
-                 |
-       ----------------------
-       org.imos.ddb.MDBSQLDDB
-       ----------------------
-                 |
-                 |
-                ---
-                JNI
-                ---
-                 |
-                 |
-         -----------------
-         libmdbsql_wrapper
-         -----------------
-                 |
-                 |
-             ---------
-             libmdbsql
-             ---------
-                 |
-                 |
-             --------
-             DDB file
-             --------
-}}}
-
-== Building ==
-
-The build process is the same under both Windows and Linux. Under Windows, you need a JDK (>= 5.0) and ant. Under linux, you will also need gcc, make, glib (will usually be installed by default) and mdbtools. Under Ubuntu:
-{{{
-sudo apt-get install build-essential
-sudo apt-get install mdbtools mdbtools-dev
-}}}
-
-To build, run the following from  the `Java` subdirectory:
-{{{
-ant clean
-ant compile
-ant test -Dddb=[imos-ddb]
-}}}
-
-where `[imos-ddb]` is the deployment database ODBC DSN (under Windows), or the deployment database filename (under Linux).
-
-If the test succeeded, you should see a whole lot of output of some random entries from the DDB.
-
-=== Building `libmdbsql_wrapper` ===
-
-DDB access under Linux/Unix turned out to be a little more complex than I had hoped. 
-
-ODBC under linux works nicely with [http://www.unixodbc.org/ unixODBC] and the ODBC driver included with [http://mdbtools.sourceforge.net/install/ mdbtools]. Because of this, I assumed that, using unixODBC and the mdbtools ODBC driver, I would be able to use the JDBC-ODBC bridge just like in Windows; however, there appears to be a number of problems when doing this. I got to the point where I was able to query metadata (e.g. table names) from Java, but attempts to do anything else (e.g. run a query) resulted in errors. After a bit of digging into the !JdbcOdbc and mdbtools ODBC source, I came across the following (in `mdbtools/src/odbc/odbc.c`):
-
-{{{
-SQLRETURN SQL_API SQLGetInfo(
-    SQLHDBC            hdbc,
-    SQLUSMALLINT       fInfoType,
-    SQLPOINTER         rgbInfoValue,
-    SQLSMALLINT        cbInfoValueMax,
-    SQLSMALLINT FAR   *pcbInfoValue)
-{
-	TRACE("SQLGetInfo");
-	return SQL_SUCCESS;
-}
-}}}
-
-There are a lot more functions like this as well. So the problem is not caused by a 'bug' so to speak; rather, it is caused by the fact that the mdbtools ODBC driver is incomplete.
-
-To get around this problem, I decided to write an interface, `libmdbsql_wrapper` which talks directly to the mdbtools API, and use JNI to call that interface, essentially providing direct access to the MS Access file. This seems to work quite nicely. To build the interface, run the following from the `Java/mdbsql` subdirectory. Ensure that your `JAVA_HOME` environment variable is valid on your system, otherwise it probably won't compile:
-{{{
-make clean
-make
-make install
-}}}
-
-=== Hacking `mdbtools` ===
-
-I recently started having problems with `libmdb` segfaulting. I spent a bit of time digging into the cause, and found that in `libmdb/index.c` there is some kind of indexing error occuring, causing parts of the program's memory to be corrupted (the segfault is incidental, caused by a pointer overwrite). My quick fix was to apply the following patch to `mdb_read_indices`, which is almost certainly not correct, but appears to make the library more stable:
-{{{
---- mdbtools-orig/src/libmdb/index.c	2009-04-17 16:21:25.000000000 +1000
-+++ mdbtools-local/src/libmdb/index.c	2009-04-20 16:07:13.000000000 +1000
-@@ -119,21 +119,10 @@
- 	mdb_read_alt_pg(mdb, entry->table_pg);
- 	mdb_read_pg(mdb, index_start_pg);
- 	cur_pos = table->index_start;
--	idx_num=0;
-+
- 	for (i=0;i<table->num_real_idxs;i++) {
- 		if (IS_JET4(mdb)) cur_pos += 4;
--		do {
--			pidx = g_ptr_array_index (table->indices, idx_num++);
--		} while (pidx && pidx->index_type==2);
--
--		/* if there are more real indexes than index entries left after
--		   removing type 2's decrement real indexes and continue.  Happens
--		   on Northwind Orders table.
--		*/
--		if (!pidx) {
--			table->num_real_idxs--;
--			continue;
--		}
-+		pidx = g_ptr_array_index (table->indices, i);
- 
- 		pidx->num_rows = mdb_get_int32(mdb->alt_pg_buf, 
- 				fmt->tab_cols_start_offset +
-}}}
-
-==== Details ====
-
-The problem which was occurring was that the value of the `pidx` pointer returned from `g_ptr_array_index` had overflowed past the bounds of the `table->indices` array, and was actually pointing (in my case) to a `MdbColumn` struct. Further on in `mdb_read_indices`, a particular write to a field of the `MdbIndex` struct pointed to by `pidx` was setting an int pointer in the `MdbColumn` struct to `0x01` (`MdbColumn->len_ptr`). Later on, when that column struct was accessed (in my case, in the function `mdb_xfer_bound_data` in `libmdb/data.c`), an attempt was made to write to that int pointer, which, as `0x01` is generally not a valid memory location for a user space program, was generating a segfault.
-
-== Configuration ==
-
-You must tell matlab two things:
-
- * The location of the compiled java class files - add the directory path `[imos-toolbox-home]/Java/bin` to the file `toolbox/local/classpath.txt` in your matlab installation
- * The location of the compiled `libmdb_wrapper.so` file (only if using Linux) - add the directory path `[imos-toolbox-home]/Java/bin` to the file `toolbox/local/librarypath.txt` in your matlab installation.
+||<font color="red">Site</font>||Text||
+||<font color="red">!SiteName</font>||Text||
+||!NominalLongitude||Number||
+||!NominalLatitude||Number||
+||<font color="red">Longitude</font>||Number||
+||<font color="red">Latitude</font>||Number||
+||Datum||Text||
+||<font color="red">Description</font>||Text||
+||Depth||Number||
+||!DepthTxt||Text||
+||Image||Text||
+||Document||Hyperlink||
+||!ResearchActivity||Text||
+||Completed||Yes/No||
+||Comment||Text|||
+||Modified||Date/Time||
