@@ -52,7 +52,7 @@ The following subsections detail the tables which are used by the toolbox, and t
 ||!DepthTxt||Text||
 ||!LinkFile1||Text||
 ||!LinkFile2||Text||
-||Comment||Memo||
+||<font color="red">Comment</font>||Memo||
 ||Modified||Date/Time||
 ||Complete||Yes/No||
 
