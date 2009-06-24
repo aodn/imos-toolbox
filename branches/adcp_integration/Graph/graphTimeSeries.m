@@ -88,6 +88,10 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
     catch e, lines(k,:) = plotGeneric(graphs(k), sample_data, k);
     end
     
+    try set(lines(k,:), 'Color', col);
+    catch e
+    end
+    
     % set x labels and ticks
     set(get(graphs(k), 'XLabel'), 'String', 'TIME');
 
