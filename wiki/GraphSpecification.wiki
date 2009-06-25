@@ -57,9 +57,50 @@ where
 
 Functions of the name `flagX.m` and `flagXY.m` follow the same meaning and naming convention as the `graph` functions, except the purpose of the `flag` functions is to overlay QC flag data on existing graphs.
 
+`flagX.m` functions have the following format:
+{{{
+function flags = flagTimeSeries( parent, graphs, sample_data, vars )
+}}}
+where
+ * `parent` is a handle to the parent GUI container (e.g. a `figure` or `uipanel`)
+ * `graphs` is a vector of handles to axis objects, one for each variable, in which to draw the flags
+ * `sample_data` is a struct containing the sample data
+ * `vars` is a vector of indices into the `sample_data.variables` cell array, the same lengths as `graphs`, defining the variables which are to be graphed
+ * `flags` is a matrix of handles to the flags that were drawn (e.g. `scatter`). More than one handle may exist for each variable, thus a matrix is returned, with non-handle entries set to `0.0`.
+
+`flagXY.m` functions have the following format:
+{{{
+function flags = flagGraphType( ax, sample_data, var )
+}}}
+where
+ * `ax` is a handle to the axis on which the flag data should be drawn
+ * `sample_data` is the struct containing the sample data
+ * `var` is an index into `sample_data.variables` defining the variable for which flag data is to be drawn
+ * `flags` is a vector of handles to the flags that were drawn (e.g. `scatter`), or an empty matrix, or `0.0` if no flags were drawn.
+
 == `select` functions ==
 
-Functions of the name `selectXY.m` (where `X` is the graph type, and `Y` is the parameter type) add logic to a graph which allows the user to select a range of data.
+Functions of the name `selectXY.m` (where `X` is the graph type, and `Y` is the parameter type) add logic to a graph which allows the user to select a range of data. These functions have the following format:
+{{{
+function selectTimeSeriesGeneric( selectCallback, clickCallback )
+}}}
+where
+ * `selectCallback` is a handle to a function which is called when a region of data is selected. This function has the following format:
+ {{{
+function selectCallback(ax, type, range)
+ }}}
+ where
+  * `ax` is a handle to the axis in question
+  * `type` the value of the axis `SelectionType` property, which allows differentiation between left and right mous clicks.
+  * `range` is a vector containing the coordinates of the selected data range.
+ * `clickCallback` is a handle to a function which is called when a data point is clicked on. This function has the following format:
+ {{{
+function clickCallback(ax, type, point)
+ }}}
+ where
+  * `ax` is a handle to the axis in question
+  * `type` the value of the axis `SelectionType` property, which allows differentiation between left and right mous clicks.
+  * `range` is a vector containing the coordinates of the data point which was clicked on.
 
 == `highlight` functions ==
 
