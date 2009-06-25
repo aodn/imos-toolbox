@@ -104,4 +104,11 @@ function clickCallback(ax, type, point)
 
 == `highlight` functions ==
 
-Functions of the name `highlightXY.m` (where `X` is the graph type, and `Y` is the parameter type) overlay a given data range onto an existing graph.
+Functions of the name `highlightXY.m` (where `X` is the graph type, and `Y` is the parameter type) overlay a given data range onto an existing graph. These functions have the following format:
+{{{
+function highlight = highlightGraphTypeParameter( region, data )
+}}}
+where
+ * `region` is a vector containing the data region to highlight
+ * `data` is a handle, or vector of handles, to the graphics object(s) displaying the data (e.g. `line`, `scatter`)
+ * `highlight` is a handle to the highlight graphic (e.g. `scatter`, `patch`)
