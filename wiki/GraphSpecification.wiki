@@ -32,7 +32,26 @@ The Graph subdirectory provides functions which allow the user to plot and inter
 
 Functions of the name `graphX.m` (where `X` is the graph type) define the graphing options which are made available to the user. Each graph type has its own directory (e.g. `Graph/graphTimeSeries.m` is mapped to the `Graph/TimeSeries/` directory), which contains functions related to that graph type. The `graphX.m` functions use the `graphXY.m` functions to graph a set of variables.
 
-Functions of the name `graphXY.m` (where `X` is the graph type and `Y` is the parameter) provide logic to graph a single variable.
+Top level graph functions (i.e. `graphX.m`) have the following format:
+{{{
+function [graphs handles] = graphGraphType( parent, sample_data, vars )
+}}}
+where
+ * `parent` is a handle to the parent GUI container (e.g. a `figure` or `uipanel`) in which to graph the data
+ * `sample_data` is a struct containing the sample data
+ * `vars` is a vector of indices into the `sample_data.variables` cell array, defining the variables which are to be graphed
+ * `graphs` is a vector of axes handles
+ * `handles` is a vector of data handles (e.g. `line`, `scatter`, `surface` etc).
+
+Functions of the name `graphXY.m` (where `X` is the graph type and `Y` is the parameter) provide logic to graph a single variable. These functions have the following format:
+{{{
+function h = graphGraphTypeParameter( ax, sample_data, var )
+}}}
+where
+ * `ax` is a handle to the axis in which the data should be graphed
+ * `sample_data` is the struct containing the sample data
+ * `var` is an index into the `sample_data.variables` cell array, defining the variable to be graphed.
+ * `h` is a handle to the data that was graphed (e.g. `line`)
 
 == `flag` functions ==
 
