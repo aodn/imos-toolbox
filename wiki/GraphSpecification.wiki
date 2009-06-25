@@ -4,13 +4,13 @@
 
 = Graph Specification =
 
-The Graph subdirectory provides functions which allow the user to plot and interact with data. The Graph subdirectory (and naming convention) is organised as follows:
+The Graph subdirectory provides functions which allow the user to plot and interact with data. The Graph subdirectory (and naming convention) is modularised down to groups of functions specific to graph and parameter types. An example Graph subdirectory is shown below:
 
  * `Graph/`
   * `graphTimeSeries.m`
   * `TimeSeries/`
-   * `plotTimeSeriesX.m`
-   * `plotTimeSeriesGeneric.m`
+   * `graphTimeSeriesX.m`
+   * `graphTimeSeriesGeneric.m`
    * `highlightTimeSeriesX.m`
    * `highlightTimeSeriesGeneric.m`
    * `selectTimeSeriesX.m`
@@ -18,8 +18,8 @@ The Graph subdirectory provides functions which allow the user to plot and inter
    * `flagTimeSeries.m`
    * `selectTimeSeriesGeneric.m`
   * `OtherGraph/`
-   * `plotOtherGraphX.m`
-   * `plotOtherGraphGeneric.m`
+   * `graphOtherGraphX.m`
+   * `graphOtherGraphGeneric.m`
    * `highlightOtherGraphX.m`
    * `highlightOtherGraphGeneric.m`
    * `selectOtherGraphX.m`
@@ -30,8 +30,18 @@ The Graph subdirectory provides functions which allow the user to plot and inter
    
 == `graph` functions ==
 
-Top level functions of the name `graphX.m` (where `X` is bthe graph type) define the graphing options which are made available to the user. Each graph type has its own directory (e.g. `Graph/graphTimeSeries.m` is mapped to the `Graph/TimeSeries/` directory), which contains functions related to that graph type.
+Functions of the name `graphX.m` (where `X` is the graph type) define the graphing options which are made available to the user. Each graph type has its own directory (e.g. `Graph/graphTimeSeries.m` is mapped to the `Graph/TimeSeries/` directory), which contains functions related to that graph type. The `graphX.m` functions use the `graphXY.m` functions to graph a set of variables.
 
-== `plot` functions ==
+Functions of the name `graphXY.m` (where `X` is the graph type and `Y` is the parameter) provide logic to graph a single variable.
 
-Functions of the name `plotXY.m` (where `X` is the graph type, and `Y` is the parameter type) ... out of time, gotta go
+== `flag` functions ==
+
+Functions of the name `flagX.m` and `flagXY.m` follow the same meaning and naming convention as the `graph` functions, except the purpose of the `flag` functions is to overlay QC flag data on existing graphs.
+
+== `select` functions ==
+
+Functions of the name `selectXY.m` (where `X` is the graph type, and `Y` is the parameter type) add logic to a graph which allows the user to select a range of data.
+
+== `highlight` functions ==
+
+Functions of the name `highlightXY.m` (where `X` is the graph type, and `Y` is the parameter type) overlay a given data range onto an existing graph.
