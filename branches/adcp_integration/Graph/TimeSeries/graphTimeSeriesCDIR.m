@@ -1,4 +1,4 @@
-function h = graphTimeSeriesCDIR( ax, sample_data, var )
+function [h xLabel yLabel] = graphTimeSeriesCDIR( ax, sample_data, var )
 %GRAPHTIMESERIESCDIR Plots CDIR data (sea water direction) as a normal, single
 %dimensional, time series line.
 %
@@ -12,6 +12,8 @@ function h = graphTimeSeriesCDIR( ax, sample_data, var )
 %
 % Outputs:
 %   h           - Handle to the line which was plotted.
+%   xLabel      - X label to use
+%   yLabel      - Y label to use
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -56,3 +58,6 @@ time = sample_data.dimensions{time};
 var  = sample_data.variables {var};
 
 h = line(time.data, median(var.data'), 'Parent', ax);
+
+xLabel = 'TIME';
+yLabel = [var.name ' (median)'];

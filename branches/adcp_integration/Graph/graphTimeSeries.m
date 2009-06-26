@@ -82,8 +82,8 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
     col = col(mod(k,length(col))+1,:);
     
     % plot the variable
-    plotFunc   = getGraphFunc('TimeSeries', 'graph', name);
-    lines(k,:) = plotFunc(   graphs(k), sample_data, k);
+    plotFunc                    = getGraphFunc('TimeSeries', 'graph', name);
+    [lines(k,:) xLabel, yLabel] = plotFunc(   graphs(k), sample_data, k);
     
     % set the line colour - wrap in a try block, 
     % as surface plot colour cannot be set
@@ -92,7 +92,7 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
     end
     
     % set x labels and ticks
-    set(get(graphs(k), 'XLabel'), 'String', 'TIME');
+    set(get(graphs(k), 'XLabel'), 'String', xLabel);
 
     xLimits = get(graphs(k), 'XLim');
     xStep   = (xLimits(2) - xLimits(1)) / 5;
@@ -104,7 +104,7 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
     set(graphs(k), 'XTickLabel', xTicks);
     
     % set y label and ticks
-    yLabel = [name ' ' uom];
+    yLabel = [yLabel ' (' uom ')'];
     if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
     set(get(graphs(k), 'YLabel'), 'String', yLabel);
     

@@ -1,4 +1,4 @@
-function h = graphTimeSeriesCSPD( ax, sample_data, var )
+function [h xLabel yLabel] = graphTimeSeriesCSPD( ax, sample_data, var )
 %GRAPHTIMESERIESCSPD Plots CSPD data using pcolor.
 %
 % This function is used for plotting CSPD data (sea water speed vs depth vs
@@ -12,6 +12,8 @@ function h = graphTimeSeriesCSPD( ax, sample_data, var )
 %
 % Outputs:
 %   h           - Handle to the surface which was plotted.
+%   xLabel      - X label to use
+%   yLabel      - Y label to use
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -61,4 +63,10 @@ var   = sample_data.variables {var};
 h = pcolor(ax, time.data, depth.data, var.data');
 set(h, 'EdgeColor', 'interp');
 set(ax, 'CLim', [0, max(max(var.data))/4]);
-colorbar();
+cb = colorbar();
+
+uom = imosParameters(var.name, 'uom');
+set(get(cb, 'YLabel'), 'String', [var.name ' (' uom ')']);
+
+xLabel = 'TIME';
+yLabel = 'DEPTH';
