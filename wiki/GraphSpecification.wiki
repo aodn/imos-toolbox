@@ -45,13 +45,15 @@ where
 
 Functions of the name `graphXY.m` (where `X` is the graph type and `Y` is the parameter) provide logic to graph a single variable. These functions have the following format:
 {{{
-function h = graphGraphTypeParameter( ax, sample_data, var )
+function [h xLabel yLabel] = graphGraphTypeParameter( ax, sample_data, var )
 }}}
 where
  * `ax` is a handle to the axis in which the data should be graphed
  * `sample_data` is the struct containing the sample data
  * `var` is an index into the `sample_data.variables` cell array, defining the variable to be graphed.
  * `h` is a handle to the data that was graphed (e.g. `line`)
+ * `xLabel` is a string containing the label to use for the x axis
+ * `yLabel` is a string containing the label to use for the y axis
 
 == `flag` functions ==
 
