@@ -231,8 +231,8 @@ function displayManager( fieldTrip, sample_data, callbacks)
       end
 
       % redisplay the data
-      graphFunc = str2func(['graph' graphType]);
-      flagFunc  = str2func(['flag'  graphType]);
+      graphFunc = getGraphFunc(graphType, 'graph', '');
+      flagFunc  = getGraphFunc(graphType, 'flag',  '');
       [graphs lines] = graphFunc(panel, sample_data{setIdx}, vars);
       flags          = flagFunc( panel, graphs, sample_data{setIdx}, vars);
 
@@ -249,7 +249,8 @@ function displayManager( fieldTrip, sample_data, callbacks)
 
       % add data selection functionality
       highlight = [];
-      selectData(@dataSelectCallback, @dataClickCallback);
+      selectFunc = getGraphFunc(graphType, 'select', '');
+      selectFunc(@dataSelectCallback, @dataClickCallback);
 
       function dataSelectCallback(ax, type, range)
       %DATASELECTCALLBACK Called when the user selects a region of data.
@@ -266,6 +267,10 @@ function displayManager( fieldTrip, sample_data, callbacks)
           case 'alt',    handle = ud{2};
           otherwise,     return;
         end
+        
+        % index into vars vector, telling us which 
+        % variable is on the axis in question
+        varIdx = ud{3};
 
         if isempty(handle), return; end
 
@@ -276,7 +281,9 @@ function displayManager( fieldTrip, sample_data, callbacks)
         end
 
         % highlight the data, save the handle and data indices
-        highlight = highlightData(range, handle); 
+        highlightFunc = getGraphFunc(graphType, 'highlight',...
+          sample_data{setIdx}.variables{vars(varIdx)}.name);
+        highlight     = highlightFunc(range, handle);
       end
       
       function dataClickCallback(ax, type, point)
@@ -292,28 +299,18 @@ function displayManager( fieldTrip, sample_data, callbacks)
         % index into vars vector, telling us which 
         % variable is on the axis in question
         varIdx = ud{3};
-
-        % get the click point, and the highlighted data
-        point = get(gca, 'CurrentPoint');
+        
+        % get the click point
+        point = get(ax, 'CurrentPoint');
         point = point([1 3]);
+        
+        % get the indices of the data which was clicked on
+        getHighlightFunc = getGraphFunc(graphType, 'getHighlight', ...
+          sample_data{setIdx}.variables{vars(varIdx)}.name);
+        dataIdx = getHighlightFunc(sample_data{setIdx}, ax, highlight, point);
 
-        highlightX = get(highlight, 'XData');
-        highlightY = get(highlight, 'YData');
-
-        % figure out if the click was anywhere near the highlight 
-        % (within 1% of the current visible range on x and y)
-        xError = get(gca, 'XLim');
-        xError = abs(xError(1) - xError(2));
-        yError = get(gca, 'YLim');
-        yError = abs(yError(1) - yError(2));
-
-        % was click near highlight?
-        if any(abs(point(1)-highlightX) <= xError*0.01)...
-        && any(abs(point(2)-highlightY) <= yError*0.01)
-      
-          % find the indices of the selected points
-          dataIdx = find(ismember(...
-            sample_data{setIdx}.dimensions{dim}.data, highlightX));
+        % is there data to flag?
+        if ~isempty(dataIdx)
 
           % find the most frequently occuring flag value to 
           % pass to the flag dialog (to use as the default)

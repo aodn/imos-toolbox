@@ -1,6 +1,6 @@
-function selectData( selectCallback, clickCallback )
-%SELECTDATA Adds callbacks to the current figure, allowing the user
-% to interact with data in the current axis using the mouse.
+function selectTimeSeriesGeneric( selectCallback, clickCallback )
+%SELECTTIMESERIESGENERIC Adds callbacks to the current figure, allowing the 
+% user to interact with data in the current axis using the mouse.
 %
 % This function adds callback functions to the current figure (gcf), allowing 
 % the user to:

@@ -1,18 +1,17 @@
-function highlight = highlightData( region, data )
-%HIGHLIGHTDATA Highlights the given region on the given data axes, using a
-% scatter plot overlaid on the on the points in the region.
-% 
+function highlight = highlightTimeSeriesCSPD( region, data )
+%HIGHLIGHTTIMESERIESCSPD Highlights the given region on the given CSPD (sea
+% water speed) plot.
+%
+% Highlights the given region on a CPSD plot, using a transparent patch.
+%
 % Inputs:
 %   region    - a vector of length 4, containing the selected data region. 
 %               Must be in the format: [lx ly hx hy]
 %   data      - A handle, or vector of handles, to the graphics object(s) 
-%               displaying the data (e.g. line, scatter). Must contain 
-%               'XData' and 'YData' properties.
+%               displaying the data (e.g. line, scatter). 
 %
 % Outputs:
-%   highlight - Handle to a line object which overlays the highlighted
-%               data. If no data points lie within the highlight region, an
-%               empty matrix is returned.
+%   highlight - handle to the patch highlight.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -53,43 +52,10 @@ if ~isnumeric(region) || ~isvector(region) || length(region) ~= 4
 end
 
 if ~ishandle(data), error('data must be a graphics handle'); end
-
-% these will throw errors if the handle doesn't have XData/YData properties
-xdata = get(data, 'XData');
-ydata = get(data, 'YData');
-
-% if multiple handles were passed in, merge the data sets by combining x
-% and y into a Nx2 matrix, and using union to merge/sort the rows
-if iscell(xdata)
   
-  % u stands for union
-  u = [xdata{1}' ydata{1}'];
-  for k = 2:length(xdata)
-    
-    u = union(u, [xdata{k}' ydata{k}'], 'rows'); 
-  end
-  
-  xdata = u(:,1);
-  ydata = u(:,2);
-end
+% get the vertices of the rectangular region
+x = [region(1) region(1) region(3) region(3)];
+y = [region(2) region(4) region(4) region(2)];
 
-% figure out indices of all data points within the range
-xidx  = find(xdata >= region(1) & xdata <= region(3));
-yidx  = find(ydata >= region(2) & ydata <= region(4));
-
-% figure out indices of all the points to be highlighted
-idx = intersect(xidx,yidx);
-
-% return nothing if no points to plot
-if isempty(idx), highlight = [];
-  
-% create the highlight scatter
-else
-
-  highlight = line(xdata(idx),ydata(idx),...
-    'Parent',          gca,...
-    'LineStyle',       'none',...
-    'Marker',          'o',...
-    'MarkerEdgeColor', 'white', ...
-    'MarkerFaceColor', 'white');
-end
+% create the patch
+highlight = patch(x, y, 'white', 'Parent',gca, 'FaceAlpha', 0.6);

@@ -1,5 +1,5 @@
-function h = plotCSPD( ax, sample_data, var )
-%PLOTCSPD Plots CSPD data using pcolor.
+function h = graphTimeSeriesCSPD( ax, sample_data, var )
+%GRAPHTIMESERIESCSPD Plots CSPD data using pcolor.
 %
 % This function is used for plotting CSPD data (sea water speed vs depth vs
 % time). The pcolor function is used to display a 2-D color plot, with time

@@ -1,15 +1,18 @@
-function h = plotGeneric( ax, sample_data, var )
-%PLOTGENERIC Plots the given variable as normal, single dimensional, time 
-% series data. If the data are multi-dimensional, multiple lines will be
-% returned.
+function dataIdx = getHighlightTimeSeriesGeneric( ...
+  sample_data, ax, highlight, click )
+%GETHIGHLIGHTTIMESERIESGENERIC 
+%
+%
 %
 % Inputs:
-%   ax          - Parent axis.
-%   sample_data - The data set.
-%   var         - The variable to plot.
+%   sample_data -
+%   ax          -
+%   highlight   -
+%   click       -
+%   
 %
 % Outputs:
-%   h           - Handle(s) to the line(s)  which was/were plotted.
+%   dataIdx     -
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -43,14 +46,25 @@ function h = plotGeneric( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,3,nargin));
-
-if ~ishandle(ax),          error('ax must be a graphics handle'); end
-if ~isstruct(sample_data), error('sample_data must be a struct'); end
-if ~isnumeric(var),        error('var must be a numeric');        end
+dataIdx = [];
 
 time = getVar(sample_data.dimensions, 'TIME');
 time = sample_data.dimensions{time};
-var  = sample_data.variables {var};
 
-h = line(time.data, var.data, 'Parent', ax);
+highlightX = get(highlight, 'XData');
+highlightY = get(highlight, 'YData');
+
+% figure out if the click was anywhere near the highlight 
+% (within 1% of the current visible range on x and y)
+xError = get(ax, 'XLim');
+xError = abs(xError(1) - xError(2));
+yError = get(ax, 'YLim');
+yError = abs(yError(1) - yError(2));
+
+% was click near highlight?
+if any(abs(click(1)-highlightX) <= xError*0.01)...
+&& any(abs(click(2)-highlightY) <= yError*0.01)
+
+  % find the indices of the selected points
+  dataIdx = find(ismember(time.data, highlightX));
+end

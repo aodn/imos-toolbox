@@ -1,18 +1,19 @@
-function var = getVar(vars, name)
-%GETVAR Finds and returns the index of the variable with the given name from 
-% the given cell array of variables. If the array does not contain a variable 
-% of the given name, 0 is returned.
+function flags = flagTimeSeriesGeneric( ax, sample_data, var )
+%FLAGTIMESERIESGENERIC Draws overlays on the given axis, to display QC flag
+% data for the given variable.
 %
-% This function is simply a for loop - it saves having to repeat the same
-% code elsewhere.
-%
+% Draws a set of line objects on the given axis, to display the QC flags
+% for the given variable. 
+% 
 % Inputs:
-%   vars - Cell array of variable structs.
-%   name - Name of the variable in question.
+%   ax          - The axis on which to draw the QC data.
+%   sample_data - Struct containing sample data.
+%   var         - Index into sample_data.variables, defining the variable
+%                 in question.
 %
 % Outputs:
-%   var  - Index into the vars array, specifying the variable with the
-%          given name, or 0 if the variable wasn't found.
+%   flags       - Vector of handles to line objects, which are the flag
+%                 overlays.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -46,14 +47,48 @@ function var = getVar(vars, name)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(2,2,nargin));
+error (nargchk(3,3,nargin));
 
-if ~iscell(vars), error('vars must be a cell array'); end
-if ~ischar(name), error('name must be a string');     end
+if ~ishandle(ax),          error('ax must be a graphics handle'); end
+if ~isstruct(sample_data), error('sample_data must be a struct'); end
+if ~isnumeric(var),        error('var must be numeric');          end
 
-var = 0;
+flags = [];
 
-for k = 1:length(vars)
+qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
+rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
-  if strcmp(vars{k}.name, name), var = k; return; end
+time = getVar(sample_data.dimensions, 'TIME');
+time = sample_data.dimensions{time};
+
+dim   = time.data;
+fl    = sample_data.variables{var}.flags;
+data  = sample_data.variables{var}.data;
+
+% get a list of the different flag types to be graphed
+flagTypes = unique(fl);
+
+% if no flags to plot, put a dummy handle in - the 
+% caller is responsible for checking and ignoring
+flags = 0.0;
+
+% a different line for each flag type
+for m = 1:length(flagTypes)
+
+  % don't display raw data flags
+  if flagTypes(m) == rawFlag, continue; end
+
+  f = find(fl == flagTypes(m));
+
+  fc = imosQCFlag(flagTypes(m), qcSet, 'color');
+
+  fx = dim(f);
+  fy = data(f);
+
+  flags(m) = line(fx, fy,...
+    'Parent', ax,...
+    'LineStyle', 'none',...
+    'Marker', 'o',...
+    'MarkerFaceColor', fc,...
+    'MarkerEdgeColor', 'none');
 end

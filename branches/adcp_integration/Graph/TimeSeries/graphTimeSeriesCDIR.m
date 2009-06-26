@@ -1,18 +1,17 @@
-function var = getVar(vars, name)
-%GETVAR Finds and returns the index of the variable with the given name from 
-% the given cell array of variables. If the array does not contain a variable 
-% of the given name, 0 is returned.
+function h = graphTimeSeriesCDIR( ax, sample_data, var )
+%GRAPHTIMESERIESCDIR Plots CDIR data (sea water direction) as a normal, single
+%dimensional, time series line.
 %
-% This function is simply a for loop - it saves having to repeat the same
-% code elsewhere.
+% Plots sea water direction data, by taking the median value at each depth, 
+% and plots these median values as time series data.
 %
 % Inputs:
-%   vars - Cell array of variable structs.
-%   name - Name of the variable in question.
+%   ax          - Parent axis.
+%   sample_data - The data set.
+%   var         - The variable to plot.
 %
 % Outputs:
-%   var  - Index into the vars array, specifying the variable with the
-%          given name, or 0 if the variable wasn't found.
+%   h           - Handle to the line which was plotted.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -46,14 +45,14 @@ function var = getVar(vars, name)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(2,2,nargin));
+error(nargchk(3,3,nargin));
 
-if ~iscell(vars), error('vars must be a cell array'); end
-if ~ischar(name), error('name must be a string');     end
+if ~ishandle(ax),          error('ax must be a graphics handle'); end
+if ~isstruct(sample_data), error('sample_data must be a struct'); end
+if ~isnumeric(var),        error('var must be a numeric');        end
 
-var = 0;
+time = getVar(sample_data.dimensions, 'TIME');
+time = sample_data.dimensions{time};
+var  = sample_data.variables {var};
 
-for k = 1:length(vars)
-
-  if strcmp(vars{k}.name, name), var = k; return; end
-end
+h = line(time.data, median(var.data'), 'Parent', ax);

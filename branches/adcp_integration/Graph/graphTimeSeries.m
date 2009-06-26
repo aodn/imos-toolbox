@@ -2,7 +2,7 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
 %GRAPHTIMESERIES Graphs the given data in a time series style using subplots.
 %
 % Graphs the selected variables from the given data set. Each variable is
-% graphed by looking up the respective 'plot*.m' function, where '*' is the
+% graphed by looking up the respective 'graphXY.m' function, where X is the
 % IMOS name of the variable (e.g. TEMP, CDIR).
 %
 % Inputs:
@@ -76,18 +76,17 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
                    'Color', 'none',...
                    'YGrid',  'on');
     
-    % make sure line colour alternates; because we are creating 
+    % make sure line colour alternate; because we are creating 
     % multiple axes, this is not done automatically for us
     col = get(graphs(k), 'ColorOrder');
     col = col(mod(k,length(col))+1,:);
     
     % plot the variable
-    plotFunc = str2func(['plot' sample_data.variables{k}.name]);
+    plotFunc   = getGraphFunc('TimeSeries', 'graph', name);
+    lines(k,:) = plotFunc(   graphs(k), sample_data, k);
     
-    try      lines(k,:) = plotFunc(   graphs(k), sample_data, k);
-    catch e, lines(k,:) = plotGeneric(graphs(k), sample_data, k);
-    end
-    
+    % set the line colour - wrap in a try block, 
+    % as surface plot colour cannot be set
     try set(lines(k,:), 'Color', col);
     catch e
     end
@@ -100,7 +99,7 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
     xTicks  = xLimits(1):xStep:xLimits(2);
     set(graphs(k), 'XTick', xTicks);
 
-    % convert the tick lables into date strings
+    % convert the tick labels into date strings
     xTicks = datestr(xTicks); 
     set(graphs(k), 'XTickLabel', xTicks);
     

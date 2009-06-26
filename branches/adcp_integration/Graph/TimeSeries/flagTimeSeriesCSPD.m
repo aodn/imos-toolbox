@@ -1,17 +1,18 @@
-function h = plotCDIR( ax, sample_data, var )
-%PLOTCDIR Plots CDIR data (sea water direction) as a normal, single
-%dimensional, time series line.
+function flags = flagTimeSeriesCSPD( ax, sample_data, var )
+%FLAGTIMESERIESCSPD Adds flag overlays to a CSPD plot.
 %
-% Plots sea water direction data, by taking the median value at each depth, 
-% and plots these median values as time series data.
+% Adds QC flag overlays to a CSPD plot, highlighting the data points which
+% have been flagged. Uses transparent patch objects.
 %
 % Inputs:
-%   ax          - Parent axis.
-%   sample_data - The data set.
-%   var         - The variable to plot.
+%   ax          - Handle to the axes object on which to draw the overlays.
+%   sample_data - Struct containing sample data.
+%   var         - Index into sample_data.variables, defining the variable
+%                 in question.
 %
 % Outputs:
-%   h           - Handle to the line which was plotted.
+%   flags       - Vector of handles to patch objects, which are the flag
+%                 overlays.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -45,14 +46,12 @@ function h = plotCDIR( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,3,nargin));
+error (nargchk(3,3,nargin));
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
-if ~isnumeric(var),        error('var must be a numeric');        end
+if ~isnumeric(var),        error('var must be numeric');          end
 
-time = getVar(sample_data.dimensions, 'TIME');
-time = sample_data.dimensions{time};
-var  = sample_data.variables {var};
+disp(mfilename)
 
-h = line(time.data, median(var.data'), 'Parent', ax);
+flags = 0.0;
