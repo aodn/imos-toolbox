@@ -2,7 +2,7 @@ function flags = flagTimeSeriesCSPD( ax, sample_data, var )
 %FLAGTIMESERIESCSPD Adds flag overlays to a CSPD plot.
 %
 % Adds QC flag overlays to a CSPD plot, highlighting the data points which
-% have been flagged. Uses transparent patch objects.
+% have been flagged. Uses line objects.
 %
 % Inputs:
 %   ax          - Handle to the axes object on which to draw the overlays.
@@ -11,7 +11,7 @@ function flags = flagTimeSeriesCSPD( ax, sample_data, var )
 %                 in question.
 %
 % Outputs:
-%   flags       - Vector of handles to patch objects, which are the flag
+%   flags       - Vector of handles to line objects, which are the flag
 %                 overlays.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
@@ -52,6 +52,45 @@ if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be numeric');          end
 
-disp(mfilename)
+flags = [];
 
+qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
+rawFlag = imosQCFlag('raw', qcSet, 'flag');
+
+time  = getVar(sample_data.dimensions, 'TIME');
+depth = getVar(sample_data.dimensions, 'DEPTH');
+
+time  = sample_data.dimensions{time};
+depth = sample_data.dimensions{depth};
+
+fl    = sample_data.variables{var}.flags;
+data  = sample_data.variables{var}.data;
+
+% get a list of the different flag types to be graphed
+flagTypes = unique(fl);
+
+% if no flags to plot, put a dummy handle in - the 
+% caller is responsible for checking and ignoring
 flags = 0.0;
+
+% a different patch for each flag type
+for m = 1:length(flagTypes)
+
+  % don't display raw data flags
+  if flagTypes(m) == rawFlag, continue; end
+
+  f = find(fl == flagTypes(m));
+
+  fc = imosQCFlag(flagTypes(m), qcSet, 'color');
+
+  fx = ceil(mod(f / size(fl,1), size(fl,2)));
+  fy = mod(f, size(fl,1));
+  fy(fy == 0) = size(fl, 1);
+    
+  flags(m) = line(fx, fy,...
+    'Parent', ax,...
+    'LineStyle', 'none',...
+    'Marker', 'o',...
+    'MarkerFaceColor', fc,...
+    'MarkerEdgeColor', 'none');
+end

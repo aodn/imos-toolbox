@@ -305,9 +305,9 @@ function displayManager( fieldTrip, sample_data, callbacks)
         point = point([1 3]);
         
         % get the indices of the data which was clicked on
-        getHighlightFunc = getGraphFunc(graphType, 'getHighlight', ...
+        getSelectedFunc = getGraphFunc(graphType, 'getSelected', ...
           sample_data{setIdx}.variables{vars(varIdx)}.name);
-        dataIdx = getHighlightFunc(sample_data{setIdx}, ax, highlight, point);
+        dataIdx = getSelectedFunc(sample_data{setIdx}, ax, highlight, point);
 
         % is there data to flag?
         if ~isempty(dataIdx)

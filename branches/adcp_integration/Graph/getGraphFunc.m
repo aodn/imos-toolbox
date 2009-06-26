@@ -4,7 +4,7 @@ function func = getGraphFunc( graphType, graphFunc, var )
 %
 % Returns a function handle for the given graph type/function and variable.
 % The graph type specifies which graph, e.g. 'TimeSeries'. The function is
-% one of 'graph', 'select', 'highlight', 'getHighlight' or 'flag'. 
+% one of 'graph', 'select', 'highlight', 'getSelected' or 'flag'. 
 % The variable is an IMOS compliant parameter name, e.g. 'TEMP', 'CSPD', or 
 % empty if one of the top level (e.g, 'GraphTimeSeries') functions is needed.
 %
@@ -30,10 +30,10 @@ function func = getGraphFunc( graphType, graphFunc, var )
 %                  Must be of the form:
 %                    function h = highlightGraphTypeParameter( region, data )
 %
-%   getHighlight - Function which returns the data indices of currently
-%                  flagged data on a plot. Must be of the form:
+%   getSelected  - Function which returns the data indices of currently
+%                  highlighted data on a plot. Must be of the form:
 %                    function dataIdx = ...
-%                      getHighlightGraphTypeParameter (  )
+%                      getSelectedGraphTypeParameter (  )
 %
 %   flag         - Function which overlays QC flags on a plot. Must be of the
 %                  form:
@@ -43,7 +43,7 @@ function func = getGraphFunc( graphType, graphFunc, var )
 % Inputs:
 %   graphType - Type of graph, e.g. 'TimeSeries'. 
 %   graphFunc - Function - one of 'graph', 'select', 'highlight', 
-%               'getHighlight', 'flag'.
+%               'getSelected', 'flag'.
 %   var       - IMOS compliant parameter name.
 %
 % Outputs:
