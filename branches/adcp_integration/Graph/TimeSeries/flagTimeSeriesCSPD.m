@@ -83,14 +83,18 @@ for m = 1:length(flagTypes)
 
   fc = imosQCFlag(flagTypes(m), qcSet, 'color');
 
-  fx = ceil(mod(f / size(fl,1), size(fl,2)));
-  fy = mod(f, size(fl,1));
-  fy(fy == 0) = size(fl, 1);
+  fx = mod(f, size(fl,1));
+  fx(fx == 0) = size(fl, 1);
+  fy = ceil(mod(f / size(fl,1), size(fl,2)));
+  
+  fx = time.data(fx);
+  fy = depth.data(fy);
     
   flags(m) = line(fx, fy,...
     'Parent', ax,...
     'LineStyle', 'none',...
-    'Marker', 'o',...
+    'Marker', 's',...
     'MarkerFaceColor', fc,...
-    'MarkerEdgeColor', 'none');
+    'MarkerEdgeColor', 'none',...
+    'MarkerSize', 3);
 end

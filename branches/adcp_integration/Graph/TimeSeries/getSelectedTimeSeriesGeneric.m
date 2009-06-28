@@ -1,19 +1,18 @@
 function dataIdx = getSelectedTimeSeriesGeneric( ...
   sample_data, ax, highlight, click )
-%GETSELECTEDTIMESERIESGENERIC Returns the indices of the currently 
-% highlighted data on the given axis.
-%
-%
+%GETSELECTEDTIMESERIESGENERIC Returns the indices of the currently selected 
+% (highlighted) data on the given axis.
 %
 % Inputs:
-%   sample_data -
-%   ax          -
-%   highlight   -
-%   click       -
+%   sample_data - Struct containing the data set.
+%   ax          - Axis in question.
+%   highlight   - Handle to the highlight object.
+%   click       - Where the user clicked the mouse.
 %   
 %
 % Outputs:
-%   dataIdx     -
+%   dataIdx     - Vector of indices into the data, defining the indices
+%                 which are selected (and which were clicked on).
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %

@@ -1,17 +1,17 @@
-function highlight = highlightTimeSeriesCSPD( region, data )
-%HIGHLIGHTTIMESERIESCSPD Highlights the given region on the given CSPD (sea
-% water speed) plot.
-%
-% Highlights the given region on a CPSD plot, using a transparent patch.
+function dataIdx = getSelectedTimeSeriesCSPD( ...
+  sample_data, ax, highlight, click )
+%GETSELECTEDTIMESERIESCSPD Returns the currently selected data on the given
+% CSPD axis.
 %
 % Inputs:
-%   region    - a vector of length 4, containing the selected data region. 
-%               Must be in the format: [lx ly hx hy]
-%   data      - A handle, or vector of handles, to the graphics object(s) 
-%               displaying the data (e.g. line, scatter). 
-%
+%   sample_data - Struct containing the data set.
+%   ax          - Axis in question.
+%   highlight   - Handle to the highlight object.
+%   click       - Where the user clicked the mouse.
+% 
 % Outputs:
-%   highlight - handle to the patch highlight.
+%   dataIdx     - Vector of indices into the data, defining the indices
+%                 which are selected (and which were clicked on).
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -45,19 +45,35 @@ function highlight = highlightTimeSeriesCSPD( region, data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(2,2,nargin));
+dataIdx = [];
 
-if ~isnumeric(region) || ~isvector(region) || length(region) ~= 4
-  error('region must be a numeric vector of length 4');
-end
+time  = getVar(sample_data.dimensions, 'TIME');
+depth = getVar(sample_data.dimensions, 'DEPTH');
+cspd  = getVar(sample_data.variables,  'CSPD');
 
-if ~ishandle(data), error('data must be a graphics handle'); end
+time  = sample_data.dimensions{time} .data;
+depth = sample_data.dimensions{depth}.data;
+cspd  = sample_data.variables {cspd} .data;
+
+highlightX = get(highlight, 'XData');
+highlightY = get(highlight, 'YData');
+
+% was click within highlight?
+if click(1) >= highlightX(1) && click(1) <= highlightX(3)...
+&& click(2) >= highlightY(1) && click(2) <= highlightY(2)...
   
-% get the vertices of the rectangular region
-x = [region(1) region(1) region(3) region(3)];
-y = [region(2) region(4) region(4) region(2)];
-
-% create the patch
-highlight = patch(x, y, 'white', ...
-  'Parent',gca,...
-  'FaceAlpha', 0.6);
+  % turn the highlight into data indices
+  
+  % get indices of time and depth axes
+  timeRange  = find(time  >= highlightX(1) & time  <= highlightX(3));
+  depthRange = find(depth >= highlightY(1) & depth <= highlightY(2));
+  
+  dataIdx = zeros(length(timeRange), length(depthRange));
+  
+  % turn them into indices into the cspd matrix
+  for k = 1:length(depthRange)
+    dataIdx(:,k) = timeRange + length(time)*(depthRange(k)-1);
+  end
+  
+  dataIdx = dataIdx(:);
+end

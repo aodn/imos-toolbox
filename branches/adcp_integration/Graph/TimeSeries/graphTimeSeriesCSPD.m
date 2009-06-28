@@ -61,7 +61,7 @@ depth = sample_data.dimensions{depth};
 var   = sample_data.variables {var};
 
 h = pcolor(ax, time.data, depth.data, var.data');
-set(h, 'EdgeColor', 'interp');
+set(h, 'FaceColor', 'interp', 'EdgeColor', 'none');
 set(ax, 'CLim', [0, max(max(var.data))/4]);
 cb = colorbar();
 
