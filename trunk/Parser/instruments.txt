@@ -10,6 +10,8 @@
 SEABIRD, SBE37 - CONDUCTIVITY TEMPERATURE AND PRESSURE RECORDER,   SBE37
 SEABIRD, SBE37IM - CONDUCTIVITY TEMPERATURE AND PRESSURE RECORDER, SBE37
 SEABIRD, SBE39 - TEMPERATURE RECORDER,                             SBE39
+SEABIRD, SBE39P - TEMPERATURE & PRESSURE RECORDER,                 SBE39
 WETLABS, WQM,                                                      WQM
 RDI,     ADCP - WORKHORSE,                                         workhorse
 RDI,     ADCP - QUARTERMASTER,                                     workhorse
+

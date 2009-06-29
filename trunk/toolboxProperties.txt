@@ -1,5 +1,5 @@
 % filename or ODBC DSN of deployment database
-toolbox.ddb = /home/paul/Documents/imos/OceanographyUncontrolled.mdb
+toolbox.ddb = /home/paul/OceanographyMaster.mdb
 % toolbox.ddb = /media/minke/ACCESS DATABASE/JUNE10.mdb
 
 % date and time formats used internally and for GUI display
