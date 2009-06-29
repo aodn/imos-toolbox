@@ -8,24 +8,31 @@ The Graph subdirectory provides functions which allow the user to plot and inter
 
  * `Graph/`
   * `graphTimeSeries.m`
+  * `flagTimeSeries.m`
+  * `graphOtherGraph.m`
+  * `flagOtherGraph.m`
   * `TimeSeries/`
+   * `flagTimeSeriesX.m`
+   * `flagTimeSeriesGeneric.m`
+   * `getSelectedTimeSeriesX.m`
+   * `getSelectedTimeSeriesGeneric.m`
    * `graphTimeSeriesX.m`
    * `graphTimeSeriesGeneric.m`
    * `highlightTimeSeriesX.m`
    * `highlightTimeSeriesGeneric.m`
    * `selectTimeSeriesX.m`
    * `selectTimeSeriesGeneric.m`
-   * `flagTimeSeries.m`
-   * `selectTimeSeriesGeneric.m`
   * `OtherGraph/`
+   * `flagOtherGraphX.m`
+   * `flagOtherGraphGeneric.m`
+   * `getSelectedTimeSeriesX.m`
+   * `getSelectedTimeSeriesGeneric.m`
    * `graphOtherGraphX.m`
    * `graphOtherGraphGeneric.m`
    * `highlightOtherGraphX.m`
    * `highlightOtherGraphGeneric.m`
    * `selectOtherGraphX.m`
    * `selectOtherGraphGeneric.m`
-   * `flagOtherGraphX.m`
-   * `flagOtherGraphGeneric.m`
   * ...
    
 == `graph` functions ==
@@ -103,6 +110,19 @@ function clickCallback(ax, type, point)
   * `ax` is a handle to the axis in question
   * `type` the value of the axis `SelectionType` property, which allows differentiation between left and right mous clicks.
   * `range` is a vector containing the coordinates of the data point which was clicked on.
+
+== `getSelected` functions ==
+
+Functions of the name `getSelectedXY.m` (where `X` is the graph type, and `Y` is the parameter type) return the indices of the currently selected samples on the graph when a user clicks on the graph. These functions have the following format:
+{{{
+function dataIdx = getSelectedGraphTypeParameter( sample_data, ax, highlight, click )
+}}}
+where
+  * `sample_data` is the struct containing the data set.
+  * `ax` is the axis in question.
+  * `highlight` is the handle to the highlight object.
+  * `click` the location where the user clicked.
+  * `dataIdx` is av ector of indices into the data, defining the indices which are selected (and which were clicked on).
 
 == `highlight` functions ==
 
