@@ -104,7 +104,6 @@ function displayManager( fieldTrip, sample_data, callbacks)
   lastState  = '';
   lastSetIdx = [];
   lastVars   = [];
-  lastDim    = [];
   qcSet      = str2double(readToolboxProperty('toolbox.qc_set'));
   rawFlag    = imosQCFlag('raw', qcSet, 'flag');
   
@@ -114,10 +113,10 @@ function displayManager( fieldTrip, sample_data, callbacks)
   mainWindow(fieldTrip, sample_data, states, 3, @stateSelectCallback);
       
   function state = stateSelectCallback(event,...
-    panel, updateCallback, state, sample_data, graphType, setIdx, vars, dim)
+    panel, updateCallback, state, sample_data, graphType, setIdx, vars)
   %STATESELECTCALLBACK Called when the user interacts with the main 
   % window, by changing the state, the selected data set, the selected
-  % variables/dimension or the selected graph type.
+  % variables or the selected graph type.
   %
   % Inputs:
   %   event          - String describing what triggered the callback.
@@ -128,7 +127,6 @@ function displayManager( fieldTrip, sample_data, callbacks)
   %   graphType      - currently selected graph type (string).
   %   setIdx         - currently selected sample_data struct (index)
   %   vars           - currently selected variables (indices).
-  %   dim            - currently selected dimension (index).
   %
   % Outputs:
   %   state          - If a state change was forced, tells the main window
@@ -165,7 +163,7 @@ function displayManager( fieldTrip, sample_data, callbacks)
       for k = 1:length(sample_data), updateCallback(sample_data{k}); end
       
       stateSelectCallback('state', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars, dim);
+        sample_data, graphType, setIdx, vars);
       state = lastState;
     end
   
@@ -206,7 +204,7 @@ function displayManager( fieldTrip, sample_data, callbacks)
 
       % display selected raw data
       graphFunc = str2func(['graph' graphType]);
-      graphFunc(panel, sample_data{setIdx}, vars, dim);
+      graphFunc(panel, sample_data{setIdx}, vars);
     end
 
     function qcCallback()
@@ -233,10 +231,10 @@ function displayManager( fieldTrip, sample_data, callbacks)
       end
 
       % redisplay the data
-      graphFunc = str2func(['graph' graphType]);
-      flagFunc  = str2func(['flag'  graphType]);
-      [graphs lines] = graphFunc(panel, sample_data{setIdx}, vars, dim);
-      flags          = flagFunc( panel, graphs, sample_data{setIdx}, vars, dim);
+      graphFunc = getGraphFunc(graphType, 'graph', '');
+      flagFunc  = getGraphFunc(graphType, 'flag',  '');
+      [graphs lines] = graphFunc(panel, sample_data{setIdx}, vars);
+      flags          = flagFunc( panel, graphs, sample_data{setIdx}, vars);
 
       % save line/flag handles and index in axis userdata 
       % so the data select callback can retrieve them
@@ -251,7 +249,8 @@ function displayManager( fieldTrip, sample_data, callbacks)
 
       % add data selection functionality
       highlight = [];
-      selectData(@dataSelectCallback, @dataClickCallback);
+      selectFunc = getGraphFunc(graphType, 'select', '');
+      selectFunc(@dataSelectCallback, @dataClickCallback);
 
       function dataSelectCallback(ax, type, range)
       %DATASELECTCALLBACK Called when the user selects a region of data.
@@ -268,6 +267,10 @@ function displayManager( fieldTrip, sample_data, callbacks)
           case 'alt',    handle = ud{2};
           otherwise,     return;
         end
+        
+        % index into vars vector, telling us which 
+        % variable is on the axis in question
+        varIdx = ud{3};
 
         if isempty(handle), return; end
 
@@ -278,7 +281,9 @@ function displayManager( fieldTrip, sample_data, callbacks)
         end
 
         % highlight the data, save the handle and data indices
-        highlight = highlightData(range, handle); 
+        highlightFunc = getGraphFunc(graphType, 'highlight',...
+          sample_data{setIdx}.variables{vars(varIdx)}.name);
+        highlight     = highlightFunc(range, handle);
       end
       
       function dataClickCallback(ax, type, point)
@@ -294,28 +299,18 @@ function displayManager( fieldTrip, sample_data, callbacks)
         % index into vars vector, telling us which 
         % variable is on the axis in question
         varIdx = ud{3};
-
-        % get the click point, and the highlighted data
-        point = get(gca, 'CurrentPoint');
+        
+        % get the click point
+        point = get(ax, 'CurrentPoint');
         point = point([1 3]);
+        
+        % get the indices of the data which was clicked on
+        getSelectedFunc = getGraphFunc(graphType, 'getSelected', ...
+          sample_data{setIdx}.variables{vars(varIdx)}.name);
+        dataIdx = getSelectedFunc(sample_data{setIdx}, ax, highlight, point);
 
-        highlightX = get(highlight, 'XData');
-        highlightY = get(highlight, 'YData');
-
-        % figure out if the click was anywhere near the highlight 
-        % (within 1% of the current visible range on x and y)
-        xError = get(gca, 'XLim');
-        xError = abs(xError(1) - xError(2));
-        yError = get(gca, 'YLim');
-        yError = abs(yError(1) - yError(2));
-
-        % was click near highlight?
-        if any(abs(point(1)-highlightX) <= xError*0.01)...
-        && any(abs(point(2)-highlightY) <= yError*0.01)
-      
-          % find the indices of the selected points
-          dataIdx = find(ismember(...
-            sample_data{setIdx}.dimensions{dim}.data, highlightX));
+        % is there data to flag?
+        if ~isempty(dataIdx)
 
           % find the most frequently occuring flag value to 
           % pass to the flag dialog (to use as the default)
@@ -335,7 +330,7 @@ function displayManager( fieldTrip, sample_data, callbacks)
             
             % update graph
             if ~isempty(flags), delete(flags(flags ~= 0)); end
-            flags = flagFunc(panel, graphs, sample_data{setIdx}, vars, dim);
+            flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
           end
         end
           
@@ -352,7 +347,7 @@ function displayManager( fieldTrip, sample_data, callbacks)
       callbacks.exportNetCDFRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars, dim);
+        sample_data, graphType, setIdx, vars);
       state = lastState;
     end
     
@@ -363,7 +358,7 @@ function displayManager( fieldTrip, sample_data, callbacks)
       callbacks.exportRawRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars, dim);
+        sample_data, graphType, setIdx, vars);
       state = lastState;
     end
   end
