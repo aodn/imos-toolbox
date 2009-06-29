@@ -95,6 +95,9 @@ function exportManager(dataSets, levelNames, output)
       
     catch e
       disp(['error while writing file: ' e.message]);
+      for k = 1:length(e.stack)
+        disp([e.stack(k).name ':' num2str(e.stack(k).line)]);
+      end
     end
   end
   

@@ -101,16 +101,18 @@ function filename = exportNetCDF( sample_data, dest )
       % create dimension
       did = netcdf.defDim(fid, upper(dims{m}.name), length(dims{m}.data));
 
-      % temporarily save the netcdf dimension ID in 
-      % the dimension struct for later reference
-      sample_data.dimensions{m}.did = did;
-
       % create coordinate variable and attributes
       vid = netcdf.defVar(fid, upper(dims{m}.name), 'double', did);
       putAtts(fid, vid, dimAtts);
       
       % create the ancillary QC variable
-      addQCVar(fid, sample_data, m, did, 'dim');
+      qcvid = addQCVar(fid, sample_data, m, did, 'dim');
+      
+      % save the netcdf dimension and variable IDs 
+      % in the dimension struct for later reference
+      sample_data.dimensions{m}.did   = did;
+      sample_data.dimensions{m}.vid   = vid;
+      sample_data.dimensions{m}.qcvid = qcvid;
     end
 
     %
@@ -128,6 +130,12 @@ function filename = exportNetCDF( sample_data, dest )
       dimIdxs = vars{m}.dimensions;
       for n = 1:length(dimIdxs), dids(n) = dims{dimIdxs(n)}.did; end
       
+      % reverse dimension order - matlab netcdf.defvar requires 
+      % dimensions in order of fastest changing to slowest changing. 
+      % The time dimension is always first in the variable.dimensions 
+      % list, and is always the slowest changing.
+      dids = fliplr(dids);
+      
       % create the variable
       vid = netcdf.defVar(fid, varname, 'double', dids);
 
@@ -140,7 +148,11 @@ function filename = exportNetCDF( sample_data, dest )
       putAtts(fid, vid, varAtts);
       
       % create the ancillary QC variable
-      addQCVar(fid, sample_data, m, dids, 'var');
+      qcvid = addQCVar(fid, sample_data, m, dids, 'var');
+      
+      % save variable IDs for later reference
+      sample_data.variables{m}.vid   = vid;
+      sample_data.variables{m}.qcvid = qcvid;
     end
 
     % we're finished defining dimensions/attributes/variables
@@ -161,7 +173,8 @@ function filename = exportNetCDF( sample_data, dest )
       
       % variable data
       varname = dims{m}.name;
-      vid     = dims{m}.did;
+      vid     = dims{m}.vid;
+      qcvid   = dims{m}.qcvid;
       data    = dims{m}.data;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
 
@@ -172,8 +185,7 @@ function filename = exportNetCDF( sample_data, dest )
       data    = dims{m}.flags;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
       
-      vid = netcdf.inqVarID(fid, varname);
-      netcdf.putVar(fid, vid, data);
+      netcdf.putVar(fid, qcvid, data);
     end
 
     %
@@ -185,9 +197,10 @@ function filename = exportNetCDF( sample_data, dest )
       % variable data
       varname = vars{m}.name;
       data    = vars{m}.data;
+      vid     = vars{m}.vid;
+      qcvid   = vars{m}.qcvid;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
 
-      vid = netcdf.inqVarID(fid, varname);
       netcdf.putVar(fid, vid, data);
       
       % ancillary QC variable data
@@ -195,8 +208,7 @@ function filename = exportNetCDF( sample_data, dest )
       data    = vars{m}.flags;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
       
-      vid = netcdf.inqVarID(fid, varname);
-      netcdf.putVar(fid, vid, data);
+      netcdf.putVar(fid, qcvid, data);
     end
 
     %
@@ -207,7 +219,7 @@ function filename = exportNetCDF( sample_data, dest )
   % ensure that the file is closed in the event of an error
   catch e
     try netcdf.close(fid); catch ex, end
-    rethrow e;
+    rethrow(e);
   end
 end
 
@@ -258,9 +270,9 @@ function vid = addQCVar(fid, sample_data, varIdx, dims, type)
  
   % if all flag values are equal, add the 
   % quality_control_indicator attribute 
-  if min(var.flags) == max(var.flags)
-    qcAtts.quality_control_indicator = min(var.flags);
-  end
+  minFlag = min(var.flags(:));
+  maxFlag = max(var.flags(:));
+  if minFlag == maxFlag, qcAtts.quality_control_indicator = minFlag; end
   
   qcAtts.flag_values = double(qcFlags);
   
