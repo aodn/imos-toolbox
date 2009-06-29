@@ -35,7 +35,6 @@ import java.util.List;
 
 import org.imos.ddb.schema.DeploymentData;
 import org.imos.ddb.schema.Personnel;
-import org.imos.ddb.schema.Sensors;
 import org.imos.ddb.schema.Sites;
 
 /**
@@ -81,9 +80,6 @@ public class Test {
       
       List<Personnel> people = mdb.executeQuery("Personnel", null, null);
       for (Personnel p : people) printObj(p);
-      
-      List<Sensors> seabirds = mdb.executeQuery("Sensors", "Make", "SEABIRD");
-      for (Sensors s : seabirds) printObj(s);
       
       
       List<Sites> capeSites = mdb.executeQuery("Sites", "ResearchActivity", "NW Cape 2002");

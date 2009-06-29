@@ -4,8 +4,7 @@ function mainWindow(...
 %
 % The mainWindow is the main toolbox window. It provides menus allowing the
 % user to select the data set to use and the graph type to display (if a
-% graph is being displayed), enable/disable variables, and choose the
-% dimension to graph against.
+% graph is being displayed), and enable/disable variables.
 %
 % The central area of the mainWindow is left empty, it is up to the
 % calling function (the displayManager) to populate this window. It is also
@@ -49,7 +48,6 @@ function mainWindow(...
 %                         set            - Currently selected sample_data
 %                                          struct
 %                         vars           - Currently selected variables
-%                         dim            - Currently selected dimension
 %                       The function must also provide one output argument:
 %                         state          - the new state, if it changed.
 % 
@@ -200,10 +198,10 @@ function mainWindow(...
   %Retrieves the current selection, clears the main panel, and calls 
   % selectionCallback.
   % 
-    state      = currentState;
-    sam        = getSelectedData();
-    [vars dim] = getSelectedVars();
-    graph      = getSelectedGraphType();
+    state = currentState;
+    sam   = getSelectedData();
+    vars  = getSelectedVars();
+    graph = getSelectedGraphType();
     
     % clear main panel
     children = get(mainPanel, 'Children');
@@ -221,7 +219,7 @@ function mainWindow(...
       state, ...
       sample_data, ...
       graph, ...
-      sam.index, vars, dim);
+      sam.index, vars);
   end
   
   function sampleMenuCallback(source,ev)
@@ -295,17 +293,13 @@ function mainWindow(...
     
   end
 
-  function [vars dim] = getSelectedVars()
+  function vars = getSelectedVars()
   %GETSELECTEDVARS Returns a vector containing the indices of the
-  % variables and dimension which are selected.
+  % variables which are selected.
   %
   
     % menu and checkboxes are stored in user data
-    fields     = get(varPanel, 'UserData');
-    dimMenu    = fields{1};
-    checkboxes = fields{2};
-    
-    dim = get(dimMenu, 'Value');
+    checkboxes = get(varPanel, 'UserData');
     
     vars = [];
     
@@ -319,8 +313,7 @@ function mainWindow(...
   function createVarPanel(sam)
   %CREATEVARPANEL Creates the variable selection panel. Called when the
   % selected dataset changes. The panel allows users to select which
-  % variables should be displayed, and against which dimension they should 
-  % be graphed.
+  % variables should be displayed.
   %
     % delete checkboxes and dim menu from previous data set
     checkboxes = get(varPanel, 'Children');
@@ -341,30 +334,13 @@ function mainWindow(...
         'Value',    1,...
         'Callback', @varPanelCallback,...
         'Units',    'normalized',...
-        'Position', [0.0, (n-m+1)/(n+1), 1.0, 1/(n+1)]);
+        'Position', [0.0, (n-m)/n, 1.0, 1/n]);
     end
     set(checkboxes, 'Units', 'pixels');
-        
-    % add dimension menu - again, the getSelectedVars function assumes
-    % that the indices into the menu options line up with the 
-    % sample_data.dimension vector
-    dims = {};
-    for m = 1:length(sam.dimensions)
-      dims{m} = sam.dimensions{m}.name;
-    end
-    dimMenu = uicontrol(...
-      'Parent',   varPanel,...
-      'Style',    'popupmenu',...
-      'String',   dims,...
-      'Value',    1,...
-      'Units',    'normalized',...
-      'Callback', @varPanelCallback,...
-      'Position', [0.0, 0.0, 1.0, 1/(n+1)]);
-    set(dimMenu, 'Units', 'pixels');
     
-    % the dimension menu and checkboxes are saved in UserData field to 
-    % make them easy to retrieve in the getSelectedVars function
-    set(varPanel, 'UserData', {dimMenu checkboxes});
+    % the checkboxes are saved in UserData field to make them 
+    % easy to retrieve in the getSelectedVars function
+    set(varPanel, 'UserData', checkboxes);
   end
 
   function descs = genSampleDataDescs(sam, dateFmt)

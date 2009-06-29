@@ -16,7 +16,7 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SS
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSS
 
 % default set of auto QC routines
-autoQCManager.autoQCChain = tukey53HDespikeQC
+autoQCManager.autoQCChain = timeGapQC flatlineQC
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 

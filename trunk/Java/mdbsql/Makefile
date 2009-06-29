@@ -2,11 +2,11 @@
 WRAPPER_HOME=..
 
 CFLAGS=-I$(JAVA_HOME)/include \
-			 -I$(JAVA_HOME)/include/linux \
-			 -I/usr/include/glib-2.0 \
-			 -I/usr/lib/glib-2.0/include
+       -I$(JAVA_HOME)/include/linux \
+       -I/usr/include/glib-2.0 \
+       -I/usr/lib/glib-2.0/include
 
-LDFLAGS=-lmdbsql
+LDFLAGS=-lmdb -lmdbsql
 
 default:
 	javah -classpath $(WRAPPER_HOME)/bin \

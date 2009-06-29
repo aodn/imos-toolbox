@@ -1,5 +1,5 @@
-function flags = flagTimeSeries( parent, graphs, sample_data, vars, dimension )
-%flagTimeSeries Overlays flags for the given sample data variables on the
+function flags = flagTimeSeries( parent, graphs, sample_data, vars )
+%FLAGTIMESERIES Overlays flags for the given sample data variables on the 
 % given graphs
 %
 % Inputs:
@@ -8,8 +8,6 @@ function flags = flagTimeSeries( parent, graphs, sample_data, vars, dimension )
 %   sample_data - struct containing the sample data.
 %   vars        - vector of indices into the sample_data.variables array.
 %                 Must be the same length as graphs.
-%   dimension   - Index into the sample_data.dimensions array, to the
-%                 current dimension.
 %
 % Outputs:
 %   flag        - handles to line objects that make up the flag overlays.
@@ -47,59 +45,46 @@ function flags = flagTimeSeries( parent, graphs, sample_data, vars, dimension )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(5,5,nargin));
+error(nargchk(4,4,nargin));
 
 if ~ishandle(parent),      error('parent must be a graphic handle');    end
 if ~ishandle(graphs),      error('graphs must be a graphic handle(s)'); end
 if ~isstruct(sample_data), error('sample_data must be a struct');       end
 if ~isnumeric(vars),       error('vars must be a numeric');             end
-if ~isnumeric(dimension),  error('dimension must be an index');         end
 
 flags = [];
 
 if isempty(vars), return; end
 
+% remove ungraphed variables
 sample_data.variables = sample_data.variables(vars);
 if length(graphs) ~= length(sample_data.variables)
   error('graphs must be the same length as vars');
 end
-  
-qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
-rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
 hold on;
 
 for k = 1:length(sample_data.variables)
-
-  dim   = sample_data.dimensions{dimension}.data;
-  fl    = sample_data.variables{k}.flags;
-  data  = sample_data.variables{k}.data;
-
-  % get a list of the different flag types to be graphed
-  flagTypes = unique(fl);
-
-  % if no flags to plot, put a dummy handle in - the 
-  % caller is responsible for checking and ignoring
-  flags(k,:) = 0.0;
-
-  % a different line for each flag type
-  for m = 1:length(flagTypes)
-
-    % don't display raw data flags
-    if flagTypes(m) == rawFlag, continue; end
-
-    f = find(fl == flagTypes(m));
-
-    fc = imosQCFlag(flagTypes(m), qcSet, 'color');
-
-    fx = dim(f);
-    fy = data(f);
-
-    flags(k,m) = line(fx, fy,...
-      'Parent', graphs(k),...
-      'LineStyle', 'none',...
-      'Marker', 'o',...
-      'MarkerFaceColor', fc,...
-      'MarkerEdgeColor', 'none');
+  
+  % apply the flag function for this variable
+  flagFunc = getGraphFunc('TimeSeries', 'flag', sample_data.variables{k}.name);
+  f = flagFunc(graphs(k), sample_data, k);
+  
+  % if the flag function returned nothing, insert a dummy handle 
+  if isempty(f), f = 0.0; end
+  
+  %
+  % the following is some ugly code which takes the flag handle(s) returned
+  % from the variable-specific flag function, and saves it/them in the 
+  % flags matrix, accounting for differences in size.
+  %
+  
+  fl = length(f);
+  fs = size(flags,2);
+  
+  if     fl > fs, flags(:,fs+1:fl) = 0.0;
+  elseif fl < fs, f    (  fl+1:fs) = 0.0;
   end
+  
+  flags(k,:) = f;
 end
