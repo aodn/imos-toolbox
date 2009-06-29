@@ -80,116 +80,112 @@ function sample_data = WQMParse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+  % ensure that there is exactly one argument, 
+  % and that it is a cell array of strings
+  error(nargchk(1, 1, nargin));
+  if ~iscell(filename), error('filename must be a cell array'); end
 
-% ensure that there is exactly one argument, 
-% and that it is a cell array of strings
-error(nargchk(1, 1, nargin));
-if ~iscell(filename), error('filename must be a cell array'); end
+  filename = filename{1};
+  if ~ischar(filename), error('filename must contain a string'); end
 
-filename = filename{1};
-if ~ischar(filename), error('filename must contain a string'); end
+  % Lookup arrays for supported and required fields
+  params   = {};
+  required = {};
 
-% Lookup table/array for supported and required fields
-global PARAMS;
-global REQUIRED;
+  %
+  % this table provides mappings from the WQM field name (the column header 
+  % in the input file) to the IMOS compliant parameter name. It also contains 
+  % comments for some parameters.
+  %
+  params{end+1} = {'WQM',             {'',     ''}};
+  params{end+1} = {'SN',              {'',     ''}};
+  params{end+1} = {'MMDDYY',          {'',     ''}};
+  params{end+1} = {'HHMMSS',          {'',     ''}};
+  params{end+1} = {'Cond(mmho)',      {'CNDC', ''}};
+  params{end+1} = {'Temp(C)',         {'TEMP', ''}};
+  params{end+1} = {'Pres(dbar)',      {'PRES', ''}};
+  params{end+1} = {'Sal(PSU)',        {'PSAL', ''}};
+  params{end+1} = {'DO(mg/l)',        {'DOXY', ''}};
+  params{end+1} = {'F-Cal-CHL(ug/l)', {'CPHL', 'Factory coefficient'}};
+  params{end+1} = {'U-Cal-CHL(ug/l)', {'CPHL', 'User coefficient'}};
+  params{end+1} = {'NTU',             {'TURB', ''}};
 
-%
-% this table provides mappings from the WQM field name (the column header 
-% in the input file) to the IMOS compliant parameter name. It also contains 
-% comments for some parameters.
-%
-PARAMS = java.util.Hashtable;
-PARAMS.put('WQM',             {'',     ''});
-PARAMS.put('SN',              {'',     ''});
-PARAMS.put('MMDDYY',          {'',     ''});
-PARAMS.put('HHMMSS',          {'',     ''});
-PARAMS.put('Cond(mmho)',      {'CNDC', ''});
-PARAMS.put('Temp(C)',         {'TEMP', ''});
-PARAMS.put('Pres(dbar)',      {'PRES', ''});
-PARAMS.put('Sal(PSU)',        {'PSAL', ''});
-PARAMS.put('DO(mg/l)',        {'DOXY', ''});
-PARAMS.put('F-Cal-CHL(ug/l)', {'CPHL', 'Factory coefficient'});
-PARAMS.put('U-Cal-CHL(ug/l)', {'CPHL', 'User coefficient'});
-PARAMS.put('NTU',             {'TURB', ''});
+  %
+  % This array contains the column headers which must be in the input file.
+  %
+  required = {
+    'SN'
+    'MMDDYY'
+    'HHMMSS'
+  };
 
-%
-% This array contains the column headers which must be in the input file.
-%
-REQUIRED = {
-  'SN'
-  'MMDDYY'
-  'HHMMSS'
-};
+  % open file, get header and use it to generate a 
+  % format string which we can pass to textscan
+  fid     = -1;
+  samples = [];
+  fields  = [];
+  format  = [];
+  try
+    fid = fopen(filename);
+    if fid == -1, error(['couldn''t open ' filename 'for reading']); end
 
-% open file, get header and use it to generate a 
-% format string which we can pass to textscan
-fid     = -1;
-samples = [];
-fields  = [];
-format  = [];
-try
-  fid = fopen(filename);
-  if fid == -1, error(['couldn''t open ' filename 'for reading']); end
+    [fields format] = getFormat(fid, required, params);
 
-  [fields format] = getFormat(fid);
-
-  % read in the data
-  samples = textscan(fid, format);
-  fclose(fid);
-catch e
-  if fid ~= -1, fclose(fid); end
-  rethrow(e);
-end
-
-%fill in sample and cal data
-sample_data            = struct;
-sample_data.dimensions = {};
-sample_data.variables  = {};
-
-sample_data.instrument_make      = 'WQM';
-sample_data.instrument_model     = 'WET Labs';
-sample_data.instrument_serial_no = samples{1}{1};
-
-% create a variables struct in sample_data for each field in the file
-% start index at 4 to skip serial, date and time
-for k = 4:length(fields)
-  
-  [name comment] = getParamDetails(fields{k});  
-  data = samples{k-1};
-  
-  % some fields are not in IMOS uom - scale them so that they are
-  switch name
-    
-    % WQM provides conductivity in mS/m; we need it in S/m.
-    case 'CNDC'
-      data = data / 1000.0;
-    
-    % WQM provides dissolved oxygen in mg/L; we need it in kg/m^3.
-    % Actually, these work out to be equivalent, so no scaling is needed
-    % case 'DOXY'
-      
-    % WQM provides chlorophyll in ug/L; we need it in mg/m^3.
-    % Again, these are equivalent, so no scaling is needed.
-    % case 'CPHL'
-      
+    % read in the data
+    samples = textscan(fid, format);
+    fclose(fid);
+  catch e
+    if fid ~= -1, fclose(fid); end
+    rethrow(e);
   end
-  
-  sample_data.variables{k-3}.dimensions = [1];
-  sample_data.variables{k-3}.comment    = comment;
-  sample_data.variables{k-3}.name       = name;
-  sample_data.variables{k-3}.data       = data;
+
+  %fill in sample and cal data
+  sample_data            = struct;
+  sample_data.dimensions = {};
+  sample_data.variables  = {};
+
+  sample_data.instrument_make      = 'WQM';
+  sample_data.instrument_model     = 'WET Labs';
+  sample_data.instrument_serial_no = samples{1}{1};
+
+  % create a variables struct in sample_data for each field in the file
+  % start index at 4 to skip serial, date and time
+  for k = 4:length(fields)
+
+    [name comment] = getParamDetails(fields{k}, params);  
+    data = samples{k-1};
+
+    % some fields are not in IMOS uom - scale them so that they are
+    switch name
+
+      % WQM provides conductivity in mS/m; we need it in S/m.
+      case 'CNDC'
+        data = data / 1000.0;
+
+      % WQM provides dissolved oxygen in mg/L; we need it in kg/m^3.
+      % Actually, these work out to be equivalent, so no scaling is needed
+      % case 'DOXY'
+
+      % WQM provides chlorophyll in ug/L; we need it in mg/m^3.
+      % Again, these are equivalent, so no scaling is needed.
+      % case 'CPHL'
+
+    end
+
+    sample_data.variables{k-3}.dimensions = [1];
+    sample_data.variables{k-3}.comment    = comment;
+    sample_data.variables{k-3}.name       = name;
+    sample_data.variables{k-3}.data       = data;
+  end
+
+  % convert and save the time data
+  time = cellstr(samples{2});
+  sample_data.dimensions{1}.name = 'TIME';
+  sample_data.dimensions{1}.data = datenum(time, 'mmddyy HHMMSS')';
+
 end
 
-% convert and save the time data
-time = cellstr(samples{2});
-sample_data.dimensions{1}.name = 'TIME';
-sample_data.dimensions{1}.data = datenum(time, 'mmddyy HHMMSS')';
-
-%
-%% getFormat generates a format for textscan from the file header
-%
-
-function [fields format] = getFormat(fid)
+function [fields format] = getFormat(fid, required, params)
 %GETFORMAT Figures out the format pattern to give to textscan, based on the 
 % list of fields that are present in the file header (tokens contained in 
 % the first line of the file).
@@ -198,98 +194,94 @@ function [fields format] = getFormat(fid)
 %
 % Returns a list of all the fields to expect, and the textscan format to use.
 %
-% The list of required fields are listed in the global REQUIRED_PARAMETERS 
-% variable which is defined in the main function above.
+% The list of required fields are listed in the required variable which is 
+% defined in the main function above.
 %
-global REQUIRED;
+  % read in header
+  fields = fgetl(fid);
+  fields = textscan(fields, '%s');
+  fields = fields{1};
 
-% read in header
-fields = fgetl(fid);
-fields = textscan(fields, '%s');
-fields = fields{1};
+  % test that required fields are present
+  for k = 1:length(required)
 
-% test that required fields are present
-for k = 1:length(REQUIRED)
-
-  if ~ismember(REQUIRED{k}, fields)
-    error([REQUIRED{k} ...
-      ' field is missing from WQM file - this field is required']);
+    if ~ismember(required{k}, fields)
+      error([required{k} ...
+        ' field is missing from WQM file - this field is required']);
+    end
   end
-end
 
-%
-% build the format string
-%
-format = '';
+  %
+  % build the format string
+  %
+  format = '';
 
-% WQM column, if present
-if strcmp('WQM', fields{1})
-  format = 'WQM '; 
-  fields(1) = []; 
-end
-
-% serial and time/date
-format = [format '%s%13c'];
-
-%
-% floating point values, or ignore if unsupported, for all other fields.
-% start index at 4 to skip serial number, date and time.
-% keep track of indices of unsupported fields - we remove them afterwards
-%
-unsupported = [];
-for k = 4:length(fields)
-  if isSupported(fields{k}); 
-    format = [format '%f']; 
-  else
-    format = [format '%*s'];
-    unsupported = [unsupported k];
+  % WQM column, if present
+  if strcmp('WQM', fields{1})
+    format = 'WQM '; 
+    fields(1) = []; 
   end
+
+  % serial and time/date
+  format = [format '%s%13c'];
+
+  %
+  % floating point values, or ignore if unsupported, for all other fields.
+  % start index at 4 to skip serial number, date and time.
+  % keep track of indices of unsupported fields - we remove them afterwards
+  %
+  unsupported = [];
+  for k = 4:length(fields)
+    if isSupported(fields{k}, params); 
+      format = [format '%f']; 
+    else
+      format = [format '%*s'];
+      unsupported = [unsupported k];
+    end
+  end
+
+  %remove unsupported fields from header list
+  fields(unsupported) = [];
 end
 
-%remove unsupported fields from header list
-fields(unsupported) = [];
-
+function [name comment] = getParamDetails(field, params)
+%GETPARAMDETAILS Returns the IMOS-compliant name, and an optional comment 
+% for the given WQM field.
 %
-%% getParamDetails returns the IMOS parameter name, and an optional 
-% comment for the given WQM field name.
+% The mappings are provided in the params variable, which is defined in the 
+% main function.
 %
-
-function [name comment] = getParamDetails(param)
-%GETPARAMDETAILS
-% Returns the IMOS-compliant name, and an optional comment for the given WQM
-% field.
-%
-% The mappings are provided in the global PARAMS variable (a 
-% java.util.Hashtable), which is defined in the main function.
-%
-
-global PARAMS;
-
-name = '';
-comment = '';
-
-entry = PARAMS.get(param);
-if ~isempty(entry)
-  name    = entry(1);
-  comment = entry(2);
+  name = '';
+  comment = '';
   
-  % they're java.lang.String arrays - we just want the string
-  name    = char(name(1));
-  comment = char(comment(1));
+  entry = {};
+  
+  for k = 1:length(params)
+    if strcmp(params{k}{1}, field)
+      entry = params{k};
+      break;
+    end
+  end
+  
+  if isempty(entry), return; end
+
+  name    = entry{2}{1};
+  comment = entry{2}{2};
 end
 
-%
-%% isSupported determines whether the given WQM field is supported.
-%
-
-function supported = isSupported(field)
+function supported = isSupported(field, params)
 %ISSUPPORTED returns logical true (1) if the given WQM field is supported,
 % false (0) otherwise.
 %
-% If a field is supported, it will be contained in the global PARAMS 
-% variable.
+% If a field is supported, it will be contained in the params variable.
 %
+supported = false;
 
-global PARAMS;
+  for k = 1:length(params)
 
-supported = PARAMS.containsKey(field);
+    if strcmp(params{k}{1}, field)
+      supported = true;
+      break;
+    end
+  end
+end
