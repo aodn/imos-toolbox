@@ -6,7 +6,7 @@
 
 The IMOS NetCDF File Naming Convention (v1.1) defines five data process levels, as described in the table below. One NetCDF file will only contain one process level. This means that the output from processing a data set could consist of up to five NetCDF files.
 
-The IMOS Toolbox produces data to fit only within the first two levels - raw and QC'd data. Raw (level 0) data is that which has been retrieved directly from the instrument(s). QC-d (level 1) data is that which has been passed through automatic and manual quality control procedures. The manual and automatic quality control procedures will potentially flag, remove and/or modify data in the dataset, for example to flag outliers and to remove spikes.
+The IMOS Toolbox produces data to fit only within the first two levels - raw and QC'd data. Raw (level 0) data is that which has been retrieved directly from the instrument(s). QC-d (level 1) data is that which has been passed through automatic and manual quality control procedures. The manual and automatic quality control procedures will potentially flag data in the dataset, for example to flag outliers and spikes.
 
 == IMOS data process level definitions ==
 
