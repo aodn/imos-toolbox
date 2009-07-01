@@ -208,6 +208,8 @@ function mainWindow(...
     for m = 1:length(children), delete(children(m)); end
     
     % delete any mouse listeners that may have been added
+    zoom off;
+    pan off;
     set(fig, 'WindowButtonDownFcn',   []);
     set(fig, 'WindowButtonMotionFcn', []);
     set(fig, 'WindowButtonUpFcn',     []);
