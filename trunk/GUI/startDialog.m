@@ -348,13 +348,13 @@ function [fieldTrips fieldTripDescs] = ...
     
     % check that field trip start is before high limit
     if ~isempty(startDate)
-      startDate = str2num(startDate);
+      startDate = datenum(startDate, readToolboxProperty('toolbox.timeFormat'));
       if startDate > highDate, toRemove(end+1) = k; continue; end
     end
     
     % check that field trip end is after low limit
     if ~isempty(endDate)
-      endDate = str2num(endDate);
+      endDate = datenum(endDate, readToolboxProperty('toolbox.timeFormat'));
       if endDate < lowDate, toRemove(end+1) = k; continue; end
     end
   end
