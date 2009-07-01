@@ -49,7 +49,7 @@ function flowManager()
 
   % display data
   callbacks.importRequestCallback       = @importRequestCallback;
-  callbacks.metadataUpdateCallback      = @metdataUpdateCallback;
+  callbacks.metadataUpdateCallback      = @metadataUpdateCallback;
   callbacks.rawDataRequestCallback      = @rawDataRequestCallback;
   callbacks.autoQCRequestCallback       = @autoQCRequestCallback;
   callbacks.manualQCRequestCallback     = @manualQCRequestCallback;

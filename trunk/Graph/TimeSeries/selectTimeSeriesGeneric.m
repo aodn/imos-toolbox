@@ -84,14 +84,6 @@ function selectTimeSeriesGeneric( selectCallback, clickCallback )
   % get handle to the current figure
   f = gcf;
   
-  % version specific hack (R2009a); if one of the ui 'modes' is active,
-  % such as zoom, pan or brush, setting the button listeners will fail; 
-  % we have to disable the mode before we can set our own listeners. 
-  % This problem is still going to occur on matlab versions which do 
-  % not provide the activateuimode function
-  try      activateuimode(f,[]);
-  catch e, end
-  
   % add callbacks for dragging over an area of data/flags - 
   % this also accounts for click events
   set(f, 'WindowButtonDownFcn',   @buttonDown);
