@@ -85,9 +85,14 @@ function [year month day] = datePromptDialog(year,month,day)
   end
   dayVals = 1:genDayRange(year,month);
   
-  set(yearMenu,  'String', yearVals, 'Value', find(yearVals == year));
-  set(monthMenu, 'String', 1:12,     'Value', month);
-  set(dayMenu,   'String', dayVals,  'Value', day);
+  monthVals = {
+    'Jan','Feb','Mar','Apr','May','Jun',...
+    'Jul','Aug','Sep','Oct','Nov','Dec'
+  };
+  
+  set(yearMenu,  'String', yearVals,  'Value', find(yearVals == year));
+  set(monthMenu, 'String', monthVals, 'Value', month);
+  set(dayMenu,   'String', dayVals,   'Value', day);
   
   % use normalized units
   set(f,             'Units', 'normalized');
