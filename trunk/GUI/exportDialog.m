@@ -147,13 +147,13 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
   set(confirmButton,   'Units', 'normalized');
   
   % position widgets
-  set(f,             'Position', [0.35,  0.4, 0.3,  0.2]);
-  set(cancelButton,  'Position', [0.0,   0.0, 0.5,  0.1]);
-  set(confirmButton, 'Position', [0.5,   0.0, 0.5,  0.1]);
-  set(dirLabel,      'Position', [0.0,   0.1, 0.15, 0.1]);
-  set(dirText,       'Position', [0.15,  0.1, 0.8,  0.1]);
-  set(dirButton,     'Position', [0.85,  0.1, 0.15, 0.1]);
-  set(levelLabel,    'Position', [0.0,   0.2, 0.15, 0.1]);
+  set(f,             'Position', [0.25, 0.35, 0.5,  0.3]);
+  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.15]);
+  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.15]);
+  set(dirLabel,      'Position', [0.0,  0.15, 0.15, 0.15]);
+  set(dirText,       'Position', [0.15, 0.15, 0.8,  0.15]);
+  set(dirButton,     'Position', [0.85, 0.15, 0.15, 0.15]);
+  set(levelLabel,    'Position', [0.0,  0.3,  0.15, 0.15]);
     
   % position data level checkboxes
   for k = 1:length(levelCheckboxes)
@@ -161,14 +161,14 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
     lLength = 0.85 / length(levelCheckboxes);
     lStart  = 0.15 + (0.85 * (k-1)) / length(levelCheckboxes);
     
-    set(levelCheckboxes(k), 'Position', [lStart, 0.2, lLength, 0.1]);
+    set(levelCheckboxes(k), 'Position', [lStart, 0.3, lLength, 0.15]);
   end
   
   % position data set checkboxes
   for k = 1:length(setCheckboxes)
     
-    bLength = 0.7 / length(setCheckboxes);
-    bStart = 0.3 + (((k-1) * 0.7) / length(setCheckboxes));
+    bLength = 0.55 / length(setCheckboxes);
+    bStart = 0.45 + ((k-1) * bLength);
     
     set(setCheckboxes(k), 'Position', [0.0, bStart, 1.0, bLength]);
   end
