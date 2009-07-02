@@ -1,19 +1,18 @@
-function dataIdx = getSelectedTimeSeriesGeneric( ...
-  sample_data, var, ax, highlight, click )
-%GETSELECTEDTIMESERIESGENERIC Returns the indices of the currently selected 
-% (highlighted) data on the given axis.
+function flags = flagTimeSeriesCDIR( ax, sample_data, var )
+%FLAGTIMESERIESCDIR Adds flag overlays to a CDIR plot.
+%
+% Adds QC flag overlays to a CDIR plot, highlighting the data points which
+% have been flagged. Uses line objects.
 %
 % Inputs:
-%   sample_data - Struct containing the data set.
-%   var         - Variable in question (index into sample_data.variables).
-%   ax          - Axis in question.
-%   highlight   - Handle to the highlight object.
-%   click       - Where the user clicked the mouse.
-%   
+%   ax          - Handle to the axes object on which to draw the overlays.
+%   sample_data - Struct containing sample data.
+%   var         - Index into sample_data.variables, defining the variable
+%                 in question.
 %
 % Outputs:
-%   dataIdx     - Vector of indices into the data, defining the indices
-%                 which are selected (and which were clicked on).
+%   flags       - Vector of handles to line objects, which are the flag
+%                 overlays.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -47,33 +46,5 @@ function dataIdx = getSelectedTimeSeriesGeneric( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
 
-if ~isstruct(sample_data), error('sample_data must be a struct');        end
-if ~isnumeric(var),        error('var must be numeric');                 end
-if ~ishandle(ax),          error('ax must be a graphics handle');        end
-if ~ishandle(highlight),   error('highlight must be a graphics handle'); end
-if ~isnumeric(click),      error('click must be numeric');               end
-
-dataIdx = [];
-
-time = getVar(sample_data.dimensions, 'TIME');
-time = sample_data.dimensions{time};
-
-highlightX = get(highlight, 'XData');
-highlightY = get(highlight, 'YData');
-
-% figure out if the click was anywhere near the highlight 
-% (within 1% of the current visible range on x and y)
-xError = get(ax, 'XLim');
-xError = abs(xError(1) - xError(2));
-yError = get(ax, 'YLim');
-yError = abs(yError(1) - yError(2));
-
-% was click near highlight?
-if any(abs(click(1)-highlightX) <= xError*0.01)...
-&& any(abs(click(2)-highlightY) <= yError*0.01)
-
-  % find the indices of the selected points
-  dataIdx = find(ismember(time.data, highlightX));
-end
+flags = flagTimeSeriesCSPD(ax, sample_data, var);

@@ -1,10 +1,11 @@
 function dataIdx = getSelectedTimeSeriesCSPD( ...
-  sample_data, ax, highlight, click )
+  sample_data, var, ax, highlight, click )
 %GETSELECTEDTIMESERIESCSPD Returns the currently selected data on the given
 % CSPD axis.
 %
 % Inputs:
 %   sample_data - Struct containing the data set.
+%   var         - Variable in question (index into sample_data.variables).
 %   ax          - Axis in question.
 %   highlight   - Handle to the highlight object.
 %   click       - Where the user clicked the mouse.
@@ -45,15 +46,22 @@ function dataIdx = getSelectedTimeSeriesCSPD( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+error(nargchk(5,5,nargin));
+
+if ~isstruct(sample_data), error('sample_data must be a struct');        end
+if ~isnumeric(var),        error('var must be numeric');                 end
+if ~ishandle(ax),          error('ax must be a graphics handle');        end
+if ~ishandle(highlight),   error('highlight must be a graphics handle'); end
+if ~isnumeric(click),      error('click must be numeric');               end
+
 dataIdx = [];
 
 time  = getVar(sample_data.dimensions, 'TIME');
 depth = getVar(sample_data.dimensions, 'DEPTH');
-cspd  = getVar(sample_data.variables,  'CSPD');
 
 time  = sample_data.dimensions{time} .data;
 depth = sample_data.dimensions{depth}.data;
-cspd  = sample_data.variables {cspd} .data;
+var   = sample_data.variables {var}  .data;
 
 highlightX = get(highlight, 'XData');
 highlightY = get(highlight, 'YData');
