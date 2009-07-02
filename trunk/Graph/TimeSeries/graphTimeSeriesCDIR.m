@@ -1,9 +1,9 @@
 function [h xLabel yLabel] = graphTimeSeriesCDIR( ax, sample_data, var )
-%GRAPHTIMESERIESCDIR Plots CDIR data (sea water direction) as a normal, single
-%dimensional, time series line.
+%GRAPHTIMESERIESCDIR Plots CDIR data (sea water direction) using the same
+%technique as for CSPD.
 %
-% Plots sea water direction data, by taking the median value at each depth, 
-% and plots these median values as time series data.
+% Plots sea water direction data in the same manner as CSPD - this function
+% just calls graphTimeSeriesCSPD
 %
 % Inputs:
 %   ax          - Parent axis.
@@ -47,17 +47,6 @@ function [h xLabel yLabel] = graphTimeSeriesCDIR( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,3,nargin));
 
-if ~ishandle(ax),          error('ax must be a graphics handle'); end
-if ~isstruct(sample_data), error('sample_data must be a struct'); end
-if ~isnumeric(var),        error('var must be a numeric');        end
-
-time = getVar(sample_data.dimensions, 'TIME');
-time = sample_data.dimensions{time};
-var  = sample_data.variables {var};
-
-h = line(time.data, median(var.data'), 'Parent', ax);
-
-xLabel = 'TIME';
-yLabel = [var.name ' (median)'];
+[h xLabel yLabel] = graphTimeSeriesCSPD(ax, sample_data, var);
+set(ax, 'CLim', [0, max(max(sample_data.variables{var}.data))]);
