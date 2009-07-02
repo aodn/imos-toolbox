@@ -65,8 +65,10 @@ set(h, 'FaceColor', 'interp', 'EdgeColor', 'none');
 set(ax, 'CLim', [0, max(max(var.data))/4]);
 cb = colorbar();
 
-uom = imosParameters(var.name, 'uom');
-set(get(cb, 'YLabel'), 'String', [var.name ' (' uom ')']);
+cbLabel = imosParameters(var.name, 'uom');
+cbLabel = [var.name ' (' cbLabel ')'];
+if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
+set(get(cb, 'YLabel'), 'String', cbLabel);
 
 xLabel = 'TIME';
 yLabel = 'DEPTH';
