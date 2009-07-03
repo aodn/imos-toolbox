@@ -75,7 +75,7 @@ function qc_data = autoQCManager( sample_data )
   % but must be provided to the list selection dialog as indices
   qcChainIdx = cellfun(@(x)(find(ismember(qcRoutines,x))),qcChain);
   qcChain = listSelectionDialog(...
-    'Define the QC filter chain', qcRoutines, qcChainIdx);
+    'Select QC filters', qcRoutines, qcChainIdx);
 
   % user cancelled dialog
   if isempty(qcChain), return; end
