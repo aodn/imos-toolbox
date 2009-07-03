@@ -75,6 +75,7 @@ To build, run the following from  the `Java` subdirectory:
 ant clean
 ant compile
 ant test -Dddb=[imos-ddb]
+ant install
 }}}
 
 where `[imos-ddb]` is the deployment database ODBC DSN (under Windows), or the deployment database filename (under Linux).
@@ -149,5 +150,5 @@ The problem which was occurring was that the value of the `pidx` pointer returne
 
 You must tell matlab two things:
 
- * The location of the compiled java class files - add the directory path `[imos-toolbox-home]/Java/bin` to the file `toolbox/local/classpath.txt` in your matlab installation
+ * The location of the compiled java class files - add the path `[imos-toolbox-home]/Java/ddb.jar` to the file `toolbox/local/classpath.txt` in your matlab installation
  * The location of the compiled `libmdb_wrapper.so` file (only if using Linux) - add the directory path `[imos-toolbox-home]/Java/bin` to the file `toolbox/local/librarypath.txt` in your matlab installation.
