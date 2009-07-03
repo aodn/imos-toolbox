@@ -17,7 +17,7 @@ default:
 clean:
 	rm -f mdbsql_wrapper.h
 	rm -f libmdbsql_wrapper.so
-	rm -f $(WRAPPER_HOME)/bin/libmdbsql_wrapper.so
+	rm -f $(WRAPPER_HOME)/libmdbsql_wrapper.so
 	
 install:
-	cp libmdbsql_wrapper.so $(WRAPPER_HOME)/bin
+	cp libmdbsql_wrapper.so $(WRAPPER_HOME)/
