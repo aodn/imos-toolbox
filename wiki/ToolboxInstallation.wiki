@@ -1,0 +1,5 @@
+#summary How to install the toolbox
+
+<wiki:toc/>
+
+= Introduction =
