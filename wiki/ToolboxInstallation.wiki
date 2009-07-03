@@ -7,7 +7,7 @@
 
 This page provides an overview of the steps required in order to get the IMOS Toolbox version 1.0 up and running. 
 
-Note: A Version 1.0 distribution of the Toolbox will be available early next week (the week beginning Monday 13^th^ July 2009); the current planned release date is Tuesday the 14^th^ of July. Until then, the latest [WeeklySnapshots snapshot] can be used as an alternative.
+Note: A Version 1.0 distribution of the Toolbox will be available early next week (the week beginning Monday 6^th^ July 2009); the current planned release date is Tuesday the 7^th^ of July. Until then, the latest [WeeklySnapshots snapshot] can be used as an alternative.
 
 == Requirements ==
 
