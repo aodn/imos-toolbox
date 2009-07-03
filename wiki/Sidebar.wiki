@@ -20,9 +20,9 @@
   * ToolboxInstallation
   * UsingTheToolboxOverview
   * [tortoiseSVN]
-  * MatlabEnvironment
   * WeeklySnapshots
  * Other
+  * MatlabEnvironment
   * [ProcessLevelsAndQC]
   * DeploymentDatabaseInterface
   * GraphingInMatlab
