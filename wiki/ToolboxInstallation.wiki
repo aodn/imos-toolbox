@@ -11,7 +11,7 @@ Note: A Version 1.0 distribution of the Toolbox will be available early next wee
 == Requirements ==
 
  * Windows XP
- * Matlab (!R2008a or newer)
+ * Matlab (r 2008a or newer)
  * Java JRE (1.5 or newer)
  * A deployment database
 
