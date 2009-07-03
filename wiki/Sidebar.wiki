@@ -17,6 +17,7 @@
   * [NetCDFExportSpecification]
   * GraphSpecification
  * Help
+  * ToolboxInstallation
   * UsingTheToolboxOverview
   * [tortoiseSVN]
   * MatlabEnvironment
