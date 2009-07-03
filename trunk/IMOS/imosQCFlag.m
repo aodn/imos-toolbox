@@ -1,11 +1,11 @@
 function value = imosQCFlag( qc_class, qc_set, field )
 %IMOSQCFLAG Returns an appropriate QC flag value (String), description, color 
-% spec, or set description for the given qc_class (String), using the given 
-% qc_set (integer).
+% spec, output type, or set description for the given qc_class (String), 
+% using the given qc_set (integer).
 %
-% The QC sets definitions, descriptions, and valid flag values for each, are 
-% maintained in the file  'imosQCSets.txt' which is stored  in the same 
-% directory as this m-file.
+% The QC sets definitions, descriptions, output types, and valid flag values 
+% for each, are maintained in the file  'imosQCSets.txt' which is stored  in 
+% the same directory as this m-file.
 %
 % The value returned by this function is one of:
 %   - the appropriate QC flag value to use for flagging data when using the 
@@ -13,6 +13,7 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %   - a human readable description of the flag meaning.
 %   - a ColorSpec which should be used when displaying the flag
 %   - a human readable description of the qc set.
+%   - the matlab type in which the flag values should be output.
 %   - a vector of characters, defining the different flag values that are
 %     possible in the qc set.
 %
@@ -28,11 +29,11 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %              the first qc set defined in the imosQCSets.txt file.
 %
 %   field    - String which defines what the return value is. Must be one
-%              of 'flag', 'desc', 'set_desc', 'values' or 'color'.
+%              of 'flag', 'desc', 'set_desc', 'type', 'values' or 'color'.
 %
 % Outputs:
-%   value    - One of the flag value, flag description, color spec, or set 
-%              description.
+%   value    - One of the flag value, flag description, output type, color 
+%              spec, or set description.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -87,7 +88,7 @@ try
   if fid == -1, return; end
 
   % read in the QC sets and flag values for each set
-  sets  = textscan(fid, '%f%s%s',     'delimiter', ',', 'commentStyle', '%');
+  sets  = textscan(fid, '%f%s%s%s',   'delimiter', ',', 'commentStyle', '%');
   flags = textscan(fid, '%f%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
   fclose(fid);
 
@@ -119,14 +120,18 @@ elseif strcmp(field, 'values')
   val = sets{3}(qc_set_idx);
   val = val{1};
   
-  %value = val;
-  
   % try to convert to a vector of numbers, otherwise return a string
   value = str2num(val);
   if isempty(value), value = val(val ~= ' '); end
   
   return;
   
+elseif strcmp(field, 'type')
+  
+  value = sets{4}(qc_set_idx);
+  value = value{1};
+  
+  return;
 end
 
 % find a flag entry with matching qc_set and qc_class values
@@ -135,10 +140,7 @@ for k=1:length(lines)
   
   if strcmp(field, 'color') || strcmp(field, 'desc')
     
-    % qc_class may have been passed in as a number or a character 
-    flagVal = num2str(qc_class);
-    
-    if strcmp(flagVal, flags{2}{lines(k)})
+    if qc_class == flags{2}{lines(k)}
       
       switch (field)
         
