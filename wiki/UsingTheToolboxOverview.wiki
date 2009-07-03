@@ -9,11 +9,11 @@ This page gives a brief overview on how to configure and use the toolbox. You ar
 
 == Starting the toolbox ==
 
-The toolbox is currently started via the `flowManager` function, which prompts you for the data you wish to import, then loads and displays the data.
+The toolbox is started via the `imosToolbox` function, which prompts you for the data you wish to import, then loads and displays the data.
 
 Start the toolbox like so:
 {{{
->> flowManager
+>> imosToolbox
 }}}
 
 
