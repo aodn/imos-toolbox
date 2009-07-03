@@ -5,7 +5,7 @@
 
 = Using the Toolbox =
 
-This page gives a brief overview on how to configure and use the toolbox. You are encouraged to provide feedback on any aspect of the toolbox (e.g. is the user interface intuitive, easy to use?). Check out the [ToolboxInstallation installation instructions] for details on how to get the toolbox up and running.
+This page gives a brief overview on how to use the toolbox. You are encouraged to provide feedback on any aspect of the toolbox (e.g. is the user interface intuitive, easy to use?). Check out the [ToolboxInstallation installation instructions] for details on how to get the toolbox up and running.
 
 == Starting the toolbox ==
 
