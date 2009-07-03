@@ -1,5 +1,5 @@
 #summary How to install the toolbox
-#labels Featured
+#labels Featured,Support
 
 <wiki:toc/>
 
