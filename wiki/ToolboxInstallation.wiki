@@ -34,10 +34,8 @@ Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the fo
     * `C:\imos-toolbox\Graph\TimeSeries`
   * `C:\imos-toolbox\GUI`
   * `C:\imos-toolbox\IMOS`
-  * `C:\imos-toolbox\Java`
   * `C:\imos-toolbox\NetCDF`
   * `C:\imos-toolbox\Parser`
-  * `C:\imos-toolbox\Tests` (optional)
 
 == Deployment Databse ==
 
