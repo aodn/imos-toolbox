@@ -144,7 +144,9 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
         fileDisplay = [fileDisplay ', ' name ext];
       end
       fileDisplay = fileDisplay(3:end);
-      waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
+      waitbar(k / length(deps), progress, ...
+              ['importing ' fileDisplay],...
+              'Name', 'Importing');
       disp(['importing ' fileDisplay]);
 
       % import data
