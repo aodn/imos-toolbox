@@ -2,4 +2,60 @@
 
 <wiki:toc/>
 
-= Introduction =
+= Toolbox Installation =
+
+This page provides an overview of the steps required in order to get the IMOS Toolbox version 1.0 up and running. 
+
+Note: A Version 1.0 distribution of the Toolbox will be available early next week (the week beginning Monday 13^th^ July 2009); the current planned release date is Tuesday the 14^th^ of July. Until then, the latest [WeeklySnapshots snapshot] can be used as an alternative.
+
+== Requirements ==
+
+ * Windows XP
+ * Matlab (R2008a or newer)
+ * Java JRE (1.5 or newer)
+ * A deployment database
+
+The toolbox will run under Linux, but MS Access support is flaky at best. Having said that, I've developed the toolbox almost exclusively under Ubuntu 9.04 (testing under Windows regularly, of course). See [DeploymentDatabaseInterface here] for more details on running the toolbox under Linux.
+
+== Download and install ==
+
+Download the Version 1.0 archive from the Downloads page. Extract the archive to a directory of your choice. Before you can use the toolbox, you must configure the matlab path and deployment database.
+
+== Matlab path ==
+
+The toolbox root, and every subdirectory within the toolbox root must be on the matlab path. In other words, you must add the following list of directories to your matlab path, either by setting the `MATLABPATH` environment variable, or, within matlab, using the 'Set Path' dialog, which is accessed via 'File'->'Set Path'. 
+
+Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the following directories to the path:
+  * `C:\imos-toolbox\`
+  * `C:\imos-toolbox\AutomaticQC`
+  * `C:\imos-toolbox\DDB`
+  * `C:\imos-toolbox\FlowManager`
+  * `C:\imos-toolbox\Graph`
+    * `C:\imos-toolbox\Graph\TimeSeries`
+  * `C:\imos-toolbox\GUI`
+  * `C:\imos-toolbox\IMOS`
+  * `C:\imos-toolbox\Java`
+  * `C:\imos-toolbox\NetCDF`
+  * `C:\imos-toolbox\Parser`
+  * `C:\imos-toolbox\Tests` (optional)
+
+== Deployment Databse ==
+
+Under Windows, the deployment database (hereafter referred to as the ddb) is accessed as an ODBC data source:
+
+ * Start
+  * Control Panel
+   * Administrative Tools
+    * Data Sources (ODBC)
+     * User DSN
+      * Add 
+       * Driver: "Microsoft Access Driver (`*`.mdb)"
+       * Data Source Name: "imos-ddb" (or whatever you wish to call it)
+       * Select -> navigate to the ddb MS Access file
+
+Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name.
+
+The ddb is accessed via Java code, thus you must also let Matlab know where the Java classes are, by editing `classpath.txt`. Assuming that matlab is installed in `C:\matlab`, and the toolbox is installed in `C:\imos-toolbox`, add the following line to the file `C:\matlab\toolbox\local\classpath.txt`:
+{{{
+C:\imos-toolbox\Java\bin
+}}}
