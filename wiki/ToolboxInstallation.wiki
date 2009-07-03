@@ -11,7 +11,7 @@ Note: A Version 1.0 distribution of the Toolbox will be available early next wee
 == Requirements ==
 
  * Windows XP
- * Matlab (R2008a or newer)
+ * Matlab (!R2008a or newer)
  * Java JRE (1.5 or newer)
  * A deployment database
 
@@ -19,7 +19,7 @@ The toolbox will run under Linux, but MS Access support is flaky at best. Having
 
 == Download and install ==
 
-Download the Version 1.0 archive from the Downloads page. Extract the archive to a directory of your choice. Before you can use the toolbox, you must configure the matlab path and deployment database.
+Download the Version 1.0 archive from the [Downloads] page. Extract the archive to a directory of your choice. Before you can use the toolbox, you must configure the matlab path and deployment database.
 
 == Matlab path ==
 
