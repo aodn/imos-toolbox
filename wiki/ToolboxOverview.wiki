@@ -1,5 +1,5 @@
 #summary Overview of the IMOS Toolbox
-#labels Featured,Requirements
+#labels Requirements
 
 <wiki:toc/>
 
