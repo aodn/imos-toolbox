@@ -5,62 +5,7 @@
 
 = Using the Toolbox =
 
-This page describes the state of the toolbox at [http://code.google.com/p/imos-toolbox/source/browse/?r=437 revision 437 (10th June 2009, 08:10). The trunk changes quickly, so these instructions may already be out of date.
-
-This page gives a brief overview on how to configure and use the toolbox. As development of the toolbox progresses, this page will be updated. Additionally, my aim is to reduce the amount of work required to configure the toolbox.
-
-This page also shows the current state of the toolbox GUI. Feedback, both positive and negative, is more than welcome. Please make criticisms, suggestions and comments, if you have any, so that I can design the GUI to be as useful as possible.
-
-== Configuration ==
-
-Before you can use the toolbox, you must configure the matlab path and deployment database.
-
-=== Matlab path ===
-
-The toolbox root, and every subdirectory within the toolbox root must be on the matlab path. In other words, you must add the following list of directories (valid as of the 1st July 2009) to your matlab path, either by setting the `MATLABPATH` environment variable, or, within matlab, using the 'Set Path' dialog, which is accessed via 'File'->'Set Path'. 
-
-Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the following directories to the path:
-  * `C:\imos-toolbox\`
-  * `C:\imos-toolbox\AutomaticQC`
-  * `C:\imos-toolbox\DDB`
-  * `C:\imos-toolbox\FlowManager`
-  * `C:\imos-toolbox\Graph`
-    * `C:\imos-toolbox\Graph\TimeSeries`
-  * `C:\imos-toolbox\GUI`
-  * `C:\imos-toolbox\IMOS`
-  * `C:\imos-toolbox\Java`
-  * `C:\imos-toolbox\NetCDF`
-  * `C:\imos-toolbox\Parser`
-  * `C:\imos-toolbox\Tests` (optional)
-
-=== Deployment Databse ===
-
-Under Windows, the deployment database (hereafter referred to as the ddb) is accessed as an ODBC data source:
-
- * Start
-  * Control Panel
-   * Administrative Tools
-    * Data Sources (ODBC)
-     * User DSN
-      * Add 
-       * Driver: "Microsoft Access Driver (`*`.mdb)"
-       * Data Source Name: "imos-ddb" (or whatever you wish to call it)
-       * Select -> navigate to the ddb MS Access file
-
-Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name.
-
-THe ddb is accessed via Java code, thus you must also compile this code, and let Matlab know where the Java classes are, by editing `classpath.txt`. 
-
-==== Compiling the Java code ====
-
-See the Building section on the DeploymentDatabase page for instructions on how to compile the Java DDB code. If you are unable to do this on your computer, [http://code.google.com/u/pauld.mccarthy/ email me] and I can send you the binary files. Alternatively, download the latest [WeeklySnapshots weekly snapshot], which contains the precompiled Java code.
-
-==== Configuring Matlab ====
-
-Assuming that matlab is installed in `C:\matlab`, and the toolbox is installed in `C:\imos-toolbox`, add the following line to the file `C:\matlab\toolbox\local\classpath.txt`:
-{{{
-C:\imos-toolbox\Java\bin
-}}}
+This page gives a brief overview on how to configure and use the toolbox. You are encouraged to provide feedback on any aspect of the toolbox (e.g. is the user interface intuitive, easy to use?). Check out the [ToolboxInstallation installation instructions] for details on how to get the toolbox up and running.
 
 == Starting the toolbox ==
 
@@ -112,25 +57,11 @@ By clicking on the 'Quality Control' button, you can choose to run the data thro
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_qc_dialog.png
 
-You can see that a few data points have been flagged. You can use the Matlab zoom mode to zoom in for a closer look.
+You can see that a few data points have been flagged. You can use the Matlab zoom mode to zoom in for a closer look. When you deselect zoom mode, you can use click+drag a box around data points to select them. Use the left mouse button to select all data points, and the right mouse button to select already-flagged data points. The selected data points are highlighted in white.
 
-http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_zoom.png
-
-When you deselect zoom mode, you can use click+drag a box around data points to select them. Use the left mouse button to select all data points, and the right mouse button to select already-flagged data points:
-
-http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_select.png
-
-The selected data points are highlighted in white:
-
-http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_selected.png
-
-Clicking on a set of selected data points will bring up a dialog, allowing you to set the QC flag on those points. The options will be different depending on which QC set you are using:
+Clicking on a set of selected data points will bring up a dialog, allowing you to set the QC flag on those points. The options will be different depending on which QC set you are using. When you confirm the flag dialog, you will see that the flag values for the selected data points have changed.
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_flag_dialog.png
-
-When you confirm the flag dialog, you can see that the flag values for the selected data points have changed:
-
-http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_flagged.png
 
 == Export ==
 
