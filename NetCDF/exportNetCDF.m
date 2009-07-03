@@ -64,6 +64,9 @@ function filename = exportNetCDF( sample_data, dest )
   fid = netcdf.create(filename, 'NC_NOCLOBBER');
   if fid == -1, error(['could not create ' filename]); end
   
+  qcSet  = str2double(readToolboxProperty('toolbox.qc_set'));
+  qcType = imosQCFlag('', qcSet, 'type');
+  
   try
     %
     % the file is created in the following order
@@ -97,6 +100,10 @@ function filename = exportNetCDF( sample_data, dest )
       dimAtts = dims{m};
       dimAtts = rmfield(dimAtts, 'data');
       dimAtts = rmfield(dimAtts, 'flags');
+      
+      % add the QC variable (defined below) 
+      % to the ancillary variables attribute
+      dimAtts.ancillary_variables = [dims{m}.name '_quality_control'];
 
       % create dimension
       did = netcdf.defDim(fid, upper(dims{m}.name), length(dims{m}.data));
@@ -143,6 +150,10 @@ function filename = exportNetCDF( sample_data, dest )
       varAtts = rmfield(varAtts, 'data');
       varAtts = rmfield(varAtts, 'dimensions');
       varAtts = rmfield(varAtts, 'flags');
+      
+      % add the QC variable (defined below) 
+      % to the ancillary variables attribute
+      varAtts.ancillary_variables = [varname '_quality_control'];
 
       % add the attributes
       putAtts(fid, vid, varAtts);
@@ -276,8 +287,8 @@ function vid = addQCVar(fid, sample_data, varIdx, dims, type)
   
   qcAtts.flag_values = double(qcFlags);
   
-  % turn descriptions into newline separated string
-  qcDescs = cellfun(@(x)(sprintf('%s\n', x)), qcDescs, 'UniformOutput', false);
+  % turn descriptions into space separated string
+  qcDescs = cellfun(@(x)(sprintf('%s ', x)), qcDescs, 'UniformOutput', false);
   qcAtts.flag_meanings = [qcDescs{:}];
   
   vid = netcdf.defVar(fid, varname, 'byte', dims);
