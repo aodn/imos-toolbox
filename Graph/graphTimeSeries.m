@@ -100,7 +100,7 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
     set(graphs(k), 'XTick', xTicks);
 
     % convert the tick labels into date strings
-    xTicks = datestr(xTicks); 
+    xTicks = datestr(xTicks, 'dd-mm-yy'); 
     set(graphs(k), 'XTickLabel', xTicks);
     
     % set y label and ticks
