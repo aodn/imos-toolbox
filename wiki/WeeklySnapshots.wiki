@@ -65,7 +65,7 @@ print('\n--removing test sample data')
 os.system('rm -rf %s/Tests/sample_data' % path)
 
 print('\n--building DDB interface')
-compiled = os.system('cd %s/Java && ant compile' % path)
+compiled = os.system('cd %s/Java && ant install' % path)
 
 if compiled is not 0:
   print('\n--DDB interface compilation failed - cleaning')
