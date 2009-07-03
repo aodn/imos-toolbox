@@ -23,6 +23,8 @@
 		
 		<delete dir="${targetdir}" />
 		<mkdir dir="${targetdir}" />
+
+    <delete file="ddb.jar"/>
 		
 		<exec os="Linux" executable="make" dir="${mdbsqldir}">
 			<arg value="clean"/>
@@ -40,6 +42,10 @@
 		</exec>
 		
 	</target>
+
+  <target name="install" depends="compile" description="--> Build a Jar file">
+    <jar basedir="${targetdir}" destfile="ddb.jar"/>
+  </target>
 	
 	<target name="test" depends="compile" 
 	  description="--> Runs a test case - pass
