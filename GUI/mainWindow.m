@@ -158,7 +158,7 @@ function mainWindow(...
   set(stateButtons, 'Units', 'normalized');
   
   % set window and widget positions
-  set(fig,        'Position', [0.15, 0.15, 0.7,  0.7 ]);
+  set(fig,        'Position', [0.1,  0.15, 0.8,  0.7 ]);
   set(sidePanel,  'Position', [0.0,  0.0,  0.15, 0.95]);
   set(mainPanel,  'Position', [0.15, 0.0,  0.85, 0.95]);
   set(sampleMenu, 'Position', [0.0,  0.95, 0.75, 0.05]);
