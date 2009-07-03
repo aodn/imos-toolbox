@@ -120,7 +120,7 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
   if isempty(deps), return; end
   
   % display progress dialog
-  progress = waitbar(0, 'importing data');
+  progress = waitbar(0, 'importing data', 'Name', 'Importing');
   
   dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
@@ -144,9 +144,7 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
         fileDisplay = [fileDisplay ', ' name ext];
       end
       fileDisplay = fileDisplay(3:end);
-      waitbar(k / length(deps), progress, ...
-              ['importing ' fileDisplay],...
-              'Name', 'Importing');
+      waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
       disp(['importing ' fileDisplay]);
 
       % import data
