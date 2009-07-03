@@ -33,7 +33,7 @@ Some of the deployments are highlighed:
 
  * A <font color="red">red deployment</font> indicates that the information in the ddb was invalid.
  * A *bold deployment* indicates that the toolbox could not find any files related to that deployment.
- * An _italicised deployment_ indicates that multiple files were found for that deployment. This will be the norm for e.g. ADCP instruments which store their data over multiple files. For other instruments (e.g. CTDs) this may indicate an error in the ddb, or in the data file naming scheme.
+ * An _italicised deployment_ indicates that multiple files were found for that deployment. This will be the norm for instruments which store their data over multiple files. For other instruments this may indicate an error in the ddb, or in the data file naming scheme.
 
 The dialog allows you to resolve any discrepancies between the information in ddb and the raw data files, by removing deployments, and adding/removing files to/from deployments.
 
