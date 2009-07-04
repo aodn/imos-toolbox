@@ -367,8 +367,9 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
     
     sam.variables{k}.deployment_id = deployment.DeploymentId;
     
-    sam.variables{k}.flags    = zeros(size(sam.variables{k}.data));
-    sam.variables{k}.flags(:) = flagVal;
+    sam.variables{k}.flags(1:numel(sam.variables{k}.data)) = flagVal;
+    sam.variables{k}.flags = reshape(...
+      sam.variables{k}.flags, size(sam.variables{k}.data));
     
     % we currently have no access to this information
     sam.variables{k}.valid_min = -99999.0;
@@ -377,8 +378,9 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
   
   for k = 1:length(sam.dimensions)
     
-    sam.dimensions{k}.flags    = zeros(size(sam.dimensions{k}.data));
-    sam.dimensions{k}.flags(:) = flagVal;
+    sam.dimensions{k}.flags(1:numel(sam.dimensions{k}.data)) = flagVal;
+    sam.dimensions{k}.flags = reshape(...
+      sam.dimensions{k}.flags, size(sam.dimensions{k}.data));
   end
   
   % add IMOS-compliant parameters
