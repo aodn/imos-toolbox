@@ -11,57 +11,57 @@ AIRT,      air_temperature,                                    Celsius,         
 ATMP,      air_pressure,                                       Pascal,                                                            M
 ATMS,      air_pressure_at_sea_level,                          Pascal,                                                            M
 CDIR,      direction_of_sea_water_velocity,                    Degrees clockwise from true North in the direction of the current, V
-CDOM,      concentration_of_coloured_dissolved_organic_matter, mg m^-3,                                                           K
-CNDC,      sea_water_electrical_conductivity,                  S m^-1,                                                            C
-CPHL,      concentration_of_clorophyll_in_sea_water,           mg m^-3,                                                           K
-CSPD,      sea_water_speed,                                    m s^-1,                                                            V
+CDOM,      concentration_of_coloured_dissolved_organic_matter, mg m-3,                                                            K
+CNDC,      sea_water_electrical_conductivity,                  S m-1,                                                             C
+CPHL,      concentration_of_chlorophyll_in_sea_water,          mg m-3,                                                            K
+CSPD,      sea_water_speed,                                    m s-1,                                                             V
 DEPTH,     depth,                                              m,                                                                 E
 DEWT,      dew_point_temperature,                              Celsius,                                                           M
-DOX2,      moles_of_oxygen_per_unit_mass_in_sea_water,         mol kg^-1,                                                         O
-DOXY,      mass_concentration_of_oxygen_in_sea_water,          kg m^-3,                                                           O
+DOX2,      moles_of_oxygen_per_unit_mass_in_sea_water,         mol kg-1,                                                          O
+DOXY,      mass_concentration_of_oxygen_in_sea_water,          kg m-3,                                                            O
 DOXY_TEMP, temperature_of_sensor_for_oxygen_in_sea_water,      Celsius,                                                           T
 DRYT,      dry_bulb_temperature,                               Celsius,                                                           M
 DYNHT,     dynamic_height,                                     m,                                                                 E
-EWCT,      eastward_sea_water_velocity,                        m s^-1,                                                            V
-FLU2,      fluorescence,                                       mg m^-3,                                                           B
-HEAT,      heat_content,                                       10^10 J m^-2,                                                      E
-HEAT_NET,  upward_heat_flux_in_air,                            W m^-2,                                                            F
-HCSP,      sea_water_speed,                                    m s^-1,                                                            V
-HL,        surface_upward_latent_heat_flux,                    W m^-2,                                                            F
-HS,        surface_upward_sensible_heat_flux,                  W m^-2,                                                            F
+EWCT,      eastward_sea_water_velocity,                        m s-1,                                                             V
+FLU2,      fluorescence,                                       mg m-3,                                                            B
+HEAT,      heat_content,                                       1010 J m-2,                                                        E
+HEAT_NET,  upward_heat_flux_in_air,                            W m-2,                                                             F
+HCSP,      sea_water_speed,                                    m s-1,                                                             V
+HL,        surface_upward_latent_heat_flux,                    W m-2,                                                             F
+HS,        surface_upward_sensible_heat_flux,                  W m-2,                                                             F
 ISO17,     isotherm_depth,                                     m,                                                                 E
 LATITUDE,  latitude,                                           degrees north,                                                     E
 LONGITUDE, longitude,                                          degrees east,                                                      E
-LW,        surface_downwelling_longwave_flux_in_air,           W m^-2,                                                            F
-LW_NET,    surface_new_upward_longwave_flux,                   W m^-2,                                                            F
-MASS_NET,  upward_mass_flux_of_air,                            kg m^-2 s^-1,                                                      F
-NSCT,      northward_sea_water_velocity,                       m s^-1,                                                            V
-NTRI,      mole_concentration_of_nitrate_in_sea_water,         mole m^-3,                                                         K
+LW,        surface_downwelling_longwave_flux_in_air,           W m-2,                                                             F
+LW_NET,    surface_new_upward_longwave_flux,                   W m-2,                                                             F
+MASS_NET,  upward_mass_flux_of_air,                            kg m-2 s-1,                                                        F
+NSCT,      northward_sea_water_velocity,                       m s-1,                                                             V
+NTRI,      mole_concentration_of_nitrate_in_sea_water,         mole m-3,                                                          K
 OPBS,      optical_backscattering_coefficient,                 .,                                                                 C
 PCO2,      surface_partial_pressure_of_carbon_dioxide_in_air,  Pascal,                                                            K
-PHOS,      moles_of_phosphate_per_unit_mass_in_sea_water,      mole kg^-1,                                                        K
+PHOS,      moles_of_phosphate_per_unit_mass_in_sea_water,      mole kg-1,                                                         K
 PRES,      sea_water_pressure,                                 dbar,                                                              E
-PSAL,      sea_water_salinity,                                 1e^-3,                                                             S
+PSAL,      sea_water_salinity,                                 1e-3,                                                              S
 Q,         specific_humidity,                                  %,                                                                 M
-RAIN,      rainfall_rate,                                      mm s^-1,                                                           M
+RAIN,      rainfall_rate,                                      mm s-1,                                                            M
 RAIT,      thickness_of_rainfall_amount,                       m,                                                                 M
 RELH,      relative_humidity,                                  %,                                                                 M
-SLCA,      mole_concentration_of_silicate_in_sea_water,        mole m^-3,                                                         K
-SRAD,      isotropic_shortwave_radiance_in_air,                W m^-1 sr^-1,                                                      F
+SLCA,      mole_concentration_of_silicate_in_sea_water,        mole m-3,                                                          K
+SRAD,      isotropic_shortwave_radiance_in_air,                W m-1 sr-1,                                                        F
 SST,       sea_surface_skin_temperature,                       Celsius,                                                           T
-SW,        surface_downwelling_shortwave_flux_in_air,          W m^-2,                                                            F
-SW_NET,    surface_net_upward_shortwave_flux,                  W m^-2,                                                            F
+SW,        surface_downwelling_shortwave_flux_in_air,          W m-2,                                                             F
+SW_NET,    surface_net_upward_shortwave_flux,                  W m-2,                                                             F
 TAU,       magnitude_of_surface_downward_stress,               Pascal,                                                            F
 TEMP,      sea_water_temperature,                              Celsius,                                                           T
 TIME,      time,                                               s,                                                                 E
 TURB,      turbidity,                                          NTU,                                                               U
-UCUR,      eastward_sea_water_velocity,                        m s^-1,                                                            V
-UWND,      eastward_wind,                                      m s^-1,                                                            M
+UCUR,      eastward_sea_water_velocity,                        m s-1,                                                             V
+UWND,      eastward_wind,                                      m s-1,                                                             M
 VAVH,      sea_surface_wave_significant_height,                m,                                                                 W
 VAVT,      sea_surface_wave_zero_upcrossing_period,            s,                                                                 W
-VCUR,      northward_sea_water_velocity,                       m s^-1,                                                            V
-VDEN,      sea_surface_wave_variance_spectral_density,         m^2 s,                                                             W
+VCUR,      northward_sea_water_velocity,                       m s-1,                                                             V
+VDEN,      sea_surface_wave_variance_spectral_density,         m2 s,                                                              W
 VDIR,      sea_surface_wave_from_direction,                    Degree clockwise from true North,                                  W
-VWND,      northward_wind,                                     m s^-1,                                                            M
+VWND,      northward_wind,                                     m s-1,                                                             M
 WDIR,      wind_to_direction,                                  Degree clockwise from true North,                                  M
-WSPD,      wind_speed,                                         m s^-1,                                                            M
+WSPD,      wind_speed,                                         m s-1,                                                             M

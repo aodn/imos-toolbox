@@ -1,6 +1,6 @@
 % what
 project                   = Integrated Marine Observing System (IMOS)
-conventions               = IMOS version 1.1
+conventions               = IMOS version 1.2
 title                     = [ddb Site]: [ddb Site Sites ResearchActivity]
 institution               = [ddb PersonnelDownload Personnel StaffID Organisation]
 date_created              = [mat datestr(sample_data.date_created, readToolboxProperty('exportNetCDF.dateFormat'))]
@@ -46,9 +46,14 @@ principal_investigator_email =
 institution_references       = 
 
 % how
-citation               =
-acknowledgement        = Data was sourced from the Integrated Marine Observing \
+citation               = The citation in a list of references is: "IMOS \
+                         [year-of-data-download], [Title], [data-access-url],\
+                         accessed [date-of-access]"
+acknowledgement        = Any users of IMOS data are required to clearly \
+                         acknowledge the source of the material in the format: \
+                         "Data was sourced from the Integrated Marine Observing \
                          System (IMOS) - an initiative of the Australian \
                          Government being conducted as part of the National \
-                         Collaborative Research Infrastructure Strategy.
+                         Collaborative Research Infrastructure Strategy and \
+                         and the Super Science Initiative."
 distribution_statement =
