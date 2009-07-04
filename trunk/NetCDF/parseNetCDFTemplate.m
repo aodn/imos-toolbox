@@ -244,7 +244,7 @@ function value = parseAttributeValue(line, sample_data, k)
     switch tkn(1:3)
       case 'ddb', val = parseDDBToken(tkn(5:end), sample_data, k);
       case 'mat', val = parseMatToken(tkn(5:end), sample_data, k);
-      otherwise,  val = '';
+      otherwise,  val = ['[' tkn ']'];
     end
     
     % replace the token from the original line with its value
