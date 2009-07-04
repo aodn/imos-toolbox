@@ -64,8 +64,9 @@ function filename = exportNetCDF( sample_data, dest )
   fid = netcdf.create(filename, 'NC_NOCLOBBER');
   if fid == -1, error(['could not create ' filename]); end
   
-  qcSet  = str2double(readToolboxProperty('toolbox.qc_set'));
-  qcType = imosQCFlag('', qcSet, 'type');
+  qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
+  qcType  = imosQCFlag('', qcSet, 'type');
+  qcDimId = [];
   
   try
     %
@@ -87,6 +88,12 @@ function filename = exportNetCDF( sample_data, dest )
     globAtts = rmfield(globAtts, 'variables');
     globAtts = rmfield(globAtts, 'dimensions');
     putAtts(fid, globConst, globAtts);
+    
+    % if the QC flag values are characters, we must define 
+    % a dimension to force the maximum value length to 1
+    if strcmp(qcType, 'char')
+      qcDimId = netcdf.defDim(fid, 'qcStrLen', 1);
+    end
 
     %
     % dimension and coordinate variable definitions
@@ -113,7 +120,7 @@ function filename = exportNetCDF( sample_data, dest )
       putAtts(fid, vid, dimAtts);
       
       % create the ancillary QC variable
-      qcvid = addQCVar(fid, sample_data, m, did, 'dim');
+      qcvid = addQCVar(fid, sample_data, m, [qcDimId did], 'dim', qcType);
       
       % save the netcdf dimension and variable IDs 
       % in the dimension struct for later reference
@@ -159,7 +166,7 @@ function filename = exportNetCDF( sample_data, dest )
       putAtts(fid, vid, varAtts);
       
       % create the ancillary QC variable
-      qcvid = addQCVar(fid, sample_data, m, dids, 'var');
+      qcvid = addQCVar(fid, sample_data, m, [qcDimId dids], 'var', qcType);
       
       % save variable IDs for later reference
       sample_data.variables{m}.vid   = vid;
@@ -189,11 +196,14 @@ function filename = exportNetCDF( sample_data, dest )
       data    = dims{m}.data;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
 
-      netcdf.putVar(fid, vid, data);
+      netcdf.putVar(fid, vid, data');
       
       % ancillary QC variable data
       varname = [varname '_quality_control'];
       data    = dims{m}.flags;
+      
+      
+      
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
       
       netcdf.putVar(fid, qcvid, data);
@@ -212,14 +222,15 @@ function filename = exportNetCDF( sample_data, dest )
       qcvid   = vars{m}.qcvid;
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
 
-      netcdf.putVar(fid, vid, data);
+      netcdf.putVar(fid, vid, data');
       
       % ancillary QC variable data
       varname = [varname '_quality_control'];
       data    = vars{m}.flags;
+      
       disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
       
-      netcdf.putVar(fid, qcvid, data);
+      netcdf.putVar(fid, qcvid, data');
     end
 
     %
@@ -234,7 +245,7 @@ function filename = exportNetCDF( sample_data, dest )
   end
 end
 
-function vid = addQCVar(fid, sample_data, varIdx, dims, type)
+function vid = addQCVar(fid, sample_data, varIdx, dims, type, outputType)
 %ADDQCVAR Adds an ancillary variable for the variable with the given index.
 %
 % Inputs:
@@ -243,8 +254,9 @@ function vid = addQCVar(fid, sample_data, varIdx, dims, type)
 %   varIdx      - Index into sample_data.variables, specifying the
 %                 variable.
 %   dims        - Vector of NetCDF dimension identifiers.
-%   template    - either 'dim' or 'var', to differentiate between
+%   type        - either 'dim' or 'var', to differentiate between
 %                 coordinate variables and data variables.
+%   outputType  - The matlab type in which the flags should be output.
 %
 % Outputs:
 %   vid         - NetCDF variable identifier of the QC variable that was 
@@ -270,7 +282,6 @@ function vid = addQCVar(fid, sample_data, varIdx, dims, type)
   
   % get qc flag values
   qcFlags = imosQCFlag('', sample_data.quality_control_set, 'values');
-  qcFlags = qcFlags;
   qcDescs = {};
   
   % get flag descriptions
@@ -283,15 +294,26 @@ function vid = addQCVar(fid, sample_data, varIdx, dims, type)
   % quality_control_indicator attribute 
   minFlag = min(var.flags(:));
   maxFlag = max(var.flags(:));
-  if minFlag == maxFlag, qcAtts.quality_control_indicator = minFlag; end
+  if minFlag == maxFlag
+    if strcmp(outputType, 'char'), minFlag = char(minFlag); end
+    qcAtts.quality_control_indicator = minFlag; 
+  end
   
-  qcAtts.flag_values = double(qcFlags);
+  % if the flag values are characters, turn the flag values 
+  % attribute into a string of comma separated characters
+  if strcmp(outputType, 'char')
+    qcFlags(2,:) = ',';
+    qcFlags = reshape(qcFlags, 1, numel(qcFlags));
+    qcFlags = qcFlags(1:end-1);
+    qcFlags = strrep(qcFlags, ',', ', ');
+  end
+  qcAtts.flag_values = qcFlags;
   
   % turn descriptions into space separated string
   qcDescs = cellfun(@(x)(sprintf('%s ', x)), qcDescs, 'UniformOutput', false);
   qcAtts.flag_meanings = [qcDescs{:}];
   
-  vid = netcdf.defVar(fid, varname, 'byte', dims);
+  vid = netcdf.defVar(fid, varname, outputType, dims);
   putAtts(fid, vid, qcAtts);
 end
 
