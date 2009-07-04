@@ -316,7 +316,7 @@ function displayManager( fieldTrip, sample_data, callbacks)
           % find the most frequently occuring flag value to 
           % pass to the flag dialog (to use as the default)
           flag = sample_data{setIdx}.variables{vars(varIdx)}.flags(dataIdx);
-          flag = mode(flag);
+          flag = mode(double(flag));
           
           % popup flag modification dialog
           flag = addFlagDialog(flag);
