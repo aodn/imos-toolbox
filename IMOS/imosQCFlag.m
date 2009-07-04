@@ -13,7 +13,7 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %   - a human readable description of the flag meaning.
 %   - a ColorSpec which should be used when displaying the flag
 %   - a human readable description of the qc set.
-%   - the matlab type in which the flag values should be output.
+%   - the NetCDF type in which the flag values should be output.
 %   - a vector of characters, defining the different flag values that are
 %     possible in the qc set.
 %
@@ -140,7 +140,10 @@ for k=1:length(lines)
   
   if strcmp(field, 'color') || strcmp(field, 'desc')
     
-    if qc_class == flags{2}{lines(k)}
+    % flag value may have been passed in as a number or a character
+    flagVal = num2str(qc_class);
+    
+    if flagVal == flags{2}{lines(k)}
       
       switch (field)
         
