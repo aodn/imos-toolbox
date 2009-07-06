@@ -141,12 +141,13 @@ function sample_data = WQMParse( filename )
 
   %fill in sample and cal data
   sample_data            = struct;
+  sample_data.meta       = struct;
   sample_data.dimensions = {};
   sample_data.variables  = {};
 
-  sample_data.instrument_make      = 'WQM';
-  sample_data.instrument_model     = 'WET Labs';
-  sample_data.instrument_serial_no = samples{1}{1};
+  sample_data.meta.instrument_make      = 'WQM';
+  sample_data.meta.instrument_model     = 'WET Labs';
+  sample_data.meta.instrument_serial_no = samples{1}{1};
 
   % create a variables struct in sample_data for each field in the file
   % start index at 4 to skip serial, date and time
