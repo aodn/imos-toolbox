@@ -182,9 +182,11 @@ function filename = exportNetCDF( sample_data, dest )
     dims = sample_data.dimensions;
     
     % translate time from matlab serial time (days since 0000-00-00 00:00:00Z)
-    % to IMOS mandated time (days since 1950-01-01T00:00:00Z)
+    % to IMOS mandated time (days since 1950-01-01T00:00:00Z), and apply
+    % time zone offset to turn time into UTC
     if strcmpi(dims{1}.name, 'TIME')
       dims{1}.data = dims{1}.data - datenum('1950-01-01 00:00:00');
+      dims{1}.data = dims{1}.data + sample_data.local_time_zone/24.0;
     end
     
     for m = 1:length(dims)
@@ -297,6 +299,11 @@ function vid = addQCVar(fid, sample_data, varIdx, dims, type, outputType)
   if minFlag == maxFlag
     if strcmp(outputType, 'char'), minFlag = char(minFlag); end
     qcAtts.quality_control_indicator = minFlag; 
+  end
+  
+  % force fill value to correct type
+  if strcmp(outputType, 'byte')
+    qcAtts.FillValue_ = uint8(qcAtts.FillValue_);
   end
   
   % if the flag values are characters, turn the flag values 
