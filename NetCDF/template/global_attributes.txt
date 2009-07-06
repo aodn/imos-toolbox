@@ -1,25 +1,29 @@
 % what
-project                   = Integrated Marine Observing System (IMOS)
-conventions               = IMOS version 1.2
-title                     = [ddb Site]: [ddb Site Sites ResearchActivity]
-institution               = [ddb PersonnelDownload Personnel StaffID Organisation]
-date_created              = [mat datestr(sample_data.date_created, readToolboxProperty('exportNetCDF.dateFormat'))]
-abstract                  = 
-history                   = 
-comment                   = [ddb Comment]
-source                    = [ddb InstrumentID Instruments Make] \
-                            [ddb InstrumentID Instruments Model]
-keywords                  = 
-references                =
-netcdf_version            = 3.6
-quality_control_set       = [mat readToolboxProperty('toolbox.qc_set')]
-site_code                 = [ddb Site]
-platform_code             = 
-naming_authority          = IMOS
-cdm_data_type             = 
-metadata                  = 
-sensorML                  = 
-product_type              =
+project                      = Integrated Marine Observing System (IMOS)
+conventions                  = IMOS version 1.2
+title                        = [ddb Site]: [ddb Site Sites ResearchActivity]
+institution                  = [ddb PersonnelDownload Personnel StaffID Organisation]
+date_created                 = [mat datestr(sample_data.date_created, readToolboxProperty('exportNetCDF.dateFormat'))]
+abstract                     = 
+history                      = 
+comment                      = [ddb Comment]
+source                       = [ddb InstrumentID Instruments Make] \
+                               [ddb InstrumentID Instruments Model]
+keywords                     = 
+references                   = 
+netcdf_version               = 3.6
+quality_control_set          = [mat readToolboxProperty('toolbox.qc_set')]
+site_code                    = [ddb Site]
+platform_code                = 
+naming_authority             = IMOS
+cdm_data_type                = 
+metadata                     = 
+sensorML                     = 
+product_type                 =
+
+% these fields are automatically populated upon creation
+file_version                 = 
+file_version_quality_control = 
 
 % where
 geospatial_lat_min      = [ddb Site Sites Latitude]
@@ -30,9 +34,11 @@ geospatial_vertical_min = [ddb InstrumentDepth]
 geospatial_vertical_max = [ddb InstrumentDepth]
 
 % when
-time_coverage_start = [ddb TimeFirstInPos]
-time_coverage_end   = [ddb TimeLastInPos]
-local_time_zone     = [ddb TimeZone]
+local_time_zone     = [mat java.util.TimeZone.getDefault().getRawOffset() / 3600000]
+
+% these fields are automatically populated upon import
+time_coverage_start = 
+time_coverage_end   = 
 
 % who
 data_centre                  = eMarine Information Infrastructure (eMII)
