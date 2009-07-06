@@ -360,7 +360,7 @@ function mainWindow(...
                   datestr(s.dimensions{1}.data(end), dateFmt)];
       
       if isfield(s.meta, 'site') 
-        descs{m} = [s.meta.site.SiteName ' ' descs{m}];
+        descs{m} = [s.meta.Sites.SiteName ' ' descs{m}];
       end
     end
   end

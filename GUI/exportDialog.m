@@ -296,7 +296,7 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
       descs{k} = ['(' s.instrument_model ')' names{k}];
       
       if isfield(s.meta, 'site')
-        descs{k} = [s.meta.site.SiteName ' ' descs{k}];
+        descs{k} = [s.meta.Sites.SiteName ' ' descs{k}];
       end
     end
   end
