@@ -185,8 +185,8 @@ function filename = exportNetCDF( sample_data, dest )
     % to IMOS mandated time (days since 1950-01-01T00:00:00Z), and apply
     % time zone offset to turn time into UTC
     if strcmpi(dims{1}.name, 'TIME')
-      dims{1}.data = dims{1}.data - datenum('1950-01-01 00:00:00');
-      dims{1}.data = dims{1}.data + sample_data.local_time_zone/24.0;
+      dims{1}.data = dims{1}.data - datenum('1950-01-00 00:00:00');
+      dims{1}.data = dims{1}.data - sample_data.local_time_zone/24.0;
     end
     
     for m = 1:length(dims)
