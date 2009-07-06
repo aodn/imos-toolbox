@@ -152,9 +152,9 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
       sam = finaliseData(sam, fieldTrip, deps(k), dateFmt, rawFlag);
       
       % turn raw data files a into semicolon separated string
-      sam.raw_data_file = ...
+      sam.meta.raw_data_file = ...
         cellfun(@(x)([x ';']), files{k}, 'UniformOutput', false);
-      sam.raw_data_file = [sam.raw_data_file{:}];
+      sam.meta.raw_data_file = [sam.meta.raw_data_file{:}];
       
       sample_data{end+1} = sam;
     
@@ -341,12 +341,11 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
 %
   
   % process level == raw (file version 0)
-  sam.meta.level             = 0;
-  sam.meta.log               = {};
-  sam.date_created           = datestr(now, dateFmt);
-
-  sam.field_trip_id          = fieldTrip.FieldTripID;
-  sam.field_trip_description = fieldTrip.FieldDescription;
+  sam.meta.level                   = 0;
+  sam.meta.log                     = {};
+  sam.file_version                 = imosFileVersion(0, 'name');
+  sam.file_version_quality_control = imosFileVersion(0, 'desc');
+  sam.date_created                 = datestr(now, dateFmt);
     
   % add metadata to the sample data struct, to 
   % eliminate the need for later DDB lookups
@@ -368,10 +367,6 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
     sam.variables{k}.flags(1:numel(sam.variables{k}.data)) = flagVal;
     sam.variables{k}.flags = reshape(...
       sam.variables{k}.flags, size(sam.variables{k}.data));
-    
-    % we currently have no access to this information
-    sam.variables{k}.valid_min = -99999.0;
-    sam.variables{k}.valid_max =  99999.0;
   end
   
   for k = 1:length(sam.dimensions)

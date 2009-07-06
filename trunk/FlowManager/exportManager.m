@@ -114,12 +114,12 @@ end
 function exportRawData(sample_data, exportDir, dest)
 %EXPORTRAWDATA Copies the raw data file for the given sample_data to the
 % given exportDir/dest. Relies upon the existence of the field
-% sample_data.raw_data_file, which must contain a semi-colon separated string 
-% of absolute paths to the raw data files associated with the sample_data 
-% struct. 
+% sample_data.meta.raw_data_file, which must contain a semi-colon separated 
+% string of absolute paths to the raw data files associated with the 
+% sample_data struct. 
 %
 
-  rawFiles = sample_data.raw_data_file;
+  rawFiles = sample_data.meta.raw_data_file;
   
   rawFiles = textscan(rawFiles, '%s', 'Delimiter', ';');
   rawFiles = rawFiles{1};
