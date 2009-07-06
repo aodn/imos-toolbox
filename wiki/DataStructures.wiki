@@ -16,8 +16,13 @@ The following sections define scalar instances of `sample_data` structs.
 `sample_data` is a scalar struct which contain sample data/metadata. The most important fields are listed below. Global NetCDF attributes are added as fields of `sample_data`; coordinate variable attributes are added as fields of each `dimensions` entry; variable attributes are added as fields of each `variables` entry.
 
  * `sample_data`: struct
-   * `level`: Data process level (Numeric)
-   * `log`: Cell array of strings forming a log of the processing which has occurred on the data.
+   * `meta`: Any metadata which is not to be exported to NetCDF.
+     * `FieldTrip`: Associated field trip entry from the deployment database
+     * `DeploymentData`: Associated deployment entry from the deployment database
+     * `Sites`:  Associated site entry from the deployment database
+     * `Instruments`: Associated instrument entry from the deployment database
+     * `level`: Data process level (Numeric)
+     * `log`: Cell array of strings forming a log of the processing which has occurred on the data.
    * `dimensions`: Cell array of structs:
      * `name`: IMOS compliant dimension name (String)
      * `data`: Vector of dimension data (Numeric)
