@@ -139,12 +139,12 @@ error(nargchk(1,1,nargin));
   end
   
   % fill in the sample_data struct
-  sample_data.meta.fixedLeader     = fixed;
-  sample_data.instrument_make      = 'Teledyne RD';
-  sample_data.instrument_model     = 'Workhorse ADCP';
-  sample_data.instrument_serial_no =  num2str(fixed.instSerialNumber);
-  sample_data.instrument_firmware  = [num2str(fixed.cpuFirmwareVersion) '.' ...
-                                      num2str(fixed.cpuFirmwareRevision)];
+  sample_data.meta.fixedLeader          = fixed;
+  sample_data.meta.instrument_make      = 'Teledyne RD';
+  sample_data.meta.instrument_model     = 'Workhorse ADCP';
+  sample_data.meta.instrument_serial_no =  num2str(fixed.instSerialNumber);
+  sample_data.meta.instrument_firmware  = ...
+    [num2str(fixed.cpuFirmwareVersion) '.' num2str(fixed.cpuFirmwareRevision)];
                                     
   % add dimensions
   sample_data.dimensions{1}.name       = 'TIME';

@@ -65,7 +65,8 @@ function sample_data = aquatecParse( file )
 
   if ~iscellstr(file), error('file must be a cell array of strings'); end
 
-  sample_data = struct;
+  sample_data            = struct;
+  sample_data.meta       = struct;
   sample_data.dimensions = {};
   sample_data.variables  = {};
   
@@ -119,10 +120,10 @@ function sample_data = aquatecParse( file )
   firmware = getValues({'VERSION'},    keys, meta);
   serial   = getValues({'LOGGER'},     keys, meta);
   
-  sample_data.instrument_make      = 'Aquatec';
-  sample_data.instrument_model     = ['Aqualogger ' model{1}];
-  sample_data.instrument_firmware  = firmware{1};
-  sample_data.instrument_serial_no = serial{1};
+  sample_data.meta.instrument_make      = 'Aquatec';
+  sample_data.meta.instrument_model     = ['Aqualogger ' model{1}];
+  sample_data.meta.instrument_firmware  = firmware{1};
+  sample_data.meta.instrument_serial_no = serial{1};
   
   %
   % get regime data (mode, sample rate, etc)

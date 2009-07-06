@@ -162,6 +162,7 @@ pressure_cal_expr = ['^[\*]\s*pressure\s+S/N\s+(\d+)'... % serial number
 sample_expr = '%21c';
 
 sample_data            = struct;
+sample_data.meta       = struct;
 sample_data.variables  = {};
 sample_data.dimensions = {};
 temperature            = [];
@@ -178,8 +179,8 @@ read_pres = 0;
 
 % The instrument_model field will be overwritten 
 % as the calibration data is read in
-sample_data.instrument_make  = 'Sea-bird Electronics';
-sample_data.instrument_model = 'SBE3x';
+sample_data.meta.instrument_make  = 'Sea-bird Electronics';
+sample_data.meta.instrument_model = 'SBE3x';
 
 %% Read file header (which contains sensor and calibration information)
 %
@@ -223,7 +224,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
   if ~isempty(tkn)
     
     % save the calibration coefficient 
-    sample_data.(tkn{1}{1}) = str2double(tkn{1}{2});
+    sample_data.meta.(tkn{1}{1}) = str2double(tkn{1}{2});
     
     line = fgetl(fid);
     continue;
@@ -235,7 +236,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
   tkn = regexp(line, sensor_cal_expr, 'tokens');
   if ~isempty(tkn)
     
-    sample_data.([tkn{1}{1} '_calibration_date']) = strtrim(tkn{1}{2});
+    sample_data.meta.([tkn{1}{1} '_calibration_date']) = strtrim(tkn{1}{2});
      
     if strcmp('temperature', tkn{1}{1})
       
@@ -264,9 +265,9 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
     sample_expr = ['%f' sample_expr];
     sample_data.variables{end+1}.name = PRESSURE_NAME;
     
-    sample_data.pressure_serial_no        = strtrim(tkn{1}{1});
-    sample_data.pressure_range_psia       = str2double(tkn{1}{2});
-    sample_data.pressure_calibration_date = strtrim(tkn{1}{3});
+    sample_data.meta.pressure_serial_no        = strtrim(tkn{1}{1});
+    sample_data.meta.pressure_range_psia       = str2double(tkn{1}{2});
+    sample_data.meta.pressure_calibration_date = strtrim(tkn{1}{3});
     line = fgetl(fid);
     
     continue;
@@ -278,9 +279,9 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
   tkn = regexp(line, header_expr, 'tokens');
   if ~isempty(tkn)
 
-    sample_data.instrument_model     = tkn{1}{1};
-    sample_data.instrument_firmware  = tkn{1}{2};
-    sample_data.instrument_serial_no = tkn{1}{3};
+    sample_data.meta.instrument_model     = tkn{1}{1};
+    sample_data.meta.instrument_firmware  = tkn{1}{2};
+    sample_data.meta.instrument_serial_no = tkn{1}{3};
 
   end
   
