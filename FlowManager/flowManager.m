@@ -214,8 +214,12 @@ function flowManager()
       end
     end
     
-    % set level on each QC'd data set
-    for k = 1:length(aqc), aqc{k}.meta.level = 1; end
+    % set level and file version on each QC'd data set
+    for k = 1:length(aqc)
+      aqc{k}.meta.level = 1; 
+      aqc{k}.file_version                 = imosFileVersion(1, 'name');
+      aqc{k}.file_version_quality_control = imosFileVersion(1, 'desc');
+    end
     
     % otherwise return new QC data
     autoQCData(setIdx) = aqc;

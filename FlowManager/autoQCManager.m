@@ -107,8 +107,8 @@ function qc_data = autoQCManager( sample_data )
       % update progress bar
       progVal = ...
         ((k-1)*length(qcChain)+m) / (length(qcChain)*length(sample_data));
-      progStr = [sample_data{k}.instrument_make ' '...
-                 sample_data{k}.instrument_model ' ' qcChain{m}];
+      progStr = [sample_data{k}.meta.instrument_make ' '...
+                 sample_data{k}.meta.instrument_model ' ' qcChain{m}];
       waitbar(progVal, progress, progStr);
       
       % run current QC routine over the current data set
