@@ -116,10 +116,9 @@ error(nargchk(1,1,nargin));
     veast = velocity.velocity1;
     vnrth = velocity.velocity2;
     
-    % set all bad values to 0. might remove this later, 
-    % but it makes viewing the data much easier
-    vnrth(vnrth == -32768) = 0;
-    veast(veast == -32768) = 0;
+    % set all bad values to nan. 
+    vnrth(vnrth == -32768) = nan;
+    veast(veast == -32768) = nan;
     
     % / 1000.0, as the velocity samples are in millimetres per second
     speed(k,:) = sqrt(vnrth.^2 + veast.^2) / 1000.0;
@@ -134,8 +133,6 @@ error(nargchk(1,1,nargin));
     direction(k,se) = arrayfun(@(x)(180 - x), direction(k,se));
     direction(k,sw) = arrayfun(@(x)(180 + x), direction(k,sw));
     direction(k,nw) = arrayfun(@(x)(360 - x), direction(k,nw));
-    
-    direction(k,isnan(vnrth)) = 0;
   end
   
   % fill in the sample_data struct
