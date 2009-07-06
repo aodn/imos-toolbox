@@ -1,4 +1,4 @@
-  standard_name             = time
+standard_name             = time
 long_name                 = time
 units                     = days since 1950-01-01T00:00:00Z
 axis                      = T

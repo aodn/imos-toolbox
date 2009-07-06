@@ -1,29 +1,27 @@
 % what
 project                      = Integrated Marine Observing System (IMOS)
 conventions                  = IMOS version 1.2
-title                        = [ddb Site]: [ddb Site Sites ResearchActivity]
-institution                  = [ddb PersonnelDownload Personnel StaffID Organisation]
+title                        = [ddb Site]
+institution                  = 
 date_created                 = [mat datestr(sample_data.date_created, readToolboxProperty('exportNetCDF.dateFormat'))]
-abstract                     = 
-history                      = 
+abstract                     = [ddb Site Sites Description]
 comment                      = [ddb Comment]
-source                       = [ddb InstrumentID Instruments Make] \
-                               [ddb InstrumentID Instruments Model]
-keywords                     = 
-references                   = 
+source                       = [ddb InstrumentID Instruments Make] [ddb InstrumentID Instruments Model]
+keywords                     = [ddb InstrumentID Instruments Model], [mat cellStructStr(sample_data.variables, 'name', ', ')]
+references                   = http://www.imos.org.au
 netcdf_version               = 3.6
 quality_control_set          = [mat readToolboxProperty('toolbox.qc_set')]
-site_code                    = [ddb Site]
+site_code                    = 
 platform_code                = 
 naming_authority             = IMOS
-cdm_data_type                = 
+cdm_data_type                = Station
 metadata                     = 
 sensorML                     = 
-product_type                 =
 
-% these fields are automatically populated upon creation
+% these fields are automatically populated upon creation/export
 file_version                 = 
 file_version_quality_control = 
+history                      = 
 
 % where
 geospatial_lat_min      = [ddb Site Sites Latitude]
@@ -44,12 +42,10 @@ time_coverage_end   =
 data_centre                  = eMarine Information Infrastructure (eMII)
 data_centre_email            = info@emii.org.au
 author_email                 = 
-author                       = [ddb PersonnelDownload Personnel StaffID FirstName] \
-                               [ddb PersonnelDownload Personnel StaffID LastName]
-principal_investigator       = [ddb PersonnelDownload Personnel StaffID FirstName] \
-                               [ddb PersonnelDownload Personnel StaffID LastName]
+author                       = 
+principal_investigator       = 
 principal_investigator_email =
-institution_references       = 
+institution_references       = http://www.imos.org.au/emii.html
 
 % how
 citation               = The citation in a list of references is: "IMOS \
@@ -62,4 +58,8 @@ acknowledgement        = Any users of IMOS data are required to clearly \
                          Government being conducted as part of the National \
                          Collaborative Research Infrastructure Strategy and \
                          and the Super Science Initiative."
-distribution_statement =
+distribution_statement = Data may be re-used, provided that related metadata \
+                         explaining the data has been reviewed by the user, and \
+                         the data is appropriately acknowledged. Data, products \
+                         and services from IMOS are provided "as is" without \
+                         any warranty as to fitness for a particular purpose.
