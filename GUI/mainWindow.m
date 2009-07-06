@@ -222,7 +222,7 @@ function mainWindow(...
       state, ...
       sample_data, ...
       graph, ...
-      sam.index, vars);
+      sam.meta.index, vars);
   end
   
   function sampleMenuCallback(source,ev)
@@ -268,9 +268,9 @@ function mainWindow(...
     
     % a new data set is being added
     updateMenus = 0;
-    if sam.index > length(sample_data), updateMenus = 1; end
+    if sam.meta.index > length(sample_data), updateMenus = 1; end
     
-    sample_data{sam.index} = sam;
+    sample_data{sam.meta.index} = sam;
     
     set(sampleMenu, 'String', genSampleDataDescs(sample_data, timeFmt));
     
