@@ -340,9 +340,9 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
 %trip and deployment structs to the given sample data.
 %
   
-  % process level == raw
-  sam.level                  = 0;
-  sam.log                    = {};
+  % process level == raw (file version 0)
+  sam.meta.level             = 0;
+  sam.meta.log               = {};
   sam.date_created           = datestr(now, dateFmt);
 
   sam.field_trip_id          = fieldTrip.FieldTripID;
@@ -350,22 +350,20 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
     
   % add metadata to the sample data struct, to 
   % eliminate the need for later DDB lookups
-  sam.meta.deployment = deployment;
-  sam.meta.fieldTrip  = fieldTrip;
-  sam.meta.site       = executeDDBQuery('Sites', 'Site', deployment.Site);
-  sam.meta.instrument = executeDDBQuery('Instruments', ...
+  sam.meta.DeploymentData = deployment;
+  sam.meta.FieldTrip      = fieldTrip;
+  sam.meta.Sites          = executeDDBQuery('Sites', 'Site', deployment.Site);
+  sam.meta.Instruments    = executeDDBQuery('Instruments', ...
     'InstrumentID', deployment.InstrumentID);
   
-  if isempty(sam.meta.site)
-    sam.meta = rmfield(sam.meta, 'site'); 
+  if isempty(sam.meta.Sites)
+    sam.meta = rmfield(sam.meta, 'Sites'); 
   end
-  if isempty(sam.meta.instrument)
-    sam.meta = rmfield(sam.meta, 'instrument'); 
+  if isempty(sam.meta.Instruments)
+    sam.meta = rmfield(sam.meta, 'Instruments'); 
   end
   
   for k = 1:length(sam.variables)
-    
-    sam.variables{k}.deployment_id = deployment.DeploymentId;
     
     sam.variables{k}.flags(1:numel(sam.variables{k}.data)) = flagVal;
     sam.variables{k}.flags = reshape(...

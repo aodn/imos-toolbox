@@ -53,7 +53,7 @@ function filename = genIMOSFileName( sample_data, suffix )
   % get all the individual components that make up the filename
   %
 
-  file_version  = ['FV0' num2str(sample_data.level)];
+  file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
   facility_code = sample_data.institution;
   platform_code = sample_data.platform_code;
   product_type  = sample_data.product_type;
@@ -76,7 +76,7 @@ function filename = genIMOSFileName( sample_data, suffix )
   data_code = '';
   
   % code for raw data should contain 'R' for raw
-  if sample_data.level == 0, data_code = 'R'; end
+  if sample_data.meta.level == 0, data_code = 'R'; end
   for k = 1:length(sample_data.variables)
 
     % get the data code for this parameter; don't add duplicate codes
