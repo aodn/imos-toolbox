@@ -263,8 +263,8 @@ function mainWindow(...
   % copy of the data set.
   %
     error(nargchk(1,1,nargin));
-    if ~isstruct(sam),         error('sam must be a struct');         end
-    if ~isfield(sam, 'index'), error('sam must have an index field'); end
+    if ~isstruct(sam),              error('sam must be a struct');         end
+    if ~isfield(sam.meta, 'index'), error('sam must have an index field'); end
     
     % a new data set is being added
     updateMenus = 0;
@@ -355,7 +355,7 @@ function mainWindow(...
     for m = 1:length(sam)
       s = sam{m};
 
-      descs{m} = ['(' s.instrument_model '): ' ...
+      descs{m} = ['(' s.meta.instrument_model '): ' ...
                   datestr(s.dimensions{1}.data(1),   dateFmt) ' - ' ...
                   datestr(s.dimensions{1}.data(end), dateFmt)];
       
