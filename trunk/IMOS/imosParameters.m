@@ -1,6 +1,6 @@
 function value = imosParameters( short_name, field )
-%IMOSPARAMETERS Returns IMOS compliant standard name, units of measurement or
-% data code, given the short parameter name.
+%IMOSPARAMETERS Returns IMOS compliant standard name, units of measurement, 
+% data code, fill value or valid min/max value given the short parameter name.
 %
 % The list of all IMOS parameters is stored in a file 'imosParameters.txt'
 % which is in the same directory as this m-file.
@@ -8,17 +8,17 @@ function value = imosParameters( short_name, field )
 % The file imosParameters.txt contains a list of all parameters for which an
 % IMOS compliant identifier (the short_name) exists. This function looks up the 
 % given short_name and returns the corresponding standard name, units of 
-% measurement or data code. If the given short_name is not in the list of IMOS 
-% parameters, an error is raised.
+% measurement, data code, fill value or valid min/max value. If the given 
+% short_name is not in the list of IMOS parameters, an error is raised.
 %
 % Inputs:
 %   short_name  the IMOS parameter name
-%
-%   field      - either 'standard_name', 'uom', or 'data_code'.
+%   field      - either 'standard_name', 'uom', or 'data_code',
+%                'fill_value', 'valid_min' or 'valid_max',
 %
 % Outputs:
-%   value      - the IMOS standard name, unit of measurement or data code, 
-%                whichever was requested.
+%   value      - the IMOS standard name, unit of measurement, data code, 
+%                fill value or valid min/max value, whichever was requested.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -69,7 +69,8 @@ try
   fid = fopen([path filesep 'imosParameters.txt']);
   if fid == -1, return; end
   
-  params = textscan(fid, '%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
+  params = textscan(fid, '%s%s%s%s%f%f%f', ...
+    'delimiter', ',', 'commentStyle', '%');
   fclose(fid);
 catch e
   if fid ~= -1, fclose(fid); end
@@ -80,6 +81,9 @@ names          = params{1};
 standard_names = params{2};
 uoms           = params{3};
 data_codes     = params{4};
+fillValues     = params{5};
+validMins      = params{6};
+validMaxs      = params{7};
 
 % search the list for a match
 for k = 1:length(names)
@@ -88,8 +92,13 @@ for k = 1:length(names)
 
     switch field
       case 'standard_name', value = standard_names{k};
-      case 'uom',           value = uoms{k};
-      case 'data_code',     value = data_codes{k};
+      case 'uom'
+        value = uoms{k};
+        if strcmp(value, 'percent'), value = '%'; end
+      case 'data_code',     value = data_codes    {k};
+      case 'fill_value',    value = fillValues    (k);
+      case 'valid_min',     value = validMins     (k);
+      case 'valid_max',     value = validMaxs     (k);
     end
     break;
   end
