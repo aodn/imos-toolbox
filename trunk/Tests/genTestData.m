@@ -72,8 +72,8 @@ sample_data.dimensions{1}.data     = (1:nsamples)';
 sample_data.dimensions{1}.flags    = zeros(nsamples, 1);
 sample_data.dimensions{1}.flags(:) = rawFlag;
 sample_data.variables              = {};
-sample_data.level                  = 0;
 sample_data.meta                   = struct;
+sample_data.meta.level             = 0;
 
 sample_data.quality_control_set  = qcSet;
 sample_data.time_coverage_start  = datestr(in_water_time, datefmt);
@@ -86,7 +86,6 @@ for k = 1:length(vars)
   data = min_values(k) + (max_values(k)-min_values(k)).*rand(1,nsamples);
   data = data';
   
-  sample_data.variables{k}.deployment_id = '0A0370A6-93E7-4B1F-BB47-3FB935F298F7';
   sample_data.variables{k}.name          = vars{k};
   sample_data.variables{k}.dimensions    = [1];
   sample_data.variables{k}.data          = data;
