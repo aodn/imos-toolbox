@@ -58,7 +58,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %      the form:
 %
 %        select TimeZone from DeploymentData 
-%        where DeploymentID = sample_data.variables{k}.deployment_id
+%        where DeploymentID = dataset_deployment_id
 %
 %   2. For the attribute definition:
 %
@@ -69,7 +69,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %        select Organisation from Personnel where StaffID = 
 %        (
 %          select PersonnelDownload from DeploymentData
-%          where DeploymentID = sample_data.variables{k}.deployment_id
+%          where DeploymentID = dataset_deployment_id
 %        )
 %
 % === Matlab tokens ===
@@ -275,9 +275,7 @@ function value = parseDDBToken(token, sample_data, k)
   value = '';
 
   % get the relevant deployment
-  deployment = executeDDBQuery('DeploymentData', ...
-                               'DeploymentId', ...
-                               sample_data.variables{k}.deployment_id);
+  deployment = sample_data.meta.DeploymentData;
 
   % no such deployment exists in the ddb, or multiple hits
   if length(deployment) ~= 1, return; end
