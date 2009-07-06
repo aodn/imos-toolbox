@@ -145,7 +145,6 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
       end
       fileDisplay = fileDisplay(3:end);
       waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
-      disp(['importing ' fileDisplay]);
 
       % import data
       sam = parse(deps(k), files{k}, parsers, noParserPrompt);

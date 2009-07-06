@@ -60,7 +60,6 @@ function filename = exportNetCDF( sample_data, dest )
   filename = genIMOSFileName(sample_data, 'nc');
   filename = [dest filesep filename];
   
-  disp(['creating ' filename]);
   fid = netcdf.create(filename, 'NC_NOCLOBBER');
   if fid == -1, error(['could not create ' filename]); end
   
@@ -82,7 +81,6 @@ function filename = exportNetCDF( sample_data, dest )
     %
     % global attributes
     %
-    disp('writing global attributes');
     globAtts = sample_data;
     globAtts = rmfield(globAtts, 'meta');
     globAtts = rmfield(globAtts, 'variables');
@@ -100,9 +98,6 @@ function filename = exportNetCDF( sample_data, dest )
     %
     dims = sample_data.dimensions;
     for m = 1:length(dims)
-
-      disp(['creating dimension: ' dims{m}.name ...
-            ' (length: ' num2str(length(dims{m}.data)) ')']);
           
       dimAtts = dims{m};
       dimAtts = rmfield(dimAtts, 'data');
@@ -137,7 +132,6 @@ function filename = exportNetCDF( sample_data, dest )
     for m = 1:length(vars)
 
       varname = vars{m}.name;
-      disp(['creating variable: ' varname]);
       
       % get the dimensions for this variable
       dids = [];
@@ -192,21 +186,14 @@ function filename = exportNetCDF( sample_data, dest )
     for m = 1:length(dims)
       
       % variable data
-      varname = dims{m}.name;
       vid     = dims{m}.vid;
       qcvid   = dims{m}.qcvid;
       data    = dims{m}.data;
-      disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
 
       netcdf.putVar(fid, vid, data');
       
       % ancillary QC variable data
-      varname = [varname '_quality_control'];
       data    = dims{m}.flags;
-      
-      
-      
-      disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
       
       netcdf.putVar(fid, qcvid, data);
     end
@@ -218,19 +205,20 @@ function filename = exportNetCDF( sample_data, dest )
     for m = 1:length(vars)
 
       % variable data
-      varname = vars{m}.name;
       data    = vars{m}.data;
       vid     = vars{m}.vid;
       qcvid   = vars{m}.qcvid;
-      disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
+      
+      % replace NaN's with fill value
+      data(isnan(data)) = vars{m}.FillValue_;
 
+      % transpose required, as matlab requires the fastest changing
+      % dimension to be first. This code will fall over for data sets
+      % of more than two dimensions.
       netcdf.putVar(fid, vid, data');
       
       % ancillary QC variable data
-      varname = [varname '_quality_control'];
       data    = vars{m}.flags;
-      
-      disp(['writing data: ' varname ' (length: ' num2str(length(data)) ')']);
       
       netcdf.putVar(fid, qcvid, data');
     end
@@ -278,7 +266,6 @@ function vid = addQCVar(fid, sample_data, varIdx, dims, type, outputType)
   path = [fileparts(which(mfilename)) filesep 'template' filesep];
   
   varname = [var.name '_quality_control'];
-  disp(['creating variable: ' varname]);
   
   qcAtts = parseNetCDFTemplate([path template], sample_data, varIdx);
   
