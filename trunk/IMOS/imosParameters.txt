@@ -47,10 +47,10 @@ PCO2,      surface_partial_pressure_of_carbon_dioxide_in_air,  Pascal,          
 PHOS,      moles_of_phosphate_per_unit_mass_in_sea_water,      mole kg-1,                                                         K, -999999.0, 0.0, 0.0
 PRES,      sea_water_pressure,                                 dbar,                                                              E, -999999.0, 0.0, 0.0
 PSAL,      sea_water_salinity,                                 1e-3,                                                              S, -999999.0, 0.0, 0.0
-Q,         specific_humidity,                                  percent,                                                                 M, -999999.0, 0.0, 0.0
+Q,         specific_humidity,                                  percent,                                                           M, -999999.0, 0.0, 0.0
 RAIN,      rainfall_rate,                                      mm s-1,                                                            M, -999999.0, 0.0, 0.0
 RAIT,      thickness_of_rainfall_amount,                       m,                                                                 M, -999999.0, 0.0, 0.0
-RELH,      relative_humidity,                                  percent,                                                                 M, -999999.0, 0.0, 0.0
+RELH,      relative_humidity,                                  percent,                                                           M, -999999.0, 0.0, 0.0
 SLCA,      mole_concentration_of_silicate_in_sea_water,        mole m-3,                                                          K, -999999.0, 0.0, 0.0
 SRAD,      isotropic_shortwave_radiance_in_air,                W m-1 sr-1,                                                        F, -999999.0, 0.0, 0.0
 SST,       sea_surface_skin_temperature,                       Celsius,                                                           T, -999999.0, 0.0, 0.0
