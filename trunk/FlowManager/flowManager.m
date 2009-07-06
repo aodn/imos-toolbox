@@ -45,7 +45,7 @@ function flowManager()
   if isempty(rawData), return; end
   
   % add an index field to each data struct
-  for k = 1:length(rawData), rawData{k}.index = k; end
+  for k = 1:length(rawData), rawData{k}.meta.index = k; end
 
   % display data
   callbacks.importRequestCallback       = @importRequestCallback;
@@ -90,7 +90,7 @@ function flowManager()
     
     % add index to the newly imported data
     for k = 1:length(importedData)
-      importedData{k}.index = k + length(rawData);
+      importedData{k}.meta.index = k + length(rawData);
     end
     
     % insert the new data into the rawData array, and run QC if necessary
@@ -106,7 +106,7 @@ function flowManager()
   %METADATAUPDATECALLBACK Called whenever a data set's metadata is updated.
   % Synchronizes the change with the local copies of the data sets.
   %
-    idx = sample_data.index;
+    idx = sample_data.meta.index;
     
     rawData{idx} = sync(sample_data, rawData{idx});
     
@@ -215,7 +215,7 @@ function flowManager()
     end
     
     % set level on each QC'd data set
-    for k = 1:length(aqc), aqc{k}.level = 1; end
+    for k = 1:length(aqc), aqc{k}.meta.level = 1; end
     
     % otherwise return new QC data
     autoQCData(setIdx) = aqc;
