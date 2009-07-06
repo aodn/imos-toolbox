@@ -6,7 +6,7 @@
 % This file is divided into two sections; the first section contains all 
 % supported IMOS QC sets, in the following format:
 % 
-%   id, description, list_of_values, output_type
+%   id, description, list_of_values, output_type, fill_value
 %
 % where list_of_values is a space separated list of the different flag values
 % in the set, and output_type is the NetCDF type in which the flag values 
@@ -52,9 +52,9 @@
 % section the first - all supported QC sets
 %
 
-1, IMOS standard set using the IODE flags,                 0 1 2 3 4 5 6 7 8 9,       byte
-2, ARGO quality control procedure,                         0 1 2 3 4 5 6 7 8 9,       byte
-3, BOM quality control procedure (SST and Air-Sea fluxes), B C D E F G H L T U V X Z, char
+1, IMOS standard set using the IODE flags,                 0 1 2 3 4 5 6 7 8 9,       byte, 99
+2, ARGO quality control procedure,                         0 1 2 3 4 5 6 7 8 9,       byte, 99
+3, BOM quality control procedure (SST and Air-Sea fluxes), B C D E F G H L T U V X Z, char, 0
 
 %
 % the hyphen below is used as a divider between the QC 

@@ -1,10 +1,10 @@
 function value = imosQCFlag( qc_class, qc_set, field )
 %IMOSQCFLAG Returns an appropriate QC flag value (String), description, color 
-% spec, output type, or set description for the given qc_class (String), 
-% using the given qc_set (integer).
+% spec, output type, minimum/maximum value, fill value, or set description for 
+% the given qc_class (String), using the given qc_set (integer).
 %
 % The QC sets definitions, descriptions, output types, and valid flag values 
-% for each, are maintained in the file  'imosQCSets.txt' which is stored  in 
+% for each, are maintained in the file  'imosQCFlag.txt' which is stored  in 
 % the same directory as this m-file.
 %
 % The value returned by this function is one of:
@@ -14,6 +14,8 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %   - a ColorSpec which should be used when displaying the flag
 %   - a human readable description of the qc set.
 %   - the NetCDF type in which the flag values should be output.
+%   - The minimum or maximum flag value.
+%   - The fill value.
 %   - a vector of characters, defining the different flag values that are
 %     possible in the qc set.
 %
@@ -29,7 +31,8 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %              the first qc set defined in the imosQCSets.txt file.
 %
 %   field    - String which defines what the return value is. Must be one
-%              of 'flag', 'desc', 'set_desc', 'type', 'values' or 'color'.
+%              of 'flag', 'desc', 'set_desc', 'type', 'values' 'min', 'max',
+%              'fill_value', or 'color'.
 %
 % Outputs:
 %   value    - One of the flag value, flag description, output type, color 
@@ -84,11 +87,11 @@ fid = -1;
 flags = [];
 sets = [];
 try
-  fid = fopen([path filesep 'imosQCSets.txt']);
+  fid = fopen([path filesep 'imosQCFlag.txt']);
   if fid == -1, return; end
 
   % read in the QC sets and flag values for each set
-  sets  = textscan(fid, '%f%s%s%s',   'delimiter', ',', 'commentStyle', '%');
+  sets  = textscan(fid, '%f%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
   flags = textscan(fid, '%f%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
   fclose(fid);
 
@@ -107,15 +110,15 @@ if isempty(flags{1}), return; end
 qc_set_idx = find(sets{1} == qc_set);
 if isempty(qc_set_idx), qc_set_idx = 1; end;
 
-% if the request was the set description, 
-% or set values, retrieve and return them 
+% if the request was the set description, set values, output 
+% type, or minimum/maximum value, retrieve and return them 
 if strcmp(field, 'set_desc')
   
   value = sets{2}(qc_set_idx);
   value = value{1};
   return;
   
-elseif strcmp(field, 'values')
+elseif strcmp(field, 'values') || strcmp(field, 'min') || strcmp(field, 'max')
   
   val = sets{3}(qc_set_idx);
   val = val{1};
@@ -124,12 +127,24 @@ elseif strcmp(field, 'values')
   value = str2num(val);
   if isempty(value), value = val(val ~= ' '); end
   
+  % return only the min/max value if requested
+  if     strcmp(field, 'min'), value = value(1);
+  elseif strcmp(field, 'max'), value = value(end);
+  end
+  
   return;
   
 elseif strcmp(field, 'type')
   
   value = sets{4}(qc_set_idx);
   value = value{1};
+  
+  return;
+elseif strcmp(field, 'fill_value')
+  
+  val   = sets{5}(qc_set_idx);
+  value = str2double(val);
+  if isnan(value), value = val; end
   
   return;
 end
