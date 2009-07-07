@@ -5,7 +5,7 @@
 
 = NetCDF Compliance =
 
-A function called `makeNetCDFCompliant` is called after data has been imported; this function uses the NetCDF template engine, described below, to add NetCDF attributes to the `sample_data struct.
+A function called `makeNetCDFCompliant` is called after data has been imported; this function uses the NetCDF template engine, described below, to add NetCDF attributes to the `sample_data struct. Templates fpr quality control variables are executed just before export to NetCDF.
 
 = NetCDF Exporter =
 
@@ -21,21 +21,25 @@ The template engine is executed after data has been imported; it is used to add 
 
 When required, the template engine reads in a template, runs any DDB queries and executes any matlab expressions which are specified in the template, and adds the results to the `sample_data` struct.
 
-A template file is a list of `name=value` pairs. The `value` section may contain, as listed above, literal strings, matlab expressions, database queries, or a combination of all three.
+A template file is a list of `type,name=value` tuples. The `value` section may contain, as listed above, literal strings, matlab expressions, database queries, or a combination of all three. The type is one of the following:
+ * S: String
+ * N: Numeric
+ * D: Date
+ * Q: Qualiy Control flag (will be cast to the same type as the quality control data for the QC set in use)
 
 == Literal Strings ==
 
 An example template attribute definition which simply provides a literal string:
 {{{
-project = Integrated Marine Observing System (IMOS)
+S, project = Integrated Marine Observing System (IMOS)
 }}}
 
 == DDB Queries ==
 
-The syntax for setting an attribute value to be the value of a field within the deployment database is (the square brackets indicate optional sections):
+The syntax for setting an attribute value to be the value of a field within the deployment database is (the inner square brackets indicate optional sections):
 
 {{{
-attribute_name = {ddb field [related_table [related_pkey] related_field]}
+attribute_name = [ddb field [related_table [related_pkey] related_field]]
 }}}
 
 where 
@@ -49,24 +53,24 @@ A couple of examples:
 
 1. For the attribute definition:
   {{{
-local_time_zone = {ddb TimeZone}
+local_time_zone = [ddb TimeZone]
   }}}
 the value will be translated into a query to the deployment database of the form:
   {{{
 select TimeZone from DeploymentData 
-where DeploymentID = sample_data.variables{k}.deployment_id
+where DeploymentID = dataset_deployment_id
   }}}
 
 2. For the attribute definition:
   {{{
-institution = {ddb PersonnelDownload Personnel StaffID Organisation}
+institution = [ddb PersonnelDownload Personnel StaffID Organisation]
   }}}
 the value will be translated into the following query:
   {{{
 select Organisation from Personnel where StaffID = 
 (
   select PersonnelDownload from DeploymentData
-  where DeploymentID = sample_data.variables{k}.deployment_id
+  where DeploymentID = dataset_deployment_id
 )
   }}}
 
@@ -75,10 +79,8 @@ select Organisation from Personnel where StaffID =
 You can set the attribute value to be the result of a matlab statement like
 so:
 {{{
-  attribute_name = {mat statement}
+  attribute_name = [mat statement]
 }}}
-
-*Note:* The result of the statement must be a matlab string.
 
 The following 'workspace' is available to these embedded statements:
 
@@ -87,12 +89,12 @@ The following 'workspace' is available to these embedded statements:
 
 For example, for the attribute definition:
 {{{
-  quality_control_set = {mat num2str(readToolboxProperty('toolbox.qc_set'))}
+  quality_control_set = [mat readToolboxProperty('toolbox.qc_set')]
 }}}
 
 the attribute value will be the value of the matlab statment:
 {{{
-  num2str(readToolboxProperty('toolbox.qc_set'))
+  readToolboxProperty('toolbox.qc_set')
 }}}
 
 == Combinations ==
@@ -101,14 +103,14 @@ You can combine each method of defining values, as shown in the following exampl
 
  #. 
  {{{
-qc_param_name = {mat sample_data.variables{k}.name}_QC
+qc_param_name = [mat sample_data.variables{k}.name]_QC
  }}}
  #.
  {{{
-author = {ddb PersonnelDownload Personnel StaffID FirstName} \
-         {ddb PersonnelDownload Personnel StaffID LastName}
+author = [ddb PersonnelDownload Personnel StaffID FirstName] \
+         [ddb PersonnelDownload Personnel StaffID LastName]
  }}}
  #. 
  {{{
-title = {mat sample_data.field_trip_id}: {ddb Site Sites ResearchActivity}
+title = [mat sample_data.field_trip_id]: [ddb Site Sites ResearchActivity]
  }}}
