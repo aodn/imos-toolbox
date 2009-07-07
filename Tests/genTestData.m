@@ -63,13 +63,14 @@ function sample_data = genTestData(...
 disp(['generating test data set of ' num2str(nsamples) ' samples']);
 
 qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
-rawFlag = imosQCFlag('raw', 1, 'flag');
+rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
 sample_data.dimensions             = {};
 sample_data.dimensions{1}.name     = 'TIME';
 sample_data.dimensions{1}.data     = (1:nsamples)';
-sample_data.dimensions{1}.flags    = zeros(nsamples, 1);
-sample_data.dimensions{1}.flags(:) = rawFlag;
+
+sample_data.dimensions{1}. ...
+  flags(1:numel(sample_data.dimensions{1}.data)) = rawFlag;
 sample_data.variables              = {};
 sample_data.meta                   = struct;
 sample_data.meta.level             = 0;
@@ -100,8 +101,8 @@ for k = 1:length(vars)
   sample_data.variables{k}.name          = vars{k};
   sample_data.variables{k}.dimensions    = [1];
   sample_data.variables{k}.data          = data;
-  sample_data.variables{k}.flags         = zeros(size(data));
-  sample_data.variables{k}.flags(:)      = rawFlag;
+  sample_data.variables{k}. ...
+  flags(1:numel(sample_data.variables{k}.data)) = rawFlag;
   sample_data.variables{k}.valid_min     = min_bounds(k);
   sample_data.variables{k}.valid_max     = max_bounds(k);
   
