@@ -349,13 +349,11 @@ function [fieldTrips fieldTripDescs] = ...
     
     % check that field trip start is before high limit
     if ~isempty(startDate)
-      startDate = datenum(startDate, readToolboxProperty('toolbox.timeFormat'));
       if startDate > highDate, toRemove(end+1) = k; continue; end
     end
     
     % check that field trip end is after low limit
     if ~isempty(endDate)
-      endDate = datenum(endDate, readToolboxProperty('toolbox.timeFormat'));
       if endDate < lowDate, toRemove(end+1) = k; continue; end
     end
   end
@@ -375,11 +373,11 @@ function descs = genFieldTripDescs(fieldTrips, dateFmt)
     
     f = fieldTrips(k);
     if isempty(f.DateStart), startDate = '';
-    else startDate = f.DateStart;
+    else startDate = datestr(f.DateStart, dateFmt);
     end
     
     if isempty(f.DateEnd),   endDate = '';
-    else endDate   = f.DateEnd;
+    else endDate   = datestr(f.DateEnd, dateFmt);
     end
     
     dateRange = [startDate  ' - ' endDate];
