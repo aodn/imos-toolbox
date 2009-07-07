@@ -86,6 +86,7 @@ for m = 1:length(flagTypes)
   fx = mod(f, size(fl,1));
   fx(fx == 0) = size(fl, 1);
   fy = ceil(mod(f / size(fl,1), size(fl,2)));
+  fy(fy == 0) = size(fl, 2);
   
   fx = time.data(fx);
   fy = depth.data(fy);
