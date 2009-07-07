@@ -74,10 +74,7 @@ end
 function strs = java2struct(list)
 %JAVA2STRUCT Converts a Java ArrayList which contains org.imos.ddb.schema.*
 % objects into equivalent Matlab structs. java.util.Date objects are
-% returned as matlab serial date values, but are encapsulated in strings.
-% This is because fields may be automatically parsed and exported to
-% NetCDF, and there is no way to tell the difference between a matlab
-% serial date value and a numeric value.
+% returned as matlab serial date values.
 %
 % Inputs:
 %   list - a Java ArrayList containing org.imos.ddb.schema.* objects
@@ -125,11 +122,9 @@ function strs = java2struct(list)
         case 'java.lang.Boolean',
           strs(k+1).(field) = double(val.booleanValue());
         case 'java.util.Date',
-          strs(k+1).(field) = ...
-            datestr(datenum(char(val.toLocaleString())), dateFmt);
+          strs(k+1).(field) = datenum(char(val.toLocaleString()));
         case 'java.sql.Timestamp',
-          strs(k+1).(field) = ...
-            datestr(datenum(char(val.toLocaleString())), dateFmt);
+          strs(k+1).(field) = datenum(char(val.toLocaleString()));
       end
     end
   end

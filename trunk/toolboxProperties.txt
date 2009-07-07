@@ -10,10 +10,10 @@ toolbox.timeFormat = yyyy-mm-ddTHH:MM:SS
 toolbox.qc_set = 1
 
 % format in which all dates should be exported in NetCDF attributes
-exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SS
+exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 
 % different date format for NetCDF file names
-exportNetCDF.fileDateFormat = yyyymmddTHHMMSS
+exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
 autoQCManager.autoQCChain = timeGapQC flatlineQC
