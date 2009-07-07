@@ -57,7 +57,14 @@ function filename = genIMOSFileName( sample_data, suffix )
   facility_code = sample_data.institution;
   platform_code = sample_data.platform_code;
   
-  product_type  = sample_data.meta.Instruments.Make;
+  product_type  = [...
+    sample_data.meta.DeploymentData.Site '-' ...
+    sample_data.meta.instrument_model    '-' ...
+    num2str(sample_data.meta.DeploymentData.InstrumentDepth)
+  ];
+
+  product_type(product_type == ' ') = '-';
+  product_type(product_type == '_') = '-';
 
   %
   % all dates should be in ISO 8601 format
