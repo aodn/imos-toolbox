@@ -36,7 +36,7 @@ The following sections define scalar instances of `sample_data` structs.
 === Notes ===
 
  * It is assumed that time is always the first element of the `dimensions` array, the first element of every `variables.dimensions` vector, and the first dimension of the `variables.data` matrices. This implies that single dimensional data must be stored as column vectors.
- * The `parameters.dimensions` array must be in the same order as the `variables.data` matrix indices.
+ * The `variables.dimensions` array must be in the same order as the `variables.data` matrix indices.
  * Automatic and manual QC procedures should add to the log array when they modify any data.
 
 === Flagged data ===
