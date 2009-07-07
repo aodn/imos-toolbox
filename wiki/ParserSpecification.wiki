@@ -26,7 +26,11 @@ where:
 
 The `sample_data` struct must contain at least the following fields:
 
-  * `dimensions` Cell array of structs containing dimension data:
+  * `meta`: Struct containing any metadata which was retrieved from the raw data file(s).
+    * `instrument_make`: String containing the instrument manufacturer.
+    * `instrument_model`: String containing the instrument model.
+    * `instrument_serial_no`: String containing the instrument serial number.
+  * `dimensions`: Cell array of structs containing dimension data:
     * `name`: (IMOS compliant) dimension name
     * `data`: Vector of dimension data (always one dimensional, so orientation does not matter)
   * `variables`: Cell array of structs:
