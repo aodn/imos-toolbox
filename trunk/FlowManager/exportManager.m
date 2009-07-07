@@ -80,6 +80,9 @@ function exportManager(dataSets, levelNames, output)
   
   filenames = {};
   
+  progress = waitbar(0, 'Exporting data', 'Name', 'Exporting');
+  set(progress,'DefaultTextInterpreter','none');
+  
   % write out each of the selected data sets
   for k = 1:length(dataSets)
     
@@ -91,7 +94,7 @@ function exportManager(dataSets, levelNames, output)
           exportRawData(dataSets{k}, exportDir, setNames{k});
           filenames{end+1} = setNames{k};
       end
-      disp(['wrote ' filenames{end}]);
+      waitbar(k / length(dataSets), progress, ['Exported ' filenames{end}]);
       
     catch e
       disp(['error while writing file: ' e.message]);
@@ -100,6 +103,8 @@ function exportManager(dataSets, levelNames, output)
       end
     end
   end
+  
+  close(progress);
   
   % display message to user
   if isempty(filenames)
