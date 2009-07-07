@@ -66,7 +66,6 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
   for k = 1:length(sample_data.variables)
     
     name = sample_data.variables{k}.name;
-    uom  = imosParameters(name, 'uom');
     
     % create the axes
     graphs(k) = subplot(length(sample_data.variables), 1, k);
@@ -103,7 +102,10 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
     set(graphs(k), 'XTickLabel', xTicks);
     
     % set y label and ticks
-    yLabel = [yLabel ' (' uom ')'];
+    try      uom = [' (' imosParameters(yLabel, 'uom') ')'];
+    catch e, uom = '';
+    end
+    yLabel = [yLabel uom];
     if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
     set(get(graphs(k), 'YLabel'), 'String', yLabel);
     
