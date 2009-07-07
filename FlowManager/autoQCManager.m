@@ -102,7 +102,7 @@ function qc_data = autoQCManager( sample_data )
     for m = 1:length(qcChain)
       
       % user cancelled progress bar
-      if getappdata(progress, 'cancel'), break; end
+      if getappdata(progress, 'cancel'), sample_data = {}; break; end
       
       % update progress bar
       progVal = ...
@@ -112,7 +112,8 @@ function qc_data = autoQCManager( sample_data )
       waitbar(progVal, progress, progStr);
       
       % run current QC routine over the current data set
-      sample_data{k} = qcFilter(sample_data{k}, qcChain{m}, rawFlag, goodFlag);
+      sample_data{k} = qcFilter(...
+        sample_data{k}, qcChain{m}, rawFlag, goodFlag, progress);
     end
   end
   
@@ -121,7 +122,7 @@ function qc_data = autoQCManager( sample_data )
   qc_data = sample_data;
 end
 
-function sam = qcFilter(sam, filterName, rawFlag, goodFlag)
+function sam = qcFilter(sam, filterName, rawFlag, goodFlag, cancel)
 %QCFILTER Runs the given data set through the given automatic QC filter.
 %
   % turn routine name into a function
@@ -141,6 +142,9 @@ function sam = qcFilter(sam, filterName, rawFlag, goodFlag)
     flags = flags(:);
 
     for m = 1:slices
+      
+      % user cancelled
+      if getappdata(cancel, 'cancel'), return; end
 
       slice     = data( len*(m-1)+1:len*(m));
       flagSlice = flags(len*(m-1)+1:len*(m));
