@@ -379,7 +379,9 @@ function value = castAtt(value, t, qcType, dateFmt)
 %
   switch t
     case 'S', value = value;
-    case 'N', value = str2double(value);
+    case 'N'
+      value = str2double(value);
+      if isnan(value), value = []; end
     case 'D'
       
       % for dates, try to use provided date format, 
@@ -389,6 +391,8 @@ function value = castAtt(value, t, qcType, dateFmt)
       catch e, val = str2double(value);
       end
       value = val;
+      
+      if isnan(value), value = []; end
       
     case 'Q'
       
