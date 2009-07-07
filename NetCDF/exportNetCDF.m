@@ -63,6 +63,7 @@ function filename = exportNetCDF( sample_data, dest )
   fid = netcdf.create(filename, 'NC_NOCLOBBER');
   if fid == -1, error(['could not create ' filename]); end
   
+  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
   qcType  = imosQCFlag('', qcSet, 'type');
   qcDimId = [];
@@ -85,7 +86,7 @@ function filename = exportNetCDF( sample_data, dest )
     globAtts = rmfield(globAtts, 'meta');
     globAtts = rmfield(globAtts, 'variables');
     globAtts = rmfield(globAtts, 'dimensions');
-    putAtts(fid, globConst, globAtts);
+    putAtts(fid, globConst, globAtts, 'global_attributes.txt', dateFmt);
     
     % if the QC flag values are characters, we must define 
     % a dimension to force the maximum value length to 1
@@ -112,10 +113,12 @@ function filename = exportNetCDF( sample_data, dest )
 
       % create coordinate variable and attributes
       vid = netcdf.defVar(fid, upper(dims{m}.name), 'double', did);
-      putAtts(fid, vid, dimAtts);
+      templateFile = [lower(dims{m}.name) '_attributes.txt'];
+      putAtts(fid, vid, dimAtts, templateFile, dateFmt);
       
       % create the ancillary QC variable
-      qcvid = addQCVar(fid, sample_data, m, [qcDimId did], 'dim', qcType);
+      qcvid = addQCVar(...
+        fid, sample_data, m, [qcDimId did], 'dim', qcType, dateFmt);
       
       % save the netcdf dimension and variable IDs 
       % in the dimension struct for later reference
@@ -157,10 +160,11 @@ function filename = exportNetCDF( sample_data, dest )
       varAtts.ancillary_variables = [varname '_quality_control'];
 
       % add the attributes
-      putAtts(fid, vid, varAtts);
+      putAtts(fid, vid, varAtts, 'variable_attributes.txt', dateFmt);
       
       % create the ancillary QC variable
-      qcvid = addQCVar(fid, sample_data, m, [qcDimId dids], 'var', qcType);
+      qcvid = addQCVar(...
+        fid, sample_data, m, [qcDimId dids], 'var', qcType, dateFmt);
       
       % save variable IDs for later reference
       sample_data.variables{m}.vid   = vid;
@@ -233,7 +237,8 @@ function filename = exportNetCDF( sample_data, dest )
   end
 end
 
-function vid = addQCVar(fid, sample_data, varIdx, dims, type, outputType)
+function vid = addQCVar(...
+  fid, sample_data, varIdx, dims, type, outputType, dateFmt)
 %ADDQCVAR Adds an ancillary variable for the variable with the given index.
 %
 % Inputs:
@@ -245,6 +250,7 @@ function vid = addQCVar(fid, sample_data, varIdx, dims, type, outputType)
 %   type        - either 'dim' or 'var', to differentiate between
 %                 coordinate variables and data variables.
 %   outputType  - The matlab type in which the flags should be output.
+%   dateFmt     - Date format in which date attributes should be output.
 %
 % Outputs:
 %   vid         - NetCDF variable identifier of the QC variable that was 
@@ -306,10 +312,10 @@ function vid = addQCVar(fid, sample_data, varIdx, dims, type, outputType)
   qcAtts.flag_meanings = [qcDescs{:}];
   
   vid = netcdf.defVar(fid, varname, outputType, dims);
-  putAtts(fid, vid, qcAtts);
+  putAtts(fid, vid, qcAtts, template, dateFmt);
 end
 
-function putAtts(fid, vid, template)
+function putAtts(fid, vid, template, templateFile, dateFmt)
 %PUTATTS Puts all the attributes from the given template into the given NetCDF
 % variable.
 %
@@ -319,19 +325,28 @@ function putAtts(fid, vid, template)
 % vid.
 %
 % Inputs:
-%   fid      - NetCDF file identifier
-%   vid      - NetCDF variable identifier
-%   template - Struct containing attribute names/values.
-%
+%   fid          - NetCDF file identifier
+%   vid          - NetCDF variable identifier
+%   template     - Struct containing attribute names/values.
+%   templateFile - name of the template file from where the attributes
+%                  originated.
+%   dateFmt      - format to use for writing date attributes.
+%  
 
   % each att is a struct field
   atts = fieldnames(template);
   for k = 1:length(atts)
 
     name = atts{k};
-    val = template.(name);
+    val  = template.(name);
     
     if isempty(val), continue; end;
+    
+    type = templateType(name, templateFile);
+    
+    switch type
+      case 'D', val = datestr(val, dateFmt);
+    end
     
     % matlab-no-support-leading-underscore kludge
     if name(end) == '_', name = ['_' name(1:end-1)]; end
