@@ -1,6 +1,6 @@
 function t = templateType( name, temp )
 %TEMPLATETYPE Returns the type of the given NetCDF attribute, as specified
-% in the template file.
+% in the associated template file.
 %
 % In the NetCDF attribute template files, attributes can have one of the
 % following types.
@@ -12,7 +12,8 @@ function t = templateType( name, temp )
 %
 % Inputs:
 %   name - the attribute name
-%   temp - the associated template file
+%   temp - what kind of attribute - 'global', 'time', 'depth', 'latitude', 
+%          'longitude', 'variable', 'qc' or 'qc_coord'
 %
 % Outputs:
 %   t    - the type of the attribute, one of 'S', 'N', 'D', or 'Q', or
@@ -56,6 +57,8 @@ if ~ischar(name), error('name must be a string'); end
 if ~ischar(temp), error('temp must be a string'); end
 
 t = '';
+
+temp = [temp '_attributes.txt'];
 
 filepath = fileparts(which(mfilename));
 filepath = [filepath filesep 'template' filesep temp];

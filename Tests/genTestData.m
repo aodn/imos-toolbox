@@ -67,13 +67,17 @@ rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
 sample_data.dimensions             = {};
 sample_data.dimensions{1}.name     = 'TIME';
-sample_data.dimensions{1}.data     = (1:nsamples)';
+startDate                          = now;
+sample_data.dimensions{1}.data     = (startDate:startDate+nsamples-1)';
 
 sample_data.dimensions{1}. ...
   flags(1:numel(sample_data.dimensions{1}.data)) = rawFlag;
-sample_data.variables              = {};
-sample_data.meta                   = struct;
-sample_data.meta.level             = 0;
+sample_data.variables                 = {};
+sample_data.meta                      = struct;
+sample_data.meta.level                = 0;
+sample_data.meta.instrument_make      = 'Seabird';
+sample_data.meta.instrument_model     = 'SBE37'
+sample_data.meta.instrument_serial_no = '6079';
 
 sample_data.quality_control_set  = qcSet;
 sample_data.time_coverage_start  = in_water_time;

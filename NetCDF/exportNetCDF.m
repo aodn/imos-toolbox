@@ -86,7 +86,7 @@ function filename = exportNetCDF( sample_data, dest )
     globAtts = rmfield(globAtts, 'meta');
     globAtts = rmfield(globAtts, 'variables');
     globAtts = rmfield(globAtts, 'dimensions');
-    putAtts(fid, globConst, globAtts, 'global_attributes.txt', dateFmt);
+    putAtts(fid, globConst, globAtts, 'global', dateFmt);
     
     % if the QC flag values are characters, we must define 
     % a dimension to force the maximum value length to 1
@@ -113,8 +113,7 @@ function filename = exportNetCDF( sample_data, dest )
 
       % create coordinate variable and attributes
       vid = netcdf.defVar(fid, upper(dims{m}.name), 'double', did);
-      templateFile = [lower(dims{m}.name) '_attributes.txt'];
-      putAtts(fid, vid, dimAtts, templateFile, dateFmt);
+      putAtts(fid, vid, dimAtts, lower(dims{m}.name), dateFmt);
       
       % create the ancillary QC variable
       qcvid = addQCVar(...
@@ -160,7 +159,7 @@ function filename = exportNetCDF( sample_data, dest )
       varAtts.ancillary_variables = [varname '_quality_control'];
 
       % add the attributes
-      putAtts(fid, vid, varAtts, 'variable_attributes.txt', dateFmt);
+      putAtts(fid, vid, varAtts, 'variable', dateFmt);
       
       % create the ancillary QC variable
       qcvid = addQCVar(...
@@ -259,10 +258,10 @@ function vid = addQCVar(...
   switch(type)
     case 'dim'
       var = sample_data.dimensions{varIdx};
-      template = 'qc_coord_attributes.txt';
+      template = 'qc_coord';
     case 'var'
       var = sample_data.variables{varIdx};
-      template = 'qc_attributes.txt';
+      template = 'qc';
     otherwise
       error(['invalid type: ' type]);
   end
@@ -271,7 +270,8 @@ function vid = addQCVar(...
   
   varname = [var.name '_quality_control'];
   
-  qcAtts = parseNetCDFTemplate([path template], sample_data, varIdx);
+  qcAtts = parseNetCDFTemplate(...
+    [path template '_attributes.txt'], sample_data, varIdx);
   
   % get qc flag values
   qcFlags = imosQCFlag('', sample_data.quality_control_set, 'values');
