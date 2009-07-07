@@ -294,7 +294,8 @@ function vid = addQCVar(...
   
   % force fill value to correct type
   if strcmp(outputType, 'byte')
-    qcAtts.FillValue_ = uint8(qcAtts.FillValue_);
+    qcAtts.FillValue_  = uint8(qcAtts.FillValue_);
+    qcFlags            = uint8(qcFlags);
   end
   
   % if the flag values are characters, turn the flag values 
