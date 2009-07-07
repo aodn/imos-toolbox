@@ -80,8 +80,8 @@ sample_data.meta.instrument_model     = 'SBE37'
 sample_data.meta.instrument_serial_no = '6079';
 
 sample_data.quality_control_set  = qcSet;
-sample_data.time_coverage_start  = in_water_time;
-sample_data.time_coverage_end    = out_water_time;
+sample_data.time_coverage_start  = startDate + in_water_time  - 1;
+sample_data.time_coverage_end    = startDate + out_water_time - 1;
 sample_data.date_created         = now;
 
 % add arbitrary deployment info
