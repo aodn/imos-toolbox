@@ -59,8 +59,7 @@ if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
-dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
-time_coverage_end = datenum(sample_data.time_coverage_end, dateFmt);
+time_coverage_end = sample_data.time_coverage_end;
 
 qc_set    = str2double(readToolboxProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qc_set, 'flag');

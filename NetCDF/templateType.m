@@ -1,25 +1,22 @@
-function [data flags log] = inWaterQC( sample_data, data, k )
-%INWATERQC Flags samples which were taken before the instrument was placed
-% in the water.
+function t = templateType( name, temp )
+%TEMPLATETYPE Returns the type of the given NetCDF attribute, as specified
+% in the template file.
 %
-% Flags all samples from the data set which have a time that is before the 
-% in water time. Assumes that these samples will be at the beginning of the
-% data set.
+% In the NetCDF attribute template files, attributes can have one of the
+% following types.
+%
+%   S - String
+%   N - Numeric
+%   D - Date
+%   Q - Quality control (either byte or char, depending on the QC set in use)
 %
 % Inputs:
-%   sample_data - struct containing the entire data set and dimension data.
-%
-%   data        - the vector of data to check.
-%
-%   k           - Index into the sample_data.variables vector.
+%   name - the attribute name
+%   temp - the associated template file
 %
 % Outputs:
-%   data        - Same as input.
-%
-%   flags       - Vector the same size as data, with before in-water samples 
-%                 flagged. 
-%
-%   log         - Empty cell array..
+%   t    - the type of the attribute, one of 'S', 'N', 'D', or 'Q', or
+%          empty if there was no such attribute.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -53,27 +50,52 @@ function [data flags log] = inWaterQC( sample_data, data, k )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+error(nargchk(2,2,nargin));
 
-error(nargchk(3, 3, nargin));
-if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isvector(data),               error('data must be a vector');        end
-if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+if ~ischar(name), error('name must be a string'); end
+if ~ischar(temp), error('temp must be a string'); end
 
-time_coverage_start = sample_data.time_coverage_start;
+t = '';
 
-qc_set    = str2double(readToolboxProperty('toolbox.qc_set'));
-goodFlag  = imosQCFlag('good',  qc_set, 'flag');
-flagVal   = imosQCFlag('bad',   qc_set, 'flag');
+filepath = fileparts(which(mfilename));
+filepath = [filepath filesep 'template' filesep temp];
 
-flags    = zeros(length(data), 1);
-flags(:) = goodFlag;
-log      = {};
+lines = {};
 
-% find samples which were taken before in water
-time = sample_data.dimensions{1}.data;
-before = find(time < time_coverage_start);
+% read all the lines in
+fid = -1;
+try
+  fid = fopen(filepath, 'r');
+  
+  if fid == -1, error(['could not open file ' filepath]); end
+  
+  line = fgetl(fid);
+  
+  while ischar(line)
+    
+    lines{end+1} = line;
+    line         = fgetl(fid);
+  end
+  fclose(fid);
+catch e
+  if fid ~= -1, fclose(fid); end
+  rethrow(e);
+end
 
-if isempty(before), return; end
+% pull out the type, attribute name and value
+tkns = regexp(lines, '^\s*(.*\S)\s*,\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
 
-% flag the samples that are before the in water time
-flags(before) = flagVal;
+for k = 1:length(tkns)
+  
+  % will be empty on lines that didn't match the regex
+  if isempty(tkns{k}) continue; end
+  
+  type  = tkns{k}{1}{1};
+  att   = tkns{k}{1}{2};
+  
+  if ~strcmp(name, att), continue; end
+  
+  % found a match, return the type
+  t = type;
+  return;
+end

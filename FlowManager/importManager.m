@@ -121,6 +121,7 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
   
   % display progress dialog
   progress = waitbar(0, 'importing data', 'Name', 'Importing');
+  set(progress,'DefaultTextInterpreter','none');
   
   dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
@@ -160,6 +161,9 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
     % failure is not fatal
     catch e
       disp(['skipping ' fileDisplay '(' e.message ')']);
+      for k = 1:length(e.stack)
+        disp([e.stack(k).file ':' num2str(e.stack(k).line) ':' e.stack(k).name]);
+      end
       skipped(end+1) = k;
     end
   end
@@ -344,7 +348,7 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
   sam.meta.log                     = {};
   sam.file_version                 = imosFileVersion(0, 'name');
   sam.file_version_quality_control = imosFileVersion(0, 'desc');
-  sam.date_created                 = datestr(now, dateFmt);
+  sam.date_created                 = now;
     
   % add metadata to the sample data struct, to 
   % eliminate the need for later DDB lookups
@@ -397,6 +401,16 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
     sam.time_coverage_end = deployment.TimeOnDeck;
   elseif ~isempty(deployment.TimeSwitchOff)
     sam.time_coverage_end = deployment.TimeSwitchOff;
+  end
+  
+  % apply local timezone offset to make all dates UTC
+  sam.time_coverage_start = sam.time_coverage_start - sam.local_time_zone/24.0;
+  sam.time_coverage_end   = sam.time_coverage_end   - sam.local_time_zone/24.0;
+  sam.date_created        = sam.date_created        - sam.local_time_zone/24.0;
+  
+  % also apply to time data
+  if strcmpi(sam.dimensions{1}.name, 'TIME')
+    sam.dimensions{1}.data = sam.dimensions{1}.data - sam.local_time_zone/24.0;
   end
 
 end

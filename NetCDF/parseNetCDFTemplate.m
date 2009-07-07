@@ -12,10 +12,20 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %
 % The syntax of an attribute definition is of the form:
 %
-%   attribute_name = attribute_value
+%   type, attribute_name = attribute_value
 %
-% where attribute_name is the IMOS compliant NetCDF attribute name, and
-% attribute_value is the value that the attribute should be given.
+% where type is the type of the attribut, attribute_name is the IMOS 
+% compliant NetCDF attribute name, and attribute_value is the value that the 
+% attribute should be given. Attributes can be one of the following types:
+%
+%   S - String
+%   N - Numeric
+%   D - Date
+%   Q - Quality control (either byte or char, depending on the QC set in use)
+%
+% When specifying a date value literally, you may either specify a matlab 
+% serial date (i.e.a number), or use the format specified by the 
+% toolbox.timeFormat property.
 %
 %   == Value definition ==
 %
@@ -78,8 +88,6 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 % so:
 % 
 %   attribute_name = [mat statement]
-%
-% The result of the statement must be a matlab string.
 %
 % The following 'workspace' is available to these embedded statements:
 %
@@ -162,6 +170,10 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
   if ~isstruct(sample_data),       error('sample_data must be a struct'); end
   if nargin == 3 && ~isnumeric(k), error('k must be numeric');            end
 
+  dateFmt = readToolboxProperty('toolbox.timeFormat');
+  qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
+  qcType  = imosQCFlag('', qcSet, 'type');
+
   % if k isn't provided, provide a dummy value
   if nargin == 2, k = 1; end
   
@@ -175,20 +187,22 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
     template = struct;
 
     % read in and parse each line
-    line = readline(fid);
+    line = fgetl(fid);
     while ischar(line)
 
       % extract the attribute name and value
-      tkns = regexp(line, '^\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
+      tkns = regexp(line, ...
+        '^\s*(.*\S)\s*,\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
 
       % ignore bad lines
       if isempty(tkns), 
-        line = readline(fid);
+        line = fgetl(fid);
         continue; 
       end
 
-      name = tkns{1}{1};
-      val  = tkns{1}{2};
+      type = tkns{1}{1};
+      name = tkns{1}{2};
+      val  = tkns{1}{3};
 
       % Parse the value, put it into the template struct. Matlab doesn't 
       % allow field names (or variable names) to start with an underscore. 
@@ -199,9 +213,12 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
       %reverse this process when the NetCDF file is exported.
       if name(1) == '_', name = [name(2:end) '_']; end
       template.(name) = parseAttributeValue(val, sample_data, k);
+      
+      % cast to correct type
+      template.(name) = castAtt(template.(name), type, qcType, dateFmt);
 
       % get the next line
-      line = readline(fid);
+      line = fgetl(fid);
     end
 
     fclose(fid);
@@ -226,7 +243,7 @@ function value = parseAttributeValue(line, sample_data, k)
 %
 % Outputs:
 %
-%   value       - the attribute value.
+%   value       - String containing the attribute value.
 %
 
   value = line;
@@ -251,8 +268,6 @@ function value = parseAttributeValue(line, sample_data, k)
     value = strrep(value, ['[' tkn ']'], stringify(val));
 
   end
-  
-  value = numify(value);
 end
 
 function value = parseDDBToken(token, sample_data, k)
@@ -344,13 +359,17 @@ function value = parseMatToken(token, sample_data, k)
   end
 end
 
-function value = numify(value)
-%NUMIFY Given a string, translates it into a scalar numeric if possible. 
-% Otherwise leaves the input value unchanged.
+function value = castAtt(value, t, qcType, dateFmt)
+%CASTATT Given a string, translates it into the type specified by t, where
+% t is one of the attribute types S, N, D, or Q.
 %
 % Inputs:
-%
-%   value - Anything.
+%   value   - A string.
+%   t       - the attribute type to cast to.
+%   qcType  - the netcdf type of the QC flags for the QC set in use.
+%             Required to figure out what to do with values of type 'Q'.
+%   dateFmt - Format in which to expect values of type 'D'. Matlab serial
+%             dates are accepted in addition to this format.
 %
 % Outputs:
 %
@@ -358,11 +377,25 @@ function value = numify(value)
 %           numeric, returns a scalar numeric. Otherwise returns the input 
 %           unchanged.
 %
-  if ischar(value)
-    
-    dub = str2double(value);
-    if ~isnan(dub), value = dub; end
-    
+  switch t
+    case 'S', value = value;
+    case 'N', value = str2double(value);
+    case 'D'
+      
+      % for dates, try to use provided date format, 
+      % otherwise assume it is matlab serial
+      val = [];
+      try      val = datenum(value, dateFmt);
+      catch e, val = str2double(value);
+      end
+      value = val;
+      
+    case 'Q'
+      
+      switch (qcType)
+        case 'byte', value = uint8(str2num(value));
+        case 'char', value = value;
+      end
   end
 end
 
@@ -383,37 +416,4 @@ function value = stringify(value)
   elseif isnumeric(value), value = num2str(value); 
   end
 
-end
-
-function line = readline(fid)
-%READLINE Reads a line from the given file, interpreting lines which are split
-% over multiple lines with line break escapes ('\').
-%
-% Matlab does not provide any functionality to interpret line break escapes, so
-% I wrote my own.
-%
-% Inputs:
-%
-%   fid  - fid of the file to read from
-%
-% Outputs:
-%
-%   line - the next line, or -1 if the end of the file has been reached.
-%
-  line = '\';
-
-  while ~isempty(line) && line(end) == '\';
-
-    line = line(1:end-1);
-    next = fgetl(fid);
-
-    if ~ischar(next), 
-      if isempty(line), line = -1; end
-      return; 
-    end
-
-    next = strtrim(next);
-    line = [line next];
-
-  end
 end

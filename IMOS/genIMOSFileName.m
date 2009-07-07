@@ -56,19 +56,17 @@ function filename = genIMOSFileName( sample_data, suffix )
   file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
   facility_code = sample_data.institution;
   platform_code = sample_data.platform_code;
-  product_type  = sample_data.product_type;
+  
+  product_type  = sample_data.meta.Instruments.Make;
 
   %
   % all dates should be in ISO 8601 format
   %
   dateFmt       = readToolboxProperty('exportNetCDF.dateFormat');
   fileDateFmt   = readToolboxProperty('exportNetCDF.fileDateFormat');
-  start_date    = ...
-    datestr(datenum(sample_data.time_coverage_start, dateFmt), fileDateFmt);
-  end_date      = ...
-    datestr(datenum(sample_data.time_coverage_end, dateFmt),   fileDateFmt);
-  creation_date = ...
-    datestr(datenum(sample_data.date_created, dateFmt),        fileDateFmt);
+  start_date    = datestr(sample_data.time_coverage_start, fileDateFmt);
+  end_date      = datestr(sample_data.time_coverage_end,   fileDateFmt);
+  creation_date = datestr(sample_data.date_created,        fileDateFmt);
 
   %
   % generate data code for the data set

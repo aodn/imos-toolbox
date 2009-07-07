@@ -62,7 +62,6 @@ function sample_data = genTestData(...
 
 disp(['generating test data set of ' num2str(nsamples) ' samples']);
 
-datefmt = readToolboxProperty('exportNetCDF.dateFormat');
 qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', 1, 'flag');
 
@@ -76,9 +75,21 @@ sample_data.meta                   = struct;
 sample_data.meta.level             = 0;
 
 sample_data.quality_control_set  = qcSet;
-sample_data.time_coverage_start  = datestr(in_water_time, datefmt);
-sample_data.time_coverage_end    = datestr(out_water_time, datefmt);
-sample_data.date_created         = datestr(now, datefmt);
+sample_data.time_coverage_start  = in_water_time;
+sample_data.time_coverage_end    = out_water_time;
+sample_data.date_created         = now;
+
+% add arbitrary deployment info
+trip = executeDDBQuery('FieldTrip', 'FieldTripID', 4814);
+dep  = executeDDBQuery(...
+  'DeploymentData', 'DeploymentId', 'D3C52B85-C659-4614-9E59-305B878FABB0');
+site = executeDDBQuery('Sites', 'Site', dep.Site);
+inst = executeDDBQuery('Instruments', 'InstrumentID', dep.InstrumentID);
+
+sample_data.meta.FieldTrip      = trip;
+sample_data.meta.DeploymentData = dep;
+sample_data.meta.Sites          = site;
+sample_data.meta.Instruments    = inst;
 
 for k = 1:length(vars)
   

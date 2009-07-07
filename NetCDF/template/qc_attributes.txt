@@ -1,11 +1,11 @@
-long_name                   = quality flag for [mat imosParameters(sample_data.variables{k}.name, 'standard_name')]
-standard_name               = [mat imosParameters(sample_data.variables{k}.name, 'standard_name')] status_flag
-quality_control_set         = [mat readToolboxProperty('toolbox.qc_set')]
-quality_control_conventions = [mat imosQCFlag('', str2double(readToolboxProperty('toolbox.qc_set')), 'set_desc')]
-_FillValue                  = [mat imosQCFlag('', str2double(readToolboxProperty('toolbox.qc_set')), 'fill_value')]
-valid_min                   = [mat imosQCFlag('', str2double(readToolboxProperty('toolbox.qc_set')), 'min')]
-valid_max                   = [mat imosQCFlag('', str2double(readToolboxProperty('toolbox.qc_set')), 'max')]
+S, long_name                   = quality flag for [mat imosParameters(sample_data.variables{k}.name, 'standard_name')]
+S, standard_name               = [mat imosParameters(sample_data.variables{k}.name, 'standard_name')] status_flag
+N, quality_control_set         = [mat readToolboxProperty('toolbox.qc_set')]
+S, quality_control_conventions = [mat imosQCFlag('', str2double(readToolboxProperty('toolbox.qc_set')), 'set_desc')]
+N, _FillValue                  = [mat imosQCFlag('', str2double(readToolboxProperty('toolbox.qc_set')), 'fill_value')]
+N, valid_min                   = [mat imosQCFlag('', str2double(readToolboxProperty('toolbox.qc_set')), 'min')]
+N, valid_max                   = [mat imosQCFlag('', str2double(readToolboxProperty('toolbox.qc_set')), 'max')]
 
 % these fields are automatically populated upon NetCDF export
-flag_values                 = 
-flag_meanings               = 
+Q, flag_values                 = 
+S, flag_meanings               = 

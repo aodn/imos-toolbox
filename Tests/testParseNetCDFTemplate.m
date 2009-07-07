@@ -102,7 +102,7 @@ function atts = listAtts(file)
 
   while ischar(line)
     
-    tkns = regexp(line, '^\s*(.*\S)\s*=', 'tokens');
+    tkns = regexp(line, '^\s*.*\S\s*,\s*(.*\S)\s*=', 'tokens');
     if ~isempty(tkns), atts{end+1} = tkns{1}{1}; end
     line = fgetl(fid);
     
