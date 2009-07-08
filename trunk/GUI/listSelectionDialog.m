@@ -73,11 +73,24 @@ function selected = listSelectionDialog( title, allOpts, initialOpts )
   selList       = uicontrol('Style', 'listbox', 'Max', 3);
   nSelList      = uicontrol('Style', 'listbox', 'Max', 3);
   
-  addButton     = uicontrol('Style', 'pushbutton', 'String', sprintf('\x2192'));
-  remButton     = uicontrol('Style', 'pushbutton', 'String', sprintf('\x2190'));
+  rightArrow = sprintf('\x2192');
+  leftArrow  = sprintf('\x2190');
+  upArrow    = sprintf('\x2191');
+  downArrow  = sprintf('\x2193');
   
-  upButton      = uicontrol('Style', 'pushbutton', 'String', sprintf('\x2191'));
-  downButton    = uicontrol('Style', 'pushbutton', 'String', sprintf('\x2193'));
+  % windows doesn't necessarily support unicode characters
+  if ispc
+    rightArrow = '>';
+    leftArrow  = '<';
+    upArrow    = '^';
+    downArrow  = 'v';
+  end
+  
+  addButton     = uicontrol('Style', 'pushbutton', 'String', rightArrow);
+  remButton     = uicontrol('Style', 'pushbutton', 'String', leftArrow);
+  
+  upButton      = uicontrol('Style', 'pushbutton', 'String', upArrow);
+  downButton    = uicontrol('Style', 'pushbutton', 'String', downArrow);
   
   confirmButton = uicontrol('Style', 'pushbutton', 'String', 'Ok');
   cancelButton  = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
