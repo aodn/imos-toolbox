@@ -86,6 +86,14 @@ function filename = exportNetCDF( sample_data, dest )
     globAtts = rmfield(globAtts, 'meta');
     globAtts = rmfield(globAtts, 'variables');
     globAtts = rmfield(globAtts, 'dimensions');
+    
+    if ~isempty(sample_data.meta.log)
+      globAtts.history = cellfun(@(x)(sprintf('%s\n', x)), ...
+        sample_data.meta.log, 'UniformOutput', false);
+      globAtts.history = [globAtts.history{:}];
+      globAtts.history = globAtts.history(1:end-1);
+    end
+    
     putAtts(fid, globConst, globAtts, 'global', dateFmt);
     
     % if the QC flag values are characters, we must define 
