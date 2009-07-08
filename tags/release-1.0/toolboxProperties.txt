@@ -27,8 +27,8 @@ dataFileStatusDialog.multipleFileFormat    = italic
 % default values for start dialog
 startDialog.dataDir = C:
 startDialog.fieldTrip =
-startDialog.lowDate =
-startDialog.highDate =
+startDialog.lowDate = 730486
+startDialog.highDate = 734138
 
 % default directory for file export
 exportDialog.defaultDir = C:
