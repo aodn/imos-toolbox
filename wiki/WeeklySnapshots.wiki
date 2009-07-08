@@ -92,3 +92,41 @@ os.system('rm -rf %s' % project)
 os.system('rm %s' % archive)
 
 }}}
+
+A very similar script is used to create a 'release' distribution:
+{{{
+#!/usr/bin/python
+
+import os
+import sys
+import time
+
+url     = sys.argv[1]
+path    = sys.argv[2]
+archive = '%s.zip' % path
+
+print('\n--exporting SVN tree from %s to %s' % (url, path))
+os.system('svn export %s %s' % (url, path))
+
+print('\n--removing tests')
+os.system('rm -rf %s/Tests' % path)
+
+print('\n--building DDB interface')
+compiled = os.system('cd %s/Java && ant install' % path)
+
+if compiled is not 0:
+  print('\n--DDB interface compilation failed - cleaning')
+  os.system('cd %s/Java && ant clean' % path)
+else:
+  print('\n--cleaning Java directory')
+  os.system('mv %s/Java/ddb.jar .' % path)
+  os.system('rm -rf %s/Java' % path)
+  os.system('mkdir %s/Java' % path)
+  os.system('mv ./ddb.jar %s/Java' % path)
+
+print('\n--creating ZIP archive')
+os.system('zip -r %s %s/' % (archive, path))
+
+print('\n--removing local SVN export')
+os.system('rm -rf %s' % path)
+}}}
