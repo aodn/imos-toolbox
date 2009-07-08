@@ -161,11 +161,12 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
     
     % failure is not fatal
     catch e
-      disp(['skipping ' fileDisplay '(' e.message ')']);
-      for k = 1:length(e.stack)
-        disp([e.stack(k).file ':' num2str(e.stack(k).line) ':' e.stack(k).name]);
-      end
       skipped(end+1) = k;
+      disp(['skipping ' fileDisplay '(' e.message ')']);
+      for m = 1:length(e.stack)
+        disp([e.stack(m).file ':' ...
+        num2str(e.stack(m).line) ':' e.stack(m).name]);
+      end
     end
   end
   
