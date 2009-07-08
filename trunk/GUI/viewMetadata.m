@@ -2,11 +2,11 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
 %VIEWMETADATA Displays metadata for the given data set in the given parent
 % figure/uipanel.
 %
-% This function displays metadata contained in the given sample_data struct 
-% in the given parent figure/uipanel. The tabbedPane function is used to
-% separate global/dimension/variable attributes. Users are able to
-% add/delete/modify field names and values. The provided updateCallback 
-% function is called when any data is modified.
+% This function displays NetCDF metadata contained in the given sample_data 
+% struct in the given parent figure/uipanel. The tabbedPane function is used 
+% to separate global/dimension/variable attributes. Users are able to
+% modify field values. The provided updateCallback function is called when 
+% any data is modified.
 %
 % Inputs:
 %   parent         - handle to the figure/uipanel in which the metadata should
@@ -66,6 +66,8 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   
   %% create data sets
   
+  dateFmt = readToolboxProperty('toolbox.timeFormat');
+  
   globs = sample_data;
   globs = rmfield(globs, 'meta');
   globs = rmfield(globs, 'variables');
@@ -105,14 +107,16 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
   %% create uitables
   
   % create a uitable for each data set
-  tables(1) = createTable(globData, '');
+  tables(1) = createTable(globData, '', 'global', dateFmt);
   
   for k = 1:length(dims)
-    tables(end+1) = createTable(dimData{k}, ['dimensions{' num2str(k) '}']);
+    tables(end+1) = createTable(...
+      dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt);
   end
   
   for k = 1:length(vars)
-    tables(end+1) = createTable(varData{k}, ['variables{'  num2str(k) '}']);
+    tables(end+1) = createTable(...
+      varData{k}, ['variables{'  num2str(k) '}'], 'variable', dateFmt);
   end
   
   tableNames = {'Global'};
@@ -136,12 +140,29 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
     set(tables(k), 'ColumnWidth', num2cell(colWidth));
   end
 
-  function table = createTable(data, prefix)
+  function table = createTable(data, prefix, tempType, dateFmt)
   % Creates a uitable which contains the given data. 
     
-    % create an empty cell at the end for user-added fields
-    data{end+1,1} = '';
-    data{end  ,2} = '';
+    % format data - they're all made into strings, and cast 
+    % back when edited. also we want date fields to be 
+    % displayed nicely, not to show up as a numeric value
+    for k = 1:length(data)
+      
+      % get the type of the attribute
+      t = templateType(data{k,1}, tempType);
+      
+      switch t
+        
+        % format dates
+        case 'D',  
+          data{k,2} = datestr(str2num(data{k,2}), dateFmt);
+        
+        % make everything else a string - i'm assuming that when 
+        % num2str is passed a string, it will return that string 
+        % unchanged; this assumption holds for at least r2008, r2009
+        otherwise, data{k,2} = num2str(data{k,2});
+      end
+    end
     
     % create the table
     table = uitable(...
@@ -149,11 +170,10 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
       'RowName',               [],...
       'RowStriping',           'on',...
       'ColumnName',            {'Name', 'Value'},...
-      'ColumnEditable',        [true    true],...
+      'ColumnEditable',        [false    true],...
       'ColumnFormat',          {'char', 'char'},...
       'CellEditCallback',      @cellEditCallback,...
       'CellSelectionCallback', @cellSelectCallback,...
-      'KeyPressFcn',           @keyPressCallback,...
       'Data',                  data);
     
     selectedCells = [];
@@ -165,50 +185,25 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
     % sucks.
       selectedCells = ev.Indices;
     end
-    
-    function keyPressCallback(source,ev)
-    %KEYPRESSCALLBACK Allows the user to delete fields by selecting them
-    % and hitting the delete key.
-    %
-      if strcmp(ev.Key, 'delete')
-        
-        % get selected row numbers
-        selectedRows = selectedCells(:,1);
-        
-        % if any row names are empty, don't delete them (this preserves the 
-        % empty cell at the bottom that allows the user to add new fields)
-        selectedRows(cellfun(@isempty, {data{selectedRows,1}})) = [];
-        
-        % delete the selected fields, update the GUI
-        data(selectedRows,:) = [];
-        set(table, 'Data', data);
-        updateCallback(sample_data);
-      end
-    end
 
     function cellEditCallback(source,ev)
     %CELLEDITCALLBACK Called when the user edits a cell. 
     %
       row = ev.Indices(1);
-      col = ev.Indices(2);
       
-      oldName  = data{row, 1};
-      oldValue = data{row, 2};
-      
-      % user either edited the field name or the field value
-      if col == 1
-        newName  = ev.NewData;
-        newValue = oldValue;
-      else
-        newName  = oldName;
-        newValue = ev.NewData;
-      end
+      fieldName = data{row, 1};
+      oldValue  = data{row, 2};
+      newValue  = ev.NewData;
       
       % apply the update
-      try
-        applyUpdate(prefix, oldName, newName, newValue);
+      try applyUpdate(prefix, fieldName, newValue, tempType);
+      
       catch e
+        
+        % display an error
         errordlg(e.message, 'Error');
+        
+        % revert uitable dataset
         set(table, 'Data', data);
         return;
       end
@@ -216,99 +211,87 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
       % notify GUI of change to data
       updateCallback(sample_data);
         
-      % user modified field name
-      if col == 1 
-
-        % user deleted a field? remove it 
-        if isempty(newName)
-
-          data(row,:) = [];
-          set(table, 'Data', data);
-
-        % user added a field? save it and add 
-        % a new, empty row at the bottom
-        elseif row == length(data)
-
-          data{row,col} = ev.NewData;
-          data{end+1,1} = '';
-          data{end  ,2} = '';
-          set(table, 'Data', data);
-        end
-
-      % user modified field value
-      else
-
-        % user tried to add a new field value 
-        % without specifying the name? ignore it
-        if row == length(data), set(table, 'Data', data);
-
-        %otherwise save the change
-        else data{row,col} = ev.NewData;
-        end
-      end
+      %save the change - the uitable updates itself
+      data{row,2} = newValue;
     end
   end
 
-  function applyUpdate(prefix, oldName, newName, newValue)
+  function applyUpdate(prefix, fieldName, fieldValue, tempType)
   %APPLYUPDATE Applies the given field update to the sample_data struct.
   %
   % Inputs:
-  %   prefix   - prefix to apply to struct name (e.g. if the field is in
-  %              dimensions or variables).
-  %   oldName  - old field name. If the field is a new field, this will be
-  %              empty.
-  %   newName  - new field name. If the field has been removed, this will
-  %              be empty.
-  %   newValue - new field value.
+  %   prefix     - prefix to apply to struct name (e.g. if the field is in
+  %                dimensions or variables).
+  %   fieldName  - Name of field being edited.
+  %   fieldValue - new field value.
+  %   tempType   - netcdf attribute template type (passed to the templateType
+  %                function).
   %
     
     % figure out the struct to which the changes are being applied
     structName = 'sample_data';
     if ~isempty(prefix), structName = [structName '.' prefix]; end
+       
+    % cast value to appropriate type; fieldValue remains a 
+    % string, but the actual values assigned to the struct 
+    % in the eval statements below will sort out the type
+    if ~isempty(fieldValue)
+      
+      % get the type of the attribute
+      t = templateType(fieldName, tempType);
+      switch t
 
-    % validate input - ignore bad input
-    if  isempty(oldName) && isempty(newName),              return; end
-    if ~isempty(oldName) && ...
-       ~eval(['isfield(' structName ',''' oldName ''')']), return; end
-    
-    % cast value to numeric if needed/possible
-    if ~isempty(newValue)
+        % dates are matlab serial numeric values
+        case 'D'
 
-      % if an existing field, check the type of the old value
-      if ~isempty(oldName)
+          try
+            % datestr is rubbish - doesn't catch trailing characters
+            if length(fieldValue) ~= length(dateFmt)
+              error('bad length'); 
+            end
 
-        oldVal = eval([structName '.' oldName]);
-        if ischar(oldVal) || isempty(oldVal)
-          newValue = ['''' newValue '''']; 
-        end
+            fieldValue = num2str(datenum(fieldValue, dateFmt));
 
-      % if a new field, try to cast; if fail, revert to string
-      else
-        temp = str2double(newValue);
-        if isempty(temp), newValue = ['''' newValue '''']; end
+          % reject poorly formatted date strings
+          catch e
+            error([fieldName ...
+                   ' must be a (UTC) date in this format:  ''' dateFmt '''']);
+          end
+
+        % numbers are just numbers
+        case 'N'
+          temp = str2num(fieldValue);
+
+          % reject anything that is not a number
+          if isempty(temp)
+            error([fieldName ' must be a number']); 
+          end
+
+        % qc flag is different depending on qc set in use
+        case 'Q'
+
+          % i'm assuming that QC modifications will very rarely occur,
+          % so the file lookups here shouldn't be too costly
+          qcSet  = str2double(readToolboxProperty('toolbox.qc_set'));
+          qcType = imosQCFlag('', qcSet, 'type');
+
+          switch qcType
+
+            case 'byte'
+              temp = uint8(str2num(fieldValue));
+              if isempty(temp), error([fieldName ' must be a byte']); end
+
+            case 'char'
+              fieldValue = ['''' fieldValue ''''];
+          end
+
+        % everything else is a string
+        otherwise, fieldValue = ['''' fieldValue ''''];
       end
-    else
-      newValue = '''''';
+    else fieldValue = '''''';
     end
     
     % apply the change
-    
-    % new field
-    if isempty(oldName)
-      eval([structName '.' newName ' = ' newValue ';']);
-    
-    % delete field
-    elseif isempty(newName)
-      eval([structName ' = rmfield(' structName, ',''' oldName ''');']);
-
-    % existing value change
-    elseif strcmp(oldName, newName)
-      eval([structName '.' newName ' = ' newValue ';']);
-
-    % field name change
-    else
-      eval([structName ' = rmfield(' structName ',''' oldName ''');']);
-      eval([structName '.' newName ' = ' newValue ';']);
-    end
+    eval([structName '.' fieldName ' = ' fieldValue ';']);
   end
 end
