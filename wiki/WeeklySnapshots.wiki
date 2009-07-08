@@ -105,6 +105,12 @@ url     = sys.argv[1]
 path    = sys.argv[2]
 archive = '%s.zip' % path
 
+jhome = '%s/jdk1.5.0_18' % os.getcwd()
+jpath = '%s/bin:%s/jre/bin' % (jhome,jhome)
+
+os.environ['PATH'] = '%s:%s' % (jpath, os.environ['PATH'])
+os.environ['JAVA_HOME'] = jhome
+
 print('\n--exporting SVN tree from %s to %s' % (url, path))
 os.system('svn export %s %s' % (url, path))
 
