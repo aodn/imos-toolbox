@@ -17,7 +17,7 @@ Start the toolbox like so:
 }}}
 
 
-When you start the flow manager, you are first presented with the following dialog:
+Upon starting the toolbox, you are first presented with the following dialog:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_startDialog.png
 
