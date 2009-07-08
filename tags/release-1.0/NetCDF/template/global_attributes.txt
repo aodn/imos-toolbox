@@ -1,8 +1,8 @@
 % what
 S, project                      = Integrated Marine Observing System (IMOS)
 S, conventions                  = IMOS version 1.2
-S, title                        = [ddb Site]
-S, institution                  = ANMN
+S, title                        = 
+S, institution                  = 
 D, date_created                 = [mat sample_data.date_created]
 D, date_modified                = 
 S, abstract                     = [ddb Site Sites Description]
@@ -12,10 +12,10 @@ S, keywords                     = [ddb InstrumentID Instruments Model], [mat cel
 S, references                   = http://www.imos.org.au
 S, netcdf_version               = 3.6
 N, quality_control_set          = [mat readToolboxProperty('toolbox.qc_set')]
-S, site_code                    = ANMN-NRS
-S, platform_code                = NRSMAI
+S, site_code                    = 
+S, platform_code                = 
 S, naming_authority             = IMOS
-S, cdm_data_type                = Station
+S, cdm_data_type                = 
 S, metadata                     = 
 S, sensorML                     = 
 
