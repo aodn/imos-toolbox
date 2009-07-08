@@ -58,16 +58,14 @@ if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
-log = {};
-
 % get the flag values with which we flag good and out of range data
 qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
 rangeFlag = imosQCFlag('bound', qc_set, 'flag');
 goodFlag  = imosQCFlag('good',  qc_set, 'flag');
 
 % initialise all flags to good
-flags    = zeros(length(data),1);
-flags(:) = goodFlag;
+log                   = {};
+flags(1:length(data)) = goodFlag;
 
 max  = sample_data.variables{k}.valid_max;
 min  = sample_data.variables{k}.valid_min;

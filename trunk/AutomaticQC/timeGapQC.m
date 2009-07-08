@@ -74,9 +74,8 @@ qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',        qc_set, 'flag');
 gapFlag  = imosQCFlag('discont',     qc_set, 'flag');
 
-log      = {};
-flags    = zeros(length(data), 1);
-flags(:) = goodFlag;
+log                   = {};
+flags(1:length(data)) = goodFlag;
 
 dim  = sample_data.dimensions{1}.data;
 
