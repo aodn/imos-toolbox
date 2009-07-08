@@ -120,8 +120,9 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
   if isempty(deps), return; end
   
   % display progress dialog
-  progress = waitbar(0, 'importing data', 'Name', 'Importing');
-  set(progress,'DefaultTextInterpreter','none');
+  progress = waitbar(0, 'importing data', ...
+    'Name',                  'Importing',...
+    'DefaultTextInterpreter','none');
   
   dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));

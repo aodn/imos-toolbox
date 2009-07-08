@@ -80,8 +80,9 @@ function exportManager(dataSets, levelNames, output)
   
   filenames = {};
   
-  progress = waitbar(0, 'Exporting data', 'Name', 'Exporting');
-  set(progress,'DefaultTextInterpreter','none');
+  progress = waitbar(0, 'Exporting data', ...
+    'Name',                  'Exporting',...
+    'DefaultTextInterpreter','none');
   
   % write out each of the selected data sets
   for k = 1:length(dataSets)
