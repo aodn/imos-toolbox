@@ -65,6 +65,9 @@ function [fieldTrip dataDir] = startDialog()
   catch
   end
 
+  if isnan(lowDate), lowDate  = 0;   end
+  if isnan(highDate, highDate = now; end
+
   % retrieve all field trip IDs; they are displayed as a drop down menu
   fieldTrips = executeDDBQuery('FieldTrip', [], []);
   
