@@ -127,6 +127,8 @@ function sam = qcFilter(sam, filterName, rawFlag, goodFlag, cancel)
 %
   % turn routine name into a function
   filter = str2func(filterName);
+  
+  nFlagged = 0;
 
   for k = 1:length(sam.variables)
 
@@ -162,9 +164,22 @@ function sam = qcFilter(sam, filterName, rawFlag, goodFlag, cancel)
       % set the flags
       flagSlice(idx) = f(idx);
       flags(len*(m-1)+1:len*(m)) = flagSlice;
-
+      
+      % update count (for log entry)
+      nFlagged = nFlagged + length(flagIdx);
     end
-
+    
     sam.variables{k}.flags = reshape(flags, size(sam.variables{k}.flags));
+    
+    % add a log entry
+    if nFlagged ~= 0
+      
+      flags = unique(flags);
+      flags(flags == rawFlag) = [];
+      
+      sam.meta.log{end+1} = [filterName ...
+        ' flagged ' num2str(nFlagged) ' ' ...
+        sam.variables{k}.name ' samples: ' num2str(flags)'];
+    end
   end
 end
