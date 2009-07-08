@@ -59,3 +59,12 @@ The ddb is accessed via Java code, thus you must also let Matlab know where the 
 {{{
 C:\imos-toolbox\Java\ddb.jar
 }}}
+
+== Startup ==
+
+You should now be able to start matlab and run the toolbox:
+{{{
+>> imosToolbox
+}}}
+
+See the [UsingTheToolboxOverview overview] on using the toolbox to get started.
