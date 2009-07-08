@@ -14,7 +14,7 @@ function [data, flags, log] = flatlineQC( sample_data, data, k, varargin )
 %
 %   'nsamples'  - Minimum number of consecutive samples with the same value
 %                 that will be detected by the filter. If not provided, a
-%                 default value of 5 is used. If provided, and less than 2, a
+%                 default value of 10 is used. If provided, and less than 2, a
 %                 value of 2 is used.
 %
 % Outputs:
@@ -64,7 +64,7 @@ if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
 p = inputParser;
-p.addOptional('nsamples', 5, @isnumeric);
+p.addOptional('nsamples', 10, @isnumeric);
 
 p.parse(varargin{:});
 
