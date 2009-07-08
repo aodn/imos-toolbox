@@ -65,9 +65,9 @@ qc_set    = str2double(readToolboxProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qc_set, 'flag');
 flagVal   = imosQCFlag('bad',   qc_set, 'flag');
 
-flags    = zeros(length(data), 1);
-flags(:) = goodFlag;
-log      = {};
+log                   = {};
+flags(1:length(data)) = goodFlag;
+
 
 % find samples which were taken before in water
 time = sample_data.dimensions{1}.data;

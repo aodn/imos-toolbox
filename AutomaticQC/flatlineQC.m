@@ -75,9 +75,8 @@ qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',        qc_set, 'flag');
 flatFlag = imosQCFlag('probablyBad', qc_set, 'flag');
 
-log      = {};
-flags    = zeros(length(data), 1);
-flags(:) = goodFlag;
+log                   = {};
+flags(1:length(data)) = goodFlag;
 
 % size of the current flatline region we are stepping through
 flatlineSize = 1;

@@ -78,8 +78,8 @@ for k = 1:length(sample_data.variables)
   iFlags = find(iFlags ~= goodFlag);
   oFlags = find(oFlags ~= goodFlag);
   
-  iShouldBe = (1:start_idx-1)';
-  oShouldBe = (end_idx+1:num_samples)';
+  iShouldBe = (1:start_idx-1);
+  oShouldBe = (end_idx+1:num_samples);
   
   if length(iFlags) ~= length(iShouldBe) || ~all(iFlags == iShouldBe)
     error('in water flags are invalid'); 

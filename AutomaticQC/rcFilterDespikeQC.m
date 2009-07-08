@@ -79,9 +79,8 @@ qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qc_set, 'flag');
 spikeFlag = imosQCFlag('spike', qc_set, 'flag');
 
-flags    = zeros(length(fdata), 1);
-flags(:) = goodFlag;
-log      = {};
+log                   = {};
+flags(1:length(data)) = goodFlag;
 
 % remove the mean and run a mild high pass filter 
 % over the data before applying spike detection

@@ -42,7 +42,7 @@ disp(['-- ' mfilename ' --']);
 disp(' ');
 
 num_samples = 2000;
-min_flatline_size = 5;
+min_flatline_size = 10;
 
 % generate test data
 sample_data = genTestData(...
