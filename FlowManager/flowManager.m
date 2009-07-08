@@ -239,7 +239,18 @@ function flowManager()
     if isempty(autoQCData), return; end
     
     autoQCData{setIdx}.variables{varIdx}.flags(dataIdx) = flag;
-
+    
+    qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
+    rawFlag = imosQCFlag('raw', qcSet, 'flag');
+    
+    % add a log entry if the user has added flags
+    if ~isempty(dataIdx) && flag ~= rawFlag
+      
+      autoQCData{setIdx}.meta.log{end+1} = ...
+        ['Author flagged ' num2str(length(dataIdx)) ...
+         ' ' autoQCData{setIdx}.variables{varIdx}.name ...
+         ' samples: ' num2str(flag)];
+    end
   end
 
   function exportNetCDFRequestCallback()
