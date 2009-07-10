@@ -33,7 +33,7 @@ N, geospatial_vertical_min = [ddb InstrumentDepth]
 N, geospatial_vertical_max = [ddb InstrumentDepth]
 
 % when
-N, local_time_zone     = [mat java.util.TimeZone.getDefault().getRawOffset() / 3600000]
+N, local_time_zone     = 
 
 % these fields are automatically populated upon import
 D, time_coverage_start = 
