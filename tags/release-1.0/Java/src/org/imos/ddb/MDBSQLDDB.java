@@ -35,6 +35,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 /**
  * In memory representation of the IMOS deployment database using libmdbsql. 
@@ -265,6 +267,13 @@ public class MDBSQLDDB extends DDB {
       
       if (rep.equals("1") || rep.equalsIgnoreCase("true")) value = true;
       else                                                 value = false;
+    }
+
+    //mdbsql returns dates in a format that 
+    //the Date constructor can't recognise
+    else if (f.getType().equals(Date.class)) {
+
+      value = new SimpleDateFormat("dd/MM/yy HH:mm:ss").parse(rep);
     }
     
     //reflection for everything else
