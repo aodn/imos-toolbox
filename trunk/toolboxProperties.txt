@@ -1,6 +1,5 @@
 % filename or ODBC DSN of deployment database
-toolbox.ddb = /home/paul/OceanographyMaster.mdb
-% toolbox.ddb = /media/minke/ACCESS DATABASE/JUNE10.mdb
+toolbox.ddb = imos-ddb
 
 % date and time formats used internally and for GUI display
 toolbox.dateFormat = dd mmm yyyy
@@ -26,13 +25,13 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % default values for start dialog
-startDialog.dataDir = /home/paul/Documents/imos/aims_matlab_code/GM6Trip4814
-startDialog.fieldTrip = 4814
+startDialog.dataDir = C:
+startDialog.fieldTrip =
 startDialog.lowDate = 730486
 startDialog.highDate = 734138
 
 % default directory for file export
-exportDialog.defaultDir = /home/paul
+exportDialog.defaultDir = C:
 
 % prompt user to select parser if an appropriate one cannot be found
 importManager.noParserPrompt = true
