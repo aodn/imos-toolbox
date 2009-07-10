@@ -33,7 +33,7 @@
 	</target>
 
 	<target name="compile" depends="clean" description="--> Compile all files">
-		<javac srcdir="${sourcedir}" destdir="${targetdir}" classpathref="classpath" />
+		<javac debug="on" srcdir="${sourcedir}" destdir="${targetdir}" classpathref="classpath" />
 		
 		<exec os="Linux" executable="make" dir="${mdbsqldir}" failonerror="true"/>
 		
@@ -53,7 +53,7 @@
 		
     <java classname="org.imos.ddb.Test" classpathref="classpath" fork="true" dir="${targetdir}">
 			<arg value="${ddb}"/>
-      <sysproperty key="java.library.path" value="${targetdir}"/>
+      <sysproperty key="java.library.path" value="${basedir}"/>
 		</java>
 		
 	</target>
