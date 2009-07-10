@@ -57,11 +57,11 @@ oldFile = [propFilePath filesep  'toolboxProperties.txt'];
 newFile = [propFilePath filesep '.toolboxProperties.txt'];
 
 % open old file for reading
-fid  = fopen(oldFile, 'r');
+fid  = fopen(oldFile, 'rt');
 if fid == -1,  error(['could not open ' oldFile ' for reading']); end
 
 % open handle to new replacement file
-nfid = fopen(newFile, 'w');
+nfid = fopen(newFile, 'wt');
 if nfid == -1, 
   flose(fid);
   error(['could not open ' newFile ' for writing']); 

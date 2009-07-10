@@ -126,7 +126,7 @@ function sample_data = WQMParse( filename )
   fields  = [];
   format  = [];
   try
-    fid = fopen(filename);
+    fid = fopen(filename, 'rt');
     if fid == -1, error(['couldn''t open ' filename 'for reading']); end
 
     [fields format] = getFormat(fid, required, params);

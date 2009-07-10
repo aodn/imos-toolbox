@@ -87,7 +87,7 @@ fid = -1;
 flags = [];
 sets = [];
 try
-  fid = fopen([path filesep 'imosQCFlag.txt']);
+  fid = fopen([path filesep 'imosQCFlag.txt'], 'rt');
   if fid == -1, return; end
 
   % read in the QC sets and flag values for each set

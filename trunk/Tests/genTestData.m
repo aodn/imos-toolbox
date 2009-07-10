@@ -76,7 +76,8 @@ sample_data.variables                 = {};
 sample_data.meta                      = struct;
 sample_data.meta.level                = 0;
 sample_data.meta.instrument_make      = 'Seabird';
-sample_data.meta.instrument_model     = 'SBE37'
+sample_data.meta.instrument_model     = 'SBE37';
+sample_data.meta.log                  = {};
 sample_data.meta.instrument_serial_no = '6079';
 
 sample_data.quality_control_set  = qcSet;

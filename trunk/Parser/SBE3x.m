@@ -132,7 +132,7 @@ if ~ischar(filename), error('filename must contain a string'); end
 % save file size and open file; this will throw an error if file doesn't exist
 filesize = dir(filename);
 filesize = filesize.bytes;
-fid = fopen(filename);
+fid = fopen(filename, 'rt');
 
 % Values used for metadata fields (IMOS compliant)
 TEMPERATURE_NAME  = 'TEMP';
