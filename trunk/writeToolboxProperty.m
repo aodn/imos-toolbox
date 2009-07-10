@@ -70,7 +70,7 @@ end
 % iterate through every line of the file
 line = fgets(fid);
 updated = 0;
-while line ~= -1
+while ischar(line)
   
   tkns = regexp(line, '^\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
   
@@ -78,7 +78,7 @@ while line ~= -1
   % old property value with the new value
   if ~isempty(tkns) ...
   &&  strcmp(tkns{1}{1},prop)
-    if isempty(tkns{1}{2}), line = [tkns{1}{1} ' = ' val];
+    if isempty(tkns{1}{2}), line = sprintf('%s = %s\n', tkns{1}{1}, val);
     else                    line = strrep(line, tkns{1}{2}, val);
     end 
     updated = 1;
