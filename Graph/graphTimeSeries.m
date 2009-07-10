@@ -96,6 +96,7 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
     xLimits = get(graphs(k), 'XLim');
     xStep   = (xLimits(2) - xLimits(1)) / 5;
     xTicks  = xLimits(1):xStep:xLimits(2);
+    set(graphs(k), 'XTick', xTicks);
 
     % convert the tick labels into date strings
     xTicks = datestr(xTicks, 'dd-mm-yy'); 
