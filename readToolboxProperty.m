@@ -51,7 +51,7 @@ if ~ischar(prop), error('prop must be a string'); end
 propFilePath = fileparts(which(mfilename));
 
 % read in all the name=value pairs
-fid = fopen([propFilePath filesep 'toolboxProperties.txt']);
+fid = fopen([propFilePath filesep 'toolboxProperties.txt'], 'rt');
 if fid == -1, error('could not open toolboxProperties.txt'); end
 
 lines = textscan(fid, '%s%s', 'Delimiter', '=', 'CommentStyle', '%');

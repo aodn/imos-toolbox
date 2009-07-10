@@ -59,7 +59,7 @@ path = fileparts(which(mfilename));
 fid = -1;
 params = [];
 try
-  fid = fopen([path filesep 'imosFileVersion.txt']);
+  fid = fopen([path filesep 'imosFileVersion.txt'], 'rt');
   if fid == -1, return; end
   
   params = textscan(fid, '%s%s%s%[^\n]', 'delimiter', ',', 'commentStyle', '%');

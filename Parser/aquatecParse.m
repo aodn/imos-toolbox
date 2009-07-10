@@ -81,7 +81,7 @@ function sample_data = aquatecParse( file )
   meta = {};
   data = '';
   try
-    fid = fopen(file{1}, 'rb');
+    fid = fopen(file{1}, 'rt');
     
     % note the use of fgets - the newline is kept, so we can reconstruct
     % the first data line read after all the metadata has been read in

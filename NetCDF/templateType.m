@@ -68,7 +68,7 @@ lines = {};
 % read all the lines in
 fid = -1;
 try
-  fid = fopen(filepath, 'r');
+  fid = fopen(filepath, 'rt');
   
   if fid == -1, error(['could not open file ' filepath]); end
   

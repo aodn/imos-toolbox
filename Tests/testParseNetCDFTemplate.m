@@ -95,7 +95,7 @@ function atts = listAtts(file)
 %
   atts = {};
 
-  fid = fopen(file);
+  fid = fopen(file, 'rt');
   if fid == -1, return; end
 
   line = fgetl(fid);

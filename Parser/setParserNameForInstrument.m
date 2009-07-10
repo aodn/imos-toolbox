@@ -58,7 +58,7 @@ fid = -1;
 try
   
   % open the file
-  fid = fopen([path filesep 'instruments.txt'], 'a');
+  fid = fopen([path filesep 'instruments.txt'], 'at');
   if fid == -1, error('could not open instruments.txt'); end
   
   % append the new entry to the end of the file

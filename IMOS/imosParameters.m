@@ -66,7 +66,7 @@ path = fileparts(which(mfilename));
 fid = -1;
 params = [];
 try
-  fid = fopen([path filesep 'imosParameters.txt']);
+  fid = fopen([path filesep 'imosParameters.txt'], 'rt');
   if fid == -1, return; end
   
   params = textscan(fid, '%s%s%s%s%f%f%f', ...

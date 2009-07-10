@@ -63,7 +63,7 @@ path = fileparts(which(mfilename));
 lines = {};
 fid = -1;
 try
-  fid = fopen([path filesep 'instruments.txt']);
+  fid = fopen([path filesep 'instruments.txt'], 'rt');
   if fid == -1, error('could not open instruments.txt'); end
   lines = textscan(fid, '%s%s%s', 'delimiter', ',', 'commentStyle', '%');
   fclose(fid);
