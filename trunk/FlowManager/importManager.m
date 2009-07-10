@@ -404,15 +404,4 @@ function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
   elseif ~isempty(deployment.TimeSwitchOff)
     sam.time_coverage_end = deployment.TimeSwitchOff;
   end
-  
-  % apply local timezone offset to make all dates UTC
-  sam.time_coverage_start = sam.time_coverage_start - sam.local_time_zone/24.0;
-  sam.time_coverage_end   = sam.time_coverage_end   - sam.local_time_zone/24.0;
-  sam.date_created        = sam.date_created        - sam.local_time_zone/24.0;
-  
-  % also apply to time data
-  if strcmpi(sam.dimensions{1}.name, 'TIME')
-    sam.dimensions{1}.data = sam.dimensions{1}.data - sam.local_time_zone/24.0;
-  end
-
 end
