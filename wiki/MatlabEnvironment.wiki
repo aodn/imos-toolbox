@@ -16,23 +16,32 @@ I call matlab from a (bash) script which preconfigures the matlab path:
 #!/bin/sh
 MATLAB_HOME=/home/paul/matlab
 MATLAB_WORKSPACE=/home/paul/matlab-workspace
-IMOS_WORKSPACE=$MATLAB_WORKSPACE/imos-toolbox/trunk
+IMOS_WORKSPACE=$MATLAB_WORKSPACE/imos-toolbox
 
 MATLABPATH=$MATLAB_WORKSPACE/m2html
 MATLABPATH=$MATLABPATH:$MATLAB_WORKSPACE/mtest
 MATLABPATH=$MATLABPATH:$IMOS_WORKSPACE
 
-DIRS=`ls $IMOS_WORKSPACE`
-for D in $DIRS
-do
-  D=$IMOS_WORKSPACE/$D
-  if [ -d $D ]
-  then
-    MATLABPATH=$MATLABPATH:$D
-  fi
+ROOTS=$IMOS_WORKSPACE\ $IMOS_WORKSPACE/Graph
 
+for R in $ROOTS
+do
+
+  DIRS=`ls $R`
+
+  for D in $DIRS
+  do
+
+    D=$R/$D
+    if [ -d $D ]
+    then
+      MATLABPATH=$MATLABPATH:$D
+    fi
+
+  done
 done
 
+echo $MATLABPATH
 export MATLABPATH
 cd $IMOS_WORKSPACE
 $MATLAB_HOME/bin/matlab -desktop -nosplash
