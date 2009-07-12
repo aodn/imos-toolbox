@@ -18,6 +18,7 @@
   * GraphSpecification
  * Help
   * ToolboxInstallation
+  * ToolboxConfiguration
   * UsingTheToolboxOverview
   * [tortoiseSVN]
  * Other
