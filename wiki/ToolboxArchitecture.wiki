@@ -19,14 +19,11 @@ The *Flow Manager* controls program flow, for example, ensuring that the user ca
 
 The *Import Manager* manages the import of data into the toolbox; it uses the relevant  *[ParserSpecification Parser]* module to import instrument data from raw files.
 
-The *Display Manager* manages data visualisation.
+The *Display Manager* manages data visualisation and interaction (e.g. GUI logic for manual QC).
 
-The *Process Manager* manages transitions between data process levels (i.e. raw, auto-QC'd, manual-QC'd etc.).
+The *Auto QC Manager* provides procedures for automatic flagging of suspect data. It uses the *[AutoQCSpecification Automatic QC]* filters.
 
-The *[AutoQCSpecification Automatic QC]* module provides procedures for automatic flagging of suspect data.
 
-The *Manual QC* module provides procedures allowing the user to manually flag/correct suspect data.
-
-The *NetCDF Exporter* exports data to IMOS compliant NetCDF files.
+The *Export Manager* exports data to IMOS compliant NetCDF files.
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/imos_system_arch.png
