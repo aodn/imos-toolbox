@@ -1,0 +1,11 @@
+#summary Overview on how to configure the toolbox.
+
+<wiki:toc/>
+
+= Toolbox Configuration =
+
+The toolbox contains a number of configuration files, allowing for customisation of the toolbox display and behaviour, and of NetCDF output. This page provides an overview of the different configuration files.
+
+== `toolboxProperties.txt` ==
+
+This file contains general toolbox configuration settings. Many of the settings in this file are related to previous selections for e.g. the selected import/export directory; these settings are automatically updated every time the selection changes, meaning that the toolbox will always remember your most recent selection. In most circumstances, the only setting that you will need to change in this file is the `toolbox.ddb` setting, which tells the toolbox where the deployment database lives.
