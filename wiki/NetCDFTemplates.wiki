@@ -120,4 +120,4 @@ author = [ddb PersonnelDownload Personnel StaffID FirstName] \
 title = [mat sample_data.field_trip_id]: [ddb Site Sites ResearchActivity]
  }}}
 
-Nested definitions are not supported in version 1.0 but will soon be [#11 in the trunk].
+Nested definitions are not supported in version 1.0 but will soon be [issue 11 in the trunk].
