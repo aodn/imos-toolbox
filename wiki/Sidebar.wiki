@@ -19,6 +19,7 @@
  * Help
   * ToolboxInstallation
   * ToolboxConfiguration
+  * [NetCDFTemplates]
   * UsingTheToolboxOverview
   * [tortoiseSVN]
  * Other
