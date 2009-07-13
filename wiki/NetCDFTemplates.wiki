@@ -1,0 +1,107 @@
+#summary Overview of the NetCDF attribute templates.
+
+<wiki:toc/>
+
+= NetCDF Template Engine =
+
+The template engine is executed after data has been imported; it is used to add NetCDF attributes to the `sample_data` struct in question. The template engine relies upon a set of 'template' files, which specify NetCDF attribute values in three different ways:
+
+    * Literal strings
+    * Matlab expressions 
+    * Deployment Database queries
+
+When required, the template engine reads in a template, runs any DDB queries and executes any matlab expressions which are specified in the template, and adds the results to the `sample_data` struct.
+
+A template file is a list of `type,name=value` tuples. The `value` section may contain, as listed above, literal strings, matlab expressions, database queries, or a combination of all three. The type is one of the following:
+ * S: String
+ * N: Numeric
+ * D: Date
+ * Q: Qualiy Control flag (will be cast to the same type as the quality control data for the QC set in use)
+
+== Literal Strings ==
+
+An example template attribute definition which simply provides a literal string:
+{{{
+S, project = Integrated Marine Observing System (IMOS)
+}}}
+
+== DDB Queries ==
+
+The syntax for setting an attribute value to be the value of a field within the deployment database is (the inner square brackets indicate optional sections):
+
+{{{
+attribute_name = [ddb field [related_table [related_pkey] related_field]]
+}}}
+
+where 
+
+ * `field` is a field within the `DeploymentData` table, the value of which is to be used as the attribute value (unless `related_table` and `related_field` are specified).
+ * `related_table` is the name of a table to which the field should be considered a foreign key.
+ * `related_pkey` is the name of the related_table primary key. If omitted, it is assumed to be the same as field.
+ * `related_field` is the name of the field within the related_table, the value of which is to be used as the attribute value.
+
+A couple of examples:
+
+1. For the attribute definition:
+  {{{
+local_time_zone = [ddb TimeZone]
+  }}}
+the value will be translated into a query to the deployment database of the form:
+  {{{
+select TimeZone from DeploymentData 
+where DeploymentID = dataset_deployment_id
+  }}}
+
+2. For the attribute definition:
+  {{{
+institution = [ddb PersonnelDownload Personnel StaffID Organisation]
+  }}}
+the value will be translated into the following query:
+  {{{
+select Organisation from Personnel where StaffID = 
+(
+  select PersonnelDownload from DeploymentData
+  where DeploymentID = dataset_deployment_id
+)
+  }}}
+
+== Matlab Expressions ==
+
+You can set the attribute value to be the result of a matlab statement like
+so:
+{{{
+  attribute_name = [mat statement]
+}}}
+
+The following 'workspace' is available to these embedded statements:
+
+ * `sample_data`: the struct containing sample data, which is passed to this function.
+ * `k`: (only if the template is a data attribute template) the variable index passed to this function.
+
+For example, for the attribute definition:
+{{{
+  quality_control_set = [mat readToolboxProperty('toolbox.qc_set')]
+}}}
+
+the attribute value will be the value of the matlab statment:
+{{{
+  readToolboxProperty('toolbox.qc_set')
+}}}
+
+== Combinations ==
+
+You can combine each method of defining values, as shown in the following examples:
+
+ #. 
+ {{{
+qc_param_name = [mat sample_data.variables{k}.name]_QC
+ }}}
+ #.
+ {{{
+author = [ddb PersonnelDownload Personnel StaffID FirstName] \
+         [ddb PersonnelDownload Personnel StaffID LastName]
+ }}}
+ #. 
+ {{{
+title = [mat sample_data.field_trip_id]: [ddb Site Sites ResearchActivity]
+ }}}
