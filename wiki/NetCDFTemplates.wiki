@@ -4,9 +4,21 @@
 
 = NetCDF Template Engine =
 
-The template engine is executed after data has been imported; it is used to add NetCDF attributes to the `sample_data` struct in question. The template engine relies upon a set of 'template' files, which specify NetCDF attribute values in three different ways:
+NetCDF metadata attributes are automatically populated from a set of template files, which reside in the `NetCDF/template/` subdirectory. The following template files are used:
 
-    * Literal strings
+||*File*||*Use*||
+||`depth_attributes.txt`||DEPTH coordinate variable attributes||
+||`global_attributes.txt`||Global NetCDF attributes||
+||`latitude_attributes.txt`||LATITUDE coordinate variable attributes||
+||`longitude_attributes.txt`||LONGITUDE coordinate variable attributes||
+||`qc_attributes.txt`||Quality control variable attributes||
+||`qc_coord_attributes.txt`||Quality control coordinate variable attributes||
+||`time_attributes.txt`||TIME coordinate variable attributes||
+||`variable_attributes.txt`||Variable attributes||
+
+All of the template files except for the quality control ones are loaded when data is imported into the toolbox; the quality control template files are loaded just before data is exported. The generated attributes are added to the `sample_data` struct. you can use the template files to specify NetCDF attribute values in one of three different ways:
+
+    * Literal values (e.g. strings or numbers)
     * Matlab expressions 
     * Deployment Database queries
 
@@ -17,6 +29,8 @@ A template file is a list of `type,name=value` tuples. The `value` section may c
  * N: Numeric
  * D: Date
  * Q: Qualiy Control flag (will be cast to the same type as the quality control data for the QC set in use)
+
+Date values may either be matlab serial dates (i.e. a number specifying days since Jan 1 0000 00:00:00), or in the format specified by the `toolbox.timeFormat` property.
 
 == Literal Strings ==
 
@@ -105,3 +119,5 @@ author = [ddb PersonnelDownload Personnel StaffID FirstName] \
  {{{
 title = [mat sample_data.field_trip_id]: [ddb Site Sites ResearchActivity]
  }}}
+
+Nested definitions are not supported in version 1.0 but will soon be [#11 in the trunk].
