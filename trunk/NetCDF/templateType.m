@@ -56,6 +56,9 @@ error(nargchk(2,2,nargin));
 if ~ischar(name), error('name must be a string'); end
 if ~ischar(temp), error('temp must be a string'); end
 
+% matlab no-leading-underscore kludge
+if name(end) == '_', name = ['_', name(1:end-1)]; end
+
 t = '';
 
 temp = [temp '_attributes.txt'];
