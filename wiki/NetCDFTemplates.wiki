@@ -104,7 +104,7 @@ the attribute value will be the value of the matlab statment:
 
 == Combinations ==
 
-You can combine each method of defining values, as shown in the following examples:
+You can combine each method of defining values, as shown in the following examples. Tokens may contain other tokens:
 
  #. 
  {{{
@@ -119,5 +119,15 @@ author = [ddb PersonnelDownload Personnel StaffID FirstName] \
  {{{
 title = [mat sample_data.field_trip_id]: [ddb Site Sites ResearchActivity]
  }}}
+ #.
+ {{{
+platform = mat ['Platform ' '[ddb Site]']
+ }}}
 
-Nested definitions are not supported in version 1.0 but will soon be in the trunk (see issue 11).
+The use of square braces to define tokens imposes a minor limitation on the use of square braces in attribute values: when the attribute value, tokens and all, is taken as a literal string, the square braces must be balanced. For example, the following is an example of a valid (not necessarily realistic) attribute containing nested tokens and literal braces:
+
+{{{
+  title = [[mat ['abc' '[ddb Site]' 'def']]]
+}}}
+
+This will evaluate (assuming that the Site field in the deployment database is 'MAI') to '[abcMAIdef]'. Using the same example, if the closing brace at the end had been omitted, the parser would raise an error, as the braces would not be balanced.
