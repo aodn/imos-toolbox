@@ -121,7 +121,7 @@ title = [mat sample_data.field_trip_id]: [ddb Site Sites ResearchActivity]
  }}}
  #.
  {{{
-platform = mat ['Platform ' '[ddb Site]']
+platform = [mat ['Platform ' '[ddb Site]']]
  }}}
 
 The use of square braces to define tokens imposes a minor limitation on the use of square braces in attribute values: when the attribute value, tokens and all, is taken as a literal string, the square braces must be balanced. For example, the following is an example of a valid (not necessarily realistic) attribute containing nested tokens and literal braces:
