@@ -130,4 +130,4 @@ The use of square braces to define tokens imposes a minor limitation on the use 
   title = [[mat ['abc' '[ddb Site]' 'def']]]
 }}}
 
-This will evaluate (assuming that the Site field in the deployment database is 'MAI') to '[abcMAIdef]'. Using the same example, if the closing brace at the end had been omitted, the parser would raise an error, as the braces would not be balanced.
+This will evaluate (assuming that the Site field in the deployment database is 'MAI') to '`[abcMAIdef]`'. Using the same example, if the closing brace at the end had been omitted, the parser would raise an error, as the braces would not be balanced.
