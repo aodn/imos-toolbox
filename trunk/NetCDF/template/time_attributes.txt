@@ -9,7 +9,7 @@ S, calendar                  = gregorian
 S, comment                   = 
 N, quality_control_set       = [mat readToolboxProperty('toolbox.qc_set')]
 N, uncertainty               =
-N, local_time_zone           = [mat java.util.TimeZone.getDefault().getRawOffset() / 3600000]
+N, local_time_zone           = 
 
 % this field is automatically populated upon NetCDF export
 Q, quality_control_indicator = 

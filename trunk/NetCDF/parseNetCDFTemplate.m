@@ -108,9 +108,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 % === Combinations ===
 %
 % An attribute value can contain combinations of plain strings and tokens, as 
-% shown in the following examples. The following constraints exist:
-%   - Tokens cannot be repeated in a single attribute definition
-%   - Tokens cannot be nested within other tokens.
+% shown in the examples below. Tokens may contain other tokens.
 %
 % 1. qc_param_name = [mat sample_data.variables{k}.name]_QC
 % 
@@ -118,6 +116,21 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %             [ddb PersonnelDownload Personnel StaffID LastName]
 %
 % 3. title = [ddb Site]: [ddb Site Sites ResearchActivity]
+%
+% 4. platform = [mat ['Platform ' '[ddb Site]']]
+%
+% The use of square braces to enclose tokens imposes a minor limitation on the 
+% use of square braces in attribute values: when the attribute value, tokens 
+% and all, is taken as a literal string, the square braces must be balanced. 
+% For example, the following is an example of a valid (not necessarily 
+% realistic) attribute containing nested tokens and literal braces:
+%
+%   title = [[mat ['abc' '[ddb Site]' 'def']]]
+%
+% This will evaluate (assuming that the Site field in the deployment database 
+% is 'MAI') to '[abcMAIdef]'. Using the same example, if the closing brace 
+% at the end had been omitted, the parser would raise an error, as the braces 
+% would not be balanced.
 %
 % Inputs:
 %   file        - name of the template file to parse.
@@ -238,6 +251,7 @@ function value = parseAttributeValue(line, sample_data, k)
 %
 % Inputs:
 %
+%   line        - the line to parse.
 %   sample_data - A single struct containing sample data. 
 %   k           - Index into sample_data.variable vector.
 %
@@ -245,28 +259,93 @@ function value = parseAttributeValue(line, sample_data, k)
 %
 %   value       - String containing the attribute value.
 %
-
+  sIdx = 1;
+  
   value = line;
+ 
+  if isempty(value), return; end
 
-  % get all tokens in the value (substrings that are contained within [ ])
-  tkns = regexp(line, '\[([^\[\]]*)\]', 'tokens');
-
-  for m = 1:length(tkns)
-
-    tkn = tkns{m}{1};
-
-    % translate the token into an actual value
-    val = '';
-
-    switch tkn(1:3)
-      case 'ddb', val = parseDDBToken(tkn(5:end), sample_data, k);
-      case 'mat', val = parseMatToken(tkn(5:end), sample_data, k);
-      otherwise,  val = ['[' tkn ']'];
-    end
+  while true
     
-    % replace the token from the original line with its value
-    value = strrep(value, ['[' tkn ']'], stringify(val));
+    % end of string reached
+    if sIdx >= length(value), break; end
+    
+    % look at the next character
+    c = value(sIdx);
+    
+    % if not the start of a token, move on to the next character
+    if c ~= '[', sIdx = sIdx + 1;
+      
+    % otherwise parse the token
+    else
+      
+      % find the end of the token by searching 
+      % for the matching end bracket
+      depth = 1;
+      for eIdx = sIdx+1:length(value)
+        
+        if     value(eIdx) == '[', depth = depth + 1;
+        elseif value(eIdx) == ']', depth = depth - 1;
+        end
+        
+        if depth == 0, break; end
+      end
+      
+      % parentheses must be balanced
+      if depth ~= 0, error('parentheses imbalance'); end
+      
+      % valid token found, so parse it
+      tknResult = parseToken(value(sIdx:eIdx), sample_data, k);
+      
+      % replace the token with the interpreted value
+      value = [value(1:sIdx-1) tknResult value(eIdx+1:end)];
+      
+      % continue steppping through the string, 
+      % after the token that was just parsed
+      sIdx = sIdx + length(tknResult);
+    end
+  end
+end
 
+function result = parseToken(tkn, sample_data, k)
+%PARSETOKEN Evaluates a single token from an attribute value.
+%
+% This function makes a recursive call to parseAttributeValue, to account for 
+% any nested tokens.
+%
+% Inputs:
+%
+%   line        - the token to parse.
+%   sample_data - A single struct containing sample data. 
+%   k           - Index into sample_data.variable vector.
+%
+% Outputs:
+%
+%   value       - String containing the evaluated token value.
+%
+
+  result = tkn;
+  
+  % minimum length for a valid token 
+  % is 6 characters (e.g. '[ddb ]')
+  if length(tkn) < 6, return; end
+
+  % get the token type, and its contents
+  type = tkn(2:4);
+  tkn  = tkn(6:end-1);
+  
+  % run through token contents recursively 
+  % to replace any nested tokens
+  switch type
+    case 'ddb', tkn = parseAttributeValue(tkn,             sample_data, k);
+    case 'mat', tkn = parseAttributeValue(tkn,             sample_data, k);
+    otherwise,  tkn = parseAttributeValue(result(2:end-1), sample_data, k);
+  end
+  
+  switch type
+    case 'ddb', result = stringify(parseDDBToken(tkn, sample_data, k));
+    case 'mat', result = stringify(parseMatToken(tkn, sample_data, k));
+    otherwise,  result = [result(1) tkn result(end)];
   end
 end
 
