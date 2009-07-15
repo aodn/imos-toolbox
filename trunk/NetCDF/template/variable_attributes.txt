@@ -1,5 +1,5 @@
 S, standard_name             = [mat imosParameters(sample_data.variables{k}.name, 'standard_name')]
-S, long_name                 = [mat imosParameters(sample_data.variables{k}.name, 'standard_name')]
+S, long_name                 = [mat imosParameters(sample_data.variables{k}.name, 'long_name')]
 S, units                     = [mat imosParameters(sample_data.variables{k}.name, 'uom')]
 N, _FillValue                = [mat imosParameters(sample_data.variables{k}.name, 'fill_value')]
 N, valid_min                 = [mat imosParameters(sample_data.variables{k}.name, 'valid_min')]
