@@ -7,13 +7,17 @@ function value = imosParameters( short_name, field )
 %
 % The file imosParameters.txt contains a list of all parameters for which an
 % IMOS compliant identifier (the short_name) exists. This function looks up the 
-% given short_name and returns the corresponding standard name, units of 
-% measurement, data code, fill value or valid min/max value. If the given 
-% short_name is not in the list of IMOS parameters, an error is raised.
+% given short_name and returns the corresponding standard name, long name, 
+% units of measurement, data code, fill value or valid min/max value. If the 
+% given short_name is not in the list of IMOS parameters, an error is raised.
+%
+% Currently, requests for long name and standard name return the same value, 
+% unless the requested field is the standard name, and the parameter is not a
+% CF-standard parameter, in which case an empty string is returned.
 %
 % Inputs:
 %   short_name  the IMOS parameter name
-%   field      - either 'standard_name', 'uom', or 'data_code',
+%   field      - either 'standard_name', 'long_name', 'uom', 'data_code',
 %                'fill_value', 'valid_min' or 'valid_max',
 %
 % Outputs:
@@ -57,7 +61,7 @@ error(nargchk(2, 2, nargin));
 if ~ischar(short_name), error('short_name must be a string'); end
 if ~ischar(field),      error('field must be a string');      end
 
-value = '';
+value = 0;
 
 % get the location of this m-file, which is 
 % also the location of imosParamaters.txt
@@ -69,7 +73,7 @@ try
   fid = fopen([path filesep 'imosParameters.txt'], 'rt');
   if fid == -1, return; end
   
-  params = textscan(fid, '%s%s%s%s%f%f%f', ...
+  params = textscan(fid, '%s%d%s%s%s%f%f%f', ...
     'delimiter', ',', 'commentStyle', '%');
   fclose(fid);
 catch e
@@ -78,12 +82,13 @@ catch e
 end
 
 names          = params{1};
-standard_names = params{2};
-uoms           = params{3};
-data_codes     = params{4};
-fillValues     = params{5};
-validMins      = params{6};
-validMaxs      = params{7};
+cfCompliance   = params{2};
+standard_names = params{3};
+uoms           = params{4};
+data_codes     = params{5};
+fillValues     = params{6};
+validMins      = params{7};
+validMaxs      = params{8};
 
 % search the list for a match
 for k = 1:length(names)
@@ -91,19 +96,23 @@ for k = 1:length(names)
   if strcmp(short_name, names{k})
 
     switch field
-      case 'standard_name', value = standard_names{k};
+      case 'standard_name', 
+        if ~cfCompliance(k), value = '';
+        else                 value = standard_names{k};
+        end
+      case 'long_name',      value = standard_names{k};
       case 'uom'
         value = uoms{k};
         if strcmp(value, 'percent'), value = '%'; end
-      case 'data_code',     value = data_codes    {k};
-      case 'fill_value',    value = fillValues    (k);
-      case 'valid_min',     value = validMins     (k);
-      case 'valid_max',     value = validMaxs     (k);
+      case 'data_code',      value = data_codes    {k};
+      case 'fill_value',     value = fillValues    (k);
+      case 'valid_min',      value = validMins     (k);
+      case 'valid_max',      value = validMaxs     (k);
     end
     break;
   end
 end
 
-if strcmp(value,'')
+if ~ischar(value)
   error([short_name ' is not a recognised IMOS parameter']); 
 end
