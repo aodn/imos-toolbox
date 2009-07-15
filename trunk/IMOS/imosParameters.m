@@ -63,6 +63,11 @@ if ~ischar(field),      error('field must be a string');      end
 
 value = nan;
 
+% account for numbered parameters (if the dataset 
+% contains more than one variable of the same name)
+match = regexp(short_name, '_\d$');
+if ~isempty(match), short_name(match:end) = ''; end
+
 % get the location of this m-file, which is 
 % also the location of imosParamaters.txt
 path = fileparts(which(mfilename));
