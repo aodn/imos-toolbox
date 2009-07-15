@@ -1,4 +1,4 @@
-S, long_name                   = quality flag for [mat imosParameters(sample_data.dimensions{k}.name, 'standard_name')]
+S, long_name                   = quality flag for [mat imosParameters(sample_data.dimensions{k}.name, 'long_name')]
 S, standard_name               = [mat imosParameters(sample_data.dimensions{k}.name, 'standard_name')] status_flag
 N, quality_control_set         = [mat readToolboxProperty('toolbox.qc_set')]
 S, quality_control_conventions = [mat imosQCFlag('', str2double(readToolboxProperty('toolbox.qc_set')), 'set_desc')]
