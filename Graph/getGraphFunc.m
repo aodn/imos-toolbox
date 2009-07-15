@@ -87,6 +87,11 @@ if ~ischar(graphType), error('graphType must be a string'); end
 if ~ischar(graphFunc), error('graphFunc must be a string'); end
 if ~ischar(var),       error('var must be a string');       end
 
+% account for numbered parameters (if the dataset 
+% contains more than one variable of the same name)
+match = regexp(var, '_\d$');
+if ~isempty(match), var(match:end) = ''; end
+
 % get path to graph type subdirectory 
 % (e.g. 'Graph/TimeSeries')
 graphDir = fileparts(which(mfilename));
