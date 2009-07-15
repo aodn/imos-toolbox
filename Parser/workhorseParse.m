@@ -5,10 +5,15 @@ function sample_data = workhorseParse( filename )
 % This function uses the readWorkhorseEnsembles function to read in a set
 % of ensembles from a raw binary Workhorse ADCP file. It parses the 
 % ensembles, and extracts and returns the following:
+%
 %   - time
 %   - temperature (at each time)
+%   - pressure (at each time, if present)
+%   - salinity (at each time, if present)
 %   - water speed (at each time and depth)
 %   - water direction (at each time and depth)
+%   - Acoustic backscatter intensity (at each time and depth, a separate 
+%     variable for each beam)
 %
 % The conversion from the ADCP velocity values currently assumes that the 
 % ADCP is using earth coordinates (see section 13.4 'Velocity Data Format' 
@@ -73,11 +78,17 @@ error(nargchk(1,1,nargin));
   cellStart  = fixed.bin1Distance;
   
   % preallocate space for sample data
-  time        = zeros(length(ensembles), 1);
-  depth       = zeros(numCells,          1);
-  speed       = zeros(length(ensembles), numCells);
-  direction   = zeros(length(ensembles), numCells);
-  temperature = zeros(length(ensembles), 1);
+  time         = zeros(length(ensembles), 1);
+  depth        = zeros(numCells,          1);
+  speed        = zeros(length(ensembles), numCells);
+  direction    = zeros(length(ensembles), numCells);
+  backscatter1 = zeros(length(ensembles), numCells);
+  backscatter2 = zeros(length(ensembles), numCells);
+  backscatter3 = zeros(length(ensembles), numCells);
+  backscatter4 = zeros(length(ensembles), numCells);
+  temperature  = zeros(length(ensembles), 1);
+  pressure     = zeros(length(ensembles), 1);
+  salinity     = zeros(length(ensembles), 1);
     
   % we can populate depth data now using cellLength and cellStart
   % ( / 100.0, as the ADCP gives the values in centimetres)
@@ -104,15 +115,18 @@ error(nargchk(1,1,nargin));
       variable.y2kMinute,...
       variable.y2kSecond + variable.y2kHundredth/100.0]);
     
-    % / 10.0, as the temperature samples are in steps of 0.01 degrees
-    temperature(k) = variable.temperature / 100.0;
-    
-    velocity = ensemble.velocity;
+    %
+    % auxillary data
+    %
+    temperature(k) = variable.temperature;
+    pressure   (k) = variable.pressure;
+    salinity   (k) = variable.salinity;
     
     %
     % calculate velocity (speed and direction)
     % currently assuming earth coordinate transform
     %
+    velocity = ensemble.velocity;
     veast = velocity.velocity1;
     vnrth = velocity.velocity2;
     
@@ -120,8 +134,7 @@ error(nargchk(1,1,nargin));
     vnrth(vnrth == -32768) = nan;
     veast(veast == -32768) = nan;
     
-    % / 1000.0, as the velocity samples are in millimetres per second
-    speed(k,:) = sqrt(vnrth.^2 + veast.^2) / 1000.0;
+    speed(k,:) = sqrt(vnrth.^2 + veast.^2);
     
     % direction is in degrees clockwise from north
     direction(k,:) = atan(abs(veast ./ vnrth)) .* (180 / pi);
@@ -133,7 +146,31 @@ error(nargchk(1,1,nargin));
     direction(k,se) = arrayfun(@(x)(180 - x), direction(k,se));
     direction(k,sw) = arrayfun(@(x)(180 + x), direction(k,sw));
     direction(k,nw) = arrayfun(@(x)(360 - x), direction(k,nw));
+    
+    %
+    % retrieve backscatter data 
+    %
+    backscatter1(k,:) = ensemble.echoIntensity.field1;
+    backscatter2(k,:) = ensemble.echoIntensity.field2;
+    backscatter3(k,:) = ensemble.echoIntensity.field3;
+    backscatter4(k,:) = ensemble.echoIntensity.field4;
   end
+  
+  %
+  % temperature / 100.0  (0.01 deg   -> deg)
+  % pressure    * 1000.0 (decapascal -> decibar)
+  % speed       / 1000.0 (mm/s       -> m/s)
+  % backscatter * 0.45   (count      -> dB)
+  % no conversion for salinity - i'm treating 
+  % ppt and PSU as interchangeable
+  %
+  temperature  = temperature  / 100.0;
+  pressure     = pressure     * 1000.0;
+  speed        = speed        / 1000.0;
+  backscatter1 = backscatter1 * 0.45;
+  backscatter2 = backscatter2 * 0.45;
+  backscatter3 = backscatter3 * 0.45;
+  backscatter4 = backscatter4 * 0.45;
   
   % fill in the sample_data struct
   sample_data.meta.fixedLeader          = fixed;
@@ -150,17 +187,56 @@ error(nargchk(1,1,nargin));
   % add variables
   sample_data.variables{ 1}.name       = 'CSPD';
   sample_data.variables{ 2}.name       = 'CDIR';
-  sample_data.variables{ 3}.name       = 'TEMP';
+  sample_data.variables{ 3}.name       = 'ABSI_1';
+  sample_data.variables{ 4}.name       = 'ABSI_2';
+  sample_data.variables{ 5}.name       = 'ABSI_3';
+  sample_data.variables{ 6}.name       = 'ABSI_4';
+  sample_data.variables{ 7}.name       = 'TEMP';
+  sample_data.variables{ 8}.name       = 'PRES';
+  sample_data.variables{ 9}.name       = 'PSAL';
   
   % map dimensions to each variable
   sample_data.variables{ 1}.dimensions = [1 2];
   sample_data.variables{ 2}.dimensions = [1 2];
-  sample_data.variables{ 3}.dimensions = [1];
+  sample_data.variables{ 3}.dimensions = [1 2];
+  sample_data.variables{ 4}.dimensions = [1 2];
+  sample_data.variables{ 5}.dimensions = [1 2];
+  sample_data.variables{ 6}.dimensions = [1 2];
+  sample_data.variables{ 7}.dimensions = [1];
+  sample_data.variables{ 8}.dimensions = [1];
+  sample_data.variables{ 9}.dimensions = [1];
   
   % copy all the data across
   sample_data.dimensions{1}.data       = time;
   sample_data.dimensions{2}.data       = depth;
   sample_data.variables{ 1}.data       = speed;
   sample_data.variables{ 2}.data       = direction;
-  sample_data.variables{ 3}.data       = temperature;
+  sample_data.variables{ 3}.data       = backscatter1;
+  sample_data.variables{ 4}.data       = backscatter2;
+  sample_data.variables{ 5}.data       = backscatter3;
+  sample_data.variables{ 6}.data       = backscatter4;
+  sample_data.variables{ 7}.data       = temperature;
+  sample_data.variables{ 8}.data       = pressure;
+  sample_data.variables{ 9}.data       = salinity;
+  
+  % remove auxillary data if the sensors 
+  % were not installed on the instrument
+  presAvailable = bitand(fixed.sensorsAvailable, 32);
+  psalAvailable = bitand(fixed.sensorsAvailable, 2);
+  tempAvailable = bitand(fixed.sensorsAvailable, 1); 
+  
+  % indices of variables to remove
+  remove = [];
+  
+  if ~presAvailable, remove(end+1) = getVar(sample_data.variables, 'PRES'); end
+  if ~tempAvailable, remove(end+1) = getVar(sample_data.variables, 'TEMP'); end
+  if ~psalAvailable, remove(end+1) = getVar(sample_data.variables, 'PSAL'); end
+  
+  % also remove empty backscatter data
+  for k = 4:-1:numBeams+1
+    remove(end+1) = getVar(sample_data.variables, ['ABSI_' num2str(k)]);
+  end
+  
+  sample_data.variables(remove) = [];
+  
 end
