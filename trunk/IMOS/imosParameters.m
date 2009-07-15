@@ -61,7 +61,7 @@ error(nargchk(2, 2, nargin));
 if ~ischar(short_name), error('short_name must be a string'); end
 if ~ischar(field),      error('field must be a string');      end
 
-value = 0;
+value = nan;
 
 % get the location of this m-file, which is 
 % also the location of imosParamaters.txt
@@ -113,6 +113,6 @@ for k = 1:length(names)
   end
 end
 
-if ~ischar(value)
+if isnan(value)
   error([short_name ' is not a recognised IMOS parameter']); 
 end
