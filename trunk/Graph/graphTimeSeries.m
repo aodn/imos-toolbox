@@ -116,8 +116,12 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
     set(graphs(k), 'YTick', yTicks);
   end
   
-  % link axes for panning/zooming
-  linkaxes(graphs, 'x');
+  % link axes for panning/zooming - matlab has a habit of
+  % throwing 'Invalid handle object' errors for no apparent
+  % reason, so absorb any errors which are thrown
+  try, linkaxes(graphs, 'x');
+  catch e
+  end
   
   % add a legend
   names = {};
