@@ -165,11 +165,11 @@ function mainWindow(...
   set(graphMenu,  'Position', [0.75, 0.95, 0.25, 0.05]);
   
   % varPanel and stateButtons are positioned relative to sidePanel
-  set(varPanel, 'Position', [0.0,  0.0,  1.0,  0.3 ]);
+  set(varPanel, 'Position', [0.0,  0.0,  1.0,  0.5]);
   
   n = length(stateButtons);
   for k = 1:n
-    set(stateButtons(k), 'Position', [0.0, 0.3+(n-k)*(0.7/n), 1.0, 0.7/n]);
+    set(stateButtons(k), 'Position', [0.0, 0.5+(n-k)*(0.5/n), 1.0, 0.5/n]);
   end
   
   % reset back to pixels
@@ -179,8 +179,6 @@ function mainWindow(...
   set(varPanel,     'Units', 'pixels');
   set(sampleMenu,   'Units', 'pixels');
   set(graphMenu,    'Units', 'pixels');
-  set(stateButtons, 'Units', 'pixels');
-  set(varPanel,     'Units', 'pixels');
   set(stateButtons, 'Units', 'pixels');
   
   % set callbacks - variable panel widget 
