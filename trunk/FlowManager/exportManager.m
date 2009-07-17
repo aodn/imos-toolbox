@@ -61,9 +61,12 @@ function exportManager(dataSets, levelNames, output)
   end
   
   suffix = '';
+  varOpts = false;
   switch (output)
-    case 'raw',    suffix = 'txt';
-    case 'netcdf', suffix = 'nc';
+    case 'raw', suffix = 'txt';
+    case 'netcdf'
+      varOpts = true;
+      suffix = 'nc';
     otherwise,     error(['unknown output type: ' output]);
   end
   
@@ -73,7 +76,7 @@ function exportManager(dataSets, levelNames, output)
   end
   
   % prompt user for export directory, and data sets to export
-  [exportDir dataSets] = exportDialog(dataSets, levelNames, setNames);
+  [exportDir dataSets] = exportDialog(dataSets, levelNames, setNames, varOpts);
   
   % user cancelled dialog or selected no data sets
   if isempty(exportDir) || isempty(dataSets), return; end

@@ -1,4 +1,5 @@
-function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
+function [exportDir sets] = exportDialog( ...
+  dataSets, levelNames, setNames, varOpts )
 %EXPORTDIALOG Prompts the user to select an output directory in which to 
 % save the file(s) which are to be generated for the given data sets. 
 %
@@ -18,6 +19,9 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
 %   levelNames - Names of each data level (e.g. 'raw', 'qc').
 %
 %   setNames   - Names of each data set (e.g. filenames).
+%
+%   varOpts    - Logical value - if true, the user will be able to choose
+%                which variables to export for each data set..
 %
 % Outputs:
 %   exportDir  - absolute path to the selected output directory.
@@ -56,11 +60,12 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,3,nargin));
+  error(nargchk(4,4,nargin));
 
   if ~iscell(dataSets),      error('dataSets must be a cell array');        end
   if ~iscellstr(levelNames), error('levelNames must be a char cell array'); end
   if ~iscellstr(setNames),   error('setNames must be a char cell array');   end
+  if ~islogical(varOpts),    error('varOpts must be logical');              end
   if isempty(dataSets),      error('dataSets cannot be empty');             end
   if length(dataSets) ~= length(levelNames)
     error('dataSets and levelNames must be the same length'); 
@@ -73,12 +78,17 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
   end
   if length(setNames) ~= numSets, error('set name length mismatch'); end
 
+  % all of these variables store the current settings
   exportDir         = pwd;
-  selectedSets      = zeros(numSets, 1);
-  selectedSets(:)   = 1;
-  selectedLevels    = zeros(numLevels, 1);
+  selectedLevels    = zeros(numSets, numLevels);
   selectedLevels(:) = 1;
+  selectedVars      = cell(numSets, 1);
+  for k = 1:length(selectedVars)
+    selectedVars{k} = zeros(length(dataSets{1}{k}.variables), 1);
+    selectedVars{k}(:) = 1;
+  end
   
+  % use default export dir if present
   try
     exportDir = readToolboxProperty('exportDialog.defaultDir');
   catch e
@@ -96,36 +106,12 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
     'NumberTitle', 'off'...
   );
 
-  % create checkboxes allowing user to (de-)select data sets
-  setCheckboxes = [];
-  for k = 1:length(descs)
-    
-    setCheckboxes(k) = uicontrol(...
-      'Style',    'checkbox',...
-      'String',   descs{k},...
-      'Value',    1,...
-      'UserData', k ...
-    );
-  end
-  
-  % create checkboxes allowing user to (de-)select levels
-  levelLabel = uicontrol(...
-    'Style',               'text',...
-    'String',              'Levels', ...
-    'HorizontalAlignment', 'Left' ...
+  % panel which contains data set tabs
+  tabPanel = uipanel(...
+    'Parent',     f,...
+    'BorderType', 'none'...
   );
-  
-  levelCheckboxes = [];
-  for k = 1:length(levelNames)
-    
-    levelCheckboxes(k) = uicontrol(...
-      'Style',    'checkbox',...
-      'String',   levelNames{k},...
-      'Value',    1,...
-      'UserData', k ...
-    );
-  end
-  
+
   % create text entry/directory browse button
   dirLabel  = uicontrol('Style', 'text',       'String', 'Directory');
   dirText   = uicontrol('Style', 'edit',       'String',  exportDir);
@@ -137,63 +123,151 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
   confirmButton = uicontrol('Style', 'pushbutton', 'String', 'Ok');
   
   % use normalized units for positioning
-  set(f,               'Units', 'normalized');
-  set(setCheckboxes,   'Units', 'normalized');
-  set(levelLabel,      'Units', 'normalized');
-  set(levelCheckboxes, 'Units', 'normalized');
-  set(dirLabel,        'Units', 'normalized');
-  set(dirText,         'Units', 'normalized');
-  set(dirButton,       'Units', 'normalized');
-  set(cancelButton,    'Units', 'normalized');
-  set(confirmButton,   'Units', 'normalized');
+  set(f,             'Units', 'normalized');
+  set(tabPanel,      'Units', 'normalized');
+  set(dirLabel,      'Units', 'normalized');
+  set(dirText,       'Units', 'normalized');
+  set(dirButton,     'Units', 'normalized');
+  set(cancelButton,  'Units', 'normalized');
+  set(confirmButton, 'Units', 'normalized');
   
   % position widgets
   set(f,             'Position', [0.25, 0.35, 0.5,  0.3]);
-  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.15]);
-  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.15]);
-  set(dirLabel,      'Position', [0.0,  0.15, 0.15, 0.15]);
-  set(dirText,       'Position', [0.15, 0.15, 0.8,  0.15]);
-  set(dirButton,     'Position', [0.85, 0.15, 0.15, 0.15]);
-  set(levelLabel,    'Position', [0.0,  0.3,  0.15, 0.15]);
-    
-  % position data level checkboxes
-  for k = 1:length(levelCheckboxes)
-    
-    lLength = 0.85 / length(levelCheckboxes);
-    lStart  = 0.15 + (0.85 * (k-1)) / length(levelCheckboxes);
-    
-    set(levelCheckboxes(k), 'Position', [lStart, 0.3, lLength, 0.15]);
-  end
-  
-  % position data set checkboxes
-  for k = 1:length(setCheckboxes)
-    
-    bLength = 0.55 / length(setCheckboxes);
-    bStart = 0.45 + ((k-1) * bLength);
-    
-    set(setCheckboxes(k), 'Position', [0.0, bStart, 1.0, bLength]);
-  end
+  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.1]);
+  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.1]);
+  set(dirLabel,      'Position', [0.0,  0.1,  0.15, 0.1]);
+  set(dirText,       'Position', [0.15, 0.1,  0.8,  0.1]);
+  set(dirButton,     'Position', [0.85, 0.1,  0.15, 0.1]);
+  set(tabPanel,      'Position', [0.0,  0.2,  1.0,  0.8]);
   
   % reset back to pixel units
-  set(f,               'Units', 'pixels');
-  set(setCheckboxes,   'Units', 'pixels');
-  set(levelLabel,      'Units', 'pixels');
-  set(levelCheckboxes, 'Units', 'pixels');
-  set(dirLabel,        'Units', 'pixels');
-  set(dirText,         'Units', 'pixels');
-  set(dirButton,       'Units', 'pixels');
-  set(cancelButton,    'Units', 'pixels');
-  set(confirmButton,   'Units', 'pixels');
+  set(f,             'Units', 'pixels');
+  set(tabPanel,      'Units', 'pixels');
+  set(dirLabel,      'Units', 'pixels');
+  set(dirText,       'Units', 'pixels');
+  set(dirButton,     'Units', 'pixels');
+  set(cancelButton,  'Units', 'pixels');
+  set(confirmButton, 'Units', 'pixels');
+
+  % create a panel for each data set
+  setPanels = [];
+  for k = 1:numSets
+    setPanels(k) = uipanel(...
+      'BorderType', 'none',...
+      'UserData',    k); 
+  end
+  
+  % put the panels into a tabbed pane
+  tabbedPane(tabPanel, setPanels, descs, false);
+  
+  % populate the panels
+  for k = 1:numSets
+    
+    % label for level checkboxes (below)
+    levelLabel = uicontrol(...
+      'Parent',              setPanels(k),...
+      'Style',               'text',...
+      'String',              'Levels', ...
+      'HorizontalAlignment', 'Left' ...
+    );
+
+    % checkboxes allowing user to (de-)select levels
+    levelCheckboxes = [];
+    for m = 1:length(levelNames)
+
+      levelCheckboxes(m) = uicontrol(...
+        'Parent',   setPanels(k),...
+        'Style',    'checkbox',...
+        'String',   levelNames{m},...
+        'Value',    1,...
+        'UserData', m ...
+      );
+    end
+    
+    % label for variable checkboxes (below)
+    varLabel = uicontrol(...
+      'Parent',              setPanels(k),...
+      'Style',               'text',...
+      'String',              'Variables',...
+      'HorizontalAlignment', 'Left'...
+    );
+    
+    % checkbox allowing user to select 
+    % which variables to export
+    varCheckboxes = [];
+    if varOpts
+      for m = 1:length(dataSets{1}{k}.variables)
+        
+        varCheckboxes(m) = uicontrol(...
+          'Parent',   setPanels(k),...
+          'Style',    'checkbox',...
+          'String',   dataSets{1}{k}.variables{m}.name,...
+          'Value',    1,...
+          'UserData', m...
+        );
+      end
+    end
+    
+    % set callbacks for level/variable selection
+    set(levelCheckboxes, 'Callback', @levelCheckboxCallback);
+    set(varCheckboxes,   'Callback', @varCheckboxCallback);
+    
+    % use normalized units for positioning
+    set(levelLabel,                'Units', 'normalized');
+    set(varLabel,                  'Units', 'normalized');
+    set(levelCheckboxes,           'Units', 'normalized');
+    if varOpts, set(varCheckboxes, 'Units', 'normalized');  end
+    
+    % position widgets (panel is positioned when it is added to tabbedPane)
+    set(levelLabel, 'Position', [0.0,  0.0,  0.15, 0.2]);
+    set(varLabel,   'Position', [0.0,  0.2,  0.15, 0.7]);
+    
+    % position data level checkboxes
+    for m = 1:length(levelCheckboxes)
+
+      lLength = 0.85 / length(levelCheckboxes);
+      lStart  = 0.15 + (0.85 * (m-1)) / length(levelCheckboxes);
+
+      set(levelCheckboxes(m), 'Position', [lStart, 0.0, lLength, 0.2]);
+    end
+    
+    % position var checkboxes in two columns
+    if varOpts
+      
+      % number of rows in first column - if an odd number of 
+      % vars, number of rows in second column will be one less
+      numRows = ceil(length(varCheckboxes) / 2);
+      
+      vHeight = 0.7 / numRows;
+      
+      for m = 1:length(varCheckboxes)
+        
+        % figure out vertical start position of this variable's row
+        vStart = vHeight * mod(m,numRows);
+        if vStart == 0, vStart = vHeight * numRows; end
+        vStart = 0.9 - vStart;
+        
+        hStart = 0.15;
+        
+        % second half of variable list -> second column
+        if m > numRows, hStart = 0.575; end
+        set(varCheckboxes(m), 'Position', [hStart, vStart, 0.425, vHeight]);
+      end
+    end
+    
+    set(varLabel,                  'Units', 'pixels');
+    set(levelLabel,                'Units', 'pixels');
+    set(levelCheckboxes,           'Units', 'pixels');
+    if varOpts, set(varCheckboxes, 'Units', 'pixels'); end
+  end
   
   % set widget callbacks
-  set(f,               'WindowKeyPressFcn', @keyPressCallback);
-  set(f,               'CloseRequestFcn',   @cancelButtonCallback);
-  set(setCheckboxes,   'Callback',          @setCheckboxCallback);
-  set(levelCheckboxes, 'Callback',          @levelCheckboxCallback);
-  set(dirText,         'Callback',          @dirTextCallback);
-  set(dirButton,       'Callback',          @dirButtonCallback);
-  set(cancelButton,    'Callback',          @cancelButtonCallback);
-  set(confirmButton,   'Callback',          @confirmButtonCallback);
+   set(f,               'WindowKeyPressFcn', @keyPressCallback);
+   set(f,               'CloseRequestFcn',   @cancelButtonCallback);
+   set(dirText,         'Callback',          @dirTextCallback);
+   set(dirButton,       'Callback',          @dirButtonCallback);
+   set(cancelButton,    'Callback',          @cancelButtonCallback);
+   set(confirmButton,   'Callback',          @confirmButtonCallback);
   
   % display and wait
   set(f, 'Visible', 'on');
@@ -204,12 +278,36 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
   
   % get selected data sets
   sets = {};
-  dataSets = dataSets(logical(selectedLevels));
-  for k = 1:length(dataSets)
+  
+  for k = 1:numSets
     
-    dataSet = dataSets{k};
-    dataSet = dataSet(logical(selectedSets));
-    sets    = [sets dataSet{:}];
+    vars   = selectedVars{k};
+    levels = selectedLevels(k,:);
+    
+    % no levels selected for this data set - no data to output
+    if ~any(levels), continue; end
+    
+    
+    % the dataSets array is organised by level then set - 
+    % rearrange to get  all levels for the current set
+    s = {};
+    
+    for m = 1:numLevels, s{end+1} = dataSets{m}{k}; end
+    
+    % delete unselected levels from data set
+    s(~logical(levels)) = [];
+    
+    for m = 1:length(s)
+      
+      % delete unselected variables from data set
+      s{m}.variables(~logical(vars)) = [];
+
+      % no variables were selected - no data to output
+      if isempty(s{m}.variables), continue; end;
+
+      % save data set
+      sets{end+1} = s{m};
+    end    
   end
   
   % save the export directory for next time
@@ -227,20 +325,6 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
     end
   end
 
-  function setCheckboxCallback(source,ev)
-  %SETCHECKBOXCALLBACK Saves the current data set selection.
-  %
-    idx = get(source, 'UserData');
-    selectedSets(idx) = get(source, 'Value');
-  end
-
-  function levelCheckboxCallback(source,ev)
-  %LEVELCHECKBOXCALLBACK Saves the current process level selection.
-  
-    idx = get(source, 'UserData');
-    selectedLevels(idx) = get(source, 'Value');
-  end
-  
   function dirTextCallback(source,ev)
   %DIRTEXTCALLBACK Captures the text entered by the user.
   % 
@@ -282,6 +366,24 @@ function [exportDir sets] = exportDialog( dataSets, levelNames, setNames )
   %CONFIRMBUTTONCALLBACK Closes the dialog.
   % 
     delete(f);
+  end
+
+  function varCheckboxCallback(source,ev)
+  %VARCHECKBOXCALLBACK Saves the variable selection for the current data set.
+  %
+    varIdx = get(source, 'UserData');
+    setIdx = get(get(source, 'Parent'), 'UserData');
+    selectedVars{setIdx}(varIdx) = get(source, 'Value');
+  end
+
+  function levelCheckboxCallback(source,ev)
+  %LEVELCHECKBOXCALLBACK Saves the process level selection for the current
+  %data set.
+  %
+    lvlIdx = get(source, 'UserData');
+    setIdx = get(get(source, 'Parent'), 'UserData');
+    
+    selectedLevels(setIdx, lvlIdx) = get(source, 'Value');
   end
   
   function descs = genDataSetDescs(sets, names)
