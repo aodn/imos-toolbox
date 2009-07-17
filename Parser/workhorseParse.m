@@ -86,9 +86,20 @@ error(nargchk(1,1,nargin));
   backscatter2 = zeros(length(ensembles), numCells);
   backscatter3 = zeros(length(ensembles), numCells);
   backscatter4 = zeros(length(ensembles), numCells);
+  correlation1 = zeros(length(ensembles), numCells);
+  correlation2 = zeros(length(ensembles), numCells);
+  correlation3 = zeros(length(ensembles), numCells);
+  correlation4 = zeros(length(ensembles), numCells);
+  percentGood1 = zeros(length(ensembles), numCells);
+  percentGood2 = zeros(length(ensembles), numCells);
+  percentGood3 = zeros(length(ensembles), numCells);
+  percentGood4 = zeros(length(ensembles), numCells);
   temperature  = zeros(length(ensembles), 1);
   pressure     = zeros(length(ensembles), 1);
   salinity     = zeros(length(ensembles), 1);
+  pitch        = zeros(length(ensembles), 1);
+  roll         = zeros(length(ensembles), 1);
+  heading      = zeros(length(ensembles), 1);
     
   % we can populate depth data now using cellLength and cellStart
   % ( / 100.0, as the ADCP gives the values in centimetres)
@@ -121,6 +132,9 @@ error(nargchk(1,1,nargin));
     temperature(k) = variable.temperature;
     pressure   (k) = variable.pressure;
     salinity   (k) = variable.salinity;
+    pitch      (k) = variable.pitch;
+    roll       (k) = variable.roll;
+    heading    (k) = variable.heading;
     
     %
     % calculate velocity (speed and direction)
@@ -148,12 +162,22 @@ error(nargchk(1,1,nargin));
     direction(k,nw) = arrayfun(@(x)(360 - x), direction(k,nw));
     
     %
-    % retrieve backscatter data 
+    % retrieve backscatter, correlation and percent good data 
     %
     backscatter1(k,:) = ensemble.echoIntensity.field1;
     backscatter2(k,:) = ensemble.echoIntensity.field2;
     backscatter3(k,:) = ensemble.echoIntensity.field3;
     backscatter4(k,:) = ensemble.echoIntensity.field4;
+    
+    correlation1(k,:) = ensemble.corrMag.field1;
+    correlation2(k,:) = ensemble.corrMag.field2;
+    correlation3(k,:) = ensemble.corrMag.field3;
+    correlation4(k,:) = ensemble.corrMag.field4;
+    
+    percentGood1(k,:) = ensemble.percentGood.field1;
+    percentGood2(k,:) = ensemble.percentGood.field2;
+    percentGood3(k,:) = ensemble.percentGood.field3;
+    percentGood4(k,:) = ensemble.percentGood.field4;
   end
   
   %
@@ -161,6 +185,9 @@ error(nargchk(1,1,nargin));
   % pressure    * 1000.0 (decapascal -> decibar)
   % speed       / 1000.0 (mm/s       -> m/s)
   % backscatter * 0.45   (count      -> dB)
+  % pitch       / 100.0 (0.01 deg    -> deg)
+  % roll        / 100.0 (0.01 deg    -> deg)
+  % heading     / 100.0 (0.01 deg    -> deg)
   % no conversion for salinity - i'm treating 
   % ppt and PSU as interchangeable
   %
@@ -171,6 +198,9 @@ error(nargchk(1,1,nargin));
   backscatter2 = backscatter2 * 0.45;
   backscatter3 = backscatter3 * 0.45;
   backscatter4 = backscatter4 * 0.45;
+  pitch        = pitch        / 100.0;
+  roll         = roll         / 100.0;
+  heading      = heading      / 100.0;
   
   % fill in the sample_data struct
   sample_data.meta.fixedLeader          = fixed;
@@ -194,6 +224,21 @@ error(nargchk(1,1,nargin));
   sample_data.variables{ 7}.name       = 'TEMP';
   sample_data.variables{ 8}.name       = 'PRES';
   sample_data.variables{ 9}.name       = 'PSAL';
+  sample_data.variables{10}.name       = 'ABSI_intensity_1';
+  sample_data.variables{11}.name       = 'ABSI_intensity_2';
+  sample_data.variables{12}.name       = 'ABSI_intensity_3';
+  sample_data.variables{13}.name       = 'ABSI_intensity_4';
+  sample_data.variables{14}.name       = 'ABSI_correlation_1';
+  sample_data.variables{15}.name       = 'ABSI_correlation_2';
+  sample_data.variables{16}.name       = 'ABSI_correlation_3';
+  sample_data.variables{17}.name       = 'ABSI_correlation_4';
+  sample_data.variables{18}.name       = 'ABSI_percentage_good_1';
+  sample_data.variables{19}.name       = 'ABSI_percentage_good_2';
+  sample_data.variables{20}.name       = 'ABSI_percentage_good_3';
+  sample_data.variables{21}.name       = 'ABSI_percentage_good_4';
+  sample_data.variables{22}.name       = 'PITCH';
+  sample_data.variables{23}.name       = 'ROLL';
+  sample_data.variables{24}.name       = 'HEADING';
   
   % map dimensions to each variable
   sample_data.variables{ 1}.dimensions = [1 2];
@@ -205,6 +250,21 @@ error(nargchk(1,1,nargin));
   sample_data.variables{ 7}.dimensions = [1];
   sample_data.variables{ 8}.dimensions = [1];
   sample_data.variables{ 9}.dimensions = [1];
+  sample_data.variables{10}.dimensions = [1 2];
+  sample_data.variables{11}.dimensions = [1 2];
+  sample_data.variables{12}.dimensions = [1 2];
+  sample_data.variables{13}.dimensions = [1 2];
+  sample_data.variables{14}.dimensions = [1 2];
+  sample_data.variables{15}.dimensions = [1 2];
+  sample_data.variables{16}.dimensions = [1 2];
+  sample_data.variables{17}.dimensions = [1 2];
+  sample_data.variables{18}.dimensions = [1 2];
+  sample_data.variables{19}.dimensions = [1 2];
+  sample_data.variables{20}.dimensions = [1 2];
+  sample_data.variables{21}.dimensions = [1 2];
+  sample_data.variables{22}.dimensions = [1];
+  sample_data.variables{23}.dimensions = [1];
+  sample_data.variables{24}.dimensions = [1];
   
   % copy all the data across
   sample_data.dimensions{1}.data       = time;
@@ -218,23 +278,46 @@ error(nargchk(1,1,nargin));
   sample_data.variables{ 7}.data       = temperature;
   sample_data.variables{ 8}.data       = pressure;
   sample_data.variables{ 9}.data       = salinity;
+  sample_data.variables{10}.data       = backscatter1;
+  sample_data.variables{11}.data       = backscatter2;
+  sample_data.variables{12}.data       = backscatter3;
+  sample_data.variables{13}.data       = backscatter4;
+  sample_data.variables{14}.data       = correlation1;
+  sample_data.variables{15}.data       = correlation2;
+  sample_data.variables{16}.data       = correlation3;
+  sample_data.variables{17}.data       = correlation4;
+  sample_data.variables{18}.data       = percentGood1;
+  sample_data.variables{19}.data       = percentGood2;
+  sample_data.variables{20}.data       = percentGood3;
+  sample_data.variables{21}.data       = percentGood4;
+  sample_data.variables{22}.data       = pitch;
+  sample_data.variables{23}.data       = roll;
+  sample_data.variables{24}.data       = heading;
   
   % remove auxillary data if the sensors 
   % were not installed on the instrument
-  presAvailable = bitand(fixed.sensorsAvailable, 32);
-  psalAvailable = bitand(fixed.sensorsAvailable, 2);
-  tempAvailable = bitand(fixed.sensorsAvailable, 1); 
-  
+  hasPres    = bitand(fixed.sensorsAvailable, 32);
+  hasHeading = bitand(fixed.sensorsAvailable, 16);
+  hasPitch   = bitand(fixed.sensorsAvailable, 8);
+  hasRoll    = bitand(fixed.sensorsAvailable, 4);
+  hasPsal    = bitand(fixed.sensorsAvailable, 2);
+  hasTemp    = bitand(fixed.sensorsAvailable, 1); 
+
   % indices of variables to remove
   remove = [];
   
-  if ~presAvailable, remove(end+1) = getVar(sample_data.variables, 'PRES'); end
-  if ~tempAvailable, remove(end+1) = getVar(sample_data.variables, 'TEMP'); end
-  if ~psalAvailable, remove(end+1) = getVar(sample_data.variables, 'PSAL'); end
+  if ~hasPres,    remove(end+1) = getVar(sample_data.variables, 'PRES');    end
+  if ~hasHeading, remove(end+1) = getVar(sample_data.variables, 'HEADING'); end
+  if ~hasPitch,   remove(end+1) = getVar(sample_data.variables, 'PITCH');   end
+  if ~hasRoll,    remove(end+1) = getVar(sample_data.variables, 'ROLL');    end
+  if ~hasPsal,    remove(end+1) = getVar(sample_data.variables, 'PSAL');    end
+  if ~hasTemp,    remove(end+1) = getVar(sample_data.variables, 'TEMP');    end
   
-  % also remove empty backscatter data
+  % also remove empty backscatter and correlation data
   for k = 4:-1:numBeams+1
     remove(end+1) = getVar(sample_data.variables, ['ABSI_' num2str(k)]);
+    remove(end+1) = ...
+      getVar(sample_data.variables, ['ABSI_correlation_' num2str(k)]);
   end
   
   sample_data.variables(remove) = [];
