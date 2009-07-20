@@ -1,18 +1,19 @@
-function dataIdx = getSelectedTimeSeriesCDIR( ...
-  sample_data, var, ax, highlight, click )
-%GETSELECTEDTIMESERIESCDIR Returns the currently selected data on the given
-% CDIR axis.
+function [h xLabel yLabel] = graphTimeSeriesTimeDepth( ax, sample_data, var )
+%GRAPHTIMESERIESTimeDepth Plots the given data using pcolor.
+%
+% This function is used for plotting time/depth data. The pcolor function is 
+% used to display a 2-D color plot, with time on the X axis and depth on the 
+% Y axis, and the data indicated indicated by the colour.
 %
 % Inputs:
-%   sample_data - Struct containing the data set.
-%   var         - Variable in question (index into sample_data.variables).
-%   ax          - Axis in question.
-%   highlight   - Handle to the highlight object.
-%   click       - Where the user clicked the mouse.
-% 
+%   ax          - Parent axis.
+%   sample_data - The data set.
+%   var         - The variable to plot.
+%
 % Outputs:
-%   dataIdx     - Vector of indices into the data, defining the indices
-%                 which are selected (and which were clicked on).
+%   h           - Handle to the surface which was plotted.
+%   xLabel      - X label to use
+%   yLabel      - Y label to use
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -46,5 +47,27 @@ function dataIdx = getSelectedTimeSeriesCDIR( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+error(nargchk(3,3,nargin));
 
-dataIdx = getSelectedTimeSeriesCSPD(sample_data, var, ax, highlight, click);
+if ~ishandle(ax),          error('ax must be a graphics handle'); end
+if ~isstruct(sample_data), error('sample_data must be a struct'); end
+if ~isnumeric(var),        error('var must be a numeric');        end
+
+time  = getVar(sample_data.dimensions, 'TIME');
+depth = getVar(sample_data.dimensions, 'DEPTH');
+
+time  = sample_data.dimensions{time};
+depth = sample_data.dimensions{depth};
+var   = sample_data.variables {var};
+
+h = pcolor(ax, time.data, depth.data, var.data');
+set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
+cb = colorbar();
+
+cbLabel = imosParameters(var.name, 'uom');
+cbLabel = [var.name ' (' cbLabel ')'];
+if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
+set(get(cb, 'YLabel'), 'String', cbLabel);
+
+xLabel = 'TIME';
+yLabel = 'DEPTH';

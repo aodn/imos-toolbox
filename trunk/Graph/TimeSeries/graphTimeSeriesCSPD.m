@@ -2,8 +2,9 @@ function [h xLabel yLabel] = graphTimeSeriesCSPD( ax, sample_data, var )
 %GRAPHTIMESERIESCSPD Plots CSPD data using pcolor.
 %
 % This function is used for plotting CSPD data (sea water speed vs depth vs
-% time). The pcolor function is used to display a 2-D color plot, with time
-% on the X axis and depth on the Y axis, and speed indicated by the colour.
+% time). This function simply delegates to the graphTimeSeriesTimeDepth
+% function, and modifies the colour limits so they are more appropriate for
+% CSPD data.
 %
 % Inputs:
 %   ax          - Parent axis.
@@ -47,28 +48,10 @@ function [h xLabel yLabel] = graphTimeSeriesCSPD( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,3,nargin));
 
-if ~ishandle(ax),          error('ax must be a graphics handle'); end
-if ~isstruct(sample_data), error('sample_data must be a struct'); end
-if ~isnumeric(var),        error('var must be a numeric');        end
+[h xLabel yLabel] = graphTimeSeriesTimeDepth(ax, sample_data, var);
 
-time  = getVar(sample_data.dimensions, 'TIME');
-depth = getVar(sample_data.dimensions, 'DEPTH');
-
-time  = sample_data.dimensions{time};
-depth = sample_data.dimensions{depth};
-var   = sample_data.variables {var};
-
-h = pcolor(ax, time.data, depth.data, var.data');
-set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
+% setting max colour limit to 0.25 of the maximum 
+% CSPD value works well for all my test data
+var = sample_data.variables {var};
 set(ax, 'CLim', [0, max(max(var.data))/4]);
-cb = colorbar();
-
-cbLabel = imosParameters(var.name, 'uom');
-cbLabel = [var.name ' (' cbLabel ')'];
-if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
-set(get(cb, 'YLabel'), 'String', cbLabel);
-
-xLabel = 'TIME';
-yLabel = 'DEPTH';

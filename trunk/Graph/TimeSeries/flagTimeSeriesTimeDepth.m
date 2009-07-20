@@ -1,8 +1,8 @@
-function flags = flagTimeSeriesCSPD( ax, sample_data, var )
-%FLAGTIMESERIESCSPD Adds flag overlays to a CSPD plot.
+function flags = flagTimeSeriesTimeDepth( ax, sample_data, var )
+%FLAGTIMESERIESTIMEDEPTH Adds flag overlays to a time/depth plot.
 %
-% Adds QC flag overlays to a CSPD plot, highlighting the data points which
-% have been flagged. Uses line objects.
+% Adds QC flag overlays to a time/depth plot, highlighting the data points 
+% which have been flagged. Uses line objects.
 %
 % Inputs:
 %   ax          - Handle to the axes object on which to draw the overlays.

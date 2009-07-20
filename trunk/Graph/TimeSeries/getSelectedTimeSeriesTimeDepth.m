@@ -1,7 +1,7 @@
-function dataIdx = getSelectedTimeSeriesCSPD( ...
+function dataIdx = getSelectedTimeSeriesTimeDepth( ...
   sample_data, var, ax, highlight, click )
-%GETSELECTEDTIMESERIESCSPD Returns the currently selected data on the given
-% CSPD axis.
+%GETSELECTEDTIMESERIESTIMEDEPTH Returns the currently selected data on the 
+% given time/depth axis.
 %
 % Inputs:
 %   sample_data - Struct containing the data set.

@@ -1,19 +1,18 @@
-function [h xLabel yLabel] = graphTimeSeriesCDIR( ax, sample_data, var )
-%GRAPHTIMESERIESCDIR Plots CDIR data (sea water direction) using the same
-%technique as for CSPD.
+function highlight = highlightTimeSeriesTimeDepth( region, data )
+%HIGHLIGHTTIMESERIESTIMEDEPTH Highlights the given region on the given
+% time/depth plot.
 %
-% Plots sea water direction data in the same manner as CSPD - this function
-% just calls graphTimeSeriesCSPD
+% Highlights the given region on a time/depth plot, using a transparent 
+% patch.
 %
 % Inputs:
-%   ax          - Parent axis.
-%   sample_data - The data set.
-%   var         - The variable to plot.
+%   region    - a vector of length 4, containing the selected data region. 
+%               Must be in the format: [lx ly hx hy]
+%   data      - A handle, or vector of handles, to the graphics object(s) 
+%               displaying the data (e.g. line, scatter). 
 %
 % Outputs:
-%   h           - Handle to the line which was plotted.
-%   xLabel      - X label to use
-%   yLabel      - Y label to use
+%   highlight - handle to the patch highlight.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -47,6 +46,19 @@ function [h xLabel yLabel] = graphTimeSeriesCDIR( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+error(nargchk(2,2,nargin));
 
-[h xLabel yLabel] = graphTimeSeriesCSPD(ax, sample_data, var);
-set(ax, 'CLim', [0, max(max(sample_data.variables{var}.data))]);
+if ~isnumeric(region) || ~isvector(region) || length(region) ~= 4
+  error('region must be a numeric vector of length 4');
+end
+
+if ~ishandle(data), error('data must be a graphics handle'); end
+  
+% get the vertices of the rectangular region
+x = [region(1) region(1) region(3) region(3)];
+y = [region(2) region(4) region(4) region(2)];
+
+% create the patch
+highlight = patch(x, y, 'white', ...
+  'Parent',gca,...
+  'FaceAlpha', 0.6);

@@ -8,6 +8,9 @@ function func = getGraphFunc( graphType, graphFunc, var )
 % The variable is an IMOS compliant parameter name, e.g. 'TEMP', 'CSPD', or 
 % empty if one of the top level (e.g, 'GraphTimeSeries') functions is needed.
 %
+% The mappings between parameters and graph types is contained in the file
+% Graph/[Graph]/parameters.txt, where [Graph] is e.g. 'TimeSeries'.
+%
 % The different graph 'functions' are:
 %   graph        - Function for graphing data. There are two types of 'graph'
 %                  functions - the top level function defining the graph type, 
@@ -15,29 +18,26 @@ function func = getGraphFunc( graphType, graphFunc, var )
 %                  graph single variables. The top level functions must be of 
 %                  the form:
 %                    function [graphs lines] = ...
-%                      graphGraphType( parent, sample_data, vars )
+%                      graphGraph( parent, sample_data, vars )
 %                  Graph functions which graph a single variable must be of
 %                  the form:
-%                    function h = ...
-%                      graphGraphTypeParameter( ax, sample_data, var )
+%                    function h = graphGraphType( ax, sample_data, var )
 %
 %   select       - Function which adds data selection capability to a plot.
 %                  Must be of the form:
-%                    function selectGraphTypeParameter( ...
-%                      selectCallback, clickCallback )
+%                    function selectGraphType( selectCallback, clickCallback )
 %
 %   highlight    - Function which highlights a region on a plot.
 %                  Must be of the form:
-%                    function h = highlightGraphTypeParameter( region, data )
+%                    function h = highlightGraphType( region, data )
 %
 %   getSelected  - Function which returns the data indices of currently
 %                  highlighted data on a plot. Must be of the form:
-%                    function dataIdx = ...
-%                      getSelectedGraphTypeParameter (  )
+%                    function dataIdx = getSelectedGraphType ()
 %
 %   flag         - Function which overlays QC flags on a plot. Must be of the
 %                  form:
-%                    function flags = flagGraphTypeParameter( ...
+%                    function flags = flagGraphType( ...
 %                      parent, graphs, sample_data, vars )
 %
 % Inputs:
@@ -92,9 +92,13 @@ if ~ischar(var),       error('var must be a string');       end
 match = regexp(var, '_\d$');
 if ~isempty(match), var(match:end) = ''; end
 
-% get path to graph type subdirectory 
-% (e.g. 'Graph/TimeSeries')
+% get path to graph directory (e.g. 'Graph')
 graphDir = fileparts(which(mfilename));
+
+% check that the directory exists
+if isempty(dir(graphDir))
+  error(['invalid graph type: ' graphDir]); 
+end
 
 % top level graph functions are in the Graph subdirectory
 if strcmp(graphFunc, 'graph') && isempty(var)
@@ -106,19 +110,38 @@ elseif strcmp(graphFunc, 'flag') && isempty(var)
   
 % other functions are in the Graph/graphType subdirectory
 else
+  
+  % get path to graph type subdirectory (e.g. 'Graph/TimeSeries')
   graphDir = [graphDir filesep graphType];
-
-  % check that the directory exists
-  if isempty(dir(graphDir))
-    error(['invalid graph type: ' graphDir]); 
+  
+  % read in parameter mapping
+  fid = -1;
+  parameters = {};
+  try
+    fid = fopen([graphDir filesep 'parameters.txt']);
+    if fid == -1
+      error(['could not open ' graphDir filesep 'parameters.txt']); 
+    end
+    parameters = textscan(fid, '%s%s', 'CommentStyle', '%', 'Delimiter', ',');
+    parameters = deblank(parameters);
+    fclose(fid);
+  catch e
+    if fid ~= -1, fclose(fid); end
+    rethrow(e);
   end
 
+  % find the graph type for the specified parameter; 
+  % if not in the list, use generic graph type
+  idx = find(ismember(parameters{1}, var));
+  if ~isempty(idx), var = parameters{2}{idx};
+  else              var = 'Generic';
+  end
+  
   % try to find the requested function
   funcFile = [graphDir filesep graphFunc graphType var '.m'];
   
-  % if the function does not exist, search
-  % for a 'generic' alternative
-  if isempty(dir(funcFile))
+  % revert to generic implementation
+  if isempty(dir(funcFile)),
     funcFile = [graphDir filesep graphFunc graphType 'Generic.m'];
   end
 end
