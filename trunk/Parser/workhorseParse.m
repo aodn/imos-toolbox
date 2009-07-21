@@ -224,14 +224,14 @@ error(nargchk(1,1,nargin));
   sample_data.variables{ 7}.name       = 'TEMP';
   sample_data.variables{ 8}.name       = 'PRES';
   sample_data.variables{ 9}.name       = 'PSAL';
-  sample_data.variables{10}.name       = 'ABSI_correlation_1';
-  sample_data.variables{11}.name       = 'ABSI_correlation_2';
-  sample_data.variables{12}.name       = 'ABSI_correlation_3';
-  sample_data.variables{13}.name       = 'ABSI_correlation_4';
-  sample_data.variables{14}.name       = 'ABSI_percentage_good_1';
-  sample_data.variables{15}.name       = 'ABSI_percentage_good_2';
-  sample_data.variables{16}.name       = 'ABSI_percentage_good_3';
-  sample_data.variables{17}.name       = 'ABSI_percentage_good_4';
+  sample_data.variables{10}.name       = 'ADCP_CORR_1';
+  sample_data.variables{11}.name       = 'ADCP_CORR_2';
+  sample_data.variables{12}.name       = 'ADCP_CORR_3';
+  sample_data.variables{13}.name       = 'ADCP_CORR_4';
+  sample_data.variables{14}.name       = 'ADCP_GOOD_1';
+  sample_data.variables{15}.name       = 'ADCP_GOOD_2';
+  sample_data.variables{16}.name       = 'ADCP_GOOD_3';
+  sample_data.variables{17}.name       = 'ADCP_GOOD_4';
   sample_data.variables{18}.name       = 'PITCH';
   sample_data.variables{19}.name       = 'ROLL';
   sample_data.variables{20}.name       = 'HEADING';
@@ -305,7 +305,7 @@ error(nargchk(1,1,nargin));
   for k = 4:-1:numBeams+1
     remove(end+1) = getVar(sample_data.variables, ['ABSI_' num2str(k)]);
     remove(end+1) = ...
-      getVar(sample_data.variables, ['ABSI_correlation_' num2str(k)]);
+      getVar(sample_data.variables, ['ABSI_CORR_' num2str(k)]);
   end
   
   sample_data.variables(remove) = [];
