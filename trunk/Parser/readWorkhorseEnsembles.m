@@ -234,27 +234,6 @@ function index = findEnsemble(data, startIdx)
   end
 end
 
-function value = bytecast(bytes, endianness, dataType)
-%BYTECAST Cast a vector of bytes to the given type. 
-% 
-% Inputs:
-%   bytes      - vector of bytes
-%   endianness - endianness of the bytes - 'L' for little, 'B' for big.
-%   dataType   - type to cast to, e.g. 'uint8', 'int64' etc.
-%
-% Outputs:
-%   value      - the given bytes cast to the given value.
-%
-  [m,c,cpuEndianness] = computer;
-  if cpuEndianness == endianness, value = typecast(bytes, dataType);
-    
-  % WILL NOT WORK IF MULTIPLE VALUES ARE PASSED IN. arses
-  else                            value = typecast(bytes(end:-1:1), dataType);
-  end
-  
-  value = double(value);
-end
-
 function [sect len] = parseHeader( data, idx )
 %PARSEHEADER Parses a header section from an ADCP ensemble.
 %
