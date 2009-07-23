@@ -3,8 +3,8 @@
 % graphTimeSeriesCSPD just calls 
 % graphTimeSeriesTimeDepth, but 
 % changes colour limits
-CSPD,                 CSPD
-CDIR,                 TimeDepth
-ABSI,                 TimeDepth
-ABSI_correlation,     TimeDepth
-ABSI_percentage_good, TimeDepth
+CSPD,      CSPD
+CDIR,      TimeDepth
+ABSI,      TimeDepth
+ADCP_CORR, TimeDepth
+ADCP_GOOD, TimeDepth
