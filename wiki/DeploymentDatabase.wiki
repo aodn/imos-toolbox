@@ -37,7 +37,7 @@ The following subsections detail the tables which are used by the toolbox, and t
 ||Capability||Text||
 ||<font color="red">!FileName</font>||Text||
 ||!PersonnelSetup||Text||
-||<font color="red">!PersonnelDownload</font>||Text||
+||!PersonnelDownload||Text||
 ||!TimeSwitchOn||Date/Time||
 ||!TimeFirstWet||Date/Time||
 ||<font color="red">!TimeFirstInPos</font>||Date/Time||
