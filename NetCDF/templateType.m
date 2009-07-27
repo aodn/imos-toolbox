@@ -63,7 +63,7 @@ t = '';
 
 temp = [temp '_attributes.txt'];
 
-filepath = fileparts(which(mfilename));
+filepath = [pwd filesep 'NetCDF'];
 filepath = [filepath filesep 'template' filesep temp];
 
 lines = {};

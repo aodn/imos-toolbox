@@ -48,7 +48,7 @@ function value = readToolboxProperty(prop)
 
 if ~ischar(prop), error('prop must be a string'); end
 
-propFilePath = fileparts(which(mfilename));
+propFilePath = pwd;
 
 % read in all the name=value pairs
 fid = fopen([propFilePath filesep 'toolboxProperties.txt'], 'rt');

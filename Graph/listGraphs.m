@@ -52,7 +52,7 @@ function graphs = listGraphs()
 graphs = {};
 
 % get the location of the Graph directory
-path = fileparts(which(mfilename));
+path = [pwd filesep 'Graph'];
 
 % get the contents of the Graph directory
 files = dir(path);

@@ -43,7 +43,7 @@ function parsers = listParsers ()
 parsers = {};
 
 % get the location of the Parser directory - the location of this m-file
-path = fileparts(which(mfilename));
+path = [pwd filesep 'Parser'];
 
 % get the contents of the Parser directory
 files = dir(path);

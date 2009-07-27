@@ -79,9 +79,9 @@ if ~ischar(field),       error('field must be a string');               end
 
 value = '';
 
-% open the IMOSQCSets file - it should be 
+% open the IMOSQCFlag file - it should be 
 % in the same directory as this m-file
-path = fileparts(which(mfilename));
+path = [pwd filesep 'IMOS'];
 
 fid = -1;
 flags = [];
