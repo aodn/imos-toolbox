@@ -47,7 +47,7 @@ function testParseNetCDFTemplate()
                           [1,1],[100,100],[1,1],[100,100]);
 
   % get the full path of the template subdirectory
-  templateDir = fileparts(which(mfilename));
+  templateDir = [pwd filesep 'Tests'];
   templateDir = [templateDir filesep '..' filesep 'NetCDF' filesep 'template'];
 
   templates = dir(templateDir);

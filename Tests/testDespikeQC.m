@@ -104,7 +104,7 @@ end
 % no args - automatic
 if nargin == 0
   
-  files = dir('../AutomaticQC');
+  files = dir([pwd filesep 'AutomaticQC']);
   
   for k = 1:length(files)
     
