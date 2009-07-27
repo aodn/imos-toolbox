@@ -86,7 +86,7 @@ function filename = getDataSet( inst_name )
 filename = '';
 
 % get the location of the sample datasets
-path = fileparts(which(mfilename));
+path = [pwd filesep 'Tests'];
 
 % get a list of all datasets
 datasets = dir([path filesep 'sample_data']);
@@ -112,7 +112,7 @@ function parsers = listParsers
 parsers = {};
 
 % get the location of the Parser directory
-path = [fileparts(which(mfilename)) filesep '..' filesep 'Parser'];
+path = [pwd filesep 'Parser'];
 
 % get the contents of the Parser directory
 files = dir(path);

@@ -1,11 +1,10 @@
-function testExportNetCDF()
-%TESTEXPORTNETCDF Tests NetCDF export functionality.
+function imosTests()
+%IMOSESTS Runs all of the unit tests in the 'Tests' directory.
 %
-% Creates a test dataset and attempts to export it to a NetCDF file using
-% the exportNetCDF function. If the export is successful, prints out the
-% NetCDF file (using ncdump), and then deletes the file.
+% Looks in the 'Tests' subdirectory for all files which start with the word
+% 'test', and executes them as functions.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author: Paul McCarthy <paul.mccarthy@csiro.au
 %
 
 %
@@ -38,23 +37,42 @@ function testExportNetCDF()
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
+testPath = [pwd filesep 'Tests'];
+
+tests = dir(testPath);
+
+numExecuted = 0;
+numPassed   = 0;
+numFailed   = 0;
+failNames   = {};
+failCauses  = {};
+
+for test = tests'
+  
+  if test.isdir, continue; end
+  if ~strncmp(test.name, 'test', 4), continue; end
+  testFunc = str2func(test.name(1:end-2));
+  
+  numExecuted = numExecuted + 1;
+  try
+    testFunc();
+    numPassed = numPassed + 1;
+  catch e
+    numFailed = numFailed + 1;
+    failNames{end+1} = test.name;
+    failCauses{end+1} = e;
+  end
+end
+
 disp(' ');
-disp(['-- ' mfilename ' --']);
+disp('-- Test results --');
 disp(' ');
+disp(['Executed: ' num2str(numExecuted)]);
+disp(['Passed:   ' num2str(numPassed)]);
+disp(['Failed:   ' num2str(numFailed)]);
 
-% create test data
-sam = genTestData(100, {'TEMP', 'CNDC'}, 1, 100, ...
-                        [1,1],[100,100],[1,1],[100,100]);
-
-sam = makeNetCDFCompliant(sam);
-% save the netcdf file in the test directory
-dest = [pwd filesep 'Tests'];
-
-% create the netcdf file
-file = exportNetCDF(sam,dest);
-
-% display a dump of the file
-disp(evalc(['!ncdump ' file]));
-
-% remove the file
-eval(['!rm -f ' file]);
+for k = 1:length(failNames)
+  disp(' ');
+  disp(['-- ' failNames{k} ' --']);
+  disp(failCauses{k}.message);
+end
