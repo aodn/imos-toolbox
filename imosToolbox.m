@@ -35,4 +35,9 @@ function imosToolbox()
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+
+% if running as a standalone compiled application, we must 
+% manually add the ddb.jar java library to the classpath
+if isdeployed, javaaddpath(['Java' filesep 'ddb.jar']); end
+
 flowManager;
