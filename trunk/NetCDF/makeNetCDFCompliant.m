@@ -56,7 +56,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
   %
 
   % get path to templates subdirectory
-  path = [fileparts(which(mfilename)) filesep 'template' filesep];
+  path = [pwd filesep 'NetCDF' filesep 'template' filesep];
 
   globAtts = parseNetCDFTemplate([path 'global_attributes.txt'], sample_data);
 

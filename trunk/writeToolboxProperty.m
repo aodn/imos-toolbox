@@ -51,7 +51,7 @@ function writeToolboxProperty( prop, val )
 if ~ischar(prop), error('prop must be a string'); end
 if ~ischar(val),  error('val must be a string');  end
 
-propFilePath = fileparts(which(mfilename));
+propFilePath = pwd;
 
 oldFile = [propFilePath filesep  'toolboxProperties.txt'];
 newFile = [propFilePath filesep '.toolboxProperties.txt'];

@@ -70,7 +70,7 @@ if ~isempty(match), short_name(match:end) = ''; end
 
 % get the location of this m-file, which is 
 % also the location of imosParamaters.txt
-path = fileparts(which(mfilename));
+path = [pwd filesep 'IMOS'];
 
 fid = -1;
 params = [];

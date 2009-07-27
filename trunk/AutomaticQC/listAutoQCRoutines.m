@@ -50,7 +50,7 @@ function routines = listAutoQCRoutines()
 routines = {};
 
 % get the location of the AutomaticQC directory
-path = fileparts(which(mfilename));
+path = [pwd filesep 'AutomaticQC'];
 
 % get the contents of the AutomaticQC directory
 files = dir(path);

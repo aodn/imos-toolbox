@@ -93,7 +93,7 @@ match = regexp(var, '_\d$');
 if ~isempty(match), var(match:end) = ''; end
 
 % get path to graph directory (e.g. 'Graph')
-graphDir = fileparts(which(mfilename));
+graphDir = [pwd filesep 'Graph'];
 
 % check that the directory exists
 if isempty(dir(graphDir))

@@ -57,7 +57,7 @@ if ~ischar(model), error('model must be a string'); end
 
 parser = 0;
 
-path = fileparts(which(mfilename));
+path = [pwd filesep 'Parser'];
 
 % read in all the lines of the file
 lines = {};

@@ -52,7 +52,7 @@ if ~ischar(make),   error('make must be a string');   end
 if ~ischar(model),  error('model must be a string');  end
 if ~ischar(parser), error('parser must be a string'); end
 
-path = fileparts(which(mfilename));
+path = [pwd filesep 'Parser'];
 
 fid = -1;
 try

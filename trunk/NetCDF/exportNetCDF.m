@@ -274,7 +274,7 @@ function vid = addQCVar(...
       error(['invalid type: ' type]);
   end
   
-  path = [fileparts(which(mfilename)) filesep 'template' filesep];
+  path = [pwd filesep 'NetCDF' filesep 'template' filesep];
   
   varname = [var.name '_quality_control'];
   
