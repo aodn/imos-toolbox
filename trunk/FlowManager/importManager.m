@@ -219,53 +219,6 @@ function [fieldTrip deployments dataDir] = getDeployments()
   end
 end
 
-function hits = fsearch(pattern, root)
-%FSEARCH Recursive file/directory search.
-%
-% Performs a recursive search starting at the given root directory; returns
-% the names of all files and directories below the root which contain the 
-% given pattern as a substring with their name. The name comparison is case 
-% insensitive for alphabetical characters.
-%
-% Inputs:
-%
-%   pattern - Pattern to match.
-%
-%   root    - Directory from which to start the search.
-%
-% Outputs:
-% 
-%   hits    - Cell array of strings containing the files/directories that
-%             have a name which contains the pattern.
-
-  hits = {};
-  
-  if ~isdir(root), return; end
-  
-  entries = dir(root);
-  
-  for k = 1:length(entries)
-    
-    d = entries(k);
-    
-    % ignore current/prev entries
-    if strcmp(d.name, '.') || strcmp(d.name, '..'), continue; end
-    
-    % compare file and directory names against pattern
-    if strfind(lower(d.name), lower(pattern))
-      
-      hits{end+1} = [root filesep d.name];
-    end
-    
-    % recursively search subdirectories
-    if d.isdir, 
-      
-      subhits = fsearch(pattern, [root filesep d.name]);
-      hits = [hits subhits];
-    end
-  end
-end
-
 function sam = parse(deployment, files, parsers, noParserPrompt)
 %PARSE Parses a raw data file, returns a sample_data struct.
 %
