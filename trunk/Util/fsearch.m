@@ -72,8 +72,12 @@ function hits = fsearch(pattern, root, restriction)
     % ignore current/prev entries
     if strcmp(d.name, '.') || strcmp(d.name, '..'), continue; end
     
-    % compare file and directory names against pattern
-    if strcmp(restriction, 'both')                || ...
+    % compare file and directory names against pattern. doing 
+    % string comparisons here is inefficient; better way would 
+    % be to convert to a number and do numerical comparison; 
+    % this would also require fsearch to accept the restriction 
+    % input as a numerical (because of the recursive call below)
+    if strcmp(restriction, 'both')               || ...
       (strcmp(restriction, 'files') && ~d.isdir) ||...
       (strcmp(restriction, 'dirs')  &&  d.isdir)
        
