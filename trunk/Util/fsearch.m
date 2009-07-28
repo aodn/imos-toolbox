@@ -2,8 +2,8 @@ function hits = fsearch(pattern, root, restriction)
 %FSEARCH Recursive file/directory search.
 %
 % Performs a recursive search starting at the given root directory; returns
-% the names of all files and directories below the root which contain the 
-% given pattern as a substring with their name. The name comparison is case 
+% the names of all files and directories below the root which have a name
+% matching the given regular expression pattern. The name comparison is case 
 % insensitive for alphabetical characters.
 %
 % Inputs:
@@ -60,7 +60,8 @@ function hits = fsearch(pattern, root, restriction)
 
   hits = {};
   
-  if ~isdir(root), return; end
+  if ~isdir(root),     return; end
+  if isempty(pattern), return; end
   
   entries = dir(root);
   
@@ -76,7 +77,7 @@ function hits = fsearch(pattern, root, restriction)
       (strcmp(restriction, 'files') && ~d.isdir) ||...
       (strcmp(restriction, 'dirs')  &&  d.isdir)
        
-      if strfind(lower(d.name), lower(pattern))
+      if ~isempty(regexpi(d.name, pattern))
         hits{end+1} = [root filesep d.name];
       end
     end
