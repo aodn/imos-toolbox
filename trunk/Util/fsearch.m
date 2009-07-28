@@ -1,4 +1,4 @@
-function hits = fsearch(pattern, root)
+function hits = fsearch(pattern, root, restriction)
 %FSEARCH Recursive file/directory search.
 %
 % Performs a recursive search starting at the given root directory; returns
@@ -8,9 +8,14 @@ function hits = fsearch(pattern, root)
 %
 % Inputs:
 %
-%   pattern - Pattern to match.
+%   pattern     - Pattern to match.
 %
-%   root    - Directory from which to start the search.
+%   root        - Directory from which to start the search.
+%
+%   restriction - Optional. Either 'files' or 'dirs', to restrict the search 
+%                 results to contain only files or directories respectively. 
+%                 If omitted, both files and directories are included in the 
+%                 search results.
 %
 % Outputs:
 % 
@@ -49,6 +54,10 @@ function hits = fsearch(pattern, root)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+  error(nargchk(2, 3, nargin));
+
+  if nargin == 2, restriction = 'both'; end
+
   hits = {};
   
   if ~isdir(root), return; end
@@ -63,15 +72,19 @@ function hits = fsearch(pattern, root)
     if strcmp(d.name, '.') || strcmp(d.name, '..'), continue; end
     
     % compare file and directory names against pattern
-    if strfind(lower(d.name), lower(pattern))
-      
-      hits{end+1} = [root filesep d.name];
+    if strcmp(restriction, 'both')                || ...
+      (strcmp(restriction, 'files') && ~d.isdir) ||...
+      (strcmp(restriction, 'dirs')  &&  d.isdir)
+       
+      if strfind(lower(d.name), lower(pattern))
+        hits{end+1} = [root filesep d.name];
+      end
     end
     
     % recursively search subdirectories
     if d.isdir, 
       
-      subhits = fsearch(pattern, [root filesep d.name]);
+      subhits = fsearch(pattern, [root filesep d.name], restriction);
       hits = [hits subhits];
     end
   end
