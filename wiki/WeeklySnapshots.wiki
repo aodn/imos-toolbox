@@ -8,7 +8,7 @@
 Weekly snapshots of the Toolbox codebase are available from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. The snapshots are created every Friday at 18:00 (AEST). Two snapshot files are created:
 
  * *Source snapshot*: contains the source code straight from the SVN. Download this file if you have a licensed copy of Matlab.
- * *Standalone snapshot (coming very soon, hopefully by 30th July 2009)*: Contains a compiled version of the source code straight from the SVN. Download this file if you don't have access to Matlab.
+ * *Standalone snapshot*: Contains a compiled version of the source code straight from the SVN. Download this file if you don't have access to Matlab.
 
 == File format and contents ==
 
@@ -18,7 +18,7 @@ The Java files are automatically compiled when the snapshot files are created, s
 
 The Java code is compiled with the Sun Java compiler, version 1.6.0_11.
 
-In the standalone snapshot, the matlab code is compiled with the Matlab Compiler, version 4.10 (R 2009a).
+In the standalone snapshot, the matlab code is compiled with the Matlab Compiler, version 4.10 (R 2009a). In order to run the standalone version of the Toolbox, you must have the Matlab Component Runtime (MCR) installed. A link to download the MCR will be provided shortly.
 
 == Submission script ==
 
