@@ -4,7 +4,8 @@ function imosCompile()
 % This function uses the Matlab Compiler to compile the toolbox code, and
 % creates a zip file containing the toolbox executable, source, and
 % configuration files. Users are able to extract this zip file, and run the
-% toolbox on Windows computers which do not have Matlab installed.
+% toolbox on Windows computers which do not have Matlab installed. This
+% function has only been tested on Windows XP.
 %
 % This function must be executed from the root of the toolbox directory 
 % tree that is to be compiled. As part of the compilation process, two 
@@ -17,11 +18,12 @@ function imosCompile()
 %
 % If either of these directories already exist, the function will fail.
 % These directories are deleted after compilation. The resulting zip 
-% file, named 'imos-toolbox.zip', will be stored in the root of the toolbox
-% directory tree.
+% file, named 'imos-toolbox.zip', is created from the 'imos-toolbox' 
+% directory, and will be stored in the root of the toolbox directory tree 
+% (i.e. the directory that the function was called from).
 %
 % The source code is included in the zip file because certain parts of the
-% toolbox rely on the existence of the Matlab source files. For example,
+% toolbox rely upon the existence of the Matlab source files. For example,
 % the listParsers function scans the contents of the Parsers subdirectory
 % to determine which parser functions are available. It is important to
 % note that modifying these source files will not have any effect upon the 
@@ -75,6 +77,7 @@ if ~isempty(dir(stagingRoot)),   error([staagingRoot  ' already exists']); end
 % the compiled file(s) - the staging area
 disp(['creating packaging area: ' packagingRoot]);
 if ~mkdir(packagingRoot), error('could not create packaging area'); end
+
 disp(['creating staging area: ' stagingRoot]);
 if ~mkdir(stagingRoot), error('could not create staging area'); end
 
@@ -122,7 +125,7 @@ cflags{end+1} =  '-N';
 cflags{end+1} =  '-w enable';
 cflags{end+1} =  '-e';
 
-% add matlab files
+% add matlab files to the compiler args
 cflags{end+1} = ['''' toolboxRoot filesep 'imosToolbox.m'''];
 for k = 1:length(matlabFiles)
   cflags{end+1} = ['''' matlabFiles{k} '''']; 
@@ -136,7 +139,6 @@ disp('----');
 % turn options into a single, space-separated string
 cflags = cellfun(@(x)([x ' ']), cflags, 'UniformOutput', false);
 cflags = [cflags{:}];
-disp(cflags);
 
 % run mcc; i can't call mcc like 'mcc(cflags)'. it gives me 
 % some nonsensical error about '-x is no longer supported'
@@ -149,8 +151,7 @@ end
 
 % create a zip file containing the standalone 
 % application and all required resources
-disp(['creating toolbox archive: ' ...
-  packagingRoot filesep 'imos-toolbox.zip']);
+disp(['creating toolbox archive: ' packagingRoot filesep 'imos-toolbox.zip']);
 zip('imos-toolbox.zip', packagingRoot);
 
 % clean up
