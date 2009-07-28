@@ -5,15 +5,20 @@
 
 = Weekly SVN Snapshots =
 
-As of the 3rd of April, 2009, weekly snapshots of the Toolbox codebase will be available from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. The snapshots are created every Friday at 18:00 (AEST).
+Weekly snapshots of the Toolbox codebase are available from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. The snapshots are created every Friday at 18:00 (AEST). Two snapshot files are created:
 
-== File format and contents ==
+ * Source snapshot: contains the source code straight from the SVN. Download this file if you have a licensed copy of Matlab.
+ * Standalone snapshot: Contains a compiled version of the source code straight from the SVN. Download this file if you don't have access to Matlab.
 
-The snapshots are zip files which contain the contents of the SVN `trunk` directory, minus the `Tests/sample_data` directory. 
+== Source snapshot ==
+
+=== File format and contents ===
+
+The source snapshots are zip files which contain the contents of the SVN `trunk` directory, minus the `Tests/sample_data` directory. 
 
 The Java files (and the Linux `libmdbsql_wrapper` library) are automatically compiled when the snapshot file is created, so there is no need to do any compilation. If, during the week, a bug has been introduced into the Java/C code, causing compilation to fail, that week's snapshot will simply not contain the binaries.
 
-== Technical details ==
+=== Technical details ===
 
 The snapshots are created on a server in Hobart, called `wharfie`, which runs Ubuntu 8.04 (x86). Snapshot creation is triggered by a weekly cronjob, which executes the simple python script listed below. This script exports the SVN trunk, compiles the Java files, creates the archive, and then calls another python script which uploads the file to the project website. This upload script is conveniently provided by [http://code.google.com/p/support/wiki/ScriptedUploads Google Code].
 
@@ -22,7 +27,7 @@ The Java/C code is compiled with the following:
  * gcc 4.2.4
  * mdbtools-dev 0.5.99.06pre1.0.20051109-4
 
-=== Submission script ===
+==== Submission script ====
 
 {{{
 #!/usr/bin/python
@@ -93,46 +98,6 @@ os.system('rm %s' % archive)
 
 }}}
 
-A very similar script is used to create a 'release' distribution:
-{{{
-#!/usr/bin/python
+== Standalone snapshot ==
 
-import os
-import sys
-import time
-
-url     = sys.argv[1]
-path    = sys.argv[2]
-archive = '%s.zip' % path
-
-jhome = '%s/jdk1.5.0_18' % os.getcwd()
-jpath = '%s/bin:%s/jre/bin' % (jhome,jhome)
-
-os.environ['PATH'] = '%s:%s' % (jpath, os.environ['PATH'])
-os.environ['JAVA_HOME'] = jhome
-
-print('\n--exporting SVN tree from %s to %s' % (url, path))
-os.system('svn export %s %s' % (url, path))
-
-print('\n--removing tests')
-os.system('rm -rf %s/Tests' % path)
-
-print('\n--building DDB interface')
-compiled = os.system('cd %s/Java && ant install' % path)
-
-if compiled is not 0:
-  print('\n--DDB interface compilation failed - cleaning')
-  os.system('cd %s/Java && ant clean' % path)
-else:
-  print('\n--cleaning Java directory')
-  os.system('mv %s/Java/ddb.jar .' % path)
-  os.system('rm -rf %s/Java' % path)
-  os.system('mkdir %s/Java' % path)
-  os.system('mv ./ddb.jar %s/Java' % path)
-
-print('\n--creating ZIP archive')
-os.system('zip -r %s %s/' % (archive, path))
-
-print('\n--removing local SVN export')
-os.system('rm -rf %s' % path)
-}}}
+coming soon, hopefully by 30th July
