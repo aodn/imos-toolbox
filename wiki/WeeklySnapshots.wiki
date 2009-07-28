@@ -25,5 +25,94 @@ In the standalone snapshot, the matlab code is compiled with the Matlab Compiler
 The snapshots are created on a Windows XP server in Hobart. Snapshot creation is triggered by a weekly cronjob, which executes the simple python script listed below. This script exports the SVN trunk, compiles the Java files, creates the snapshots, and then calls another python script which uploads the file to the project website. This upload script is conveniently provided by [http://code.google.com/p/support/wiki/ScriptedUploads Google Code].
 
 {{{
-...
+import os
+import sys
+import time
+
+#
+# Exports the IMOS Toolbox from SVN and
+#
+#   - Creates an archive of the source 
+#   - Runs Util/imosCompile.m to create a standalone executable archive
+# 
+# Both of these files are submitted back to the project as file downloads.
+#
+# svn, javac, ant, matlab and rm must be on PATH
+# JAVA_HOME must be set
+#
+
+lt = time.localtime()
+at = time.asctime()
+
+project = 'imos-toolbox'
+
+def googleSubmit(archive, summary):
+
+  username = 'pauld.mccarthy'
+  password = '[my google code password]'
+  labels   = 'Type-Snapshot'
+
+  print('\n--submitting %s to google' % archive)
+  cmd = 'python googlecode_upload.py'
+  cmd = ' %s -s "%s"' % (cmd,summary)
+  cmd = ' %s -p %s'   % (cmd,project)
+  cmd = ' %s -u %s'   % (cmd,username)
+  cmd = ' %s -w %s'   % (cmd,password)
+  cmd = ' %s -l "%s"' % (cmd,labels)
+  cmd = ' %s %s'      % (cmd,archive)
+  
+  os.system(cmd)
+
+url        = 'http://%s.googlecode.com/svn/trunk' % project
+exportDir  = 'export'
+srcArchive = '%04i-%02i-%02i_source_snapshot.zip' % (lt[0], lt[1], lt[2])
+stdArchive = '%04i-%02i-%02i_standalone_snapshot.zip' % (lt[0], lt[1], lt[2])
+
+srcSummary  = 'IMOS Toolbox SVN source snapshot from %s' % at 
+stdSummary  = 'IMOS Toolbox SVN standalone snapshot from %s' % at 
+
+#
+# checkout from SVN
+#
+print('\n--exporting tree from %s to %s' % (url, exportDir))
+os.system('svn export %s %s' % (url, exportDir))
+
+#
+# remove Tests directory
+#
+print('\n--removing tests')
+os.system('rm -rf %s/Tests' % exportDir)
+
+#
+# build DDB interface
+#
+print('\n--building DDB interface')
+compiled = os.system('cd %s/Java && ant install' % exportDir)
+
+if compiled is not 0:
+  print('\n--DDB interface compilation failed - cleaning')
+  os.system('cd %s/Java && ant clean' % exportDir)
+
+#
+# create source snapshot
+#
+print('\n--creating source snapshot')
+os.system('zip -r %s %s/' % (srcArchive, exportDir))
+
+#
+# create standalone snapshot
+#
+print('\n--creating standalone snapshot')
+matlabOpts = '-wait -nosplash -nodesktop'
+matlabCmd = "addpath('Util'); try, imosCompile(); catch e, disp(e.message); end; exit();"
+os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
+os.system('cp %s/imos-toolbox.zip ./%s' % (exportDir, stdArchive))
+
+googleSubmit(srcArchive, srcSummary)
+googleSubmit(stdArchive, stdSummary)
+
+print('\n--removing local SVN tree and archives')
+os.system('rm -rf %s' % exportDir)
+os.system('rm %s' % srcArchive)
+os.system('rm %s' % stdArchive)
 }}}
