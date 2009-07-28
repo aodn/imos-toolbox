@@ -18,7 +18,7 @@ The Java files are automatically compiled when the snapshot files are created, s
 
 The Java code is compiled with the Sun Java compiler, version 1.6.0_11.
 
-In the standalone snapshot, the matlab code is compiled with the Matlab Compiler, version 4.10 (R2009a).
+In the standalone snapshot, the matlab code is compiled with the Matlab Compiler, version 4.10 (R 2009a).
 
 == Submission script ==
 
