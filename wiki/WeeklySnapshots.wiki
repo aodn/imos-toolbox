@@ -16,11 +16,13 @@ The source snapshots are zip files which contain the contents of the SVN `trunk`
 
 The Java files are automatically compiled when the snapshot files are created, so there is no need to do any compilation. 
 
+The Java code is compiled with the Sun Java compiler, version 1.6.0_11.
+
+In the standalone snapshot, the matlab code is compiled with the Matlab Compiler, version 4.10.
+
 == Submission script ==
 
 The snapshots are created on a Windows XP server in Hobart. Snapshot creation is triggered by a weekly cronjob, which executes the simple python script listed below. This script exports the SVN trunk, compiles the Java files, creates the snapshots, and then calls another python script which uploads the file to the project website. This upload script is conveniently provided by [http://code.google.com/p/support/wiki/ScriptedUploads Google Code].
-
-The Java code is compiled with the Sun Java compiler, version 1.6.0_11.
 
 {{{
 import os
