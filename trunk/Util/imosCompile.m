@@ -64,7 +64,7 @@ function imosCompile()
 
 % assume we are running from the toolbox root
 toolboxRoot   = pwd;
-packagingRoot = [toolboxRoot filesep '..' filesep 'imos-toolbox-standalone'];
+packagingRoot = [toolboxRoot filesep '..' filesep 'imos-toolbox'];
 stagingRoot   = [toolboxRoot filesep '..' filesep 'staging'];
 
 if ~isempty(dir(packagingRoot)), error([packagingRoot ' already exists']); end
