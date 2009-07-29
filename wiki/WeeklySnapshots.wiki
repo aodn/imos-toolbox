@@ -22,6 +22,8 @@ In the standalone snapshot, the matlab code is compiled with the Matlab Compiler
 
 The installer is a straightforward Windows installer; you only need to run it once. After you've downloaded the file, double click on it, and follow the instructions. During installation, you might be warned about requiring the .NET Framework - you may safely ignore this warning.
 
+Once you have the MCR installed, you can run the Toolbox simply by double clicking on the 'imosToolbox.exe' file.
+
 == Submission script ==
 
 The snapshots are created on a Windows XP server in Hobart. Snapshot creation is triggered by a weekly cronjob, which executes the simple python script listed below. This script exports the SVN trunk, compiles the Java files, creates the snapshots, and then calls another python script which uploads the file to the project website. This upload script is conveniently provided by [http://code.google.com/p/support/wiki/ScriptedUploads Google Code].
