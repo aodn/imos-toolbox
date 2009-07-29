@@ -18,7 +18,9 @@ The Java files are automatically compiled when the snapshot files are created, s
 
 The Java code is compiled with the Sun Java compiler, version 1.6.0_11.
 
-In the standalone snapshot, the matlab code is compiled with the Matlab Compiler, version 4.10 (R 2009a). In order to run the standalone version of the Toolbox, you must first install the Matlab Component Runtime (MCR). You can download the MCR installer [ftp://emii2.its.utas.edu.au/pub/software/MCRInstaller/MCRInstaller.exe here]. During installation, you might be warned about requiring the .NET Framework - you may safely ignore this warning.
+In the standalone snapshot, the matlab code is compiled with the Matlab Compiler, version 4.10 (R 2009a). In order to run the standalone version of the Toolbox, you must first install the Matlab Component Runtime (MCR). You can download the MCR installer [ftp://emii2.its.utas.edu.au/pub/software/MCRInstaller/MCRInstaller.exe here]. 
+
+The installer is a straightforward Windows installer; you only need to run it once. After you've downloaded the file, double click on it, and follow the instructions. During installation, you might be warned about requiring the .NET Framework - you may safely ignore this warning.
 
 == Submission script ==
 
