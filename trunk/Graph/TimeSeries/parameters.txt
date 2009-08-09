@@ -5,6 +5,8 @@
 % changes colour limits
 CSPD,      CSPD
 CDIR,      TimeDepth
+VCUR,      TimeDepth
+UCUR,      TimeDepth
 ABSI,      TimeDepth
 ADCP_CORR, TimeDepth
 ADCP_GOOD, TimeDepth

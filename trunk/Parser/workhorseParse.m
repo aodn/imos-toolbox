@@ -27,6 +27,7 @@ function sample_data = workhorseParse( filename )
 %                 input file.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%         Leeying Wu <Wu.Leeying@saugov.sa.gov.au>
 %
 
 %
@@ -80,6 +81,8 @@ error(nargchk(1,1,nargin));
   % preallocate space for sample data
   time         = zeros(length(ensembles), 1);
   depth        = zeros(numCells,          1);
+  vvel         = zeros(length(ensembles), numCells);
+  uvel         = zeros(length(ensembles), numCells);
   speed        = zeros(length(ensembles), numCells);
   direction    = zeros(length(ensembles), numCells);
   backscatter1 = zeros(length(ensembles), numCells);
@@ -148,6 +151,9 @@ error(nargchk(1,1,nargin));
     vnrth(vnrth == -32768) = nan;
     veast(veast == -32768) = nan;
     
+    vvel(k,:) = vnrth;
+    uvel(k,:) = veast;
+    
     speed(k,:) = sqrt(vnrth.^2 + veast.^2);
     
     % direction is in degrees clockwise from north
@@ -183,6 +189,8 @@ error(nargchk(1,1,nargin));
   %
   % temperature / 100.0  (0.01 deg   -> deg)
   % pressure    * 1000.0 (decapascal -> decibar)
+  % vvel        / 1000.0 (mm/s       -> m/s)
+  % uvel        / 1000.0 (mm/s       -> m/s)
   % speed       / 1000.0 (mm/s       -> m/s)
   % backscatter * 0.45   (count      -> dB)
   % pitch       / 100.0 (0.01 deg    -> deg)
@@ -193,6 +201,8 @@ error(nargchk(1,1,nargin));
   %
   temperature  = temperature  / 100.0;
   pressure     = pressure     * 1000.0;
+  vvel         = vvel         / 1000.0;
+  uvel         = uvel         / 1000.0;
   speed        = speed        / 1000.0;
   backscatter1 = backscatter1 * 0.45;
   backscatter2 = backscatter2 * 0.45;
@@ -215,26 +225,28 @@ error(nargchk(1,1,nargin));
   sample_data.dimensions{2}.name       = 'DEPTH';
   
   % add variables
-  sample_data.variables{ 1}.name       = 'CSPD';
-  sample_data.variables{ 2}.name       = 'CDIR';
-  sample_data.variables{ 3}.name       = 'ABSI_1';
-  sample_data.variables{ 4}.name       = 'ABSI_2';
-  sample_data.variables{ 5}.name       = 'ABSI_3';
-  sample_data.variables{ 6}.name       = 'ABSI_4';
-  sample_data.variables{ 7}.name       = 'TEMP';
-  sample_data.variables{ 8}.name       = 'PRES';
-  sample_data.variables{ 9}.name       = 'PSAL';
-  sample_data.variables{10}.name       = 'ADCP_CORR_1';
-  sample_data.variables{11}.name       = 'ADCP_CORR_2';
-  sample_data.variables{12}.name       = 'ADCP_CORR_3';
-  sample_data.variables{13}.name       = 'ADCP_CORR_4';
-  sample_data.variables{14}.name       = 'ADCP_GOOD_1';
-  sample_data.variables{15}.name       = 'ADCP_GOOD_2';
-  sample_data.variables{16}.name       = 'ADCP_GOOD_3';
-  sample_data.variables{17}.name       = 'ADCP_GOOD_4';
-  sample_data.variables{18}.name       = 'PITCH';
-  sample_data.variables{19}.name       = 'ROLL';
-  sample_data.variables{20}.name       = 'HEADING';
+  sample_data.variables{ 1}.name       = 'VCUR';
+  sample_data.variables{ 2}.name       = 'UCUR';
+  sample_data.variables{ 3}.name       = 'CSPD';
+  sample_data.variables{ 4}.name       = 'CDIR';
+  sample_data.variables{ 5}.name       = 'ABSI_1';
+  sample_data.variables{ 6}.name       = 'ABSI_2';
+  sample_data.variables{ 7}.name       = 'ABSI_3';
+  sample_data.variables{ 8}.name       = 'ABSI_4';
+  sample_data.variables{ 9}.name       = 'TEMP';
+  sample_data.variables{10}.name       = 'PRES';
+  sample_data.variables{11}.name       = 'PSAL';
+  sample_data.variables{12}.name       = 'ADCP_CORR_1';
+  sample_data.variables{13}.name       = 'ADCP_CORR_2';
+  sample_data.variables{14}.name       = 'ADCP_CORR_3';
+  sample_data.variables{15}.name       = 'ADCP_CORR_4';
+  sample_data.variables{16}.name       = 'ADCP_GOOD_1';
+  sample_data.variables{17}.name       = 'ADCP_GOOD_2';
+  sample_data.variables{18}.name       = 'ADCP_GOOD_3';
+  sample_data.variables{19}.name       = 'ADCP_GOOD_4';
+  sample_data.variables{20}.name       = 'PITCH';
+  sample_data.variables{21}.name       = 'ROLL';
+  sample_data.variables{22}.name       = 'HEADING';
   
   % map dimensions to each variable
   sample_data.variables{ 1}.dimensions = [1 2];
@@ -243,44 +255,49 @@ error(nargchk(1,1,nargin));
   sample_data.variables{ 4}.dimensions = [1 2];
   sample_data.variables{ 5}.dimensions = [1 2];
   sample_data.variables{ 6}.dimensions = [1 2];
-  sample_data.variables{ 7}.dimensions = [1];
-  sample_data.variables{ 8}.dimensions = [1];
+  sample_data.variables{ 7}.dimensions = [1 2];
+  sample_data.variables{ 8}.dimensions = [1 2];
   sample_data.variables{ 9}.dimensions = [1];
-  sample_data.variables{10}.dimensions = [1 2];
-  sample_data.variables{11}.dimensions = [1 2];
+  sample_data.variables{10}.dimensions = [1];
+  sample_data.variables{11}.dimensions = [1];
   sample_data.variables{12}.dimensions = [1 2];
   sample_data.variables{13}.dimensions = [1 2];
   sample_data.variables{14}.dimensions = [1 2];
   sample_data.variables{15}.dimensions = [1 2];
   sample_data.variables{16}.dimensions = [1 2];
   sample_data.variables{17}.dimensions = [1 2];
-  sample_data.variables{18}.dimensions = [1];
-  sample_data.variables{19}.dimensions = [1];
+  sample_data.variables{18}.dimensions = [1 2];
+  sample_data.variables{19}.dimensions = [1 2];
   sample_data.variables{20}.dimensions = [1];
+  sample_data.variables{21}.dimensions = [1];
+  sample_data.variables{22}.dimensions = [1];
   
   % copy all the data across
   sample_data.dimensions{1}.data       = time;
   sample_data.dimensions{2}.data       = depth;
-  sample_data.variables{ 1}.data       = speed;
-  sample_data.variables{ 2}.data       = direction;
-  sample_data.variables{ 3}.data       = backscatter1;
-  sample_data.variables{ 4}.data       = backscatter2;
-  sample_data.variables{ 5}.data       = backscatter3;
-  sample_data.variables{ 6}.data       = backscatter4;
-  sample_data.variables{ 7}.data       = temperature;
-  sample_data.variables{ 8}.data       = pressure;
-  sample_data.variables{ 9}.data       = salinity;
-  sample_data.variables{10}.data       = correlation1;
-  sample_data.variables{11}.data       = correlation2;
-  sample_data.variables{12}.data       = correlation3;
-  sample_data.variables{13}.data       = correlation4;
-  sample_data.variables{14}.data       = percentGood1;
-  sample_data.variables{15}.data       = percentGood2;
-  sample_data.variables{16}.data       = percentGood3;
-  sample_data.variables{17}.data       = percentGood4;
-  sample_data.variables{18}.data       = pitch;
-  sample_data.variables{19}.data       = roll;
-  sample_data.variables{20}.data       = heading;
+  
+  sample_data.variables{ 1}.data       = vvel;
+  sample_data.variables{ 2}.data       = uvel;
+  sample_data.variables{ 3}.data       = speed;
+  sample_data.variables{ 4}.data       = direction;
+  sample_data.variables{ 5}.data       = backscatter1;
+  sample_data.variables{ 6}.data       = backscatter2;
+  sample_data.variables{ 7}.data       = backscatter3;
+  sample_data.variables{ 8}.data       = backscatter4;
+  sample_data.variables{ 9}.data       = temperature;
+  sample_data.variables{10}.data       = pressure;
+  sample_data.variables{11}.data       = salinity;
+  sample_data.variables{12}.data       = correlation1;
+  sample_data.variables{13}.data       = correlation2;
+  sample_data.variables{14}.data       = correlation3;
+  sample_data.variables{15}.data       = correlation4;
+  sample_data.variables{16}.data       = percentGood1;
+  sample_data.variables{17}.data       = percentGood2;
+  sample_data.variables{18}.data       = percentGood3;
+  sample_data.variables{19}.data       = percentGood4;
+  sample_data.variables{20}.data       = pitch;
+  sample_data.variables{21}.data       = roll;
+  sample_data.variables{22}.data       = heading;
   
   % remove auxillary data if the sensors 
   % were not installed on the instrument
