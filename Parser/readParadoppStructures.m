@@ -625,9 +625,9 @@ function [sect len] = readAwacVelocityProfile(data, idx)
   % fill value is included if number of cells is odd
   if mod(nCells, 2), csOff = csOff + 1; end
   
-  sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'uint16');
-  sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'uint16');
-  sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'uint16');
+  sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16');
+  sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16');
+  sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16');
   sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8');
   sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8');
   sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8');
