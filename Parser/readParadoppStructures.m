@@ -72,13 +72,14 @@ function structures = readParadoppStructures( filename )
   
   dataLen = length(data);
   dIdx    = 1;
-  
-  % all files should start off with the following sections:
+   
+  % read in all of the structures contained in the file
+  % all files should start off with the following sections,
+  % although this is not checked:
   %   hardware configuration
   %   head configuration
   %   user configuration
   %
-  
   structures = {};
   
   while dIdx < dataLen
@@ -143,24 +144,30 @@ function [sect len] = readSection(data, idx)
   end
 end
 
-function [sect len] = readClockData(data, idx)
-%READCLOCKDATA Reads a clock data section (pg 29 of system integrator manual).
+function cd = readClockData(data, idx)
+%READCLOCKDATA Reads a clock data section (pg 29 of system integrator
+%manual) and returns a matlab serial date.
 % 
-  sect = struct;
-  len = 6;
 
-  sect.Minute = 10*bitand(bitshift(data(idx  ), -4), 15) + ...
-    bitand(data(idx  ), 15);
-  sect.Second = 10*bitand(bitshift(data(idx+1), -4), 15) + ...
-    bitand(data(idx+1), 15);
-  sect.Day    = 10*bitand(bitshift(data(idx+2), -4), 15) + ...
-    bitand(data(idx+2), 15);
-  sect.Hour   = 10*bitand(bitshift(data(idx+3), -4), 15) + ...
-    bitand(data(idx+3), 15);
-  sect.Year   = 10*bitand(bitshift(data(idx+4), -4), 15) + ...
-    bitand(data(idx+4), 15);
-  sect.Month  = 10*bitand(bitshift(data(idx+5), -4), 15) + ...
-    bitand(data(idx+5), 15);
+  minute = double(...
+    10*bitand(bitshift(data(idx  ), -4), 15) + bitand(data(idx  ), 15));
+  second = double(...
+    10*bitand(bitshift(data(idx+1), -4), 15) + bitand(data(idx+1), 15));
+  day    = double(...
+    10*bitand(bitshift(data(idx+2), -4), 15) + bitand(data(idx+2), 15));
+  hour   = double(...
+    10*bitand(bitshift(data(idx+3), -4), 15) + bitand(data(idx+3), 15));
+  year   = double(...
+    10*bitand(bitshift(data(idx+4), -4), 15) + bitand(data(idx+4), 15));
+  month  = double(...
+    10*bitand(bitshift(data(idx+5), -4), 15) + bitand(data(idx+5), 15));
+  
+  % pg 52 of system integrator manual. ugh
+  if year >= 90, year = year + 1900;
+  else           year = year + 2000;
+  end
+  
+  cd = datenum(year, month, day, hour, minute, second);
 end
 
 function [sect len] = readHardwareConfiguration(data, idx)
