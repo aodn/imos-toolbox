@@ -85,22 +85,38 @@ amplitude3  = zeros(nsamples, ncells);
 %
 % calculate depth values from metadata. Conversion of the BinLength 
 % and T2 (blanking distance) values from counts to meaningful values 
-% is still unresolved; the following calculation works for Continentals.
+% is a little strange. The relationship between frequency and the 
+% 'factor', as i've termed it, is approximately:
+%
+% factor = 47.8 / frequency
+%
+% However this is not exactly correct for all frequencies, so i'm 
+% just using a lookup table as recommended in this forum post:
 % 
 % http://www.nortek-as.com/en/knowledge-center/forum/hr-profilers/736804717
 %
+% Calculation of blanking distance always uses the constant value 0.0229
+% (except for HR profilers - also explained in the forum post).
+%
 freq       = head.Frequency; % this is in KHz
-cellStart  = user.T2;        % dunno what this is in
-cellLength = user.BinLength; % nor this
+cellStart  = user.T2;        % counts
+cellLength = user.BinLength; % counts
+factor     = 0;              % used for conversion
 
-% but this turns them into metres
-cellStart  = (cellStart  / 256) * (370.127 / freq) * cos(25 * pi / 180);
-cellLength = (cellLength / 256) * (42.226  / freq) * cos(25 * pi / 180);
+switch freq
+  case 190, factor = 0.2221;
+  case 470, factor = 0.0945;
+end
 
+cellLength = (cellLength / 256) * factor * cos(25 * pi / 180);
+cellStart  =  cellStart         * 0.0229 * cos(25 * pi / 180) - cellLength;
+
+% generate depth values
 depth(:) = (cellStart):  ...
            (cellLength): ...
            (cellStart + (ncells-1) * cellLength);
 
+% retrieve sample data
 for k = 1:nsamples
   
   st = structures{k+3};
