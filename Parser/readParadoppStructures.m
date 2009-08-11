@@ -14,6 +14,19 @@ function structures = readParadoppStructures( filename )
 %   - Vectrino
 %   - AWAC
 %
+% Nortek binary files consist of a number of 'sections', the format of
+% which are specified in the System Integrator Guide. This function reads
+% in all of the sections contained in the file, and returns them within a
+% cell array. 
+%
+% AWAC wave data is handled a little differently, due to the large volume of 
+% data that must be read in. In AWAC data files, the wave data sections
+% are always preceded by a wave data header section. This function reads
+% in the header section and then the wave data sections, and stores the
+% wave data sections within the returned header struct, as numerical arrays. 
+% This is required in order to avoid the overhead of creating a matlab struct 
+% for every wave data section.
+%
 % Inputs:
 %   filename   - A string containing the name of a raw binary file to
 %                parse.
@@ -53,7 +66,7 @@ function structures = readParadoppStructures( filename )
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
-%  error(nargchk(1,1,nargin));
+  error(nargchk(1,1,nargin));
 
   if ~ischar(filename),         error('filename must be a string');  end
   if ~exist( filename, 'file'), error([filename ' does not exist']); end
@@ -96,14 +109,14 @@ end
 % specified in the System integrator Manual.
 %
 
-function [sect len] = readSection(data, idx)
+function [sect off] = readSection(data, idx)
 %READSECTION Reads the next data structure in the data array, starting at
 % the given index.
 %
 
   % check sync byte
   if data(idx) ~= 165
-    error(['bad sync (idx ' num2str(dIdx) ', val ' num2str(data(dIdx)) ')']); 
+    error(['bad sync (idx ' num2str(idx) ', val ' num2str(data(idx)) ')']); 
   end
   
   sectType = data(idx+1);
@@ -111,25 +124,25 @@ function [sect len] = readSection(data, idx)
   
   % read the section in
   switch sectType
-    case 0,   [sect len] = readUserConfiguration       (data, idx);
-    case 1,   [sect len] = readAquadoppVelocity        (data, idx);
-    case 2,   [sect len] = readVectrinoDistance        (data, idx);
-    case 4,   [sect len] = readHeadConfiguration       (data, idx);
-    case 5,   [sect len] = readHardwareConfiguration   (data, idx);
-    case 6,   [sect len] = readAquadoppDiagHeader      (data, idx);
-    case 16,  [sect len] = readVectorVelocity          (data, idx);
-    case 17,  [sect len] = readVectorSystem            (data, idx);
-    case 18,  [sect len] = readVectorVelocityHeader    (data, idx);
-    case 32,  [sect len] = readAwacVelocityProfile     (data, idx);
-    case 33,  [sect len] = readAquadoppProfilerVelocity(data, idx);
-    case 36,  [sect len] = readContinental             (data, idx);
-    case 43,  [sect len] = readHRAquadoppProfile       (data, idx);
-    case 48,  [sect len] = readAwacWave                (data, idx);
-    case 49,  [sect len] = readAwacWaveHeader          (data, idx);
-    case 66,  [sect len] = readAwacStage               (data, idx);
-    case 80,  [sect len] = readVectrinoVelocityHeader  (data, idx);
-    case 81,  [sect len] = readVectrinoVelocity        (data, idx);
-    case 128, [sect len] = readAquadoppDiagnostics     (data, idx);
+    case 0,   [sect len off] = readUserConfiguration       (data, idx);
+    case 1,   [sect len off] = readAquadoppVelocity        (data, idx);
+    case 2,   [sect len off] = readVectrinoDistance        (data, idx);
+    case 4,   [sect len off] = readHeadConfiguration       (data, idx);
+    case 5,   [sect len off] = readHardwareConfiguration   (data, idx);
+    case 6,   [sect len off] = readAquadoppDiagHeader      (data, idx);
+    case 16,  [sect len off] = readVectorVelocity          (data, idx);
+    case 17,  [sect len off] = readVectorSystem            (data, idx);
+    case 18,  [sect len off] = readVectorVelocityHeader    (data, idx);
+    case 32,  [sect len off] = readAwacVelocityProfile     (data, idx);
+    case 33,  [sect len off] = readAquadoppProfilerVelocity(data, idx);
+    case 36,  [sect len off] = readContinental             (data, idx);
+    case 43,  [sect len off] = readHRAquadoppProfile       (data, idx);
+    case 48,  [sect len off] = readAwacWave                (data, idx);
+    case 49,  [sect len off] = readAwacWaveHeader          (data, idx);
+    case 66,  [sect len off] = readAwacStage               (data, idx);
+    case 80,  [sect len off] = readVectrinoVelocityHeader  (data, idx);
+    case 81,  [sect len off] = readVectrinoVelocity        (data, idx);
+    case 128, [sect len off] = readAquadoppDiagnostics     (data, idx);
   end
   
   % generate and compare checksum - all section 
@@ -170,12 +183,13 @@ function cd = readClockData(data, idx)
   cd = datenum(year, month, day, hour, minute, second);
 end
 
-function [sect len] = readHardwareConfiguration(data, idx)
+function [sect len off] = readHardwareConfiguration(data, idx)
 %READHARDWARECONFIGURATION Reads a hardware configuration section (pg 29-30
 % of system integrator manual).
 %
   sect = struct;
   len = 48;
+  off = len;
 
   sect.Sync       = data(idx);
   sect.Id         = data(idx+1);
@@ -196,12 +210,13 @@ function [sect len] = readHardwareConfiguration(data, idx)
 
 end
 
-function [sect len] = readHeadConfiguration(data, idx)
+function [sect len off] = readHeadConfiguration(data, idx)
 %READHEADCONFIGURATION Reads a head configuration section (pg 30 of system 
 % integrator manual).
 %
   sect = struct;
   len = 224;
+  off = len;
 
   sect.Sync      = data(idx);
   sect.Id        = data(idx+1);
@@ -220,12 +235,13 @@ function [sect len] = readHeadConfiguration(data, idx)
 
 end
 
-function [sect len] = readUserConfiguration(data, idx)
+function [sect len off] = readUserConfiguration(data, idx)
 %readUserConfiguration Reads a user configuration section (pg 30-32 of
 % system integrator manual).
 %
   sect = struct;
   len = 512;
+  off = len;
   
   sect.Sync           = data(idx);
   sect.Id             = data(idx+1);
@@ -288,12 +304,13 @@ function [sect len] = readUserConfiguration(data, idx)
 
 end
 
-function [sect len] = readAquadoppVelocity(data, idx)
+function [sect len off] = readAquadoppVelocity(data, idx)
 %READAQUADOPPVELOCITY Reads an Aquadopp velocity data section (pg 33 of 
 % system integrator manual).
 %
   sect = struct;
   len = 42;
+  off = len;
   
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
@@ -323,12 +340,13 @@ function [sect len] = readAquadoppVelocity(data, idx)
 
 end
 
-function [sect len] = readAquadoppDiagHeader(data, idx)
+function [sect len off] = readAquadoppDiagHeader(data, idx)
 %READAQUADOPPDIAGHEADER Reads an Aquadopp diagnostics header section (pg 34
 % of system integrator manual).
 %
   sect = struct;
   len = 36;
+  off = len;
   
   sect.Sync      = data(idx);
   sect.Id        = data(idx+1);
@@ -353,20 +371,21 @@ function [sect len] = readAquadoppDiagHeader(data, idx)
   sect.Checksum  = bytecast(data(idx+34:idx+35), 'L', 'uint16');
 end
 
-function [sect len] = readAquadoppDiagnostics(data, idx)
+function [sect len off] = readAquadoppDiagnostics(data, idx)
 %READAQUADOPPDIAGNOSTICS Reads an Aquadopp diagnostics data section (pg 24
 % of system integrator manual).
 %
   % same structure as velocity section
-  [sect len] = readAquadoppVelocity(data, idx);
+  [sect len off] = readAquadoppVelocity(data, idx);
 end
 
-function [sect len] = readVectorVelocityHeader(data, idx)
+function [sect len off] = readVectorVelocityHeader(data, idx)
 %READVECTORVELOCITYHEADER Reads a Vector velocity data header section (pg 
 % 35 of system integrator manual).
 %
   sect = struct;
   len = 42;
+  off = len;
   
   sect.Sync         = data(idx);
   sect.Id           = data(idx+1);
@@ -385,12 +404,13 @@ function [sect len] = readVectorVelocityHeader(data, idx)
   sect.Checksum     = bytecast(data(idx+40:idx+41), 'L', 'uint16');
 end
 
-function [sect len] = readVectorVelocity(data, idx)
+function [sect len off] = readVectorVelocity(data, idx)
 %READVECTORVELOCITY Reads a vector velocity data section (pg 35 of system
 % integrator manual).
 %
   sect = struct;
   len = 24;
+  off = len;
   
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
@@ -413,12 +433,13 @@ function [sect len] = readVectorVelocity(data, idx)
   sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16');
 end
 
-function [sect len] = readVectorSystem(data, idx)
+function [sect len off] = readVectorSystem(data, idx)
 %READVECTORSYSTEM Reads a vector system data section (pg 36 of system
 % integrator manual).
 %
   sect = struct;
   len = 28;
+  off = len;
   
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
@@ -438,7 +459,7 @@ function [sect len] = readVectorSystem(data, idx)
   sect.Checksum    = block(2);
 end
 
-function [sect len] = readAquadoppProfilerVelocity(data, idx)
+function [sect len off] = readAquadoppProfilerVelocity(data, idx)
 %READAQUADOPPPROFILERVELOCITY Reads an Aquadopp Profiler velocity data
 % section (pg 37 of system integrator manual).
 %
@@ -449,6 +470,7 @@ function [sect len] = readAquadoppProfilerVelocity(data, idx)
   sect.Id          = data(idx+1);
   sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
   len              = sect.Size * 2;
+  off              = len;
   sect.Time        = readClockData(data, idx+4);
   block            = bytecast(data(idx+10:idx+23), 'L', 'uint16');
   sect.Error       = block(1);
@@ -491,7 +513,7 @@ function [sect len] = readAquadoppProfilerVelocity(data, idx)
 
 end
 
-function [sect len] = readHRAquadoppProfile(data, idx)
+function [sect len off] = readHRAquadoppProfile(data, idx)
 %READHRAQUADOPPPROFILERVELOCITY Reads a HR Aquadopp Profile data section
 % (pg 38 of system integrator manual).
 %
@@ -502,6 +524,7 @@ function [sect len] = readHRAquadoppProfile(data, idx)
   sect.Id           = data(idx+1);
   sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16');
   len               = sect.Size * 2;
+  off               = len;
   sect.Time         = readClockData(data, idx+4);
   block             = bytecast(data(idx+10:idx+23), 'L', 'uint16');
   sect.Milliseconds = block(1);
@@ -583,7 +606,7 @@ function [sect len] = readHRAquadoppProfile(data, idx)
 
 end
 
-function [sect len] = readAwacVelocityProfile(data, idx)
+function [sect len off] = readAwacVelocityProfile(data, idx)
 %READAWACVELOCITYPROFILE Reads an AWAC Velocity Profile data section (pg 39
 % of the system integrator manual).
 %
@@ -594,6 +617,7 @@ function [sect len] = readAwacVelocityProfile(data, idx)
   sect.Id          = data(idx+1);
   sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
   len              = sect.Size * 2;
+  off              = len;
   sect.Time        = readClockData(data, idx+4);
   block            = bytecast(data(idx+10:idx+23), 'L', 'uint16');
   sect.Error       = block(1);
@@ -636,12 +660,15 @@ function [sect len] = readAwacVelocityProfile(data, idx)
 
 end
 
-function [sect len] = readAwacWaveHeader(data, idx)
+function [sect len off] = readAwacWaveHeader(data, idx)
 %READAWACWAVEHEADER Reads an Awac Wave Data Header section (pg 40 of system
-% integrator manual).
+% integrator manual). Also reads in the Awac Wave Data sections which
+% follow the header; this data is stored in the returned struct in
+% numerical arrays.
 %
   sect = struct;
   len = 60;
+  off = len;
 
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
@@ -670,9 +697,43 @@ function [sect len] = readAwacWaveHeader(data, idx)
   sect.ProgMagn4   = block(4);
   % bytes 44-57 are spare
   sect.Checksum    = bytecast(data(idx+58:idx+59), 'L', 'uint16');
+  
+  % read in the wave data sections that follow
+  sect.wave.Pressure = zeros(sect.NRecords, 1);
+  sect.wave.Distance = zeros(sect.NRecords, 1);
+  sect.wave.Analn    = zeros(sect.NRecords, 1);
+  sect.wave.Vel1     = zeros(sect.NRecords, 1);
+  sect.wave.Vel2     = zeros(sect.NRecords, 1);
+  sect.wave.Vel3     = zeros(sect.NRecords, 1);
+  sect.wave.Vel4     = zeros(sect.NRecords, 1);
+  sect.wave.Amp1     = zeros(sect.NRecords, 1);
+  sect.wave.Amp2     = zeros(sect.NRecords, 1);
+  sect.wave.Amp3     = zeros(sect.NRecords, 1);
+  sect.wave.Amp4     = zeros(sect.NRecords, 1);
+  
+  idx = idx + len;
+  
+  for k = 1:length(sect.NRecords)
+
+    [wSect wLen] = readSection(data, idx);
+    idx = idx + wLen;
+    off = off + wLen;
+    
+    sect.wave.Pressure(k) = wSect.Pressure;
+    sect.wave.Distance(k) = wSect.Distance;
+    sect.wave.Analn(k)    = wSect.Analn;
+    sect.wave.Vel1(k)     = wSect.Vel1;
+    sect.wave.Vel2(k)     = wSect.Vel2;
+    sect.wave.Vel3(k)     = wSect.Vel3;
+    sect.wave.Vel4(k)     = wSect.Vel4;
+    sect.wave.Amp1(k)     = wSect.Amp1;
+    sect.wave.Amp2(k)     = wSect.Amp2;
+    sect.wave.Amp3(k)     = wSect.Amp3;
+    sect.wave.Amp4(k)     = wSect.Amp4;
+  end
 end
 
-function [sect len] = readAwacStage(data, idx)
+function [sect len off] = readAwacStage(data, idx)
 %READAWACSTAGE Reads an Awac Stage Data section (pg 41 of system
 % integrator manual).
 %
@@ -684,6 +745,7 @@ function [sect len] = readAwacStage(data, idx)
   block           = bytecast(data(idx+2:idx+21), 'L', 'uint16');
   sect.Size       = block(1);
   len             = sect.Size * 2;
+  off             = len;
   sect.Blanking   = block(2);
   sect.Pitch      = block(3);
   sect.Roll       = block(4);
@@ -703,12 +765,13 @@ function [sect len] = readAwacStage(data, idx)
   
 end
 
-function [sect len] = readAwacWave(data, idx)
+function [sect len off] = readAwacWave(data, idx)
 %READAWACWAVE Reads an Awac Wave section (pg 41 of system integrator
 % manual).
 %
   sect = struct;
   len = 24;
+  off = len;
 
   sect.Sync     = data(idx);
   sect.Id       = data(idx+1);
@@ -729,21 +792,22 @@ function [sect len] = readAwacWave(data, idx)
 
 end
 
-function [sect len] = readContinental(data, idx)
+function [sect len off] = readContinental(data, idx)
 %READCONTINENTAL Reads a Continental Data section (pg 42 of the System
 % Integrator Manual).
 %
   % structure is same as awac velocity profile data
-  [sect len] = readAwacVelocityProfile(data, idx);
+  [sect len off] = readAwacVelocityProfile(data, idx);
 end
 
 
-function [sect len] = readVectrinoVelocityHeader(data, idx)
+function [sect len off] = readVectrinoVelocityHeader(data, idx)
 %READVECTRINOVELOCITYHEADER Reads a Vectrino velocity data header section
 % (pg 42 of system integrator manual).
 %
   sect = struct;
   len = 42;
+  off = len;
 
   sect.Sync         = data(idx);
   sect.Id           = data(idx+1);
@@ -783,7 +847,7 @@ function [sect len] = readVectrinoVelocityHeader(data, idx)
   sect.Checksum     = bytecast(data(idx+40:idx+41), 'L', 'uint16');
 end
 
-function [sect len] = readVectrinoVelocity(data, idx)
+function [sect len off] = readVectrinoVelocity(data, idx)
 %READVECTRINOVELOCITY Reads a Vectrino Velocity data section (pg 43 of
 % system integrator manual).
 %
@@ -802,6 +866,7 @@ function [sect len] = readVectrinoVelocity(data, idx)
   
   len = 6 + 16*nCells;
   sect.Size = len;
+  off = len;
   
   velOff  = idx + 4;
   ampOff  = velOff  + nCells*nBeams*2;
@@ -839,12 +904,13 @@ function [sect len] = readVectrinoVelocity(data, idx)
 
 end
 
-function [sect len] = readVectrinoDistance(data, idx)
+function [sect len off] = readVectrinoDistance(data, idx)
 %READVECTRINODISTANCE Reads a Vectrino distance data section (pg 43 of
 % system integrator manual).
 %
   sect = struct;
   len = 16;
+  off = len;
   
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
