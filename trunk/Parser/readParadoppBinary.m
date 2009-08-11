@@ -1,6 +1,6 @@
 function structures = readParadoppBinary( filename )
-%READPARADOPPBINARY Reads a binary file retrieved from a 'Paradopp'
-% instrument. 
+%READPARADOPPBINARY Reads a binary file retrieved from a 'Paradopp' 
+% instrument. Does not support AWAC wave data.
 %
 % This function is able to parse raw binary data from any Nortek instrument 
 % which is defined in the Firmware Data Structures section of the Nortek 
@@ -19,13 +19,8 @@ function structures = readParadoppBinary( filename )
 % in all of the sections contained in the file, and returns them within a
 % cell array. 
 %
-% AWAC wave data is handled a little differently, due to the large volume of 
-% data that must be read in. In AWAC data files, the wave data sections
-% are always preceded by a wave data header section. This function reads
-% in the header section and then the wave data sections, and stores the
-% wave data sections within the returned header struct, as numerical arrays. 
-% This is required in order to avoid the overhead of creating a matlab struct 
-% for every wave data section.
+% AWAC wave data is ignored by this function; see the readAWACWaveAscii 
+% function.
 %
 % Inputs:
 %   filename   - A string containing the name of a raw binary file to
@@ -99,7 +94,7 @@ function structures = readParadoppBinary( filename )
     
     [sect len] = readSection(data, dIdx);
     
-    structures{end+1} = sect;
+    if ~isempty(sect), structures{end+1} = sect; end
     dIdx = dIdx + len;
   end
 end
@@ -137,13 +132,13 @@ function [sect off] = readSection(data, idx)
     case 33,  [sect len off] = readAquadoppProfilerVelocity(data, idx);
     case 36,  [sect len off] = readContinental             (data, idx);
     case 43,  [sect len off] = readHRAquadoppProfile       (data, idx);
-    case 48,  [sect len off] = readAwacWave                (data, idx);
     case 49,  [sect len off] = readAwacWaveHeader          (data, idx);
-    case 66,  [sect len off] = readAwacStage               (data, idx);
     case 80,  [sect len off] = readVectrinoVelocityHeader  (data, idx);
     case 81,  [sect len off] = readVectrinoVelocity        (data, idx);
     case 128, [sect len off] = readAquadoppDiagnostics     (data, idx);
   end
+  
+  if isempty(sect), return; end
   
   % generate and compare checksum - all section 
   % structs have a Checksum field
@@ -661,135 +656,17 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
 end
 
 function [sect len off] = readAwacWaveHeader(data, idx)
-%READAWACWAVEHEADER Reads an Awac Wave Data Header section (pg 40 of system
-% integrator manual). Also reads in the Awac Wave Data sections which
-% follow the header; this data is stored in the returned struct in
-% numerical arrays.
+%READAWACWAVEHEADER Skips over an AWAC Wave header section, and all of the
+% wave data sections that follow.
 %
-  sect = struct;
-  len = 60;
-  off = len;
+  sect = [];
+  len  = 60;
+  off  = len;
 
-  sect.Sync        = data(idx);
-  sect.Id          = data(idx+1);
-  sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
-  sect.Time        = readClockData(data, idx+4);
-  block            = bytecast(data(idx+10:idx+31), 'L', 'uint16');
-  sect.NRecords    = block(1);
-  sect.Blanking    = block(2);
-  sect.Battery     = block(3);
-  sect.SoundSpeed  = block(4);
-  sect.Heading     = block(5);
-  sect.Pitch       = block(6);
-  sect.Roll        = block(7);
-  sect.MinPress    = block(8);
-  sect.hMaxPress   = block(9);
-  sect.Temperature = block(10);
-  sect.CellSize    = block(11);
-  sect.Noise1      = data(idx+32);
-  sect.Noise2      = data(idx+33);
-  sect.Noise3      = data(idx+34);
-  sect.Noise4      = data(idx+35);
-  block            = bytecast(data(idx+36:idx+43), 'L', 'uint16');
-  sect.ProgMagn1   = block(1);
-  sect.ProgMagn2   = block(2);
-  sect.ProgMagn3   = block(3);
-  sect.ProgMagn4   = block(4);
-  % bytes 44-57 are spare
-  sect.Checksum    = bytecast(data(idx+58:idx+59), 'L', 'uint16');
-  
-  % read in the wave data sections that follow
-  sect.wave.Pressure = zeros(sect.NRecords, 1);
-  sect.wave.Distance = zeros(sect.NRecords, 1);
-  sect.wave.Analn    = zeros(sect.NRecords, 1);
-  sect.wave.Vel1     = zeros(sect.NRecords, 1);
-  sect.wave.Vel2     = zeros(sect.NRecords, 1);
-  sect.wave.Vel3     = zeros(sect.NRecords, 1);
-  sect.wave.Vel4     = zeros(sect.NRecords, 1);
-  sect.wave.Amp1     = zeros(sect.NRecords, 1);
-  sect.wave.Amp2     = zeros(sect.NRecords, 1);
-  sect.wave.Amp3     = zeros(sect.NRecords, 1);
-  sect.wave.Amp4     = zeros(sect.NRecords, 1);
+  NRecords = bytecast(data(idx+10:idx+11), 'L', 'uint16');
   
   idx = idx + len;
-  
-  for k = 1:length(sect.NRecords)
-
-    [wSect wLen] = readSection(data, idx);
-    idx = idx + wLen;
-    off = off + wLen;
-    
-    sect.wave.Pressure(k) = wSect.Pressure;
-    sect.wave.Distance(k) = wSect.Distance;
-    sect.wave.Analn(k)    = wSect.Analn;
-    sect.wave.Vel1(k)     = wSect.Vel1;
-    sect.wave.Vel2(k)     = wSect.Vel2;
-    sect.wave.Vel3(k)     = wSect.Vel3;
-    sect.wave.Vel4(k)     = wSect.Vel4;
-    sect.wave.Amp1(k)     = wSect.Amp1;
-    sect.wave.Amp2(k)     = wSect.Amp2;
-    sect.wave.Amp3(k)     = wSect.Amp3;
-    sect.wave.Amp4(k)     = wSect.Amp4;
-  end
-end
-
-function [sect len off] = readAwacStage(data, idx)
-%READAWACSTAGE Reads an Awac Stage Data section (pg 41 of system
-% integrator manual).
-%
-  sect = struct;
-  len = 0;
-
-  sect.Sync       = data(idx);
-  sect.Id         = data(idx+1);
-  block           = bytecast(data(idx+2:idx+21), 'L', 'uint16');
-  sect.Size       = block(1);
-  len             = sect.Size * 2;
-  off             = len;
-  sect.Blanking   = block(2);
-  sect.Pitch      = block(3);
-  sect.Roll       = block(4);
-  sect.Pressure   = block(5);
-  sect.Stage      = block(6);
-  sect.Quality    = block(7);
-  sect.SoundSpeed = block(8);
-  sect.StageP     = block(9);
-  sect.QualityP   = block(10);
-  % bytes 22-31 are spare
-  
-  % figure out number of cells from structure size
-  nCells = (sect.Size * 2) - 34;
-  
-  sect.Amp        = bytecast(data(idx+32:idx+32+nCells),   'L', 'uint8');
-  sect.Checksum   = bytecast(data(idx+32:idx+32+nCells+1), 'L', 'uint16');
-  
-end
-
-function [sect len off] = readAwacWave(data, idx)
-%READAWACWAVE Reads an Awac Wave section (pg 41 of system integrator
-% manual).
-%
-  sect = struct;
-  len = 24;
-  off = len;
-
-  sect.Sync     = data(idx);
-  sect.Id       = data(idx+1);
-  block         = bytecast(data(idx+2:idx+17), 'L', 'uint16');
-  sect.Size     = block(1);
-  sect.Pressure = block(2);
-  sect.Distance = block(3);
-  sect.Analn    = block(4);
-  sect.Vel1     = block(5);
-  sect.Vel2     = block(6);
-  sect.Vel3     = block(7);
-  sect.Vel4     = block(8);
-  sect.Amp1     = data(idx+18);
-  sect.Amp2     = data(idx+19);
-  sect.Amp3     = data(idx+20);
-  sect.Amp4     = data(idx+21);
-  sect.Checksum = bytecast(data(idx+22:idx+23), 'L', 'uint16');
-
+  off = off + sect.NRecords*24;
 end
 
 function [sect len off] = readContinental(data, idx)
