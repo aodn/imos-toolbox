@@ -1,5 +1,5 @@
-function structures = readParadoppStructures( filename )
-%READPARADOPPSTRUCTURES Reads a binary file retrieved from a 'Paradopp'
+function structures = readParadoppBinary( filename )
+%READPARADOPPBINARY Reads a binary file retrieved from a 'Paradopp'
 % instrument. 
 %
 % This function is able to parse raw binary data from any Nortek instrument 
