@@ -666,7 +666,7 @@ function [sect len off] = readAwacWaveHeader(data, idx)
   NRecords = bytecast(data(idx+10:idx+11), 'L', 'uint16');
   
   idx = idx + len;
-  off = off + sect.NRecords*24;
+  off = off + NRecords*24;
 end
 
 function [sect len off] = readContinental(data, idx)
