@@ -128,3 +128,13 @@ The toolbox reads in all of the ensembles and extracts the following:
  * Acoustic backscatter intensity (at each time and depth, a separate variable for each beam)
 
 The conversion from the ADCP velocity values currently assumes that the ADCP is using earth coordinates (see section 13.4 'Velocity Data Format' of the Workhorse H-ADCP Operation Manual).
+
+== Nortek ADCP ==
+
+The toolbox is able to parse raw binary data from the following Nortek instruments. The binary format for these instruments is specified in the System Integrator Manual, available for download from the [http://www.nortek-as.com/en/library/rep-room/application-development/system-integrator-manual Nortek website]:
+
+ * Aquadopp Profiler (`.prf`)
+ * Continental (`.cpr`)
+ * AWAC (`.wpr`)
+
+For the Aquadopp Profiler and Continental, only the raw binary file is required. For reading wave data from an AWAC, you must use Nortek software to generate the processed wave data files (`.whd` and `.wap`), as the AWAC binary file only contains raw wave data.
