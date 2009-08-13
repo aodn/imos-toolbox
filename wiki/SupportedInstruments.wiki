@@ -155,6 +155,64 @@ For the Aquadopp Profiler, Continental and AWAC, the following data is extracted
  * Roll (at each time)
  * Heading (at each time)
 
-For the AWAC, if wave data is present, the following data is extracted:
+For the AWAC, if wave data is present, the following data is extracted. The AWAC wave data is loaded separately from the profile data, as it is on a different time scale:
 
- * ... still working
+ * Time
+ * Battery voltage
+ * Heaeding
+ * Pitch
+ * Roll
+ * Temperature
+ * Pressure
+ * Significant wave height
+ * Zero upcrossing period
+
+=== `.whd` file format ===
+
+The toolbox currently assumes that the wave data `.whd` file columns adhere to the following format:
+
+||*Column*||*Field*                ||*Type*   ||
+||1       ||Month                  ||1-12     ||
+||2       ||Day                    ||1-31     ||
+||3       ||Year                   ||         ||
+||4       ||Hour                   ||0-23     ||
+||5       ||Minute                 ||0-59     ||
+||6       ||Second                 ||0-59     ||
+||7       ||Burst counter          ||         ||
+||8       ||No of wave data records||         ||
+||9       ||Cell position          ||m        ||
+||10      ||Battery voltage        ||V        ||
+||11      ||Soundspeed             ||m/s      ||
+||12      ||Heading                ||degrees  ||
+||13      ||Pitch                  ||degrees  ||
+||14      ||Roll                   ||degrees  ||
+||15      ||Minimum pressure       ||dbar     ||
+||16      ||Maximum pressure       ||dbar     ||
+||17      ||Temperature            ||degrees C||
+||18      ||CellSize               ||m        ||
+||19      ||Noise amplitude beam 1 ||counts   ||
+||20      ||Noise amplitude beam 2 ||counts   ||
+||21      ||Noise amplitude beam 3 ||counts   ||
+||22      ||Noise amplitude beam 4 ||counts   ||
+||23      ||AST window start       ||m        ||
+
+=== `.wap` file format ===
+
+The toolbox currently assumes that the wave data `.wap` file columns adhere to the following format:
+
+||*Column*||*Field*                        ||*Type*||
+||1       ||Month                          ||1-12  ||
+||2       ||Day                            ||1-31  ||
+||3       ||Year                           ||      ||
+||4       ||Hour                           ||0-23  ||
+||5       ||Minute                         ||0-59  ||
+||6       ||Second                         ||0-59  ||
+||7       ||Significant height (Hs)        ||m     ||
+||8       ||Mean zerocrossing period (Tm02)||s     ||
+||9       ||Peak period (Tp)               ||s     ||
+||10      ||Peak direction (DirTp)         ||deg   ||
+||11      ||Directional spread (Spr1)      ||deg   ||
+||12      ||Mean direction (Mdir)          ||deg   ||
+||13      ||Mean Pressure                  ||m     ||
+||14      ||Unidirectivity index           ||      ||
+||15      ||Error Code                     ||      ||
