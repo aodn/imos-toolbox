@@ -18,8 +18,8 @@
   * GraphSpecification
  * Help
   * ToolboxInstallation
-  * SupportedInstruments
   * ToolboxConfiguration
+  * SupportedInstruments
   * [NetCDFTemplates]
   * UsingTheToolboxOverview
   * [tortoiseSVN]
