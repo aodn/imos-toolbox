@@ -69,9 +69,22 @@ for k = 1:length(parsers)
   tic;
   sam = parserFunc({filename});
   time = toc;
-  disp([parser 'Parse passed with ' filename ...
-       ' (num samples ' int2str(length(sam.dimensions{1}.data)) ...
-        ', time ' num2str(time) ' secs)']);
+  if ~isstruct(sam) && ~iscell(sam)
+    type = whos('sam');
+    error(['invalid return value from parser (class: ' type.class ')']); 
+  end
+  
+  disp([parser 'Parse passed']);
+  disp(['  ' filename]);
+  disp(['  (time ' num2str(time) ' secs)']);
+  
+  if isstruct(sam)
+    disp(['  (num samples ' int2str(length(sam.dimensions{1}.data)) ')']);
+  else
+    for m = 1:length(sam)
+      disp(['  (num samples ' int2str(length(sam{m}.dimensions{1}.data)) ')']);
+    end
+  end
   
 end
 
@@ -101,37 +114,4 @@ for set = datasets'
         
     break;
   end
-end
-
-function parsers = listParsers
-%LISTPARSERS - List all available instrument parsers.
-%
-% Outputs:
-%   parsers - A String array of all the supported instruments.
-%
-parsers = {};
-
-% get the location of the Parser directory
-path = [pwd filesep 'Parser'];
-
-% get the contents of the Parser directory
-files = dir(path);
-
-%iterate through each element in the parser directory
-for file = files'
-
-  %skip subdirectories
-  if file.isdir == 1
-    continue;
-  end
-
-  %if name is of the pattern "*Parse.m", add 
-  %it to the list of available parsers
-  token = regexp(file.name, '^(.+)Parse\.m$', 'tokens');
-
-  %add the parser name to the list
-  if ~isempty(token)
-    parsers{end + 1} = token{1}{1};
-  end
-
 end

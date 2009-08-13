@@ -150,14 +150,29 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
 
       % import data
       sam = parse(deps(k), files{k}, parsers, noParserPrompt);
-      sam = finaliseData(sam, fieldTrip, deps(k), dateFmt, rawFlag);
       
-      % turn raw data files a into semicolon separated string
-      sam.meta.raw_data_file = ...
-        cellfun(@(x)([x ';']), files{k}, 'UniformOutput', false);
-      sam.meta.raw_data_file = [sam.meta.raw_data_file{:}];
+      % make sure the return value is valid
+      if ~isstruct(sam) && ~iscell(sam)
+        error('invalid parser return type');
+      end
       
-      sample_data{end+1} = sam;
+      % if return value is a single struct, turn it into a cell array
+      if ~iscell(sam)
+        temp{1} = sam;
+        sam     = temp;
+      end
+      
+      for m = 1:length(sam)
+      
+        sam{m} = finaliseData(sam{m}, fieldTrip, deps(k), dateFmt, rawFlag);
+
+        % turn raw data files a into semicolon separated string
+        sam{m}.meta.raw_data_file = ...
+          cellfun(@(x)([x ';']), files{k}, 'UniformOutput', false);
+        sam{m}.meta.raw_data_file = [sam{m}.meta.raw_data_file{:}];
+
+        sample_data{end+1} = sam{m};
+      end
     
     % failure is not fatal
     catch e

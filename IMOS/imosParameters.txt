@@ -1,4 +1,4 @@
-%
+e%
 % A list of all IMOS compliant parameter names, standard names, units of 
 % measurement, fill values, and valid min/max values.This list has been copied 
 % verbatim from the IMOS NetCDF User's manual version 1.2, and the IMOS NetCDF 
@@ -74,6 +74,8 @@ VAVT,      1, sea_surface_wave_zero_upcrossing_period,            s,            
 VCUR,      1, northward_sea_water_velocity,                       m s-1,                                                             V, 999999.0, -5.0,    5.0
 VDEN,      1, sea_surface_wave_variance_spectral_density,         m2 s,                                                              W, 999999.0, 0.0,     0.0
 VDIR,      1, sea_surface_wave_from_direction,                    Degree clockwise from true North,                                  W, 999999.0, 0.0,     0.0
+VOLT,      0, voltage,                                            V,                                                                 E, 999999.0, -100.0,  100.0
 VWND,      1, northward_wind,                                     m s-1,                                                             M, 999999.0, 0.0,     0.0
 WDIR,      1, wind_to_direction,                                  Degree clockwise from true North,                                  M, 999999.0, 0.0,     0.0
 WSPD,      1, wind_speed,                                         m s-1,                                                             M, 999999.0, 0.0,     0.0
+ZCUR,      1, upward_sea_water_velocity,                          m s-1,                                                             V, 999999.0, -5.0,    5.0

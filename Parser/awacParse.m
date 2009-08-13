@@ -1,14 +1,26 @@
- function sample_data = awacParse( filename )
-%AWACPARSE Parses ADCP data from a raw Nortek AWAC binary (.wpr) file. 
+function sample_data = awacParse( filename )
+%AWACPARSE Parses ADCP data from a raw Nortek AWAC binary (.wpr) file. If
+% processed wave data files (.whd and .wap) are present, these are also 
+% parsed.
 %
-% Parses a raw binary file from a Nortek AWAC ADCP.
+% Parses a raw binary file from a Nortek AWAC ADCP. If processed wave data
+% files (.whd and .wap) are present, these are also parsed, to provide wave
+% data. Wave data is not read from the raw binary files, as the raw binary
+% only contains raw wave data. The Nortek software performs a significant
+% amount of processing on this raw wave data to provide standared wave
+% metrics such as significant wave height, period, etc.
+%
+% If wave data is present, it is returned as a separate sample_data struct, 
+% due to the fact that the timestamps for wave data are significantly 
+% different from the profile and sensor data.
 %
 % Inputs:
 %   filename    - Cell array containing the name of the raw AWAC file 
 %                 to parse.
 % 
 % Outputs:
-%   sample_data - Struct containing sample data.
+%   sample_data - Struct containing sample data; If wave data is present, 
+%                 this will be a cell array of two structs.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -182,3 +194,54 @@ sample_data.variables {6}.data = battery;
 sample_data.variables {7}.data = pitch;
 sample_data.variables {8}.data = roll;
 sample_data.variables {9}.data = heading;
+
+%
+% if wave data files are present, read them in
+%
+waveData = [];
+try waveData = readAWACWaveAscii(filename);
+catch e
+end
+
+% no wave data, no problem
+if isempty(waveData), return; end
+
+% turn sample data into a cell array
+temp = {};
+temp{1} = sample_data;
+sample_data = temp;
+
+% copy wave data into a sample_data struct; start with a copy of the 
+% first sample_data struct, as all the metadata is the same
+sample_data{2} = sample_data{1};
+sample_data{2}.dimensions = {};
+sample_data{2}.variables  = {};
+
+sample_data{2}.dimensions{1}.name = 'TIME';
+sample_data{2}.variables {1}.name = 'VOLT';
+sample_data{2}.variables {2}.name = 'HEADING';
+sample_data{2}.variables {3}.name = 'PITCH';
+sample_data{2}.variables {4}.name = 'ROLL';
+sample_data{2}.variables {5}.name = 'PRES';
+sample_data{2}.variables {6}.name = 'TEMP';
+sample_data{2}.variables {7}.name = 'VAVH';
+sample_data{2}.variables {8}.name = 'VAVT';
+
+sample_data{2}.variables{1}.dimensions = [1];
+sample_data{2}.variables{2}.dimensions = [1];
+sample_data{2}.variables{3}.dimensions = [1];
+sample_data{2}.variables{4}.dimensions = [1];
+sample_data{2}.variables{5}.dimensions = [1];
+sample_data{2}.variables{6}.dimensions = [1];
+sample_data{2}.variables{7}.dimensions = [1];
+sample_data{2}.variables{8}.dimensions = [1];
+
+sample_data{2}.dimensions{1}.data = waveData.Time;
+sample_data{2}.variables {1}.data = waveData.Battery;
+sample_data{2}.variables {2}.data = waveData.Heading;
+sample_data{2}.variables {3}.data = waveData.Pitch;
+sample_data{2}.variables {4}.data = waveData.Roll;
+sample_data{2}.variables {5}.data = waveData.MeanPressure;
+sample_data{2}.variables {6}.data = waveData.Temperature;
+sample_data{2}.variables {7}.data = waveData.SignificantHeight;
+sample_data{2}.variables {8}.data = waveData.MeanZeroCrossingPeriod;
