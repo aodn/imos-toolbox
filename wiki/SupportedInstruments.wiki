@@ -103,7 +103,7 @@ If the logger was configured to use burst mode, the bursts are averaged.
 
 The toolbox is able to parse binary files retrieved from a Teledyne RD Workhorse ADCP instrument. The toolbox is only able to interpret raw files in the PD0 format (as it stands at December 2008). See the Workhorse H-ADCP Operation manual (available from the [http://www.rdinstruments.com/ Teledyne website]) for a description of the output format. As the toolbox works from raw binary files, pre-processing with RDI software is not required.
 
-Unfortunately, reading in these binary files is quite slow (about 30 seconds on test data of ~8000 ensembles/8MB). Re-implementing in C would provide much better performance.
+Unfortunately, reading in these binary files using Matlab is quite slow (about 30 seconds on test data of ~8000 ensembles/8MB). Re-implementing in C would provide much better performance.
 
 A raw Workhorse data file consists of a set of 'ensembles'. Each ensemble contains data for one sample period. An ensemble is made up of a number of sections, the last five of which may or may not be present:
 
