@@ -1,4 +1,5 @@
 #summary Lists the instruments that are currently supported.
+#labels Support,Featured
 
 <wiki:toc/>
 
@@ -96,3 +97,34 @@ DATA,23:00:02 24/06/2008,29411,16.312112,26346,1.025938,
 }}}
 
 If the logger was configured to use burst mode, the bursts are averaged.
+
+
+== Teledyne/RDI Workhorse ADCP ==
+
+The toolbox is able to parse binary files retrieved from a Teledyne RD Workhorse ADCP instrument. The toolbox is only able to interpret raw files in the PD0 format (as it stands at December 2008). See the Workhorse H-ADCP Operation manual (available from the [http://www.rdinstruments.com/ Teledyne website]) for a description of the output format. As the toolbox works from raw binary files, pre-processing with RDI software is not required.
+
+Unfortunately, reading in these binary files is quite slow (about 30 seconds on test data of ~8000 ensembles/8MB). Re-implementing in C would provide much better performance.
+
+A raw Workhorse data file consists of a set of 'ensembles'. Each ensemble contains data for one sample period. An ensemble is made up of a number of sections, the last five of which may or may not be present:
+
+ * *Header*: Ensemble information (size/contents). Always present
+ * *Fixed Leader Data*: ADCP configuration, serial number etc. Always present
+ * *Variable Leader Data*: Time, temperature, salinity etc. Always present.
+ * *Velocity*: Current velocities for each depth (a.k.a 'bins' or 'cells').
+ * *Correlation Magnitude*: 'Magnitude of the normalized echo autocorrelation at the lag used for estimating the Doppler phase change'. 
+ * *Echo Intensity*: Echo intensity data. 
+ * *Percent Good*: Percentage of good data for each depth cell.
+ * *Bottom Track Data*: Bottom track data. 
+
+The toolbox reads in all of the ensembles and extracts the following:
+ * Time
+ * Temperature (at each time)
+ * Pressure (at each time, if present)
+ * Salinity (at each time, if present)
+ * Northward velocity (at each time and depth)
+ * Eastward velocity (at each time and depth)
+ * Water speed (at each time and depth, derived from northward/eastward velocities)
+ * Water direction (at each time and depth, derived from northward/eastward velocities)
+ * Acoustic backscatter intensity (at each time and depth, a separate variable for each beam)
+
+The conversion from the ADCP velocity values currently assumes that the ADCP is using earth coordinates (see section 13.4 'Velocity Data Format' of the Workhorse H-ADCP Operation Manual).
