@@ -1,8 +1,67 @@
 #summary Lists the instruments that are currently supported.
 
+<wiki:toc/>
+
 = Supported Instruments =
 
-This page lists the instruments which are supported by the toolbox, and the data formats for each instruments.
+This page lists the instruments which are supported by the toolbox, and the data formats required for each instrument.
 
+== Seabird SBE37/SBE39 ==
 
-... will do shortly
+The toolbox can read in data that has been downloaded from an SBE37 'Microcat' CTP sensor or an SBE39 temperature/pressure sensor
+
+The following variants of the SBE37 exist:
+ * SBE37-IM
+ * SBE37-IMP
+ * SBE37-SM  (RS232)
+ * SBE37-SM  (RS485)
+ * SBE37-SMP (RS232)
+ * SBE37-SMP (RS485)
+ * SBE37-SI  (RS232)
+ * SBE37-SI  (RS485)
+ * SBE37-SIP (RS232)
+ * SBE37-SIP (RS485)
+
+The following variants of the SBE39 exist:
+ * SBE39
+ * SBE39-IM
+
+The SBE output format is configurable, and there are slight differences in 
+output formats between variants. Additionally, instruments which run an
+older firmware version use different commands for configuring the output 
+format and downloading data. The toolbox will only parse sample data
+which is in the following format:
+
+{{{
+  temperature[, conductivity][, pressure][, salinity], date, time
+}}}
+where
+
+ * `temperaturee`: floating point, Degrees Celsius ITS-90
+ * `conductivity`: floating point, S/m (only on SBE37)
+ * `pressure`:     floating point, decibars, optional (present on instruments with optional pressure sensor)
+ * `salinity`: floating point, PSU, optional (may be present on SBE37 instruments with firmware >= 3.0)
+ * `date`: dd mmm yyyy (e.g. 01 Jan 2008)
+ * `time`: hh:mm:ss    (e.g. 15:45:03)
+
+All SBE37 variants can be configured to output this format. SBE39 variants provide data in this format only. On SBE37 instruments running firmware < 3.0, the sensor should be configured as follows:
+
+{{{
+  Format=1
+}}}
+
+For instruments running firmware >= 3.0:
+
+{{{
+OutputFormat=1
+OutputDepth=N   (if sensor supports this command)
+OutputSal=N     (if sensor supports this command - Y if you want salinity)
+OutputSV=N
+OutputDensity=N (if sensor supports this command)
+OutputTime=Y    (if sensor supports this command)
+}}}
+
+The input file must also contain a header section which contains sensor 
+metadata and calibration information (as obtained via the 'DS' and 'DC' 
+commands) - this is the output format provided by the Windows seaterm 
+program.
