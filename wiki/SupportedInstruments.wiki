@@ -171,7 +171,7 @@ For the AWAC, if wave data is present, the following data is extracted. The AWAC
 
 The toolbox currently assumes that the wave data `.whd` file columns adhere to the following format:
 
-||*Column*||*Field*                ||*Type*   ||
+||*Column*||*Field*                ||*Unit*   ||
 ||1       ||Month                  ||1-12     ||
 ||2       ||Day                    ||1-31     ||
 ||3       ||Year                   ||         ||
@@ -200,7 +200,7 @@ The toolbox currently assumes that the wave data `.whd` file columns adhere to t
 
 The toolbox currently assumes that the wave data `.wap` file columns adhere to the following format:
 
-||*Column*||*Field*                        ||*Type*||
+||*Column*||*Field*                        ||*Unit*||
 ||1       ||Month                          ||1-12  ||
 ||2       ||Day                            ||1-31  ||
 ||3       ||Year                           ||      ||
