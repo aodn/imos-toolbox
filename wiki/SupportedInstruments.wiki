@@ -4,7 +4,7 @@
 
 = Supported Instruments =
 
-This page lists the instruments which are supported by the toolbox, and the data formats required for each instrument.
+This page lists the instruments which are supported by the toolbox, and the data formats required for each instrument. If you have data from an unsupported instrument, or from a supported instrument, but in an unsupported format, send me an [http://code.google.com/u/pauld.mccarthy/ email], or leave a comment on this page, and I'll look into adding support for the instrument/format.
 
 == Seabird SBE37/SBE39 ==
 
@@ -65,3 +65,21 @@ The input file must also contain a header section which contains sensor
 metadata and calibration information (as obtained via the 'DS' and 'DC' 
 commands) - this is the output format provided by the Windows seaterm 
 program.
+
+== Wetlabs WQM ==
+
+The toolbox is able to parse data retrieved from a Wetlabs WQM CTD/ECO instrument. The data must be in '.dat' format, i.e. raw data which has been processed by the WQMHost software, in tab-delimited format. WQMHost allows a wide range of fields to be included in the output file; the following are supported by the toolbox:
+
+ * `WQM`: literal 'WQM'
+ * `SN`: serial number - required
+ * `MMDDYY` (date - required
+ * `HHMMSS` (time - required
+ * `Conductivity` (floating point, milliSiemens/metre
+ * `Temperature` (floating point, Degrees Celsius
+ * `Presssure` (floating point, Decibar
+ * `Salinity` (floating point, PSS
+ * `Dissolved Oxygen`: (floating point, milligrams/Litre
+ * `Chlorophyll`: (floating point, micrograms/Litre
+ * `Turbidity`: (floating point, NTU
+
+Any other fields which are present in the input file will be ignored.
