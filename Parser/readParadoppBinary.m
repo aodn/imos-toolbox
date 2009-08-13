@@ -497,12 +497,12 @@ function [sect len off] = readAquadoppProfilerVelocity(data, idx)
   % a fill byte is present if the number of cells is odd
   if mod(nCells, 2), csOff = csOff + 1; end
  
-  sect.vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'uint16');
-  sect.vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'uint16');
-  sect.vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'uint16');
-  sect.amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8');
-  sect.amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8');
-  sect.amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8');
+  sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'uint16');
+  sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'uint16');
+  sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'uint16');
+  sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8');
+  sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8');
+  sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8');
 
   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
 
@@ -538,30 +538,11 @@ function [sect len off] = readHRAquadoppProfile(data, idx)
   sect.Analn2_2     = block(4);
   sect.Beams        = data(idx+34);
   sect.Cells        = data(idx+35);
-  
-  % the spec is a little confusing here; the VelLag2, 
-  % AmpLag2 and CorrLag2 fields contain 3 values each, 
-  % '1 per beam', but i thought there were a variable 
-  % number of beams? also, as the spec currently stands, 
-  % it contains a typo - the offset of Spare1 should 
-  % be 48; this change propagates on to all following 
-  % fields. I've posted a query on the nortek forum, but
-  % am yet to receive a response (as of 10/08/2009)
-  % http://www.nortek-as.com/en/knowledge-center/forum/
-  % system-integration-and-telemetry/47868554
-  
   sect.VelLag2      = bytecast(data(idx+36:idx+41), 'L', 'uint16');
   block             = bytecast(data(idx+42:idx+47), 'L', 'uint8');
   sect.AmpLag2      = block(1:3);
   sect.CorrLag2     = block(4:6);
-  % bytes 48-53 are spare
-  
-  % another spec issue here - there's no indication of 
-  % size for Vel, Amp and Corr - 1 byte or 2? I'm assuming 
-  % 2 bytes for Vel, 1 for Amp and Corr. I'm also assuming 
-  % that Beams is the slowest changing dimension, as it is 
-  % with the Aquadopp Profiler Velocity data
-  
+  % bytes 48-53 are spare  
   velOff  = idx     + 54;
   ampOff  = velOff  + sect.Beams*sect.Cells*2;
   corrOff = ampOff  + sect.Beams*sect.Cells;
