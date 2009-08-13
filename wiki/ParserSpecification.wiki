@@ -20,7 +20,7 @@ Parser functions must adhere to the following format, with regard to input and o
 where:
 
   * `raw_data_file` is a cell array of strings, each entry of which is the name of a file or directory which contains the raw instrument data.
-  * `sample_data` is a struct which contains the sample data and any metadata that was retrieved from the data file(s).
+  * `sample_data` is a struct which contains the sample data and any metadata that was retrieved from the data file(s). `sample_data` may optionally be a cell array of structs, in the event that multiple data sets which cannot be combined have been read.
 
 == Sample data ==
 
