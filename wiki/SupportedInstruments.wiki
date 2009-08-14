@@ -12,8 +12,7 @@ Instruments for which support will be added in the future:
  * Seabird SBE21
  * Vaisala WXT520
  * FSI NXIC CTD
- * 
-
+ * ...
 
 == Seabird SBE37/SBE39 ==
 
