@@ -72,6 +72,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
     dim = sample_data.dimensions{k};
     
     temp = [path lower(dim.name) '_attributes.txt'];
+    if isempty(dir(temp)), continue; end
 
     dimAtts = parseNetCDFTemplate(temp, sample_data);
 
