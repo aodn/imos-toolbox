@@ -25,6 +25,7 @@ CPHL,      0, concentration_of_chlorophyll_in_sea_water,          mg m-3,       
 CSPD,      1, sea_water_speed,                                    m s-1,                                                             V, 999999.0, 0.0,     5.0
 DEPTH,     1, depth,                                              m,                                                                 E, 999999.0, 0.0,     12000.0
 DEWT,      1, dew_point_temperature,                              Celsius,                                                           M, 999999.0, -50.0,   50.0
+DIRECTION, 0, direction,                                          Degrees clockwise from true North,                                 E, 999999.0, 0.0,     360.0
 DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         mol kg-1,                                                          O, 999999.0, 0.0,     0.0
 DOXY,      1, mass_concentration_of_oxygen_in_sea_water,          kg m-3,                                                            O, 999999.0, 0.0,     0.0
 DOXY_TEMP, 1, temperature_of_sensor_for_oxygen_in_sea_water,      Celsius,                                                           T, 999999.0, 0.0,     50.0
@@ -32,6 +33,7 @@ DRYT,      1, dry_bulb_temperature,                               Celsius,      
 DYNHT,     1, dynamic_height,                                     m,                                                                 E, 999999.0, 0.0,     0.0
 EWCT,      1, eastward_sea_water_velocity,                        m s-1,                                                             V, 999999.0, -5.0,    5.0
 FLU2,      0, fluorescence,                                       mg m-3,                                                            B, 999999.0, 0.0,     0.0
+FREQUENCY, 0, frequency,                                          Hz,                                                                E, 999999.9, 0.0,     999999.0
 HCSP,      1, sea_water_speed,                                    m s-1,                                                             V, 999999.0, 0.0,     5.0
 HEADING,   0, heading,                                            Degrees,                                                           E, 999999.0, 0.0,     360.0
 HEAT,      0, heat_content,                                       1010 J m-2,                                                        E, 999999.0, 0.0,     0.0
@@ -60,6 +62,10 @@ ROLL,      0, roll,                                               Degrees,      
 SLCA,      0, mole_concentration_of_silicate_in_sea_water,        mole m-3,                                                          K, 999999.0, 0.0,     0.0
 SRAD,      1, isotropic_shortwave_radiance_in_air,                W m-1 sr-1,                                                        F, 999999.0, 0.0,     0.0
 SST,       1, sea_surface_skin_temperature,                       Celsius,                                                           T, 999999.0, 0.0,     0.0
+SSDS,      0, sea_surface_wave_directional_spread,                Degrees clockwise from true North,                                 W, 999999.0, 0.0,     360.0
+SSWD,      0, sea_surface_wave_direction_spectral_density,        Degrees clockwise from true North,                                 W, 999999.0, 0.0,     360.0
+SSWP,      1, sea_surface_swell_wave_period,                      Second,                                                            W, 999999.0, 0.0,     999999.0
+SSWV,      1, sea_surface_wave_directional_variance_spectral_density, m2 s deg-1,                                                    W, 999999.0, 0.0,     0.0
 SW,        1, surface_downwelling_shortwave_flux_in_air,          W m-2,                                                             F, 999999.0, 0.0,     0.0
 SW_NET,    1, surface_net_upward_shortwave_flux,                  W m-2,                                                             F, 999999.0, 0.0,     0.0
 TAU,       1, magnitude_of_surface_downward_stress,               Pascal,                                                            F, 999999.0, 0.0,     0.0
