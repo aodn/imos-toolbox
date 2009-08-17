@@ -195,6 +195,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
   try 
     % open file for reading
     fid = fopen(file, 'rt');
+    line = '';
     if fid == -1, error(['couldn''t open ' file ' for reading']); end
 
     template = struct;
