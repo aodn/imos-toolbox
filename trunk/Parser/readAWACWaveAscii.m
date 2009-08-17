@@ -1,21 +1,24 @@
 function waveData = readAWACWaveAscii( filename )
 %READAWACWAVEASCII Reads AWAC wave data from processed wave text files 
-% (.whd, .wap).
+% (.whd, .wap, .was, .wdr).
 %
 % This function takes the name of a raw AWAC binary file (.wpr), and from
 % that name locates the wave header and processed wave data files (.whd,
-% .wap). It is assumed that these files are located in the same directory
-% as the raw binary file.
+% .wap), and power and directional spectra files (.was, .wdr, .wds). It is 
+% assumed that these files are located in the same directory as the raw 
+% binary file.
 %
 % This function currently assumes a number of things:
 %
-%   - That both the .whd and .wap files exist in the same directory as the
-%     input file.
-%   - That both the .whd and .wap files have the same number of rows.
-%   - That the timestamps for corresponding rows in the .whd and .wap files
-%     are identical.
-%   - That the .whd and .wap files adhere to the column layouts listed
-%     below.
+%   - That the .whd, .wap, .was, .wdr and .wds files exist in the same 
+%     directory as the input file.
+%   - That all of these files have the same number of rows (the .was and .wdr 
+%     files also contain a header row, specirying the frequency values, and 
+%     the .wds file contains 90 rows per frequency).
+%   - That the frequency dimension size and values used in the .was, .wdr
+%     and .wds files are identical.
+%   - That the timestamps for corresponding rows in the files are identical.
+%   - That the files adhere to the column layouts listed below.
 %
 % Assumed column layout for wave header data file (.whd):
 % 
@@ -61,8 +64,34 @@ function waveData = readAWACWaveAscii( filename )
 %   14   Unidirectivity index
 %   15   Error Code
 %
+% Assumed file layout for power spectra data file (.was):
+%
+%       Frequency Vector                 (Hz)
+%   1   Power Spectrum                   (m^2/Hz)
+%   2   Power Spectrum                   (m^2/Hz)
+%   .
+%   n   Power Spectrum                   (m^2/Hz)
+%
+% Assumed file layout for power spectra data file (.wdr):
+%
+%       Frequency Vector                 (Hz)
+%   1   Directional Spectrum             (Deg)
+%   2   Directional Spectrum             (Deg)
+%   .
+%   n   Directional Spectrum             (Deg)
+%
+% Assumed file layout for full spectra data file (.wds):
+%
+%  Each row is one frequency 0.02:0.01:1.0 Hz
+%  Each column is dicretized by 4 degrees 0:4:360 degrees
+%   Burst 1  [99 rows ]x[90 columns]     (m^2/Hz/deg)
+%   Burst 2  [99 rows ]x[90 columns]     (m^2/Hz/deg)
+%         .
+%   Burst n  [99 rows ]x[90 columns]     (m^2/Hz/deg)
+%
+%
 % A future enhancement to this function would be to work from the header 
-% files (.hdr/.whr) which defines the column layout.
+% files (.hdr/.whr) which defines the file layout for all files.
 %
 % Inputs:
 %   filename - The name of a raw AWAC binary file (.wpr).
@@ -106,15 +135,21 @@ error(nargchk(1,1,nargin));
 
 if ~ischar(filename), error('filename must be a string'); end
 
-% transform the filename into wave header and processed wave data filenames
+% transform the filename into processed wave data filenames
 [path name ext] = fileparts(filename);
 
-headerFile = fullfile(path, [name '.whd']);
-waveFile   = fullfile(path, [name '.wap']);
+headerFile     = fullfile(path, [name '.whd']);
+waveFile       = fullfile(path, [name '.wap']);
+dirFreqFile    = fullfile(path, [name '.wdr']);
+pwrFreqFile    = fullfile(path, [name '.was']);
+pwrFreqDirFile = fullfile(path, [name '.wds']);
 
 % will throw error if the files do not exist
-header = importdata(headerFile);
-wave   = importdata(waveFile);
+header     = importdata(headerFile);
+wave       = importdata(waveFile);
+dirFreq    = importdata(dirFreqFile);
+pwrFreq    = importdata(pwrFreqFile);
+pwrFreqDir = importdata(pwrFreqDirFile);
 
 waveData = struct;
 
@@ -140,3 +175,20 @@ waveData.DirectionalSpread      = wave(:,11);
 waveData.MeanDirection          = wave(:,12);
 waveData.MeanPressure           = wave(:,13);
 waveData.UnidirectivityIndex    = wave(:,14);
+
+% it is assumed that the frequency dimension 
+% is identical for all spectrum data
+waveData.Frequency = dirFreq(1,:)';
+
+waveData.dirSpectrum           = dirFreq(2:end,:);
+waveData.pwrSpectrum           = pwrFreq(2:end,:);
+waveData.fullSpectrumDirection = (0:4:359)';
+
+nFreqs   = length(waveData.Frequency);
+nDirs    = length(waveData.fullSpectrumDirection);
+nSamples = length(pwrFreqDir) / nFreqs;
+
+% rearrange full power spectrum matrix so dimensions 
+% are ordered: time, frequency, direction
+waveData.fullSpectrum = ...
+  permute(reshape(pwrFreqDir', nDirs, nFreqs, nSamples), [3 2 1]);
