@@ -221,15 +221,19 @@ function filename = exportNetCDF( sample_data, dest )
       % replace NaN's with fill value
       data(isnan(data)) = vars{m}.FillValue_;
 
-      % transpose required, as matlab requires the fastest changing
-      % dimension to be first. This code will fall over for data sets
+      % transpose required for multi-dimensional data, as matlab 
+      % requires the fastest changing dimension to be first. 
       % of more than two dimensions.
-      netcdf.putVar(fid, vid, data');
+      nDims = length(vars{m}.dimensions);
+      if nDims > 1, data = permute(data, nDims:-1:1); end
+      
+      netcdf.putVar(fid, vid, data);
       
       % ancillary QC variable data
-      data    = vars{m}.flags;
+      data = vars{m}.flags;
+      if nDims > 1, data = permute(data, nDims:-1:1); end
       
-      netcdf.putVar(fid, qcvid, data');
+      netcdf.putVar(fid, qcvid, data);
     end
 
     %
@@ -351,7 +355,9 @@ function putAtts(fid, vid, template, templateFile, dateFmt)
     
     if isempty(val), continue; end;
     
-    type = templateType(name, templateFile);
+    type = 'S';
+    try, type = templateType(name, templateFile);
+    catch e, end
     
     switch type
       case 'D', val = datestr(val, dateFmt);
