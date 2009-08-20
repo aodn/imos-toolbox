@@ -164,11 +164,11 @@ function sample_data = WQMParse( filename )
         data = data / 1000.0;
 
       % WQM provides dissolved oxygen in mg/L; we need it in kg/m^3.
-      % Actually, these work out to be equivalent, so no scaling is needed
-      % case 'DOXY'
+      case 'DOXY'
+        data = data / 1000.0;
 
       % WQM provides chlorophyll in ug/L; we need it in mg/m^3.
-      % Again, these are equivalent, so no scaling is needed.
+      % These are equivalent, so no scaling is needed.
       % case 'CPHL'
 
     end
