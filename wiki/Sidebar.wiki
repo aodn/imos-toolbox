@@ -24,9 +24,11 @@
   * UsingTheToolboxOverview
   * [tortoiseSVN]
  * Other
+  * WeeklySnapshots
   * MatlabEnvironment
   * [ProcessLevelsAndQC]
   * DeploymentDatabaseInterface
   * GraphingInMatlab
-  * WeeklySnapshots
+  * NXICBinaryFormat
+
  
