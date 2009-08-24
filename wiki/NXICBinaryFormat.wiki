@@ -8,7 +8,7 @@ FSI do not seem to provide information on the format of the binary files output 
 
 All .ctd files begin with a header section of 220 bytes.
 
-|| *Offset*||*Length*||*Description*||*Type*||*note*||
+|| *Offset* || *Length* || *Description* || *Type* || *note* ||
 || 0 || 2 || File ID (`9b00`)? || ? ||||
 || 2 || 2 || Instrument serial number || uint16 ||||
 ||||||||||||
