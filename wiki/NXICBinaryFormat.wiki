@@ -1,0 +1,44 @@
+#summary Overview of the FSI NXIC CTD recorder binary file format
+
+= FSI NXIC CTD Binary file format (.ctd) =
+
+FSI do not seem to provide information on the format of the binary files output by the NXIC CTD sensor. This page details my attempts to reverse engineer the format. All multi-byte values are stored in little endian format.
+
+== Header ==
+
+All .ctd files begin with a header section of 220 bytes.
+
+||*Offset*||*Length*||*Description*||*Type*||*note*||
+||0||2||File ID (`9b00`)? ||?||||
+||2||2||Instrument serial number||uint16||||
+||||||||||||
+||17||1||Start second||uint8||||
+||18||1||Start minute||uint8||||
+||19||1||start hour||uint8||24 hour||
+||20||1||Start day||uint8||||
+||21||1||start month||uint8||||
+||22||1||Start year||uint8||add 2000||
+||||||||||||
+||28||1||Interval hour||uint8||||
+||29||1||Interval minute||uint8||||
+||30||1||Interval second||uint8||||
+||31||1||Record hour||uint8||||
+||32||1||Record minute||uint8||||
+||33||1||Record second||uint8||||
+||||||||||||
+||155||7||Calibration date||char||ddMMMYY||
+||199||1||Sample length||uint8||Length of sample packets in bytes||
+
+== Samples ==
+
+The header is followed by sample data. The structure of a sample packet varies depending on auxillary sensor configuration, but all sample packets have at least the following fields:
+
+||*Offset*||*Length*||*Description*||*Type*||
+||0||4||Time (unix)||uint32||
+||4||1||Second fraction||uint8 ||
+||5||4||Conductivity(mmho/cm)||float||
+||9||4||Temperature (C)||float||
+||13||4||Pressure (dbar)||float||
+||17||4||Salinity (PSU)||float||
+||21||4||Sound velocity (m/s)||float||
+||25||4||Battery voltage (V)||float||
