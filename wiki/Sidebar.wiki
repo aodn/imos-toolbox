@@ -29,6 +29,6 @@
   * [ProcessLevelsAndQC]
   * DeploymentDatabaseInterface
   * GraphingInMatlab
-  * NXICBinaryFormat
+  * [NXICBinaryFormat]
 
  
