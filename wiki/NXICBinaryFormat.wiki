@@ -8,7 +8,7 @@ FSI do not seem to provide information on the format of the binary files output 
 
 All .ctd files begin with a header section of 220 bytes.
 
-|| *Offset* || *Length* || *Description* || *Type* || *note* ||
+|| *Offset* || *Length* || *Description* || *Type* || *Note* ||
 || 0 || 2 || File ID (`9b00`)? || ? ||||
 || 2 || 2 || Instrument serial number || uint16 ||||
 ||||||||||||
@@ -33,12 +33,12 @@ All .ctd files begin with a header section of 220 bytes.
 
 The header is followed by sample data. The structure of a sample packet varies depending on auxillary sensor configuration, but all sample packets have at least the following fields:
 
-|| *Offset* || *Length* || *Description* || *Type* ||
-|| 0 ||4|| Time (unix) || uint32 ||
-|| 4 ||1|| Second fraction || uint8 ||
-|| 5 ||4|| Conductivity(mmho/cm) || float ||
-|| 9 ||4|| Temperature (C) || float ||
-|| 13 ||4|| Pressure (dbar) || float ||
-|| 17 ||4|| Salinity (PSU) || float ||
-|| 21 ||4|| Sound velocity (m/s) || float ||
-|| 25 ||4|| Battery voltage (V) || float ||
+|| *Offset* || *Length* || *Description* || *Type* || *Note* ||
+|| 0 ||4|| Time || uint32 || Unix time ||
+|| 4 ||1|| Second fraction || uint8 ||||
+|| 5 ||4|| Conductivity || float || mmho/cm ||
+|| 9 ||4|| Temperature || float || Degrees Celsius ||
+|| 13 ||4|| Pressure || float || dbar ||
+|| 17 ||4|| Salinity || float || PSU ||
+|| 21 ||4|| Sound velocity || float || m/s ||
+|| 25 ||4|| Battery voltage || float || V ||
