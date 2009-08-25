@@ -19,10 +19,10 @@ autoQCManager.autoQCChain = inWaterQC outWaterQC
 
 % propmt for preprocessing (if false, 
 % preprocessing routines are not executed)
-preprocessingManager.preprocessingPrompt = true
+preprocessManager.preprocessPrompt = true
 
 % default set of preprocessing routines
-preprocessingManager.preprocessingChain = timeOffsetPP
+preprocessManager.preprocessChain = timeOffsetPP
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
