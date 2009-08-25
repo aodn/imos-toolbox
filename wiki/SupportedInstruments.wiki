@@ -10,7 +10,6 @@ This page lists the instruments which are supported by the toolbox, and the data
 Instruments for which support will be added in the future:
  * Seabird SBE21
  * Vaisala WXT520
- * FSI NXIC CTD
  * ...
 
 == Seabird SBE37/SBE39 ==
@@ -121,6 +120,11 @@ DATA,23:00:02 24/06/2008,29411,16.312112,26346,1.025938,
 
 If the logger was configured to use burst mode, the bursts are averaged.
 
+== FSI NXIC CTD ==
+
+The toolbox is able to import raw (.ctd) files retrieved from an NXIC CTD instrument, and parse the conductivity, temperature and depth data contained within. A specification for the .ctd file format is not available, so the toolbox relies upon [NXICBinaryFormat reverse engineering] efforts which may not be reliable. I am unsure as to whether data retrieved from instruments with a firmware version older than 4.42 can be imported into the toolbox.
+
+Currently, the parser only provides conductivity, temperature and pressure data. I am in contact with FSI regarding access to the file format specification, and hope to provide auxillary sensor data in the near future.
 
 == Teledyne/RDI Workhorse ADCP ==
 
