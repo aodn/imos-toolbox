@@ -47,25 +47,7 @@ function routines = listPreProcessRoutines()
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-routines = {};
+path    = [pwd filesep 'Preprocessing'];
+pattern = '^(.+PP)\.m$';
 
-% get the location of the Preprocessing directory
-path = [pwd filesep 'Preprocessing'];
-
-% get the contents of the Preprocessing directory
-files = dir(path);
-
-%iterate through each element in the Preprocessing directory
-for file = files'
-
-  %skip subdirectories
-  if file.isdir == 1, continue; end
-
-  %if name is of the pattern "*PP.m", add 
-  %it to the list of available routines
-  token = regexp(file.name, '^(.+QC)\.m$', 'tokens');
-
-  %add the routine name to the list
-  if ~isempty(token), routines{end + 1} = token{1}{1}; end
-
-end
+routines = listFiles(path, pattern);
