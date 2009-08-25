@@ -46,6 +46,9 @@ function flowManager()
   
   % add an index field to each data struct
   for k = 1:length(rawData), rawData{k}.meta.index = k; end
+  
+  % preprocess data
+  rawData = preprocessManager(rawData);
 
   % display data
   callbacks.importRequestCallback       = @importRequestCallback;
@@ -92,6 +95,9 @@ function flowManager()
     for k = 1:length(importedData)
       importedData{k}.meta.index = k + length(rawData);
     end
+    
+    % preprocess new data
+    importedData = preprocessManager(importedData);
     
     % insert the new data into the rawData array, and run QC if necessary
     startIdx = (length(rawData)+1);
