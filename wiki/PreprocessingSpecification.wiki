@@ -2,7 +2,7 @@
 
 <wiki:toc/>
 
-= Preprocessing routines =
+= Preprocessing functions =
 
 After importing data, the toolbox allows you to execute a configurable set of preprocessing functions over the newly imported data. A prime example of a preprocessing function is for timezone adjustment. One file exists for each preprocessing function; these functions live in the `Preprocessing` directory, and are named in the form `[function_name]PP.m`, where `function_name` is a unique name for the function.
 
