@@ -13,6 +13,7 @@
   * DeploymentDatabase
   * TestSpecification
   * ParserSpecification
+  * PreprocessingSpecification
   * [AutoQCSpecification]
   * [NetCDFExportSpecification]
   * GraphSpecification
