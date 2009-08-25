@@ -1,0 +1,20 @@
+#summary Overview of Preprocessing routines
+
+<wiki:toc/>
+
+= Preprocessing routines =
+
+After importing data, the toolbox allows you to execute a configurable set of preprocessing functions over the newly imported data. A prime example of a preprocessing function is for timezone adjustment. One file exists for each preprocessing function; these functions live in the `Preprocessing` directory, and are named in the form `[function_name]PP.m`, where `function_name` is a unique name for the function.
+
+For example, the time offset function file name is `timeOffsetPP.m`, and the function is `timeOffsetPP`.
+
+== Function format ==
+
+All preprocessing functions must adhere to the following format:
+{{{
+  function sample_data = namePP( sample_data )
+}}}
+
+where:
+
+ * `sample_data` is a struct containing the sample data that is to be preprocessed. See the [DataStructures data structures spec] for details on this struct.
