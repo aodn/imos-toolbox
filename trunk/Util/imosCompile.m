@@ -70,7 +70,7 @@ packagingRoot = [toolboxRoot filesep '..' filesep 'imos-toolbox'];
 stagingRoot   = [toolboxRoot filesep '..' filesep 'staging'];
 
 if ~isempty(dir(packagingRoot)), error([packagingRoot ' already exists']); end
-if ~isempty(dir(stagingRoot)),   error([staagingRoot  ' already exists']); end
+if ~isempty(dir(stagingRoot)),   error([stagingRoot   ' already exists']); end
 
 % create a directory from which the resulting zip file will
 % be generated - the packaging area, and a directory to put 
