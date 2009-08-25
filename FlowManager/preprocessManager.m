@@ -44,11 +44,58 @@ function sample_data = preprocessManager( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+  error(nargchk(1,1,nargin));
 
-if ~iscell(sample_data), error('sample_data must be a cell array'); end
+  if ~iscell(sample_data), error('sample_data must be a cell array'); end
 
-% nothing to do
-if isempty(sample_data), return; end
+  % nothing to do
+  if isempty(sample_data), return; end
 
-disp('preprocessing');
+  % read in preprocessing-related properties
+  ppPrompt = true;
+  ppChain  = {};
+
+  try
+    prompt = eval(readToolboxProperty('preprocessManager.preprocessPrompt'));
+  catch e
+  end
+
+  % get default filter chain if there is one
+  try
+    ppChain = ...
+      textscan(readToolboxProperty('preprocessManager.preprocessChain'), '%s');
+    ppChain = ppChain{1};
+  catch e
+  end
+
+  % if ppPrompt property is false, preprocessing is disabled
+  if ~ppPrompt, return; end
+
+  % get all preprocessing routines that exist
+  ppRoutines = listPreprocessRoutines();
+
+  % prompt user to select preprocessing filters to run - the list of 
+  % initially selected options is stored in toolboxProperties as 
+  % routine names, but must be provided to the list selection dialog 
+  % as indices
+  ppChainIdx = cellfun(@(x)(find(ismember(ppRoutines,x))),ppChain);
+  ppChain = listSelectionDialog(...
+    'Select Preprocess routines', ppRoutines, ppChainIdx);
+  
+  % user cancelled dialog
+  if isempty(ppChain), return; end
+  
+  % save user's latest selection for next time - turn the ppChain
+  % cell array into a space-separated string of the names
+  ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
+  writeToolboxProperty('preprocessManager.preprocessChain', ...
+    deblank([ppChainStr{:}]));
+  
+  for k = 1:length(ppChain)
+    
+    ppFunc = str2func(ppChain{k});
+    
+    sample_data = ppFunc(sample_data);
+  end
+
+end
