@@ -48,26 +48,7 @@ function graphs = listGraphs()
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+path    = [pwd filesep 'Graph'];
+pattern = '^graph(.+)\.m$';
 
-graphs = {};
-
-% get the location of the Graph directory
-path = [pwd filesep 'Graph'];
-
-% get the contents of the Graph directory
-files = dir(path);
-
-%iterate through each element in the Graph directory
-for file = files'
-
-  %skip subdirectories
-  if file.isdir == 1, continue; end
-
-  %if name is of the pattern "graph*.m", add 
-  %it to the list of available graphs
-  token = regexp(file.name, '^graph(.+)\.m$', 'tokens');
-
-  %add the graph name to the list
-  if ~isempty(token), graphs{end + 1} = token{1}{1}; end
-
-end
+graphs  = listFiles(path, pattern);

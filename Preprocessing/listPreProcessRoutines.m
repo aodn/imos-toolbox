@@ -1,18 +1,18 @@
-function routines = listAutoQCRoutines()
-%LISTAUTOQCROUTINES Returns a cell array containing the names of all 
-% available automatic QC functions.
+function routines = listPreProcessRoutines()
+%LISTPREPROCESSROUTINES Returns a cell array containing the names of all 
+% available preprocessing functions.
 %
-% Auto QC functions live in the AutomaticQC subdirectory, and are named 
-% according to the format:
+% Preprocessing functions live in the Preprocessing subdirectory, and are 
+% named according to the format:
 %
-%   [routine]QC.m
+%   [routine]PP.m
 %
 % This function simply searches the subdirectory looking for files which
 % match the above pattern, and returns the names of those files.
 %
 % Outputs:
-%   routines - cell array of strings, each of which is the name of an
-%              automatic QC function.
+%   routines - cell array of strings, each of which is the name of a
+%              preprocessing function.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -47,7 +47,25 @@ function routines = listAutoQCRoutines()
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-path    = [pwd filesep 'AutomaticQC'];
-pattern = '^(.+QC)\.m$';
+routines = {};
 
-routines = listFiles(path, pattern);
+% get the location of the Preprocessing directory
+path = [pwd filesep 'Preprocessing'];
+
+% get the contents of the Preprocessing directory
+files = dir(path);
+
+%iterate through each element in the Preprocessing directory
+for file = files'
+
+  %skip subdirectories
+  if file.isdir == 1, continue; end
+
+  %if name is of the pattern "*PP.m", add 
+  %it to the list of available routines
+  token = regexp(file.name, '^(.+QC)\.m$', 'tokens');
+
+  %add the routine name to the list
+  if ~isempty(token), routines{end + 1} = token{1}{1}; end
+
+end

@@ -39,30 +39,7 @@ function parsers = listParsers ()
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+path    = [pwd filesep 'Parser'];
+pattern = '^(.+)Parse\.m$';
 
-parsers = {};
-
-% get the location of the Parser directory - the location of this m-file
-path = [pwd filesep 'Parser'];
-
-% get the contents of the Parser directory
-files = dir(path);
-
-%iterate through each element in the parser directory
-for file = files'
-
-  %skip subdirectories
-  if file.isdir == 1
-    continue;
-  end
-
-  %if name is of the pattern "*Parse.m", add 
-  %it to the list of available parsers
-  token = regexp(file.name, '^(.+)Parse\.m$', 'tokens');
-
-  %add the parser name to the list
-  if ~isempty(token)
-    parsers{end + 1} = token{1}{1};
-  end
-
-end
+parsers = listFiles(path, pattern);
