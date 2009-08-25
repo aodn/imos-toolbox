@@ -17,4 +17,4 @@ All preprocessing functions must adhere to the following format:
 
 where:
 
- * `sample_data` is a struct containing the sample data that is to be preprocessed. See the [DataStructures data structures spec] for details on this struct.
+ * `sample_data` is a cell array of structs containing the sample data that is to be preprocessed. See the [DataStructures data structures spec] for details on these structs.
