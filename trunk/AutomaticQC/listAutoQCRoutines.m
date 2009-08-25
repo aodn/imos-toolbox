@@ -1,6 +1,6 @@
 function routines = listAutoQCRoutines()
-%LISTGRAPHS Returns a cell array containing the names of all available
-%automatic QC functions.
+%LISTAUTOQCROUTINES Returns a cell array containing the names of all 
+% available automatic QC functions.
 %
 % Auto QC functions live in the AutomaticQC subdirectory, and are named 
 % according to the format:
