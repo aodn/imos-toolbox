@@ -1,4 +1,4 @@
-function routines = listPreProcessRoutines()
+function routines = listPreprocessRoutines()
 %LISTPREPROCESSROUTINES Returns a cell array containing the names of all 
 % available preprocessing functions.
 %
