@@ -15,7 +15,14 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
-autoQCManager.autoQCChain = timeGapQC flatlineQC
+autoQCManager.autoQCChain = inWaterQC outWaterQC
+
+% propmt for preprocessing (if false, 
+% preprocessing routines are not executed)
+preprocessingManager.preprocessingPrompt = true
+
+% default set of preprocessing routines
+preprocessingManager.preprocessingChain = timeOffsetPP
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
@@ -27,11 +34,12 @@ dataFileStatusDialog.multipleFileFormat    = italic
 % default values for start dialog
 startDialog.dataDir = C:
 startDialog.fieldTrip =
-startDialog.lowDate = 730486
-startDialog.highDate = 734138
+startDialog.lowDate =
+startDialog.highDate =
 
 % default directory for file export
 exportDialog.defaultDir = C:
 
-% prompt user to select parser if an appropriate one cannot be found
+% prompt user to select parser if an appropriate one 
+% cannot be found (if false, the data is not imported)
 importManager.noParserPrompt = true
