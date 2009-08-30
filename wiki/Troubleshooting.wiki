@@ -1,4 +1,5 @@
 #summary Toolbox problems and workaround
+#labels Support,Featured
 
 <wiki:toc/>
 
