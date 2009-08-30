@@ -1,5 +1,5 @@
 #summary Brief walkthrough on how to use the toolbox
-#labels Featured,Support
+#labels Support
 
 <wiki:toc/>
 
