@@ -15,7 +15,7 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/r6034.png
 
 This is a Matlab problem, as described in this bug report (Mathworks login required): http://www.mathworks.com/support/bugreports/531531
 
-You can overcome this problem by following the instructions in the bug report in the se4ction *For standalone executables and C/C++ shared libraries Using Lcc-win32 compiler*. All you have to do is create a plain text file called `imosToolbox.exe.manifest` (make sure the `.txt` extension is not present) in the `imos-toolbox` directory, which contains the following:
+You can overcome this problem by following the instructions in the bug report in the section *For standalone executables and C/C++ shared libraries Using Lcc-win32 compiler*. All you have to do is create a plain text file called `imosToolbox.exe.manifest` (make sure the `.txt` extension is not present) in the `imos-toolbox` directory, which contains the following:
 
 {{{
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?> 
