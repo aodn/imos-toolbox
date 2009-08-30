@@ -21,6 +21,7 @@
   * ToolboxInstallation
   * ToolboxConfiguration
   * SupportedInstruments
+  * [Troubleshooting]
   * [NetCDFTemplates]
   * UsingTheToolboxOverview
   * [tortoiseSVN]
