@@ -136,7 +136,14 @@ public class JDBCDDB extends DDB {
           Object o = rs.getObject(f.getName());
 
           //all numeric values must be doubles
-          if (o instanceof Integer) o = (double)((Integer)o).intValue();
+          if (o instanceof Integer) {
+            o = (double)((Integer)o).intValue();
+
+            //Nasty hack to accommodate DeploymentId type
+            //of number or text. Don't tell anyone
+            if (f.getType() == String.class)
+              o = o.toString();
+          }
             
           f.set(instance, o);
         }
