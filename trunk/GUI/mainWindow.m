@@ -96,11 +96,13 @@ function mainWindow(...
   
   currentState = states{startState};
   
-  timeFmt = readToolboxProperty('toolbox.timeFormat');
-  fId     = fieldTrip.FieldTripID;
+  fId = fieldTrip.FieldTripID;
   
   % sample menu entries (1-1 mapping to sample_data structs)
-  sampleDataDescs = genSampleDataDescs(sample_data, timeFmt);
+  sampleDataDescs = {};
+  for k = 1:length(sample_data)
+    sampleDataDescs{k} = genSampleDataDesc(sample_data{k});
+  end
 
   % window figure
   fig = figure(...
@@ -270,7 +272,13 @@ function mainWindow(...
     
     sample_data{sam.meta.index} = sam;
     
-    set(sampleMenu, 'String', genSampleDataDescs(sample_data, timeFmt));
+    % regenerate descriptions
+    sampleDataDescs = {};
+    for k = 1:length(sample_data)
+      sampleDataDescs = genSampleDataDesc(sample_data{k}); 
+    end
+    
+    set(sampleMenu, 'String', sampleDataDescs);
     
   end
 
@@ -347,25 +355,5 @@ function mainWindow(...
     % the checkboxes are saved in UserData field to make them 
     % easy to retrieve in the getSelectedVars function
     set(varPanel, 'UserData', checkboxes);
-  end
-
-  function descs = genSampleDataDescs(sam, dateFmt)
-  %GENSAMPLEDATADESCS Generates descriptions for the given datasets, for use
-  % in the sample menu.
-  %
-    descs = {};
-
-    for m = 1:length(sam)
-      s = sam{m};
-
-      descs{m} = ['(' s.meta.instrument_model ' ' ...
-                      s.meta.instrument_serial_no '): ' ...
-                  datestr(s.dimensions{1}.data(1),   dateFmt) ' - ' ...
-                  datestr(s.dimensions{1}.data(end), dateFmt)];
-      
-      if isfield(s.meta, 'site') 
-        descs{m} = [s.meta.Sites.SiteName ' ' descs{m}];
-      end
-    end
   end
 end
