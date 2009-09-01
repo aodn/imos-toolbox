@@ -156,10 +156,10 @@ sample_data = struct;
 sample_data.meta.head     = head;
 sample_data.meta.hardware = hardware;
 sample_data.meta.user     = user;
-sample_data.meta.instrument_make          = 'Nortek';
-sample_data.meta.instrument_model         = 'AWAC';
-sample_data.meta.instrument_serial_number = hardware.SerialNo;
-sample_data.meta.instrument_firmware      = hardware.FWversion;
+sample_data.meta.instrument_make      = 'Nortek';
+sample_data.meta.instrument_model     = 'AWAC';
+sample_data.meta.instrument_serial_no = hardware.SerialNo;
+sample_data.meta.instrument_firmware  = hardware.FWversion;
 
 sample_data.dimensions{1}.name = 'TIME';
 sample_data.dimensions{2}.name = 'DEPTH';
