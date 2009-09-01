@@ -145,8 +145,8 @@ function sample_data = WQMParse( filename )
   sample_data.dimensions = {};
   sample_data.variables  = {};
 
-  sample_data.meta.instrument_make      = 'WQM';
-  sample_data.meta.instrument_model     = 'WET Labs';
+  sample_data.meta.instrument_make      = 'WET Labs';
+  sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = samples{1}{1};
 
   % create a variables struct in sample_data for each field in the file
