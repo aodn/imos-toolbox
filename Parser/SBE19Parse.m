@@ -17,11 +17,12 @@ function sample_data = SBE19Parse( filename )
 % Data Processing program. This function accepts the following parameters; 
 % the parameter must be provided in the listed unit of measurement:
 %
-%   - Temperature (ITS 90, Degrees Celsius)
-%   - Conductivity (S/m)
+%   - Temperature (deg C)
+%   - Conductivity (S/m, mS/cm, uS/cm)
+%   - Turbidity/Backscatterance (NTU)
 %   - Pressure (db)
 %   - Fluorescence (ug/L)
-%   - Oxygen (mg/L)
+%   - Oxygen (mg/L, umol/kg)
 %   - Salinity (PSU)
 %
 % Inputs:
@@ -111,14 +112,10 @@ function sample_data = SBE19Parse( filename )
   fileHeader = parseFileHeader(fileHeaderLines);
   data       = parseData(dataLines, fileHeader);
     
-  % if profiling mode, generate time stamps for each sample
-  if strcmp(instHeader.mode, 'profile')
-    
-    cStart = instHeader.castDate;
-    cInt   = (0.25 * instHeader.scanAvg) / 86400;
-    cEnd   = instHeader.castDate + (cInt * (instHeader.numSamples - 1));
-  
-    data.Time = (cStart:cInt:cEnd)';
+  % if there is no time data in the file,
+  % generate time stamps for each sample
+  if ~isfield(data, 'Time')
+    data.Time = genTimestamps(instHeader, fileHeader, data);
   end
   
   % create sample data struct
@@ -140,34 +137,13 @@ function sample_data = SBE19Parse( filename )
   vars = fieldnames(data);
   for k = 1:length(vars)
     
-    divisor = 1;
-        
-    switch vars{k}
-      case 'Temperature'
-        sample_data.variables{end+1}.name = 'TEMP';
-        
-      case 'Conductivity'
-        sample_data.variables{end+1}.name = 'CNDC';
-        
-      case 'Pressure'
-        sample_data.variables{end+1}.name = 'PRES';
-        
-      case 'Salinity'
-        sample_data.variables{end+1}.name = 'PSAL';
-        
-      case 'Fluorescence'
-        sample_data.variables{end+1}.name = 'FLU2';
-      
-      % oxygen requires conversion from mg/L to kg/m^3
-      case 'Oxygen'
-        sample_data.variables{end+1}.name = 'DOXY';
-        divisor = 1000.0;
-        
-      otherwise, continue;
-    end
+    [n, d] = convertData(vars{k}, data.(vars{k}));
     
-    sample_data.variables{end}.dimensions = [1];
-    sample_data.variables{end}.data       = data.(vars{k}) ./ divisor;
+    if isempty(n) || isempty(d), continue; end;
+    
+    sample_data.variables{end+1}.dimensions = [1];
+    sample_data.variables{end  }.name       = n;
+    sample_data.variables{end  }.data       = d;
   end
 end
 
@@ -289,17 +265,32 @@ function header = parseFileHeader(headerLines)
   header = struct;
   header.columns = {};
   
-  % all we're interested in is the column labels
-  nameExpr = 'name \d+ = .+: (\w+)';
+  nameExpr = 'name \d+ = (.+):';
+  nvalExpr = 'nvalues = (\d+)';
+  badExpr  = 'bad_flag = (.*)$';
   
   for k = 1:length(headerLines)
     
+    % try name expr
     tkns = regexp(headerLines{k}, nameExpr, 'tokens');
+    if ~isempty(tkns)
+      header.columns{end+1} = tkns{1}{1};
+      continue; 
+    end
     
-    if isempty(tkns), continue; end
+    % then try nvalues expr
+    tkns = regexp(headerLines{k}, nvalExpr, 'tokens');
+    if ~isempty(tkns)
+      header.nValues = str2double(tkns{1}{1});
+      continue;
+    end
     
-    header.columns{end+1} = tkns{1}{1};
-    
+    % then try bad flag expr
+    tkns = regexp(headerLines{k}, badExpr, 'tokens');
+    if ~isempty(tkns)
+      header.badFlag = str2double(tkns{1}{1});
+      continue;
+    end
   end
 end
 
@@ -318,14 +309,128 @@ function data = parseData(dataLines, fileHeader)
   
   format = '';
   
-  % length(columns)+1 - it is assumed that there is a 'flag' column
   columns = fileHeader.columns;
-  for k = 1:length(columns)+1, format = [format '%n']; end
+  for k = 1:length(columns), format = [format '%n']; end
   
   dataLines = [dataLines{:}];
   
   dataLines = textscan(dataLines, format);
   
-  for k = 1:length(columns), data.(columns{k}) = dataLines{k}; end
+  for k = 1:length(columns)
+    
+    d = dataLines{k};
+    d(d == fileHeader.badFlag) = nan;
+    data.(genvarname(columns{k})) = d; 
+  end
   
+end
+
+function time = genTimestamps(instHeader, fileHeader, data)
+%GENTIMESTAMPS Generates timestamps for the data. Horribly ugly. I shouldn't 
+% have to have a function like this, but the SBE19 .cnv files do not provide 
+% timestamps for each sample.
+%
+  time = [];
+  
+  cStart = instHeader.castDate;
+  cInt   = (0.25 * instHeader.scanAvg) / 86400;
+  cEnd   = instHeader.castDate + (cInt * (fileHeader.nValues - 1));
+
+  % if one of the columns is 'Scan Count', use the 
+  % scan count number as the basis for the timestamps 
+  if isfield(data, 'ScanCount')
+    
+    time = ((data.ScanCount - 1) ./ 345600) + cStart;
+  
+  % if scan count is not present, calculate the 
+  % timestamps from start, end and interval
+  else
+    
+    time = (cStart:cInt:cEnd)';
+  end
+end
+
+function [name, data] = convertData(name, data) 
+%CONVERTDATA The SBE19 provides data in a bunch of different units of
+% measurement. This function is just a big switch statement which takes
+% SBE19 data as input, and attempts to convert it to IMOS compliant name and 
+% unit of measurement. Returns empty string/vector if the parameter is not 
+% supported.
+%
+
+  switch name
+    
+    % strain gauge pressure (dbar)
+    case 'prdM'
+      name = 'PRES';
+      
+    % temperature (deg C)
+    case 'tv290C'
+      name = 'TEMP';
+      
+    % conductivity (S/m)
+    case 'c0S0x2Fm'
+      name = 'CNDC';
+    
+    % conductivity (mS/cm)
+    % mS/cm -> S/m
+    case 'c0ms0x2Fcm'
+      name = 'CNDC';
+      data = data ./ 10;
+    
+    % conductivity (uS/cm)
+    case 'c0us0x2Fcm'
+      name = 'CNDC';
+      data = data ./ 100000;
+    
+    % fluorescence (ug/L)
+    % ug/L == mg/m^-3
+    case 'flC'
+      name = 'FLU2';
+      
+    % oxygen (mg/L)
+    % mg/L == kg/m^-3
+    case 'oxsolMg0x2FL'
+      name = 'DOXY';
+    
+    % oxygen (umol/Kg)
+    % umol/Kg -> mol/Kg
+    case 'oxsolMm0x2FKg'
+      name = 'DOX2';
+      data = data ./ 1000000;
+      
+    % oxygen (mg/L)
+    % mg/L == kg/m^-3
+    case 'oxsatMg0x2FL'
+      name = 'DOXY';
+      
+    % oxygen (umol/Kg)
+    % umol/Kg -> mol/Kg
+    case 'oxsatMm0x2FKg'
+      name = 'DOX2';
+      data = data ./ 1000000;
+    
+    % oxygen (mg/L)
+    % mg/L == kg/m^-3
+    case 'sbeox0Mg0x2FL'
+      name = 'DOXY';
+      
+    % oxygen (umol/Kg)
+    % umol/Kg -> mol/Kg
+    case 'sbeox0Mm0x2FKg'
+      name = 'DOX2';
+      data = data ./ 1000000;
+    
+    % salinity (PSU)
+    case 'sal00'
+      name = 'PSAL';
+    
+    % turbidity (NTU)
+    case 'obs'
+      name = 'TURB';
+      
+    otherwise 
+      name = '';
+      data = [];
+  end
 end
