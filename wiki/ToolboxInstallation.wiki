@@ -61,8 +61,9 @@ C:\imos-toolbox\Java\ddb.jar
 
 == Startup ==
 
-You should now be able to start matlab and run the toolbox:
+You should now be able to start matlab and run the toolbox. Before executing the `imosToolbox` function, you must first navigate to the installation directory:
 {{{
+>> cd C:\imos-toolbox
 >> imosToolbox
 }}}
 
