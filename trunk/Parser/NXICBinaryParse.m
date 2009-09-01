@@ -80,9 +80,9 @@ function sample_data = NXICBinaryParse( filename )
   
   % create the sample_data struct
   sample_data = struct;
-  sample_data.meta.instrument_make          = header.instrument_make;
-  sample_data.meta.instrument_model         = header.instrument_model;
-  sample_data.meta.instrument_serial_number = header.instrument_serial_number;
+  sample_data.meta.instrument_make      = header.instrument_make;
+  sample_data.meta.instrument_model     = header.instrument_model;
+  sample_data.meta.instrument_serial_no = header.instrument_serial_no;
   
   sample_data.dimensions = {};
   sample_data.dimensions{1}.name = 'TIME';
@@ -116,9 +116,9 @@ function header = parseHeader(data)
 
   header = struct;
   
-  header.instrument_make          = 'Falmouth Scientific Instruments';
-  header.instrument_model         = 'NXIC CTD';
-  header.instrument_serial_number = num2str(bytecast(data(3:4), 'L', 'uint16'));
+  header.instrument_make      = 'Falmouth Scientific Instruments';
+  header.instrument_model     = 'NXIC CTD';
+  header.instrument_serial_no = num2str(bytecast(data(3:4), 'L', 'uint16'));
   
   second = double(data(18));
   minute = double(data(19));
