@@ -8,6 +8,9 @@ function sample_data = timeOffsetPP( sample_data )
 % This function prompts the user to provide a time offset value (in hours)
 % to apply to each of the data sets.
 %
+% Default time offset values for timezone codes are stored in a plain text
+% file, timeOffsetPP.txt.
+%
 % Inputs:
 %   sample_data - cell array of structs, the data sets to which time
 %                 correction should be applied.
@@ -54,11 +57,6 @@ function sample_data = timeOffsetPP( sample_data )
   
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
-  
-  dateFmt = 'dd mm yyyy';
-  try dateFmt = readToolboxProperty('toolbox.dateFormat');
-  catch e
-  end
 
   descs     = {};
   timezones = {};
@@ -68,13 +66,7 @@ function sample_data = timeOffsetPP( sample_data )
   % create descriptions, and get timezones/offsets for each data set
   for k = 1:length(sample_data)
     
-    descs{k} = [...
-      sample_data{k}.meta.Sites.SiteName                            ' '   ...
-      num2str(sample_data{k}.meta.DeploymentData.InstrumentDepth)   'm: ' ...
-      sample_data{k}.meta.instrument_make                           ' '   ...
-      sample_data{k}.meta.instrument_model                          ' ('  ...
-      datestr(sample_data{k}.time_coverage_start, dateFmt)          ' - ' ...
-      datestr(sample_data{k}.time_coverage_end, dateFmt)            ')'];
+    descs{k} = genSampleDataDesc(sample_data{k});
     
     timezones{k} = sample_data{k}.meta.DeploymentData.TimeZone;
     offsets  (k) = readTimeOffset(timezones{k}); 
@@ -157,13 +149,20 @@ function sample_data = timeOffsetPP( sample_data )
   
   uiwait(f);
   
-  % apply the time offset to the 
+  % apply the time offset to the selected datasets
   for k = 1:length(sample_data)
     
+    % this set has been deselected
     if ~sets(k), continue; end
     
-    disp(descs{k});
+    timeIdx = getVar(sample_data{k}.dimensions, 'TIME');
     
+    % no time dimension in this dataset
+    if timeIdx == 0, continue; end
+    
+    % otherwise apply the offset
+    sample_data{k}.dimensions{timeIdx}.data = ...
+      sample_data{k}.dimensions{timeIdx}.data + (offsets(k) / 24);
     
   end
   
@@ -231,15 +230,15 @@ end
 
 function offset = readTimeOffset(timezone)
 % readTimeOffset Reads the given time zone offset value from the
-% timeOffsets.txt configuration file. If the time zone is not listed in the
+% timeOffsetPP.txt configuration file. If the time zone is not listed in the
 % file, nan is returned.
 %
   offset = nan;
   
   % read in the (timezone, offset) pairs
-  filepath = [pwd filesep 'Preprocessing' filesep 'timeOffsets.txt'];
+  filepath = [pwd filesep 'Preprocessing' filesep 'timeOffsetPP.txt'];
   fid = fopen(filepath, 'rt');
-  if fid == -1, error('could not open timeOffsets.txt'); end
+  if fid == -1, error('could not open timeOffsetPP.txt'); end
 
   lines = textscan(fid, '%s%s', 'Delimiter', ',', 'CommentStyle', '%');
   fclose(fid);
@@ -259,20 +258,20 @@ end
 
 function writeTimeOffset(newTimezone, newOffset)
 %WRITETIMEOFFSET Writes the given time zone/offset pair to the
-% timeOffsets.txt configuration file. If the time zone is already listed in
+% timeOffsetPP.txt configuration file. If the time zone is already listed in
 % the file, its offset value is updated.
 
   % open handles to old file and replacement file
-  oldfile = [pwd filesep 'Preprocessing' filesep  'timeOffsets.txt'];
-  newfile = [pwd filesep 'Preprocessing' filesep '.timeOffsets.txt'];
+  oldfile = [pwd filesep 'Preprocessing' filesep  'timeOffsetPP.txt'];
+  newfile = [pwd filesep 'Preprocessing' filesep '.timeOffsetPP.txt'];
   
   fid = fopen(oldfile, 'rt');
-  if  fid == -1, error('could not open timeOffsets.txt');  end
+  if  fid == -1, error('could not open timeOffsetPP.txt');  end
   
   nfid = fopen(newfile, 'wt');
   if nfid == -1
     fclose(fid);
-    error('could not open .timeOffsets.txt'); 
+    error('could not open .timeOffsetPP.txt'); 
   end
   
   % iterate through every line of the old file, copying to the new file
