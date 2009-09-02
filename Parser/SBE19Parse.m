@@ -21,7 +21,7 @@ function sample_data = SBE19Parse( filename )
 %   - Conductivity (S/m, mS/cm, uS/cm)
 %   - Turbidity/Backscatterance (NTU)
 %   - Pressure (db)
-%   - Fluorescence (ug/L)
+%   - Fluorescence (ug/L, mg/m^3)
 %   - Oxygen (mg/L, umol/kg)
 %   - Salinity (PSU)
 %
@@ -110,13 +110,7 @@ function sample_data = SBE19Parse( filename )
   % parse the various sections
   instHeader = parseInstrumentHeader(instHeaderLines);
   fileHeader = parseFileHeader(fileHeaderLines);
-  data       = parseData(dataLines, fileHeader);
-    
-  % if there is no time data in the file,
-  % generate time stamps for each sample
-  if ~isfield(data, 'Time')
-    data.Time = genTimestamps(instHeader, fileHeader, data);
-  end
+  data       = parseData(dataLines, instHeader, fileHeader);
   
   % create sample data struct
   sample_data = struct;
@@ -126,27 +120,26 @@ function sample_data = SBE19Parse( filename )
   sample_data.meta.instrument_firmware  = instHeader.instrument_firmware;
   sample_data.meta.instrument_serial_no = instHeader.instrument_serial_no;
   
-  sample_data.dimensions         = {};
-  sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.data = data.Time;
+  sample_data.dimensions = {};  
+  sample_data.variables  = {};
   
-  sample_data.variables = {};
+  % assume that there will always be a TIME field 
+  % (the parseData function ensures this)
+  sample_data.dimensions{1}.name = 'TIME';
+  sample_data.dimensions{1}.data = data.TIME;
   
   % scan through the list of parameters that were read 
   % from the file, and create a variable for each
   vars = fieldnames(data);
   for k = 1:length(vars)
     
-    [n, d] = convertData(vars{k}, data.(vars{k}));
-    
-    if isempty(n) || isempty(d), continue; end;
-    
+    if (strcmp(vars{k}, 'TIME')), continue; end
+      
     sample_data.variables{end+1}.dimensions = [1];
-    sample_data.variables{end  }.name       = n;
-    sample_data.variables{end  }.data       = d;
+    sample_data.variables{end  }.name       = vars{k};
+    sample_data.variables{end  }.data       = data.(vars{k});
   end
 end
-
 
 function header = parseInstrumentHeader(headerLines)
 %PARSEINSTRUMENTHEADER Parses the header lines from an SBE 19 file. Returns 
@@ -294,11 +287,12 @@ function header = parseFileHeader(headerLines)
   end
 end
 
-function data = parseData(dataLines, fileHeader)
+function data = parseData(dataLines, instHeader, fileHeader)
 %PARSEDATA Parses the data section of the .cnv file.
 %
 % Inputs:
 %   dataLines  - cell array of strings, the lines containing the data.
+%   instHeader - struct containing instrument header information.
 %   fileHeader - struct containing file header information.
 %
 % Outputs:
@@ -320,7 +314,30 @@ function data = parseData(dataLines, fileHeader)
     
     d = dataLines{k};
     d(d == fileHeader.badFlag) = nan;
-    data.(genvarname(columns{k})) = d; 
+    
+    [n, d] = convertData(genvarname(columns{k}), d, instHeader);
+    
+    if isempty(n) || isempty(d), continue; end
+    
+    % if the same parameter appears multiple times, 
+    % don't overwrite it in the data struct - append
+    % a number to the end of the variable name, as 
+    % per the IMOS convention
+    count = 0;
+    nn = n;
+    while isfield(data, nn)
+      
+      count = count + 1;
+      nn = [n '_' num2str(count)];
+    end
+    
+    data.(nn) = d; 
+  end
+  
+  % if there was no time data in the file,
+  % generate time stamps for each sample
+  if ~isfield(data, 'TIME')
+    data.TIME = genTimestamps(instHeader, fileHeader, data);
   end
   
 end
@@ -350,7 +367,7 @@ function time = genTimestamps(instHeader, fileHeader, data)
   end
 end
 
-function [name, data] = convertData(name, data) 
+function [name, data] = convertData(name, data, instHeader) 
 %CONVERTDATA The SBE19 provides data in a bunch of different units of
 % measurement. This function is just a big switch statement which takes
 % SBE19 data as input, and attempts to convert it to IMOS compliant name and 
@@ -359,6 +376,26 @@ function [name, data] = convertData(name, data)
 %
 
   switch name
+    
+    % elapsed time (seconds since start)
+    case 'timeS'
+      name = 'TIME';
+      data = data / 86400 + instHeader.castDate;
+      
+    % elapsed time (minutes since start)
+    case 'timeM'
+      name = 'TIME';
+      data = data / 1440 + instHeader.castDate;
+      
+    % elapsed time (hours since start)
+    case 'timeH'
+      name = 'TIME';
+      data = data / 24  + instHeader.castDate;
+    
+    % elapsed time (days since start of year)
+    case 'timeJ'
+      name = 'TIME';
+      data = rem(data, floor(data)) + floor(instHeader.castDate);
     
     % strain gauge pressure (dbar)
     case 'prdM'
@@ -387,9 +424,13 @@ function [name, data] = convertData(name, data)
     % ug/L == mg/m^-3
     case 'flC'
       name = 'FLU2';
+    
+    % fluorescence (mg/m^3)
+    case 'flECO0x2DAFL'
+      name = 'FLU2';
       
     % oxygen (mg/L)
-    % mg/L == kg/m^-3
+    % mg/L == kg/m^3
     case 'oxsolMg0x2FL'
       name = 'DOXY';
     
@@ -400,7 +441,7 @@ function [name, data] = convertData(name, data)
       data = data ./ 1000000;
       
     % oxygen (mg/L)
-    % mg/L == kg/m^-3
+    % mg/L == kg/m^3
     case 'oxsatMg0x2FL'
       name = 'DOXY';
       
@@ -411,7 +452,7 @@ function [name, data] = convertData(name, data)
       data = data ./ 1000000;
     
     % oxygen (mg/L)
-    % mg/L == kg/m^-3
+    % mg/L == kg/m^3
     case 'sbeox0Mg0x2FL'
       name = 'DOXY';
       
@@ -427,6 +468,10 @@ function [name, data] = convertData(name, data)
     
     % turbidity (NTU)
     case 'obs'
+      name = 'TURB';
+    
+    % turbidity (NTU)
+    case 'upoly0'
       name = 'TURB';
       
     otherwise 
