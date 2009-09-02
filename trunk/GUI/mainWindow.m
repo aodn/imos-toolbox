@@ -275,7 +275,7 @@ function mainWindow(...
     % regenerate descriptions
     sampleDataDescs = {};
     for k = 1:length(sample_data)
-      sampleDataDescs = genSampleDataDesc(sample_data{k}); 
+      sampleDataDescs{k} = genSampleDataDesc(sample_data{k}); 
     end
     
     set(sampleMenu, 'String', sampleDataDescs);
