@@ -99,7 +99,7 @@ function [instHeader fileHeader data] = readSBECNV( filename )
 end
 
 function header = parseInstrumentHeader(headerLines)
-%PARSEINSTRUMENTHEADER Parses the header lines from an SBE 19 file. Returns 
+%PARSEINSTRUMENTHEADER Parses the header lines from a .cnv file. Returns 
 % the header information in a struct.
 %
 % Inputs:
@@ -300,7 +300,7 @@ function data = parseData(dataLines, instHeader, fileHeader)
 end
 
 function [name, data] = convertData(name, data, instHeader) 
-%CONVERTDATA The SBE19 provides data in a bunch of different units of
+%CONVERTDATA The .cnv file provides data in a bunch of different units of
 % measurement. This function is just a big switch statement which takes
 % SBE19 data as input, and attempts to convert it to IMOS compliant name and 
 % unit of measurement. Returns empty string/vector if the parameter is not 
@@ -414,8 +414,8 @@ end
 
 function time = genTimestamps(instHeader, fileHeader, data)
 %GENTIMESTAMPS Generates timestamps for the data. Horribly ugly. I shouldn't 
-% have to have a function like this, but the SBE19 .cnv files do not 
-% necessarily provide timestamps for each sample.
+% have to have a function like this, but th .cnv files do not necessarily 
+% provide timestamps for each sample.
 %
   time = [];
   
