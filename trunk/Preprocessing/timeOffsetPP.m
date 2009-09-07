@@ -163,6 +163,10 @@ function sample_data = timeOffsetPP( sample_data )
     % otherwise apply the offset
     sample_data{k}.dimensions{timeIdx}.data = ...
       sample_data{k}.dimensions{timeIdx}.data + (offsets(k) / 24);
+    sample_data{k}.time_coverage_start = ...
+      sample_data{k}.time_coverage_start      + (offsets(k) / 24);
+    sample_data{k}.time_coverage_end   = ...
+      sample_data{k}.time_coverage_end        + (offsets(k) / 24);
     
   end
   
