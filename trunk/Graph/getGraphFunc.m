@@ -127,7 +127,7 @@ else
     fclose(fid);
   catch e
     if fid ~= -1, fclose(fid); end
-    rethrow(e);
+    parameters = {{}, {}};
   end
 
   % find the graph type for the specified parameter; 
