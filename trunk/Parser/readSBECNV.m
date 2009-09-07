@@ -405,7 +405,15 @@ function [name, data] = convertData(name, data, instHeader)
     % turbidity (NTU)
     case 'upoly0'
       name = 'TURB';
-      
+    
+    % depth (m)
+    case 'depSM'
+      name = 'DEPTH';
+    
+    % depth (m)
+    case 'depFM'
+      name = 'DEPTH';
+    
     otherwise 
       name = '';
       data = [];
