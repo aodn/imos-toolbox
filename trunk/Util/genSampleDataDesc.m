@@ -48,13 +48,9 @@ error(nargchk(1,1,nargin));
 if ~isstruct(sam), error('sam must be a struct'); end
 
 timeFmt = readToolboxProperty('toolbox.timeFormat');
-timeRange = '';
 
-time = getVar(sam.dimensions, 'TIME');
-if time ~= 0
-  timeRange = [datestr(sam.dimensions{time}.data(1),   timeFmt) ' - ' ...
-               datestr(sam.dimensions{time}.data(end), timeFmt)];
-end
+timeRange = [datestr(sam.time_coverage_start, timeFmt) ' - ' ...
+             datestr(sam.time_coverage_end,   timeFmt)];
 
 [fPath fName fSuffix] = fileparts(sam.meta.raw_data_file);
 
