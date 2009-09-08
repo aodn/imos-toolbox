@@ -174,8 +174,7 @@ function displayManager( fieldTrip, sample_data, callbacks)
     % data set.
     %
       % display metadata viewer, allowing user to modify metadata
-      viewMetadata(panel, ...
-        fieldTrip, sample_data{setIdx}, @metadataUpdateWrapperCallback);
+      viewMetadata(panel, sample_data{setIdx}, @metadataUpdateWrapperCallback);
 
       function metadataUpdateWrapperCallback(sam)
       %METADATAUPDATEWRAPPERCALLBACK Called by the viewMetadata display when
