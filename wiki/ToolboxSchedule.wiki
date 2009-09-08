@@ -14,6 +14,6 @@ The development schedule is as follows:
 || June 30^th^ 2009 || Toolbox version 1.0 released to community for testing. || issue 8 ||
 || July 9^th^ 2009 || Prototype system working for demonstration at AMSA workshop. || ||
 || July 10^th^ 2009 || Trial installation at SARDI || ||
-|| August 31^st^ 2009 || Toolbox version 1.5 released to community. || issue 19 ||
+|| September 30^th^ 2009 || Toolbox version 1.5 released to community. || issue 19 ||
 || September - October 2009 || Rollout of database and toolbox version 1.5 at all ANMN facilities || ||
 || November 30^th^ 2009 || Possible journal paper written and submitted. || ||
