@@ -1,4 +1,4 @@
-function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
+function [sample_data skipped] = importManager( deployments, dataDir )
 %IMPORTMANAGER Manages the import of raw instrument data into the toolbox.
 %
 % Imports raw data. If no inputs are given, prompts the user to select a 
@@ -26,8 +26,6 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
 %                 toolbox property is used as a default.
 %
 % Outputs:
-%   fieldTrip   - Struct containing information about the selected field
-%                 trip.
 %   sample_data - Cell array of sample_data structs, each containing sample
 %                 data for one instrument. 
 %
