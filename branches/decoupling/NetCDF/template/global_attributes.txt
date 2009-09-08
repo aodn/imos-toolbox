@@ -1,0 +1,54 @@
+% what
+S, project                      = Integrated Marine Observing System (IMOS)
+S, conventions                  = IMOS version 1.2
+S, title                        = 
+S, institution                  = 
+D, date_created                 = [mat sample_data.date_created]
+D, date_modified                = 
+S, abstract                     = [ddb Site Sites Description]
+S, comment                      = [ddb Comment]
+S, source                       = [ddb InstrumentID Instruments Make] [ddb InstrumentID Instruments Model]
+S, keywords                     = [ddb InstrumentID Instruments Model], [mat cellStructCons(sample_data.variables, 'name', ', ')]
+S, references                   = http://www.imos.org.au
+S, netcdf_version               = 3.6
+N, quality_control_set          = [mat readToolboxProperty('toolbox.qc_set')]
+S, site_code                    = 
+S, platform_code                = 
+S, naming_authority             = IMOS
+S, cdm_data_type                = 
+S, metadata                     = 
+S, sensorML                     = 
+
+% these fields are automatically populated upon creation/export
+S, file_version                 = 
+S, file_version_quality_control = 
+S, history                      = 
+
+% where
+N, geospatial_lat_min      = [ddb Site Sites Latitude]
+N, geospatial_lat_max      = [ddb Site Sites Latitude]
+N, geospatial_lon_min      = [ddb Site Sites Longitude]
+N, geospatial_lon_max      = [ddb Site Sites Longitude]
+N, geospatial_vertical_min = [ddb InstrumentDepth]
+N, geospatial_vertical_max = [ddb InstrumentDepth]
+
+% when
+N, local_time_zone     = 
+
+% these fields are automatically populated upon import
+D, time_coverage_start = 
+D, time_coverage_end   = 
+
+% who
+S, data_centre                  = eMarine Information Infrastructure (eMII)
+S, data_centre_email            = info@emii.org.au
+S, author_email                 = 
+S, author                       = 
+S, principal_investigator       = 
+S, principal_investigator_email =
+S, institution_references       = http://www.imos.org.au/emii.html
+
+% how
+S, citation               = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-url], accessed [date-of-access]"
+S, acknowledgement        = Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - an initiative of the Australian Government being conducted as part of the National Collaborative Research Infrastructure Strategy and and the Super Science Initiative."
+S, distribution_statement = Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
