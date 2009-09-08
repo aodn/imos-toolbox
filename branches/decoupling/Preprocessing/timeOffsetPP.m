@@ -68,7 +68,7 @@ function sample_data = timeOffsetPP( sample_data )
     
     descs{k} = genSampleDataDesc(sample_data{k});
     
-    timezones{k} = sample_data{k}.meta.DeploymentData.TimeZone;
+    timezones{k} = sample_data{k}.meta.timezone;
     offsets  (k) = readTimeOffset(timezones{k}); 
     
     if isnan(offsets(k)), offsets(k) = 0; end

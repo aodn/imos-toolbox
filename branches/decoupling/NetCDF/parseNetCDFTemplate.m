@@ -368,12 +368,13 @@ function value = parseDDBToken(token, sample_data, k)
 %
 
   value = '';
+  
+  % if there is no deployment database, set the value to an empty matrix
+  ddb = readToolboxProperty('toolbox.ddb');
+  if isempty(ddb), return; end
 
   % get the relevant deployment
-  deployment = sample_data.meta.DeploymentData;
-
-  % no such deployment exists in the ddb, or multiple hits
-  if length(deployment) ~= 1, return; end
+  deployment = sample_data.meta.deployment;
 
   % split the token up into its individual elements
   tkns = regexp(token, '\s+', 'split');
@@ -397,7 +398,6 @@ function value = parseDDBToken(token, sample_data, k)
       related_field = tkns{4};
     otherwise
       return;
-
   end
 
   % simple query - just a field in the DeploymentData table
