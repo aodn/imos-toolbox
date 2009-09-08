@@ -204,7 +204,15 @@ function displayManager( fieldTrip, sample_data, callbacks)
 
       % display selected raw data
       graphFunc = str2func(['graph' graphType]);
-      graphFunc(panel, sample_data{setIdx}, vars);
+      
+      try
+        graphFunc(panel, sample_data{setIdx}, vars);
+      catch e
+        errordlg(...
+          ['Could not display this data set using ' graphType ...
+           ' (' e.message '). Try a different graph type.' ], ...
+           'Graphing Error');
+      end
     end
 
     function qcCallback()
@@ -233,8 +241,16 @@ function displayManager( fieldTrip, sample_data, callbacks)
       % redisplay the data
       graphFunc = getGraphFunc(graphType, 'graph', '');
       flagFunc  = getGraphFunc(graphType, 'flag',  '');
-      [graphs lines] = graphFunc(panel, sample_data{setIdx}, vars);
-      flags          = flagFunc( panel, graphs, sample_data{setIdx}, vars);
+      
+      try 
+        [graphs lines] = graphFunc(panel, sample_data{setIdx}, vars);
+        flags          = flagFunc( panel, graphs, sample_data{setIdx}, vars);
+      catch e
+        errordlg(...
+          ['Could not display this data set using ' graphType ...
+           ' (' e.message '). Try a different graph type.' ], ...
+           'Graphing Error');
+      end
 
       % save line/flag handles and index in axis userdata 
       % so the data select callback can retrieve them
