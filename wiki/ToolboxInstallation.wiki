@@ -53,7 +53,7 @@ Under Windows, the deployment database (hereafter referred to as the ddb) is acc
        * Data Source Name: "imos-ddb" (or whatever you wish to call it)
        * Select -> navigate to the ddb MS Access file
 
-Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name.
+Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name. If you are not using a deployment database, make sure the `toolbox.ddb` property is unset.
 
 The ddb is accessed via Java code, thus you must also let Matlab know where the Java classes are, by editing `classpath.txt`. Assuming that matlab is installed in `C:\matlab`, and the toolbox is installed in `C:\imos-toolbox`, add the following line to the file `C:\matlab\toolbox\local\classpath.txt`:
 {{{
