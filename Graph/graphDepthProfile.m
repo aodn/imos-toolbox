@@ -1,0 +1,156 @@
+function [graphs lines] = graphDepthProfile( parent, sample_data, vars )
+%GRAPHDEPTHPROFILE Graphs the given data in a depth profile style using 
+% subplots.
+%
+% This function is useful for viewing CTD data, or any data which has
+% either a depth dimension or a depth variable. Depth is plotted on the Y
+% axis, and each other parameter is plotted against depth on the X axis.
+%
+% Inputs:
+%   parent             - handle to the parent container.
+%   sample_data        - struct containing sample data.
+%   vars               - Indices of variables that should be graphed..
+%
+% Outputs:
+%   graphs             - A vector of handles to axes on which the data has 
+%                        been graphed.
+%   lines              - A matrix of handles to line or surface (or other) 
+%                        handles which have been drawn, the same length as 
+%                        graphs.
+%
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%
+
+%
+% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Marine Observing System (IMOS).
+% All rights reserved.
+% 
+% Redistribution and use in source and binary forms, with or without 
+% modification, are permitted provided that the following conditions are met:
+% 
+%     * Redistributions of source code must retain the above copyright notice, 
+%       this list of conditions and the following disclaimer.
+%     * Redistributions in binary form must reproduce the above copyright 
+%       notice, this list of conditions and the following disclaimer in the 
+%       documentation and/or other materials provided with the distribution.
+%     * Neither the name of the eMII/IMOS nor the names of its contributors 
+%       may be used to endorse or promote products derived from this software 
+%       without specific prior written permission.
+% 
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+% POSSIBILITY OF SUCH DAMAGE.
+%
+  error(nargchk(3,3,nargin));
+  
+  if ~ishandle( parent),       error('parent must be a handle');      end
+  if ~isstruct( sample_data),  error('sample_data must be a struct'); end
+  if ~isnumeric(vars),         error('vars must be a numeric');       end
+  
+  graphs = [];
+  lines  = [];
+    
+  if isempty(vars), return; end
+  
+  % make sure the data set contains depth 
+  % data, either a dimension or a variable
+  depth = getVar(sample_data.dimensions, 'DEPTH');
+  
+  if depth ~= 0
+    
+    depth = sample_data.dimensions{depth};
+  else
+    
+    depth = getVar(sample_data.variables, 'DEPTH');
+    
+    if depth == 0, error('data set has no depth data'); end
+    
+    % we don't want to plot depth against itself, so if depth has been
+    % passed in as one of the variables to plot, remove it from the list
+    if ~isempty(find(vars == depth, 1))
+      vars(vars == depth) = []; 
+      if isempty(vars), return; end
+    end
+    
+    depth = sample_data.variables{depth};
+  end
+  
+  for k = 1:length(vars)
+    
+    name = sample_data.variables{vars(k)}.name;
+    
+    % create the axes; the subplots are laid out horizontally
+    graphs(k) = subplot(1, length(vars), k);
+    
+    set(graphs(k), 'Parent', parent,...
+                   'XGrid',  'on',...
+                   'Color', 'none',...
+                   'YGrid',  'on');
+    
+    % make sure line colour alternate; because we are creating 
+    % multiple axes, this is not done automatically for us
+    col = get(graphs(k), 'ColorOrder');
+    col = col(mod(k,length(col))+1,:);
+    
+    % plot the variable
+    plotFunc                    = getGraphFunc('DepthProfile', 'graph', name);
+    [lines(k,:) xLabel, yLabel] = plotFunc(   graphs(k), sample_data, vars(k));
+    
+    % set the line colour - wrap in a try block, 
+    % as surface plot colour cannot be set
+    try set(lines(k,:), 'Color', col);
+    catch e
+    end
+    
+    % set x label
+    uom = '';
+    try      uom = [' (' imosParameters(xLabel, 'uom') ')'];
+    catch e, uom = '';
+    end
+    xLabel = [xLabel uom];
+    set(get(graphs(k), 'XLabel'), 'String', xLabel);
+
+    % set y label
+    try      uom = [' (' imosParameters(yLabel, 'uom') ')'];
+    catch e, uom = '';
+    end
+    yLabel = [yLabel uom];
+    if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
+    set(get(graphs(k), 'YLabel'), 'String', yLabel);
+
+  end
+  
+  % compile variable names for the legend 
+  names = {};
+  for k = 1:length(vars)
+    
+    names{k} = sample_data.variables{vars(k)}.name;
+  end
+  
+  % link axes for panning/zooming, and add a legend - matlab has a habit of
+  % throwing 'Invalid handle object' errors for no apparent reason (i think 
+  % when the user changes selections too quickly, matlab is too slow, and 
+  % ends up confusing itself), so absorb any errors which are thrown
+  try
+    linkaxes(graphs, 'y');
+    
+    % When adding a single legend for multiple subplots, by default the legend 
+    % is added to the axis which corresponds to the first handle in the vector 
+    % that is passed in ('lines' in this case). This is a problem in our case, 
+    % because it means that the legend will be added to the left most axis, 
+    % whereas we want it to be added to the right-most axis. To get around 
+    % this, I'm reversing the order of the line handles (and names) before 
+    % passing them to the legend function.
+    legend(flipud(lines(:,1)), fliplr(names));
+  catch e
+  end
+end
