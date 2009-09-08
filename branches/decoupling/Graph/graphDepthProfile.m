@@ -63,16 +63,9 @@ function [graphs lines] = graphDepthProfile( parent, sample_data, vars )
   
   % make sure the data set contains depth 
   % data, either a dimension or a variable
-  depth = getVar(sample_data.dimensions, 'DEPTH');
-  
+  depth = getVar(sample_data.variables, 'DEPTH');
+    
   if depth ~= 0
-    
-    depth = sample_data.dimensions{depth};
-  else
-    
-    depth = getVar(sample_data.variables, 'DEPTH');
-    
-    if depth == 0, error('data set has no depth data'); end
     
     % we don't want to plot depth against itself, so if depth has been
     % passed in as one of the variables to plot, remove it from the list
@@ -82,6 +75,26 @@ function [graphs lines] = graphDepthProfile( parent, sample_data, vars )
     end
     
     depth = sample_data.variables{depth};
+  else
+    
+    depth = getVar(sample_data.dimensions, 'DEPTH');
+    
+    if depth == 0, error('data set has no depth data'); end
+    
+    remove = [];
+    
+    % if depth is a dimension, we can only plot those variables 
+    % which provide data along the depth dimension
+    for k = 1:length(vars)
+      if isempty(find(sample_data.variables{vars(k)}.dimensions == depth, 1))
+        remove(end+1) = vars(k);
+      end  
+    end
+    
+    vars = setdiff(vars, remove);
+    if isempty(vars), return; end
+    
+    depth = sample_data.dimensions{depth};
   end
   
   for k = 1:length(vars)
