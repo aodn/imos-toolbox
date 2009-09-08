@@ -1,5 +1,5 @@
 #summary Rough Toolbox GUI design
-#labels Design
+#labels Design,Deprecated
 
 <wiki:toc max_depth="2"/>
 
