@@ -11,15 +11,14 @@
 
 == Overview ==
 
-The IMOS Matlab Toolbox aims to provide an automated, easy to use interface for converting raw instrument data into IMOS/MEST compatible files, ready for handover to eMII. The first stage of this project is underway, and is specifically targeting 'delayed mode' data; in other words, data which is manually retrived from long-term mooring sites. 
+The IMOS Matlab Toolbox aims to provide an automated, easy to use interface for converting raw instrument data into IMOS compatible files, ready for handover to eMII. The first stage of this project is underway, and is specifically targeting 'delayed mode' data; in other words, data which is manually retrived from long-term mooring sites. 
 
 Typical usage of the Toolbox would proceed as follows:
 
  # User downloads data set from an instrument supported by the Toolbox (e.g. SBE37).
  # User imports data set into Toolbox.
- # Toolbox executes automatic QC procedures over data set, including in/out of water trimming, despiking, outlier checks, flatline checks, time drift correction.
+ # Toolbox executes automatic QC procedures over data set, such as in/out of water flagging, spike detection, outlier checks and flatline checks.
  # User performs manual QC over data via interactive display.
- # Toolbox generates data set metadata in MEST compatible format.
  # Toolbox generates eMII/IMOS compatible NetCDF files containing raw and QC'd data sets.
 
 While the Toolbox will be designed to execute with minimal user intervention (apart from manual quality control), the Matlab source will be available for users who wish to have more fine grained control over the execution flow, or who wish to integrate the Toolbox into an existing Matlab codebase. The Toolbox will be made available to, and will hopefully be useful for, all IMOS facilities.
@@ -30,7 +29,7 @@ System requirements for using the Toolbox are as follows:
 
  * Java Runtime Environment 1.5
  * (Optional) Local deployment database
- * Matlab (optional; a self-contained executable version is available)
+ * (Optional) Matlab R 2008 (A self-contained executable version is available)
 
 == Supported instruments ==
 
@@ -61,7 +60,7 @@ These levels (and the output files) map directly to the Processed Data levels de
 
 == Standardisation of instrument formats ==
 
-In order for the Toolbox to be useful for a variety of instruments, the input format for a particular instrument must be provided in a standard format, or a limited set of formats. See the SupportedInstruments page for information on data formats.
+In order for the Toolbox to be useful for a variety of instruments, the input format for a particular instrument must be provided in a standard format, or a limited set of formats. See the SupportedInstruments page for information on supported data formats.
 
 == Project hosting ==
 
