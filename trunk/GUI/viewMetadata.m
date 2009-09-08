@@ -1,4 +1,4 @@
-function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
+function viewMetadata(parent, sample_data, updateCallback)
 %VIEWMETADATA Displays metadata for the given data set in the given parent
 % figure/uipanel.
 %
@@ -11,7 +11,6 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
 % Inputs:
 %   parent         - handle to the figure/uipanel in which the metadata should
 %                    be displayed.
-%   fieldTrip      - struct containing field trip information.
 %   sample_data    - struct containing sample data.
 %   updateCallback - Function handle to a function which is called when
 %                    any metadata is modified. The function must be of the
@@ -51,10 +50,9 @@ function viewMetadata(parent, fieldTrip, sample_data, updateCallback)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(4, 4, nargin));
+  error(nargchk(3, 3, nargin));
 
   if ~ishandle(parent),      error('parent must be a handle');           end
-  if ~isstruct(fieldTrip),   error('fieldTrip must be a struct');        end
   if ~isstruct(sample_data), error('sample_data must be a struct');      end
   if ~isa(updateCallback,    'function_handle')
                              error('updateCallback must be a function'); end

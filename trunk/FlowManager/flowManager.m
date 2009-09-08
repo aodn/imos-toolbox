@@ -40,7 +40,7 @@ function flowManager()
   lastAutoQCSetIdx = 0;
 
   % import data
-  [fieldTrip rawData skipped] = importManager();
+  rawData = importManager();
   
   if isempty(rawData), return; end
   
@@ -59,7 +59,7 @@ function flowManager()
   callbacks.exportNetCDFRequestCallback = @exportNetCDFRequestCallback;
   callbacks.exportRawRequestCallback    = @exportRawRequestCallback;
   
-  displayManager(fieldTrip, rawData, callbacks);
+  displayManager('imos-toolbox', rawData, callbacks);
   
   function importRequestCallback()
   %IMPORTREQUESTCALLBACK Called when the user wishes to import more data.
@@ -69,7 +69,7 @@ function flowManager()
   %
   
     % prompt user to import more data
-    [fieldTrip importedData skipped] = importManager();
+    importedData = importManager();
     
     if isempty(importedData), return; end
     
@@ -77,8 +77,8 @@ function flowManager()
     remove = [];
     for k = 1:length(importedData)
       for m = 1:length(rawData)
-        if strcmp(     rawData{m}.meta.DeploymentData.DeploymentId,...
-                  importedData{k}.meta.DeploymentData.DeploymentId)
+        if strcmp(     rawData{m}.meta.raw_data_file,...
+                  importedData{k}.meta.raw_data_file)
           remove(end+1) = k;
         end
       end
