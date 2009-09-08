@@ -59,7 +59,7 @@ function flowManager()
   callbacks.exportNetCDFRequestCallback = @exportNetCDFRequestCallback;
   callbacks.exportRawRequestCallback    = @exportRawRequestCallback;
   
-  displayManager(fieldTrip, rawData, callbacks);
+  displayManager('imos-toolbox', rawData, callbacks);
   
   function importRequestCallback()
   %IMPORTREQUESTCALLBACK Called when the user wishes to import more data.
