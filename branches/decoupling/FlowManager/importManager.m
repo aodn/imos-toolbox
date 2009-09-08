@@ -1,13 +1,9 @@
-function sample_data = importManager( deployments, dataDir )
+function sample_data = importManager()
 %IMPORTMANAGER Manages the import of raw instrument data into the toolbox.
 %
-% Imports raw data. If no inputs are given, prompts the user to select a 
-% field trip and a directory containing raw data, then matches up deployments 
-% (retrieved from the DDB) with raw data files and imports and returns the 
-% data.
-%
-% If a vector of deployments and a data directory are given, the user is
-% not prompted for a field trip or directory.
+% Imports raw data. Prompts the user to select a field trip and a directory 
+% containing raw data, then matches up deployments (retrieved from the DDB) 
+% with raw data files and imports and returns the data.
 %
 % Deployments which do not specify a FileName field, or which have a 
 % FileName fild that contains the (case insensitive) substring 'no data'
@@ -15,15 +11,6 @@ function sample_data = importManager( deployments, dataDir )
 %
 % If something goes wrong, an error is raised. If the user cancels the 
 % operation, empty arrays are returned.
-%
-% Inputs:
-%   deployments - Optional. If provided, the user is not prompted for a
-%                 field trip ID or data directory.
-%
-%   dataDir     - Optional. If provided, the user is not prompted for a
-%                 field trip ID or data directory. If deployments is
-%                 provided and dataDir is not provided, the import.dataDir
-%                 toolbox property is used as a default.
 %
 % Outputs:
 %   sample_data - Cell array of sample_data structs, each containing sample
@@ -61,19 +48,12 @@ function sample_data = importManager( deployments, dataDir )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(0,2,nargin));
   
   fieldTrip   = [];
   sample_data = {};
   skipped     = [];
 
-  if     nargin == 0, [fieldTrip deployments dataDir] = getDeployments();
-  elseif nargin == 1
-    try dataDir = readToolboxProperty('startDialog.dataDir');
-    catch e, dataDir = pwd; 
-    end
-  elseif nargin == 2, 
-  end
+  [fieldTrip deployments dataDir] = getDeployments();
   
   if isempty(deployments), return; end
   
