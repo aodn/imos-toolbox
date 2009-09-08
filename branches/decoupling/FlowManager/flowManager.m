@@ -77,8 +77,8 @@ function flowManager()
     remove = [];
     for k = 1:length(importedData)
       for m = 1:length(rawData)
-        if strcmp(     rawData{m}.meta.DeploymentData.DeploymentId,...
-                  importedData{k}.meta.DeploymentData.DeploymentId)
+        if strcmp(     rawData{m}.meta.raw_data_file,...
+                  importedData{k}.meta.raw_data_file)
           remove(end+1) = k;
         end
       end
