@@ -1,4 +1,4 @@
-function displayManager( fieldTrip, sample_data, callbacks)
+function displayManager(windowTitle, sample_data, callbacks)
 %DISPLAYMANGER Manages the display of data.
 %
 % The display manager handles the interaction between the main window and
@@ -6,7 +6,7 @@ function displayManager( fieldTrip, sample_data, callbacks)
 % and how the system reacts when the user interacts with the main window.
 %
 % Inputs:
-%   fieldTrip   - struct containing field trip information.
+%   windowTitle - String to be used as main window title.
 %   sample_data - Cell array of sample_data structs, one for each instrument.
 %   callbacks   - struct containing the following function handles:
 %     importRequestCallback       - Callback function which is called when
@@ -74,7 +74,7 @@ function displayManager( fieldTrip, sample_data, callbacks)
 %
   error(nargchk(3,3,nargin));
 
-  if ~isstruct(fieldTrip), error('fieldTrip must be a struct');       end
+  if ~ischar(windowTitle), error('windowTitle must be a string');     end
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), error('sample_data is empty');             end
   if ~isstruct(callbacks), error('callbacks must be a struct');       end
@@ -110,7 +110,8 @@ function displayManager( fieldTrip, sample_data, callbacks)
   % define the user options, and create the main window
   states = {'Import', 'Metadata', 'Raw data', 'Quality Control', ...
             'Export NetCDF', 'Export Raw'};
-  mainWindow(fieldTrip, sample_data, states, 3, @stateSelectCallback);
+  
+  mainWindow(windowTitle, sample_data, states, 3, @stateSelectCallback);
       
   function state = stateSelectCallback(event,...
     panel, updateCallback, state, sample_data, graphType, setIdx, vars)
@@ -172,8 +173,7 @@ function displayManager( fieldTrip, sample_data, callbacks)
     % data set.
     %
       % display metadata viewer, allowing user to modify metadata
-      viewMetadata(panel, ...
-        fieldTrip, sample_data{setIdx}, @metadataUpdateWrapperCallback);
+      viewMetadata(panel, sample_data{setIdx}, @metadataUpdateWrapperCallback);
 
       function metadataUpdateWrapperCallback(sam)
       %METADATAUPDATEWRAPPERCALLBACK Called by the viewMetadata display when

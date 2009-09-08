@@ -1,40 +1,21 @@
-function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
+function sample_data = importManager()
 %IMPORTMANAGER Manages the import of raw instrument data into the toolbox.
 %
-% Imports raw data. If no inputs are given, prompts the user to select a 
-% field trip and a directory containing raw data, then matches up deployments 
-% (retrieved from the DDB) with raw data files and imports and returns the 
-% data.
+% Imports raw data. If a deployment database exists, prompts the user to 
+% select a field trip and a directory containing raw data, then matches up 
+% deployments (retrieved from the DDB) with raw data files and imports and 
+% returns the data.
 %
-% If a vector of deployments and a data directory are given, the user is
-% not prompted for a field trip or directory.
-%
-% Deployments which do not specify a FileName field, or which have a 
-% FileName fild that contains the (case insensitive) substring 'no data'
-% are ignored.
+% If a deployment database does not exist, prompts the user to select a
+% file and a parser, then imports and returns a single sample_data struct
+% within a cell array.
 %
 % If something goes wrong, an error is raised. If the user cancels the 
 % operation, empty arrays are returned.
 %
-% Inputs:
-%   deployments - Optional. If provided, the user is not prompted for a
-%                 field trip ID or data directory.
-%
-%   dataDir     - Optional. If provided, the user is not prompted for a
-%                 field trip ID or data directory. If deployments is
-%                 provided and dataDir is not provided, the import.dataDir
-%                 toolbox property is used as a default.
-%
 % Outputs:
-%   fieldTrip   - Struct containing information about the selected field
-%                 trip.
 %   sample_data - Cell array of sample_data structs, each containing sample
 %                 data for one instrument. 
-%
-%   skipped     - Vector of deployment structs, containing the deployments
-%                 for which data could not be imported (i.e. for which a
-%                 parser could not be found or for which an error occured
-%                 during the import).
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -68,53 +49,112 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(0,2,nargin));
-  
-  fieldTrip   = [];
-  sample_data = {};
-  skipped     = [];
 
-  if     nargin == 0, [fieldTrip deployments dataDir] = getDeployments();
-  elseif nargin == 1
-    try dataDir = readToolboxProperty('startDialog.dataDir');
-    catch e, dataDir = pwd; 
-    end
-  elseif nargin == 2, 
+  % If the toolbox.ddb property has been set, assume that we have a
+  % deployment database. Otherwise perform a manual import
+  ddb = readToolboxProperty('toolbox.ddb');
+  
+  sample_data = {};
+  rawFiles    = {};
+  
+  if ~isempty(ddb), [sample_data rawFiles] = ddbImport();
+  else              [sample_data rawFiles] = manualImport();
   end
   
-  if isempty(deployments), return; end
+  % user cancelled
+  if isempty(sample_data), return; end
   
-  if ~isstruct(deployments)
-    error('deployments is either not a struct, or contains no elements');
-  end
-    
-  % deps is easier to type
-  deps = deployments;
-  clear deployments;
+  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
+  qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
+  rawFlag = imosQCFlag('raw', qcSet, 'flag');
   
-  % if the user provided a set of deployments, 
-  % we need to retrieve the related field trip
-  if isempty(fieldTrip)
-    fieldTrip = ...
-      executeDDBQuery('FieldTrip', 'FieldTripID', deps(1).EndFieldTrip);
-    
-    if length(fieldTrip) ~= 1, error('invalid field trip ID'); end
+  % make data sets compliant
+  for k = 1:length(sample_data)
+    sample_data{k} = ...
+      finaliseData(sample_data{k}, rawFiles{k}, dateFmt, rawFlag);
   end
+end
+
+function [sample_data rawFile]= manualImport()
+%MANUALIMPORT Imports a data set by manually prompting the user to select a 
+% raw file, and a parser with which to import it.
+%
+% Outputs:
+%   sample_data - cell array containig a single imported data set, or empty 
+%                 cell array if the user cancelled.
+%   rawFile     - cell array containing the name of the raw file that the
+%                 user selected.
+%
+  sample_data = {};
+  rawFile     = {};
+  
+  manualDir = readToolboxProperty('importManager.manualDir');
+
+  % prompt the user to select a data file
+  [rawFile path] = uigetfile('*', 'Select Data File', manualDir);
+  
+  writeToolboxProperty('importManager.manualDir', path);
+  
+  if rawFile == 0, return; end;
+  
+  % prompt the user to select a parser with which to import the file
+  parsers = listParsers();
+  parser = optionDialog('Select a parser',...
+    'Select a parser with which to import the data', parsers, 1);
+
+  % user cancelled dialog
+  if isempty(parser)
+    parser = 0;
+    return;
+  end
+  
+  parser = getParser(parser);
+  
+  
+  % display progress dialog
+  progress = waitbar(0, ['importing ' rawFile], ...
+    'Name',                  'Importing',...
+    'DefaultTextInterpreter','none');
+  
+  % import the data
+  rawFile     = [path rawFile];
+  sample_data = {parser({rawFile})};
+  rawFile     = {{rawFile}};
+  
+  close(progress);
+end
+
+function [sample_data rawFiles] = ddbImport()
+%DDBIMPORT Imports data sets using metadata retrieved from a deployment
+% database.
+%
+% Outputs:
+%   sample_data - cell array containig the imported data sets, or empty 
+%                 cell array if the user cancelled.
+%   rawFile     - cell array containing the names of the raw files for each
+%                 data set.
+%
+  sample_data = {};
+  rawFiles    = {};
+
+  [fieldTrip deps dataDir] = getDeployments();
+  
+  if isempty(deps), return; end
     
   % find physical files for each deployment
-  files = cell(size(deps));
+  rawFiles = cell(size(deps));
   for k = 1:length(deps)
     
     id   = deps(k).DeploymentId;
-    file = deps(k).FileName;
+    rawFile = deps(k).FileName;
     
-    hits = fsearch(file, dataDir);
-    files{k} = hits;
+    hits = fsearch(rawFile, dataDir);
+    rawFiles{k} = hits;
   end
   
   % display status dialog to highlight any discrepancies (file not found
   % for a deployment, more than one file found for a deployment)
-  [deps files] = dataFileStatusDialog(deps, files);
+  [deps rawFiles] = dataFileStatusDialog(deps, rawFiles);
   
   % user cancelled file dialog
   if isempty(deps), return; end
@@ -123,11 +163,7 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
   progress = waitbar(0, 'importing data', ...
     'Name',                  'Importing',...
     'DefaultTextInterpreter','none');
-  
-  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
-  qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
-  rawFlag = imosQCFlag('raw', qcSet, 'flag');
-  
+    
   parsers = listParsers();
   noParserPrompt = eval(readToolboxProperty('importManager.noParserPrompt'));
   
@@ -138,45 +174,22 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
     
     try
       fileDisplay = '';
-      if isempty(files{k}), error('no files to import'); end
+      if isempty(rawFiles{k}), error('no files to import'); end
 
       % update progress dialog
-      for m = 1:length(files{k})
-        [path name ext] = fileparts(files{k}{m});
+      for m = 1:length(rawFiles{k})
+        [path name ext] = fileparts(rawFiles{k}{m});
         fileDisplay = [fileDisplay ', ' name ext];
       end
       fileDisplay = fileDisplay(3:end);
       waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
 
       % import data
-      sam = parse(deps(k), files{k}, parsers, noParserPrompt);
-      
-      % make sure the return value is valid
-      if ~isstruct(sam) && ~iscell(sam)
-        error('invalid parser return type');
-      end
-      
-      % if return value is a single struct, turn it into a cell array
-      if ~iscell(sam)
-        temp{1} = sam;
-        sam     = temp;
-      end
-      
-      for m = 1:length(sam)
-      
-        sam{m} = finaliseData(sam{m}, fieldTrip, deps(k), dateFmt, rawFlag);
-
-        % turn raw data files a into semicolon separated string
-        sam{m}.meta.raw_data_file = ...
-          cellfun(@(x)([x ';']), files{k}, 'UniformOutput', false);
-        sam{m}.meta.raw_data_file = [sam{m}.meta.raw_data_file{:}];
-
-        sample_data{end+1} = sam{m};
-      end
+      sample_data{k} = parse(deps(k), rawFiles{k}, parsers, noParserPrompt);
+      sample_data{k}.meta.deployment = deps(k);
     
     % failure is not fatal
     catch e
-      skipped(end+1) = k;
       disp(['skipping ' fileDisplay '(' e.message ')']);
       for m = 1:length(e.stack)
         disp([e.stack(m).file ':' ...
@@ -188,188 +201,197 @@ function [fieldTrip sample_data skipped] = importManager( deployments, dataDir )
   % close progress dialog
   close(progress);
   
-  % return the deployments that were skipped
-  skipped = deps(skipped);
-end
+  function [fieldTrip deployments dataDir] = getDeployments()
+  %GETDEPLOYMENTS Prompts the user for a field trip ID and data directory.
+  % Retrieves and returns the field trip, all deployments from the DDB that 
+  % are related to the field trip, and the selected data directory.
+  %
+  % Outputs:
+  %   fieldTrip   - field trip struct - the field trip selected by the user.
+  %   deployments - vector of deployment structs related to the selected 
+  %                 field trip.
+  %   dataDir     - String containing data directory path selected by user.
+  %
+    deployments = [];
 
-function [fieldTrip deployments dataDir] = getDeployments()
-%GETDEPLOYMENTS Prompts the user for a field trip ID and data directory.
-% Retrieves and returns the field trip, all deployments from the DDB that 
-% are related to the field trip, and the selected data directory.
-%
-% Outputs:
-%   fieldTrip   - field trip struct - the field trip selected by the user.
-%   deployments - vector of deployment structs related to the selected 
-%                 field trip.
-%   dataDir     - String containing data directory path selected by user.
-%
-  deployments = [];
+    % prompt the user to select a field trip and 
+    % directory which contains raw data files
+    [fieldTrip dataDir] = startDialog();
 
-  % prompt the user to select a field trip and 
-  % directory which contains raw data files
-  [fieldTrip dataDir] = startDialog();
-    
-  % user cancelled start dialog
-  if isempty(fieldTrip) || isempty(dataDir), return; end
-  
-  fId = fieldTrip.FieldTripID;
+    % user cancelled start dialog
+    if isempty(fieldTrip) || isempty(dataDir), return; end
 
-  % query the ddb for all deployments related to this field trip
-  deployments = executeDDBQuery('DeploymentData', 'StartFieldTrip', fId);
-  endDeps     = executeDDBQuery('DeploymentData', 'EndFieldTrip',   fId);
-  
-  % merge end field trip deployments with start field 
-  % trip deployments; ensure there are no duplicates
-  for k = 1:length(endDeps)
-    
-    d = endDeps(k);
-    if find(ismember({deployments.DeploymentId}, d.DeploymentId))
-      continue; 
+    fId = fieldTrip.FieldTripID;
+
+    % query the ddb for all deployments related to this field trip
+    deployments = executeDDBQuery('DeploymentData', 'StartFieldTrip', fId);
+    endDeps     = executeDDBQuery('DeploymentData', 'EndFieldTrip',   fId);
+
+    % merge end field trip deployments with start field 
+    % trip deployments; ensure there are no duplicates
+    for k = 1:length(endDeps)
+
+      d = endDeps(k);
+      if find(ismember({deployments.DeploymentId}, d.DeploymentId))
+        continue; 
+      end
+      deployments(end+1) = d;
     end
-    deployments(end+1) = d;
-  end
-  
-  if isempty(deployments)
-    error(['no deployments related to field trip ' num2str(fId)]); 
-  end
-end
-
-function sam = parse(deployment, files, parsers, noParserPrompt)
-%PARSE Parses a raw data file, returns a sample_data struct.
-%
-% Inputs:
-%   deployment     - Struct containing deployment data.
-%   files          - Cell array containing file names.
-%   parsers        - Cell array of strings containing all available parsers.
-%   noParserPrompt - Whether to prompt the user if a parser cannot be found.
-%
-% Outputs:
-%   sam        - Struct containing sample data.
-
-  % get the appropriate parser function
-  parser = getParserFunc(deployment, parsers, noParserPrompt);
-  if isnumeric(parser)
-    error(['no parser found for instrument ' deployment.InstrumentID]); 
   end
 
-  % parse the data; let errors propagate
-  sam = parser(files);
+  function sam = parse(deployment, files, parsers, noParserPrompt)
+  %PARSE Parses a raw data file, returns a sample_data struct.
+  %
+  % Inputs:
+  %   deployment     - Struct containing deployment data.
+  %   files          - Cell array containing file names.
+  %   parsers        - Cell array of strings containing all available parsers.
+  %   noParserPrompt - Whether to prompt the user if a parser cannot be found.
+  %
+  % Outputs:
+  %   sam        - Struct containing sample data.
 
-end
-
-function parser = getParserFunc(deployment, parsers, noParserPrompt)
-%GETPARSERFUNC Searches for a parser function which is able to parse data 
-% for the given deployment.
-%
-% Inputs:
-%   deployment     - struct containing information about the deployment.
-%   parsers        - Cell array of strings containing all available parsers.
-%   noParserPrompt - Whether to prompt the user if a parser cannot be found.
-%
-% Outputs:
-%   parser     - Function handle to the parser function, or 0 if a parser
-%                function wasn't found.
-%
-  instrument = executeDDBQuery(...
-    'Instruments', 'InstrumentID', deployment.InstrumentID);
-  
-  % there should be exactly one instrument 
-  if length(instrument) ~= 1
-    error(['invalid number of instruments returned from DDB query: ' ...
-           num2str(length(instrument))]); 
-  end
-  
-  % get the parser name
-  parser = getParserNameForInstrument(instrument.Make, instrument.Model);
-  
-  % if there is no parser for the instrument, prompt the user to choose one
-  if parser == 0
-    if ~noParserPrompt, return; end
-    
-    parser = optionDialog(...
-      'Select a parser',...
-      ['A parser could not be found for the ' ...
-       instrument.Make ' ' instrument.Model ...
-       '. Please select one from the list.'],...
-      parsers, 1);
-    
-    % user cancelled dialog
-    if isempty(parser)
-      parser = 0;
-      return;
+    % get the appropriate parser function
+    parser = getParserFunc(deployment, parsers, noParserPrompt);
+    if isnumeric(parser)
+      error(['no parser found for instrument ' deployment.InstrumentID]); 
     end
-    
-    % persist the instrument<->parser mapping for next time
-    setParserNameForInstrument(instrument.Make, instrument.Model, parser);
-    
+
+    % parse the data; let errors propagate
+    sam = parser(files);
+
   end
-  
-  % get the parser function handle
-  parser = getParser(parser);
+
+  function parser = getParserFunc(deployment, parsers, noParserPrompt)
+  %GETPARSERFUNC Searches for a parser function which is able to parse data 
+  % for the given deployment.
+  %
+  % Inputs:
+  %   deployment     - struct containing information about the deployment.
+  %   parsers        - Cell array of strings containing all available parsers.
+  %   noParserPrompt - Whether to prompt the user if a parser cannot be found.
+  %
+  % Outputs:
+  %   parser     - Function handle to the parser function, or 0 if a parser
+  %                function wasn't found.
+  %
+    instrument = executeDDBQuery(...
+      'Instruments', 'InstrumentID', deployment.InstrumentID);
+
+    % there should be exactly one instrument 
+    if length(instrument) ~= 1
+      error(['invalid number of instruments returned from DDB query: ' ...
+             num2str(length(instrument))]); 
+    end
+
+    % get the parser name
+    parser = getParserNameForInstrument(instrument.Make, instrument.Model);
+
+    % if there is no parser for the instrument, prompt the user to choose one
+    if parser == 0
+      if ~noParserPrompt, return; end
+
+      parser = optionDialog(...
+        'Select a parser',...
+        ['A parser could not be found for the ' ...
+         instrument.Make ' ' instrument.Model ...
+         '. Please select one from the list.'],...
+        parsers, 1);
+
+      % user cancelled dialog
+      if isempty(parser)
+        parser = 0;
+        return;
+      end
+
+      % persist the instrument<->parser mapping for next time
+      setParserNameForInstrument(instrument.Make, instrument.Model, parser);
+
+    end
+
+    % get the parser function handle
+    parser = getParser(parser);
+  end
 end
 
-function sam = finaliseData(sam, fieldTrip, deployment, dateFmt, flagVal)
+function sam = finaliseData(sam, rawFiles, dateFmt, flagVal)
 %FINALISEDATA Adds all required/relevant information from the given field
 %trip and deployment structs to the given sample data.
 %
-  
-  % process level == raw (file version 0)
-  sam.meta.level                   = 0;
-  sam.meta.log                     = {};
+
+  % add IMOS file version info
   sam.file_version                 = imosFileVersion(0, 'name');
   sam.file_version_quality_control = imosFileVersion(0, 'desc');
   sam.date_created                 = now;
-    
-  % add metadata to the sample data struct, to 
-  % eliminate the need for later DDB lookups
-  sam.meta.DeploymentData = deployment;
-  sam.meta.FieldTrip      = fieldTrip;
-  sam.meta.Sites          = executeDDBQuery('Sites', 'Site', deployment.Site);
-  sam.meta.Instruments    = executeDDBQuery('Instruments', ...
-    'InstrumentID', deployment.InstrumentID);
+
+  % turn raw data files a into semicolon separated string
+  rawFiles = cellfun(@(x)([x ';']), rawFiles, 'UniformOutput', false);
   
-  if isempty(sam.meta.Sites)
-    sam.meta = rmfield(sam.meta, 'Sites'); 
-  end
-  if isempty(sam.meta.Instruments)
-    sam.meta = rmfield(sam.meta, 'Instruments'); 
+  sam.meta.level         = 0;
+  sam.meta.log           = {};
+  sam.meta.raw_data_file = [rawFiles{:}];
+  
+  if isfield(sam.meta, 'deployment')
+    sam.meta.site_name     = sam.meta.deployment.Site;
+    sam.meta.depth         = sam.meta.deployment.InstrumentDepth;
+    sam.meta.timezone      = sam.meta.deployment.TimeZone;
+  else
+    sam.meta.site_name     = 'NONAME';
+    sam.meta.depth         = nan;
+    sam.meta.timezone      = 'UTC';
   end
   
+  % add empty QC flags for all variables
   for k = 1:length(sam.variables)
     
     sam.variables{k}.flags(1:numel(sam.variables{k}.data)) = flagVal;
     sam.variables{k}.flags = reshape(...
-      sam.variables{k}.flags, size(sam.variables{k}.data));
+    sam.variables{k}.flags, size(sam.variables{k}.data));
   end
   
+  % and for all dimensions
   for k = 1:length(sam.dimensions)
     
     sam.dimensions{k}.flags(1:numel(sam.dimensions{k}.data)) = flagVal;
     sam.dimensions{k}.flags = reshape(...
-      sam.dimensions{k}.flags, size(sam.dimensions{k}.data));
+    sam.dimensions{k}.flags, size(sam.dimensions{k}.data));
   end
   
-  % add IMOS-compliant parameters
+  % add IMOS parameters
   sam = makeNetCDFCompliant(sam);
   
   % set the time coverage period - use the best field available
-  if ~isempty(deployment.TimeFirstGoodData)
-    sam.time_coverage_start = deployment.TimeFirstGoodData;
-  elseif ~isempty(deployment.TimeFirstInPos)
-    sam.time_coverage_start = deployment.TimeFirstInPos;
-  elseif ~isempty(deployment.TimeFirstWet)
-    sam.time_coverage_start = deployment.TimeFirstWet;
-  elseif ~isempty(deployment.TimeSwitchOn)
-    sam.time_coverage_start = deployment.TimeSwitchOn;
-  end
-  
-  if ~isempty(deployment.TimeLastGoodData)
-    sam.time_coverage_end = deployment.TimeLastGoodData;
-  elseif ~isempty(deployment.TimeLastInPos)
-    sam.time_coverage_end = deployment.TimeLastInPos;
-  elseif ~isempty(deployment.TimeOnDeck)
-    sam.time_coverage_end = deployment.TimeOnDeck;
-  elseif ~isempty(deployment.TimeSwitchOff)
-    sam.time_coverage_end = deployment.TimeSwitchOff;
+  if isfield(sam.meta, 'deployment')
+    
+    if ~isempty(sam.meta.deployment.TimeFirstGoodData)
+      sam.time_coverage_start = sam.meta.deployment.TimeFirstGoodData;
+    elseif ~isempty(sam.meta.deployment.TimeFirstInPos)
+      sam.time_coverage_start = sam.meta.deployment.TimeFirstInPos;
+    elseif ~isempty(sam.meta.deployment.TimeFirstWet)
+      sam.time_coverage_start = sam.meta.deployment.TimeFirstWet;
+    elseif ~isempty(sam.meta.deployment.TimeSwitchOn)
+      sam.time_coverage_start = sam.meta.deployment.TimeSwitchOn;
+    end
+
+    if ~isempty(sam.meta.deployment.TimeLastGoodData)
+      sam.time_coverage_end = sam.meta.deployment.TimeLastGoodData;
+    elseif ~isempty(sam.meta.deployment.TimeLastInPos)
+      sam.time_coverage_end = sam.meta.deployment.TimeLastInPos;
+    elseif ~isempty(sam.meta.deployment.TimeOnDeck)
+      sam.time_coverage_end = sam.meta.deployment.TimeOnDeck;
+    elseif ~isempty(sam.meta.deployment.TimeSwitchOff)
+      sam.time_coverage_end = sam.meta.deployment.TimeSwitchOff;
+    end
+  else
+    
+    time = getVar(sam.dimensions, 'TIME');
+    
+    if time ~= 0
+      sam.time_coverage_start = sam.dimensions{time}.data(1);
+      sam.time_coverage_end   = sam.dimensions{time}.data(end);
+    else
+      sam.time_coverage_start = 0;
+      sam.time_coverage_end   = 0;
+    end
   end
 end

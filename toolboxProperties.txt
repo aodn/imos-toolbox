@@ -37,6 +37,9 @@ startDialog.fieldTrip =
 startDialog.lowDate =
 startDialog.highDate =
 
+% default directory for manual data import
+importManager.manualDir = C:
+
 % default directory for file export
 exportDialog.defaultDir = C:
 

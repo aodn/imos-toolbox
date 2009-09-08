@@ -94,7 +94,10 @@ function [exportDir sets] = exportDialog( ...
   catch e
   end
   
-  descs = genDataSetDescs(dataSets{1}, setNames);
+  descs = {};
+  for k = 1:length(dataSets{1})
+    descs{k} = genSampleDataDesc(dataSets{1}{k});
+  end
   
   % dialog figure
   f = figure(...
@@ -384,22 +387,5 @@ function [exportDir sets] = exportDialog( ...
     setIdx = get(get(source, 'Parent'), 'UserData');
     
     selectedLevels(setIdx, lvlIdx) = get(source, 'Value');
-  end
-  
-  function descs = genDataSetDescs(sets, names)
-  %GENDATASETDESCS Generates a description for the given data sets, to be
-  %used in the dialog display.
-  %
-    descs = {};
-    
-    for k = 1:length(sets)
-      s = sets{k};
-      
-      descs{k} = ['(' s.meta.instrument_model ')' names{k}];
-      
-      if isfield(s.meta, 'site')
-        descs{k} = [s.meta.Sites.SiteName ' ' descs{k}];
-      end
-    end
   end
 end
