@@ -9,7 +9,9 @@ function graphs = listGraphs()
 %
 % This function simply searches the subdirectory looking for files which
 % match the above pattern, and returns the names of those files, minus the 
-% 'graph' prefix, and the '.m' suffix.
+% 'graph' prefix, and the '.m' suffix. The graphTimeSeries function is the
+% de-facto standard; this entry (if it exists) is explicitly placed at the
+% start of the returned cell array.
 %
 % Outputs:
 %   graphs - cell array of strings, each of which is the name of a graph
@@ -52,3 +54,11 @@ path    = [pwd filesep 'Graph'];
 pattern = '^graph(.+)\.m$';
 
 graphs  = listFiles(path, pattern);
+
+% place timeseries at the start
+ts = find(ismember(graphs, 'TimeSeries'));
+if ~isempty(ts)
+  
+  graphs(ts) = [];
+  graphs     = ['TimeSeries' graphs];
+end
