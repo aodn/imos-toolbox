@@ -110,7 +110,9 @@ function displayManager( fieldTrip, sample_data, callbacks)
   % define the user options, and create the main window
   states = {'Import', 'Metadata', 'Raw data', 'Quality Control', ...
             'Export NetCDF', 'Export Raw'};
-  mainWindow(fieldTrip, sample_data, states, 3, @stateSelectCallback);
+  
+  windowTitle = ['Field Trip ' num2str(fieldTrip.FieldTripID)];
+  mainWindow(windowTitle, sample_data, states, 3, @stateSelectCallback);
       
   function state = stateSelectCallback(event,...
     panel, updateCallback, state, sample_data, graphType, setIdx, vars)

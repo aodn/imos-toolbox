@@ -1,5 +1,5 @@
 function mainWindow(...
-  fieldTrip, sample_data, states, startState, selectionCallback)
+  windowTitle, sample_data, states, startState, selectionCallback)
 %MAINWINDOW Displays a window which allows the user to view data.
 %
 % The mainWindow is the main toolbox window. It provides menus allowing the
@@ -22,8 +22,7 @@ function mainWindow(...
 % display consistent.
 %
 % Inputs:
-%   fieldTrip         - Struct containing information about the field trip 
-%                       from which data is being displayed.
+%   windowTitle       - String to be used as the window title.
 %   sample_data       - Cell array of structs of sample data.
 %   states            - Cell array of strings containing state names.
 %   startState        - Index into states array, specifying initial state.
@@ -86,7 +85,7 @@ function mainWindow(...
 %
   error(nargchk(5,5,nargin));
 
-  if ~isstruct(fieldTrip),   error('fieldTrip must be a struct');           end
+  if ~ischar(windowTitle),   error('windowTitle must be a string');         end
   if ~iscell(sample_data)...
   || isempty(sample_data),   error('sample_data must be a cell array');     end
   if ~iscellstr(states),     error('states must be a cell array');          end
@@ -96,8 +95,6 @@ function mainWindow(...
   
   currentState = states{startState};
   
-  fId = fieldTrip.FieldTripID;
-  
   % sample menu entries (1-1 mapping to sample_data structs)
   sampleDataDescs = {};
   for k = 1:length(sample_data)
@@ -106,7 +103,7 @@ function mainWindow(...
 
   % window figure
   fig = figure(...
-    'Name',        ['IMOS Field Trip ' num2str(fId)], ...
+    'Name',        windowTitle, ...
     'Visible',     'off',...
     'MenuBar',     'none',...
     'ToolBar',     'figure',...
