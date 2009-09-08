@@ -40,7 +40,7 @@ function flowManager()
   lastAutoQCSetIdx = 0;
 
   % import data
-  [rawData skipped] = importManager();
+  rawData = importManager();
   
   if isempty(rawData), return; end
   
@@ -69,7 +69,7 @@ function flowManager()
   %
   
     % prompt user to import more data
-    [importedData skipped] = importManager();
+    importedData = importManager();
     
     if isempty(importedData), return; end
     

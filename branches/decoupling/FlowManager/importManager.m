@@ -1,4 +1,4 @@
-function [sample_data skipped] = importManager( deployments, dataDir )
+function sample_data = importManager( deployments, dataDir )
 %IMPORTMANAGER Manages the import of raw instrument data into the toolbox.
 %
 % Imports raw data. If no inputs are given, prompts the user to select a 
@@ -28,11 +28,6 @@ function [sample_data skipped] = importManager( deployments, dataDir )
 % Outputs:
 %   sample_data - Cell array of sample_data structs, each containing sample
 %                 data for one instrument. 
-%
-%   skipped     - Vector of deployment structs, containing the deployments
-%                 for which data could not be imported (i.e. for which a
-%                 parser could not be found or for which an error occured
-%                 during the import).
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
