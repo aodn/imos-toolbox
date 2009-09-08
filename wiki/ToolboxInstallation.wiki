@@ -12,9 +12,9 @@ This page provides an overview of the steps required in order to get a source ba
  * Windows XP
  * Matlab (r 2008a or newer)
  * Java JRE (1.5 or newer)
- * A deployment database which contains some data (have a look at the deployment database [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf guidelines].
+ * (Optional) A deployment database which contains some data (have a look at the deployment database [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf guidelines].
 
-The toolbox will run under Linux, but MS Access support is flaky at best. Having said that, I've developed the toolbox almost exclusively under Ubuntu 9.04 (testing under Windows regularly, of course). See [DeploymentDatabaseInterface here] for more details on running the toolbox under Linux.
+The toolbox will run under Linux. If you are using a deployment database however, MS Access support under Linux is flaky at best. Having said that, I've developed the toolbox almost exclusively under Ubuntu 9.04 (testing under Windows regularly, of course). See [DeploymentDatabaseInterface here] for more details on running the toolbox under Linux.
 
 == Download and install ==
 
