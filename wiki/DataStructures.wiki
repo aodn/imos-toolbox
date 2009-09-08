@@ -17,12 +17,17 @@ The following sections define scalar instances of `sample_data` structs.
 
  * `sample_data`: struct
    * `meta`: Any metadata which is not to be exported to NetCDF.
-     * `FieldTrip`: Associated field trip entry from the deployment database
-     * `DeploymentData`: Associated deployment entry from the deployment database
-     * `Sites`:  Associated site entry from the deployment database
-     * `Instruments`: Associated instrument entry from the deployment database
+     * `index`: Internally used index (Numeric)
      * `level`: Data process level (Numeric)
      * `log`: Cell array of strings forming a log of the processing which has occurred on the data.
+     * `raw_data_file`: Semi-colon separated string containing the names of the raw data files from where this data set originated (String)
+     * `instrument_make`: The instrument make, or manufacturer (String)
+     * `instrument_model`: The instrument model (String)
+     * `instrument_serial_no`: The instrument serial number/code (String)
+     * `site_name`: Name of the site where the instrument was deployed (String)
+     * `depth`: Nominal deployed instrument depth (Numeric)
+     * `timezone`: Local timezone where the instrument was deployed (String)
+     * `deployment`: If a deployment database was used to import the data, this is a struct containing the relevant DeploymentData information (struct)
    * `dimensions`: Cell array of structs:
      * `name`: IMOS compliant dimension name (String)
      * `data`: Vector of dimension data (Numeric)
@@ -38,6 +43,7 @@ The following sections define scalar instances of `sample_data` structs.
  * It is assumed that time is always the first element of the `dimensions` array, the first element of every `variables.dimensions` vector, and the first dimension of the `variables.data` matrices. This implies that single dimensional data must be stored as column vectors.
  * The `variables.dimensions` array must be in the same order as the `variables.data` matrix indices.
  * Automatic and manual QC procedures should add to the log array when they modify any data.
+ * The `meta.deployment` struct is not present for data which were imported directly.
 
 === Flagged data ===
 
