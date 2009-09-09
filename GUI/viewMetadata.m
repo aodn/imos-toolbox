@@ -80,26 +80,19 @@ function viewMetadata(parent, sample_data, updateCallback)
   end
   
   % create a cell array containing global attribute data
-  globData = [...
-    fieldnames(globs)... 
-    cellfun(@num2str,struct2cell(globs), 'UniformOutput', false)];
+  globData = [fieldnames(globs) struct2cell(globs)];
   
   % create cell array containing dimension 
   % attribute data (one per dimension)
-  for k = 1:length(dims)
-    
-    dimData{k} = [...
-      fieldnames(dims{k})...
-      cellfun(@num2str,struct2cell(dims{k}), 'UniformOutput', false)];
+  for k = 1:length(dims), 
+    dimData{k} = [fieldnames(dims{k}) struct2cell(dims{k})];
   end
   
   % create cell array containing variable 
   % attribute data (one per variable)
   for k = 1:length(vars)
     
-    varData{k} = [...
-      fieldnames(vars{k})...
-      cellfun(@num2str,struct2cell(vars{k}), 'UniformOutput', false)];
+    varData{k} = [fieldnames(vars{k}) struct2cell(vars{k})];
   end
   
   %% create uitables
@@ -153,7 +146,7 @@ function viewMetadata(parent, sample_data, updateCallback)
         
         % format dates
         case 'D',  
-          data{k,2} = datestr(str2num(data{k,2}), dateFmt);
+          data{k,2} = datestr(data{k,2}, dateFmt);
         
         % make everything else a string - i'm assuming that when 
         % num2str is passed a string, it will return that string 
@@ -248,7 +241,7 @@ function viewMetadata(parent, sample_data, updateCallback)
               error('bad length'); 
             end
 
-            fieldValue = num2str(datenum(fieldValue, dateFmt));
+            fieldValue = ['datenum(''' fieldValue ''', dateFmt)'];
 
           % reject poorly formatted date strings
           catch e
