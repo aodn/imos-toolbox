@@ -203,9 +203,8 @@ function displayManager(windowTitle, sample_data, callbacks)
       end
 
       % display selected raw data
-      graphFunc = str2func(['graph' graphType]);
-      
       try
+        graphFunc = getGraphFunc(graphType, 'graph', '');
         graphFunc(panel, sample_data{setIdx}, vars);
       catch e
         errordlg(...
@@ -239,10 +238,10 @@ function displayManager(windowTitle, sample_data, callbacks)
       end
 
       % redisplay the data
-      graphFunc = getGraphFunc(graphType, 'graph', '');
-      flagFunc  = getGraphFunc(graphType, 'flag',  '');
-      
       try 
+        graphFunc = getGraphFunc(graphType, 'graph', '');
+        flagFunc  = getGraphFunc(graphType, 'flag',  '');
+        
         [graphs lines] = graphFunc(panel, sample_data{setIdx}, vars);
         flags          = flagFunc( panel, graphs, sample_data{setIdx}, vars);
       catch e
@@ -250,6 +249,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           ['Could not display this data set using ' graphType ...
            ' (' e.message '). Try a different graph type.' ], ...
            'Graphing Error');
+         return;
       end
 
       % save line/flag handles and index in axis userdata 
