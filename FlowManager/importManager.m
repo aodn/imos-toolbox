@@ -93,9 +93,9 @@ function [sample_data rawFile]= manualImport()
   % prompt the user to select a data file
   [rawFile path] = uigetfile('*', 'Select Data File', manualDir);
   
-  writeToolboxProperty('importManager.manualDir', path);
-  
   if rawFile == 0, return; end;
+  
+  writeToolboxProperty('importManager.manualDir', path);
   
   % prompt the user to select a parser with which to import the file
   parsers = listParsers();
