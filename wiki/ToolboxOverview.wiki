@@ -31,6 +31,10 @@ System requirements for using the Toolbox are as follows:
  * (Optional) Local deployment database
  * (Optional) Matlab R 2008 (A self-contained executable version is available)
 
+== Output format ==
+
+The Toolbox generates NetCDF files according to the IMOS NetCDF User Manual, available for download from the [http://imos.org.au/datadocpol.html IMOS website].
+
 == Supported instruments ==
 
 See the SupportedInstruments page for a list of currently supported instruments.
