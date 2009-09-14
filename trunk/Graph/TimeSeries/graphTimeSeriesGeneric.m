@@ -1,4 +1,4 @@
-function [h xLabel yLabel] = graphTimeSeriesGeneric( ax, sample_data, var )
+function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var )
 %GRAPHTIMESERIESGENERIC Plots the given variable as normal, single dimensional, 
 % time series data. If the data are multi-dimensional, multiple lines will be
 % plotted and returned.
@@ -10,8 +10,7 @@ function [h xLabel yLabel] = graphTimeSeriesGeneric( ax, sample_data, var )
 %
 % Outputs:
 %   h           - Handle(s) to the line(s)  which was/were plotted.
-%   xLabel      - X label to use
-%   yLabel      - Y label to use
+%   labels      - Cell array containing x/y labels to use.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -56,5 +55,4 @@ time = sample_data.dimensions{time};
 var  = sample_data.variables {var};
 
 h      = line(time.data, var.data, 'Parent', ax);
-xLabel = 'TIME';
-yLabel = var.name;
+labels = {'TIME', var.name};

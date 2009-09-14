@@ -1,4 +1,4 @@
-function [h xLabel yLabel] = graphTimeSeriesTimeDepth( ax, sample_data, var )
+function [h labels] = graphTimeSeriesTimeDepth( ax, sample_data, var )
 %GRAPHTIMESERIESTimeDepth Plots the given data using pcolor.
 %
 % This function is used for plotting time/depth data. The pcolor function is 
@@ -12,8 +12,7 @@ function [h xLabel yLabel] = graphTimeSeriesTimeDepth( ax, sample_data, var )
 %
 % Outputs:
 %   h           - Handle to the surface which was plotted.
-%   xLabel      - X label to use
-%   yLabel      - Y label to use
+%   labels      - Cell array containing x/y labels to use.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -72,5 +71,4 @@ set(get(cb, 'YLabel'), 'String', cbLabel);
 % assume that depth data is ascending
 set(ax, 'YDir', 'reverse');
 
-xLabel = 'TIME';
-yLabel = 'DEPTH';
+labels = {'TIME', 'DEPTH'};
