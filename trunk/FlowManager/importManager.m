@@ -57,21 +57,34 @@ function sample_data = importManager()
   sample_data = {};
   rawFiles    = {};
   
-  if ~isempty(ddb), [sample_data rawFiles] = ddbImport();
-  else              [sample_data rawFiles] = manualImport();
+  if ~isempty(ddb), [structs rawFiles] = ddbImport();
+  else              [structs rawFiles] = manualImport();
   end
   
   % user cancelled
-  if isempty(sample_data), return; end
+  if isempty(structs), return; end
   
   dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
   rawFlag = imosQCFlag('raw', qcSet, 'flag');
   
   % make data sets compliant
-  for k = 1:length(sample_data)
-    sample_data{k} = ...
-      finaliseData(sample_data{k}, rawFiles{k}, dateFmt, rawFlag);
+  for k = 1:length(structs)
+    
+    % one data set may have generated more than one sample_data struct
+    if iscell(structs{k})
+      
+      for m = 1:length(structs{k})
+        sample_data{end+1} = ...
+          finaliseData(structs{k}{m}, rawFiles{k}, dateFmt, rawFlag);
+      end
+      
+    % more likely, only one struct generated for one raw data file
+    else
+      
+      sample_data{end+1} = ...
+        finaliseData(structs{k}, rawFiles{k}, dateFmt, rawFlag);
+    end
   end
 end
 
@@ -186,7 +199,16 @@ function [sample_data rawFiles] = ddbImport()
 
       % import data
       sample_data{k} = parse(deps(k), rawFiles{k}, parsers, noParserPrompt);
-      sample_data{k}.meta.deployment = deps(k);
+      
+      if iscell(sample_data{k})
+        
+        for m = 1:length(sample_data{k})
+          sample_data{k}{m}.meta.deployment = deps(k);
+        end
+        
+      else
+        sample_data{k}.meta.deployment = deps(k);
+      end
     
     % failure is not fatal
     catch e

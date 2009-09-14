@@ -497,12 +497,12 @@ function [sect len off] = readAquadoppProfilerVelocity(data, idx)
   % a fill byte is present if the number of cells is odd
   if mod(nCells, 2), csOff = csOff + 1; end
  
-  sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'uint16');
-  sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'uint16');
-  sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'uint16');
-  sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8');
-  sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8');
-  sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8');
+  sect.Vel1 = flipud(bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'uint16'));
+  sect.Vel2 = flipud(bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'uint16'));
+  sect.Vel3 = flipud(bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'uint16'));
+  sect.Amp1 = flipud(bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8'));
+  sect.Amp2 = flipud(bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8'));
+  sect.Amp3 = flipud(bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8'));
 
   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
 
@@ -557,7 +557,8 @@ function [sect len off] = readHRAquadoppProfile(data, idx)
     sOff = velOff + (k-1) * (sect.Cells * 2);
     eOff = sOff + (sect.Cells * 2)-1;
     
-    sect.(['Vel' num2str(k)]) = bytecast(data(sOff:eOff), 'L', 'uint16');
+    sect.(['Vel' num2str(k)]) = ...
+      flipud(bytecast(data(sOff:eOff), 'L', 'uint16'));
   end
   
   % amplitude data
@@ -566,7 +567,8 @@ function [sect len off] = readHRAquadoppProfile(data, idx)
     sOff = ampOff + (k-1) * (sect.Cells);
     eOff = sOff + (sect.Cells * 2)-1;
     
-    vel.(['Amp' num2str(k)]) = bytecast(data(sOff:eOff), 'L', 'uint8');
+    vel.(['Amp' num2str(k)]) = ...
+      flipud(bytecast(data(sOff:eOff), 'L', 'uint8'));
   end
   
   % correlation data
@@ -575,7 +577,8 @@ function [sect len off] = readHRAquadoppProfile(data, idx)
     sOff = corrOff + (k-1) * (sect.Cells);
     eOff = sOff + (sect.Cells * 2)-1;
     
-    sect.(['Corr' num2str(k)]) = bytecast(data(sOff:eOff), 'L', 'uint8');
+    sect.(['Corr' num2str(k)]) = ...
+      bytecast(data(sOff:eOff), 'L', 'uint8');
   end
   
   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
@@ -625,12 +628,12 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
   % fill value is included if number of cells is odd
   if mod(nCells, 2), csOff = csOff + 1; end
   
-  sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16');
-  sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16');
-  sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16');
-  sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8');
-  sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8');
-  sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8');
+  sect.Vel1 = flipud(bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16'));
+  sect.Vel2 = flipud(bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16'));
+  sect.Vel3 = flipud(bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16'));
+  sect.Amp1 = flipud(bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8'));
+  sect.Amp2 = flipud(bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8'));
+  sect.Amp3 = flipud(bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8'));
   
   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
 
@@ -737,7 +740,8 @@ function [sect len off] = readVectrinoVelocity(data, idx)
     sOff = velOff + (k-1) * (nCells * 2);
     eOff = sOff + (nCells * 2) - 1;
     
-    sect.(['Vel' num2str(k)]) = bytecast(data(sOff:eOff), 'L', 'uint16');
+    sect.(['Vel' num2str(k)]) = ...
+      flipud(bytecast(data(sOff:eOff), 'L', 'uint16'));
   end
   
   % amplitude
@@ -746,7 +750,8 @@ function [sect len off] = readVectrinoVelocity(data, idx)
     sOff = ampOff + (k-1) * nCells;
     eOff = sOff + nCells - 1;
     
-    sect.(['Amp' num2str(k)]) = bytecast(data(sOff:eOff), 'L', 'uint8');
+    sect.(['Amp' num2str(k)]) = ...
+      flipud(bytecast(data(sOff:eOff), 'L', 'uint8'));
   end
   
   % correlation
@@ -755,7 +760,8 @@ function [sect len off] = readVectrinoVelocity(data, idx)
     sOff = corrOff + (k-1) * nCells;
     eOff = sOff + nCells - 1;
     
-    vel.(['Corr' num2str(k)]) = bytecast(data(sOff:eOff), 'L', 'uint8');
+    vel.(['Corr' num2str(k)]) = ...
+      flipud(bytecast(data(sOff:eOff), 'L', 'uint8'));
   end
   
   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');

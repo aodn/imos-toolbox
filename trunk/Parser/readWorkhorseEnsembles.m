@@ -408,10 +408,10 @@ function [sect len] = parseVelocity( data, numCells, idx )
   
   for k = 1:numCells
     
-    sect.velocity1(k) = vels((k-1)*4 + 1);
-    sect.velocity2(k) = vels((k-1)*4 + 2);
-    sect.velocity3(k) = vels((k-1)*4 + 3);
-    sect.velocity4(k) = vels((k-1)*4 + 4);
+    sect.velocity1(numCells - k + 1) = vels((k-1)*4 + 1);
+    sect.velocity2(numCells - k + 1) = vels((k-1)*4 + 2);
+    sect.velocity3(numCells - k + 1) = vels((k-1)*4 + 3);
+    sect.velocity4(numCells - k + 1) = vels((k-1)*4 + 4);
     
   end
 end
@@ -441,10 +441,10 @@ function [sect len] = parseX( data, numCells, name, idx )
   idx = idx + 2;
   for k = 1:numCells
     
-    sect.field1(k) = double(data(idx  ));
-    sect.field2(k) = double(data(idx+1));
-    sect.field3(k) = double(data(idx+2));
-    sect.field4(k) = double(data(idx+3));
+    sect.field1(numCells - k + 1) = double(data(idx  ));
+    sect.field2(numCells - k + 1) = double(data(idx+1));
+    sect.field3(numCells - k + 1) = double(data(idx+2));
+    sect.field4(numCells - k + 1) = double(data(idx+3));
     
     idx = idx + 4;
   end
