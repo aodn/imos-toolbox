@@ -1,5 +1,5 @@
 % filename or ODBC DSN of deployment database
-toolbox.ddb = imos-ddb
+toolbox.ddb = 
 
 % date and time formats used internally and for GUI display
 toolbox.dateFormat = dd mmm yyyy
