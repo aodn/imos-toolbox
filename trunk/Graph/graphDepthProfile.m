@@ -115,8 +115,8 @@ function [graphs lines] = graphDepthProfile( parent, sample_data, vars )
     col = col(mod(k,length(col))+1,:);
     
     % plot the variable
-    plotFunc                    = getGraphFunc('DepthProfile', 'graph', name);
-    [lines(k,:) xLabel, yLabel] = plotFunc(   graphs(k), sample_data, vars(k));
+    plotFunc            = getGraphFunc('DepthProfile', 'graph', name);
+    [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, vars(k));
     
     % set the line colour - wrap in a try block, 
     % as surface plot colour cannot be set
@@ -126,17 +126,17 @@ function [graphs lines] = graphDepthProfile( parent, sample_data, vars )
     
     % set x label
     uom = '';
-    try      uom = [' (' imosParameters(xLabel, 'uom') ')'];
+    try      uom = [' (' imosParameters(labels{1}, 'uom') ')'];
     catch e, uom = '';
     end
-    xLabel = [xLabel uom];
+    xLabel = [labels{1} uom];
     set(get(graphs(k), 'XLabel'), 'String', xLabel);
 
     % set y label
-    try      uom = [' (' imosParameters(yLabel, 'uom') ')'];
+    try      uom = [' (' imosParameters(labels{2}, 'uom') ')'];
     catch e, uom = '';
     end
-    yLabel = [yLabel uom];
+    yLabel = [labels{2} uom];
     if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
     set(get(graphs(k), 'YLabel'), 'String', yLabel);
 

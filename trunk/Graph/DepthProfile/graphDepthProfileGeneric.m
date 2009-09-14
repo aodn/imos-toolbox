@@ -1,4 +1,4 @@
-function [h xLabel yLabel] = graphDepthProfileGeneric( ax, sample_data, var )
+function [h labels] = graphDepthProfileGeneric( ax, sample_data, var )
 %GRAPHDEPTHPROFILEGENERIC Plots the given variable (x axis) against depth 
 % (y axis).
 %
@@ -9,8 +9,7 @@ function [h xLabel yLabel] = graphDepthProfileGeneric( ax, sample_data, var )
 %
 % Outputs:
 %   h           - Handle(s) to the line(s)  which was/were plotted.
-%   xLabel      - X label to use
-%   yLabel      - Y label to use
+%   labels      - Cell array containing x/y labels to use.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -66,8 +65,8 @@ end
 var  = sample_data.variables {var};
 
 h      = line(var.data, depth.data, 'Parent', ax);
-yLabel = 'DEPTH';
-xLabel = var.name;
+
+labels = {var.name, 'DEPTH'};
 
 % assume that the depth data is ascending - we want to display 
 % it descending though, so reverse the axis orientation
