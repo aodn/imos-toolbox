@@ -142,6 +142,15 @@ function sample_data = netcdfParse( filename )
   
   netcdf.close(ncid);
   
+  % offset time dimension - IMOS files store date as 
+  % days since 1950; matlab stores as days since 0000
+  time = getVar(dimensions, 'TIME');
+  if time ~= 0
+    
+    dimensions{time}.data = ...
+      dimensions{time}.data + datenum('1950-01-00 00:00:00');
+  end
+  
   % fill out the resulting struct
   sample_data            = globals;
   sample_data.dimensions = dimensions;
