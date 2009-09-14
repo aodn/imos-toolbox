@@ -69,5 +69,8 @@ cbLabel = [var.name ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel);
 
+% assume that depth data is ascending
+set(ax, 'YDir', 'reverse');
+
 xLabel = 'TIME';
 yLabel = 'DEPTH';
