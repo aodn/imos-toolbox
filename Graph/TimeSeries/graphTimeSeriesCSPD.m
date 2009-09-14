@@ -1,4 +1,4 @@
-function [h xLabel yLabel] = graphTimeSeriesCSPD( ax, sample_data, var )
+function [h labels] = graphTimeSeriesCSPD( ax, sample_data, var )
 %GRAPHTIMESERIESCSPD Plots CSPD data using pcolor.
 %
 % This function is used for plotting CSPD data (sea water speed vs depth vs
@@ -13,8 +13,7 @@ function [h xLabel yLabel] = graphTimeSeriesCSPD( ax, sample_data, var )
 %
 % Outputs:
 %   h           - Handle to the surface which was plotted.
-%   xLabel      - X label to use
-%   yLabel      - Y label to use
+%   labels      - Cell array containing X/Y labels to use
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -49,7 +48,7 @@ function [h xLabel yLabel] = graphTimeSeriesCSPD( ax, sample_data, var )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-[h xLabel yLabel] = graphTimeSeriesTimeDepth(ax, sample_data, var);
+[h labels] = graphTimeSeriesTimeDepth(ax, sample_data, var);
 
 % setting max colour limit to 0.25 of the maximum 
 % CSPD value works well for all my test data

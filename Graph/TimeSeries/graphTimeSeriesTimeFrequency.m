@@ -1,5 +1,4 @@
-function [h xLabel yLabel] = graphTimeSeriesTimeFrequency( ...
-  ax, sample_data, var )
+function [h labels] = graphTimeSeriesTimeFrequency( ax, sample_data, var )
 %GRAPHTIMESERIESTIMEFREQUENCY Plots the given data using pcolor.
 %
 % This function is used for plotting time/frequency data. The pcolor function 
@@ -13,8 +12,7 @@ function [h xLabel yLabel] = graphTimeSeriesTimeFrequency( ...
 %
 % Outputs:
 %   h           - Handle to the surface which was plotted.
-%   xLabel      - X label to use
-%   yLabel      - Y label to use
+%   labels      - Cell array containing x/y labels to use.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -70,5 +68,4 @@ cbLabel = [var.name ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel);
 
-xLabel = 'TIME';
-yLabel = 'FREQUENCY';
+labels = {'TIME', 'FREQUENCY'};
