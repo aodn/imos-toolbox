@@ -71,7 +71,17 @@ function sample_data = netcdfParse( filename )
       % Aargh, matlab is a steamer. Datenum cannot handle a trailing 'Z',
       % even though it's ISO8601 compliant. I hate you, matlab. Assuming 
       % knowledge of the date format here (dropping the last character).
-      newTime = datenum(globals.(timeAtts{k}), dateFmt(1:end-1));
+      newTime = 0;
+      try
+        newTime = datenum(globals.(timeAtts{k}), dateFmt(1:end-1));
+      
+      % Glider NetCDF files use doubles for 
+      % time_coverage_start and time_coverage_end
+      catch e
+        try newTime = globals.(timeAtts{k}) + datenum('1950-01-00 00:00:00');
+        catch e
+        end
+      end
       globals.(timeAtts{k}) = newTime;
     end
   end
