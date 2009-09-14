@@ -162,6 +162,12 @@ function v = readVar(ncid, varid)
   v.name       = name;
   v.dimensions = dimids; % this is transformed below
   v.data       = netcdf.getVar(ncid, varid);
+  
+  % multi-dimensional data must be transformed, as matlab-netcdf api 
+  % requires fastest changing dimension first, but toolbox requires
+  % slowest changing dimension first
+  nDims = length(v.dimensions);
+  if nDims > 1, v.data = permute(v.data, nDims:-1:1); end
 
   % get variable attributes
   atts = readAtts(ncid, varid);

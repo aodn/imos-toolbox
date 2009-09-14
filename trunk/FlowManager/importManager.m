@@ -358,13 +358,15 @@ function sam = finaliseData(sam, rawFiles, dateFmt, flagVal)
     sam.meta.depth         = sam.meta.deployment.InstrumentDepth;
     sam.meta.timezone      = sam.meta.deployment.TimeZone;
   else
-    sam.meta.site_name     = 'NONAME';
+    sam.meta.site_name     = 'UNKNOWN';
     sam.meta.depth         = nan;
     sam.meta.timezone      = 'UTC';
   end
   
   % add empty QC flags for all variables
   for k = 1:length(sam.variables)
+    
+    if isfield(sam.variables{k}, 'flags'), continue; end
     
     sam.variables{k}.flags(1:numel(sam.variables{k}.data)) = flagVal;
     sam.variables{k}.flags = reshape(...
@@ -373,6 +375,8 @@ function sam = finaliseData(sam, rawFiles, dateFmt, flagVal)
   
   % and for all dimensions
   for k = 1:length(sam.dimensions)
+    
+    if isfield(sam.dimensions{k}, 'flags'), continue; end
     
     sam.dimensions{k}.flags(1:numel(sam.dimensions{k}.data)) = flagVal;
     sam.dimensions{k}.flags = reshape(...
@@ -409,11 +413,15 @@ function sam = finaliseData(sam, rawFiles, dateFmt, flagVal)
     time = getVar(sam.dimensions, 'TIME');
     
     if time ~= 0
-      sam.time_coverage_start = sam.dimensions{time}.data(1);
-      sam.time_coverage_end   = sam.dimensions{time}.data(end);
+      if isempty(sam.time_coverage_start),
+        sam.time_coverage_start = sam.dimensions{time}.data(1);
+      end
+      if isempty(sam.time_coverage_end),
+        sam.time_coverage_end   = sam.dimensions{time}.data(end);
+      end
     else
-      sam.time_coverage_start = 0;
-      sam.time_coverage_end   = 0;
+      if isempty(sam.time_coverage_start), sam.time_coverage_start = 0; end
+      if isempty(sam.time_coverage_end),   sam.time_coverage_end   = 0; end
     end
   end
 end
