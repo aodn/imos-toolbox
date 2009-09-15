@@ -1,4 +1,4 @@
-function [graphs lines] = graphDepthProfile( parent, sample_data, vars )
+function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
 %GRAPHDEPTHPROFILE Graphs the given data in a depth profile style using 
 % subplots.
 %
@@ -17,6 +17,7 @@ function [graphs lines] = graphDepthProfile( parent, sample_data, vars )
 %   lines              - A matrix of handles to line or surface (or other) 
 %                        handles which have been drawn, the same length as 
 %                        graphs.
+%   vars               - Indices of variables which were graphed.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -79,7 +80,7 @@ function [graphs lines] = graphDepthProfile( parent, sample_data, vars )
     
     depth = getVar(sample_data.dimensions, 'DEPTH');
     
-    if depth == 0, error('data set has no depth data'); end
+    if depth == 0, error('data set contains no depth data'); end
     
     remove = [];
     

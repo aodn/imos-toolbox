@@ -1,4 +1,4 @@
-function [graphs lines] = graphTransect( parent, sample_data, vars )
+function [graphs lines vars] = graphTransect( parent, sample_data, vars )
 %GRAPHTRANSECT Graphs the given data in a 2D transect manner, using subplot.
 %
 % Inputs:
@@ -12,6 +12,7 @@ function [graphs lines] = graphTransect( parent, sample_data, vars )
 %   lines              - A matrix of handles to line or surface (or other) 
 %                        handles which have been drawn, the same length as 
 %                        graphs.
+%   vars               - Indices of variables which were graphed.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
