@@ -1,4 +1,4 @@
-function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
+function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
 %GRAPHTIMESERIES Graphs the given data in a time series style using subplots.
 %
 % Graphs the selected variables from the given data set. Each variable is
@@ -16,6 +16,7 @@ function [graphs lines] = graphTimeSeries( parent, sample_data, vars )
 %   lines              - A matrix of handles to line or surface (or other) 
 %                        handles which have been drawn, the same length as 
 %                        graphs.
+%   vars               - Indices of variables which were graphed.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
