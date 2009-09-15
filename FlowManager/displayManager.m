@@ -242,8 +242,8 @@ function displayManager(windowTitle, sample_data, callbacks)
         graphFunc = getGraphFunc(graphType, 'graph', '');
         flagFunc  = getGraphFunc(graphType, 'flag',  '');
         
-        [graphs lines] = graphFunc(panel, sample_data{setIdx}, vars);
-        flags          = flagFunc( panel, graphs, sample_data{setIdx}, vars);
+        [graphs lines vars] = graphFunc(panel, sample_data{setIdx}, vars);
+        flags = flagFunc( panel, graphs, sample_data{setIdx}, vars);
       catch e
         errordlg(...
           ['Could not display this data set using ' graphType ...
