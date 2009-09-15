@@ -56,11 +56,15 @@ flags = [];
 
 if isempty(vars), return; end
 
+depth = getVar(sample_data.variables, 'DEPTH');
+if depth == 0, error('data set contains no depth data'); end
+
+vars(vars == depth) = [];
+if isempty(vars), return; end
+
 hold on;
 
 for k = 1:length(vars)
-  
-  if strcmp('DEPTH', sample_data.variables{vars(k)}.name), continue; end
   
   % apply the flag function for this variable
   flagFunc = ...
