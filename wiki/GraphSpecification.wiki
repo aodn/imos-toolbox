@@ -41,12 +41,12 @@ Functions of the name `graphX.m` (where `X` is the graph type) define the graphi
 
 Top level graph functions (i.e. `graphX.m`) have the following format:
 {{{
-function [graphs handles] = graphGraphType( parent, sample_data, vars )
+function [graphs handles vars] = graphGraphType( parent, sample_data, vars )
 }}}
 where
  * `parent` is a handle to the parent GUI container (e.g. a `figure` or `uipanel`) in which to graph the data
  * `sample_data` is a struct containing the sample data
- * `vars` is a vector of indices into the `sample_data.variables` cell array, defining the variables which are to be graphed
+ * `vars` is a vector of indices into the `sample_data.variables` cell array, defining the variables which are to be graphed. The return value contains indices of the variables which were actually graphed
  * `graphs` is a vector of axes handles
  * `handles` is a vector of data handles (e.g. `line`, `scatter`, `surface` etc).
 
