@@ -62,7 +62,7 @@ function [graphs lines vars] = graphTransect( parent, sample_data, vars )
   lon = getVar(sample_data.variables, 'LONGITUDE');
   
   if lat == 0 || lon == 0
-    error('data set is missing latitude/longitude data'); 
+    error('data set contains no latitude/longitude data'); 
   end
   
   % ignore request to plot lat/lon against themselves
