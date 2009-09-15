@@ -1,0 +1,23 @@
+%
+% IMOS NetCDF file names are generated from the values given below. Value 
+% definitions follow the same syntax as in NetCDF template files. Any fields
+% which are not present in this file, or are not given a value, will be given
+% a default value.
+%
+% The following 'workspace' is available for defining values:
+%
+%   sample_data - The data set for which a filename is being generated.
+%   dateFmt     - Format which should be used for date fields.
+%
+% The IMOS NetCDF file naming convention is as follows:
+%
+%   IMOS_<facility_code>_<data_code>_<start_date>_<platform_code>_<file_version>_<product_type>_END<end_date>_C-<creation_date>.nc
+%
+facility_code = 
+data_code     =
+start_date    =
+platform_code =
+file_version  =
+product_type  =
+end_date      =
+creation_date =

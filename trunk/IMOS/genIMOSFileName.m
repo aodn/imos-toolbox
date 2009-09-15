@@ -1,8 +1,11 @@
 function filename = genIMOSFileName( sample_data, suffix )
 %GENIMOSFILENAME Generates an IMOS file name for the given data set.
 %
-% Generates a file name for the given data set. The file name is geneated 
-% according to the IMOS NetCDF File Naming Convention, version 1.3.
+% Generates a file name for the given data set. The file name is generated 
+% according to the IMOS NetCDF File Naming Convention, version 1.3. Values
+% for each field are retrieved from the imosFileName.txt configuration
+% file. Any fields which are not present, or not set in this file are given
+% a default value.
 %
 % Inputs:
 %   sample_data - the data set to generate a file name for.
@@ -43,66 +46,131 @@ function filename = genIMOSFileName( sample_data, suffix )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-
   error(nargchk(2,2,nargin));
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
   if ~ischar(suffix),        error('suffix must be a string');      end
 
   %
-  % get all the individual components that make up the filename
+  % all dates should be in ISO 8601 format
   %
+  dateFmt = readToolboxProperty('exportNetCDF.fileDateFormat');
 
-  file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
-  facility_code = sample_data.institution;
-  platform_code = sample_data.platform_code;
+  % get default config, and file config
+  defCfg  = genDefaultFileNameConfig(sample_data, dateFmt);
+  fileCfg = readFileNameConfig(      sample_data, dateFmt);
   
-  product_type  = [...
+  % build the file name
+  filename = 'IMOS_';
+  filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
+  filename = [filename        getVal(fileCfg, defCfg, 'data_code')     '_'];
+  filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];
+  filename = [filename        getVal(fileCfg, defCfg, 'platform_code') '_'];
+  filename = [filename        getVal(fileCfg, defCfg, 'file_version')  '_'];
+  filename = [filename        getVal(fileCfg, defCfg, 'product_type')  '_'];
+  filename = [filename 'END-' getVal(fileCfg, defCfg, 'end_date')      '_'];
+  filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
+  filename = [filename '.'    suffix];
+
+end
+
+function val = getVal(fileCfg, defCfg, fieldName)
+%GETVAL Saves a few lines of code. If the given field is specified in the
+% file configuration, that value is used. Otherwise reverts to the default
+% configuration.
+%
+
+  if isfield(fileCfg, fieldName), val = fileCfg.(fieldName);
+  else                            val = defCfg .(fieldName);
+  end
+end
+
+function config = genDefaultFileNameConfig(sample_data, dateFmt)
+%GENDEFAULTFILENAMECONFIG Generates a default file name configuration, the
+%values from which will be used if a value has not been specified in the
+% imosFileName.txt configuration file.
+%
+  config = struct;
+  
+  % <facility_code>
+  config.facility_code = sample_data.institution;
+  
+  % <data_code>
+  config.data_code = '';
+  
+  % code for raw data should contain 'R' for raw
+  if sample_data.meta.level == 0, config.data_code = 'R'; end
+  for k = 1:length(sample_data.variables)
+
+    % get the data code for this parameter; don't add duplicate codes
+    code = imosParameters(sample_data.variables{k}.name, 'data_code');
+    if strfind(config.data_code, code), continue; end
+
+    config.data_code(end+1) = code;
+  end
+  
+  % <start_date>, <platform_code>, <file_version>
+  config.start_date    = datestr(sample_data.time_coverage_start, dateFmt);
+  config.platform_code = sample_data.platform_code;
+  config.file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
+  
+  % <product_type>
+  config.product_type  = [...
     sample_data.meta.site_name '-' ...
     sample_data.meta.instrument_model    '-' ...
     num2str(sample_data.meta.depth)
   ];
 
-  product_type(product_type == ' ') = '-';
-  product_type(product_type == '_') = '-';
-
-  %
-  % all dates should be in ISO 8601 format
-  %
-  dateFmt       = readToolboxProperty('exportNetCDF.dateFormat');
-  fileDateFmt   = readToolboxProperty('exportNetCDF.fileDateFormat');
-  start_date    = datestr(sample_data.time_coverage_start, fileDateFmt);
-  end_date      = datestr(sample_data.time_coverage_end,   fileDateFmt);
-  creation_date = datestr(sample_data.date_created,        fileDateFmt);
-
-  %
-  % generate data code for the data set
-  %
-  data_code = '';
+  % remove any spaces/underscores
+  config.product_type(config.product_type == ' ') = '-';
+  config.product_type(config.product_type == '_') = '-';
   
-  % code for raw data should contain 'R' for raw
-  if sample_data.meta.level == 0, data_code = 'R'; end
-  for k = 1:length(sample_data.variables)
+  % <end_date>, <creation_date>
+  config.end_date      = datestr(sample_data.time_coverage_end,   dateFmt);
+  config.creation_date = datestr(sample_data.date_created,        dateFmt);
+end
 
-    % get the data code for this parameter; don't add duplicate codes
-    code = imosParameters(sample_data.variables{k}.name, 'data_code');
-    if strfind(data_code, code), continue; end
-
-    data_code(end+1) = code;
+function config = readFileNameConfig(sample_data, dateFmt)
+%READFILENAMECONFIG Reads in the imosFileName.txt configuration file, and
+% returns the values contained within.
+%
+  config = struct;
+  
+  filename = [pwd filesep 'IMOS' filesep 'imosFileName.txt'];  
+  
+  fid = -1;
+  try
+    
+    fid = fopen(filename, 'rt');
+    
+    line = fgetl(fid);
+    while ischar(line)
+      
+      % extract the name/value pair
+      tkns = regexp(line, '^\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
+      
+      % ignore bad lines
+      if isempty(tkns), 
+        line = fgetl(fid);
+        continue; 
+      end
+      
+      name = tkns{1}{1};
+      val  = tkns{1}{2};
+      
+      % parse the value, save into the struct
+      config.(name) = deblank(parseAttributeValue(val, sample_data, 1));
+      
+      % remove unset fields
+      if isempty(config.(name)) config = rmfield(config, name); end
+      
+      line = fgetl(fid);
+    end
+    
+    fclose(fid);
+    
+  catch e
+    if fid ~= -1, fclose(fid); end
+    rethrow(e);
   end
-
-  % build the file name
-  filename = 'IMOS_';
-  filename = [filename        facility_code '_'];
-  filename = [filename        data_code     '_'];
-  filename = [filename        start_date    '_'];
-  filename = [filename        platform_code '_'];
-  filename = [filename        file_version  '_'];
-  if ~isempty(product_type)
-    filename = [filename      product_type  '_'];
-  end
-  filename = [filename 'END-' end_date      '_'];
-  filename = [filename 'C-'   creation_date];
-  filename = [filename '.' suffix];
-
 end
