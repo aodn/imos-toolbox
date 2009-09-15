@@ -1,6 +1,6 @@
-function flags = flagDepthProfile( parent, graphs, sample_data, vars )
-%FLAGDEPTHPROFILE Overlays flags for the given sample data variables on the 
-% given depth profile graphs.
+function flags = flagTransect( parent, graphs, sample_data, vars )
+%FLAGTRANSECT Overlays flags for the given sample data variables on the 
+% given transect graphs.
 %
 % Inputs:
 %   parent      - handle to parent figure/uipanel.
@@ -56,15 +56,24 @@ flags = [];
 
 if isempty(vars), return; end
 
+% fail if there is no latitude/longitude data
+lat = getVar(sample_data.variables, 'LATITUDE');
+lon = getVar(sample_data.variables, 'LONGITUDE');
+
+if lat == 0 || lon == 0
+  error('data set is missing latitude/longitude data'); 
+end
+
 hold on;
 
 for k = 1:length(vars)
   
-  if strcmp('DEPTH', sample_data.variables{vars(k)}.name), continue; end
+  if strcmp('LATITUDE',  sample_data.variables{vars(k)}.name), continue; end
+  if strcmp('LONGITUDE', sample_data.variables{vars(k)}.name), continue; end
   
   % apply the flag function for this variable
   flagFunc = ...
-    getGraphFunc('DepthProfile', 'flag', sample_data.variables{vars(k)}.name);
+    getGraphFunc('Transect', 'flag', sample_data.variables{vars(k)}.name);
   f = flagFunc(graphs(k), sample_data, vars(k));
   
   % if the flag function returned nothing, insert a dummy handle 
