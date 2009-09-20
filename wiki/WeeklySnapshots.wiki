@@ -10,6 +10,8 @@ Weekly snapshots of the Toolbox codebase are available from the [http://code.goo
  * *Source snapshot*: contains the source code straight from the SVN. Download this file if you have a licensed copy of Matlab.
  * *Standalone snapshot*: Contains a compiled version of the source code straight from the SVN. Download this file if you don't have access to Matlab.
 
+Compilation of the standalone snapshot requires use of the Matlab Compiler, which is on a shared license. This means that if someone else is using the compiler when the snapshot script runs, the script will fail, and the standalone snapshot will not be uploaded. When this happens, I will attempt to compile a standalone snapshot as soon as possible.
+
 == File format and contents ==
 
 The source snapshots are zip files which contain the contents of the SVN `trunk` directory, minus the `Tests/sample_data` directory. 
