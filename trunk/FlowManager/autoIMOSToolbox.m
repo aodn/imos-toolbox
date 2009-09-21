@@ -1,5 +1,13 @@
-function autoIMOSToolbox(varargin)
+function autoIMOSToolbox(fieldTrip, dataDir, qcChain, exportDir)
 %AUTOIMOSTOOLBOX Executes the toolbox automatically.
+%
+% All inputs are optional.
+%
+% Inputs:
+%   fieldTrip - Numeric ID of field trip. 
+%   dataDir   - Directory containing raw data files.
+%   qcChain   - Cell array of strings, the names of QC filters to run.
+%   exportDir - Directory to store output NetCDF files.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -33,21 +41,49 @@ function autoIMOSToolbox(varargin)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+  error(nargchk(0, 4, nargin));
+
+  % validate and save field trip
+  if nargin > 0
+    if ~isnumeric(fieldTrip), error('field trip must be numeric'); end
+    writeToolboxProperty('startDialog.fieldTrip', num2str(fieldTrip));
+  end
+
+  % validate and save data dir
+  if nargin > 1
+    if ~ischar(dataDir),       error('dataDir must be a string');    end
+    if ~exist(dataDir, 'dir'), error('dataDir must be a directory'); end
+
+    writeToolboxProperty('startDialog.dataDir', dataDir);
+  end
+
+  % validate and save qc chain
+  if nargin > 2
+    if ~iscellstr(qcChain)
+      error('qcChain must be a cell array of strings'); 
+    end
+
+    if ~isempty(qcChain)
+      qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
+      qcChainStr = deblank([qcChainStr{:}]);
+    else
+      qcChainStr = '';
+    end
+    writeToolboxProperty('autoQCManager.autoQCChain', qcChainStr);
+  end
+
+  % validate and save export dir
+  if nargin > 3
+    if ~ischar(exportDir),       error('exportDir must be a string');    end
+    if ~exist(exportDir, 'dir'), error('exportDir must be a directory'); end
+    
+    writeToolboxProperty('exportDialog.defaultDir', exportDir);
+  end
   
-  %
-  % we should accept field trip ID and data directory as parameters - set
-  % them in toolboxProperties.txt before calling importManager
-  %
+
+  % import, QC, export
   sample_data = importManager(true);
-
-  %
-  % same here, for auto QC chain
-  %
-  qc_data = autoQCManager(sample_data, true);
-
-  %
-  % and again for output directory
-  %
+  qc_data     = autoQCManager(sample_data, true);
   exportManager({sample_data qc_data}, {'raw', 'QC'}, 'netcdf', true);
 
 end
