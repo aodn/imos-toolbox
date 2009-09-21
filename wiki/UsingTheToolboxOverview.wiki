@@ -54,6 +54,12 @@ When you are happy with the list of deployments for which data is to be imported
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_importProgress.png
 
+== Preprocessing data ==
+
+After import, you may be presented with a dialog allowing you to choose from a list of preprocessing routines:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_preprocess.png
+
 == Viewing data ==
 
 When the data has been imported, you will be presented with the main window, which allows you to view the sample data. Use the drop down menu at the top left to select the data set to view. The drop down menu on the top right will be used to choose what type of graph to use to display the data - currently only '!TimeSeries' is available. With the panel at the bottom left you can choose to omit parameters. 
