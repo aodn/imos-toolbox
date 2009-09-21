@@ -92,7 +92,7 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/gui_flag_dialog.png
 
 == Export ==
 
-Ay any time, you can click the 'Export NetCDF' button to export the data sets to IMOS compliant NetCDF files. You can choose to export raw data, QC'd data or both:
+Ay any time, you can click the 'Export NetCDF' button to export the data sets to IMOS compliant NetCDF files. You can choose to omit specific variables, and to export raw data, QC'd data or both:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_export.png
 
