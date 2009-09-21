@@ -163,26 +163,27 @@ function [sample_data rawFiles] = ddbImport(auto)
 %
   sample_data = {};
   rawFiles    = {};
+  allFiles    = {};
 
   [fieldTrip deps dataDir] = getDeployments(auto);
   
   if isempty(deps), return; end
     
   % find physical files for each deployment
-  rawFiles = cell(size(deps));
+  allFiles = cell(size(deps));
   for k = 1:length(deps)
     
     id   = deps(k).DeploymentId;
     rawFile = deps(k).FileName;
     
     hits = fsearch(rawFile, dataDir);
-    rawFiles{k} = hits;
+    allFiles{k} = hits;
   end
   
   % display status dialog to highlight any discrepancies (file not found
   % for a deployment, more than one file found for a deployment)
   if ~auto
-    [deps rawFiles] = dataFileStatusDialog(deps, rawFiles);
+    [deps allFiles] = dataFileStatusDialog(deps, allFiles);
   
     % user cancelled file dialog
     if isempty(deps), return; end
@@ -205,12 +206,12 @@ function [sample_data rawFiles] = ddbImport(auto)
     
     try
       fileDisplay = '';
-      if isempty(rawFiles{k}), error('no files to import'); end
+      if isempty(allFiles{k}), error('no files to import'); end
 
       % update progress dialog
       if ~auto
-        for m = 1:length(rawFiles{k})
-          [path name ext] = fileparts(rawFiles{k}{m});
+        for m = 1:length(allFiles{k})
+          [path name ext] = fileparts(allFiles{k}{m});
           fileDisplay = [fileDisplay ', ' name ext];
         end
         fileDisplay = fileDisplay(3:end);
@@ -218,7 +219,8 @@ function [sample_data rawFiles] = ddbImport(auto)
       end
 
       % import data
-      sample_data{end+1} = parse(deps(k), rawFiles{k}, parsers, noParserPrompt);
+      sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt);
+      rawFiles{   end+1} = allFiles{k};
       
       if iscell(sample_data{end})
         
