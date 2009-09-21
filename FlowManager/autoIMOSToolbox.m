@@ -1,15 +1,5 @@
-function imosToolbox(auto, varargin)
-%IMOSTOOLBOX Starts the IMOS toolbox.
-%
-% This function is the entry point for the IMOS toolbox.
-%
-% Inputs:
-%   auto     - optional String parameter - if 'auto', the toolbox is executed
-%              automatically, with no user interaction. Any other string will
-%              result in the toolbox being executed normally.
-%   varargin - In 'auto' mode, any other parameters passed in are passed 
-%              through to the autoIMOSToolbox function - see the
-%              documentation for that function for details.
+function autoIMOSToolbox(varargin)
+%AUTOIMOSTOOLBOX Executes the toolbox automatically.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -43,15 +33,21 @@ function imosToolbox(auto, varargin)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-
-if nargin == 0, auto = 'manual'; end
-
-% if running as a standalone compiled application, we must 
-% manually add the ddb.jar java library to the classpath
-if isdeployed, javaaddpath(['Java' filesep 'ddb.jar']); end
-
-switch auto
   
-  case 'auto', autoIMOSToolbox(varargin);
-  otherwise,   flowManager;
+  %
+  % we should accept field trip ID and data directory as parameters - set
+  % them in toolboxProperties.txt before calling importManager
+  %
+  sample_data = importManager(true);
+
+  %
+  % same here, for auto QC chain
+  %
+  qc_data = autoQCManager(sample_data, true);
+
+  %
+  % and again for output directory
+  %
+  exportManager({sample_data qc_data}, {'raw', 'QC'}, 'netcdf', true);
+
 end
