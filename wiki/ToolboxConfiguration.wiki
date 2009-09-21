@@ -22,6 +22,10 @@ This file contains specifications for all of the IMOS quality control sets. In t
 
 This file contains definitions for the IMOS file versions (e.g. level 0 - raw data). The information this file is used to populate NetCDF metadata. You will probably never need to modify this file.
 
+== `IMOS/imosFileName.txt` ==
+
+This file allows customisation of NetCDF filenames; it contains definitions for the fields which make up an IMOS file name (see the [http://imos.org.au/datadocpol.html IMOS File Naming Convention]).
+
 == `Parser/instruments.txt` ==
 
 This file contains mappings between deployment database instrument entries and parsers. When importing data for a deployment, the toolbox looks up the `Make` and `Model` fields from the relevant entry in the `Instruments` table. If a parser mapping exists in `Parser/instruments.txt` for the instrument, that parser is used to import the raw data. This means that, if you follow the correct conventions for entering instrument metadata into the deployment database, you won't need to manually select which parser to use for a given deployment.
