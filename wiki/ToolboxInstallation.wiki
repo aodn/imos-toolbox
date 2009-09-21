@@ -78,7 +78,7 @@ Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the fo
 
 === Deployment Databse ===
 
-As with a standalone installation, you must [http://code.google.com/p/imos-toolbox/wiki/ToolboxInstallation#Configure_Deployment_Database configure the deployment database] as an ODBC source.
+As with a standalone installation, you must [ToolboxInstallation#Configure_Deployment_Database configure the deployment database] as an ODBC source.
 
 The ddb is accessed via Java code, thus you must also let Matlab know where the Java classes are, by editing `classpath.txt`. Assuming that matlab is installed in `C:\matlab`, and the toolbox is installed in `C:\imos-toolbox`, add the following line to the file `C:\matlab\toolbox\local\classpath.txt`:
 {{{
