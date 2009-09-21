@@ -52,6 +52,6 @@ if isdeployed, javaaddpath(['Java' filesep 'ddb.jar']); end
 
 switch auto
   
-  case 'auto', autoIMOSToolbox(varargin);
+  case 'auto', autoIMOSToolbox(varargin{:});
   otherwise,   flowManager;
 end
