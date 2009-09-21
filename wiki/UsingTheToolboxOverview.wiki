@@ -24,7 +24,7 @@ Upon starting the toolbox, you will be prompted to select a raw data file to imp
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_manual_import.png
 
- Once you choose a file, you will again be prompted to choose which parser to use to import the data. Choose the parser appropriate for the file.
+Once you choose a file, you will be prompted to choose which parser to use to import the data. Choose the parser appropriate for the file.
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_manual_parser.png
 
