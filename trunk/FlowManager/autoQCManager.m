@@ -125,7 +125,7 @@ function qc_data = autoQCManager( sample_data, auto )
       sample_data{k} = qcFilter(...
         sample_data{k}, qcChain{m}, rawFlag, goodFlag, progress);
       
-    % set level and file version on each QC'd data set
+      % set level and file version on each QC'd data set
       sample_data{k}.meta.level = 1; 
       sample_data{k}.file_version                 = imosFileVersion(1, 'name');
       sample_data{k}.file_version_quality_control = imosFileVersion(1, 'desc');
