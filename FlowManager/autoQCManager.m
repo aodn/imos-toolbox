@@ -1,4 +1,4 @@
-function qc_data = autoQCManager( sample_data )
+function qc_data = autoQCManager( sample_data, auto )
 %AUTOQCMANAGER Manages the execution of automatic QC routines over a set
 % of data.
 %
@@ -9,6 +9,9 @@ function qc_data = autoQCManager( sample_data )
 % Inputs:
 %   sample_data - Cell array of sample data structs, containing the data
 %                 over which the qc routines are to be executed.
+%   auto        - Optional boolean argument. If true, the automatic QC
+%                 process is executed automatically (interesting, that),
+%                 i.e. with no user interaction.
 %
 % Outputs:
 %   qc_data     - Same as input, after QC routines have been run over it.
@@ -47,11 +50,13 @@ function qc_data = autoQCManager( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
-
+  error(nargchk(1,2,nargin));
+  
   if ~iscell(sample_data)
     error('sample_data must be a cell array of structs'); 
   end
+  
+  if nargin == 1, auto = false; end
   
   qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
   rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
@@ -69,55 +74,65 @@ function qc_data = autoQCManager( sample_data )
     qcChain = qcChain{1};
   catch e
   end
-
-  % prompt user to select QC filters to run - the list of initially 
-  % selected options is stored in toolboxProperties as routine names, 
-  % but must be provided to the list selection dialog as indices
-  qcChainIdx = cellfun(@(x)(find(ismember(qcRoutines,x))),qcChain);
-  qcChain = listSelectionDialog(...
-    'Select QC filters', qcRoutines, qcChainIdx);
-
-  % user cancelled dialog
-  if isempty(qcChain), return; end
-
-  % save user's latest selection for next time - turn the qcChain
-  % cell array into a space-separated string of the names
-  qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
-  writeToolboxProperty('autoQCManager.autoQCChain', deblank([qcChainStr{:}]));
   
-  progress = waitbar(...
-    0, 'Running QC routines', ...
-    'Name', 'Running QC routines',...
-    'CreateCancelBtn', ...
-    ['waitbar(1,gcbf,''Cancelling - please wait...'');'...
-     'setappdata(gcbf,''cancel'',true)']);
-  setappdata(progress,'cancel',false);
+  if ~auto
+    
+    % prompt user to select QC filters to run - the list of initially 
+    % selected options is stored in toolboxProperties as routine names, 
+    % but must be provided to the list selection dialog as indices
+    qcChain = cellfun(@(x)(find(ismember(qcRoutines,x))),qcChain);
+    qcChain = listSelectionDialog('Select QC filters', qcRoutines, qcChain);
+    
+    % save user's latest selection for next time - turn the qcChain
+    % cell array into a space-separated string of the names
+    qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
+    writeToolboxProperty('autoQCManager.autoQCChain', deblank([qcChainStr{:}]));
+  end
+  
+  % no QC routines to run
+  if isempty(qcChain), return; end
+  
+  if ~auto
+    progress = waitbar(...
+      0, 'Running QC routines', ...
+      'Name', 'Running QC routines',...
+      'CreateCancelBtn', ...
+      ['waitbar(1,gcbf,''Cancelling - please wait...'');'...
+       'setappdata(gcbf,''cancel'',true)']);
+    setappdata(progress,'cancel',false);
+  else
+    progress = nan;
+  end
 
   % run each data set through the chain
   for k = 1:length(sample_data),
     
-    % user cancelled progress bar
-    if getappdata(progress, 'cancel'), sample_data = {}; break; end
-    
     for m = 1:length(qcChain)
       
-      % user cancelled progress bar
-      if getappdata(progress, 'cancel'), sample_data = {}; break; end
-      
-      % update progress bar
-      progVal = ...
-        ((k-1)*length(qcChain)+m) / (length(qcChain)*length(sample_data));
-      progStr = [sample_data{k}.meta.instrument_make ' '...
-                 sample_data{k}.meta.instrument_model ' ' qcChain{m}];
-      waitbar(progVal, progress, progStr);
+      if ~auto
+        % user cancelled progress bar
+        if getappdata(progress, 'cancel'), sample_data = {}; break; end
+
+        % update progress bar
+        progVal = ...
+          ((k-1)*length(qcChain)+m) / (length(qcChain)*length(sample_data));
+        progStr = [sample_data{k}.meta.instrument_make ' '...
+                   sample_data{k}.meta.instrument_model ' ' qcChain{m}];
+        waitbar(progVal, progress, progStr);
+      end
       
       % run current QC routine over the current data set
       sample_data{k} = qcFilter(...
         sample_data{k}, qcChain{m}, rawFlag, goodFlag, progress);
+      
+    % set level and file version on each QC'd data set
+      sample_data{k}.meta.level = 1; 
+      sample_data{k}.file_version                 = imosFileVersion(1, 'name');
+      sample_data{k}.file_version_quality_control = imosFileVersion(1, 'desc');
     end
   end
   
-  delete(progress);
+  if ~auto, delete(progress); end
 
   qc_data = sample_data;
 end
@@ -146,7 +161,7 @@ function sam = qcFilter(sam, filterName, rawFlag, goodFlag, cancel)
     for m = 1:slices
       
       % user cancelled
-      if getappdata(cancel, 'cancel'), return; end
+      if ~isnan(cancel) && getappdata(cancel, 'cancel'), return; end
 
       slice     = data( len*(m-1)+1:len*(m));
       flagSlice = flags(len*(m-1)+1:len*(m));
