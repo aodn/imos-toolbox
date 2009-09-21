@@ -70,7 +70,7 @@ By clicking on the 'Metadata' button on the left, you can also view and modify m
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_metadata.png
 
-If your data set has a depth dimension or variable, you can view the data as a depth profile, by selecting 'DepthProfile' from the graph list at the top right of the window:
+If your data set has a depth dimension or variable, you can view the data as a depth profile, by selecting '!DepthProfile' from the graph list at the top right of the window:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_depth_profile.png
 
