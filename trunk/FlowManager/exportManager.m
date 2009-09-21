@@ -74,20 +74,21 @@ function exportManager(dataSets, levelNames, output, auto)
       suffix = 'nc';
     otherwise,     error(['unknown output type: ' output]);
   end
-  
-  setNames = {};
-  for k = 1:numSets
-    setNames{k} = genIMOSFileName(dataSets{1}{k}, suffix);
-  end
-  
+    
   % prompt user for export directory, and data sets to export
   if ~auto
+    
+    setNames = {};
+    for k = 1:numSets
+      setNames{k} = genIMOSFileName(dataSets{1}{k}, suffix); 
+    end
+    
     [exportDir dataSets] = ...
       exportDialog(dataSets, levelNames, setNames, varOpts);
   else
     exportDir = readToolboxProperty('exportDialog.defaultDir');
     
-    for k = 2:length(numLevels), dataSets{1} = [dataSets{1} dataSets{k}]; end
+    for k = 2:numLevels, dataSets{1} = [dataSets{1} dataSets{k}]; end
     dataSets = dataSets{1};
   end
   
