@@ -18,13 +18,13 @@
   * [NetCDFExportSpecification]
   * GraphSpecification
  * Help
-  * ToolboxInstallation
-  * ToolboxConfiguration
-  * SupportedInstruments
+  * [Installation ToolboxInstallation]
+  * [Configuration ToolboxConfiguration]
+  * [Use UsingTheToolboxOverview]
+  * [Supported Instruments SupportedInstruments]
   * [Troubleshooting]
-  * [NetCDFTemplates]
-  * UsingTheToolboxOverview
-  * [tortoiseSVN]
+  * [NetCDF Templates NetCDFTemplates]
+  * [Using SVN tortoiseSVN]
  * Other
   * WeeklySnapshots
   * MatlabEnvironment
