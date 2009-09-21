@@ -39,6 +39,10 @@ If you are using a deployment database, you must configure it as an ODBC source:
 
 Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name. If you are not using a deployment database, ensure the `toolbox.ddb` property is unset.
 
+=== Startup ===
+
+Start the toolbox by double clicking on `imosToolbox.exe`.
+
 == Source installation ==
 
 === Requirements ===
