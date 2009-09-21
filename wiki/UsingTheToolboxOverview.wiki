@@ -9,19 +9,32 @@ This page gives a brief overview on how to use the toolbox. You are encouraged t
 
 == Starting the toolbox ==
 
-The toolbox is started via the `imosToolbox` function, which prompts you for the data you wish to import, then loads and displays the data.
+For standalone installations, the toolbox is started by double clicking on `imosToolbox.exe`.
 
-Start the toolbox like so:
+If you are using the toolbox within Matlab, the toolbox is started via the `imosToolbox` function:
 {{{
 >> imosToolbox
 }}}
 
+== Importing data ==
+
+=== Without deployment database ===
+
+Upon starting the toolbox, you will be prompted to select a raw data file to import:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_manual_import.png
+
+ Once you choose a file, you will again be prompted to choose which parser to use to import the data. Choose the parser appropriate for the file.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_manual_parser.png
+
+=== With deployment database ===
 
 Upon starting the toolbox, you are first presented with the following dialog:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_startDialog.png
 
-Choose the field trip in which you are interested, and the directory which contains the raw data related to that field trip. You are able to use the top buttons to select a date range over which to filter the list of field trips to choose from.
+Choose the field trip in which you are interested, and the directory which contains the raw data related to that field trip. You can use the top buttons to select a date range over which to filter the list of field trips to choose from.
 
 Once you have selected a field trip and data directory, the toolbox will attempt to match up deployments with raw data files. You will then be presented with the following dialog:
 
@@ -50,6 +63,14 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window.png
 By clicking on the 'Metadata' button on the left, you can also view and modify metadata:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_metadata.png
+
+If your data set has a depth dimension or variable, you can view the data as a depth profile, by selecting 'DepthProfile' from the graph list at the top right of the window:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_depth_profile.png
+
+Similarly, for data with latitude/longitude variables, you can view the data as transects:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_transect.png
 
 == Quality Control ==
 
