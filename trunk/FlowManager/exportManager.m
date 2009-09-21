@@ -1,4 +1,4 @@
-function exportManager(dataSets, levelNames, output)
+function exportManager(dataSets, levelNames, output, auto)
 %EXPORTMANAGER Manages the export of data to NetCDF or raw data files.
 %
 % Inputs:
@@ -10,6 +10,9 @@ function exportManager(dataSets, levelNames, output)
 %                'raw', 'QC')
 %
 %   output     - either 'netcdf' or 'raw'.
+%
+%   auto       - Optional boolean argument. If true, the export process
+%                will run automatically (i.e. with no user interaction).
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -43,11 +46,13 @@ function exportManager(dataSets, levelNames, output)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,3,nargin));
+  error(nargchk(3,4,nargin));
 
   if ~iscell(dataSets),      error('dataSets must be a cell array');   end
   if ~iscellstr(levelNames), error('levelNames must be a cell array'); end
   if ~ischar(output),        error('output must be a string');         end
+  
+  if nargin == 3, auto = false; end
   
   if isempty(dataSets),      error('dataSets cannot be empty');        end
   if length(dataSets) ~= length(levelNames)
@@ -76,16 +81,26 @@ function exportManager(dataSets, levelNames, output)
   end
   
   % prompt user for export directory, and data sets to export
-  [exportDir dataSets] = exportDialog(dataSets, levelNames, setNames, varOpts);
+  if ~auto
+    [exportDir dataSets] = ...
+      exportDialog(dataSets, levelNames, setNames, varOpts);
+  else
+    exportDir = readToolboxProperty('exportDialog.defaultDir');
+    
+    for k = 2:length(numLevels), dataSets{1} = [dataSets{1} dataSets{k}]; end
+    dataSets = dataSets{1};
+  end
   
   % user cancelled dialog or selected no data sets
   if isempty(exportDir) || isempty(dataSets), return; end
   
   filenames = {};
   
-  progress = waitbar(0, 'Exporting data', ...
-    'Name',                  'Exporting',...
-    'DefaultTextInterpreter','none');
+  if ~auto
+    progress = waitbar(0, 'Exporting data', ...
+      'Name',                  'Exporting',...
+      'DefaultTextInterpreter','none');
+  end
   
   % write out each of the selected data sets
   for k = 1:length(dataSets)
@@ -98,26 +113,30 @@ function exportManager(dataSets, levelNames, output)
           exportRawData(dataSets{k}, exportDir, setNames{k});
           filenames{end+1} = setNames{k};
       end
-      waitbar(k / length(dataSets), progress, ['Exported ' filenames{end}]);
+      if ~auto
+        waitbar(k / length(dataSets), progress, ['Exported ' filenames{end}]);
+      end
       
     catch e
       disp(['error while writing file: ' e.message]);
-      for k = 1:length(e.stack)
-        disp([e.stack(k).name ':' num2str(e.stack(k).line)]);
+      for m = 1:length(e.stack)
+        disp([e.stack(m).name ':' num2str(e.stack(m).line)]);
       end
     end
   end
   
-  close(progress);
+  if ~auto
+    close(progress);
   
-  % display message to user
-  if isempty(filenames)
-    h = msgbox('no files exported','Export', 'error', 'modal');
-  else
-    h = msgbox([num2str(length(filenames)) ' file(s) exported'], ...
-      'Export', 'modal');
+    % display message to user
+    if isempty(filenames)
+      h = msgbox('no files exported','Export', 'error', 'modal');
+    else
+      h = msgbox([num2str(length(filenames)) ' file(s) exported'], ...
+        'Export', 'modal');
+    end
+    uiwait(h);
   end
-  uiwait(h);
 end
 
 function exportRawData(sample_data, exportDir, dest)
