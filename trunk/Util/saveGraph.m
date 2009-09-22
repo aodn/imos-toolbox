@@ -129,5 +129,10 @@ end
 % new, invisible figure, and saving that figure.
 saveFig = figure('Visible', 'off');
 copyobj(ax, saveFig);
+
+% the default renderer under windows is opengl; for some reason, 
+% printing pcolor plots fails when using opengl as the renderer
+set(saveFig, 'Renderer', 'zbuffer');
+
 print(saveFig, printSwitches{imgType}, fullfile(exportDir, fileName));
 delete(saveFig);
