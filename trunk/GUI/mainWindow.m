@@ -137,6 +137,13 @@ function mainWindow(...
       'String', states{k});
   end
   
+  % button to save current graph as an image
+  graphButton = uicontrol(...
+    'Parent',  sidePanel,  ...
+    'Style',  'pushbutton',...
+    'String', 'Save Graph' ...
+  );
+  
   % variable selection panel - created in createVarPanel
   varPanel = uipanel(...
     'Parent',     sidePanel,...
@@ -152,6 +159,7 @@ function mainWindow(...
   set(sidePanel,    'Units', 'normalized');
   set(mainPanel,    'Units', 'normalized');
   set(varPanel,     'Units', 'normalized');
+  set(graphButton,  'Units', 'normalized');
   set(sampleMenu,   'Units', 'normalized');
   set(graphMenu,    'Units', 'normalized');
   set(stateButtons, 'Units', 'normalized');
@@ -163,19 +171,24 @@ function mainWindow(...
   set(sampleMenu, 'Position', [0.0,  0.95, 0.75, 0.05]);
   set(graphMenu,  'Position', [0.75, 0.95, 0.25, 0.05]);
   
-  % varPanel and stateButtons are positioned relative to sidePanel
-  set(varPanel, 'Position', [0.0,  0.0,  1.0,  0.5]);
+  % varPanel, graph and stateButtons are positioned relative to sidePanel
+  set(varPanel, 'Position', [0.0, 0.0, 1.0, 0.5]);
   
   n = length(stateButtons);
   for k = 1:n
-    set(stateButtons(k), 'Position', [0.0, 0.5+(n-k)*(0.5/n), 1.0, 0.5/n]);
+    set(stateButtons(k), 'Position', ...
+      [0.0, 0.5+(n+1-k)*(0.5/(n+1)), 1.0, 0.5/(n+1)]);
   end
+  
+  % graph button is tacked on right below state buttons
+  set(graphButton, 'Position', [0.0, 0.5, 1.0, 0.5/(n+1)]);
   
   % reset back to pixels
   set(fig,          'Units', 'pixels');
   set(sidePanel,    'Units', 'pixels');
   set(mainPanel,    'Units', 'pixels');
   set(varPanel,     'Units', 'pixels');
+  set(graphButton,  'Units', 'pixels');
   set(sampleMenu,   'Units', 'pixels');
   set(graphMenu,    'Units', 'pixels');
   set(stateButtons, 'Units', 'pixels');
@@ -185,6 +198,7 @@ function mainWindow(...
   set(sampleMenu,   'Callback', @sampleMenuCallback);
   set(graphMenu,    'Callback', @graphMenuCallback);
   set(stateButtons, 'Callback', @stateButtonCallback);
+  set(graphButton,  'Callback', @graphButtonCallback);
   
   set(fig, 'Visible', 'on');
   createVarPanel(sample_data{1});
@@ -244,6 +258,18 @@ function mainWindow(...
   %
     currentState = get(source, 'String');
     selectionChange('state');
+  end
+
+  function graphButtonCallback(source, ev)
+  %GRAPHBUTTONCALLBACK Called when the user pushes the 'Save Graph' button.
+  % Prompts the user to save the current graph.
+  
+    % find all axes objects on the main panel
+    ax = findobj(mainPanel, 'Type', 'axes');
+    
+    % save the axes
+    saveGraph(ax);
+  
   end
 
   function varPanelCallback(source,ev)
