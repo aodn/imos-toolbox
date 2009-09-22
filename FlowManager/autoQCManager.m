@@ -83,10 +83,14 @@ function qc_data = autoQCManager( sample_data, auto )
     qcChain = cellfun(@(x)(find(ismember(qcRoutines,x))),qcChain);
     qcChain = listSelectionDialog('Select QC filters', qcRoutines, qcChain);
     
-    % save user's latest selection for next time - turn the qcChain
-    % cell array into a space-separated string of the names
-    qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
-    writeToolboxProperty('autoQCManager.autoQCChain', deblank([qcChainStr{:}]));
+    if ~isempty(qcChain)
+    
+      % save user's latest selection for next time - turn the qcChain
+      % cell array into a space-separated string of the names
+      qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
+      writeToolboxProperty('autoQCManager.autoQCChain', ...
+                           deblank([qcChainStr{:}]));
+    end
   end
   
   % no QC routines to run
