@@ -56,7 +56,7 @@ function sample_data = preprocessManager( sample_data )
   ppChain  = {};
 
   try
-    prompt = eval(readToolboxProperty('preprocessManager.preprocessPrompt'));
+    ppPrompt = eval(readToolboxProperty('preprocessManager.preprocessPrompt'));
   catch e
   end
 
