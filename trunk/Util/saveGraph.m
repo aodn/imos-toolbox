@@ -116,6 +116,10 @@ if ~noPrompt
       fileName = [fileName '.' fileTypes{imgType}(3:end)];
     end
     
+    % update toolbox properties for next time
+    writeToolboxProperty('saveGraph.exportDir', exportDir);
+    writeToolboxProperty('saveGraph.imgType',   fileTypes{imgType}(3:end));
+    
     break;
   end
 end
