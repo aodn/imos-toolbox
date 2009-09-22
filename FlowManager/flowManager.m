@@ -104,7 +104,24 @@ function flowManager()
     endIdx   = startIdx + length(importedData) - 1;
     rawData = [rawData importedData];
     
-    if ~isempty(autoQCData), autoQCRequestCallback(startIdx:endIdx, 0); end
+    if ~isempty(autoQCData)
+      autoQCRequestCallback(startIdx:endIdx, 0); 
+      
+      % if user cancelled auto QC process, the autoQCData and rawData arrays
+      % will be out of sync; this is bad, so the following is a dirty hack
+      % which ensures that the arrays will stay synced.
+      if length(autoQCData) ~= length(rawData)
+        
+        autoQCData(startIdx:endIdx) = importedData;
+        
+        for k = startIdx:endIdx
+          autoQCData{k}.meta.level = 1; 
+          autoQCData{k}.file_version = imosFileVersion(1, 'name');
+          autoQCData{k}.file_version_quality_control = ...
+            imosFileVersion(1, 'desc');
+        end
+      end
+    end
   
   end
               
