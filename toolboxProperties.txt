@@ -46,3 +46,9 @@ exportDialog.defaultDir = C:
 % prompt user to select parser if an appropriate one 
 % cannot be found (if false, the data is not imported)
 importManager.noParserPrompt = true
+
+% default directory for saving graphs as images
+saveGraph.noPrompt  = false
+saveGraph.exportDir = 
+saveGraph.imgType   = png
+
