@@ -16,6 +16,19 @@ If you are using the toolbox within Matlab, the toolbox is started via the `imos
 >> imosToolbox
 }}}
 
+=== Automatic toolbox execution ===
+
+The source version of the toolbox can be executed in an automatic manner, by passing some arguments to the `imosToolbox` function. A deployment database must be present in order to run the toolbox automatically. When you pass the string `'auto'` to the `imosToolbox` function, the toolbox will import all of the files specified in the deployment database, using the field trip and data directory specified in `toolboxProperties.txt`, run the data sets through the default set of automatic QC routines, and export the data sets as NetCDF to the default export directory:
+
+{{{
+>> imosToolbox auto
+}}}
+
+Alternatively, you can specify the field trip, data directory, QC routines and export directory as arguments to `imosToolbox`:
+{{{
+>> imosToolbox('auto', 4788, 'C:\Raw Data\', {'inWaterQC' 'outWaterQC'}, 'C:\NetCDF\')
+}}}
+
 == Importing data ==
 
 === Without deployment database ===
@@ -97,16 +110,3 @@ Ay any time, you can click the 'Export NetCDF' button to export the data sets to
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_export.png
 
 You will be presented with a similar dialog upon clicking the 'Export Raw' button, which allows you to copy the original raw data files, renamed with an IMOS compliant file name.
-
-== Automatic toolbox execution ==
-
-The source version of the toolbox can be executed in an automatic manner, by passing some arguments to the `imosToolbox` function. A deployment database must be present in order to run the toolbox automatically. When you pass the string `'auto'` to the `imosToolbox` function, the toolbox will import all of the files specified in the deployment database, using the field trip and data directory specified in `toolboxProperties.txt`, run the data sets through the default set of automatic QC routines, and export the data sets as NetCDF to the default export directory:
-
-{{{
->> imosToolbox auto
-}}}
-
-Alternatively, you can specify the field trip, data directory, QC routines and export directory as arguments to `imosToolbox`:
-{{{
->> imosToolbox('auto', 4788, 'C:\Raw Data\', {'inWaterQC' 'outWaterQC'}, 'C:\NetCDF\')
-}}}
