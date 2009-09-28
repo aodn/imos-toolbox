@@ -271,8 +271,8 @@ The toolbox currently assumes that the wave data `.wds` file adheres to the foll
  * Each row is one frequency 0.02:0.01:1.0 Hz
  * Each column is dicretized by 4 degrees 0:4:360 degrees:
 
- || *Burst* || *Size*             || *Unit*   ||
- ||1        ||99 rows x 90 columns||m^2/Hz/deg||
- ||2        ||99 rows x 90 columns||m^2/Hz/deg||
- ||.        ||.                   ||.         ||
- ||n        ||99 rows x 90 columns||m^2/Hz/deg||
+|| *Burst* || *Size*             || *Unit*   ||
+||1        ||99 rows x 90 columns||m^2/Hz/deg||
+||2        ||99 rows x 90 columns||m^2/Hz/deg||
+||.        ||.                   ||.         ||
+||n        ||99 rows x 90 columns||m^2/Hz/deg||
