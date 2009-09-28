@@ -69,3 +69,7 @@ for file = files'
   if ~isempty(token), hits{end + 1} = token{1}{1}; end
 
 end
+
+% sort alphabetical, case insensitive
+[ignore idx] = sort(lower(hits));
+hits         = hits(idx);
