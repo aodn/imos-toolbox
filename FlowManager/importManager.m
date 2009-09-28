@@ -284,19 +284,8 @@ function [sample_data rawFiles] = ddbImport(auto)
     fId = fieldTrip.FieldTripID;
 
     % query the ddb for all deployments related to this field trip
-    deployments = executeDDBQuery('DeploymentData', 'StartFieldTrip', fId);
-    endDeps     = executeDDBQuery('DeploymentData', 'EndFieldTrip',   fId);
-
-    % merge end field trip deployments with start field 
-    % trip deployments; ensure there are no duplicates
-    for k = 1:length(endDeps)
-
-      d = endDeps(k);
-      if find(ismember({deployments.DeploymentId}, d.DeploymentId))
-        continue; 
-      end
-      deployments(end+1) = d;
-    end
+    deployments = executeDDBQuery('DeploymentData', 'EndFieldTrip',   fId);
+    
   end
 
   function sam = parse(deployment, files, parsers, noParserPrompt)
