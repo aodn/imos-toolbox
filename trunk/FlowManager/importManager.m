@@ -164,34 +164,39 @@ function [sample_data rawFiles] = ddbImport(auto)
   sample_data = {};
   rawFiles    = {};
   allFiles    = {};
+  
+  while true
 
-  [fieldTrip deps dataDir] = getDeployments(auto);
-  
-  if isempty(deps), return; end
-    
-  % find physical files for each deployment
-  allFiles = cell(size(deps));
-  for k = 1:length(deps)
-    
-    id   = deps(k).DeploymentId;
-    rawFile = deps(k).FileName;
-    
-    hits = fsearch(rawFile, dataDir);
-    allFiles{k} = hits;
-  end
-  
-  % display status dialog to highlight any discrepancies (file not found
-  % for a deployment, more than one file found for a deployment)
-  if ~auto
-    [deps allFiles] = dataFileStatusDialog(deps, allFiles);
-  
-    % user cancelled file dialog
+    [fieldTrip deps dataDir] = getDeployments(auto);
+
     if isempty(deps), return; end
-  
-    % display progress dialog
-    progress = waitbar(0, 'importing data', ...
-      'Name',                  'Importing',...
-      'DefaultTextInterpreter','none');
+
+    % find physical files for each deployment
+    allFiles = cell(size(deps));
+    for k = 1:length(deps)
+
+      id   = deps(k).DeploymentId;
+      rawFile = deps(k).FileName;
+
+      hits = fsearch(rawFile, dataDir);
+      allFiles{k} = hits;
+    end
+
+    % display status dialog to highlight any discrepancies (file not found
+    % for a deployment, more than one file found for a deployment)
+    if ~auto
+      [deps allFiles] = dataFileStatusDialog(deps, allFiles);
+
+      % user cancelled file dialog
+      if isempty(deps), continue; end
+
+      % display progress dialog
+      progress = waitbar(0, 'importing data', ...
+        'Name',                  'Importing',...
+        'DefaultTextInterpreter','none');
+    end
+    
+    break;
   end
     
   parsers = listParsers();
