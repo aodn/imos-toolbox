@@ -167,7 +167,7 @@ The toolbox is able to parse raw binary data from the following Nortek instrumen
  * Continental (`.cpr` files)
  * AWAC (`.wpr` files)
 
-For the Aquadopp Profiler and Continental, only the raw binary file is required. For reading wave data from an AWAC, you must use Nortek software to generate the processed wave data files (`.whd` and `.wap`), as the AWAC binary file only contains raw wave data.
+For the Aquadopp Profiler and Continental, only the raw binary file is required. For reading wave data from an AWAC, you must use Nortek software to generate the processed wave data files (`.whd`, `.wap`, `.wdr`, `.was` and `.wds`), as the AWAC binary file only contains raw wave data.
 
 For the Aquadopp Profiler, Continental and AWAC, the following data is extracted:
 
@@ -243,3 +243,35 @@ The toolbox currently assumes that the wave data `.wap` file columns adhere to t
 ||13      ||Mean Pressure                  ||m     ||
 ||14      ||Unidirectivity index           ||      ||
 ||15      ||Error Code                     ||      ||
+
+=== `.wdr` file format ===
+
+The toolbox currently assumes that the wave data `.wdr` file columns adhere to the format listed below. The first line in the file gives frequency vector values for 1-n in Hz:
+
+||*Column*||*Field*             ||*Unit*  ||
+||1       ||Directional Spectrum||Deg     ||
+||2       ||Directional Spectrum||Deg     ||
+||.       ||.                   ||.       ||
+||n       ||Directional Spectrum||Deg     ||
+
+=== `.was` file format ===
+
+The toolbox currently assumes that the wave data `.was` file columns adhere to the format listed below. The first line in the file gives frequency vector values for 1-n in Hz:
+
+||*Column*||*Field*       ||*Unit*||
+||1       ||Power Spectrum||m^2/Hz||
+||2       ||Power Spectrum||m^2/Hz||
+||.       ||.             ||.     ||
+||n       ||Power Spectrum||m^2/Hz||
+
+=== `.wds` file format ===
+
+The toolbox currently assumes that the wave data `.wds` file adheres to the following format:
+
+ * Each row is one frequency 0.02:0.01:1.0 Hz
+ * Each column is dicretized by 4 degrees 0:4:360 degrees
+  ||*Burst*||*Size*              ||*Unit*    ||
+  ||1      ||99 rows x 90 columns||m^2/Hz/deg||
+  ||2      ||99 rows x 90 columns||m^2/Hz/deg||
+  ||.      ||.                   ||          ||
+  ||n      ||99 rows x 90 columns||m^2/Hz/deg||
