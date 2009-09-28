@@ -48,7 +48,7 @@ function [fieldTrip dataDir] = startDialog()
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(0,2,nargin));
+  error(nargchk(0,0,nargin));
   
   dataDir     = pwd;
   fieldTripId = 1;
@@ -72,6 +72,10 @@ function [fieldTrip dataDir] = startDialog()
   fieldTrips = executeDDBQuery('FieldTrip', [], []);
   
   if isempty(fieldTrips), error('No field trip entries in DDB'); end
+  
+  [uu newOrder] = sort([fieldTrips(:).FieldTripID]);
+  fieldTrips = fieldTrips(newOrder);
+  clear uu;
   
   % generate field trip descriptions - we don't want to do it every time
   % the field trip list is regenerated, as it results in poor performance
