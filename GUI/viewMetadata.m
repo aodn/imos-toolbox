@@ -114,8 +114,13 @@ function viewMetadata(parent, sample_data, updateCallback)
   for k = 1:length(dims), tableNames{end+1} = [dims{k}.name ' dimension']; end
   for k = 1:length(vars), tableNames{end+1} = [vars{k}.name ' variable'];  end
   
-  % create a tabbedPane which displays each table in a separate tab
-  panel = tabbedPane(parent, tables, tableNames, true);
+  % create a tabbedPane which displays each table in a separate tab.
+  % for low table numbers use buttons, otherwise use a drop down list
+  if length(tables) <= 5
+    panel = tabbedPane(parent, tables, tableNames, true);
+  else 
+    panel = tabbedPane(parent, tables, tableNames, false);
+  end
   
   % matlab is a piece of shit; column widths must be specified 
   % in pixels, so we have to get the table position in pixels 
