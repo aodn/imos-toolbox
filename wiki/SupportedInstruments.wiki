@@ -198,71 +198,71 @@ For the AWAC, if wave data is present, the following data is extracted. The AWAC
 
 The toolbox currently assumes that the wave data `.whd` file columns adhere to the following format:
 
-||*Column*||*Field*                ||*Unit*   ||
-||1       ||Month                  ||1-12     ||
-||2       ||Day                    ||1-31     ||
-||3       ||Year                   ||         ||
-||4       ||Hour                   ||0-23     ||
-||5       ||Minute                 ||0-59     ||
-||6       ||Second                 ||0-59     ||
-||7       ||Burst counter          ||         ||
-||8       ||No of wave data records||         ||
-||9       ||Cell position          ||m        ||
-||10      ||Battery voltage        ||V        ||
-||11      ||Soundspeed             ||m/s      ||
-||12      ||Heading                ||degrees  ||
-||13      ||Pitch                  ||degrees  ||
-||14      ||Roll                   ||degrees  ||
-||15      ||Minimum pressure       ||dbar     ||
-||16      ||Maximum pressure       ||dbar     ||
-||17      ||Temperature            ||degrees C||
-||18      ||CellSize               ||m        ||
-||19      ||Noise amplitude beam 1 ||counts   ||
-||20      ||Noise amplitude beam 2 ||counts   ||
-||21      ||Noise amplitude beam 3 ||counts   ||
-||22      ||Noise amplitude beam 4 ||counts   ||
-||23      ||AST window start       ||m        ||
+|| *Column* || *Field*               || *Unit*  ||
+||1         ||Month                  ||1-12     ||
+||2         ||Day                    ||1-31     ||
+||3         ||Year                   ||         ||
+||4         ||Hour                   ||0-23     ||
+||5         ||Minute                 ||0-59     ||
+||6         ||Second                 ||0-59     ||
+||7         ||Burst counter          ||         ||
+||8         ||No of wave data records||         ||
+||9         ||Cell position          ||m        ||
+||10        ||Battery voltage        ||V        ||
+||11        ||Soundspeed             ||m/s      ||
+||12        ||Heading                ||degrees  ||
+||13        ||Pitch                  ||degrees  ||
+||14        ||Roll                   ||degrees  ||
+||15        ||Minimum pressure       ||dbar     ||
+||16        ||Maximum pressure       ||dbar     ||
+||17        ||Temperature            ||degrees C||
+||18        ||!CellSize              ||m        ||
+||19        ||Noise amplitude beam 1 ||counts   ||
+||20        ||Noise amplitude beam 2 ||counts   ||
+||21        ||Noise amplitude beam 3 ||counts   ||
+||22        ||Noise amplitude beam 4 ||counts   ||
+||23        ||AST window start       ||m        ||
 
 === `.wap` file format ===
 
 The toolbox currently assumes that the wave data `.wap` file columns adhere to the following format:
 
-||*Column*||*Field*                        ||*Unit*||
-||1       ||Month                          ||1-12  ||
-||2       ||Day                            ||1-31  ||
-||3       ||Year                           ||      ||
-||4       ||Hour                           ||0-23  ||
-||5       ||Minute                         ||0-59  ||
-||6       ||Second                         ||0-59  ||
-||7       ||Significant height (Hs)        ||m     ||
-||8       ||Mean zerocrossing period (Tm02)||s     ||
-||9       ||Peak period (Tp)               ||s     ||
-||10      ||Peak direction (DirTp)         ||deg   ||
-||11      ||Directional spread (Spr1)      ||deg   ||
-||12      ||Mean direction (Mdir)          ||deg   ||
-||13      ||Mean Pressure                  ||m     ||
-||14      ||Unidirectivity index           ||      ||
-||15      ||Error Code                     ||      ||
+|| *Column* || *Field*                       || *Unit* ||
+||1         ||Month                          ||1-12    ||
+||2         ||Day                            ||1-31    ||
+||3         ||Year                           ||        ||
+||4         ||Hour                           ||0-23    ||
+||5         ||Minute                         ||0-59    ||
+||6         ||Second                         ||0-59    ||
+||7         ||Significant height (Hs)        ||m       ||
+||8         ||Mean zerocrossing period (Tm02)||s       ||
+||9         ||Peak period (Tp)               ||s       ||
+||10        ||Peak direction (DirTp)         ||deg     ||
+||11        ||Directional spread (Spr1)      ||deg     ||
+||12        ||Mean direction (Mdir)          ||deg     ||
+||13        ||Mean Pressure                  ||m       ||
+||14        ||Unidirectivity index           ||        ||
+||15        ||Error Code                     ||        ||
 
 === `.wdr` file format ===
 
 The toolbox currently assumes that the wave data `.wdr` file columns adhere to the format listed below. The first line in the file gives frequency vector values for 1-n in Hz:
 
-||*Column*||*Field*             ||*Unit*  ||
-||1       ||Directional Spectrum||Deg     ||
-||2       ||Directional Spectrum||Deg     ||
-||.       ||.                   ||.       ||
-||n       ||Directional Spectrum||Deg     ||
+|| *Column* || *Field*            || *Unit* ||
+||1         ||Directional Spectrum||Deg     ||
+||2         ||Directional Spectrum||Deg     ||
+||.         ||.                   ||.       ||
+||n         ||Directional Spectrum||Deg     ||
 
 === `.was` file format ===
 
 The toolbox currently assumes that the wave data `.was` file columns adhere to the format listed below. The first line in the file gives frequency vector values for 1-n in Hz:
 
-||*Column*||*Field*       ||*Unit*||
-||1       ||Power Spectrum||m^2/Hz||
-||2       ||Power Spectrum||m^2/Hz||
-||.       ||.             ||.     ||
-||n       ||Power Spectrum||m^2/Hz||
+|| *Column* || *Field*      || *Unit* ||
+||1         ||Power Spectrum||m^2/Hz  ||
+||2         ||Power Spectrum||m^2/Hz  ||
+||.         ||.             ||.       ||
+||n         ||Power Spectrum||m^2/Hz  ||
 
 === `.wds` file format ===
 
@@ -270,8 +270,8 @@ The toolbox currently assumes that the wave data `.wds` file adheres to the foll
 
  * Each row is one frequency 0.02:0.01:1.0 Hz
  * Each column is dicretized by 4 degrees 0:4:360 degrees
-  ||*Burst*||*Size*              ||*Unit*    ||
-  ||1      ||99 rows x 90 columns||m^2/Hz/deg||
-  ||2      ||99 rows x 90 columns||m^2/Hz/deg||
-  ||.      ||.                   ||.         ||
-  ||n      ||99 rows x 90 columns||m^2/Hz/deg||
+  || *Burst* || *Size*             || *Unit*   ||
+  ||1        ||99 rows x 90 columns||m^2/Hz/deg||
+  ||2        ||99 rows x 90 columns||m^2/Hz/deg||
+  ||.        ||.                   ||.         ||
+  ||n        ||99 rows x 90 columns||m^2/Hz/deg||
