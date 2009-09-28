@@ -273,5 +273,5 @@ The toolbox currently assumes that the wave data `.wds` file adheres to the foll
   ||*Burst*||*Size*              ||*Unit*    ||
   ||1      ||99 rows x 90 columns||m^2/Hz/deg||
   ||2      ||99 rows x 90 columns||m^2/Hz/deg||
-  ||.      ||.                   ||          ||
+  ||.      ||.                   ||.         ||
   ||n      ||99 rows x 90 columns||m^2/Hz/deg||
