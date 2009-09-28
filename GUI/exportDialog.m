@@ -187,18 +187,19 @@ function [exportDir sets] = exportDialog( ...
       );
     end
     
-    % label for variable checkboxes (below)
-    varLabel = uicontrol(...
-      'Parent',              setPanels(k),...
-      'Style',               'text',...
-      'String',              'Variables',...
-      'HorizontalAlignment', 'Left'...
-    );
-    
-    % checkbox allowing user to select 
-    % which variables to export
-    varCheckboxes = [];
     if varOpts
+      % label for variable checkboxes (below)
+      varLabel = uicontrol(...
+        'Parent',              setPanels(k),...
+        'Style',               'text',...
+        'String',              'Variables',...
+        'HorizontalAlignment', 'Left'...
+      );
+
+      % checkbox allowing user to select 
+      % which variables to export
+      varCheckboxes = [];
+    
       for m = 1:length(dataSets{1}{k}.variables)
         
         varCheckboxes(m) = uicontrol(...
@@ -213,17 +214,24 @@ function [exportDir sets] = exportDialog( ...
     
     % set callbacks for level/variable selection
     set(levelCheckboxes, 'Callback', @levelCheckboxCallback);
-    set(varCheckboxes,   'Callback', @varCheckboxCallback);
+    if varOpts
+      set(varCheckboxes, 'Callback', @varCheckboxCallback);
+    end
     
     % use normalized units for positioning
-    set(levelLabel,                'Units', 'normalized');
-    set(varLabel,                  'Units', 'normalized');
-    set(levelCheckboxes,           'Units', 'normalized');
-    if varOpts, set(varCheckboxes, 'Units', 'normalized');  end
+    set(levelLabel,      'Units', 'normalized');
+    set(levelCheckboxes, 'Units', 'normalized');
+    
+    if varOpts
+      set(varCheckboxes, 'Units', 'normalized');
+      set(varLabel,      'Units', 'normalized');
+    end
     
     % position widgets (panel is positioned when it is added to tabbedPane)
     set(levelLabel, 'Position', [0.0,  0.0,  0.15, 0.2]);
-    set(varLabel,   'Position', [0.0,  0.2,  0.15, 0.7]);
+    if varOpts
+      set(varLabel, 'Position', [0.0,  0.2,  0.15, 0.7]);
+    end
     
     % position data level checkboxes
     for m = 1:length(levelCheckboxes)
@@ -258,10 +266,12 @@ function [exportDir sets] = exportDialog( ...
       end
     end
     
-    set(varLabel,                  'Units', 'pixels');
-    set(levelLabel,                'Units', 'pixels');
-    set(levelCheckboxes,           'Units', 'pixels');
-    if varOpts, set(varCheckboxes, 'Units', 'pixels'); end
+    set(levelLabel,      'Units', 'pixels');
+    set(levelCheckboxes, 'Units', 'pixels');
+    if varOpts
+      set(varCheckboxes, 'Units', 'pixels'); 
+      set(varLabel,      'Units', 'pixels');
+    end
   end
   
   % set widget callbacks
