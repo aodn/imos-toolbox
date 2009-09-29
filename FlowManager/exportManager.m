@@ -96,6 +96,7 @@ function exportManager(dataSets, levelNames, output, auto)
   if isempty(exportDir) || isempty(dataSets), return; end
   
   filenames = {};
+  errors    = {};
   
   if ~auto
     progress = waitbar(0, 'Exporting data', ...
@@ -119,10 +120,9 @@ function exportManager(dataSets, levelNames, output, auto)
       end
       
     catch e
-      disp(['error while writing file: ' e.message]);
-      for m = 1:length(e.stack)
-        disp([e.stack(m).name ':' num2str(e.stack(m).line)]);
-      end
+      
+      errors{end+1} = [setNames{k} ': ' e.message];
+      disp(errors{end});
     end
   end
   
@@ -130,13 +130,23 @@ function exportManager(dataSets, levelNames, output, auto)
     close(progress);
   
     % display message to user
-    if isempty(filenames)
-      h = msgbox('no files exported','Export', 'error', 'modal');
+    msg = '';
+    icon = 'none';
+    if isempty(errors), msg = 'All files exported';
+      
     else
-      h = msgbox([num2str(length(filenames)) ' file(s) exported'], ...
-        'Export', 'modal');
+      
+      if isempty(filenames)
+        msg = sprintf('No files exported\n\n');
+      else
+        msg = sprintf([num2str(length(filename)) ' file(s) exported\n\n']);
+      end
+      
+      msg  = [msg cellCons(errors, sprintf('\n\n'))];
+      icon = 'error';
     end
-    uiwait(h);
+    
+    uiwait(msgbox(msg, 'Export', icon, 'modal'));
   end
 end
 
