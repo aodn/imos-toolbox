@@ -15,14 +15,14 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
-autoQCManager.autoQCChain = inWaterQC outWaterQC
+autoQCManager.autoQCChain = 
 
 % propmt for preprocessing (if false, 
 % preprocessing routines are not executed)
-preprocessManager.preprocessPrompt = true
+preprocessManager.preprocessPrompt = false
 
 % default set of preprocessing routines
-preprocessManager.preprocessChain = timeOffsetPP
+preprocessManager.preprocessChain = 
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
@@ -49,6 +49,6 @@ importManager.noParserPrompt = true
 
 % default directory for saving graphs as images
 saveGraph.noPrompt  = false
-saveGraph.exportDir = 
+saveGraph.exportDir = C:
 saveGraph.imgType   = png
 
