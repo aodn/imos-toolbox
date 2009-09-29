@@ -15,3 +15,5 @@ WETLABS, WQM,                                                      WQM
 RDI,     ADCP - WORKHORSE,                                         workhorse
 RDI,     ADCP - QUARTERMASTER,                                     workhorse
 SEABIRD, SBE37SM - MicroCAT C-T Recorder Serial Interface and Memory, SBE37
+NORTEK, ADCP - AWAC, awac
+NORTEK, ADCP - CONTINENTAL, continental
