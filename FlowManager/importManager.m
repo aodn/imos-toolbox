@@ -130,24 +130,33 @@ function [sample_data rawFile]= manualImport()
     % user cancelled dialog
     if isempty(parser), continue; end
     
+    parser = getParser(parser);
+
+    % display progress dialog
+    progress = waitbar(0, ['importing ' rawFile], ...
+      'Name',                  'Importing',...
+      'DefaultTextInterpreter','none');
+
+    % import the data
+    try 
+      rawFile     = [path rawFile];
+      sample_data = {parser({rawFile})};
+      rawFile     = {{rawFile}};
+      close(progress);
+      
+    catch e
+      
+      close(progress);
+      e = errordlg(['Could not import ' rawFile ...
+                ' with ' func2str(parser)   ...
+                ' (' e.message '). Did you select the correct parser?'], ...
+                'Import error');
+      uiwait(e);
+      continue;
+    end
+
     break;
-  
   end
-  
-  parser = getParser(parser);
-  
-  
-  % display progress dialog
-  progress = waitbar(0, ['importing ' rawFile], ...
-    'Name',                  'Importing',...
-    'DefaultTextInterpreter','none');
-  
-  % import the data
-  rawFile     = [path rawFile];
-  sample_data = {parser({rawFile})};
-  rawFile     = {{rawFile}};
-  
-  close(progress);
 end
 
 function [sample_data rawFiles] = ddbImport(auto)
