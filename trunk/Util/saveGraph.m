@@ -124,6 +124,10 @@ if ~noPrompt
   end
 end
 
+progress = waitbar(0, 'Saving graph', ...
+  'Name',                  'Saving',...
+  'DefaultTextInterpreter','none');
+
 % Matlab can't save individual axes - it is only able to save complete
 % figures. What we are doing, then, is copying the provided axis over to a 
 % new, invisible figure, and saving that figure.
@@ -134,5 +138,21 @@ copyobj(ax, saveFig);
 % printing pcolor plots fails when using opengl as the renderer
 set(saveFig, 'Renderer', 'zbuffer');
 
-print(saveFig, printSwitches{imgType}, fullfile(exportDir, fileName));
+waitbar(1, progress);
+msg = '';
+icon = '';
+
+try
+  print(saveFig, printSwitches{imgType}, fullfile(exportDir, fileName));
+  
+  msg  = [fileName ' saved successfully'];
+  icon = 'none';
+
+catch e
+  msg  = ['Could not save ' fileName ' (' e.message ')'];
+  icon = 'error';
+end
+
 delete(saveFig);
+close(progress);
+uiwait(msgbox(msg, 'Save graph', icon, 'modal'));
