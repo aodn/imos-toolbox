@@ -110,13 +110,17 @@ function viewMetadata(parent, sample_data, updateCallback)
       varData{k}, ['variables{'  num2str(k) '}'], 'variable', dateFmt);
   end
   
-  tableNames = {'Global'};
-  for k = 1:length(dims), tableNames{end+1} = [dims{k}.name ' dimension']; end
-  for k = 1:length(vars), tableNames{end+1} = [vars{k}.name ' variable'];  end
+  tableNames = {'Global attributes'};
+  for k = 1:length(dims)
+    tableNames{end+1} = [dims{k}.name ' dimension attributes']; 
+  end
+  for k = 1:length(vars)
+    tableNames{end+1} = [vars{k}.name ' variable attributes'];
+  end
   
   % create a tabbedPane which displays each table in a separate tab.
   % for low table numbers use buttons, otherwise use a drop down list
-  if length(tables) <= 5
+  if length(tables) <= 4
     panel = tabbedPane(parent, tables, tableNames, true);
   else 
     panel = tabbedPane(parent, tables, tableNames, false);
