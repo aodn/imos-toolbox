@@ -240,10 +240,21 @@ function displayManager(windowTitle, sample_data, callbacks)
       % redisplay the data
       try 
         graphFunc = getGraphFunc(graphType, 'graph', '');
-        flagFunc  = getGraphFunc(graphType, 'flag',  '');
+        try flagFunc  = getGraphFunc(graphType, 'flag',  '');
+        catch e
+          flagFunc = [];
+        end
         
         [graphs lines vars] = graphFunc(panel, sample_data{setIdx}, vars);
-        flags = flagFunc( panel, graphs, sample_data{setIdx}, vars);
+        
+        if isempty(flagFunc)
+          warning(['Cannot display QC flags using ' graphType ...
+                   '. Try a different graph type.']);
+          return;
+        else
+          flags = flagFunc( panel, graphs, sample_data{setIdx}, vars);
+        end
+        
       catch e
         errordlg(...
           ['Could not display this data set using ' graphType ...

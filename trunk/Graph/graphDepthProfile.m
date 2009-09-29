@@ -60,7 +60,10 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
   graphs = [];
   lines  = [];
     
-  if isempty(vars), return; end
+  if isempty(vars)
+    warning('no variables to graph');
+    return; 
+  end
   
   % make sure the data set contains depth 
   % data, either a dimension or a variable
@@ -72,7 +75,10 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     % passed in as one of the variables to plot, remove it from the list
     if ~isempty(find(vars == depth, 1))
       vars(vars == depth) = []; 
-      if isempty(vars), return; end
+      if isempty(vars)
+        warning('no variables to graph');
+        return; 
+      end
     end
     
     depth = sample_data.variables{depth};
@@ -93,7 +99,10 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     end
     
     vars = setdiff(vars, remove);
-    if isempty(vars), return; end
+    if isempty(vars)
+      warning('no variables to graph');
+      return; 
+    end
     
     depth = sample_data.dimensions{depth};
   end
