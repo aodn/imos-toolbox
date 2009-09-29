@@ -112,23 +112,26 @@ function [sample_data rawFile]= manualImport()
   rawFile     = {};
   
   manualDir = readToolboxProperty('importManager.manualDir');
+  
+  while true
 
-  % prompt the user to select a data file
-  [rawFile path] = uigetfile('*', 'Select Data File', manualDir);
-  
-  if rawFile == 0, return; end;
-  
-  writeToolboxProperty('importManager.manualDir', path);
-  
-  % prompt the user to select a parser with which to import the file
-  parsers = listParsers();
-  parser = optionDialog('Select a parser',...
-    'Select a parser with which to import the data', parsers, 1);
+    % prompt the user to select a data file
+    [rawFile path] = uigetfile('*', 'Select Data File', manualDir);
 
-  % user cancelled dialog
-  if isempty(parser)
-    parser = 0;
-    return;
+    if rawFile == 0, return; end;
+
+    writeToolboxProperty('importManager.manualDir', path);
+
+    % prompt the user to select a parser with which to import the file
+    parsers = listParsers();
+    parser = optionDialog('Select a parser',...
+      'Select a parser with which to import the data', parsers, 1);
+
+    % user cancelled dialog
+    if isempty(parser), continue; end
+    
+    break;
+  
   end
   
   parser = getParser(parser);
