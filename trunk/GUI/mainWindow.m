@@ -204,6 +204,20 @@ function mainWindow(...
   createVarPanel(sample_data{1});
   selectionChange('state');
   
+  tb      = findall(fig, 'Type', 'uitoolbar');
+  buttons = findall(tb);
+  
+  zoomoutb = findobj(buttons, 'TooltipString', 'Zoom Out');
+  zoominb  = findobj(buttons, 'TooltipString', 'Zoom In');
+  panb     = findobj(buttons, 'TooltipString', 'Pan');
+  
+  buttons(buttons == tb)       = [];
+  buttons(buttons == zoomoutb) = [];
+  buttons(buttons == zoominb)  = [];
+  buttons(buttons == panb)     = [];
+  
+  delete(buttons);
+  
   %% Widget Callbacks
   
   function selectionChange(event)
