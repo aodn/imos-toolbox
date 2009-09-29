@@ -1,5 +1,6 @@
-function [graphs lines vars] = graphTransect( parent, sample_data, vars )
-%GRAPHTRANSECT Graphs the given data in a 2D transect manner, using subplot.
+function [graphs lines vars] = graphXvY( parent, sample_data, vars )
+%GRAPHTRANSECT Graphs the first two variables from the given data set
+% against each other on an X-Y axis.
 %
 % Inputs:
 %   parent             - handle to the parent container.
@@ -55,31 +56,31 @@ function [graphs lines vars] = graphTransect( parent, sample_data, vars )
   graphs = [];
   lines  = [];
     
-  if isempty(vars)
-    warning('no variables to graph');
+  if length(vars) < 2
+    warning('not enough variables to graph');
     return; 
   end
   
-  % make sure the data set contains latitude and longitude data
-  lat = getVar(sample_data.variables, 'LATITUDE');
-  lon = getVar(sample_data.variables, 'LONGITUDE');
+  vars = vars(1:2);
   
-  if lat == 0 || lon == 0
-    error('data set contains no latitude/longitude data'); 
-  end
-  
-  % ignore request to plot lat/lon against themselves
-  if ~isempty(find(vars == lat, 1)), vars(vars == lat) = []; end
-  if ~isempty(find(vars == lon, 1)), vars(vars == lon) = []; end
-  
-  if isempty(vars)
-    warning('no variables to graph');
-    return; 
+  if length(sample_data.variables{vars(1)}.dimensions) > 1 ...
+  || length(sample_data.variables{vars(2)}.dimensions) > 1
+    error('XvY only supports single dimensional data');
   end
   
   for k = 1:length(vars)
+        
+    % m points to the other variable
+    m = k;
+    if m == 1, m = 2;
+    else       m = 1;
+    end
     
-    name = sample_data.variables{vars(k)}.name;
+    xname = sample_data.variables{vars(k)}.name;
+    yname = sample_data.variables{vars(m)}.name;
+    
+    xdata = sample_data.variables{vars(k)}.data;
+    ydata = sample_data.variables{vars(m)}.data;
     
     % create the axes
     graphs(k) = subplot(1, length(vars), k);
@@ -90,17 +91,13 @@ function [graphs lines vars] = graphTransect( parent, sample_data, vars )
                    'YGrid',  'on', ...
                    'ZGrid',  'on');
     
-    % plot the variable
-    plotFunc            = getGraphFunc('Transect', 'graph', name);
-    [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, vars(k));
+    lines(k) = line(xdata, ydata);
     
     % set labels
-    set(get(graphs(k), 'XLabel'), 'String', labels{1});
-    set(get(graphs(k), 'YLabel'), 'String', labels{2});
+    set(get(graphs(k), 'XLabel'), 'String', xname);
+    set(get(graphs(k), 'YLabel'), 'String', yname);
   end
   
-  % link axes for panning/zooming
-  try linkaxes(graphs, 'xy');
-  catch e
-  end
+  set(lines(1), 'Color', 'blue');
+  set(lines(2), 'Color', 'red');
 end

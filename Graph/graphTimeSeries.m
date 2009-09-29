@@ -59,7 +59,10 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   graphs = [];
   lines  = [];
     
-  if isempty(vars), return; end
+  if isempty(vars)
+    warning('no variables to graph');
+    return; 
+  end
   
   % get rid of variables that we should ignore
   sample_data.variables = sample_data.variables(vars);
