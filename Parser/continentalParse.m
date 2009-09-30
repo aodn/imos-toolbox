@@ -138,19 +138,19 @@ for k = 1:nsamples
   amplitude3(k,:) = st.Amp3;
 end
 
-% battery     / 10.0   (0.1 V   -> V)
-% heading     / 10.0   (0.1 deg -> deg)
-% pitch       / 10.0   (0.1 deg -> deg)
-% roll        / 10.0   (0.1 deg -> deg)
-% pressure    / 1000.0 (mm      -> m)   assuming equivalence to dbar
-% temperature / 10.0   (0.1 deg -> deg)
-% velocities  / 1000.0 (mm/s    -> m/s) assuming earth coordinates
+% battery     / 10.0   (0.1 V    -> V)
+% heading     / 10.0   (0.1 deg  -> deg)
+% pitch       / 10.0   (0.1 deg  -> deg)
+% roll        / 10.0   (0.1 deg  -> deg)
+% pressure    / 1000.0 (mm       -> m)   assuming equivalence to dbar
+% temperature / 100.0  (0.01 deg -> deg)
+% velocities  / 1000.0 (mm/s     -> m/s) assuming earth coordinates
 battery     = battery     / 10.0;
 heading     = heading     / 10.0;
 pitch       = pitch       / 10.0;
 roll        = roll        / 10.0;
 pressure    = pressure    / 1000.0;
-temperature = temperature / 10.0;
+temperature = temperature / 100.0;
 velocity1   = velocity1   / 1000.0;
 velocity2   = velocity2   / 1000.0;
 velocity3   = velocity3   / 1000.0;
