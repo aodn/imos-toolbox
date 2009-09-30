@@ -5,7 +5,15 @@
 
 = Troubleshooting =
 
-== Standalone versions ==
+== Invalid graphics handle ==
+
+If, while viewing a data set, you enable/disable parameters too quickly, you may be presented with the following dialog:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_handle_error.png
+
+This is a harmless, but unfortunately unavoidable problem with Matlab - it can be safely ignored.
+
+== Standalone errors ==
 
 === Microsoft Visual C++ Runtime Error ===
 
