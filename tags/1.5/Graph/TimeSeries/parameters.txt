@@ -1,0 +1,15 @@
+% if not listed in this file, -> graphTimeSeriesGeneric
+
+% graphTimeSeriesCSPD just calls 
+% graphTimeSeriesTimeDepth, but 
+% changes colour limits
+CSPD,      CSPD
+CDIR,      TimeDepth
+VCUR,      TimeDepth
+UCUR,      TimeDepth
+ZCUR,      TimeDepth
+ABSI,      TimeDepth
+ADCP_CORR, TimeDepth
+ADCP_GOOD, TimeDepth
+VDEN,      TimeFrequency
+SSWD,      TimeFrequency

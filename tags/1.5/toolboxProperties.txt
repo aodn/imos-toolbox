@@ -1,0 +1,54 @@
+% filename or ODBC DSN of deployment database
+toolbox.ddb = 
+
+% date and time formats used internally and for GUI display
+toolbox.dateFormat = dd mmm yyyy
+toolbox.timeFormat = yyyy-mm-ddTHH:MM:SS
+
+% QC set in use - see section 6.2 of the IMOS NetCDF User's Manual
+toolbox.qc_set = 1
+
+% format in which all dates should be exported in NetCDF attributes
+exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
+
+% different date format for NetCDF file names
+exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
+
+% default set of auto QC routines
+autoQCManager.autoQCChain = 
+
+% propmt for preprocessing (if false, 
+% preprocessing routines are not executed)
+preprocessManager.preprocessPrompt = false
+
+% default set of preprocessing routines
+preprocessManager.preprocessChain = 
+
+% file status dialog formatting styles
+% can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
+% 'blue' etc)
+dataFileStatusDialog.invalidFileNameFormat = red
+dataFileStatusDialog.noFileFormat          = bold
+dataFileStatusDialog.multipleFileFormat    = italic
+
+% default values for start dialog
+startDialog.dataDir = C:
+startDialog.fieldTrip =
+startDialog.lowDate =
+startDialog.highDate =
+
+% default directory for manual data import
+importManager.manualDir = C:
+
+% default directory for file export
+exportDialog.defaultDir = C:
+
+% prompt user to select parser if an appropriate one 
+% cannot be found (if false, the data is not imported)
+importManager.noParserPrompt = true
+
+% default directory for saving graphs as images
+saveGraph.noPrompt  = false
+saveGraph.exportDir = C:
+saveGraph.imgType   = png
+

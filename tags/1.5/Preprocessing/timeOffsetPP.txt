@@ -1,0 +1,26 @@
+% This file specifies default time offset values as used by the timeOffsetPP
+% function. Each line is of the format:
+%
+%   timezone, offset
+%
+% where timezone is the time zone code, and offset is the value to be used to
+% convert from that time zone to UTC/GMT, in hours.
+
+UTC,      0.0
+GMT,      0.0
+UTC/GMT,  0.0
+
+WST,     -8.0
+AWST,    -8.0
+WDT,     -9.0
+AWDT,    -9.0
+
+CST,     -9.5
+ACST,    -9.5
+CDT,     -10.5
+ACDT,    -10.5
+
+EST,     -10.0
+AEST,    -10.0
+EDT,     -11.0
+AEDT,    -11.0
