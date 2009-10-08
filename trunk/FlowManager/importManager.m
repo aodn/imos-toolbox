@@ -147,6 +147,10 @@ function [sample_data rawFile]= manualImport()
     catch e
       
       close(progress);
+      
+      % make sure sprintf doesn't interpret windows 
+      % file separators as escape characters
+      rawFile = strrep(rawFile, '\', '\\');
       errmsg = sprintf(['Could not import ' rawFile ...
                 ' with ' func2str(parser)  ...
                 '. Did you select the correct parser?' ...
