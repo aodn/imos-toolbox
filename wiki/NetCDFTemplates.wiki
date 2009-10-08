@@ -104,7 +104,7 @@ the attribute value will be the value of the matlab statment:
 
 == Combinations ==
 
-You can combine each method of defining values, as shown in the following examples. Version 1.0 of the toolbox imposes a few restrictions upon the use of tokens; these restrictions are not present in the trunk:
+You can combine each method of defining values, as shown in the following examples. Version 1.0 of the toolbox imposes a few restrictions upon the use of tokens; these restrictions are not present in version 1.5:
  * Tokens may not be repeated
  * Tokens may not contain other tokens
 
