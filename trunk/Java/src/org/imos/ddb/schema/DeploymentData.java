@@ -35,8 +35,8 @@ import java.util.Date;
 public class DeploymentData {
   
   public String  DeploymentId;
-  public Double  StartFieldTrip;
-  public Double  EndFieldTrip;
+  public String  StartFieldTrip;
+  public String  EndFieldTrip;
   public String  Site;
   public String  EndSite;
   public String  Station;

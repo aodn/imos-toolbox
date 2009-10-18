@@ -51,7 +51,7 @@ function [fieldTrip dataDir] = startDialog()
   error(nargchk(0,0,nargin));
   
   dataDir     = pwd;
-  fieldTripId = 1;
+  fieldTripId = '1';
   lowDate     = 0;
   highDate    = now;
   dateFmt     = readToolboxProperty('toolbox.dateFormat');
@@ -59,7 +59,7 @@ function [fieldTrip dataDir] = startDialog()
   % if default values exist for data dir and field trip, use them
   try 
     dataDir     =            readToolboxProperty('startDialog.dataDir'); 
-    fieldTripId = str2double(readToolboxProperty('startDialog.fieldTrip'));
+    fieldTripId =            readToolboxProperty('startDialog.fieldTrip');
     lowDate     = str2double(readToolboxProperty('startDialog.lowDate'));
     highDate    = str2double(readToolboxProperty('startDialog.highDate'));
   catch
@@ -73,7 +73,7 @@ function [fieldTrip dataDir] = startDialog()
   
   if isempty(fieldTrips), error('No field trip entries in DDB'); end
   
-  [uu newOrder] = sort([fieldTrips(:).FieldTripID]);
+  [uu newOrder] = sort({fieldTrips(:).FieldTripID});
   fieldTrips = fieldTrips(newOrder);
   clear uu;
   
@@ -97,18 +97,17 @@ function [fieldTrip dataDir] = startDialog()
   % find the default field trip
   fieldTrip = filteredFieldTrips(1);
   
-  if fieldTripId ~= -99999
-    for k = 1:length(filteredFieldTrips)
+  for k = 1:length(filteredFieldTrips)
 
-      f = filteredFieldTrips(k);
-
-      % save default field trip selection
-      if f.FieldTripID == fieldTripId
-        fieldTripIdx = k; 
-        fieldTrip    = f;
-        break;
-      end
-    end  
+    f = filteredFieldTrips(k);
+    
+    % save default field trip selection
+    if strcmp(f.FieldTripID, fieldTripId)
+      
+      fieldTripIdx = k; 
+      fieldTrip    = f;
+      break;
+    end
   end
   
   %% Dialog creation
@@ -323,7 +322,7 @@ function [fieldTrip dataDir] = startDialog()
   
   % persist the user's directory and field trip selection
   writeToolboxProperty('startDialog.dataDir',   dataDir);
-  writeToolboxProperty('startDialog.fieldTrip', num2str(fieldTrip.FieldTripID));
+  writeToolboxProperty('startDialog.fieldTrip', fieldTrip.FieldTripID);
   writeToolboxProperty('startDialog.lowDate',   num2str(lowDate));
   writeToolboxProperty('startDialog.highDate',  num2str(highDate));
   
@@ -389,7 +388,7 @@ function descs = genFieldTripDescs(fieldTrips, dateFmt)
     
     dateRange = [startDate  ' - ' endDate];
     
-    desc = [num2str(f.FieldTripID) ' (' dateRange ') ' f.FieldDescription];
+    desc = [f.FieldTripID ' (' dateRange ') ' f.FieldDescription];
     
     descs{end+1} = desc;
   end
