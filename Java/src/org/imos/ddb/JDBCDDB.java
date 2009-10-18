@@ -139,8 +139,8 @@ public class JDBCDDB extends DDB {
           if (o instanceof Integer) {
             o = (double)((Integer)o).intValue();
 
-            //Nasty hack to accommodate DeploymentId type
-            //of number or text. Don't tell anyone
+            //Hack to accommodate DeploymentId and FieldTripID 
+            //types of number or text. Don't tell anyone
             if (f.getType() == String.class)
               o = o.toString();
           }
