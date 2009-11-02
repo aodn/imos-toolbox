@@ -69,7 +69,12 @@ function sample_data = timeOffsetPP( sample_data )
     descs{k} = genSampleDataDesc(sample_data{k});
     
     timezones{k} = sample_data{k}.meta.timezone;
-    offsets  (k) = readTimeOffset(timezones{k}); 
+    
+    if isempty(str2num(timezones{k}))
+      offsets(k) = readTimeOffset(timezones{k}); 
+    else
+      offsets(k) = str2num(timezones{k});
+    end
     
     if isnan(offsets(k)), offsets(k) = 0; end
   end
