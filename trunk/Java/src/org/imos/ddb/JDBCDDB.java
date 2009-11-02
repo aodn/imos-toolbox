@@ -111,14 +111,33 @@ public class JDBCDDB extends DDB {
           throw new Exception("a fieldValue must be provided");
 
         //wrap strings in quotes
-        if (fieldValue instanceof String) fieldValue = "'" + fieldValue + "'";
-
-        query += " where " + fieldName + " = " + fieldValue;
+        if (fieldValue instanceof String) 
+          query += " where " + fieldName + " = '" + fieldValue + "'";
+        else
+          query += " where " + fieldName + " = " + fieldValue;
       }
-      
+
       //execute the query
-      Statement stmt = conn.createStatement();
-      ResultSet rs = stmt.executeQuery(query);
+      Statement stmt = null;
+      ResultSet rs = null;
+      try {
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery(query);
+      }
+      catch (Exception e) {
+      
+        //Hack to accommodate DeploymentId and FieldTripID
+        //types of number or text. Don't tell anyone
+        if (fieldName != null && fieldValue instanceof String) {
+        
+          query = "select * from " + tableName + 
+            " where " + fieldName + " = " + fieldValue;
+                  
+          stmt = conn.createStatement();
+          rs = stmt.executeQuery(query);
+        }
+        else throw e;
+      }
       
       //create an object for each row
       while (rs.next()) {
