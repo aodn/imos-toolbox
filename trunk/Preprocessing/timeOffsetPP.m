@@ -57,6 +57,8 @@ function sample_data = timeOffsetPP( sample_data )
   
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
+  
+  offsetFile = ['Preprocessing' filesep 'timeOffsetPP.txt'];
 
   descs     = {};
   timezones = {};
@@ -71,7 +73,11 @@ function sample_data = timeOffsetPP( sample_data )
     timezones{k} = sample_data{k}.meta.timezone;
     
     if isnan(str2double(timezones{k}))
-      offsets(k) = readTimeOffset(timezones{k}); 
+      try 
+        offsets(k) = str2double(readProperty(timezones{k}, offsetFile, ','));
+      catch
+        offsets(k) = nan;
+      end
     else
       offsets(k) = str2double(timezones{k});
     end
@@ -233,102 +239,5 @@ function sample_data = timeOffsetPP( sample_data )
     else           offsets(idx) = val;
     
     end
-  
   end
-end
-
-function offset = readTimeOffset(timezone)
-% readTimeOffset Reads the given time zone offset value from the
-% timeOffsetPP.txt configuration file. If the time zone is not listed in the
-% file, nan is returned.
-%
-  offset = nan;
-  
-  % read in the (timezone, offset) pairs
-  filepath = [pwd filesep 'Preprocessing' filesep 'timeOffsetPP.txt'];
-  fid = fopen(filepath, 'rt');
-  if fid == -1, error('could not open timeOffsetPP.txt'); end
-
-  lines = textscan(fid, '%s%s', 'Delimiter', ',', 'CommentStyle', '%');
-  fclose(fid);
-  timezones = lines{1};
-  offsets   = lines{2};
-  
-  % search for a match
-  for k = 1:length(timezones)
-    
-    if strcmp(timezone, timezones{k})
-      
-      offset = str2double(offsets{k});
-      break;
-    end
-  end
-end
-
-function writeTimeOffset(newTimezone, newOffset)
-%WRITETIMEOFFSET Writes the given time zone/offset pair to the
-% timeOffsetPP.txt configuration file. If the time zone is already listed in
-% the file, its offset value is updated.
-
-  % open handles to old file and replacement file
-  oldfile = [pwd filesep 'Preprocessing' filesep  'timeOffsetPP.txt'];
-  newfile = [pwd filesep 'Preprocessing' filesep '.timeOffsetPP.txt'];
-  
-  fid = fopen(oldfile, 'rt');
-  if  fid == -1, error('could not open timeOffsetPP.txt');  end
-  
-  nfid = fopen(newfile, 'wt');
-  if nfid == -1
-    fclose(fid);
-    error('could not open .timeOffsetPP.txt'); 
-  end
-  
-  % iterate through every line of the old file, copying to the new file
-  % if the timezone is found, update its offset value
-  line = fgetl(fid);
-  updated = 0;
-  while ischar(line)
-    
-    line = deblank(line);
-    if isempty(line)
-      fprintf(nfid, '\n');
-      line = fgetl(fid);
-      continue;
-    end
-    
-    scan = textscan(line, '%s%s', 'Delimiter', ',', 'CommentStyle', '%');
-    
-    timezone  = scan{1};
-    oldOffset = scan{2};
-    
-    if ~isempty(timezone)
-      
-      timezone = timezone{1};
-      
-      % update offset value for the specified timezone
-      if strcmp(newTimezone, timezone)
-      
-        line = sprintf('%s, %.1f', newTimezone, newOffset);
-        updated = 1;
-      end
-    end
-    
-    fprintf(nfid, '%s\n', line);
-    line = fgetl(fid);
-  end
-  
-  % if the timezone is not already in the file, add it to the end
-  if ~updated
-    
-    fprintf(nfid, '%s, %.1f\n', newTimezone, newOffset);
-  end
-  
-  fclose(fid);
-  fclose(nfid);
-  
-  % overwrite the old file with the new file
-  if ~movefile(newfile, oldfile, 'f')
-    error(['could not replace ' oldFile ' with ' newFile]);
-  end
-  
 end
