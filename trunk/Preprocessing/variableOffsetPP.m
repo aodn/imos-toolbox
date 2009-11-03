@@ -89,7 +89,7 @@ function sample_data = variableOffsetPP( sample_data )
   set(tabPanel,      'Units', 'normalized');
   
   % position widgets
-  set(f,             'Position', [0.25, 0.35, 0.5,  0.3]);
+  set(f,             'Position', [0.25, 0.25,  0.5, 0.5]);
   set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.1]);
   set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.1]);
   set(tabPanel,      'Position', [0.0,  0.1,  1.0,  0.9]);
@@ -114,7 +114,7 @@ function sample_data = variableOffsetPP( sample_data )
   for k = 1:length(sample_data)
     
     nVars = length(sample_data{k}.variables);
-    rowHeight = 1.0 / (nVars + 1);
+    rowHeight = 0.95 / (nVars + 1);
     offsets{k} = zeros(nVars,1);
     
     % column headers
@@ -189,15 +189,15 @@ function sample_data = variableOffsetPP( sample_data )
       set(offsetField, 'Units', 'normalized');
       
       set(varLabel, ...
-        'Position', [0.0, 1.0 - (rowHeight*(m+1)), 0.2, rowHeight]);
+        'Position', [0.0, 0.95 - (rowHeight*(m+1)), 0.2, rowHeight]);
       set(minLabel, ...
-        'Position', [0.2, 1.0 - (rowHeight*(m+1)), 0.2, rowHeight]);
+        'Position', [0.2, 0.95 - (rowHeight*(m+1)), 0.2, rowHeight]);
       set(meanLabel, ...
-        'Position', [0.4, 1.0 - (rowHeight*(m+1)), 0.2, rowHeight]);
+        'Position', [0.4, 0.95 - (rowHeight*(m+1)), 0.2, rowHeight]);
       set(maxLabel, ...
-        'Position', [0.6, 1.0 - (rowHeight*(m+1)), 0.2, rowHeight]);
+        'Position', [0.6, 0.95 - (rowHeight*(m+1)), 0.2, rowHeight]);
       set(offsetField, ...
-        'Position', [0.8, 1.0 - (rowHeight*(m+1)), 0.2, rowHeight]);
+        'Position', [0.8, 0.95 - (rowHeight*(m+1)), 0.2, rowHeight]);
       
       set(varLabel,    'Units', 'pixels');
       set(minLabel,    'Units', 'pixels');
