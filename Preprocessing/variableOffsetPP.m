@@ -55,6 +55,8 @@ function sample_data = variableOffsetPP( sample_data )
     descs{k} = genSampleDataDesc(sample_data{k});
   end
   
+  offsetFile = ['Preprocessing' filesep 'variableOffsetPP.txt'];
+  
   % cell array of numeric arrays, representing the offsets to 
   % be applied to each variable in each data set; populated 
   % when the panels for each data set are populated
@@ -150,6 +152,9 @@ function sample_data = variableOffsetPP( sample_data )
     for m = 1:nVars
       
       v = sample_data{k}.variables{m};
+      try    offsetVal = readProperty(v.name, offsetFile, ',');
+      catch, offsetVal = '0.0';
+      end
       
       varLabel    = uicontrol(...
         'Parent', setPanels(k), 'Style', 'text', 'String', v.name);
@@ -160,7 +165,7 @@ function sample_data = variableOffsetPP( sample_data )
       maxLabel    = uicontrol(...
         'Parent', setPanels(k), 'Style', 'text', 'String', max(v.data(:)));
       offsetField = uicontrol(...
-        'Parent', setPanels(k), 'Style', 'edit', 'String', '0.0');
+        'Parent', setPanels(k), 'Style', 'edit', 'String', offsetVal);
       
       set(offsetField, 'UserData', m);
       set(offsetField, 'Callback', @offsetFieldCallback);
@@ -220,6 +225,10 @@ function sample_data = variableOffsetPP( sample_data )
     for m = 1:length(vars)
       
       vars{m}.data = vars{m}.data + offsets{k}(m);
+      
+      if offsets{k}(m) ~= 0
+        writeProperty(vars{m}.name, num2str(offsets{k}(m)), offsetFile, ',');
+      end
     end
     sample_data{k}.variables = vars;
   end
