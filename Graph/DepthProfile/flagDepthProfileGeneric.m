@@ -55,7 +55,7 @@ if ~isnumeric(var),        error('var must be numeric');          end
 
 flags = [];
 
-qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
+qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
 % find the depth data, either a variable or dimension

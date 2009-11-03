@@ -62,7 +62,7 @@ function sample_data = genTestData(...
 
 disp(['generating test data set of ' num2str(nsamples) ' samples']);
 
-qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
+qcSet   = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
 sample_data.dimensions             = {};

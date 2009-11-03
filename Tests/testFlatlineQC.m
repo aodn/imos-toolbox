@@ -49,7 +49,7 @@ sample_data = genTestData(...
   num_samples,{'TEMP', 'COND', 'PRES'},1,num_samples,...
   [10,10,10],[100,100,100],[10,10,10],[100,100,100]);
 
-qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+qc_set = str2num(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',        qc_set, 'flag');
 flatFlag = imosQCFlag('probablyBad', qc_set, 'flag');
 

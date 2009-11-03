@@ -51,7 +51,7 @@ num_samples = 1000;
 start_idx = 95;
 end_idx = 924;
 
-qc_set  = str2num(readToolboxProperty('toolbox.qc_set'));
+qc_set  = str2num(readProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qc_set, 'flag');
 
 sample_data = genTestData(...

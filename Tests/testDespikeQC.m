@@ -63,7 +63,7 @@ step = 0.01;
 % function
 sam = genTestData(num_samples, {'TEMP'}, 0, num_samples, 0,0,0,0);
 
-qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+qc_set = str2num(readProperty('toolbox.qc_set'));
 spikeFlag = imosQCFlag('spike', qc_set, 'flag');
 
 % parameters for trig function in the range 0.1 to 5
