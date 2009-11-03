@@ -77,7 +77,7 @@ k_param = p.Results.k_param;
 % we need to modify the data set, so work with a copy
 fdata = data;
 
-qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+qc_set = str2num(readProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qc_set, 'flag');
 spikeFlag = imosQCFlag('spike', qc_set, 'flag');
 

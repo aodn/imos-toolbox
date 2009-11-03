@@ -70,7 +70,7 @@ p.parse(varargin{:});
 
 gapsize = p.Results.gapsize;
 
-qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+qc_set = str2num(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',        qc_set, 'flag');
 gapFlag  = imosQCFlag('discont',     qc_set, 'flag');
 

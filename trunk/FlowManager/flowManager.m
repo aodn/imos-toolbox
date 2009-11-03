@@ -256,7 +256,7 @@ function flowManager()
     
     autoQCData{setIdx}.variables{varIdx}.flags(dataIdx) = flag;
     
-    qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
+    qcSet = str2double(readProperty('toolbox.qc_set'));
     rawFlag = imosQCFlag('raw', qcSet, 'flag');
     
     % add a log entry if the user has added flags

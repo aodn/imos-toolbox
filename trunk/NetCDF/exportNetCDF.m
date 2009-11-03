@@ -63,8 +63,8 @@ function filename = exportNetCDF( sample_data, dest )
   fid = netcdf.create(filename, 'NC_NOCLOBBER');
   if fid == -1, error(['could not create ' filename]); end
   
-  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
-  qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
+  dateFmt = readProperty('exportNetCDF.dateFormat');
+  qcSet   = str2double(readProperty('toolbox.qc_set'));
   qcType  = imosQCFlag('', qcSet, 'type');
   qcDimId = [];
   

@@ -49,7 +49,7 @@ function sample_data = timeStartPP( sample_data )
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
   
-  timeFmt = readToolboxProperty('toolbox.timeFormat');
+  timeFmt = readProperty('toolbox.timeFormat');
 
   descs        = {};
   startTimes   = [];

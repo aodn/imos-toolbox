@@ -1,4 +1,4 @@
-function writeToolboxProperty( prop, val )
+function writeProperty( prop, val )
 %WRITETOOLBOXPROPERTY Updates the value of a toolbox property.
 %
 % Updates the value of a toolbox property, which is stored in a file called
@@ -63,7 +63,7 @@ if fid == -1,  error(['could not open ' oldFile ' for reading']); end
 % open handle to new replacement file
 nfid = fopen(newFile, 'wt');
 if nfid == -1, 
-  flose(fid);
+  fclose(fid);
   error(['could not open ' newFile ' for writing']); 
 end
 

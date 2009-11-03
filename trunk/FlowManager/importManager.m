@@ -60,7 +60,7 @@ function sample_data = importManager(auto)
 
   % If the toolbox.ddb property has been set, assume that we have a
   % deployment database. Otherwise perform a manual import
-  ddb = readToolboxProperty('toolbox.ddb');
+  ddb = readProperty('toolbox.ddb');
   
   sample_data = {};
   rawFiles    = {};
@@ -74,8 +74,8 @@ function sample_data = importManager(auto)
   % user cancelled
   if isempty(structs), return; end
   
-  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
-  qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
+  dateFmt = readProperty('exportNetCDF.dateFormat');
+  qcSet   = str2double(readProperty('toolbox.qc_set'));
   rawFlag = imosQCFlag('raw', qcSet, 'flag');
   
   % make data sets compliant
@@ -111,7 +111,7 @@ function [sample_data rawFile]= manualImport()
   sample_data = {};
   rawFile     = {};
   
-  manualDir = readToolboxProperty('importManager.manualDir');
+  manualDir = readProperty('importManager.manualDir');
   
   while true
 
@@ -120,7 +120,7 @@ function [sample_data rawFile]= manualImport()
 
     if rawFile == 0, return; end;
 
-    writeToolboxProperty('importManager.manualDir', path);
+    writeProperty('importManager.manualDir', path);
 
     % prompt the user to select a parser with which to import the file
     parsers = listParsers();
@@ -219,7 +219,7 @@ function [sample_data rawFiles] = ddbImport(auto)
   end
     
   parsers = listParsers();
-  noParserPrompt = eval(readToolboxProperty('importManager.noParserPrompt'));
+  noParserPrompt = eval(readProperty('importManager.noParserPrompt'));
   
   if auto, noParserPrompt = false; end
   
@@ -293,8 +293,8 @@ function [sample_data rawFiles] = ddbImport(auto)
       [fieldTrip dataDir] = startDialog();
     % if automatic, just get the defaults from toolboxProperties.txt
     else
-      dataDir   =            readToolboxProperty('startDialog.dataDir'); 
-      fieldTrip = str2double(readToolboxProperty('startDialog.fieldTrip'));
+      dataDir   =            readProperty('startDialog.dataDir'); 
+      fieldTrip = str2double(readProperty('startDialog.fieldTrip'));
       
       if isempty(dataDir), error('startDialog.dataDir is not set');   end
       if isnan(fieldTrip), error('startDialog.fieldTrip is not set'); end

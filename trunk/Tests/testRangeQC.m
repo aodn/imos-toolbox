@@ -54,7 +54,7 @@ sample_data = genTestData(...
 
 disp('running data through rangeQC filter');
 
-qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
+qc_set = str2num(readProperty('toolbox.qc_set'));
 rangeFlag = imosQCFlag('bound', qc_set, 'flag');
 goodFlag  = imosQCFlag('good', qc_set, 'flag');
 

@@ -48,7 +48,7 @@ function flagVal = addFlagDialog( defaultVal )
 
   flagVal = defaultVal;
 
-  qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
+  qcSet = str2double(readProperty('toolbox.qc_set'));
 
   flagTypes  = imosQCFlag('', qcSet, 'values');
   flagDescs  = {};

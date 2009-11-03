@@ -85,7 +85,7 @@ for k = 1:length(names)
   
   if ~strcmp(name, prop), continue; end
   
-  value = vals{k};
+  value = strtrim(vals{k});
   return;
   
 end

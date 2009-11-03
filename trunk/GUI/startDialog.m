@@ -54,14 +54,14 @@ function [fieldTrip dataDir] = startDialog()
   fieldTripId = '1';
   lowDate     = 0;
   highDate    = now;
-  dateFmt     = readToolboxProperty('toolbox.dateFormat');
+  dateFmt     = readProperty('toolbox.dateFormat');
     
   % if default values exist for data dir and field trip, use them
   try 
-    dataDir     =            readToolboxProperty('startDialog.dataDir'); 
-    fieldTripId =            readToolboxProperty('startDialog.fieldTrip');
-    lowDate     = str2double(readToolboxProperty('startDialog.lowDate'));
-    highDate    = str2double(readToolboxProperty('startDialog.highDate'));
+    dataDir     =            readProperty('startDialog.dataDir'); 
+    fieldTripId =            readProperty('startDialog.fieldTrip');
+    lowDate     = str2double(readProperty('startDialog.lowDate'));
+    highDate    = str2double(readProperty('startDialog.highDate'));
   catch
   end
 
@@ -321,10 +321,10 @@ function [fieldTrip dataDir] = startDialog()
   if isempty(dataDir) || isempty(fieldTrip), return; end
   
   % persist the user's directory and field trip selection
-  writeToolboxProperty('startDialog.dataDir',   dataDir);
-  writeToolboxProperty('startDialog.fieldTrip', fieldTrip.FieldTripID);
-  writeToolboxProperty('startDialog.lowDate',   num2str(lowDate));
-  writeToolboxProperty('startDialog.highDate',  num2str(highDate));
+  writeProperty('startDialog.dataDir',   dataDir);
+  writeProperty('startDialog.fieldTrip', fieldTrip.FieldTripID);
+  writeProperty('startDialog.lowDate',   num2str(lowDate));
+  writeProperty('startDialog.highDate',  num2str(highDate));
   
 end
 

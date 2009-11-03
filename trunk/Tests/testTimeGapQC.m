@@ -40,7 +40,7 @@ disp(' ');
 disp(['-- ' mfilename ' --']);
 disp(' ');
 
-qc_set = str2double(readToolboxProperty('toolbox.qc_set'));
+qc_set = str2double(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',        qc_set, 'flag');
 gapFlag  = imosQCFlag('discont',     qc_set, 'flag');
 
