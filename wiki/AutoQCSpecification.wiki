@@ -7,22 +7,27 @@
 
 == Overview ==
 
-One file exists for each automatic QC procedure. The procedures act as filters on a single vector of data. Data is passed through a chain of filters; this chain is configured by the user. The file/function name is of the form `[filter_name]QC.m` where `filter_name` is a unique name for the filter.
+One file exists for each automatic QC procedure. The procedures act as filters on a set of data. Data is passed through a chain of filters; this chain is configured by the user. The file/function name is of the form `[filter_name]QC.m`, or `[filter_name]SetQC.m` where `filter_name` is a unique name for the filter.
 
 For example, the range checking filter file is titled `rangeQC.m`, and the function is called `rangeQC`.
 
-When a filter is executed, it is passed a single column vector of a data set. If the data set is single dimensional (e.g. temperature at a fixed location), the filter is passed the entire data set. If the data set is multidimensional, however (e.g. temperature at a set of depths), the time series data from a single point in the dimensions (e.g. temperature at one of the depths) is passed to the filter.
+Two different types of QC filters exist:
+
+ * *QC filters* are passed a single column vector of a data set. If the data set is single dimensional (e.g. temperature at a fixed location), the filter is passed the entire data set. If the data set is multidimensional, however (e.g. temperature at a set of depths), the time series data from a single point in the dimensions (e.g. temperature at one of the depths) is passed to the filter.
+ * *Set QC filters* are passed a complete data set; these filters QC all variables in the given data set.
 
 Filter procedures are able to modify/remove data, or simply flag regions of data which do not pass through the filter. (see the [DataStructures data structures spec] for information on flagged data). 
 
 == Function format ==
 
-All auto-QC filter functions must adhere to the following format:
+=== QC filters ===
+
+All QC filter functions must adhere to the following format:
 
  `function [data, flags, log] = nameQC ( sample_data, data, k, varargin )`
 
 where:
- * `sample_data` is a struct containing the entire data set, including dimension data.
+ * `sample_data` is a struct containing the entire data setw.
  * `data` is a column vector containing the data. As `data` is both an input and output argument, this implies that the QC procedure can modify the data.
  * `k` is the parameter number, which can be used as an index into the `cal_data.parameters` vector to retrieve parameter specific metadata.
  * `varargin` is a set of configuration parameters for the filter. If the filter has no parameters, this argument may be omitted. If the filter does have parameters, the filter *must* be able to be called without specifying any parameters, i.e. all of the parameters must be optional.
@@ -35,4 +40,19 @@ error(nargchk(3, 3, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+}}}
+
+=== Set QC filters ===
+
+All Set QC filter functions must adhere to the following format:
+
+ `function [sample_data] = nameSetQC ( sample_data, varargin )`
+
+where:
+ * `sample_data` is a struct containing the entire data set.
+
+At the very least, all Set QC functions should perform the following input checking (the allowable number of arguments may be more than one, depending on optional arguments):
+{{{
+error(nargchk(1, 1, nargin));
+if ~isstruct(sample_data), error('sample_data must be a struct'); end
 }}}
