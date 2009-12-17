@@ -109,31 +109,38 @@ function qc_data = autoQCManager( sample_data, auto )
   end
 
   % run each data set through the chain
-  for k = 1:length(sample_data),
-    
-    for m = 1:length(qcChain)
-      
-      if ~auto
-        % user cancelled progress bar
-        if getappdata(progress, 'cancel'), sample_data = {}; break; end
+  try
+    for k = 1:length(sample_data),
 
-        % update progress bar
-        progVal = ...
-          ((k-1)*length(qcChain)+m) / (length(qcChain)*length(sample_data));
-        progStr = [sample_data{k}.meta.instrument_make ' '...
-                   sample_data{k}.meta.instrument_model ' ' qcChain{m}];
-        waitbar(progVal, progress, progStr);
+      for m = 1:length(qcChain)
+
+        if ~auto
+          % user cancelled progress bar
+          if getappdata(progress, 'cancel'), sample_data = {}; break; end
+
+          % update progress bar
+          progVal = ...
+            ((k-1)*length(qcChain)+m) / (length(qcChain)*length(sample_data));
+          progStr = [sample_data{k}.meta.instrument_make ' '...
+                     sample_data{k}.meta.instrument_model ' ' qcChain{m}];
+          waitbar(progVal, progress, progStr);
+        end
+
+        % run current QC routine over the current data set
+        sample_data{k} = qcFilter(...
+          sample_data{k}, qcChain{m}, rawFlag, goodFlag, progress);
+
+        % set level and file version on each QC'd data set
+        sample_data{k}.meta.level = 1; 
+        sample_data{k}.file_version = ...
+          imosFileVersion(1, 'name');
+        sample_data{k}.file_version_quality_control = ...
+          imosFileVersion(1, 'desc');
       end
-      
-      % run current QC routine over the current data set
-      sample_data{k} = qcFilter(...
-        sample_data{k}, qcChain{m}, rawFlag, goodFlag, progress);
-      
-      % set level and file version on each QC'd data set
-      sample_data{k}.meta.level = 1; 
-      sample_data{k}.file_version                 = imosFileVersion(1, 'name');
-      sample_data{k}.file_version_quality_control = imosFileVersion(1, 'desc');
     end
+  catch e
+    delete(progress);
+    rethrow(e);
   end
   
   if ~auto, delete(progress); end
@@ -147,58 +154,89 @@ function sam = qcFilter(sam, filterName, rawFlag, goodFlag, cancel)
   % turn routine name into a function
   filter = str2func(filterName);
   
-  nFlagged = 0;
-
-  for k = 1:length(sam.variables)
-
-    data  = sam.variables{k}.data;
-    flags = sam.variables{k}.flags;
-    len = length(data);
-
-    % the QC filters work on single vectors of data; 
-    % we must 'slice' the data up along its dimensions
-    data = data(:);
-    slices = length(data) / len;
-
-    flags = flags(:);
-
-    for m = 1:slices
+  % if this filter is a Set QC filter, we pass the entire data set
+  if ~isempty(regexp(filterName, 'SetQC$', 'start'))
+    
+    fsam = filter(sam);
+    
+    % Currently only flags are copied across; other changes to the data set
+    % are discarded. Flags are not overwritten - if a later routine flags 
+    % the same value as a previous routine, the latter value is discarded.
+    for k = 1:length(sam.variables)
       
-      % user cancelled
-      if ~isnan(cancel) && getappdata(cancel, 'cancel'), return; end
-
-      slice     = data( len*(m-1)+1:len*(m));
-      flagSlice = flags(len*(m-1)+1:len*(m));
-
-      % log entries and any data changes that the routine generates
-      % are currently discarded; only the flags are retained. 
-      [d f l] = filter(sam, slice, k);
-
-      % Flags are not overwritten - if a later routine flags the same 
-      % value as a previous routine, the latter value is discarded.
-      sliceIdx = find(flagSlice == rawFlag);
-      flagIdx  = find(f         ~= goodFlag);
-      idx = intersect(sliceIdx,flagIdx);
+      rawIdx  = find( sam.variables{k}.flags == rawFlag);
+      flagIdx = find(fsam.variables{k}.flags ~= goodFlag);
       
-      % set the flags
-      flagSlice(idx) = f(idx);
-      flags(len*(m-1)+1:len*(m)) = flagSlice;
+      flagIdx = intersect(rawIdx, flagIdx);
+      sam.variables{k}.flags(flagIdx) = fsam.variables{k}.flags(flagIdx);
       
-      % update count (for log entry)
-      nFlagged = nFlagged + length(flagIdx);
+      % add a log entry
+      if ~isempty(flagIdx)
+
+        flags = unique(fsam.variables{k}.flags);
+        flags(flags == rawFlag) = [];
+
+        sam.meta.log{end+1} = [filterName ...
+          ' flagged ' num2str(length(flagIdx)) ' ' ...
+          sam.variables{k}.name ' samples: ' num2str(flags)'];
+      end
     end
-    
-    sam.variables{k}.flags = reshape(flags, size(sam.variables{k}.flags));
-    
-    % add a log entry
-    if nFlagged ~= 0
+  
+  % otherwise we pass variables one at a time
+  else
+
+    for k = 1:length(sam.variables)
+
+      nFlagged = 0;
+      data  = sam.variables{k}.data;
+      flags = sam.variables{k}.flags;
+      len = length(data);
+
+      % the QC filters work on single vectors of data; 
+      % we must 'slice' the data up along its dimensions
+      data = data(:);
+      slices = length(data) / len;
+
+      flags = flags(:);
+
+      for m = 1:slices
+
+        % user cancelled
+        if ~isnan(cancel) && getappdata(cancel, 'cancel'), return; end
+
+        slice     = data( len*(m-1)+1:len*(m));
+        flagSlice = flags(len*(m-1)+1:len*(m));
+
+        % log entries and any data changes that the routine generates
+        % are currently discarded; only the flags are retained. 
+        [d f l] = filter(sam, slice, k);
+
+        % Flags are not overwritten - if a later routine flags the same 
+        % value as a previous routine, the latter value is discarded.
+        sliceIdx = find(flagSlice == rawFlag);
+        flagIdx  = find(f         ~= goodFlag);
+        idx = intersect(sliceIdx,flagIdx);
+
+        % set the flags
+        flagSlice(idx) = f(idx);
+        flags(len*(m-1)+1:len*(m)) = flagSlice;
+
+        % update count (for log entry)
+        nFlagged = nFlagged + length(flagIdx);
+      end
+
+      sam.variables{k}.flags = reshape(flags, size(sam.variables{k}.flags));
       
-      flags = unique(flags);
-      flags(flags == rawFlag) = [];
-      
-      sam.meta.log{end+1} = [filterName ...
-        ' flagged ' num2str(nFlagged) ' ' ...
-        sam.variables{k}.name ' samples: ' num2str(flags)'];
+      % add a log entry
+      if nFlagged ~= 0
+
+        flags = unique(flags);
+        flags(flags == rawFlag) = [];
+
+        sam.meta.log{end+1} = [filterName ...
+          ' flagged ' num2str(nFlagged) ' ' ...
+          sam.variables{k}.name ' samples: ' num2str(flags)'];
+      end
     end
   end
 end
