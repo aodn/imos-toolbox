@@ -81,7 +81,8 @@ function qc_data = autoQCManager( sample_data, auto )
     % selected options is stored in toolboxProperties as routine names, 
     % but must be provided to the list selection dialog as indices
     qcChain = cellfun(@(x)(find(ismember(qcRoutines,x))),qcChain);
-    qcChain = listSelectionDialog('Select QC filters', qcRoutines, qcChain);
+    qcChain = listSelectionDialog('Select QC filters', qcRoutines, ...
+                                  qcChain, @filterConfig, 'Configure');
     
     if ~isempty(qcChain)
     
@@ -146,6 +147,24 @@ function qc_data = autoQCManager( sample_data, auto )
   if ~auto, delete(progress); end
 
   qc_data = sample_data;
+end
+
+%FILTERCONFIG Called via the QC filter list selection dialog when the user
+% chooses to configure a filter. If the selected filter has any configurable 
+% options, a propertyDialog is displayed, allowing the user to configure
+% the filter.
+%
+function filterConfig(filterName)
+
+  % check to see if the filter has an associated properties file.
+  propFileName = fullfile('AutomaticQC', [filterName '.txt']);
+  
+  % ignore if there is no properties file for this filter
+  if ~exist(propFileName, 'file'), return; end
+  
+  % display a propertyDialog, allowing configuration of the filter
+  % properties.
+  propertyDialog(propFileName);
 end
 
 function sam = qcFilter(sam, filterName, rawFlag, goodFlag, cancel)
