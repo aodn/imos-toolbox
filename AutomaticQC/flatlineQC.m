@@ -1,4 +1,4 @@
-function [data, flags, log] = flatlineQC( sample_data, data, k, varargin )
+function [data, flags, log] = flatlineQC( sample_data, data, k )
 %FLATLINEQC Flags flatline regions in the given data set.
 %
 % Simple filter which finds and flags any 'flatline' regions in the given data.
@@ -11,11 +11,6 @@ function [data, flags, log] = flatlineQC( sample_data, data, k, varargin )
 %   data        - the vector of data to check.
 %
 %   k           - Index into the sample_data variable vector.
-%
-%   'nsamples'  - Minimum number of consecutive samples with the same value
-%                 that will be detected by the filter. If not provided, a
-%                 default value of 10 is used. If provided, and less than 2, a
-%                 value of 2 is used.
 %
 % Outputs:
 %   data        - same as input.
@@ -58,17 +53,13 @@ function [data, flags, log] = flatlineQC( sample_data, data, k, varargin )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 5, nargin));
+error(nargchk(3, 3, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
-p = inputParser;
-p.addOptional('nsamples', 10, @isnumeric);
-
-p.parse(varargin{:});
-
-nsamples = p.Results.nsamples;
+% read nsamples parameter from flatlineQC properties file
+nsamples = readProperty('nsamples', fullfile('AutomaticQC', 'flatlineQC.txt'));
 if nsamples < 2, nsamples = 2; end
 
 qc_set = str2num(readProperty('toolbox.qc_set'));
