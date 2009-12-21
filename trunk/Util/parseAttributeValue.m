@@ -240,7 +240,7 @@ function value = stringify(value)
 %           representation the input. Otherwise returns the input unchanged.
 %
   if     isempty(value), value = '';
-  elseif isnumeric(value), value = num2str(value); 
+  elseif isnumeric(value), value = sprintf('%.10f', value); 
   end
 
 end
