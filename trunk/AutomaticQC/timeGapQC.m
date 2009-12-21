@@ -1,4 +1,4 @@
-function [data flags log] = timeGapQC( sample_data, data, k, varargin )
+function [data flags log] = timeGapQC( sample_data, data, k )
 %TIMEGAPQC Flags consecutive samples which have a suspiciously large 
 % temporal difference.
 %
@@ -12,10 +12,6 @@ function [data flags log] = timeGapQC( sample_data, data, k, varargin )
 %   data        - the vector of data to check.
 %
 %   k           - Index into the sample_data variables vector.
-%
-%   'gapsize'   - Optional. Minimum time gap (matlab serial time) to be 
-%                 flagged. If not provided, a default value of 6 hours is
-%                 used.
 %
 % Outputs:
 %   data        - same as input.
@@ -56,19 +52,14 @@ function [data flags log] = timeGapQC( sample_data, data, k, varargin )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,5,nargin));
+error(nargchk(3,3,nargin));
 
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
-p = inputParser;
-% 6/24 == 6 hours in matlab time
-p.addOptional('gapsize', 6/24, @isnumeric);
-
-p.parse(varargin{:});
-
-gapsize = p.Results.gapsize;
+gapsize = str2double(...
+  readProperty('gapsize', fullfile('AutomaticQC', 'timeGapQC.txt')));
 
 qc_set = str2num(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',        qc_set, 'flag');
