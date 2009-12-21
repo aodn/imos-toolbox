@@ -59,7 +59,8 @@ if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
 % read nsamples parameter from flatlineQC properties file
-nsamples = readProperty('nsamples', fullfile('AutomaticQC', 'flatlineQC.txt'));
+nsamples = str2double(...
+  readProperty('nsamples', fullfile('AutomaticQC', 'flatlineQC.txt')));
 if nsamples < 2, nsamples = 2; end
 
 qc_set = str2num(readProperty('toolbox.qc_set'));
