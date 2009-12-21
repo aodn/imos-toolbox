@@ -1,4 +1,5 @@
-function selected = listSelectionDialog( title, allOpts, initialOpts )
+function selected = listSelectionDialog( ...
+  title, allOpts, initialOpts, selectCB, selectLabel )
 %LISTSELECTIONDIALOG Prompts the user to select a subset from a list of
 % options.
 %
@@ -13,6 +14,13 @@ function selected = listSelectionDialog( title, allOpts, initialOpts )
 %                 defining the options that should be selected when the 
 %                 dialog is first displayed. If not provided, no options
 %                 are selected.
+%   selectCB    - Optional. If provided, an extra button will be displayed 
+%                 with a default label of 'Select'. This function will be 
+%                 called when the user pushes the button; the name of the 
+%                 first selected item in the list of currently selected 
+%                 items is passed to the function.
+%   selectLabel - Optional. If provided, is used as the label for the
+%                 selectCB button.
 %
 % Outputs:
 %   selected    - Cell array containing the selected options If the user 
@@ -50,17 +58,21 @@ function selected = listSelectionDialog( title, allOpts, initialOpts )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,3,nargin));
+  error(nargchk(2,5,nargin));
 
   if nargin == 2, initialOpts = []; end
+  if nargin == 4, selectLabel = 'Select'; end
 
   if ~ischar(title),          error('title must be a string');              end
   if ~iscellstr(allOpts),     error('allOpts must be a string cell array'); end
   if  isempty(allOpts),       error('allOpts is empty');                    end
   if ~isnumeric(initialOpts), error('initialOpts must be numeric');         end
-    
-  % create the dialog  figure and widgets
+  if  exist('selectCB', 'var') && ~isa(selectCB, 'function_handle')
+                              error('selectCB must be a handle');           end
+  if  exist('selectLabel', 'var') && ~ischar(selectLabel)
+                              error('selectLabel must be a string');        end
   
+  % create the dialog  figure and widgets
   f = figure(...
     'Name',        title, ...
     'Visible',     'off',...
@@ -137,6 +149,19 @@ function selected = listSelectionDialog( title, allOpts, initialOpts )
   set(cancelButton,  'Callback',          @cancelCallback);
   set(confirmButton, 'Callback',          @confirmCallback);
   
+  % set item select callback function if it was passed in
+  if exist('selectCB', 'var')
+    
+    selectButton = uicontrol(...
+      'Style', 'pushbutton', ...
+      'String', selectLabel,...
+      'Units', 'normalized',...
+      'Callback', @selectCallback);
+    
+    set(selectButton, 'Position', [0.9, 0.9, 0.1, 0.1]);
+    set(selectButton, 'Units',    'pixels');
+  end
+  
   % set the list data
   selected = {allOpts{initialOpts}};
   notSelected = true(size(allOpts));
@@ -152,6 +177,21 @@ function selected = listSelectionDialog( title, allOpts, initialOpts )
   return;
 
   %% Callback functions
+  
+  %SELECTCALLBACK Wrapper for the real callback function. Calls selectCB,
+  % and passes it the (first) currently selected item in the selected list.
+  % Does nothing if no items are selected.
+  %
+  function selectCallback(source, ev)
+
+    selIdx = get(selList, 'Value');
+    
+    if isempty(selIdx), return; end
+    
+    % pass the selected item to the real callback function
+    selectCB(selected{selIdx(1)});
+
+  end
   
   function keyPressCallback(source,ev)
   %KEYPRESSCALLBACK If the user pushes escape/return while the dialog has 
