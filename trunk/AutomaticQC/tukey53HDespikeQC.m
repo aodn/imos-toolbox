@@ -1,5 +1,4 @@
-function [data, flags, log] = ...
-tukey53HDespikeQC( sample_data, data, k, varargin )
+function [data, flags, log] = tukey53HDespikeQC( sample_data, data, k )
 %TUKEY53HDESPIKEQC Detects spikes in the given data using the Tukey 53H method.
 %
 % Detects spikes in the given data using the Tukey 53H method, as described in
@@ -17,9 +16,6 @@ tukey53HDespikeQC( sample_data, data, k, varargin )
 %   data        - the vector of data to check.
 %
 %   k           - Index into the sample_data.variables vector.
-%
-%   'k_param'   - Filter threshold (see the text). If not provided, a default 
-%                 value of 1.5 is used.
 %
 % Outputs:
 %   data        - same as input.
@@ -62,17 +58,13 @@ tukey53HDespikeQC( sample_data, data, k, varargin )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 5, nargin));
+error(nargchk(3, 3, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
-p = inputParser;
-p.addOptional('k_param', 1.5, @isnumeric);
-
-p.parse(varargin{:});
-
-k_param = p.Results.k_param;
+k_param = str2double(...
+  readProperty('k', fullfile('AutomaticQC', 'tukey53HDespikeQC.txt')));
 
 % we need to modify the data set, so work with a copy
 fdata = data;
