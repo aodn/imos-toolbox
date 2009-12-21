@@ -157,6 +157,10 @@ function viewMetadata(parent, sample_data, updateCallback)
         case 'D',  
           data{k,2} = datestr(data{k,2}, dateFmt);
         
+        % make sure numeric values are not rounded (too much)
+        case 'N',
+          data{k,2} = sprintf('%.10f', data{k,2});
+        
         % make everything else a string - i'm assuming that when 
         % num2str is passed a string, it will return that string 
         % unchanged; this assumption holds for at least r2008, r2009
