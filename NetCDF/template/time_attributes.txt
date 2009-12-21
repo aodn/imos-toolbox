@@ -7,7 +7,7 @@ N, valid_max                 = [mat imosParameters('TIME', 'valid_max')]
 N, _FillValue                = [mat imosParameters('TIME', 'fill_value')]
 S, calendar                  = gregorian
 S, comment                   = 
-N, quality_control_set       = [mat readToolboxProperty('toolbox.qc_set')]
+N, quality_control_set       = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
 N, uncertainty               =
 N, local_time_zone           = 
 
