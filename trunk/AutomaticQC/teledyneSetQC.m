@@ -97,20 +97,21 @@ function [sample_data] = teledyneSetQC( sample_data )
     eval(['qc(',cc,').cr=fliplr(var(kk).data(ff,:));'])
   end
 
-  %Standard 300Mhz Workhorse Settings
-  %(these will need to adjustable as they change with instrument type)
-  qcthresh.err_vel=0.15;  %test 1
-  qcthresh.pgood=50;   %test 2
-  qcthresh.cmag=110;  %test 3
-  qcthresh.vvel=0.2;    % test 4
-  qcthresh.hvel=2.0;   %test 5
-  qcthresh.ea_thresh=30;   %test 6
+  % read in filter parameters
+  propFile = fullfile('AutomaticQC', 'teledyneSetQC.txt');
+  qcthresh.err_vel   = str2double(readProperty('err_vel',   propFile));
+  qcthresh.pgood     = str2double(readProperty('pgood',     propFile));
+  qcthresh.cmag      = str2double(readProperty('cmag',      propFile));
+  qcthresh.vvel      = str2double(readProperty('vvel',      propFile));
+  qcthresh.hvel      = str2double(readProperty('hvel',      propFile));
+  qcthresh.ea_thresh = str2double(readProperty('ea_thresh', propFile));
+  sCutOff            = str2double(readProperty('cutoff',    propFile));
 
   %Run QC
   [ifail] = adcpqctest(qcthresh,qc,u,w,erv);
 
   %Clean up above-surface bins
-  sCutOff=2*BinSize;%This will also need to be adjustable
+  
   for k=1:size(bdepth,2)
     jjr=find(bdepth(:,k)<=sCutOff);
     if ~isempty(jjr)

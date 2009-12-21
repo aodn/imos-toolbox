@@ -1,0 +1,7 @@
+err_vel   = 0.15
+pgood     = 50
+cmag      = 110
+vvel      = 0.2
+hvel      = 2.0
+ea_thresh = 30
+cutoff    = 2
