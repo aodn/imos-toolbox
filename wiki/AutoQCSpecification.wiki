@@ -24,17 +24,16 @@ Filter procedures are able to modify/remove data, or simply flag regions of data
 
 All QC filter functions must adhere to the following format:
 
- `function [data, flags, log] = nameQC ( sample_data, data, k, varargin )`
+ `function [data, flags, log] = nameQC ( sample_data, data, k )`
 
 where:
  * `sample_data` is a struct containing the entire data setw.
  * `data` is a column vector containing the data. As `data` is both an input and output argument, this implies that the QC procedure can modify the data.
  * `k` is the parameter number, which can be used as an index into the `cal_data.parameters` vector to retrieve parameter specific metadata.
- * `varargin` is a set of configuration parameters for the filter. If the filter has no parameters, this argument may be omitted. If the filter does have parameters, the filter *must* be able to be called without specifying any parameters, i.e. all of the parameters must be optional.
  * `flags` is a column vector, the same length as `data`, which contains QC flags for each point in the data. All data points which pass the filter should have a corresponding flag that labels that point as 'good' for the QC set in use. If the filter does not flag any data, the vector may be empty.
  * `log` is a cell array of Strings containing comments on any data which has been modified or removed.
 
-At the very least, all QC functions should perform the following input checking (the allowable number of arguments may be more than three, depending on optional arguments):
+At the very least, all QC functions should perform the following input checking:
 {{{
 error(nargchk(3, 3, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
@@ -46,13 +45,17 @@ if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
 All Set QC filter functions must adhere to the following format:
 
- `function [sample_data] = nameSetQC ( sample_data, varargin )`
+ `function [sample_data] = nameSetQC ( sample_data )`
 
 where:
  * `sample_data` is a struct containing the entire data set.
 
-At the very least, all Set QC functions should perform the following input checking (the allowable number of arguments may be more than one, depending on optional arguments):
+At the very least, all Set QC functions should perform the following input checking:
 {{{
 error(nargchk(1, 1, nargin));
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 }}}
+
+== Configuration ==
+
+A QC filter may have associated parameters which can be modified by the user. These parameters are stored in a plain text file in the `AutomaticQC` directory; the file name must be of the form `[filter_name]QC.txt` or `[filter_name]SetQC.txt`. If such a file exists, the user will be able to modify the parameters when defining the QC filter chain.
