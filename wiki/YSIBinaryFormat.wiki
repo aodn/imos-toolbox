@@ -8,7 +8,7 @@ The file consists of a header, followed by a variable number of records.
 
 == Header ==
 
-The header consists of 368 bytes, none of which appear to contain any useful information.
+The header consists of 366 bytes, none of which appear to contain any useful information.
 
 == Record ==
 
