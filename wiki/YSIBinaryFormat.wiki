@@ -8,7 +8,26 @@ The file consists of a header, followed by a variable number of records.
 
 == Header ==
 
-The header consists of 366 bytes; I am not yet sure what these bytes contain, but I suspect that they specify the record format.
+The header consists of 366 bytes; I am not yet sure what these bytes contain, but I suspect that they specify the record format. I will be better able to decipher the header contents when I find some more sample files to work with.
+
+|| *ID*   || *Field*                       ||
+|| `0x01` || Temperature (Degrees Celsius) ||
+|| `0x06` || SpCond (mS/cm)                ||
+|| `0x04` || Cond (mS/cm)                  ||
+|| `0x0A` || TDS (g/L)                     ||
+|| `0x0C` || Salinity (ppt)                ||
+|| `0x16` || Depth (m)                     ||
+|| `0x12` || pH                            ||
+|| `0x13` || ORP (mV)                      ||
+|| `0xCB` || Turbidity (NTU+)              ||
+|| `0xC1` || Chlorophyll (ug/L)            ||
+|| `0xC2` || Chlorophyll (RFU)             ||
+|| `0xD3` || ODO (%)                       ||
+|| `0xD4` || ODO (mg/L)                    ||
+|| `0x1C` || Battery (V)                   ||
+|| `0x18` || BP (psi)                      ||
+|| `0xC4` || Latitude                      ||
+|| `0xC5` || Longitude                     ||
 
 == Record ==
 
