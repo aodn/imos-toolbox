@@ -18,7 +18,7 @@ Each record is 73 bytes in length; the contents of each record is identical, and
 || 0  || 1 || Sync byte   || uint8  || `0x44` ||
 || 1  || 4 || Time        || uint32 || Seconds since 3 March 1984 00:00:00 ||
 || 5  || 4 || Temperature || float  || Degrees Celsius ||
-|| 9  || 4 || SpCond      || float  || mS/cm ||
+|| 9  || 4 || !SpCond      || float  || mS/cm ||
 || 13 || 4 || Cond        || float  || mS/cm ||
 || 17 || 4 || TDS         || float  || g/L   ||
 || 21 || 4 || Salinity    || float  || ppt   ||
