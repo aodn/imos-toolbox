@@ -4,6 +4,8 @@
 
 YSI do not provide details on the format of the binary files retrieved from their 6-series instruments. This page details my attempts to reverse engineer the file format. This information is based on a file retrieved from a 6600 V2.4 instrument.
 
+The file consists of a header, followed by a variable number of records.
+
 == Header ==
 
 The header consists of 368 bytes, none of which appear to contain any useful information.
