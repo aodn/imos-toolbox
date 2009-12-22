@@ -12,7 +12,7 @@ The header consists of 366 bytes, none of which appear to contain any useful inf
 
 == Record ==
 
-Each record is 73 bytes in length; record contents is detailed in the following table. All multi-byte fields are stored least significant byte first.
+Each record is 73 bytes in length; the contents of each record is identical, and is detailed in the following table. All multi-byte fields are stored least significant byte first.
 
 || *Offset* || *Length* || *Description* || *Type* || *Note* ||
 || 0  || 1 || Sync byte   || uint8  || `0x44` ||
