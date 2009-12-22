@@ -8,7 +8,11 @@ The file consists of a header, followed by a variable number of records.
 
 == Header ==
 
-The header consists of 366 bytes; I am not yet sure what these bytes contain, but I suspect that they specify the record format. I will be better able to decipher the header contents when I find some more sample files to work with.
+*NOTE*: The following description is an assumption which is based on a single sample data file; this description may be rendered obsolete when I receive more data files to play with.
+
+The header begins with 111 bytes; I am not sure what these bytes contain - there doesn't seem to be anything useful.
+
+This section is followed by a list of the elements contained in the records which follow the header. Time is always the first element in each record, and is always present. Each element in the list is 15 bytes, and begins with `0x44`. The fourth byte indicates the element type, as listed below. All other bytes in these 15 byte fields are 0.
 
 || *ID*   || *Field*                       ||
 || `0x01` || Temperature (Degrees Celsius) ||
@@ -30,6 +34,8 @@ The header consists of 366 bytes; I am not yet sure what these bytes contain, bu
 || `0xC5` || Longitude                     ||
 
 == Record ==
+
+*NOTE* This description is specific to the single data file I have at my disposal; this description will likely change when I acquire more files.
 
 Each record is 73 bytes in length; the contents of each record is identical, and is detailed in the following table. All multi-byte fields are stored least significant byte first.
 
