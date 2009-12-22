@@ -1,0 +1,34 @@
+#summary My attempts to reverse engineer the YSI binary file format
+
+= YSI 6-series Binary file format (.dat) =
+
+YSI do not provide details on the format of the binary files retrieved from their 6-series instruments. This page details my attempts to reverse engineer the file format. This information is based on a file retrieved from a 6600 V2.4 instrument.
+
+== Header ==
+
+The header consists of 368 bytes, none of which appear to contain any useful information.
+
+== Record ==
+
+Each record is 73 bytes in length; record contents is detailed in the following table. All multi-byte fields are stored least significant byte first.
+
+|| *Offset* || *Length* || *Description* || *Type* || *Note* ||
+|| 0  || 1 || Sync byte   || uint8  || `0x44` ||
+|| 1  || 4 || Time        || uint32 || Seconds since 3 March 1984 00:00:00 ||
+|| 5  || 4 || Temperature || float  || Degrees Celsius ||
+|| 9  || 4 || SpCond      || float  || mS/cm ||
+|| 13 || 4 || Cond        || float  || mS/cm ||
+|| 17 || 4 || TDS         || float  || g/L   ||
+|| 21 || 4 || Salinity    || float  || ppt   ||
+|| 25 || 4 || Depth       || float  || m     ||
+|| 29 || 4 || pH          || float  ||       ||
+|| 33 || 4 || ORP         || float  || mV    ||
+|| 37 || 4 || Turbidity   || float  || NTU+  ||
+|| 41 || 4 || Chlorophyll || float  || ug/L  ||
+|| 45 || 4 || Chlorophyll || float  || RFU   ||
+|| 49 || 4 || ODO         || float  || %     ||
+|| 53 || 4 || ODO Conc    || float  || mg/L  ||
+|| 57 || 4 || Battery     || float  || V     ||
+|| 61 || 4 || BP          || float  || psi   ||
+|| 65 || 4 || Latitude    || float  ||       ||
+|| 69 || 4 || Longitude   || float  ||       ||
