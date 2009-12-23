@@ -12,7 +12,7 @@ The file consists of a header, followed by a variable number of records.
 
 The header begins with 111 bytes; I am not sure what these bytes contain - there doesn't seem to be anything useful.
 
-This section is followed by a list of the elements contained in the records which follow the header. Time is always the first element in each record, and is always present. Each entry in the list is 15 bytes, and begins with `0x44`. The fourth byte indicates the element type, as listed below. All other bytes in these 15 byte fields are 0.
+This section is followed by a list of the elements contained in the records which follow the header. Time is always the first element in each record, and is always present. Each entry in the list is 15 bytes, and begins with `0x42`. The fourth byte indicates the element type, as listed below. All other bytes in these 15 byte fields are 0.
 
 || *ID*   || *Field*                       ||
 || `0x01` || Temperature (Degrees Celsius) ||
