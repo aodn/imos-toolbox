@@ -207,6 +207,13 @@ function displayManager(windowTitle, sample_data, callbacks)
         graphFunc = getGraphFunc(graphType, 'graph', '');
         graphFunc(panel, sample_data{setIdx}, vars);
       catch e
+        
+        s = e.stack;
+        disp(e.message);
+        for k = 1:length(s)
+          disp(['  ' s(k).name ' (' s(k).file ': ' num2str(s(k).line) ')']); 
+        end
+        
         errordlg(...
           ['Could not display this data set using ' graphType ...
            ' (' e.message '). Try a different graph type.' ], ...
@@ -256,6 +263,13 @@ function displayManager(windowTitle, sample_data, callbacks)
         end
         
       catch e
+        
+        s = e.stack;
+        disp(e.message);
+        for k = 1:length(s)
+          disp(['  ' s(k).name ' (' s(k).file ': ' num2str(s(k).line) ')']); 
+        end
+        
         errordlg(...
           ['Could not display this data set using ' graphType ...
            ' (' e.message '). Try a different graph type.' ], ...

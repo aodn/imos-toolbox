@@ -121,7 +121,7 @@ function exportManager(dataSets, levelNames, output, auto)
       
     catch e
       
-      errors{end+1} = [setNames{k} ': ' e.message];
+      errors = [errors [setNames{k} ': ' e.message]];
       disp(errors{end});
     end
   end
