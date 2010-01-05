@@ -56,14 +56,14 @@ function sample_data = preprocessManager( sample_data )
   ppChain  = {};
 
   try
-    ppPrompt = eval(readToolboxProperty('preprocessManager.preprocessPrompt'));
+    ppPrompt = eval(readProperty('preprocessManager.preprocessPrompt'));
   catch e
   end
 
   % get default filter chain if there is one
   try
     ppChain = ...
-      textscan(readToolboxProperty('preprocessManager.preprocessChain'), '%s');
+      textscan(readProperty('preprocessManager.preprocessChain'), '%s');
     ppChain = ppChain{1};
   catch e
   end
@@ -88,7 +88,7 @@ function sample_data = preprocessManager( sample_data )
   % save user's latest selection for next time - turn the ppChain
   % cell array into a space-separated string of the names
   ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
-  writeToolboxProperty('preprocessManager.preprocessChain', ...
+  writeProperty('preprocessManager.preprocessChain', ...
     deblank([ppChainStr{:}]));
   
   for k = 1:length(ppChain)

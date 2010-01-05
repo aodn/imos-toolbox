@@ -50,7 +50,7 @@ function sample_data = netcdfParse( filename )
   filename = filename{1};
   
   % get date format for netcdf time attributes
-  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
+  dateFmt = readProperty('exportNetCDF.dateFormat');
 
   ncid = netcdf.open(filename, 'NC_NOWRITE');
   

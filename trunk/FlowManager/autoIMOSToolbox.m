@@ -46,7 +46,7 @@ function autoIMOSToolbox(fieldTrip, dataDir, qcChain, exportDir)
   % validate and save field trip
   if nargin > 0
     if ~isnumeric(fieldTrip), error('field trip must be numeric'); end
-    writeToolboxProperty('startDialog.fieldTrip', num2str(fieldTrip));
+    writeProperty('startDialog.fieldTrip', num2str(fieldTrip));
   end
 
   % validate and save data dir
@@ -54,7 +54,7 @@ function autoIMOSToolbox(fieldTrip, dataDir, qcChain, exportDir)
     if ~ischar(dataDir),       error('dataDir must be a string');    end
     if ~exist(dataDir, 'dir'), error('dataDir must be a directory'); end
 
-    writeToolboxProperty('startDialog.dataDir', dataDir);
+    writeProperty('startDialog.dataDir', dataDir);
   end
 
   % validate and save qc chain
@@ -69,7 +69,7 @@ function autoIMOSToolbox(fieldTrip, dataDir, qcChain, exportDir)
     else
       qcChainStr = '';
     end
-    writeToolboxProperty('autoQCManager.autoQCChain', qcChainStr);
+    writeProperty('autoQCManager.autoQCChain', qcChainStr);
   end
 
   % validate and save export dir
@@ -77,7 +77,7 @@ function autoIMOSToolbox(fieldTrip, dataDir, qcChain, exportDir)
     if ~ischar(exportDir),       error('exportDir must be a string');    end
     if ~exist(exportDir, 'dir'), error('exportDir must be a directory'); end
     
-    writeToolboxProperty('exportDialog.defaultDir', exportDir);
+    writeProperty('exportDialog.defaultDir', exportDir);
   end
   
 

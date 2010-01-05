@@ -43,23 +43,23 @@ fileTypes     = {'*.png'; '*.jpg' ; '*.bmp'   ; '*.pdf'};
 printSwitches = {'-dpng'; '-djpeg'; '-dbmp16m'; '-dpdf'};
 
 
-dateFmt = readToolboxProperty('toolbox.timeFormat');
+dateFmt = readProperty('toolbox.timeFormat');
 
 try
-  noPrompt = eval(readToolboxProperty('saveGraph.noPrompt'));
+  noPrompt = eval(readProperty('saveGraph.noPrompt'));
 catch e
   noPrompt = false;
 end
 
 try 
-  exportDir = readToolboxProperty('saveGraph.exportDir');
+  exportDir = readProperty('saveGraph.exportDir');
   if ~exist(exportDir, 'dir'), error(''); end
 catch e
   exportDir = '.';
 end
 
 try
-  imgType = ['*.' readToolboxProperty('saveGraph.imgType')];
+  imgType = ['*.' readProperty('saveGraph.imgType')];
   if ~ismember(imgType, fileTypes), error(''); end
   imgType = find(strcmp(imgType, fileTypes));
 catch e
@@ -117,8 +117,8 @@ if ~noPrompt
     end
     
     % update toolbox properties for next time
-    writeToolboxProperty('saveGraph.exportDir', exportDir);
-    writeToolboxProperty('saveGraph.imgType',   fileTypes{imgType}(3:end));
+    writeProperty('saveGraph.exportDir', exportDir);
+    writeProperty('saveGraph.imgType',   fileTypes{imgType}(3:end));
     
     break;
   end
