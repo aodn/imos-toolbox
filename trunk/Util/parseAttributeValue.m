@@ -157,7 +157,7 @@ function value = parseDDBToken(token, sample_data, k)
   value = '';
   
   % if there is no deployment database, set the value to an empty matrix
-  ddb = readProperty('toolbox.ddb');
+  ddb = readToolboxProperty('toolbox.ddb');
   if isempty(ddb), return; end
 
   % get the relevant deployment

@@ -90,7 +90,7 @@ function [exportDir sets] = exportDialog( ...
   
   % use default export dir if present
   try
-    exportDir = readProperty('exportDialog.defaultDir');
+    exportDir = readToolboxProperty('exportDialog.defaultDir');
   catch e
   end
   
@@ -324,7 +324,7 @@ function [exportDir sets] = exportDialog( ...
   end
   
   % save the export directory for next time
-  writeProperty('exportDialog.defaultDir', exportDir);
+  writeToolboxProperty('exportDialog.defaultDir', exportDir);
   
   return;
   

@@ -66,9 +66,9 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   
   deploymentDescs = genDepDescriptions(deployments, files);
   
-  nofile   = readProperty('dataFileStatusDialog.noFileFormat');
-  multiple = readProperty('dataFileStatusDialog.multipleFileFormat');
-  invalid  = readProperty('dataFileStatusDialog.invalidFileNameFormat');
+  nofile   = readToolboxProperty('dataFileStatusDialog.noFileFormat');
+  multiple = readToolboxProperty('dataFileStatusDialog.multipleFileFormat');
+  invalid  = readToolboxProperty('dataFileStatusDialog.invalidFileNameFormat');
   
   %% Create GUI
 
@@ -254,7 +254,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   %
   
     [newFile path] = uigetfile('*', 'Select Data File',...
-                               readProperty('startDialog.dataDir'),...
+                               readToolboxProperty('startDialog.dataDir'),...
                                'MultiSelect', 'on');
     
     % user cancelled dialog

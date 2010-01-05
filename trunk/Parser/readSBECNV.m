@@ -127,14 +127,13 @@ function header = parseInstrumentHeader(headerLines)
   castExpr     = ['(?:cast|hdr)\s+(\d+)\s+' ...
                   '(\d+ \w+ \d+ \d+:\d+:\d+)\s+'...
                   'samples (\d+) to (\d+), (?:avg|int) = (\d+)'];
-  intervalExpr = 'interval = (.*): ([\d\.\+)$';
   
   exprs = {...
     headerExpr   scanExpr     ...
     memExpr      sampleExpr   ...
     modeExpr     pressureExpr ...
     voltExpr     outputExpr   ...
-    castExpr     intervalExpr};
+    castExpr};
   
   for k = 1:length(headerLines)
     
@@ -194,11 +193,6 @@ function header = parseInstrumentHeader(headerLines)
             header.castStart  = str2double(tkns{1}{3});
             header.castEnd    = str2double(tkns{1}{4});
             header.castAvg    = str2double(tkns{1}{5});
-            
-          % interval
-          case 10
-            header.resolution = tkns{1}{1};
-            header.interval   = str2double(tkns{1}{2});
         end
         break;
       end
@@ -313,31 +307,27 @@ function [name, data] = convertData(name, data, instHeader)
 % supported.
 %
 
-  % the cast date, if present, is used for time field offset
-  castDate = 0;
-  if isfield(instHeader, 'castDate'), castDate = instHeader.castDate; end
-
   switch name
     
     % elapsed time (seconds since start)
     case 'timeS'
       name = 'TIME';
-      data = data / 86400 + castDate;
+      data = data / 86400 + instHeader.castDate;
       
     % elapsed time (minutes since start)
     case 'timeM'
       name = 'TIME';
-      data = data / 1440 + castDate;
+      data = data / 1440 + instHeader.castDate;
       
     % elapsed time (hours since start)
     case 'timeH'
       name = 'TIME';
-      data = data / 24  + castDate;
+      data = data / 24  + instHeader.castDate;
     
     % elapsed time (days since start of year)
     case 'timeJ'
       name = 'TIME';
-      data = rem(data, floor(data)) + floor(castDate);
+      data = rem(data, floor(data)) + floor(instHeader.castDate);
     
     % strain gauge pressure (dbar)
     case 'prdM'
@@ -432,39 +422,15 @@ end
 
 function time = genTimestamps(instHeader, fileHeader, data)
 %GENTIMESTAMPS Generates timestamps for the data. Horribly ugly. I shouldn't 
-% have to have a function like this, but the .cnv files do not necessarily 
+% have to have a function like this, but th .cnv files do not necessarily 
 % provide timestamps for each sample.
 %
   time = [];
   
-  % To generate timestamps for the CTD data, we need to know:
-  %   - start time
-  %   - sample interval
-  %   - number of samples
-  %
-  % The SBE19 header information does not necessarily provide all, or any
-  % of this information. .
-  %
-  start    = 0;
-  interval = 0.25;
-  nSamples = 0;
-    
-  % figure out number of samples by peeking at the 
-  % number of values in the first column of 'data'
-  f = fieldnames(data);
-  nSamples = length(data.(f{1}));
-  
-  % try and find a start date - use castDate if present
-  if isfield(instHeader, 'castDate')
-    start = instHeader.castDate;
-  end
-  
-  % if scanAvg field is present, use it to determine the interval
-  if isfield(instHeader, 'scanAvg')
-    
-    interval = (0.25 * instHeader.scanAvg) / 86400;
-  end
-  
+  cStart = instHeader.castDate;
+  cInt   = (0.25 * instHeader.scanAvg) / 86400;
+  cEnd   = instHeader.castDate + (cInt * (fileHeader.nValues - 1));
+
   % if one of the columns is 'Scan Count', use the 
   % scan count number as the basis for the timestamps 
   if isfield(data, 'ScanCount')
@@ -475,6 +441,6 @@ function time = genTimestamps(instHeader, fileHeader, data)
   % timestamps from start, end and interval
   else
     
-    time = (start:interval:start + (nSamples - 1) * interval)';
+    time = (cStart:cInt:cEnd)';
   end
 end

@@ -34,7 +34,7 @@ import java.util.Date;
 
 public class FieldTrip {
   
-  public String FieldTripID;
+  public Double FieldTripID;
   public String FieldDescription;
   public Date   DateStart;
   public Date   DateEnd;

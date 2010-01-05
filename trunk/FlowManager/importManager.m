@@ -60,7 +60,7 @@ function sample_data = importManager(auto)
 
   % If the toolbox.ddb property has been set, assume that we have a
   % deployment database. Otherwise perform a manual import
-  ddb = readProperty('toolbox.ddb');
+  ddb = readToolboxProperty('toolbox.ddb');
   
   sample_data = {};
   rawFiles    = {};
@@ -74,8 +74,8 @@ function sample_data = importManager(auto)
   % user cancelled
   if isempty(structs), return; end
   
-  dateFmt = readProperty('exportNetCDF.dateFormat');
-  qcSet   = str2double(readProperty('toolbox.qc_set'));
+  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
+  qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
   rawFlag = imosQCFlag('raw', qcSet, 'flag');
   
   % make data sets compliant
@@ -111,7 +111,7 @@ function [sample_data rawFile]= manualImport()
   sample_data = {};
   rawFile     = {};
   
-  manualDir = readProperty('importManager.manualDir');
+  manualDir = readToolboxProperty('importManager.manualDir');
   
   while true
 
@@ -120,7 +120,7 @@ function [sample_data rawFile]= manualImport()
 
     if rawFile == 0, return; end;
 
-    writeProperty('importManager.manualDir', path);
+    writeToolboxProperty('importManager.manualDir', path);
 
     % prompt the user to select a parser with which to import the file
     parsers = listParsers();
@@ -147,17 +147,10 @@ function [sample_data rawFile]= manualImport()
     catch e
       
       close(progress);
-      
-      % make sure sprintf doesn't interpret windows 
-      % file separators as escape characters
-      rawFile = strrep(rawFile, '\', '\\');
-      srcFile = strrep(e.stack(1).file, '\', '\\');
-      errmsg = sprintf(['Could not import ' rawFile ...
-                ' with ' func2str(parser)  ...
-                '. Did you select the correct parser?' ...
-                '\n\n  ' srcFile ':' num2str(e.stack(1).line) ...
-                  '\n  ' e.message]);
-      e = errordlg(errmsg, 'Import error');
+      e = errordlg(['Could not import ' rawFile ...
+                ' with ' func2str(parser)   ...
+                ' (' e.message '). Did you select the correct parser?'], ...
+                'Import error');
       uiwait(e);
       continue;
     end
@@ -219,7 +212,7 @@ function [sample_data rawFiles] = ddbImport(auto)
   end
     
   parsers = listParsers();
-  noParserPrompt = eval(readProperty('importManager.noParserPrompt'));
+  noParserPrompt = eval(readToolboxProperty('importManager.noParserPrompt'));
   
   if auto, noParserPrompt = false; end
   
@@ -293,8 +286,8 @@ function [sample_data rawFiles] = ddbImport(auto)
       [fieldTrip dataDir] = startDialog();
     % if automatic, just get the defaults from toolboxProperties.txt
     else
-      dataDir   =            readProperty('startDialog.dataDir'); 
-      fieldTrip = str2double(readProperty('startDialog.fieldTrip'));
+      dataDir   =            readToolboxProperty('startDialog.dataDir'); 
+      fieldTrip = str2double(readToolboxProperty('startDialog.fieldTrip'));
       
       if isempty(dataDir), error('startDialog.dataDir is not set');   end
       if isnan(fieldTrip), error('startDialog.fieldTrip is not set'); end

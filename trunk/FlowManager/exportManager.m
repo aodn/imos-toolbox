@@ -86,7 +86,7 @@ function exportManager(dataSets, levelNames, output, auto)
     [exportDir dataSets] = ...
       exportDialog(dataSets, levelNames, setNames, varOpts);
   else
-    exportDir = readProperty('exportDialog.defaultDir');
+    exportDir = readToolboxProperty('exportDialog.defaultDir');
     
     for k = 2:numLevels, dataSets{1} = [dataSets{1} dataSets{k}]; end
     dataSets = dataSets{1};

@@ -17,3 +17,6 @@ RDI,     ADCP - QUARTERMASTER,                                     workhorse
 SEABIRD, SBE37SM - MicroCAT C-T Recorder Serial Interface and Memory, SBE37
 NORTEK, ADCP - AWAC, awac
 NORTEK, ADCP - CONTINENTAL, continental
+SBE19, SBE19, SBE19
+RDI, ADCP-Workhourse, workhorse
+FSI, NXIC, NXICBinary

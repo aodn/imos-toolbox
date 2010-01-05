@@ -51,17 +51,17 @@ function [fieldTrip dataDir] = startDialog()
   error(nargchk(0,0,nargin));
   
   dataDir     = pwd;
-  fieldTripId = '1';
+  fieldTripId = 1;
   lowDate     = 0;
   highDate    = now;
-  dateFmt     = readProperty('toolbox.dateFormat');
+  dateFmt     = readToolboxProperty('toolbox.dateFormat');
     
   % if default values exist for data dir and field trip, use them
   try 
-    dataDir     =            readProperty('startDialog.dataDir'); 
-    fieldTripId =            readProperty('startDialog.fieldTrip');
-    lowDate     = str2double(readProperty('startDialog.lowDate'));
-    highDate    = str2double(readProperty('startDialog.highDate'));
+    dataDir     =            readToolboxProperty('startDialog.dataDir'); 
+    fieldTripId = str2double(readToolboxProperty('startDialog.fieldTrip'));
+    lowDate     = str2double(readToolboxProperty('startDialog.lowDate'));
+    highDate    = str2double(readToolboxProperty('startDialog.highDate'));
   catch
   end
 
@@ -73,7 +73,7 @@ function [fieldTrip dataDir] = startDialog()
   
   if isempty(fieldTrips), error('No field trip entries in DDB'); end
   
-  [uu newOrder] = sort({fieldTrips(:).FieldTripID});
+  [uu newOrder] = sort([fieldTrips(:).FieldTripID]);
   fieldTrips = fieldTrips(newOrder);
   clear uu;
   
@@ -97,17 +97,18 @@ function [fieldTrip dataDir] = startDialog()
   % find the default field trip
   fieldTrip = filteredFieldTrips(1);
   
-  for k = 1:length(filteredFieldTrips)
+  if fieldTripId ~= -99999
+    for k = 1:length(filteredFieldTrips)
 
-    f = filteredFieldTrips(k);
-    
-    % save default field trip selection
-    if strcmp(f.FieldTripID, fieldTripId)
-      
-      fieldTripIdx = k; 
-      fieldTrip    = f;
-      break;
-    end
+      f = filteredFieldTrips(k);
+
+      % save default field trip selection
+      if f.FieldTripID == fieldTripId
+        fieldTripIdx = k; 
+        fieldTrip    = f;
+        break;
+      end
+    end  
   end
   
   %% Dialog creation
@@ -130,7 +131,7 @@ function [fieldTrip dataDir] = startDialog()
   
   fidLabel      = uicontrol('Style',  'text',...
                             'String', 'Field Trip ID');
-  fidList       = uicontrol('Style',  'listbox', 'Min', 1, 'Max', 1,...
+  fidMenu       = uicontrol('Style',  'popupmenu', ...
                             'String', filteredFieldTripDescs,...
                             'Value',  fieldTripIdx);
 
@@ -146,30 +147,30 @@ function [fieldTrip dataDir] = startDialog()
 
   % use normalised coordinates
   set(f,                                'Units', 'normalized');
-  set([fidLabel,fidList],               'Units', 'normalized');
+  set([fidLabel,fidMenu],               'Units', 'normalized');
   set([dirLabel, dirText, dirButton],   'Units', 'normalized');
   set([cancelButton, confirmButton],    'Units', 'normalized');
   set([dateStartButton, dateEndButton], 'Units', 'normalized');
 
   % position the widgets
-  set(f,               'Position', [0.2,  0.35,  0.6,   0.3]);
+  set(f,               'Position', [0.2,  0.4,  0.6,   0.2]);
 
-  set(cancelButton,    'Position', [0.0,  0.0,  0.5,   0.1]);
-  set(confirmButton,   'Position', [0.5,  0.0,  0.5,   0.1]);
+  set(cancelButton,    'Position', [0.0,  0.0,  0.5,   0.25]);
+  set(confirmButton,   'Position', [0.5,  0.0,  0.5,   0.25]);
 
-  set(dirLabel,        'Position', [0.0,  0.1, 0.199, 0.1]);
-  set(dirText,         'Position', [0.2,  0.1, 0.65,  0.1]);
-  set(dirButton,       'Position', [0.85, 0.1, 0.15,  0.1]);
+  set(dirLabel,        'Position', [0.0,  0.25, 0.199, 0.25]);
+  set(dirText,         'Position', [0.2,  0.25, 0.65,  0.25]);
+  set(dirButton,       'Position', [0.85, 0.25, 0.15,  0.25]);
 
-  set(fidLabel,        'Position', [0.0,  0.2, 0.199, 0.7]);
-  set(fidList,         'Position', [0.2,  0.2, 0.8,   0.7]);
+  set(fidLabel,        'Position', [0.0,  0.50, 0.199, 0.25]);
+  set(fidMenu,         'Position', [0.2,  0.50, 0.8,   0.25]);
   
-  set(dateStartButton, 'Position', [0.0,  0.9, 0.50,  0.1]);
-  set(dateEndButton,   'Position', [0.5,  0.9, 0.50,  0.1]);
+  set(dateStartButton, 'Position', [0.0,  0.75, 0.50,  0.25]);
+  set(dateEndButton,   'Position', [0.5,  0.75, 0.50,  0.25]);
   
   % reset back to pixels
   set(f,                                'Units', 'pixels');
-  set([fidLabel,fidList],               'Units', 'pixels');
+  set([fidLabel,fidMenu],               'Units', 'pixels');
   set([dirLabel, dirText, dirButton],   'Units', 'pixels');
   set([cancelButton, confirmButton],    'Units', 'pixels');
   set([dateStartButton, dateEndButton], 'Units', 'pixels');
@@ -178,7 +179,7 @@ function [fieldTrip dataDir] = startDialog()
   set(f,               'CloseRequestFcn', @cancelCallback);
   set(dateStartButton, 'Callback',        @dateStartCallback);
   set(dateEndButton,   'Callback',        @dateEndCallback);
-  set(fidList,         'Callback',        @fidMenuCallback);
+  set(fidMenu,         'Callback',        @fidMenuCallback);
   set(dirText,         'Callback',        @dirTextCallback);
   set(dirButton,       'Callback',        @dirButtonCallback);
   set(cancelButton,    'Callback',        @cancelCallback);
@@ -223,8 +224,8 @@ function [fieldTrip dataDir] = startDialog()
     % update field trip list
     [filteredFieldTrips filteredFieldTripDescs] = ...
       filterFieldTrips(fieldTrips, fieldTripDescs, lowDate, highDate);
-    set(fidList, 'Value', 1);
-    set(fidList, 'String', filteredFieldTripDescs);
+    set(fidMenu, 'Value', 1);
+    set(fidMenu, 'String', filteredFieldTripDescs);
     
     % update field trip menu
     fidMenuCallback(source,ev);
@@ -250,8 +251,8 @@ function [fieldTrip dataDir] = startDialog()
     % update field trip list
     [filteredFieldTrips filteredFieldTripDescs] = ...
       filterFieldTrips(fieldTrips, fieldTripDescs, lowDate, highDate);
-    set(fidList, 'Value', 1);
-    set(fidList, 'String', filteredFieldTripDescs);
+    set(fidMenu, 'Value', 1);
+    set(fidMenu, 'String', filteredFieldTripDescs);
     
     % update field trip menu
     fidMenuCallback(source,ev);
@@ -262,7 +263,7 @@ function [fieldTrip dataDir] = startDialog()
   % FIDMENUCALLBACK Field Trip ID popup menu callback. Saves the currently 
   % selected field trip.
   %
-    fieldTripIdx = get(fidList, 'Value');
+    fieldTripIdx = get(fidMenu, 'Value');
     fieldTrip    = filteredFieldTrips(fieldTripIdx);
   end
 
@@ -321,10 +322,10 @@ function [fieldTrip dataDir] = startDialog()
   if isempty(dataDir) || isempty(fieldTrip), return; end
   
   % persist the user's directory and field trip selection
-  writeProperty('startDialog.dataDir',   dataDir);
-  writeProperty('startDialog.fieldTrip', fieldTrip.FieldTripID);
-  writeProperty('startDialog.lowDate',   num2str(lowDate));
-  writeProperty('startDialog.highDate',  num2str(highDate));
+  writeToolboxProperty('startDialog.dataDir',   dataDir);
+  writeToolboxProperty('startDialog.fieldTrip', num2str(fieldTrip.FieldTripID));
+  writeToolboxProperty('startDialog.lowDate',   num2str(lowDate));
+  writeToolboxProperty('startDialog.highDate',  num2str(highDate));
   
 end
 
@@ -388,7 +389,7 @@ function descs = genFieldTripDescs(fieldTrips, dateFmt)
     
     dateRange = [startDate  ' - ' endDate];
     
-    desc = [f.FieldTripID ' (' dateRange ') ' f.FieldDescription];
+    desc = [num2str(f.FieldTripID) ' (' dateRange ') ' f.FieldDescription];
     
     descs{end+1} = desc;
   end

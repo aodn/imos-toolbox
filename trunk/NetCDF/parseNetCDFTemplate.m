@@ -99,11 +99,11 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %
 % For example, for the attribute definition:
 % 
-%   quality_control_set = [mat readProperty('toolbox.qc_set')]
+%   quality_control_set = [mat readToolboxProperty('toolbox.qc_set')]
 %
 % the attribute value will be the value of the matlab statment:
 %
-%   readProperty('toolbox.qc_set')
+%   readToolboxProperty('toolbox.qc_set')
 %
 % === Combinations ===
 %
@@ -183,8 +183,8 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
   if ~isstruct(sample_data),       error('sample_data must be a struct'); end
   if nargin == 3 && ~isnumeric(k), error('k must be numeric');            end
 
-  dateFmt = readProperty('toolbox.timeFormat');
-  qcSet   = str2double(readProperty('toolbox.qc_set'));
+  dateFmt = readToolboxProperty('toolbox.timeFormat');
+  qcSet   = str2double(readToolboxProperty('toolbox.qc_set'));
   qcType  = imosQCFlag('', qcSet, 'type');
 
   % if k isn't provided, provide a dummy value

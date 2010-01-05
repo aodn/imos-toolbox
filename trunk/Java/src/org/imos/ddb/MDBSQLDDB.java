@@ -170,10 +170,9 @@ public class MDBSQLDDB extends DDB {
         throw new Exception("a fieldValue must be provided");
 
       //wrap strings in single quotes
-      if (fieldValue instanceof String) 
-        query += " where " + fieldName + " = '" + fieldValue + "'";
-      else
-        query += " where " + fieldName + " = " + fieldValue;
+      if (fieldValue instanceof String) fieldValue = "'" + fieldValue + "'";
+
+      query += " where " + fieldName + " = " + fieldValue;
     }
 
     try {
@@ -190,63 +189,32 @@ public class MDBSQLDDB extends DDB {
       //execute query
       if (mdbsql_query(query) != 0)
         throw new Exception("error executing query: " + query);
-
-      results = fetchResults(clazz);
-
-      //hack to accommodate DeploymentId and FieldTripID
-      //types of number or text. Don't tell anyone
-      if ( results.size() == 0
-        && fieldValue != null
-        && fieldValue instanceof String) {
-
-        query = "select * from " + tableName +
-          " where " + fieldName + " = " + fieldValue;
-
-        if (mdbsql_query(query) != 0)
-          throw new Exception("error executing query: " + query);
-
-        results = fetchResults(clazz);
+      
+      results = new ArrayList();
+      
+      //fetch the results one by one
+      while (mdbsql_fetch() != 0) {
+        
+        //create an instance representing this row
+        Object instance = clazz.newInstance();
+        results.add(instance);
+        
+        Field [] fields = clazz.getDeclaredFields();
+        
+        //set the fields of the instance from the row data
+        for (Field f : fields) {
+          
+          if (f.isSynthetic()) continue;
+          
+          String s = mdbsql_value(f.getName());
+          f.set(instance, createFieldValue(f, s));
+        }
       }
     }
 
     //always attempt to close file, even on error
     finally {mdbsql_close();}
     
-    return results;
-  }
-
-
-  /**
-   * Fetches the results of the SQL query which was just executed; expects
-   * that the results will consist of the given type.
-   *
-   * @param type the type of result to expect
-   *
-   * @return a List of the given object type, an empty list on no results.
-   */
-  private List fetchResults(Class type) throws Exception {
-
-    List results = new ArrayList();
-    
-    //fetch the results one by one
-    while (mdbsql_fetch() != 0) {
-     
-      //create an instance representing this row
-      Object instance = type.newInstance();
-      results.add(instance);
-      
-      Field [] fields = type.getDeclaredFields();
-      
-      //set the fields of the instance from the row data
-      for (Field f : fields) {
-        
-        if (f.isSynthetic()) continue;
-        
-        String s = mdbsql_value(f.getName());
-        f.set(instance, createFieldValue(f, s));
-      }
-    }
-
     return results;
   }
   
