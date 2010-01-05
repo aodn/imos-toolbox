@@ -169,7 +169,7 @@ function samples = parseSamples(data, header)
   samples.pressure     = zeros(nSamples, 1);
   
   nSamples = 1;
-  while idx < length(data)
+  while idx <= length(data)-len+1
     
     sample = data(idx:idx+len-1);
     idx    = idx + len;
@@ -195,7 +195,7 @@ function samples = parseSamples(data, header)
         nSamples = nSamples -  1;
         
         % The only way I can think of recovering is to scan ahead to find 
-        % the next set of 4 bytes which represent a valid time stamp (i.e. 
+        % the next set of 5 bytes which represent a valid time stamp (i.e. 
         % one within the interval period of the last sample).
         while idx < length(data)-4
           
