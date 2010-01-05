@@ -14,25 +14,25 @@ The header begins with 111 bytes; I am not sure what these bytes contain - there
 
 This section is followed by a list of the elements contained in the records which follow the header. Time is always the first element in each record, and is always present. Each entry in the list is 15 bytes, and begins with `0x42`. The fourth byte indicates the element type, as listed below. All other bytes in these 15 byte fields are 0.
 
-|| *ID*   || *Field*                             ||
-|| N/A    || Seconds since 1 March 1984 00:00:00 ||
-|| `0x01` || Temperature (Degrees Celsius)       ||
-|| `0x04` || Cond (mS/cm)                        ||
-|| `0x06` || SpCond (mS/cm)                      ||
-|| `0x0A` || Total Dissolved Solids (g/L)        ||
-|| `0x0C` || Salinity (ppt)                      ||
-|| `0x12` || pH                                  ||
-|| `0x13` || Oxidation Reduction Potential (mV)  ||
-|| `0x16` || Depth (m)                           ||
-|| `0x18` || BP (psi)                            ||
-|| `0x1C` || Battery (V)                         ||
-|| `0xC1` || Chlorophyll (ug/L)                  ||
-|| `0xC2` || Chlorophyll RFU                     ||
-|| `0xC4` || Latitude                            ||
-|| `0xC5` || Longitude                           ||
-|| `0xCB` || Turbidity (NTU)                     ||
-|| `0xD3` || Dissolved Oxygen (%)                ||
-|| `0xD4` || Dissolved Oxygen (mg/L)             ||
+|| *ID*   || *Field*                                    ||
+|| N/A    || Time (Seconds since 1 March 1984 00:00:00) ||
+|| `0x01` || Temperature (Degrees Celsius)              ||
+|| `0x04` || Cond (mS/cm)                               ||
+|| `0x06` || SpCond (mS/cm)                             ||
+|| `0x0A` || Total Dissolved Solids (g/L)               ||
+|| `0x0C` || Salinity (ppt)                             ||
+|| `0x12` || pH                                         ||
+|| `0x13` || Oxidation Reduction Potential (mV)         ||
+|| `0x16` || Depth (m)                                  ||
+|| `0x18` || BP (psi)                                   ||
+|| `0x1C` || Battery (V)                                ||
+|| `0xC1` || Chlorophyll (ug/L)                         ||
+|| `0xC2` || Chlorophyll RFU                            ||
+|| `0xC4` || Latitude                                   ||
+|| `0xC5` || Longitude                                  ||
+|| `0xCB` || Turbidity (NTU)                            ||
+|| `0xD3` || Dissolved Oxygen (%)                       ||
+|| `0xD4` || Dissolved Oxygen (mg/L)                    ||
 
 == Record ==
 
