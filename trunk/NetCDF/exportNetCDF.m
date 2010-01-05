@@ -244,6 +244,7 @@ function filename = exportNetCDF( sample_data, dest )
   % ensure that the file is closed in the event of an error
   catch e
     try netcdf.close(fid); catch ex, end
+    if exist(filename, 'file'), delete(filename); end
     rethrow(e);
   end
 end
