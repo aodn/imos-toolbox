@@ -102,11 +102,17 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   if sample_data.meta.level == 0, config.data_code = 'R'; end
   for k = 1:length(sample_data.variables)
 
-    % get the data code for this parameter; don't add duplicate codes
-    code = imosParameters(sample_data.variables{k}.name, 'data_code');
-    if strfind(config.data_code, code), continue; end
-
-    config.data_code(end+1) = code;
+    % get the data code for this parameter; don't add 
+    % duplicate codes, and ignore non-IMOS parameters
+    try 
+      
+      code = imosParameters(sample_data.variables{k}.name, 'data_code');
+      if strfind(config.data_code, code), continue; end
+      config.data_code(end+1) = code;
+      
+    catch e
+      continue;
+    end
   end
   
   % <start_date>, <platform_code>, <file_version>
