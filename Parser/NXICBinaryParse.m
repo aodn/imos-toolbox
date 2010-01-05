@@ -197,11 +197,12 @@ function samples = parseSamples(data, header)
         % The only way I can think of recovering is to scan ahead to find 
         % the next set of 4 bytes which represent a valid time stamp (i.e. 
         % one within the interval period of the last sample).
-        while idx < length(data)
+        while idx < length(data)-3
           
           idx = idx + 1;
           
           newTime = bytecast(data(idx:idx+3), 'L', 'uint32');
+          newTime = newTime + double(data(idx+4)) / 100;
           timeDiff = newTime - lastSampleTime;
           if (timeDiff > 0) && (timeDiff < header.interval), break; end
           
@@ -212,9 +213,11 @@ function samples = parseSamples(data, header)
       end
     end
     
-    samples.conductivity(nSamples) = bytecast(sample(6 : 9), 'L', 'single');
-    samples.temperature (nSamples) = bytecast(sample(10:13), 'L', 'single');
-    samples.pressure    (nSamples) = bytecast(sample(14:17), 'L', 'single');
+    block = bytecast(sample(6:17), 'L', 'single');
+    
+    samples.conductivity(nSamples) = block(1);
+    samples.temperature (nSamples) = block(2);
+    samples.pressure    (nSamples) = block(3);
     
     nSamples = nSamples + 1;
   end
