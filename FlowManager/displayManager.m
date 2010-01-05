@@ -104,7 +104,7 @@ function displayManager(windowTitle, sample_data, callbacks)
   lastState  = '';
   lastSetIdx = [];
   lastVars   = [];
-  qcSet      = str2double(readProperty('toolbox.qc_set'));
+  qcSet      = str2double(readToolboxProperty('toolbox.qc_set'));
   rawFlag    = imosQCFlag('raw', qcSet, 'flag');
   
   % define the user options, and create the main window

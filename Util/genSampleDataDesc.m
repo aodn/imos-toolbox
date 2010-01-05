@@ -47,7 +47,7 @@ error(nargchk(1,1,nargin));
 
 if ~isstruct(sam), error('sam must be a struct'); end
 
-timeFmt = readProperty('toolbox.timeFormat');
+timeFmt = readToolboxProperty('toolbox.timeFormat');
 
 timeRange = [datestr(sam.time_coverage_start, timeFmt) ' - ' ...
              datestr(sam.time_coverage_end,   timeFmt)];

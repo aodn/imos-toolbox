@@ -64,7 +64,7 @@ function viewMetadata(parent, sample_data, updateCallback)
   
   %% create data sets
   
-  dateFmt = readProperty('toolbox.timeFormat');
+  dateFmt = readToolboxProperty('toolbox.timeFormat');
   
   globs = sample_data;
   globs = rmfield(globs, 'meta');
@@ -276,7 +276,7 @@ function viewMetadata(parent, sample_data, updateCallback)
 
           % i'm assuming that QC modifications will very rarely occur,
           % so the file lookups here shouldn't be too costly
-          qcSet  = str2double(readProperty('toolbox.qc_set'));
+          qcSet  = str2double(readToolboxProperty('toolbox.qc_set'));
           qcType = imosQCFlag('', qcSet, 'type');
 
           switch qcType

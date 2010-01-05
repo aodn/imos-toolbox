@@ -54,7 +54,7 @@ function filename = genIMOSFileName( sample_data, suffix )
   %
   % all dates should be in ISO 8601 format
   %
-  dateFmt = readProperty('exportNetCDF.fileDateFormat');
+  dateFmt = readToolboxProperty('exportNetCDF.fileDateFormat');
 
   % get default config, and file config
   defCfg  = genDefaultFileNameConfig(sample_data, dateFmt);
@@ -142,12 +142,41 @@ function config = readFileNameConfig(sample_data, dateFmt)
 %
   config = struct;
   
-  fileName = ['IMOS' filesep 'imosFileName.txt'];
+  filename = [pwd filesep 'IMOS' filesep 'imosFileName.txt'];  
   
-  [names values] = listProperties(fileName);
-  
-  for k = 1:length(names)
+  fid = -1;
+  try
     
-    if ~isempty(values{k}) config.(names{k}) = values{k}; end
+    fid = fopen(filename, 'rt');
+    
+    line = fgetl(fid);
+    while ischar(line)
+      
+      % extract the name/value pair
+      tkns = regexp(line, '^\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
+      
+      % ignore bad lines
+      if isempty(tkns), 
+        line = fgetl(fid);
+        continue; 
+      end
+      
+      name = tkns{1}{1};
+      val  = tkns{1}{2};
+      
+      % parse the value, save into the struct
+      config.(name) = deblank(parseAttributeValue(val, sample_data, 1));
+      
+      % remove unset fields
+      if isempty(config.(name)) config = rmfield(config, name); end
+      
+      line = fgetl(fid);
+    end
+    
+    fclose(fid);
+    
+  catch e
+    if fid ~= -1, fclose(fid); end
+    rethrow(e);
   end
 end

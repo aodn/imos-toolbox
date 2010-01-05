@@ -57,10 +57,6 @@ function [year month day] = datePromptDialog(year,month,day)
     error('month must be a scalar numeric'); end
   if ~isnumeric(day)   && ~isscalar(day)
     error('day must be a scalar numeric');   end
-  
-  if year  < 1950 || year  > 2050, year = 1950; end
-  if month < 1    || month > 12,   month = 1;   end
-  if day   < 1    || day   > 31,   day = 1;     end
 
   % save input so we can revert it if the user cancels the dialog
   origYear  = year;

@@ -61,7 +61,7 @@ if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 gapsize = str2double(...
   readProperty('gapsize', fullfile('AutomaticQC', 'timeGapQC.txt')));
 
-qc_set = str2num(readProperty('toolbox.qc_set'));
+qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',        qc_set, 'flag');
 gapFlag  = imosQCFlag('discont',     qc_set, 'flag');
 

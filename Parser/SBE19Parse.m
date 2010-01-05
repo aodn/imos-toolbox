@@ -58,24 +58,10 @@ function sample_data = SBE19Parse( filename )
   % create sample data struct
   sample_data = struct;
   
-  sample_data.meta.instrument_make = 'Seabird';
-  if isfield(instHeader, 'instrument_model')
-    sample_data.meta.instrument_model = instHeader.instrument_model;
-  else
-    sample_data.meta.instrument_model = 'SBE19';
-  end
-  
-  if isfield(instHeader, 'instrument_firmware')
-    sample_data.meta.instrument_firmware = instHeader.instrument_firmware;
-  else
-    sample_data.meta.instrument_firmware = '0';
-  end
-  
-  if isfield(instHeader, 'instrument_serial_no')
-    sample_data.meta.instrument_serial_no = instHeader.instrument_serial_no;
-  else
-    sample_data.meta.instrument_serial_no = '0';
-  end
+  sample_data.meta.instrument_make      = 'Seabird';
+  sample_data.meta.instrument_model     = instHeader.instrument_model;
+  sample_data.meta.instrument_firmware  = instHeader.instrument_firmware;
+  sample_data.meta.instrument_serial_no = instHeader.instrument_serial_no;
   
   sample_data.dimensions = {};  
   sample_data.variables  = {};

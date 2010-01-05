@@ -58,7 +58,7 @@ function qc_data = autoQCManager( sample_data, auto )
   
   if nargin == 1, auto = false; end
   
-  qcSet = str2double(readProperty('toolbox.qc_set'));
+  qcSet = str2double(readToolboxProperty('toolbox.qc_set'));
   rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
   goodFlag = imosQCFlag('good', qcSet, 'flag');
   
@@ -70,7 +70,7 @@ function qc_data = autoQCManager( sample_data, auto )
 
   % get default filter chain if there is one
   try
-    qcChain = textscan(readProperty('autoQCManager.autoQCChain'), '%s');
+    qcChain = textscan(readToolboxProperty('autoQCManager.autoQCChain'), '%s');
     qcChain = qcChain{1};
   catch e
   end
@@ -89,7 +89,7 @@ function qc_data = autoQCManager( sample_data, auto )
       % save user's latest selection for next time - turn the qcChain
       % cell array into a space-separated string of the names
       qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
-      writeProperty('autoQCManager.autoQCChain', ...
+      writeToolboxProperty('autoQCManager.autoQCChain', ...
                            deblank([qcChainStr{:}]));
     end
   end

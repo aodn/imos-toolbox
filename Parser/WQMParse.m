@@ -148,29 +148,6 @@ function sample_data = WQMParse( filename )
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = samples{1}{1};
-  
-  % convert and save the time data
-  time = cellstr(samples{2});
-  time = datenum(time, 'mmddyy HHMMSS')';
-  
-  % WQM instrumensts (or the .DAT conversion sofware) have a habit of
-  % generating erroneous data sometimes, either missing a character , or 
-  % inserting a 0 instead of the correct in the output to .DAT files.
-  % This is a simple check to make sure that all of the timestamps appear
-  % to be correct; there's only so much we can do though.
-  invalid = [];
-  for k = 2:length(time)
-    if time(k) < time(k-1), invalid(end+1) = k; end
-  end
-  
-  time(invalid) = [];
-  for k = 1:length(samples)
-    if k == 2, continue; end
-    samples{k}(invalid) = []; 
-  end
-  
-  sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.data = time;
 
   % create a variables struct in sample_data for each field in the file
   % start index at 4 to skip serial, date and time
@@ -201,6 +178,11 @@ function sample_data = WQMParse( filename )
     sample_data.variables{k-3}.name       = name;
     sample_data.variables{k-3}.data       = data;
   end
+
+  % convert and save the time data
+  time = cellstr(samples{2});
+  sample_data.dimensions{1}.name = 'TIME';
+  sample_data.dimensions{1}.data = datenum(time, 'mmddyy HHMMSS')';
 
 end
 

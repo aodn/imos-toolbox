@@ -63,7 +63,7 @@ nsamples = str2double(...
   readProperty('nsamples', fullfile('AutomaticQC', 'flatlineQC.txt')));
 if nsamples < 2, nsamples = 2; end
 
-qc_set = str2num(readProperty('toolbox.qc_set'));
+qc_set = str2num(readToolboxProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',        qc_set, 'flag');
 flatFlag = imosQCFlag('probablyBad', qc_set, 'flag');
 

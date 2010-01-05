@@ -62,7 +62,7 @@ function result = executeDDBQuery( table, field, value)
 
   % execute the query - the java method returns 
   % an ArrayList of org.imos.ddb.schema.* objects.
-  ddb = org.imos.ddb.DDB.getDDB(readProperty('toolbox.ddb'));
+  ddb = org.imos.ddb.DDB.getDDB(readToolboxProperty('toolbox.ddb'));
   result = ddb.executeQuery(table, field, value);
   clear ddb;
 
@@ -87,7 +87,7 @@ function strs = java2struct(list)
   
   if list.size() == 0, return; end;
   
-  dateFmt = readProperty('exportNetCDF.dateFormat');
+  dateFmt = readToolboxProperty('exportNetCDF.dateFormat');
 
   % it's horribly ugly, but this is the only way that I know of to turn
   % Java fields of arbitrary types into matlab fields: a big, ugly switch

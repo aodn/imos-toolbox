@@ -61,7 +61,7 @@ if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
 time_coverage_end = sample_data.time_coverage_end;
 
-qc_set    = str2double(readProperty('toolbox.qc_set'));
+qc_set    = str2double(readToolboxProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qc_set, 'flag');
 flagVal   = imosQCFlag('bad',   qc_set, 'flag');
 
