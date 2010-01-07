@@ -93,14 +93,20 @@ function sample_data = NXICBinaryParse( filename )
   sample_data.variables{1}.name = 'TEMP';
   sample_data.variables{2}.name = 'CNDC';
   sample_data.variables{3}.name = 'PRES';
+  sample_data.variables{4}.name = 'PSAL';
+  sample_data.variables{5}.name = 'VOLT';
   
   sample_data.variables{1}.dimensions = [1];
   sample_data.variables{2}.dimensions = [1];
   sample_data.variables{3}.dimensions = [1];
+  sample_data.variables{4}.dimensions = [1];
+  sample_data.variables{5}.dimensions = [1];
   
   sample_data.variables{1}.data = samples.temperature;
   sample_data.variables{2}.data = samples.conductivity;
   sample_data.variables{3}.data = samples.pressure;
+  sample_data.variables{4}.data = samples.salinity;
+  sample_data.variables{5}.data = samples.voltage;
   
 end
 
@@ -167,6 +173,8 @@ function samples = parseSamples(data, header)
   samples.conductivity = zeros(nSamples, 1);
   samples.temperature  = zeros(nSamples, 1);
   samples.pressure     = zeros(nSamples, 1);
+  samples.salinity     = zeros(nSamples, 1);
+  samples.voltage      = zeros(nSamples, 1);
   
   nSamples = 1;
   while idx <= length(data)-len+1
@@ -213,11 +221,13 @@ function samples = parseSamples(data, header)
       end
     end
     
-    block = bytecast(sample(6:17), 'L', 'single');
+    block = bytecast(sample(6:29), 'L', 'single');
     
     samples.conductivity(nSamples) = block(1);
     samples.temperature (nSamples) = block(2);
     samples.pressure    (nSamples) = block(3);
+    samples.salinity    (nSamples) = block(4);
+    samples.voltage     (nSamples) = block(6);
     
     nSamples = nSamples + 1;
   end
@@ -227,6 +237,8 @@ function samples = parseSamples(data, header)
   samples.conductivity = samples.conductivity(1:nSamples-1);
   samples.temperature  = samples.temperature (1:nSamples-1);
   samples.pressure     = samples.pressure    (1:nSamples-1);
+  samples.salinity     = samples.salinity    (1:nSamples-1);
+  samples.voltage      = samples.voltage     (1:nSamples-1);
   
   % time: unix time  -> matlab time
   % cndc: mmho/cm    -> S/m
