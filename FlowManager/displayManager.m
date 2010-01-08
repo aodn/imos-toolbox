@@ -373,6 +373,12 @@ function displayManager(windowTitle, sample_data, callbacks)
             % update graph
             if ~isempty(flags), delete(flags(flags ~= 0)); end
             flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
+            
+            % update user data
+            f = flags(varIdx,:);
+            f = f(f ~= 0);
+            ud{2} = f;
+            set(ax, 'UserData', ud);
           end
         end
           
