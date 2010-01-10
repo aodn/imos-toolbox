@@ -128,9 +128,11 @@ where
 
 Functions of the name `highlightXY.m` (where `X` is the graph type, and `Y` is the parameter type) overlay a given data range onto an existing graph. These functions have the following format:
 {{{
-function highlight = highlightGraphTypeParameter( region, data )
+function highlight = highlightGraphTypeParameter( region, data, xdata, ydata )
 }}}
 where
  * `region` is a vector containing the data region to highlight
  * `data` is a handle, or vector of handles, to the graphics object(s) displaying the data (e.g. `line`, `scatter`)
  * `highlight` is a handle to the highlight graphic (e.g. `scatter`, `patch`)
+ * `xdata` is an optional array of data which is used as the x data to highlight. If not provided, the `XData` property of the `data` handle is used.
+ * `ydata` is an optional array of data which is used as the y data to highlight. If not provided, the `YData` property of the `data` handle is used.
