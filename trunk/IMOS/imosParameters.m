@@ -9,7 +9,8 @@ function value = imosParameters( short_name, field )
 % IMOS compliant identifier (the short_name) exists. This function looks up the 
 % given short_name and returns the corresponding standard name, long name, 
 % units of measurement, data code, fill value or valid min/max value. If the 
-% given short_name is not in the list of IMOS parameters, an error is raised.
+% given short_name is not in the list of IMOS parameters, a default value is 
+% returned.
 %
 % Currently, requests for long name and standard name return the same value, 
 % unless the requested field is the standard name, and the parameter is not a
@@ -118,6 +119,16 @@ for k = 1:length(names)
   end
 end
 
+% provide default values for unrecognised parameters
 if isnan(value)
-  error([short_name ' is not a recognised IMOS parameter']); 
+  
+  switch field
+    case 'standard_name',  value = '';
+    case 'long_name',      value = short_name;
+    case 'uom',            value = '?';
+    case 'data_code',      value = '';
+    case 'fill_value',     value = 999999.0;
+    case 'valid_min',      value = 0.0;
+    case 'valid_max',      value = 0.0;
+  end
 end
