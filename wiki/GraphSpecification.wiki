@@ -133,6 +133,6 @@ function highlight = highlightGraphTypeParameter( region, data, sample_data, typ
 where
  * `region` is a vector containing the data region to highlight
  * `data` is a handle, or vector of handles, to the graphics object(s) displaying the data (e.g. `line`, `scatter`)
- * `highlight` is a handle to the highlight graphic (e.g. `scatter`, `patch`)
  * `sample_data` is the struct containing the data set.
  * `type` is the click highlight type (`normal` or `alt`).
+ * `highlight` is a handle to the highlight graphic (e.g. `scatter`, `patch`)
