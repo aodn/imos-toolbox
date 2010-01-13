@@ -93,7 +93,7 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   config = struct;
   
   % <facility_code>
-  config.facility_code = sample_data.institution;
+  config.facility_code = sample_data.site_code;
   
   % <data_code>
   config.data_code = '';
