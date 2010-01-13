@@ -66,23 +66,20 @@ var  = sample_data.variables {var} .data;
 highlightX = get(highlight, 'XData');
 highlightY = get(highlight, 'YData');
 
-% was click within highlight?
-if click(1) >= highlightX(1) && click(1) <= highlightX(3)...
-&& click(2) >= highlightY(1) && click(2) <= highlightY(2)...
+% was click within highlight range?
+if click(1) >= min(highlightX) && click(1) <= max(highlightX)...
+&& click(2) >= min(highlightY) && click(2) <= max(highlightY)
   
   % turn the highlight into data indices
+  dataIdx = [];
   
-  % get indices of time and freq axes
-  timeRange = find(time >= highlightX(1) & time <= highlightX(3));
-  freqRange = find(freq >= highlightY(1) & freq <= highlightY(2));
-  
-  dataIdx = zeros(length(timeRange), length(freqRange));
-  
-  % turn them into indices into the var matrix
-  for k = 1:length(freqRange)
-    dataIdx(:,k) = timeRange + length(time)*(freqRange(k)-1);
+  for k = 1:length(highlightX)
+    
+    % get the indices, on each dimension, of each point in the highlight
+    timeIdx = find(time == highlightX(k));
+    freqIdx = find(freq == highlightY(k));
+    
+    % 'flatten' those indices
+    dataIdx = [dataIdx ((freqIdx - 1) * length(time) + timeIdx)];
   end
-  
-  dataIdx = dataIdx(:);
 end
-w

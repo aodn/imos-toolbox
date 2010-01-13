@@ -1,4 +1,4 @@
-function highlight = highlightTimeSeriesGeneric( region, data )
+function highlight = highlightTimeSeriesGeneric( region, data, variable, type )
 %HIGHLIGHTTIMESERIESGENERIC Highlights the given region on the given data 
 % axes, using a line overlaid on the on the points in the region.
 % 
@@ -8,11 +8,13 @@ function highlight = highlightTimeSeriesGeneric( region, data )
 %   data      - A handle, or vector of handles, to the graphics object(s) 
 %               displaying the data (e.g. line, scatter). Must contain 
 %               'XData' and 'YData' properties.
+%   variable  - The variable displayed on the axes.
+%   type      - The highlight type.
 %
 % Outputs:
 %   highlight - Handle to a line object which overlays the highlighted
-%               data. If no data points lie within the highlight region, an
-%               empty matrix is returned.
+%               data. If no data points lie within the highlight region, 
+%               an empty matrix is returned.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -46,31 +48,28 @@ function highlight = highlightTimeSeriesGeneric( region, data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(2,2,nargin));
+error(nargchk(4,4,nargin));
 
 if ~isnumeric(region) || ~isvector(region) || length(region) ~= 4
   error('region must be a numeric vector of length 4');
 end
 
-if ~ishandle(data), error('data must be a graphics handle'); end
+if ~ishandle(data),     error('data must be a graphics handle'); end
+if ~isstruct(variable), error('variable must be a struct');      end
+if ~ischar(type),       error('type must be a string');          end
 
-% these will throw errors if the handle doesn't have XData/YData properties
 xdata = get(data, 'XData');
 ydata = get(data, 'YData');
 
-% if multiple handles were passed in, merge the data sets by combining x
-% and y into a Nx2 matrix, and using union to merge/sort the rows
-if iscell(xdata)
+% on right click highlight, only highlight 
+% unflagged data points in the region
+if strcmp(type, 'alt')
   
-  % u stands for union
-  u = [xdata{1}' ydata{1}'];
-  for k = 2:length(xdata)
-    
-    u = union(u, [xdata{k}' ydata{k}'], 'rows'); 
-  end
+  f = variable.flags;
+  f = f == 0;
   
-  xdata = u(:,1);
-  ydata = u(:,2);
+  xdata = xdata(f);
+  ydata = ydata(f);
 end
 
 % figure out indices of all data points within the range
@@ -78,11 +77,11 @@ xidx  = find(xdata >= region(1) & xdata <= region(3));
 yidx  = find(ydata >= region(2) & ydata <= region(4));
 
 % figure out indices of all the points to be highlighted
-idx = intersect(xidx,yidx);
+idx = intersect(xidx, yidx);
 
 % return nothing if no points to plot
 if isempty(idx), highlight = [];
-  
+    
 % create the highlight
 else
 

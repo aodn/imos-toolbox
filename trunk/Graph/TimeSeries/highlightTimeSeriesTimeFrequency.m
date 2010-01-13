@@ -1,15 +1,18 @@
-function highlight = highlightTimeSeriesTimeFrequency( region, data )
+function highlight = highlightTimeSeriesTimeFrequency( ...
+  region, data, variable, type )
 %HIGHLIGHTTIMESERIESTIMEFREQUENCY Highlights the given region on the given
 % time/frequency plot.
 %
-% Highlights the given region on a time/frequency plot, using a transparent 
-% patch. This function just delegates to highlightTimeSeriesTimeDepth.
+% Highlights the given region on a time/frequency plot. This function just 
+% delegates to highlightTimeSeriesTimeDepth.
 %
 % Inputs:
 %   region    - a vector of length 4, containing the selected data region. 
 %               Must be in the format: [lx ly hx hy]
 %   data      - A handle, or vector of handles, to the graphics object(s) 
 %               displaying the data (e.g. line, scatter). 
+%   variable  - The variable displayed on the axes.
+%   type      - The highlight type.
 %
 % Outputs:
 %   highlight - handle to the patch highlight.
@@ -46,4 +49,4 @@ function highlight = highlightTimeSeriesTimeFrequency( region, data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-highlight = highlightTimeSeriesTimeDepth(region, data);
+highlight = highlightTimeSeriesTimeDepth(region, data, variable, type);

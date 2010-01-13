@@ -230,10 +230,6 @@ function displayManager(windowTitle, sample_data, callbacks)
     % adding/modifying/removing flags).
     %
     
-      % the flags overlaid on the graphs need to 
-      % be refreshed when manual QC occurs
-      flags = [];
-    
       % update qc data on state change
       if strcmp(event, 'state')
           
@@ -277,15 +273,11 @@ function displayManager(windowTitle, sample_data, callbacks)
          return;
       end
 
-      % save line/flag handles and index in axis userdata 
+      % save line handles and index in axis userdata 
       % so the data select callback can retrieve them
       for k = 1:length(graphs)
         
-        % the graphTimeSeries function sets the flags handle to 0.0 if
-        % there were no flags to graph - remove these handles
-        f = flags(k,:);
-        f = f(f ~= 0);
-        set(graphs(k), 'UserData', {lines(k), f, k});
+        set(graphs(k), 'UserData', {lines(k), k});
       end
 
       % add data selection functionality
@@ -297,23 +289,11 @@ function displayManager(windowTitle, sample_data, callbacks)
       %DATASELECTCALLBACK Called when the user selects a region of data.
       % Highlights the selected region.
       %
-        % line/flag handles are stored in the axis userdata
+        % line handles are stored in the axis userdata
         ud = get(ax, 'UserData');
         
-        % get the relevant handle - on a left drag, highlight
-        % data points; on a right drag, highlight flags
-        handle = 0;
-        switch (type)
-          case 'normal', handle = ud{1};
-          case 'alt',    handle = ud{2};
-          otherwise,     return;
-        end
-        
-        % index into vars vector, telling us which 
-        % variable is on the axis in question
-        varIdx = ud{3};
-
-        if isempty(handle), return; end
+        handle = ud{1};
+        varIdx = ud{2};
 
         % remove any previous highlight
         if ~isempty(highlight)
@@ -324,7 +304,8 @@ function displayManager(windowTitle, sample_data, callbacks)
         % highlight the data, save the handle and data indices
         highlightFunc = getGraphFunc(graphType, 'highlight',...
           sample_data{setIdx}.variables{vars(varIdx)}.name);
-        highlight     = highlightFunc(range, handle);
+        highlight = highlightFunc(...
+          range, handle, sample_data{setIdx}.variables{vars(varIdx)}, type);
       end
       
       function dataClickCallback(ax, type, point)
@@ -339,7 +320,7 @@ function displayManager(windowTitle, sample_data, callbacks)
         
         % index into vars vector, telling us which 
         % variable is on the axis in question
-        varIdx = ud{3};
+        varIdx = ud{2};
         
         % get the click point
         point = get(ax, 'CurrentPoint');
@@ -373,12 +354,6 @@ function displayManager(windowTitle, sample_data, callbacks)
             % update graph
             if ~isempty(flags), delete(flags(flags ~= 0)); end
             flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
-            
-            % update user data
-            f = flags(varIdx,:);
-            f = f(f ~= 0);
-            ud{2} = f;
-            set(ax, 'UserData', ud);
           end
         end
           
