@@ -66,22 +66,20 @@ var   = sample_data.variables {var}  .data;
 highlightX = get(highlight, 'XData');
 highlightY = get(highlight, 'YData');
 
-% was click within highlight?
-if click(1) >= highlightX(1) && click(1) <= highlightX(3)...
-&& click(2) >= highlightY(1) && click(2) <= highlightY(2)...
+% was click within highlight range?
+if click(1) >= min(highlightX) && click(1) <= max(highlightX)...
+&& click(2) >= min(highlightY) && click(2) <= max(highlightY)
   
   % turn the highlight into data indices
+  dataIdx = [];
   
-  % get indices of time and depth axes
-  timeRange  = find(time  >= highlightX(1) & time  <= highlightX(3));
-  depthRange = find(depth >= highlightY(1) & depth <= highlightY(2));
-  
-  dataIdx = zeros(length(timeRange), length(depthRange));
-  
-  % turn them into indices into the cspd matrix
-  for k = 1:length(depthRange)
-    dataIdx(:,k) = timeRange + length(time)*(depthRange(k)-1);
+  for k = 1:length(highlightX)
+    
+    % get the indices, on each dimension, of each point in the highlight
+    timeIdx  = find(time  == highlightX(k));
+    depthIdx = find(depth == highlightY(k));
+    
+    % 'flatten' those indices
+    dataIdx = [dataIdx ((depthIdx - 1) * length(time) + timeIdx)];
   end
-  
-  dataIdx = dataIdx(:);
 end
