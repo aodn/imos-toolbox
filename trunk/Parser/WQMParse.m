@@ -16,6 +16,8 @@ function sample_data = WQMParse( filename )
 %   Presssure         (floating point, Decibar)
 %   Salinity          (floating point, PSS)
 %   Dissolved Oxygen  (floating point, milligrams/Litre)
+%   Dissolved Oxygen  (floating point, millilitres/Litre)
+%   Dissolved Oxygen  (floating point, millimole/metre^3)
 %   Chlorophyll       (floating point, micrograms/Litre)
 %   Turbidity         (floating point, NTU)
 %
@@ -26,7 +28,7 @@ function sample_data = WQMParse( filename )
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
-%                 vector of up to eight variable structs, containing sample 
+%                 vector of up to nine variable structs, containing sample 
 %                 data. The possible variables are as follows:
 %
 %                   Conductivity      ('CNDC'): S m^-1
@@ -34,6 +36,7 @@ function sample_data = WQMParse( filename )
 %                   Pressure          ('PRES'): Decibars
 %                   Salinity          ('PSAL'): 1e^(-3) (PSS)
 %                   Dissolved Oxygen  ('DOXY'): kg/m^3
+%                   Dissolved Oxygen  ('DOX2'): mol/kg
 %                   Chlorophyll       ('CPHL'): mg/m^3   (user coefficient)
 %                   Chlorophyll       ('CPHL'): mg/m^3   (factory coefficient)
 %                   Turbidity         ('TURB') NTU
@@ -106,6 +109,9 @@ function sample_data = WQMParse( filename )
   params{end+1} = {'Pres(dbar)',      {'PRES', ''}};
   params{end+1} = {'Sal(PSU)',        {'PSAL', ''}};
   params{end+1} = {'DO(mg/l)',        {'DOXY', ''}};
+  params{end+1} = {'DO(mmol/m^3)',    {'DOXY', ''}};
+  params{end+1} = {'DO(ml/l)',        {'DOX2', ''}};
+  params{end+1} = {'CHL(ug/l)',       {'CPHL', ''}};
   params{end+1} = {'F-Cal-CHL(ug/l)', {'CPHL', 'Factory coefficient'}};
   params{end+1} = {'U-Cal-CHL(ug/l)', {'CPHL', 'User coefficient'}};
   params{end+1} = {'NTU',             {'TURB', ''}};
@@ -180,27 +186,61 @@ function sample_data = WQMParse( filename )
     data = samples{k-1};
 
     % some fields are not in IMOS uom - scale them so that they are
-    switch name
+    switch fields{k}
 
       % WQM provides conductivity in mS/m; we need it in S/m.
-      case 'CNDC'
+      case 'Cond(mmho)'
         data = data / 1000.0;
 
-      % WQM provides dissolved oxygen in mg/L; we need it in kg/m^3.
-      case 'DOXY'
+      % convert dissolved oxygen in mg/L to kg/m^3.
+      case 'DO(mg/l)'
         data = data / 1000.0;
+      
+      % convert dissolved oxygen in mmol/m^3 to kg/m^3.
+      case 'DO(mmol/m^3)'
+        data = data * 32.0 / 1000000.0;
+      
+      % convert dissolved oxygen in ml/l to mol/kg
+      case 'DO(ml/l)'
+        
+        % to perform this conversion, we need to calculate the 
+        % density of sea water; for this, we need temperature, 
+        % salinity, and pressure data to be present
+        temp = getVar(sample_data.variables, 'TEMP');
+        pres = getVar(sample_data.variables, 'PRES');
+        psal = getVar(sample_data.variables, 'PSAL');
+        
+        % if any of this data isn't present, 
+        % we can't perform the conversion
+        if temp == 0, continue; end
+        if pres == 0, continue; end
+        if psal == 0, continue; end
+        
+        temp = sample_data.variables{temp};
+        pres = sample_data.variables{pres};
+        psal = sample_data.variables{psal};
+        
+        % calculate density from salinity, temperature and pressure
+        dens = sw_dens(psal.data, temp.data, pres.data);
+        
+        % ml/l -> mol/kg
+        data = data .* (446.596 ./ dens);
 
       % WQM provides chlorophyll in ug/L; we need it in mg/m^3.
       % These are equivalent, so no scaling is needed.
       % case 'CPHL'
 
     end
-
+        
     sample_data.variables{k-3}.dimensions = [1];
     sample_data.variables{k-3}.comment    = comment;
     sample_data.variables{k-3}.name       = name;
     sample_data.variables{k-3}.data       = data;
   end
+  
+  % remove empty entries (could occur if DO(ml/l) data is 
+  % present, but temp/pressure/salinity data is not)
+  sample_data.variables(cellfun(@isempty, sample_data.variables)) = [];
 
 end
 
