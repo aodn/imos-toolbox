@@ -229,12 +229,12 @@ function sample_data = WQMParse( filename )
         %   dens = dens ./ 1000.0;
         %
         %   % ml/l ->umol/kg
-        %   data = data .* (446596.0 ./ dens);
+        %   data = data .* (44.6596 ./ dens);
         %
         %   % umol/kg -> mol/kg
         %   data = data ./ 1000000.0;
         %
-        data = data .* (446.596 ./ dens);
+        data = data .* (0.0446596 ./ dens);
 
       % WQM provides chlorophyll in ug/L; we need it in mg/m^3.
       % These are equivalent, so no scaling is needed.
