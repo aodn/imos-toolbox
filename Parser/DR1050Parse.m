@@ -188,7 +188,12 @@ function data = readData(fid, header)
   % using  column names as struct field names
   for k = 1:length(cols), data.(cols{k}) = samples{k}; end
   
-  % generate time stamps from start/interval/end times contained in header
+  % regenerate interval from start/end time, and number of 
+  % samples, rather than using the one listed in the header
+  nSamples = length(samples{1});
+  header.interval = (header.end - header.start) / (nSamples-1);
+  
+  % generate time stamps from start/interval/end
   data.time = header.start:header.interval:header.end;
   data.time = data.time(1:length(samples{1}))';
 end
