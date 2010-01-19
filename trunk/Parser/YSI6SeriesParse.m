@@ -66,7 +66,7 @@ function sample_data = YSI6SeriesParse( filename )
     fclose(fid);
   catch e
     if fid ~= -1, fclose(fid); end
-    rethrow e;
+    rethrow(e);
   end
   
   % read the record format from the header

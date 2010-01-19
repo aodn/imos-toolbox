@@ -70,7 +70,7 @@ function sample_data = NXICBinaryParse( filename )
     fclose(fid);
   catch e
     if fid ~= -1, fclose(fid); end
-    rethrow e;
+    rethrow(e);
   end
   
   % the first 220 bytes aer the header 
