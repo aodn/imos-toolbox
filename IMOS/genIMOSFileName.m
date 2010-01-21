@@ -70,6 +70,12 @@ function filename = genIMOSFileName( sample_data, suffix )
   filename = [filename        getVal(fileCfg, defCfg, 'product_type')  '_'];
   filename = [filename 'END-' getVal(fileCfg, defCfg, 'end_date')      '_'];
   filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
+  
+  % sanity check - ensure that file name contains 
+  % only alpha numeric, hyphens and underscores
+  filename(regexp(filename, '[^0-9a-zA-Z_-]')) = '-';
+  
+  % it is assumed that the suffix is valid
   filename = [filename '.'    suffix];
 
 end
