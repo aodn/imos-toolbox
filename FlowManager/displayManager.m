@@ -16,6 +16,12 @@ function displayManager(windowTitle, sample_data, callbacks)
 %                                   data set's metadata is modified. Takes
 %                                   a single sample_data struct as the only
 %                                   parameter.
+%     metadataRepCallback         - Callback function which is called when
+%                                   a set of metadata fields should be
+%                                   replicated across all loaded data sets.
+%                                   Takes a location string, and cell arrays 
+%                                   of field names and values as the three 
+%                                   parameters.
 %     rawDataRequestCallback      - Callback function which is called to 
 %                                   retrieve the raw data set. Takes no
 %                                   parameters.
@@ -84,6 +90,9 @@ function displayManager(windowTitle, sample_data, callbacks)
   end
   if ~isa(callbacks.metadataUpdateCallback, 'function_handle')
     error('metadataUpdateCallback must be a function handle'); 
+  end
+  if ~isa(callbacks.metadataRepCallback, 'function_handle')
+    error('metadataRepCallback must be a function handle'); 
   end
   if ~isa(callbacks.rawDataRequestCallback, 'function_handle')
     error('rawDataRequestCallback must be a function handle'); 
@@ -173,7 +182,9 @@ function displayManager(windowTitle, sample_data, callbacks)
     % data set.
     %
       % display metadata viewer, allowing user to modify metadata
-      viewMetadata(panel, sample_data{setIdx}, @metadataUpdateWrapperCallback);
+      viewMetadata(panel, sample_data{setIdx}, ...
+        @metadataUpdateWrapperCallback,...
+        @metadataRepWrapperCallback);
 
       function metadataUpdateWrapperCallback(sam)
       %METADATAUPDATEWRAPPERCALLBACK Called by the viewMetadata display when
@@ -185,6 +196,20 @@ function displayManager(windowTitle, sample_data, callbacks)
 
         % update GUI with modified data set
         updateCallback(sam);
+      end
+      
+      function metadataRepWrapperCallback(location, fields, values)
+      %REPWRAPPERCALLBACK Called on a request to replicate a set of
+      % metadata attributes across all data sets. Calls the provided
+      % repCallback function.
+      %
+      
+        callbacks.metadataRepCallback(location, fields, values);
+                
+        % update GUI with new data sets
+        sample_data = callbacks.rawDataRequestCallback();
+        for k = 1:length(sample_data), updateCallback(sample_data{k}); end
+        
       end
     end
 
