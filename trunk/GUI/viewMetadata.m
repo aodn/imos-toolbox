@@ -1,4 +1,4 @@
-function viewMetadata(parent, sample_data, updateCallback)
+function viewMetadata(parent, sample_data, updateCallback, repCallback)
 %VIEWMETADATA Displays metadata for the given data set in the given parent
 % figure/uipanel.
 %
@@ -17,6 +17,12 @@ function viewMetadata(parent, sample_data, updateCallback)
 %                    form:
 %                    
 %                      function updateCallback(sample_data)
+%
+%   repCallback    - Function which is called when a selection of metadata
+%                    fields should be replicated across all data sets. The
+%                    function must be of the form:
+%
+%                      function repCallback(location, names, values)
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -50,14 +56,17 @@ function viewMetadata(parent, sample_data, updateCallback)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3, 3, nargin));
+  error(nargchk(4, 4, nargin));
 
   if ~ishandle(parent),      error('parent must be a handle');           end
   if ~isstruct(sample_data), error('sample_data must be a struct');      end
   if ~isa(updateCallback,    'function_handle')
                              error('updateCallback must be a function'); end
+  if ~isa(repCallback,       'function_handle')
+                             error('repCallback must be a function');    end
   
   tables   = [];
+  panels   = [];
   globdata = {};
   varData  = {};
   dimData  = {};
@@ -66,17 +75,19 @@ function viewMetadata(parent, sample_data, updateCallback)
   
   dateFmt = readProperty('toolbox.timeFormat');
   
-  globs = sample_data;
+  globs = orderfields(sample_data);
   globs = rmfield(globs, 'meta');
   globs = rmfield(globs, 'variables');
   globs = rmfield(globs, 'dimensions');
   
   dims = sample_data.dimensions;
-  for k = 1:length(dims), dims{k} = rmfield(dims{k}, {'data', 'flags'}); end
+  for k = 1:length(dims)
+    dims{k} = orderfields(rmfield(dims{k}, {'data', 'flags'})); 
+  end
   
   vars = sample_data.variables;
-  for k = 1:length(vars), 
-    vars{k} = rmfield(vars{k}, {'data', 'dimensions', 'flags'}); 
+  for k = 1:length(vars)
+    vars{k} = orderfields(rmfield(vars{k}, {'data', 'dimensions', 'flags'})); 
   end
   
   % create a cell array containing global attribute data
@@ -98,15 +109,15 @@ function viewMetadata(parent, sample_data, updateCallback)
   %% create uitables
   
   % create a uitable for each data set
-  tables(1) = createTable(globData, '', 'global', dateFmt);
+  [tables(1) panels(1)] = createTable(globData, '', 'global', dateFmt);
   
   for k = 1:length(dims)
-    tables(end+1) = createTable(...
+    [tables(end+1) panels(end+1)] = createTable(...
       dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt);
   end
   
   for k = 1:length(vars)
-    tables(end+1) = createTable(...
+    [tables(end+1) panels(end+1)] = createTable(...
       varData{k}, ['variables{'  num2str(k) '}'], 'variable', dateFmt);
   end
   
@@ -121,9 +132,9 @@ function viewMetadata(parent, sample_data, updateCallback)
   % create a tabbedPane which displays each table in a separate tab.
   % for low table numbers use buttons, otherwise use a drop down list
   if length(tables) <= 4
-    panel = tabbedPane(parent, tables, tableNames, true);
+    tabPanel = tabbedPane(parent, panels, tableNames, true);
   else 
-    panel = tabbedPane(parent, tables, tableNames, false);
+    tabPanel = tabbedPane(parent, panels, tableNames, false);
   end
   
   % matlab is a piece of shit; column widths must be specified 
@@ -135,14 +146,14 @@ function viewMetadata(parent, sample_data, updateCallback)
     colWidth    = zeros(1,2);
     colWidth(1) = (pos(3) / 3);
     
-    % -30 in case a vertical scrollbar is added
-    colWidth(2) = (2*pos(3) / 3)-30; 
+    % -20 in case a vertical scrollbar is added
+    colWidth(2) = (2*pos(3) / 3)-20; 
     set(tables(k), 'ColumnWidth', num2cell(colWidth));
   end
 
-  function table = createTable(data, prefix, tempType, dateFmt)
+  function [table panel] = createTable(data, prefix, tempType, dateFmt)
   % Creates a uitable which contains the given data. 
-    
+  
     % format data - they're all made into strings, and cast 
     % back when edited. also we want date fields to be 
     % displayed nicely, not to show up as a numeric value
@@ -168,9 +179,20 @@ function viewMetadata(parent, sample_data, updateCallback)
       end
     end
     
+    % create uipanel which contains the table; set the 
+    % 'Parent' property for now; the tabbedPane function 
+    % will reset it (matlab in this situation, under 
+    % linux at least, seems to have serious problems 
+    % if the parent property is left unset)
+    panel = uipanel(...
+      'Parent',     parent,...
+      'Visible',    'off',...
+      'BorderType', 'none'...
+    );
+    
     % create the table
     table = uitable(...
-      'Visible',                'off',...
+      'Parent',                panel,...
       'RowName',               [],...
       'RowStriping',           'on',...
       'ColumnName',            {'Name', 'Value'},...
@@ -180,7 +202,67 @@ function viewMetadata(parent, sample_data, updateCallback)
       'CellSelectionCallback', @cellSelectCallback,...
       'Data',                  data);
     
+    % create a button for replicate option
+    repButton = uicontrol(...
+      'Parent',   panel,... 
+      'Style',   'pushbutton',...
+      'String',  'Replicate',...
+      'Callback', @repButtonCallback...
+    );
+    
+    % position table and button
+    set(panel,     'Units', 'normalized');
+    set(table,     'Units', 'normalized');
+    set(repButton, 'Units', 'normalized');
+    
+    set(table,     'Position', [0.0, 0.0, 0.9, 1.0]);
+    set(repButton, 'Position', [0.9, 0.8, 0.1, 0.2]);
+    
+    set(table,     'Units', 'pixels');
+    set(repButton, 'Units', 'pixels');
+    set(panel,     'Units', 'pixels');
+    
     selectedCells = [];
+    
+    function repButtonCallback(source, ev)
+    %REPBUTTONCALLBACK Called when the user pushes the replicate button;
+    % passes the list of field names, and the type (global, variable or
+    % dimension) to the repCallback function.
+    %
+      % get the selected field names - the values are retrieved 
+      % from the sample_data struct rather than the table data, 
+      % as the table data is all strings
+      names  = {data{unique(selectedCells(:,1)),1}};
+      values = {};
+      
+      structName = 'sample_data';
+      if ~isempty(prefix), structName = [structName '.' prefix]; end
+      
+      % figure out the location; it is passed to repCallback as:
+      %   - 'global'
+      %   - 'VARNAME variable'
+      %   - 'DIMNAME dimension'
+      %
+      location = '';
+      
+      if strcmp(prefix, '')
+        location = 'global';
+        
+      elseif strncmp(prefix, 'variables',  8)
+        location = [eval([structName '.name']) ' variable'];
+        
+      elseif strncmp(prefix, 'dimensions', 9)
+        location = [eval([structName '.name']) ' dimension'];
+      end
+      
+      % get the field values from the sample data struct
+      for k = 1:length(names)
+        values{k} = eval([structName '.' names{k}]);
+      end
+      
+      % call repCallback
+      repCallback(location, names, values);
+    end
     
     function cellSelectCallback(source,ev)
     %CELLSELECTCALLBACK Updates the selectedCells variable whenever the

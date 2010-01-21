@@ -53,6 +53,7 @@ function flowManager()
   % display data
   callbacks.importRequestCallback       = @importRequestCallback;
   callbacks.metadataUpdateCallback      = @metadataUpdateCallback;
+  callbacks.metadataRepCallback         = @metadataRepCallback;
   callbacks.rawDataRequestCallback      = @rawDataRequestCallback;
   callbacks.autoQCRequestCallback       = @autoQCRequestCallback;
   callbacks.manualQCRequestCallback     = @manualQCRequestCallback;
@@ -165,6 +166,75 @@ function flowManager()
       target            = source;
       target.variables  = vars;
       target.dimensions = dims;
+    end
+  end
+
+  function metadataRepCallback(location, fields, values)
+  %METADATAREPCALLBACK Replicates the given metadata attributes across all
+  % loaded data sets. Does nothing if only one data set is loaded.
+  %
+    if length(rawData) <= 1, return; end
+    
+    response = questdlg(...
+      ['Replicate the selected ' location ...
+       ' attributes across all data sets?'],...
+      'Replicate attributes?', ...
+      'Yes', ...
+      'No',...
+      'Yes');
+
+    if ~strncmp(response, 'Yes', 3), return; end
+    
+    for k = 1:length(rawData)
+      rawData{k} = replicate(rawData{k}); 
+    end
+    
+    if ~isempty(autoQCData)
+      for k = 1:length(autoQCData)
+        autoQCData{k} = replicate(autoQCData{k}); 
+      end
+    end
+    
+    function sam = replicate(sam)
+    % Copies the given fields/values into sam.
+      
+      % target is either global attributes (sam itself), 
+      % or variable/dimension attributes (one of the 
+      % variable/dimension structs contained in sam)
+      % targetIdx is the variable/dimension index, if 
+      % the target is a variable/dimension
+      target    = 0;
+      targetIdx = 0;
+      
+      if strcmp(location, 'global'), target = sam;
+      else
+        
+        list = {};
+        if     strfind(location, 'variable'),  list = sam.variables;
+        elseif strfind(location, 'dimension'), list = sam.dimensions;
+        end
+        
+        vname     = strtok(location);
+        targetIdx = getVar(list, vname);
+        
+        % this data set does not contain this variable/dimension
+        if targetIdx == 0, return; end
+        
+        target = list{targetIdx};
+      end
+      
+      % copy the field values across
+      for m = 1:length(fields)
+        
+        % but only if the field exists in the target
+        if isfield(target, fields{m}), target.(fields{m}) = values{m}; end
+      end
+      
+      % copy the target back to the input struct
+      if     strcmp( location, 'global'),    sam = target;
+      elseif strfind(location, 'variable'),  sam.variables{ targetIdx} = target;
+      elseif strfind(location, 'dimension'), sam.dimensions{targetIdx} = target;
+      end
     end
   end
 
