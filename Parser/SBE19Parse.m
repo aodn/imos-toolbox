@@ -140,13 +140,13 @@ function sample_data = SBE19Parse( filename )
   % scan through the list of parameters that were read 
   % from the file, and create a variable for each
   vars = fieldnames(data);
-  for v = vars(:)
+  for k = 1:length(vars)
     
-    if strncmp('TIME', v, 4), continue; end
+    if strncmp('TIME', vars{k}, 4), continue; end
       
     sample_data.variables{end+1}.dimensions = [1];
-    sample_data.variables{end  }.name       = v;
-    sample_data.variables{end  }.data       = data.(v);
+    sample_data.variables{end  }.name       = vars{k};
+    sample_data.variables{end  }.data       = data.(vars{k});
   end
 end
 
