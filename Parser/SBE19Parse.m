@@ -101,10 +101,12 @@ function sample_data = SBE19Parse( filename )
   procHeader = parseProcessedHeader( procHeaderLines);
   
   % use the appropriate subfunction to read in the data
-  if     strcmp('cnv', filename(end-2:end))
-    data = readSBE19cnv(dataLines, instHeader, procHeader);
-  elseif strcmp('hex', filename(end-2:end))
+  % assume that anything with a suffix not equal to .hex
+  % is a .cnv file
+  if strcmp('hex', filename(end-2:end))
     data = readSBE19hex(dataLines, instHeader);
+  else
+    data = readSBE19cnv(dataLines, instHeader, procHeader);
   end
   
   % create sample data struct, 
