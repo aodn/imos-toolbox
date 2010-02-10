@@ -42,3 +42,5 @@ The header is followed by sample data. The structure of a sample packet varies d
 || 17 ||4|| Salinity || float || PSU ||
 || 21 ||4|| Sound velocity || float || m/s ||
 || 25 ||4|| Battery voltage || float || V ||
+|| 29 ||2|| Turbidity || uint16 || Divide by 1310.7133018216962 to convert into FTU ||
+|| 31 ||2|| Flourescence || uint16 || Divide by 655.387164 to convert into ug/L ||
