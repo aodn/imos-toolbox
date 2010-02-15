@@ -17,7 +17,7 @@ function sample_data = depthFromPressurePP( sample_data )
 % Outputs:
 %   sample_data - the same data sets, with depth variables added.
 %
-% Author: Paul McCarthy <pauld.mccarthy@gmail.com>
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
 
 %
