@@ -112,6 +112,8 @@ function sample_data = SBE19Parse( filename )
   % create sample data struct, 
   % and copy all the data in
   sample_data = struct;
+  sample_data.meta.instHeader = instHeader;
+  sample_data.meta.procHeader = procHeader;
   
   sample_data.meta.instrument_make = 'Seabird';
   if isfield(instHeader, 'instrument_model')
@@ -184,6 +186,8 @@ function header = parseInstrumentHeader(headerLines)
   intervalExpr = 'interval = (.*): ([\d\.\+)$';
   sbe38Expr    = 'SBE 38 = (yes|no), Gas Tension Device = (yes|no)';
   optodeExpr   = 'OPTODE = (yes|no)';
+  voltCalExpr  = 'volt (\d): offset = (\S+), slope = (\S+)';
+  otherExpr    = '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
   
   exprs = {...
     headerExpr   scanExpr     ...
@@ -191,7 +195,8 @@ function header = parseInstrumentHeader(headerLines)
     modeExpr     pressureExpr ...
     voltExpr     outputExpr   ...
     castExpr     intervalExpr ...
-    sbe38Expr    optodeExpr};
+    sbe38Expr    optodeExpr   ...
+    voltCalExpr  otherExpr};
   
   for k = 1:length(headerLines)
     
@@ -265,6 +270,16 @@ function header = parseInstrumentHeader(headerLines)
           % optode
           case 12
             header.optode = tkns{1}{1};
+            
+          % volt calibration
+          case 13
+            header.(['volt' tkns{1}{1} 'offset']) = str2double(tkns{1}{2});
+            header.(['volt' tkns{1}{1} 'slope'])  = str2double(tkns{1}{3});
+            
+          % name = value
+          case 14
+            header.(genvarname(tkns{1}{1})) = tkns{1}{2};
+            
         end
         break;
       end
