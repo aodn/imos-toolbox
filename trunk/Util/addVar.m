@@ -1,21 +1,18 @@
-function sample_data = depthPP( sample_data )
-%DEPTHPP Adds a depth variable to the given data sets, if they contain a 
-% pressure variable.
+function sam = addVar(sam, name, data, dimensions, comment)
+%ADDVAR Adds a new variable to the given data set.
 %
-% This function uses the CSIRO Matlab Seawater Library to derive depth data 
-% from pressure. It adds the depth data as a new variable in the data sets.
-% Data sets which do not contain a pressure variable are left unmodified.
-%
-% This function uses a latitude of -30.0 degrees. A future easy enhancement
-% would be to prompt the user to enter a latitude, but different latitude 
-% values don't make much of a difference to the result (a variation of around 
-% 6 metres for depths of ~ 1000 metres).
+% Adds a new variable with the given name, data, dimensions and commment to
+% the given data set.
 %
 % Inputs:
-%   sample_data - cell array of data sets, ideally with pressure variables.
+%   sam        - data set to which the new variable is added
+%   name       - new variable name
+%   data       - variable data
+%   dimensions - variable dimensions
+%   comment    - variable comment
 %
 % Outputs:
-%   sample_data - the same data sets, with depth variables added.
+%   sam        - data set  with the new variable added.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -49,30 +46,30 @@ function sample_data = depthPP( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(nargin, 1, 1));
+error(nargchk(nargin, 5, 5));
 
-if ~iscell(sample_data), error('sample_data must be a cell array'); end
-if isempty(sample_data), return;                                    end
+if ~isstruct( sam),        error('sam must be a struct');        end
+if ~ischar(   name),       error('name must be a string');       end
+if ~isnumeric(data),       error('data must be a matrix');       end
+if ~isvector( dimensions), error('dimensions must be a vector'); end
+if ~ischar(   comment),    error('comment must be a string');    end
+
+qcSet   = str2double(readProperty('toolbox.qc_set'));
+rawFlag = imosQCFlag('raw', qcSet, 'flag');
+
+% add new variable to data set
+sam.variables{end+1}.name       = name;
+sam.variables{end  }.data       = data;
+sam.variables{end  }.dimensions = dimensions;
+sam.variables{end  }.comment    = comment;
+
+% create an empty flags matrix for the new variable
+sam.variables{end}.flags(1:numel(sam.variables{end}.data)) = rawFlag;
+sam.variables{end}.flags = reshape(...
+  sam.variables{end}.flags, size(sam.variables{end}.data));
   
-for k = 1:length(sample_data)
+% ensure that the new variable is populated  with all 
+% required NetCDF  attributes - all existing fields are 
+% left unmodified by the makeNetCDFCompliant function
+sam = makeNetCDFCompliant(sam);
   
-  sam = sample_data{k};
-
-  presIdx = getVar(sam.variables, 'PRES');
-
-  % no pressure data
-  if ~presIdx, continue; end
-  
-  % data set already contains depth data
-  if getVar(sam.variables, 'DEPTH'), continue; end
-
-  depth = sw_dpth(sam.variables{presIdx}.data, -30.0);
-
-  % add depth data as new variable in data set
-  sample_data{k} = addVar(...
-    sam, ...
-    'DEPTH', ...
-    depth, ...
-    sam.variables{presIdx}.dimensions, ...
-    'depthPP: derived from PRES');
-end

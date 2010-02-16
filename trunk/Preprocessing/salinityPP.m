@@ -1,21 +1,18 @@
-function sample_data = depthPP( sample_data )
-%DEPTHPP Adds a depth variable to the given data sets, if they contain a 
-% pressure variable.
+function sample_data = salinityPP( sample_data )
+%SALINITYPP Adds a salinity variable to the given data sets, if they
+% contain conductivity, temperature and pressure variables. 
 %
-% This function uses the CSIRO Matlab Seawater Library to derive depth data 
-% from pressure. It adds the depth data as a new variable in the data sets.
-% Data sets which do not contain a pressure variable are left unmodified.
-%
-% This function uses a latitude of -30.0 degrees. A future easy enhancement
-% would be to prompt the user to enter a latitude, but different latitude 
-% values don't make much of a difference to the result (a variation of around 
-% 6 metres for depths of ~ 1000 metres).
+% This function uses the CSIRO Matlab Seawater Library to derive salinity 
+% data from conductivity, temperature and pressure. It adds the salinity 
+% data as a new variable in the data sets.Data sets which do not contain 
+% conductivity, temperature and pressure variable are left unmodified.
 %
 % Inputs:
-%   sample_data - cell array of data sets, ideally with pressure variables.
+%   sample_data - cell array of data sets, ideally with conductivity, 
+%                 temperature and pressure variables.
 %
 % Outputs:
-%   sample_data - the same data sets, with depth variables added.
+%   sample_data - the same data sets, with salinity variables added.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -53,26 +50,36 @@ error(nargchk(nargin, 1, 1));
 
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
-  
+
 for k = 1:length(sample_data)
   
   sam = sample_data{k};
-
-  presIdx = getVar(sam.variables, 'PRES');
-
-  % no pressure data
-  if ~presIdx, continue; end
   
-  % data set already contains depth data
-  if getVar(sam.variables, 'DEPTH'), continue; end
-
-  depth = sw_dpth(sam.variables{presIdx}.data, -30.0);
-
-  % add depth data as new variable in data set
+  cndcIdx = getVar(sam.variables, 'CNDC');
+  tempIdx = getVar(sam.variables, 'TEMP');
+  presIdx = getVar(sam.variables, 'PRES');
+  
+  % cndc, temp, or pres not present in data set
+  if ~(cndcIdx || tempIdx || presIdx), continue; end
+  
+  % data set already contains salinity
+  if getVar(sam.variables, 'PSAL'), continue; end
+  
+  cndc = sam.variables{cndcIdx}.data;
+  temp = sam.variables{tempIdx}.data;
+  pres = sam.variables{presIdx}.data;
+  
+  % calculate C(S,T,P)/C(35,15,0) ratio
+  R = cndc ./ 4.2914;
+  
+  % calculate salinity
+  psal = sw_salt(R, temp, pres);
+  
+  % add salinity data as new variable in data set
   sample_data{k} = addVar(...
     sam, ...
-    'DEPTH', ...
-    depth, ...
-    sam.variables{presIdx}.dimensions, ...
-    'depthPP: derived from PRES');
+    'PSAL', ...
+    psal, ...
+    getVar(sam.dimensions, 'TIME'), ...
+    'salinityPP.m: derived from CNDC, TEMP and PRES');
 end
