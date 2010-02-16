@@ -11,7 +11,7 @@ function sample_data = DR1050Parse( filename )
 % Outputs:
 %   sample_data - Struct containing imported sample data.
 %
-% Author: author name <author email>
+% Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
 
 %
