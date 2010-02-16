@@ -1,16 +1,19 @@
 function sample_data = variableOffsetPP( sample_data )
-%VARIABLEOFFSETPP Allows the user to apply a linear offset to the variables
-% in the given data sets.
+%VARIABLEOFFSETPP Allows the user to apply a linear offset and scale to the 
+% variables in the given data sets.
 %
-% Displays a dialog which allows the user to apply linear offsets to each
-% variable in the given data sets.
+% Displays a dialog which allows the user to apply linear offsets and scales 
+% to each variable in the given data sets. The variable data is modified as
+% follows:
+%
+%   data = offset + (scale * data)
 %
 % Inputs:
-%   sample_data - cell array of structs, the data sets for which the starting 
-%                 time should be modified.
+%   sample_data - cell array of structs, the data sets for which variable
+%                 offset/scaling is to be applied.
 %
 % Outputs:
-%   sample_data - same as input, with starting time modified.
+%   sample_data - same as input, potentially with variable data modified.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
@@ -57,10 +60,12 @@ function sample_data = variableOffsetPP( sample_data )
   
   offsetFile = ['Preprocessing' filesep 'variableOffsetPP.txt'];
   
-  % cell array of numeric arrays, representing the offsets to 
-  % be applied to each variable in each data set; populated 
-  % when the panels for each data set are populated
+  % cell arrays of numeric arrays, representing the 
+  % offsets/scales to  be applied to each variable 
+  % in each data set; populated when the panels for 
+  % each data set are populated
   offsets = {};
+  scales  = {};
   
   % dialog figure
   f = figure(...
@@ -114,8 +119,9 @@ function sample_data = variableOffsetPP( sample_data )
   for k = 1:length(sample_data)
     
     nVars = length(sample_data{k}.variables);
-    rowHeight = 0.95 / (nVars + 1);
+    rh    = 0.95 / (nVars + 1);
     offsets{k} = zeros(nVars,1);
+    scales{ k} = ones( nVars,1);
     
     % column headers
     varHeaderLabel    = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
@@ -128,6 +134,8 @@ function sample_data = variableOffsetPP( sample_data )
       'String', 'Maximum',  'FontWeight', 'bold');
     offsetHeaderLabel = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
       'String', 'Offset',   'FontWeight', 'bold');
+    scaleHeaderLabel  = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+      'String', 'Scale',    'FontWeight', 'bold');
     
     % position headers
     set(varHeaderLabel,    'Units', 'normalized');
@@ -135,25 +143,33 @@ function sample_data = variableOffsetPP( sample_data )
     set(meanHeaderLabel,   'Units', 'normalized');
     set(maxHeaderLabel,    'Units', 'normalized');
     set(offsetHeaderLabel, 'Units', 'normalized');
+    set(scaleHeaderLabel,  'Units', 'normalized');
     
-    set(varHeaderLabel,    'Position', [0.0, 0.95 - rowHeight, 0.2, rowHeight]);
-    set(minHeaderLabel,    'Position', [0.2, 0.95 - rowHeight, 0.2, rowHeight]);
-    set(meanHeaderLabel,   'Position', [0.4, 0.95 - rowHeight, 0.2, rowHeight]);
-    set(maxHeaderLabel,    'Position', [0.6, 0.95 - rowHeight, 0.2, rowHeight]);
-    set(offsetHeaderLabel, 'Position', [0.8, 0.95 - rowHeight, 0.2, rowHeight]);
+    set(varHeaderLabel,    'Position', [0.0,  0.95 - rh, 0.16, rh]);
+    set(minHeaderLabel,    'Position', [0.16, 0.95 - rh, 0.16, rh]);
+    set(meanHeaderLabel,   'Position', [0.32, 0.95 - rh, 0.16, rh]);
+    set(maxHeaderLabel,    'Position', [0.48, 0.95 - rh, 0.16, rh]);
+    set(offsetHeaderLabel, 'Position', [0.64, 0.95 - rh, 0.16, rh]);
+    set(scaleHeaderLabel,  'Position', [0.80, 0.95 - rh, 0.16, rh]);
     
     set(varHeaderLabel,    'Units', 'pixels');
     set(minHeaderLabel,    'Units', 'pixels');
     set(meanHeaderLabel,   'Units', 'pixels');
     set(maxHeaderLabel,    'Units', 'pixels');
     set(offsetHeaderLabel, 'Units', 'pixels');
+    set(scaleHeaderLabel,  'Units', 'pixels');
     
     % column values (one row for each variable)
     for m = 1:nVars
       
       v = sample_data{k}.variables{m};
-      try    offsetVal = readProperty(v.name, offsetFile, ',');
-      catch, offsetVal = '0.0';
+      try
+        str              = readProperty(v.name, offsetFile);
+        [offsetVal, str] = strtok(str, ',');
+        [scaleVal,  str] = strtok(str, ',');
+      catch
+        offsetVal = '0.0';
+        scaleVal  = '1.0';
       end
       
       varLabel    = uicontrol(...
@@ -166,9 +182,13 @@ function sample_data = variableOffsetPP( sample_data )
         'Parent', setPanels(k), 'Style', 'text', 'String', max(v.data(:)));
       offsetField = uicontrol(...
         'Parent', setPanels(k), 'Style', 'edit', 'String', offsetVal);
+      scaleField  = uicontrol(...
+        'Parent', setPanels(k), 'Style', 'edit', 'String', scaleVal);
       
       set(offsetField, 'UserData', m);
       set(offsetField, 'Callback', @offsetFieldCallback);
+      set(scaleField,  'UserData', m);
+      set(scaleField,  'Callback', @scaleFieldCallback);
       
       % alternate background colour for each row
       if mod(m, 2) ~= 0
@@ -179,6 +199,7 @@ function sample_data = variableOffsetPP( sample_data )
         set(meanLabel,   'BackgroundColor', color);
         set(maxLabel,    'BackgroundColor', color);
         set(offsetField, 'BackgroundColor', color);
+        set(scaleField,  'BackgroundColor', color);
       end
       
       % position column values
@@ -187,23 +208,21 @@ function sample_data = variableOffsetPP( sample_data )
       set(meanLabel,   'Units', 'normalized');
       set(maxLabel,    'Units', 'normalized');
       set(offsetField, 'Units', 'normalized');
+      set(scaleField,  'Units', 'normalized');
       
-      set(varLabel, ...
-        'Position', [0.0, 0.95 - (rowHeight*(m+1)), 0.2, rowHeight]);
-      set(minLabel, ...
-        'Position', [0.2, 0.95 - (rowHeight*(m+1)), 0.2, rowHeight]);
-      set(meanLabel, ...
-        'Position', [0.4, 0.95 - (rowHeight*(m+1)), 0.2, rowHeight]);
-      set(maxLabel, ...
-        'Position', [0.6, 0.95 - (rowHeight*(m+1)), 0.2, rowHeight]);
-      set(offsetField, ...
-        'Position', [0.8, 0.95 - (rowHeight*(m+1)), 0.2, rowHeight]);
+      set(varLabel,    'Position', [0.0, 0.95 - (rh*(m+1)),  0.16, rh]);
+      set(minLabel,    'Position', [0.16, 0.95 - (rh*(m+1)), 0.16, rh]);
+      set(meanLabel,   'Position', [0.32, 0.95 - (rh*(m+1)), 0.16, rh]);
+      set(maxLabel,    'Position', [0.48, 0.95 - (rh*(m+1)), 0.16, rh]);
+      set(offsetField, 'Position', [0.64, 0.95 - (rh*(m+1)), 0.16, rh]);
+      set(scaleField,  'Position', [0.80, 0.95 - (rh*(m+1)), 0.16, rh]);
       
       set(varLabel,    'Units', 'pixels');
       set(minLabel,    'Units', 'pixels');
       set(meanLabel,   'Units', 'pixels');
       set(maxLabel,    'Units', 'pixels');
       set(offsetField, 'Units', 'pixels');
+      set(scaleField,  'Units', 'pixels');
     end
   end
   
@@ -216,23 +235,27 @@ function sample_data = variableOffsetPP( sample_data )
   uiwait(f);
   
   % user cancelled dialog
-  if isempty(offsets), return; end
+  if isempty(offsets) ||  isempty(scales), return; end
   
-  % otherwise, apply the offsets
+  % otherwise, apply the offsets/scales
   for k = 1:length(sample_data)
     
     vars = sample_data{k}.variables;
     for m = 1:length(vars)
       
-      vars{m}.data = vars{m}.data + offsets{k}(m);
+      d = vars{m}.data;
+      o = offsets{k}(m);
+      s = scales{k}(m);
       
-      if offsets{k}(m) ~= 0
-        writeProperty(vars{m}.name, num2str(offsets{k}(m)), offsetFile, ',');
+      vars{m}.data = o + (s .* d);
+      
+      if offsets{k}(m) ~= 0 || scales{k}(m) ~= 1
+        str = sprintf('%0.6f,%0.6f', offsets{k}(m), scales{k}(m));
+        writeProperty(vars{m}.name, str, offsetFile);
       end
     end
     sample_data{k}.variables = vars;
   end
-  
   
   function keyPressCallback(source,ev)
   %KEYPRESSCALLBACK If the user pushes escape/return while the dialog has 
@@ -248,6 +271,7 @@ function sample_data = variableOffsetPP( sample_data )
   %CANCELBUTTONCALLBACK Discards user input, and closes the dialog.
   % 
     offsets = {};
+    scales  = {};
     delete(f);
   end
 
@@ -272,6 +296,24 @@ function sample_data = variableOffsetPP( sample_data )
     % input, otherwise save the new value
     if isnan(val), set(source, 'String', num2str(offsets{setIdx}(varIdx)));
     else           offsets{setIdx}(varIdx) = val;
+    end
+  end
+
+  function scaleFieldCallback(source, ev)
+  %SCALEFIELDCALLBACK Called when the user edits one of the scale fields.
+  % Verifies that the text entered is a number.
+  %
+  
+    val    = get(source, 'String');
+    setIdx = get(get(source, 'Parent'), 'UserData');
+    varIdx = get(source, 'UserData');
+    
+    val = str2double(val);
+    
+    % reset the scale value on non-numerical 
+    % input, otherwise save the new value
+    if isnan(val), set(source, 'String', num2str(scales{setIdx}(varIdx)));
+    else           scales{setIdx}(varIdx) = val;
     end
   end
 end
