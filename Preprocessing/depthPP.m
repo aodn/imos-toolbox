@@ -1,6 +1,6 @@
-function sample_data = depthFromPressurePP( sample_data )
-%depthFromPressurePP Adds a depth variable to the given data sets, if they
-% contains a pressure variable.
+function sample_data = depthPP( sample_data )
+%DEPTHPP Adds a depth variable to the given data sets, if they contain a 
+% pressure variable.
 %
 % This function uses the CSIRO Matlab Seawater Library to derive depth data 
 % from pressure. It adds the depth data as a new variable in the data sets.
