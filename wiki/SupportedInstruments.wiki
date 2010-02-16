@@ -134,9 +134,31 @@ The toolbox is able to import raw (.ctd) files retrieved from an NXIC CTD instru
 
 Currently, the parser only provides conductivity, temperature and pressure data. I am in contact with FSI regarding access to the file format specification, and hope to provide auxillary sensor data in the near future.
 
-== RBR DR1050 ==
+== RBR DR-1050 ==
 
-The toolbox is able to read in files retrieved from RBR DR-1050 pressure data loggers.
+The toolbox is able to read in files retrieved from RBR DR-1050 pressure data loggers. The file format for DR-1050 loggers consists of a header section, and a list of pressure samples:
+
+{{{
+RBR DR-1050  6.30 014552 (Windows: 6.08 - Minimum required: 6.05)
+Host time     09/11/30 14:00:13
+Logger time   09/11/30 06:00:20
+Logging start 09/07/15 08:00:00
+Logging end   09/12/30 08:44:39
+Sample period          00:10:00
+Number of channels =  1, number of samples =  19860, mode: Logging Stopped by User
+N01%9.4f
+Calibration  1: 0.266759191581000
+                978.815255026508000
+                25.812309048604000
+                22.012594717555000 deciBars
+COMMENT: TWR500_500mtrs
+Memory type: 6 AT45DB642D_LP
+
+     Pres 
+ 521.5183 
+ 521.5165 
+ ...
+}}}
 
 == YSI 6-Series == 
 
