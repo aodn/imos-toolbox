@@ -134,6 +134,14 @@ The toolbox is able to import raw (.ctd) files retrieved from an NXIC CTD instru
 
 Currently, the parser only provides conductivity, temperature and pressure data. I am in contact with FSI regarding access to the file format specification, and hope to provide auxillary sensor data in the near future.
 
+== RBR DR1050 ==
+
+The toolbox is able to read in files retrieved from RBR DR-1050 pressure data loggers.
+
+== YSI 6-Series == 
+
+The toolbox is able to read in files retrieved from YSI 6-series data loggers (only the 6600 v2.4 has been tested). YSI have not published details of the binary file format, so the toolbox relies upon [YSIBinaryFormat reverse engineering efforts] which may not be completely reliable.
+
 == Teledyne/RDI Workhorse ADCP ==
 
 The toolbox is able to parse binary files retrieved from a Teledyne RD Workhorse ADCP instrument. The toolbox is only able to interpret raw files in the PD0 format (as it stands at December 2008). See the Workhorse H-ADCP Operation manual (available from the [http://www.rdinstruments.com/ Teledyne website]) for a description of the output format. As the toolbox works from raw binary files, pre-processing with RDI software is not required.
