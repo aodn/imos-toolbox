@@ -2,7 +2,8 @@ function delProperty( prop, file, delim )
 %DELPROPERTY Deletes the given property from the given file.
 %
 % Searches the given file for a property with the given name; if the
-% property is found, it is removed from the file.
+% property is found, it is removed from the file. If multiple properties
+% have the same name, they are all removed.
 %
 % A 'property' file is a file which contains a list of name value pairs,
 % separated by a delimiter. If the optional delim parameter is not provided, 
