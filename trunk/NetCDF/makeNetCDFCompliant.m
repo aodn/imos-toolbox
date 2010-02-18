@@ -2,7 +2,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
 %MAKENETCDFCOMPLIANT Adds fields in the given sample_data struct to make 
 % it compliant with the IMOS NetCDF standard.
 %
-% Uses the template files contained in the NetCDF/templates subdirectory to
+% Uses the template files contained in the toolbox.templateDir subdirectory to
 % add fields in the given sample_data struct to make it compliant  with the 
 % IMOS NetCDF standard. If a field already exists in the sample_data struct, 
 % it is not overwritten, and the template value is discarded. See the 
@@ -56,9 +56,13 @@ function sample_data = makeNetCDFCompliant( sample_data )
   %
 
   % get path to templates subdirectory
-  path = [pwd filesep 'NetCDF' filesep 'template' filesep];
+  path = readProperty('toolbox.templateDir');
+  if isempty(path) || ~exist(path, 'dir')
+    path = fullfile(pwd, 'NetCDF', 'template');
+  end
 
-  globAtts = parseNetCDFTemplate([path 'global_attributes.txt'], sample_data);
+  globAtts = parseNetCDFTemplate(...
+    fullfile(path, 'global_attributes.txt'), sample_data);
 
   % merge global atts into sample_data
   sample_data = mergeAtts(sample_data, globAtts);
@@ -71,7 +75,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
 
     dim = sample_data.dimensions{k};
     
-    temp = [path lower(dim.name) '_attributes.txt'];
+    temp = fullfile(path, [lower(dim.name) '_attributes.txt']);
     if isempty(dir(temp)), continue; end
 
     dimAtts = parseNetCDFTemplate(temp, sample_data);
@@ -86,7 +90,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
   
   for k = 1:length(sample_data.variables)
     
-    temp = [path 'variable_attributes.txt'];
+    temp = fullfile(path, 'variable_attributes.txt');
 
     varAtts = parseNetCDFTemplate(temp, sample_data, k);
 
