@@ -1,0 +1,7 @@
+% Default transformations for different variables. Each entry is of the form:
+% 
+%   variable_name = transform_name
+%
+% If a variable is not listed, the default is no transformation.
+%
+
