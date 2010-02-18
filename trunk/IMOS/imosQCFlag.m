@@ -1,7 +1,7 @@
-function value = imosQCFlag( qc_class, qc_set, field )
+function value = imosQCFlag( qcClass, qcSet, field )
 %IMOSQCFLAG Returns an appropriate QC flag value (String), description, color 
 % spec, output type, minimum/maximum value, fill value, or set description for 
-% the given qc_class (String), using the given qc_set (integer).
+% the given qcClass (String), using the given qcSet (integer).
 %
 % The QC sets definitions, descriptions, output types, and valid flag values 
 % for each, are maintained in the file  'imosQCFlag.txt' which is stored  in 
@@ -21,12 +21,12 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %
 % Inputs:
 %
-%   qc_class - If field is one of 'flag', 'desc' or 'color', must be one 
+%   qcClass  - If field is one of 'flag', 'desc' or 'color', must be one 
 %              of the (case insensitive) strings listed in the imosQCSets.txt 
 %              file. If it is not equal to one of these strings, the return 
 %              value will be empty.
 %
-%   qc_set   - must be an integer identifier to one of the supported QC sets. 
+%   qcSet    - must be an integer identifier to one of the supported QC sets. 
 %              If it does not map to a supported QC set, it is assumed to be 
 %              the first qc set defined in the imosQCSets.txt file.
 %
@@ -72,10 +72,10 @@ function value = imosQCFlag( qc_class, qc_set, field )
 %
 
 error(nargchk(3, 3, nargin));
-if ~ischar(qc_class)...
-&& ~isnumeric(qc_class), error('qc_class must be a string or numeric'); end
-if ~isnumeric(qc_set),   error('qc_set must be numeric');               end
-if ~ischar(field),       error('field must be a string');               end
+if ~ischar(qcClass)...
+&& ~isnumeric(qcClass), error('qcClass must be a string or numeric'); end
+if ~isnumeric(qcSet),   error('qcSet must be numeric');               end
+if ~ischar(field),      error('field must be a string');              end
 
 value = '';
 
@@ -107,20 +107,20 @@ if isempty(sets{1}), return; end
 if isempty(flags{1}), return; end
 
 % get the qc set description (or reset the qc set to 1)
-qc_set_idx = find(sets{1} == qc_set);
-if isempty(qc_set_idx), qc_set_idx = 1; end;
+qcSetIdx = find(sets{1} == qcSet);
+if isempty(qcSetIdx), qcSetIdx = 1; end;
 
 % if the request was the set description, set values, output 
 % type, or minimum/maximum value, retrieve and return them 
 if strcmp(field, 'set_desc')
   
-  value = sets{2}(qc_set_idx);
+  value = sets{2}(qcSetIdx);
   value = value{1};
   return;
   
 elseif strcmp(field, 'values') || strcmp(field, 'min') || strcmp(field, 'max')
   
-  val = sets{3}(qc_set_idx);
+  val = sets{3}(qcSetIdx);
   val = val{1};
   
   % try to convert to a vector of numbers, otherwise return a string
@@ -136,27 +136,27 @@ elseif strcmp(field, 'values') || strcmp(field, 'min') || strcmp(field, 'max')
   
 elseif strcmp(field, 'type')
   
-  value = sets{4}(qc_set_idx);
+  value = sets{4}(qcSetIdx);
   value = value{1};
   
   return;
 elseif strcmp(field, 'fill_value')
   
-  val   = sets{5}(qc_set_idx);
+  val   = sets{5}(qcSetIdx);
   value = str2double(val);
   if isnan(value), value = val; end
   
   return;
 end
 
-% find a flag entry with matching qc_set and qc_class values
-lines = find(flags{1} == qc_set);
+% find a flag entry with matching qcSet and qcClass values
+lines = find(flags{1} == qcSet);
 for k=1:length(lines)
   
   if strcmp(field, 'color') || strcmp(field, 'desc')
     
     % flag value may have been passed in as a number or a character
-    flagVal = num2str(qc_class);
+    flagVal = num2str(qcClass);
     
     if flagVal == flags{2}{lines(k)}
       
@@ -184,7 +184,7 @@ for k=1:length(lines)
   classes = [' ' classes ' '];
 
   % if this flag matches the class, we've found the flag value to return
-  if ~isempty(regexpi(classes, ['\s' qc_class '\s'], 'match'))
+  if ~isempty(regexpi(classes, ['\s' qcClass '\s'], 'match'))
 
     switch(field)
       case 'flag'

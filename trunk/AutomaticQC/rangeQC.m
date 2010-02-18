@@ -59,9 +59,9 @@ if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 
 % get the flag values with which we flag good and out of range data
-qc_set = str2num(readProperty('toolbox.qc_set'));
-rangeFlag = imosQCFlag('bound', qc_set, 'flag');
-goodFlag  = imosQCFlag('good',  qc_set, 'flag');
+qcSet     = str2num(readProperty('toolbox.qc_set'));
+rangeFlag = imosQCFlag('bound', qcSet, 'flag');
+goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 
 % initialise all flags to good
 log                   = {};
