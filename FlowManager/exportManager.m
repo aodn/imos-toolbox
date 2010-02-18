@@ -121,7 +121,7 @@ function exportManager(dataSets, levelNames, output, auto)
       
     catch e
       
-      errors = [errors [setNames{k} ': ' e.message]];
+      errors = [errors [setNames{ceil(k / numLevels)} ': ' e.message]];
       disp(errors{end});
     end
   end
@@ -139,7 +139,7 @@ function exportManager(dataSets, levelNames, output, auto)
       if isempty(filenames)
         msg = sprintf('No files exported\n\n');
       else
-        msg = sprintf([num2str(length(filename)) ' file(s) exported\n\n']);
+        msg = sprintf([num2str(length(filenames)) ' file(s) exported\n\n']);
       end
       
       msg  = [msg cellCons(errors, sprintf('\n\n'))];
