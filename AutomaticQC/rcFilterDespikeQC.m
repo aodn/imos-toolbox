@@ -67,9 +67,9 @@ k_param = str2double(...
 % we need to modify the data set, so work with a copy
 fdata = data;
 
-qc_set = str2num(readProperty('toolbox.qc_set'));
-goodFlag  = imosQCFlag('good',  qc_set, 'flag');
-spikeFlag = imosQCFlag('spike', qc_set, 'flag');
+qcSet     = str2num(readProperty('toolbox.qc_set'));
+goodFlag  = imosQCFlag('good',  qcSet, 'flag');
+spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
 log                   = {};
 flags(1:length(data)) = goodFlag;
