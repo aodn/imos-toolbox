@@ -63,8 +63,12 @@ t = '';
 
 temp = [temp '_attributes.txt'];
 
-filepath = [pwd filesep 'NetCDF'];
-filepath = [filepath filesep 'template' filesep temp];
+filepath = readProperty('toolbox.templateDir');
+if isempty(filepath) || ~exist(filepath, 'dir')
+  filepath = fullfile(pwd, 'NetCDF', 'template');
+end
+
+filepath = fullfile(filepath, temp);
 
 lines = {};
 

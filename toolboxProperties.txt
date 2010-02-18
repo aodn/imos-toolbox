@@ -1,6 +1,10 @@
 % filename or ODBC DSN of deployment database
 toolbox.ddb = 
 
+% directory which contains netcdf templates
+% (defaults to ./NetCDF/template/)
+toolbox.templateDir = 
+
 % date and time formats used internally and for GUI display
 toolbox.dateFormat = dd mmm yyyy
 toolbox.timeFormat = yyyy-mm-ddTHH:MM:SS
@@ -38,10 +42,10 @@ startDialog.lowDate =
 startDialog.highDate =
 
 % default directory for manual data import
-importManager.manualDir = C:
+importManager.manualDir = 
 
 % default directory for file export
-exportDialog.defaultDir = C:
+exportDialog.defaultDir = 
 
 % prompt user to select parser if an appropriate one 
 % cannot be found (if false, the data is not imported)
@@ -49,6 +53,6 @@ importManager.noParserPrompt = true
 
 % default directory for saving graphs as images
 saveGraph.noPrompt  = false
-saveGraph.exportDir = C:
+saveGraph.exportDir = 
 saveGraph.imgType   = png
 

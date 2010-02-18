@@ -4,9 +4,10 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 % Parses the given NetCDF attribute template file, inserting data into 
 % the given sample_data struct where required. 
 %
-% A number of template files exist in the NetCDF/template subdirectory. These
-% files list the NetCDF attribute names and provide default values to be
-% exported in the output NetCDF files.
+% A number of template files exist in the NetCDF/template subdirectory (the 
+% template directory can be changed via the toolbox.templateDir property). 
+% These files list the NetCDF attribute names and provide default values to 
+% be exported in the output NetCDF files.
 %
 %   == Attribute definition ==
 %
