@@ -189,7 +189,7 @@ function filename = exportNetCDF( sample_data, dest )
     % translate time from matlab serial time (days since 0000-00-00 00:00:00Z)
     % to IMOS mandated time (days since 1950-01-01T00:00:00Z)
     if strcmpi(dims{1}.name, 'TIME')
-      dims{1}.data = dims{1}.data - datenum('1950-01-00 00:00:00');
+      dims{1}.data = dims{1}.data - datenum('1950-01-01 00:00:00');
     end
     
     for m = 1:length(dims)
