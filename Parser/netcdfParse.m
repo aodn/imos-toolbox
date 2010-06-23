@@ -78,7 +78,7 @@ function sample_data = netcdfParse( filename )
       % Glider NetCDF files use doubles for 
       % time_coverage_start and time_coverage_end
       catch e
-        try newTime = globals.(timeAtts{k}) + datenum('1950-01-00 00:00:00');
+        try newTime = globals.(timeAtts{k}) + datenum('1950-01-01 00:00:00');
         catch e
         end
       end
