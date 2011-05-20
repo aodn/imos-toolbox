@@ -1,8 +1,8 @@
-function sample_data = DR1050Parse( filename )
-%DR1050PARSE Parses a data file retrieved from an RBR DR1050 depth logger.
+function sample_data = XR420Parse( filename )
+%XR420PARSE Parses a data file retrieved from an RBR XR420 depth logger.
 %
 % This function is able to read in a single file retrieved from an RBR
-% DR1050 data logger. The pressure data is returned in a sample_data
+% XR420 data logger. The pressure data is returned in a sample_data
 % struct.
 %
 % Inputs:
@@ -11,11 +11,10 @@ function sample_data = DR1050Parse( filename )
 % Outputs:
 %   sample_data - Struct containing imported sample data.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor : Laurent Besnard <laurent.besnard@utas.edu.au>
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (c) 2010, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 
@@ -43,9 +42,11 @@ function sample_data = DR1050Parse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+
+
+ error(nargchk(1,1,nargin));
   
-  if ~iscellstr(filename)   
+  if ~iscellstr(filename)  
     error('filename must be a cell array of strings'); 
   end
   
@@ -72,7 +73,7 @@ function sample_data = DR1050Parse( filename )
   sample_data.meta.instrument_model     = header.model;
   sample_data.meta.instrument_firmware  = header.firmware;
   sample_data.meta.instrument_serial_no = header.serial;
-  sample_data.meta.comment              = header.comment;
+  sample_data.meta.correction           = header.correction;
   
   sample_data.dimensions{1}.name = 'TIME';
   sample_data.dimensions{1}.data = data.time;
@@ -86,8 +87,11 @@ function sample_data = DR1050Parse( filename )
     
     switch fields{k}
       
-      % currently pressure is the only supported variable
-      case 'Pres', name = 'PRES';
+    case 'Cond', name = 'CNDC';
+    case 'Temp', name = 'TEMP';
+    case 'Pres', name = 'PRES';
+    case 'FlCa', name = 'CPHL';
+
     end
     
     sample_data.variables{k}.name       = name;
@@ -118,7 +122,7 @@ function header = readHeader(fid)
     ['^Logging start +' '(\d\d/\d\d/\d\d \d\d:\d\d:\d\d)$']
     ['^Logging end +'   '(\d\d/\d\d/\d\d \d\d:\d\d:\d\d)$']
     ['^Sample period +'                '(\d\d:\d\d:\d\d)$']
-     '^COMMENT: (.*)$'
+     '^Correction to conductivity: (.*)$'
      '^Number of channels = +(\d)+, number of samples = +(\d)+'
   };
   
@@ -150,7 +154,7 @@ function header = readHeader(fid)
                 header.interval = datenum(tkns{1}{1}, 'yyyy/mm/dd HH:MM:SS');
         
         % comment
-        case 5, header.comment  = tkns{1}{1};
+        case 5, header.correction  = tkns{1}{1};
         
         % number of channels, number of samples
         case 6, header.channels = str2double(tkns{1}{1});
@@ -180,7 +184,7 @@ function data = readData(fid, header)
     cols           = [cols col];
     [col, colLine] = strtok(colLine);
   end
-  
+  cols{4}='FlCa'; %renaim FlC-a to FlCa because Matlbal doesn't understand - whitin a structure name
   % read in the sample data
   samples = textscan(fid, fmt);
   
@@ -192,9 +196,10 @@ function data = readData(fid, header)
   % samples, rather than using the one listed in the header
   nSamples = length(samples{1});
   
-   %This section is overwriting the interval with an incorrect value so can
+ %This section is overwriting the interval with an incorrect value so can
  %we comment it out
  % header.interval = (header.end - header.start) / (nSamples-1); 
+  
   % generate time stamps from start/interval/end
   data.time = header.start:header.interval:header.end;
   data.time = data.time(1:length(samples{1}))';

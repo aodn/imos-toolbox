@@ -23,8 +23,8 @@ function sample_data = SBE19Parse( filename )
 % Outputs:
 %   sample_data - Struct containing sample data.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-%
+% Author        : Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor   : Laurent Besnard <laurent.besnard@utas.edu.au>
 
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
@@ -97,9 +97,14 @@ function sample_data = SBE19Parse( filename )
   end
   
   % read in the raw instrument header
-  instHeader = parseInstrumentHeader(instHeaderLines);
-  procHeader = parseProcessedHeader( procHeaderLines);
-  
+  if strcmp('hex', filename(end-2:end))
+    instHeader = parseInstrumentHeader(instHeaderLines);
+    procHeader = parseProcessedHeader( procHeaderLines);
+  else
+    instHeader=parseInstrumentHeaderCNV(instHeaderLines,procHeaderLines);
+    procHeader = parseProcessedHeader(procHeaderLines);
+  end
+      
   % use the appropriate subfunction to read in the data
   % assume that anything with a suffix not equal to .hex
   % is a .cnv file
@@ -112,8 +117,10 @@ function sample_data = SBE19Parse( filename )
   % create sample data struct, 
   % and copy all the data in
   sample_data = struct;
-  sample_data.meta.instHeader = instHeader;
-  sample_data.meta.procHeader = procHeader;
+  
+
+   sample_data.meta.instHeader = instHeader;
+   sample_data.meta.procHeader = procHeader;
   
   sample_data.meta.instrument_make = 'Seabird';
   if isfield(instHeader, 'instrument_model')
@@ -287,6 +294,148 @@ function header = parseInstrumentHeader(headerLines)
   end
 end
 
+function header = parseInstrumentHeaderCNV(headerLines,procHeaderLines)
+%PARSEINSTRUMENTHEADERCNV Parses the header lines from a SBE19 .cnv 
+% Returns the header information in a struct.
+%
+% Inputs:
+%   headerLines     - cell array of strings, the lines of the header section.
+%   procHeaderLines - cell array of strings, the lines of the proc header 
+%                     section as the starting time is written in it.
+% Outputs:
+%   header          - struct containing information that was in the header
+%                 section.
+%
+  header = struct;
+
+  header = parseInstrumentHeader2CNV(procHeaderLines);
+  
+  % there's no real structure to the header information, which 
+  % is annoying. my approach is to use various regexes to search 
+  % for info we want, and to ignore everything else. inefficient,
+  % but it's the nicest way i can think of
+  headerExpr   = '^\*\s*(SBE \S+|SeacatPlus)\s+V\s+(\S+)\s+SERIAL NO.\s+(\d+)';
+  scanExpr     = '*\s+ <ScansToAverage>(\d+)</ScansToAverage>';
+  profExpr     = '*\s+ <Profiles>(\d+)</Profiles>';
+  samplExpr     ='*\s+ <Samples>(\d+)</Samples>';
+  memExpr      = 'samples = (\d+), free = (\d+), casts = (\d+)';
+  sampleExpr   = ['sample interval = (\d+) (\w+), ' ...
+                  'number of measurements per sample = (\d+)'];
+  modeExpr     = 'mode = (\w+)';
+  pressureExpr = 'pressure sensor = (strain gauge|quartz)';
+  voltExpr     = 'Ext Volt ?(\d+) = (yes|no)';
+  outputExpr   = 'output format = (.*)$';
+  castExpr     = ['(?:cast|hdr)\s+(\d+)\s+' ...
+                  '(\d+ \w+ \d+ \d+:\d+:\d+)\s+'...
+                  'samples (\d+) to (\d+), (?:avg|int) = (\d+)'];
+  intervalExpr = 'interval = (.*): ([\d\.\+)$';
+  sbe38Expr    = 'SBE 38 = (yes|no), Gas Tension Device = (yes|no)';
+  optodeExpr   = 'OPTODE = (yes|no)';
+  voltCalExpr  = 'volt (\d): offset = (\S+), slope = (\S+)';
+  otherExpr    = '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
+  
+  exprs = {...
+    headerExpr   scanExpr     ...
+    memExpr      sampleExpr   ...
+    modeExpr     pressureExpr ...
+    voltExpr     outputExpr   ...
+    castExpr     intervalExpr ...
+    sbe38Expr    optodeExpr   ...
+    voltCalExpr  otherExpr    ...
+    profExpr     samplExpr};
+  
+  for k = 1:length(headerLines)
+    
+    % try each of the expressions
+    for m = 1:length(exprs)
+      
+      % until one of them matches
+      tkns = regexp(headerLines{k}, exprs{m}, 'tokens');
+      if ~isempty(tkns)
+        
+        % yes, ugly, but easiest way to figure out which regex we're on
+        switch m
+          
+          % header
+          case 1
+            header.instrument_model     = tkns{1}{1};
+            header.instrument_firmware  = tkns{1}{2};
+            header.instrument_serial_no = tkns{1}{3};
+            
+          % scan
+          case 2
+            header.scanAvg = str2double(tkns{1}{1});
+            %%ADDED by Loz
+            header.castAvg = header.scanAvg;
+            %%e
+          % mem
+          case 3
+            header.numSamples = str2double(tkns{1}{1});
+            header.freeMem    = str2double(tkns{1}{2});
+            header.numCasts   = str2double(tkns{1}{3});
+            
+          % sample
+          case 4
+            header.sampleInterval        = str2double(tkns{1}{1});
+            header.mesaurementsPerSample = str2double(tkns{1}{2});
+            
+          % mode
+          case 5
+            header.mode = tkns{1}{1};
+          
+          % pressure
+          case 6
+            header.pressureSensor = tkns{1}{1};
+            
+          % volt
+          case 7
+            for n = 1:length(tkns), 
+              header.(['ExtVolt' tkns{n}{1}]) = tkns{n}{2};
+            end
+            
+          % output
+          case 8
+            header.outputFormat = tkns{1}{1};
+            
+          % cast
+          case 9
+            
+          % interval
+          case 10
+            header.resolution = tkns{1}{1};
+            header.interval   = str2double(tkns{1}{2});
+            
+          % sbe38 / gas tension device
+          case 11
+            header.sbe38 = tkns{1}{1};
+            header.gtd   = tkns{1}{2};
+            
+          % optode
+          case 12
+            header.optode = tkns{1}{1};
+            
+          % volt calibration
+          case 13
+            header.(['volt' tkns{1}{1} 'offset']) = str2double(tkns{1}{2});
+            header.(['volt' tkns{1}{1} 'slope'])  = str2double(tkns{1}{3});
+            
+          % name = value
+          case 14
+            header.(genvarname(tkns{1}{1})) = tkns{1}{2};
+            
+          case 15
+          header.castNumber = str2double(tkns{1}{1});
+          
+          case 16
+          header.castEnd = str2double(tkns{1}{1});
+            
+        end
+        break;
+      end
+    end
+  end
+end
+
 function header = parseProcessedHeader(headerLines)
 %PARSEPROCESSEDHEADER Parses the data contained in the header added by SBE
 % Data Processing. This includes the column layout of the data in the .cnv 
@@ -332,6 +481,40 @@ function header = parseProcessedHeader(headerLines)
     end
   end
 end
+
+
+function header = parseInstrumentHeader2CNV(headerLines)
+%parseInstrumentHeader2CNV Parses the data contained in the header added by SBE
+% Data Processing to get the starting time value.
+%
+% Inputs:
+%   headerLines - Cell array of strings, the lines in the processed header 
+%                 section.
+%
+% Outputs:
+%   header      - struct containing information that was contained in the
+%                 processed header section.
+%
+
+
+  header = struct;
+  header.columns = {};
+  
+
+  timeExpr = 'start_time = (\w+ \d+ \d+ \d+:\d+:\d+)';
+
+  for k = 1:length(headerLines)       
+    % then try time start expr
+    tkns = regexp(headerLines{k}, timeExpr, 'tokens');
+    if ~isempty(tkns)
+      header.castDate   = datenum(   tkns{1}{1}, 'mmm dd yyyy HH:MM:SS')
+      continue;
+    end
+    
+    
+  end
+end
+
 
 function time = genTimestamps(instHeader, data)
 %GENTIMESTAMPS Generates timestamps for the data. Horribly ugly. I shouldn't 
