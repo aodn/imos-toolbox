@@ -1,0 +1,39 @@
+% Map for mapping from EchoView CSV to IMOS NetCDF
+%
+% Columns are:
+% IMOS_variable_name,   CSV_column_name,    Dimensions, Data_type
+%
+% IMOS_variable_name is the name the variable will have in the output NetCDF file
+%
+% CSV_column_name is the column name as it appears in the first line of the input CSV file
+%
+% Dimensions are the dimensions of this variable, 
+%   this conists of zero or more dimension names.
+%   If this field is blank the variable is a dimension and it's 
+%   IMOS_variable_name can appear in the Dimensions entry of other variables.
+%
+% Data_type is one 0f 
+%   N - a numeric value
+%   S - a text string
+%   D - a date in yyyymmdd format
+%   T - a time in HH:MM:SS.ss format
+%   DT - this column has a date and the next column is a time which make a timestamp
+%
+% The toolbox documentation notes: http://code.google.com/p/imos-toolbox/wiki/DataStructures (Sept 2010)
+%   It is assumed that time is always the first element of the dimensions array, 
+%   the first element of every variables.dimensions vector, 
+%   and the first dimension of the variables.data matrices. 
+%   This implies that single dimensional data must be stored as column vectors.
+%
+% IMOS_variable_name,   CSV_column_name,    Dimensions, Data_type
+
+TIME,                   Date_M,             ,       DT
+Process_ID,             Process_ID,         ,       N
+Interval,               Interval,           TIME,   N
+Layer,                  Layer,              DEPTH,  N
+SV_mean,                Sv_mean,            TIME DEPTH, N
+DEPTH,                  Depth_mean,         ,       N
+LATITUDE,               Lat_M,              TIME,   N
+LONGITUDE,              Lon_M,              TIME,   N
+EV_version,             Program_version,    ,       S
+EV_filename,            EV_filename,        ,       S

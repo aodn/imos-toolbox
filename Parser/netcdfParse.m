@@ -10,7 +10,7 @@ function sample_data = netcdfParse( filename )
 %   sample_data - struct containing the imported data set.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
-%
+% Contributor : Laurent Besnard <laurent.besnard@utas.edu.au>
 
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
@@ -156,8 +156,7 @@ function sample_data = netcdfParse( filename )
   % days since 1950; matlab stores as days since 0000
   time = getVar(dimensions, 'TIME');
   if time ~= 0
-    
-    dimensions{time}.data = ...
+      dimensions{time}.data = ...
       dimensions{time}.data + datenum('1950-01-00 00:00:00');
   end
   
