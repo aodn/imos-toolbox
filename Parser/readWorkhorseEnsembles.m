@@ -4,16 +4,16 @@ function ensembles = readWorkhorseEnsembles( filename )
 %
 % This function parses a binary file retrieved from a Teledyne RD Workhorse
 % ADCP instrument. This function is only able to interpret raw files in the
-% PD0 format (as it stands at December 2008). See the Workhorse H-ADCP 
+% PD0 format (as it stands at December 2008). See the Workhorse H-ADCP
 % Operation manual for a description of the output format.
 %
-% This function is very slow (about 30 seconds on test data of ~8000 
+% This function is very slow (about 30 seconds on test data of ~8000
 % ensembles/8MB). Re-implementing in C would provide much better performance.
 %
-% A raw Workhorse data file consists of a set of 'ensembles'. Each ensemble 
+% A raw Workhorse data file consists of a set of 'ensembles'. Each ensemble
 % contains data for one sample period. An ensemble is made up of a number
 % of sections, the last five of which may or may not be present:
-%   - Header:                Ensemble information (size/contents). Always 
+%   - Header:                Ensemble information (size/contents). Always
 %                            present
 %   - Fixed Leader Data:     ADCP configuration, serial number etc. Always
 %                            present
@@ -33,7 +33,7 @@ function ensembles = readWorkhorseEnsembles( filename )
 %
 % This function parses the ensembles, and returns all of them in a cell
 % array.
-% 
+%
 % Inputs:
 %   filename  - Raw binary data file retrieved from a Workhorse.
 %
@@ -41,225 +41,203 @@ function ensembles = readWorkhorseEnsembles( filename )
 %   ensembles - Cell array of ensembles.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
-%
+% vectorized by Charles James May 2010
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
 % Marine Observing System (IMOS).
 % All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
+%
+% Redistribution and use in source and binary forms, with or without
 % modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
+%
+%     * Redistributions of source code must retain the above copyright notice,
 %       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
+%     * Redistributions in binary form must reproduce the above copyright
+%       notice, this list of conditions and the following disclaimer in the
 %       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
+%     * Neither the name of the eMII/IMOS nor the names of its contributors
+%       may be used to endorse or promote products derived from this software
 %       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-  % ensure that there is exactly one argument, 
-  % and that it is a string
-  error(nargchk(1, 1, nargin));
-  if ~ischar(filename), error('filename must be a string'); 
-  end
+% ensure that there is exactly one argument,
+% and that it is a string
 
-  % check that file exists
-  if isempty(dir(filename)), error([filename ' does not exist']); end
-  
-  % read in the whole file into 'data'
-  fid = -1;
-  data = [];
-  try
+ %filename=cellstr('DR1050_sample_data.txt')%
+error(nargchk(1, 1, nargin));
+if ~ischar(filename), error('filename must be a string');
+end
+
+% check that file exists
+if isempty(dir(filename)), error([filename ' does not exist']); end
+
+% read in the whole file into 'data'
+fid = -1;
+data = [];
+try
     fid = fopen(filename, 'rb');
     data = fread(fid, inf, '*uint8');
     fclose(fid);
-  catch e
+catch e
     if fid ~= -1, fclose(fid); end
     rethrow e;
-  end
-  
-  % for performance, the data vector is never sliced. all reads are
-  % direct to the data vector. Three absolute indices are used:
-  %
-  % dIdx == start index of unread data (i.e. after the current ensemble)
-  % eIdx == start index of current ensemble
-  % sIdx == start index of current section
-  % 
-  dIdx = 1;
-  
-  % ensembles are stored in a cell array of structs
-  ensembles    = {};
-  numEnsembles = 0;
-  
-  % parse one ensemble at a time until we run out of ensembles
-  while dIdx < length(data)
-    try
-      ensemble = struct;
-      
-      % find the next ensemble
-      eIdx = findEnsemble(data, dIdx);
-      
-      % no more ensembles in the data
-      if isempty(eIdx), break; end
-      
-      % skip over the ensemble header that was just found
-      dIdx = eIdx + 2;
-  
-      % parse the ensemble header
-      [header hLen] = parseHeader(data, eIdx);
-      
-      % get the ensemble (+2 for checksum)
-      eLen = header.numBytesInEnsemble + 2;
-      
-      % calculate checksum over the entire ensemble
-      givenCrc = bytecast(data(eIdx+eLen-2:eIdx+eLen-1), 'L', 'uint16');
-      calcCrc  = bitand(sum(data(eIdx:eIdx+eLen-3)), 65535);
-      
-      % fail if the crcs don't match
-      if calcCrc ~= givenCrc, error('ensemble crc check failed'); end
-      
-      % skip over the entire ensemble
-      dIdx = eIdx + eLen;
-      
-      % parse all the sections in the ensemble
-      nCells = 0;
-      for m = 1:length(header.dataTypeOffsets)
-        
-        % get the index to the current section
-        sIdx = eIdx + header.dataTypeOffsets(m);
-        
-        sType = bytecast(data(sIdx:sIdx+1), 'L', 'uint16');
-        sect  = [];
-        sLen  = 0;
-        sName = '';
-        
-        switch sType
-          case 0
-            name = 'fixedLeader';
-            [sect sLen] = parseFixedLeader(data, sIdx);
-            nCells = double(sect.numCells);
-          case 128
-            name = 'variableLeader';
-            [sect sLen] = parseVariableLeader(data, sIdx);
-          case 256
-            name = 'velocity';
-            [sect sLen] = parseVelocity(data, nCells, sIdx);
-          case 512
-            name = 'corrMag';
-            [sect sLen] = parseX(data, nCells, name, sIdx);
-          case 768
-            name = 'echoIntensity';
-            [sect sLen] = parseX(data, nCells, name, sIdx);
-          case 1024
-            name = 'percentGood';
-            [sect sLen] = parseX(data, nCells, name, sIdx);
-          case 1280
-            % status profile data
-          case 1536
-            name = 'bottomTrack';
-            [sect sLen] = parseBottomTrack(data, sIdx);
-          case 2048
-            % microCAT data
-        end
-        
-        % add this section to the ensemble struct
-        if ~isempty(sect), ensemble.(name) = sect; end
-      end
-      
-      % add this ensemble to the array
-      ensembles{numEnsembles+1} = ensemble;
-      numEnsembles = numEnsembles + 1;
-
-    catch e
-      disp(['skipping ensemble: ' e.message]);
-      for m = 1:length(e.stack), disp(e.stack(m)); end
-      break;
-    end
-  end
 end
 
-function index = findEnsemble(data, startIdx)
-%FINDENSEMBLE Searches in the given byte vector for two consecutive values
-% of 7F, indicating the start of the next ensemble section. 
-%
-% Inputs: 
-%   data     - raw byte vector
-%   startIdx - index to start searching.
-%
-% Outputs:
-%   index - index into data vector, denoting the start location of the next 
-%           ensemble. Empty matrix if no ensemble was found.
-%
-  index     = [];
-  searchIdx = startIdx;
+% get ensemble start key
+headerID=127;
+dataSourceID=127;
+% WH headerID=127, dataSourceID=127
+% note other IDs identified
+% dataSourceID=121 probably for waves burst samples (ignore here)
 
-  while searchIdx < length(data)
-    
-    % this is /so/ much faster than using find(data == 127, 1)
-    next = 0;
-    for k = searchIdx:length(data)
-      if data(k) == 127, next = k; break; end
-    end
-    
-    % no values of 0x7F in the data
-    if next == 0, break; end
-    
-    % we're at the end of the line, and didn't find an ensemble
-    if next == length(data), break; end
-    
-    % found an ensemble
-    if data(next+1) == 127
-      index = next;
-      break; 
-    end
-    
-    % else keep searching
-    searchIdx = next+2;
-  end
+
+% ensembles are stored in a cell array of structs
+%ensembles    = {};
+%numEnsembles = 0;
+
+% parse one ensemble at a time until we run out of ensembles
+
+% nah, let's do them all at once!
+
+ind=1:length(data)-1;
+% we will try this is a couple of steps
+
+% ensemble is indicated by header and data source IDs is the data field;
+% idx will indicate the start of a possible ensemble
+idx=find((data(ind)==headerID)&(data(ind+1)==dataSourceID));
+
+% this will have found far more than the actual number of ensembles as
+% every pair matching the ID numbers will be interpreted as an ensemble start;
+bpe=[data(idx(:)+2) data(idx(:)+3)]';
+
+% number of bytes in ensemble (not including the 2 checksum bytes)
+nBytes=bytecast(bpe(:), 'L', 'uint16');
+% number of bytes in ensemble
+nLen=nBytes+2;
+
+% keep funky eLen values from putting us out of bounds
+oob=(idx+nLen-1)>length(data);
+idx(oob)=[];
+nBytes(oob)=[];
+nLen(oob)=[];
+
+% check sum is in last two bytes
+givenCrc=indexData(data,idx+nLen-2,idx+nLen-1,'uint16')';
+
+% could use indexData to recover data between idx andidx+nBytes-1
+% but at this point nBytes could be as big as FFFFh so ...
+% to coumpute Crc sum over each ensemble
+dataSum=cumsum(double(data));
+
+% idx is the start of the sum sequence, iend is the end
+iend=idx+nBytes-1;
+% following formula gives total sum between idx and iend
+calcCrc = double(data(idx))+(dataSum(iend)-dataSum(idx));
+
+% this is the checksum formula
+calcCrc = bitand(calcCrc, 65535);
+
+% only good ensembles should pass the checksum test
+good = (calcCrc == givenCrc);
+
+% define ensemble variables
+idx=idx(good);
+nEnsembles=length(idx);
+
+% in principle each ensemble could have a different number of data
+% types
+
+nDataTypes       = double(data(idx+5));
+
+% in each ensemble bytes 6:2*numDataTypes give offsets to data
+dataOffsets=indexData(data,idx+6,idx+6+2*nDataTypes-1,'uint16');
+[i j]=size(dataOffsets);
+
+% create a big index matrix!
+IDX=meshgrid(idx,1:i)+dataOffsets;
+
+% what type of sections do we have in each ensemble;
+sType=indexData(data,IDX(:),IDX(:)+1,'uint16');
+
+
+iFixedLeader=IDX(sType==0);
+iVarLeader=IDX(sType==128);
+iVel=IDX(sType==256);
+iCorr=IDX(sType==512);
+iEcho=IDX(sType==768);
+iPCgood=IDX(sType==1024);
+%iStatProf=IDX(sType==1280);
+iBTrack=IDX(sType==1536);
+%iMicroCat=IDX(sType==2048);
+
+
+ensembles.fixedLeader=parseFixedLeader(data, iFixedLeader);
+nCells=ensembles.fixedLeader.numCells;
+ensembles.variableLeader = parseVariableLeader(data, iVarLeader);
+ensembles.velocity = parseVelocity(data, nCells, iVel);
+
+if ~isempty(iCorr)
+    ensembles.corrMag = parseX(data, nCells, 'corrMag', iCorr);
+end
+if ~isempty(iEcho)
+    ensembles.echoIntensity = parseX(data, nCells, 'echoIntensity', iEcho);
+end
+if ~isempty(iPCgood)
+    ensembles.percentGood = parseX(data, nCells, 'percentGood', iPCgood);
+end
+if ~isempty(iBTrack)
+    ensembles.bottomTrack = parseBottomTrack(data, iBTrack);
 end
 
-function [sect len] = parseHeader( data, idx )
-%PARSEHEADER Parses a header section from an ADCP ensemble.
-%
-% Inputs:
-%   data - vector of raw bytes.
-%   idx  - index that the header starts at.
-%
-% Outputs:
-%   sect - struct containing the fields that were parsed from the header.
-%   len  - number of bytes that were parsed.
-%
-  sect = struct;
-  len = 0;
-  
-  sect.headerId           = double(data(idx));
-  sect.dataSourceId       = double(data(idx+1));
-  sect.numBytesInEnsemble = bytecast(data(idx+2:idx+3), 'L', 'uint16');
-  % byte 5 is spare
-  sect.numDataTypes       = double(data(idx+5));
-  
-  idx = idx + 6;
-  
-  sect.dataTypeOffsets = ...
-    bytecast(data(idx:idx + 2*sect.numDataTypes-1), 'L', 'uint16');
-  
-  len = 6 + sect.numDataTypes*2;
+end
+
+function dsub=indexData(data,istart,iend,dtype)
+% function dsub=indexData(data,istart,iend,dtype)
+% vectorized data index algorithm, converts data between istart and iend
+% from binary 8bit data to dtype, where istart and iend can be vectors!
+
+% create matrix of indicies
+width=max(iend-istart+1);
+
+[I J]=meshgrid(istart,0:width-1);
+K=meshgrid(iend,0:width-1);
+
+IND=I+J;
+
+ibad=IND>K;
+
+
+datatst=data(IND(:));
+
+
+datatst(ibad)=0;
+
+
+dsub=bytecast(datatst,'L',dtype);
+ibad=bytecast(uint8(ibad(:)),'L',dtype);
+
+i=length(istart);
+j=length(dsub)/i;
+
+dsub=reshape(dsub,j,i);
+ibad=reshape(ibad,j,i)~=0;
+
+dsub(ibad)=nan;
+
+
 end
 
 function [sect len] = parseFixedLeader( data, idx )
@@ -274,48 +252,52 @@ function [sect len] = parseFixedLeader( data, idx )
 %          leader section.
 %   len  - number of bytes that were parsed.
 %
+
+% assume that fixed means fixed and only store fixed data from first frame!
+idx=idx(1);
+
   sect = struct;
   len = 59;
   
-  sect.fixedLeaderId       = bytecast(data(idx  :idx+1), 'L', 'uint16');
+  sect.fixedLeaderId       = indexData(data,idx,idx+1,'uint16')';
   sect.cpuFirmwareVersion  = double(data(idx+2));
   sect.cpuFirmwareRevision = double(data(idx+3));
-  sect.systemConfiguration = bytecast(data(idx+4:idx+5), 'L', 'uint16');
+  sect.systemConfiguration = indexData(data,idx+4,idx+5,'uint16')';
   sect.realSimFlag         = double(data(idx+6));
   sect.lagLength           = double(data(idx+7));
   sect.numBeams            = double(data(idx+8));
   sect.numCells            = double(data(idx+9));
-  block                    = bytecast(data(idx+10:idx+15), 'L', 'uint16');
-  sect.pingsPerEnsemble    = block(1);
-  sect.depthCellLength     = block(2);
-  sect.blankAfterTransmit  = block(3);
+  block                    = indexData(data,idx+10,idx+15, 'uint16')';
+  sect.pingsPerEnsemble    = block(:,1);
+  sect.depthCellLength     = block(:,2);
+  sect.blankAfterTransmit  = block(:,3);
   sect.profilingMode       = double(data(idx+16));
   sect.lowCorrThresh       = double(data(idx+17));
   sect.numCodeReps         = double(data(idx+18));
   sect.gdMinimum           = double(data(idx+19));
-  sect.errVelocityMax      = bytecast(data(idx+20:idx+21), 'L', 'uint16');
+  sect.errVelocityMax      = indexData(data,idx+20,idx+21, 'uint16')';
   sect.tppMinutes          = double(data(idx+22));
   sect.tppSeconds          = double(data(idx+23));
   sect.tppHundredths       = double(data(idx+24));
   sect.coordinateTransform = double(data(idx+25));
-  block                    = bytecast(data(idx+26:idx+29), 'L', 'int16');
-  sect.headingAlignment    = block(1);
-  sect.headingBias         = block(2);
+  block                    = indexData(data,idx+26,idx+29, 'int16')';
+  sect.headingAlignment    = block(:,1);
+  sect.headingBias         = block(:,2);
   sect.sensorSource        = double(data(idx+30));
   sect.sensorsAvailable    = double(data(idx+31));
-  block                    = bytecast(data(idx+32:idx+35), 'L', 'uint16');
-  sect.bin1Distance        = block(1);
-  sect.xmitPulseLength     = block(2);
+  block                    = indexData(data,idx+32,idx+35, 'uint16')';
+  sect.bin1Distance        = block(:,1);
+  sect.xmitPulseLength     = block(:,2);
   sect.wpRefLayerAvgStart  = double(data(idx+36));
   sect.wpRefLayerAvgEnd    = double(data(idx+37));
   sect.falseTargetThresh   = double(data(idx+38));
   % byte 40 is spare
-  sect.transmitLagDistance = bytecast(data(idx+40:idx+41), 'L', 'uint16');
-  sect.cpuBoardSerialNo    = bytecast(data(idx+42:idx+49), 'L', 'uint64');
-  sect.systemBandwidth     = bytecast(data(idx+50:idx+51), 'L', 'uint16');
+  sect.transmitLagDistance = indexData(data,idx+40,idx+41, 'uint16')';
+  sect.cpuBoardSerialNo    = indexData(data,idx+42,idx+49, 'uint64')';
+  sect.systemBandwidth     = indexData(data,idx+50,idx+51, 'uint16')';
   sect.systemPower         = double(data(idx+52));
   % byte 54 is spare
-  sect.instSerialNumber    = bytecast(data(idx+54:idx+57), 'L', 'uint32');
+  sect.instSerialNumber    = indexData(data,idx+54,idx+57, 'uint32')';
   sect.beamAngle           = double(data(idx+58));
 end
 
@@ -334,9 +316,9 @@ function [sect len] = parseVariableLeader( data, idx )
   sect = struct;
   len = 65;
   
-  block                       = bytecast(data(idx  :idx+3), 'L', 'uint16');
-  sect.variableLeaderId       = block(1);
-  sect.ensembleNumber         = block(2);
+  block                       = indexData(data,idx,idx+3, 'uint16')';
+  sect.variableLeaderId       = block(:,1);
+  sect.ensembleNumber         = block(:,2);
   sect.rtcYear                = double(data(idx+4));
   sect.rtcMonth               = double(data(idx+5));
   sect.rtcDay                 = double(data(idx+6));
@@ -345,16 +327,16 @@ function [sect len] = parseVariableLeader( data, idx )
   sect.rtcSecond              = double(data(idx+9));
   sect.rtcHundredths          = double(data(idx+10));
   sect.ensembleMsb            = double(data(idx+11));
-  block                       = bytecast(data(idx+12:idx+19), 'L', 'uint16');
-  sect.bitResult              = block(1);
-  sect.speedOfSound           = block(2);
-  sect.depthOfTransducer      = block(3);
-  sect.heading                = block(4);
-  block                       = bytecast(data(idx+20:idx+23), 'L', 'int16');
-  sect.pitch                  = block(1);
-  sect.roll                   = block(2);
-  sect.salinity               = bytecast(data(idx+24:idx+25), 'L', 'uint16');
-  sect.temperature            = bytecast(data(idx+26:idx+27), 'L', 'int16');
+  block                       = indexData(data,idx+12,idx+19, 'uint16')';
+  sect.bitResult              = block(:,1);
+  sect.speedOfSound           = block(:,2);
+  sect.depthOfTransducer      = block(:,3);
+  sect.heading                = block(:,4);
+  block                       = indexData(data,idx+20,idx+23, 'int16')';
+  sect.pitch                  = block(:,1);
+  sect.roll                   = block(:,2);
+  sect.salinity               = indexData(data,idx+24,idx+25, 'uint16')';
+  sect.temperature            = indexData(data,idx+26,idx+27, 'int16')';
   sect.mptMinutes             = double(data(idx+28));
   sect.mptSeconds             = double(data(idx+29));
   sect.mptHundredths          = double(data(idx+30));
@@ -369,10 +351,10 @@ function [sect len] = parseVariableLeader( data, idx )
   sect.adcChannel5            = double(data(idx+39));
   sect.adcChannel6            = double(data(idx+40));
   sect.adcChannel7            = double(data(idx+41));
-  sect.errorStatusWord        = bytecast(data(idx+42:idx+45), 'L', 'uint32');
+  sect.errorStatusWord        = indexData(data,idx+42,idx+45, 'uint32')';
   % bytes 47-48 are spare
-  sect.pressure               = bytecast(data(idx+48:idx+51), 'L', 'uint32');
-  sect.pressureSensorVariance = bytecast(data(idx+52:idx+55), 'L', 'uint32');
+  sect.pressure               = indexData(data,idx+48,idx+51, 'uint32')';
+  sect.pressureSensorVariance = indexData(data,idx+52,idx+55, 'uint32')';
   % byte 57 is spare
   sect.y2kCentury             = double(data(idx+57));
   sect.y2kYear                = double(data(idx+58));
@@ -400,20 +382,20 @@ function [sect len] = parseVelocity( data, numCells, idx )
   sect = struct;
   len = 2 + numCells * 8;
   
-  sect.velocityId = bytecast(data(idx:idx+1), 'L', 'uint16');
+  sect.velocityId = indexData(data,idx,idx+1, 'uint16')';
   
   idx = idx + 2;
   
-  vels = bytecast(data(idx:idx + 8*numCells-1), 'L', 'int16');
+  vels = indexData(data,idx,idx + 8*numCells'-1, 'int16')';
+  [i, j]=size(vels);
   
-  for k = 1:numCells
-    
-    sect.velocity1(numCells - k + 1) = vels((k-1)*4 + 1);
-    sect.velocity2(numCells - k + 1) = vels((k-1)*4 + 2);
-    sect.velocity3(numCells - k + 1) = vels((k-1)*4 + 3);
-    sect.velocity4(numCells - k + 1) = vels((k-1)*4 + 4);
-    
-  end
+  ibeam=1:4:j;
+  
+  sect.velocity1=vels(:,ibeam);
+  sect.velocity2=vels(:,ibeam+1);
+  sect.velocity3=vels(:,ibeam+2);
+  sect.velocity4=vels(:,ibeam+3);
+  
 end
 
 function [sect len] = parseX( data, numCells, name, idx )
@@ -433,21 +415,22 @@ function [sect len] = parseX( data, numCells, name, idx )
 %              section.
 %   len      - number of bytes that were parsed.
 %
-  sect = struct;
-  len = 2 + numCells * 4;
-  
-  sect.([name 'Id']) = bytecast(data(idx:idx+1), 'L', 'uint16');
-  
-  idx = idx + 2;
-  for k = 1:numCells
+sect = struct;
+len = 2 + numCells * 4;
+
+sect.([name 'Id']) = indexData(data,idx,idx+1,'uint16');
+
+idx = idx + 2;
+
+fields = indexData(data,idx,idx + 4*numCells'-1, 'uint8')';
+[i, j]=size(fields);
+ibeam=1:4:j;
+
+sect.field1 = fields(:,ibeam);
+sect.field2 = fields(:,ibeam+1);
+sect.field3 = fields(:,ibeam+2);
+sect.field4 = fields(:,ibeam+3);
     
-    sect.field1(numCells - k + 1) = double(data(idx  ));
-    sect.field2(numCells - k + 1) = double(data(idx+1));
-    sect.field3(numCells - k + 1) = double(data(idx+2));
-    sect.field4(numCells - k + 1) = double(data(idx+3));
-    
-    idx = idx + 4;
-  end
 end
 
 function [sect length] = parseBottomTrack( data, idx )
@@ -466,25 +449,25 @@ function [sect length] = parseBottomTrack( data, idx )
   sect = struct;
   length = 85;
   
-  block                       = bytecast(data(idx  :idx+5), 'L', 'uint16');
-  sect.bottomTrackId          = block(1);
-  sect.btPingsPerEnsemble     = block(2);
-  sect.btDelayBeforeReacquire = block(3);
+  block                       = indexData(data,idx,idx+5, 'uint16')';
+  sect.bottomTrackId          = block(:,1);
+  sect.btPingsPerEnsemble     = block(:,2);
+  sect.btDelayBeforeReacquire = block(:,3);
   sect.btCorrMagMin           = double(data(idx+6));
   sect.btEvalAmpMin           = double(data(idx+7));
   sect.btPercentGoodMin       = double(data(idx+8));
   sect.btMode                 = double(data(idx+9));
-  sect.btErrVelMax            = bytecast(data(idx+10:idx+11), 'L', 'uint16');
+  sect.btErrVelMax            = indexData(data,idx+10,idx+11, 'uint16')';
   % bytes 13-16 are spare
-  block                       = bytecast(data(idx+16:idx+31), 'L', 'uint16');
-  sect.btBeam1Range           = block(1);
-  sect.btBeam2Range           = block(2);
-  sect.btBeam3Range           = block(3);
-  sect.btBeam4Range           = block(4);
-  sect.btBeam1Vel             = block(5);
-  sect.btBeam2Vel             = block(6);
-  sect.btBeam3Vel             = block(7);
-  sect.btBeam4Vel             = block(8);
+  block                       = indexData(data,idx+16,idx+31, 'uint16')';
+  sect.btBeam1Range           = block(:,1);
+  sect.btBeam2Range           = block(:,2);
+  sect.btBeam3Range           = block(:,3);
+  sect.btBeam4Range           = block(:,4);
+  sect.btBeam1Vel             = block(:,5);
+  sect.btBeam2Vel             = block(:,6);
+  sect.btBeam3Vel             = block(:,7);
+  sect.btBeam4Vel             = block(:,8);
   sect.btBeam1Corr            = double(data(idx+32));
   sect.btBeam2Corr            = double(data(idx+33));
   sect.btBeam3Corr            = double(data(idx+34));
@@ -497,15 +480,15 @@ function [sect length] = parseBottomTrack( data, idx )
   sect.btBeam2PercentGood     = double(data(idx+41));
   sect.btBeam3PercentGood     = double(data(idx+42));
   sect.btBeam4PercentGood     = double(data(idx+43));
-  block                       = bytecast(data(idx+44:idx+49), 'L', 'uint16');
-  sect.btRefLayerMin          = block(1);
-  sect.btRefLayerNear         = block(2);
-  sect.btRefLayerFar          = block(3);
-  block                       = bytecast(data(idx+50:idx+57), 'L', 'int16');
-  sect.btBeam1RefLayerVel     = block(1);
-  sect.btBeam2RefLayerVel     = block(2);
-  sect.btBeam3RefLayerVel     = block(3);
-  sect.btBeam4RefLayerVel     = block(4);
+  block                       = indexData(data,idx+44,idx+49, 'uint16')';
+  sect.btRefLayerMin          = block(:,1);
+  sect.btRefLayerNear         = block(:,2);
+  sect.btRefLayerFar          = block(:,3);
+  block                       = indexData(data,idx+50,idx+57, 'int16')';
+  sect.btBeam1RefLayerVel     = block(:,1);
+  sect.btBeam2RefLayerVel     = block(:,2);
+  sect.btBeam3RefLayerVel     = block(:,3);
+  sect.btBeam4RefLayerVel     = block(:,4);
   sect.btBeam1RefCorr         = double(data(idx+58));
   sect.btBeam2RefCorr         = double(data(idx+59));
   sect.btBeam3RefCorr         = double(data(idx+60));
@@ -518,7 +501,7 @@ function [sect length] = parseBottomTrack( data, idx )
   sect.btBeam2RefGood         = double(data(idx+67));
   sect.btBeam3RefGood         = double(data(idx+68));
   sect.btBeam4RefGood         = double(data(idx+69));
-  sect.btMaxDepth             = bytecast(data(idx+70:idx+71), 'L', 'uint16');
+  sect.btMaxDepth             = indexData(data,idx+70,idx+71, 'uint16')';
   sect.btBeam1RssiAmp         = double(data(idx+72));
   sect.btBeam2RssiAmp         = double(data(idx+73));
   sect.btBeam3RssiAmp         = double(data(idx+74));

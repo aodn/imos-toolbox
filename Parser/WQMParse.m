@@ -1,5 +1,5 @@
 function sample_data = WQMParse( filename )
-%WQMParse Parse a .dat file retrieved from a Wetlabs WQM instrument.
+%WQMParse Parse a .Raw file retrieved from a Wetlabs WQM instrument.
 %
 % This function is able to parse data retrieved from a Wetlabs WQM CTD/ECO 
 % instrument. The data must be in '.dat' format, i.e. raw data which has been
@@ -50,6 +50,8 @@ function sample_data = WQMParse( filename )
 %                   instrument_serial_no: retrieved from input file
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% modified: Charles James 2010 - will now read from .Raw file output
+% directly from instrument.
 %
 % See http://www.wetlabs.com/products/wqm/wqm.htm
 %
@@ -104,18 +106,20 @@ function sample_data = WQMParse( filename )
   params{end+1} = {'SN',              {'',     ''}};
   params{end+1} = {'MMDDYY',          {'',     ''}};
   params{end+1} = {'HHMMSS',          {'',     ''}};
-  params{end+1} = {'Cond(mmho)',      {'CNDC', ''}};
-  params{end+1} = {'Temp(C)',         {'TEMP', ''}};
-  params{end+1} = {'Pres(dbar)',      {'PRES', ''}};
-  params{end+1} = {'Sal(PSU)',        {'PSAL', ''}};
+  params{end+1} = {'conductivity',    {'CNDC', ''}};
+  params{end+1} = {'temperature',     {'TEMP', ''}};
+  params{end+1} = {'pressure',        {'PRES', ''}};
+  params{end+1} = {'salinity',        {'PSAL', ''}};
   params{end+1} = {'DO(mg/l)',        {'DOXY', ''}};
   params{end+1} = {'DO(mmol/m^3)',    {'DOXY', ''}};
-  params{end+1} = {'DO(ml/l)',        {'DOX2', ''}};
-  params{end+1} = {'CHL(ug/l)',       {'CPHL', ''}};
+  params{end+1} = {'oxygen',          {'DOX2', ''}};
+  params{end+1} = {'fluorescence',    {'CPHL', ''}};
   params{end+1} = {'F-Cal-CHL(ug/l)', {'CPHL', 'Factory coefficient'}};
   params{end+1} = {'U-Cal-CHL(ug/l)', {'CPHL', 'User coefficient'}};
-  params{end+1} = {'NTU',             {'TURB', ''}};
-
+  params{end+1} = {'backscatterance', {'TURB', ''}};
+  % CJ where is PAR?? 
+ % params{end+1} = {'PAR',             {'PAR', ''}};
+  
   %
   % This array contains the column headers which must be in the input file.
   %
@@ -132,14 +136,9 @@ function sample_data = WQMParse( filename )
   fields  = [];
   format  = [];
   try
-    fid = fopen(filename, 'rt');
-    if fid == -1, error(['couldn''t open ' filename 'for reading']); end
+    % cj use my routine to access raw file
+    wqmdata=readWQMinternal(filename);
 
-    [fields format] = getFormat(fid, required, params);
-
-    % read in the data
-    samples = textscan(fid, format);
-    fclose(fid);
   catch e
     if fid ~= -1, fclose(fid); end
     rethrow(e);
@@ -153,11 +152,10 @@ function sample_data = WQMParse( filename )
 
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
-  sample_data.meta.instrument_serial_no = samples{1}{1};
+  sample_data.meta.instrument_serial_no = wqmdata.SN;
   
   % convert and save the time data
-  time = cellstr(samples{2});
-  time = datenum(time, 'mmddyy HHMMSS')';
+  time = wqmdata.datenumber;
   
   % WQM instrumensts (or the .DAT conversion sofware) have a habit of
   % generating erroneous data sometimes, either missing a character , or 
@@ -180,48 +178,33 @@ function sample_data = WQMParse( filename )
 
   % create a variables struct in sample_data for each field in the file
   % start index at 4 to skip serial, date and time
-  for k = 4:length(fields)
+  
+    varlabel=wqmdata.varlabel;
+  for k = 1:length(varlabel)
 
-    [name comment] = getParamDetails(fields{k}, params);  
-    data = samples{k-1};
+    [name comment] = getParamDetails(varlabel{k}, params);  
+
+    data = wqmdata.(varlabel{k});
 
     % some fields are not in IMOS uom - scale them so that they are
-    switch fields{k}
+    switch name
 
       % WQM provides conductivity in mS/m; we need it in S/m.
-      case 'Cond(mmho)'
+      case 'conductivity'
         data = data / 1000.0;
-
-      % convert dissolved oxygen in mg/L to kg/m^3.
-      case 'DO(mg/l)'
-        data = data / 1000.0;
-      
-      % convert dissolved oxygen in mmol/m^3 to kg/m^3.
-      case 'DO(mmol/m^3)'
-        data = data * 32.0 / 1000000.0;
       
       % convert dissolved oxygen in ml/l to mol/kg
-      case 'DO(ml/l)'
+      case 'oxygen'
         
         % to perform this conversion, we need to calculate the 
         % density of sea water; for this, we need temperature, 
         % salinity, and pressure data to be present
-        temp = getVar(sample_data.variables, 'TEMP');
-        pres = getVar(sample_data.variables, 'PRES');
-        psal = getVar(sample_data.variables, 'PSAL');
-        
-        % if any of this data isn't present, 
-        % we can't perform the conversion
-        if temp == 0, continue; end
-        if pres == 0, continue; end
-        if psal == 0, continue; end
-        
-        temp = sample_data.variables{temp};
-        pres = sample_data.variables{pres};
-        psal = sample_data.variables{psal};
+        temp = wqmdata.temperature;
+        pres = wqmdata.pressure;
+        psal = wqmdata.salinity;
         
         % calculate density from salinity, temperature and pressure
-        dens = sw_dens(psal.data, temp.data, pres.data);
+        dens = sw_dens(psal, temp, pres);
         
         % ml/l -> mol/kg
         % 
@@ -239,78 +222,22 @@ function sample_data = WQMParse( filename )
       % WQM provides chlorophyll in ug/L; we need it in mg/m^3.
       % These are equivalent, so no scaling is needed.
       % case 'CPHL'
+        case 'PAR'
+            % don't seem to know what to do with PAR yet
+            continue;
 
     end
         
-    sample_data.variables{k-3}.dimensions = [1];
-    sample_data.variables{k-3}.comment    = comment;
-    sample_data.variables{k-3}.name       = name;
-    sample_data.variables{k-3}.data       = data;
+    sample_data.variables{k}.dimensions = 1;
+    sample_data.variables{k}.comment    = comment;
+    sample_data.variables{k}.name       = name;
+    sample_data.variables{k}.data       = data;
   end
   
   % remove empty entries (could occur if DO(ml/l) data is 
   % present, but temp/pressure/salinity data is not)
   sample_data.variables(cellfun(@isempty, sample_data.variables)) = [];
 
-end
-
-function [fields format] = getFormat(fid, required, params)
-%GETFORMAT Figures out the format pattern to give to textscan, based on the 
-% list of fields that are present in the file header (tokens contained in 
-% the first line of the file).
-%
-% The function checks that all of the required columns are present in the file.
-%
-% Returns a list of all the fields to expect, and the textscan format to use.
-%
-% The list of required fields are listed in the required variable which is 
-% defined in the main function above.
-%
-  % read in header
-  fields = fgetl(fid);
-  fields = textscan(fields, '%s');
-  fields = fields{1};
-
-  % test that required fields are present
-  for k = 1:length(required)
-
-    if ~ismember(required{k}, fields)
-      error([required{k} ...
-        ' field is missing from WQM file - this field is required']);
-    end
-  end
-
-  %
-  % build the format string
-  %
-  format = '';
-
-  % WQM column, if present
-  if strcmp('WQM', fields{1})
-    format = 'WQM '; 
-    fields(1) = []; 
-  end
-
-  % serial and time/date
-  format = [format '%s%13c'];
-
-  %
-  % floating point values, or ignore if unsupported, for all other fields.
-  % start index at 4 to skip serial number, date and time.
-  % keep track of indices of unsupported fields - we remove them afterwards
-  %
-  unsupported = [];
-  for k = 4:length(fields)
-    if isSupported(fields{k}, params); 
-      format = [format '%f']; 
-    else
-      format = [format '%*s'];
-      unsupported = [unsupported k];
-    end
-  end
-
-  %remove unsupported fields from header list
-  fields(unsupported) = [];
 end
 
 function [name comment] = getParamDetails(field, params)
@@ -338,19 +265,250 @@ function [name comment] = getParamDetails(field, params)
   comment = entry{2}{2};
 end
 
-function supported = isSupported(field, params)
-%ISSUPPORTED returns logical true (1) if the given WQM field is supported,
-% false (0) otherwise.
+function WQM=readWQMinternal(flnm)
+% function WQM=readWQM(flnm)
+% 
+% data sequence in raw file appears to be an attempt to wake up the
+% instrument
+% code 100 twice  - I suspect this contains voltage info and other
+% machine status data which I can't parse at this point
+% a burst of data with line code 4 with usually only CTP and O2 (other
+% fields are zero)
+% a line of code 5 followed by code 100 then a burst of code 5 (more data now in
+% other fields - still some zeros);
+% a line of code 6 followed by code 100 then a burst of code 6
+% finish up with one code 100 (or sometimes two code 130s and then a 100 -
+% maybe some lag between response after code 6 burst);
+% .DAT file produced by WQM software 
 %
-% If a field is supported, it will be contained in the params variable.
-%
-supported = false;
+% Charles James May 2010
+% note:
+% This function also requires the CSIRO Seawater toolbox for CTP
+% to salinity conversion
+% sw_c3515:   Returns conductivity at S=35 psu , T=15 C [ITPS 68] and P=0 db)
+% sw_salt:    Calculates Salinity from conductivity ratio. UNESCO 1983 polynomial.
 
-  for k = 1:length(params)
 
-    if strcmp(params{k}{1}, field)
-      supported = true;
-      break;
-    end
-  end
+fid=fopen(flnm,'r');
+str{1}='';
+iline=0;
+
+% read header information
+while ~strcmp(str{1},'<EOH>');
+str=textscan(fid,'%s',1,'delimiter','\n');
+iline=iline+1;
+header(iline)=str{1};
 end
+% 
+
+
+
+
+a=textscan(fid,'%f,%f,%f,%f,%s','delimiter','\n');
+fclose(fid);
+
+
+% Instrument Serial Number to start each line
+WQM.instrument='Wetlabs WQM';
+WQM.SN=a{1}(1);
+
+WQM.samp_units='datenumber';
+WQM.varlabel={'conductivity','temperature','pressure','salinity','oxygen','fluorescence','backscatterance'};
+WQM.varunits={'mohm/cm','C','dbar','PSU','ml/l','ug/l','NTU'};
+
+
+% the next number is one of 7 codes
+
+% These clearly contain physical data
+% 4 - data fields
+% 5 - data fields
+% 6 - data fields
+
+% Not clear what these lines contain, maybe status and voltage stuff
+% 100 - 16 fields
+% 110 - 13 fields, perhaps an aborted sample? - only found it at end of file
+% 120 - 3 fields, pretty rare right near end as well
+% 130 - 1 field Unable to Wake CTD
+
+
+% we will only retain data with line code 6
+dcode=a{2};
+igood=dcode==6;
+
+
+data=a{5}(igood);
+
+% how many variables (don't know if this changes if PAR sensor is on so
+% check anyway)
+nvars=length(strfind(data{1},','))+1;
+
+% using sscanf which reads columnwise so put array on side
+C=char(data)';
+
+% one weird thing, scanf will fail if the last column has anything but a
+% space in it. So sort of a kludge, but by far the fastest fix I know of.
+s=size(C);
+C(s(1)+1,:)=' ';
+
+
+fmt='%f';
+for i=1:nvars-1
+fmt=strcat(fmt,',%f');
+end
+
+A=sscanf(C,fmt,[nvars inf])';
+% A is one long vector with nvars*samples elements
+% reshape it to make it easier to extract data
+
+
+% C,T,P are in stored in engineering units
+
+% Wetlabs stores conductivity in ohm/M convert to mohms/cm
+WQM.conductivity=10*A(:,1);
+
+% temperture and pressure in C and dbar
+WQM.temperature=A(:,2);
+WQM.pressure=A(:,3);
+
+% compute conductivity ratio to use seawater salinity algorithm
+crat=WQM.conductivity./sw_c3515;
+
+WQM.salinity=sw_salt(crat,WQM.temperature,WQM.pressure);
+
+
+
+% find sensor coefficients
+
+% Oxygen
+%
+Soc=textscan(header{~cellfun('isempty',strfind(header,'Soc'))},'%4c%f');
+FOffset=textscan(header{~cellfun('isempty',strfind(header,'FOffset'))},'%8c%f');
+A52=textscan(header{~cellfun('isempty',strfind(header,'A52'))},'%4c%f');
+B52=textscan(header{~cellfun('isempty',strfind(header,'B52'))},'%4c%f');
+C52=textscan(header{~cellfun('isempty',strfind(header,'C52'))},'%4c%f');
+E52=textscan(header{~cellfun('isempty',strfind(header,'E52'))},'%4c%f');
+
+O2.Soc=Soc{2};
+O2.FOffset=FOffset{2};
+O2.A=A52{2};
+O2.B=B52{2};
+O2.C=C52{2};
+O2.E=E52{2};
+
+oxygen=A(:,4);
+
+WQM.oxygen=O2cal(oxygen,O2,WQM);
+
+
+% FLNTU Sensor
+chl=textscan(header{~cellfun('isempty',strfind(header,'UserCHL'))},'%8c%f%f\n');
+ntu=textscan(header{~cellfun('isempty',strfind(header,'NTU'))},'%4c%f%f\n');
+CHL.scale=chl{2};
+CHL.offset=chl{3};
+NTU.scale=ntu{2};
+NTU.offset=ntu{3};
+
+fluor=A(:,5);
+turb=A(:,6);
+WQM.fluorescence=FLNTUcal(fluor,CHL);
+WQM.backscatterance=FLNTUcal(turb,NTU);
+
+% Store calibration coefficients in meta data
+Cal.O2=O2;
+Cal.CHL=CHL;
+Cal.NTU=NTU;
+
+if nvars==7
+% Optional PAR sensor
+    par=textscan(header{~cellfun('isempty',strfind(header,'PAR='))},'%4c%f%f%f\n');
+    PAR.Im=par{2};
+    PAR.a0=par{3};
+    PAR.a1=par{4};
+    %par=cellfun(@(x) x(7),D);
+    par=A(:,7);
+    WQM.PAR=PARcal(par,PAR);
+    % nvars = 8 because of salinity (derived)
+    WQM.varlabel{nvars+1}='PAR';
+    WQM.varunits{nvars+1}='umol/m^2/s';
+    Cal.PAR=PAR;
+end
+
+WQM.Calibration=Cal;
+
+
+date=a{3}(igood);
+time=a{4}(igood);
+
+month=fix(date/10000);
+date=date-month*10000;
+day=fix(date/100);
+year=2000+date-day*100;
+
+hour=fix(time/10000);
+time=time-hour*10000;
+minute=fix(time/100);
+second=time-minute*100;
+
+WQM.datenumber=datenum(year,month,day,hour,minute,second);
+
+% get interval and duration from header file
+interval=textscan(header{~cellfun('isempty',strfind(header,'Sample Interval Seconds:'))},'%24c%f');
+duration=textscan(header{~cellfun('isempty',strfind(header,'Sample Seconds:'))},'%15c%f');
+WQM.interval=interval{2}/60;
+WQM.duration=duration{2};
+% WQM record samples at 1 Hz
+WQM.frequency=1;
+end
+
+
+function O2=O2cal(freq,Cal,CTD)
+% WQM uses SBE-43F
+% Oxygen = Soc * (output + Foffset)*(1.0+A*T+B*T^2+C*T^3)*Oxsat(T,S)*exp(E*P/K), 
+% where output=SBE-43F oxygen sensor output frequency in Hz, 
+% K=T[degK], OxSat()=oxygen saturation[ml/l] function of Weiss
+
+Soc=Cal.Soc;
+FOffset=Cal.FOffset;
+A=Cal.A;
+B=Cal.B;
+C=Cal.C;
+E=Cal.E;
+P=CTD.pressure;
+S=CTD.salinity;
+T=CTD.temperature;
+
+P1=Soc*(freq+FOffset);
+P2=(1+A.*T+B.*T.^2+C.*T.^3);
+K=T+273.15;
+P3=exp(E.*P./K);
+oxsat=sw_satO2(S,T);
+
+O2=P1.*P2.*oxsat.*P3;
+% is 30000 a bad flag can't tell but O2 is bad if freq sticks
+O2(freq==30000)=0;
+end
+
+function PAR=PARcal(freq,Cal)
+% from the Satlantic PAR sensor manual (don't know if this is linear or log
+% par)
+Im=Cal.Im;
+a0=Cal.a0;
+a1=Cal.a1;
+% linear
+%PAR=Im.a1.*(freq-a0);
+
+% or log
+PAR=Im.*10.^((freq-a0)./a1);
+
+end
+
+function var=FLNTUcal(counts,Cal)
+scale=Cal.scale;
+offset=Cal.offset;
+
+var=scale.*(counts-offset);
+
+end
+
+
+

@@ -117,7 +117,7 @@ function strs = java2struct(list)
           strs(k+1).(field) = char(val);
         case 'java.lang.Double',
           strs(k+1).(field) = double(val);
-        case 'lava.lang.Integer',
+        case 'java.lang.Integer',
           strs(k+1).(field) = int32(val.intValue());
         case 'java.lang.Boolean',
           strs(k+1).(field) = double(val.booleanValue());
