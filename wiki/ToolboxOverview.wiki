@@ -5,7 +5,8 @@
 
 = IMOS Matlab Toolbox Overview =
 
- * Paul !McCarthy <paul dot mccarthy at csiro dot au> <pauld dot mccarthy at gmail dot com>
+ * Guillaume Galibert <guillaume dot galibert at utas dot edu dot au> <guillaume dot galibert at gmail dot com>
+ * Paul !McCarthy <pauld dot mccarthy at gmail dot com> (from March 2009 to February 2010)
  * Lindsay Pender <lindsay dot pender at csiro dot au>
  * Craig Steinberg <c dot steinberg at aims dot gov dot au>
 
