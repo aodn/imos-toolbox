@@ -1,0 +1,33 @@
+S, platform_code    = ZMRE
+S, callsign			= ZMRE
+S, vessel_name		= Rehua
+S, IMO				= 9147784
+S, operator			= Sealord
+S, home_port        =
+S, platform_acknowledgement = Data collected by Sealord, http://www.sealord.co.nz/.
+
+N, frequency_38                     = 38
+S, acquisition_software_version_38  = Simrad ES60 v1.5.2.7
+S, processing_software_version_38   = Echoview 4
+S, processing_template_38           = REHUA_2010_2048ms.ev
+S, calibration_date_38              =
+N, calibration_accuracy_38          =
+S, transceiver_manufacturer_38      = Simrad
+S, transceiver_model_38             = ES60
+S, transceiver_serial_38            = GPT  38 kHz 009072048f0b 1 ES38B
+S, transceiver_firmware_38          =
+N, transceiver_power_38             =
+N, transceiver_pulse_38             =
+N, transceiver_gain_38              =
+N, transceiver_sa_correction_38     =
+N, transceiver_absorption_38        =
+N, transceiver_sound_speed_38       = 1500
+S, transducer_manufacturer_38       = Simrad
+S, transducer_model_38              = ES60
+S, transducer_serial_38             = 
+S, transducer_location_38           = hull
+S, transducer_aperture_38           =
+N, transducer_depth_38              =
+N, transducer_orientation_38        = 0
+N, transducer_psi_38                =
+

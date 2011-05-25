@@ -18,6 +18,8 @@ S, naming_authority             = IMOS
 S, cdm_data_type                = 
 S, metadata                     = 
 S, sensorML                     = 
+S, institution_address          = 
+S, institution_postal_address   = 
 
 % these fields are automatically populated upon creation/export
 S, file_version                 = 
@@ -52,3 +54,4 @@ S, institution_references       = http://www.imos.org.au/emii.html
 S, citation               = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-url], accessed [date-of-access]"
 S, acknowledgement        = Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - an initiative of the Australian Government being conducted as part of the National Collaborative Research Infrastructure Strategy and and the Super Science Initiative."
 S, distribution_statement = Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
+S, project_acknowledgement = The collection of this data was funded by IMOS

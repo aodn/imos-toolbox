@@ -10,4 +10,4 @@ S, comment                   =
 N, quality_control_set       = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
 Q, quality_control_indicator = 
 N, uncertainty               =
-S, reference_datum           = Mean Sea Level (MSL)
+S, reference_datum           = sea surface

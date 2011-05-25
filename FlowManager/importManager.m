@@ -23,6 +23,8 @@ function sample_data = importManager(auto)
 %                 data for one instrument. 
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: Gordon Keith <gordon.keith@csiro.au>
+%   -bug fixes
 %
 
 %
@@ -112,6 +114,7 @@ function [sample_data rawFile]= manualImport()
   rawFile     = {};
   
   manualDir = readProperty('importManager.manualDir');
+  if isempty(manualDir), manualDir = pwd; end
   
   while true
 
@@ -393,14 +396,14 @@ function sam = finaliseData(sam, rawFiles, dateFmt, flagVal)
 %
 
   % add IMOS file version info
-  sam.file_version                 = imosFileVersion(0, 'name');
-  sam.file_version_quality_control = imosFileVersion(0, 'desc');
+  if ~isfield(sam.meta, 'level'), sam.meta.level = 0; end
+  sam.file_version                 = imosFileVersion(sam.meta.level, 'name');
+  sam.file_version_quality_control = imosFileVersion(sam.meta.level, 'desc');
   sam.date_created                 = now;
 
   % turn raw data files a into semicolon separated string
   rawFiles = cellfun(@(x)([x ';']), rawFiles, 'UniformOutput', false);
   
-  sam.meta.level         = 0;
   sam.meta.log           = {};
   sam.meta.raw_data_file = [rawFiles{:}];
   
