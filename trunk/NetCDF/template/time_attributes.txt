@@ -1,6 +1,6 @@
 S, standard_name             = time
 S, long_name                 = time
-S, units                     = days since 1950-01-01T00:00:00Z
+S, units                     = days since 1950-01-01 00:00:00 UTC
 S, axis                      = T
 N, valid_min                 = [mat imosParameters('TIME', 'valid_min')]
 N, valid_max                 = [mat imosParameters('TIME', 'valid_max')]
