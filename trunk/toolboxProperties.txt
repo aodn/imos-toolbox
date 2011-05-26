@@ -1,5 +1,11 @@
-% filename or ODBC DSN of deployment database
+% filename or ODBC DSN of MS-ACCESS deployment database
 toolbox.ddb = 
+
+% or full connection details to other kind of deployment database
+toolbox.ddb.driver = 
+toolbox.ddb.connection = 
+toolbox.ddb.user = 
+toolbox.ddb.password = 
 
 % directory which contains netcdf templates
 % (defaults to ./NetCDF/template/)
@@ -37,9 +43,9 @@ dataFileStatusDialog.multipleFileFormat    = italic
 
 % default values for start dialog
 startDialog.dataDir = C:
-startDialog.fieldTrip =
-startDialog.lowDate =
-startDialog.highDate =
+startDialog.fieldTrip = 
+startDialog.lowDate = 
+startDialog.highDate = 
 
 % default directory for manual data import
 importManager.manualDir = 
