@@ -43,6 +43,9 @@ import java.util.List;
  * time; this instance is accessed via the static getDDB method.
  * 
  * @author Paul McCarthy <paul.mccarthy@csiro.au>
+ * @author Gordon Keith <gordon.keith@csiro.au>
+ *   -provides a method getDDB(String driver, String connection, String user, 
+ *   String password)
  */
 public abstract class DDB {
   
@@ -65,8 +68,30 @@ public abstract class DDB {
     
     String os = System.getProperty("os.name");
     
-    if      (os.startsWith("Windows")) return new JDBCDDB(  name);
+    if      (os.startsWith("Windows")) return new ODBCDDB(  name);
     else if (os.startsWith("Linux"))   return new MDBSQLDDB(name);
+    
+    return ddb;
+  }
+  
+  /**
+   * Returns a handle to a DDB object. Creates one if necessary.
+   * 
+   * @param driver  Class name of JDBC database driver
+   * @param connection  Database connection string, must include user
+   * and password if required by the database.
+   * @param user  user's login to log on to the database
+   * @param password  password associated to the user's login provided
+   * 
+   * @return a DDB instance, which can be used to access the DDB.
+   * 
+   * @throws Exception on any error.
+   */
+  public static DDB getDDB(String driver, String connection, String user, String password) throws Exception {
+    
+    if (ddb != null) return ddb;
+    
+    ddb = new JDBCDDB(driver, connection, user, password);
     
     return ddb;
   }
