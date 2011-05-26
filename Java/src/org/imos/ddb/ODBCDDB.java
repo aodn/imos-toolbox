@@ -33,52 +33,37 @@ import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * In memory representation of the IMOS deployment database using JDBC. 
- * This class uses a generic JDBC driver and connection string so is
- * database agnostic, allowing the deploymnet database to by hosted on any
- * JDBC supported database platform.
+ * Database access is achieved via the Sun JDBC-ODBC bridge. This seems to 
+ * work great under Windows, but not under Linux. If using Linux, see the 
+ * alternate org.imos.ddb.MDBSQLDDB.
+ *  
+ * If a decent (free) JDBC driver for MS Access is ever released, we can 
+ * migrate over to it.
  * 
  * This class should never be instantiated directly; use the static method
  * org.imos.ddb.DDB.getDDB.
  * 
- * @author Gordon Keith <gordon.keith@csiro.au>
+ * @author Paul McCarthy <paul.mcccarthy@csiro.au>
  * 
  * @see http://java.sun.com/javase/6/docs/technotes/guides/jdbc/bridge.html
  */
-public class JDBCDDB extends DDB {
+public class ODBCDDB extends DDB {
   
-  /**The JDBC database driver*/
-  private String driver;
-  private String connection;
-  private String user;
-  private String password;
+  /**The ODBC database name*/
+  private final String dbName;
   
   /**
-   * Create a JDBC DDB object using the specified JDBC driver and database connection. 
+   * Saves the given ODBC Data Source Name (DSN) for later use. 
    * 
-   * @param driver Class name of JDBC database driver
-   * @param connection Database connection string, must include user and password if required by the database.
-   * @throws ClassNotFoundException If the specified Database driver can't be found
-   * @throws SQLException If an attempt to open a connection to the database fails
+   * @param name name of the ODBC DSN for the deployment database. 
    */
-  protected JDBCDDB(String driver, String connection, String user, String password) throws ClassNotFoundException, SQLException {
-	  this.driver = driver;
-	  this.connection = connection;
-	  this.user = user;
-	  this.password = password;
-	  
-	  // Test connection - throws exception at creation if can't connect
-      Class.forName(driver);
-      
-      Connection conn = DriverManager.getConnection(connection, user, password);
-      conn.close();
-  }
+  protected ODBCDDB(String dbName) {this.dbName = dbName;}
     
   /**
    * Executes the given query, in the form:
@@ -97,14 +82,14 @@ public class JDBCDDB extends DDB {
    * 
    * @throws Exception on any error.
    */
-  public List<Object> executeQuery(
+  public List executeQuery(
     String tableName,  
     String fieldName, 
     Object fieldValue)
   throws Exception {
     
     Connection conn = null;
-    List<Object> results = null;
+    List results = null;
     
     //type of object to return
     Class clazz = Class.forName("org.imos.ddb.schema." + tableName);
@@ -112,11 +97,11 @@ public class JDBCDDB extends DDB {
     try {
       
       //create ODBC database connection
-      Class.forName(driver);
+      Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
       
-      conn = DriverManager.getConnection(connection, user, password);
+      conn = DriverManager.getConnection("jdbc:odbc:" + dbName);
     
-      results = new ArrayList<Object>();
+      results = new ArrayList();
       
       //build the query
       String query = "select * from " + tableName;

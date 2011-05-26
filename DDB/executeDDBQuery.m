@@ -23,6 +23,8 @@ function result = executeDDBQuery( table, field, value)
 %            Java/src/org/imos/ddb/schema/.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: Gordon Keith <gordon.keith@csiro.au>
+%    -now can use the toolbox.ddb.* optional properties if exist
 %
 
 %
@@ -62,7 +64,23 @@ function result = executeDDBQuery( table, field, value)
 
   % execute the query - the java method returns 
   % an ArrayList of org.imos.ddb.schema.* objects.
-  ddb = org.imos.ddb.DDB.getDDB(readProperty('toolbox.ddb'));
+  connection = '';
+  dbuser     = '';
+  dbpassword = '';
+  try 
+      driver     = readProperty('toolbox.ddb.driver');
+      connection = readProperty('toolbox.ddb.connection');
+      dbuser     = readProperty('toolbox.ddb.user');
+      dbpassword = readProperty('toolbox.ddb.password');
+  catch e
+  end
+  
+  if isempty(connection)
+      ddb = org.imos.ddb.DDB.getDDB(readProperty('toolbox.ddb'));
+  else
+      ddb = org.imos.ddb.DDB.getDDB(driver, connection, dbuser, dbpassword);
+  end
+  
   result = ddb.executeQuery(table, field, value);
   clear ddb;
 
