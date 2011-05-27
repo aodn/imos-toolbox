@@ -45,14 +45,14 @@ If you are using your own database, you must put the driver (.jar file) used to 
 
 {{{
 % class name of JDBC database driver
-toolbox.ddb.driver = 
+toolbox.ddb.driver = my_driver
 
 % database connection string, must include user and password if required by the database
-toolbox.ddb.connection = 
+toolbox.ddb.connection = my_connection_string
 
 % user's login and password to database
-toolbox.ddb.user = 
-toolbox.ddb.password = 
+toolbox.ddb.user = my_login
+toolbox.ddb.password = my_password
 }}}
 
 You must also follow a [#database_interface_requirements minimum interface requirements] to prevent the toolbox from crashes.
