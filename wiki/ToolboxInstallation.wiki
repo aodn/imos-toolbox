@@ -44,10 +44,14 @@ Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` proper
 If you are using your own database, you must put the driver (.jar file) used to connect to it in the Java directory and set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) like this :
 
 {{{
-toolbox.ddb.driver = Class name of JDBC database driver
-toolbox.ddb.connection = Database connection string, must include user and password if required by the database
-toolbox.ddb.user = The user's login to database
-toolbox.ddb.password = The user's password to database
+% Class name of JDBC database driver
+toolbox.ddb.driver = my_driver
+% Database connection string, must include user and password if required by the database
+toolbox.ddb.connection = my_connection_string
+% The user's login to database
+toolbox.ddb.user = my_login
+% The user's password to database
+toolbox.ddb.password = my_password
 }}}
 
 You must also follow a [#database_interface_requirements minimum interface requirements] to prevent the toolbox from crashes.
