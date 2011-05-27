@@ -1,11 +1,17 @@
 % filename or ODBC DSN of MS-ACCESS deployment database
 toolbox.ddb = 
 
-% or full connection details to other kind of deployment database
+% or full connection details to other kind of deployment database :
+% class name of JDBC database driver
 toolbox.ddb.driver = 
+
+% database connection string, must include user and password if required by the database
 toolbox.ddb.connection = 
+
+% user's login and password to database
 toolbox.ddb.user = 
 toolbox.ddb.password = 
+
 
 % directory which contains netcdf templates
 % (defaults to ./NetCDF/template/)
