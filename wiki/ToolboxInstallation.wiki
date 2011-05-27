@@ -41,19 +41,7 @@ If you are using the MS-ACCESS deployment database, you must configure it as an 
 
 Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name. If you are not using a deployment database, ensure the `toolbox.ddb` property is unset.
 
-If you are using your own database, you must put the driver (.jar file) used to connect to it in the Java directory and set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) like this :
-
-{{{
-% class name of JDBC database driver
-toolbox.ddb.driver = my_driver
-
-% database connection string, must include user and password if required by the database
-toolbox.ddb.connection = my_connection_string
-
-% user's login and password to database
-toolbox.ddb.user = my_login
-toolbox.ddb.password = my_password
-}}}
+If you are using your own database, you must put the driver (.jar file) used to connect to it in the Java directory and set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) properly.
 
 You must also follow a [#database_interface_requirements minimum interface requirements] to prevent the toolbox from crashes.
 
