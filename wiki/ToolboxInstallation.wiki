@@ -25,7 +25,7 @@ Download a standalone archive from the [http://code.google.com/p/imos-toolbox/do
 
 === Configure Deployment Database ===
 
-Since imos-toolbox versions strictly above 1.5.5, it is possible to use either the MS-ACCESS deployment database or another user-specific database.
+Since imos-toolbox versions strictly above 1.5.5, in addition to the MS-ACCESS deployment database, it is also possible to any user-specific database.
 
 If you are using the MS-ACCESS deployment database, you must configure it as an ODBC source:
 
@@ -41,12 +41,14 @@ If you are using the MS-ACCESS deployment database, you must configure it as an 
 
 Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name. If you are not using a deployment database, ensure the `toolbox.ddb` property is unset.
 
-If you are using your own database, you must set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) and must follow a [#database_interface_requirements minimum interface requirements]:
+If you are using your own database, you must put the driver (.jar file) used to connect to it in the Java directory and set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) like this :
 
  * toolbox.ddb.driver = Class name of JDBC database driver.
  * toolbox.ddb.connection = Database connection string, must include user and password if required by the database.
  * toolbox.ddb.user = The user's login to database.
  * toolbox.ddb.password = The user's password to database.
+
+You must also follow a [#database_interface_requirements minimum interface requirements] to prevent the toolbox from crashes.
 
 === Startup ===
 
@@ -92,7 +94,7 @@ As with a standalone installation, you must [#Configure_Deployment_Database conf
 
 The ddb is accessed via Java code, thus you must also let Matlab know where the Java classes are, by editing `classpath.txt`. Assuming that matlab is installed in `C:\matlab`, and the toolbox is installed in `C:\imos-toolbox`, add the following line to the file `C:\matlab\toolbox\local\classpath.txt`:
 {{{
-C:\imos-toolbox\Java\ddb.jar
+C:\imos-toolbox\Java\*.jar
 }}}
 
 === Startup ===
