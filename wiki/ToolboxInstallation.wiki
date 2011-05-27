@@ -46,10 +46,13 @@ If you are using your own database, you must put the driver (.jar file) used to 
 {{{
 % Class name of JDBC database driver
 toolbox.ddb.driver = my_driver
+
 % Database connection string, must include user and password if required by the database
 toolbox.ddb.connection = my_connection_string
+
 % The user's login to database
 toolbox.ddb.user = my_login
+
 % The user's password to database
 toolbox.ddb.password = my_password
 }}}
