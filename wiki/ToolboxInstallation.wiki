@@ -43,7 +43,7 @@ Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` proper
 
 If you are using your own database, you must put the driver (.jar file) used to connect to it in the Java directory and set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) properly.
 
-You must also follow a [#database_interface_requirements minimum interface requirements] to prevent the toolbox from crashes.
+You must also follow a [DeploymentDatabase#Interface_requirements minimum interface requirements] to prevent the toolbox from crashes.
 
 === Startup ===
 
