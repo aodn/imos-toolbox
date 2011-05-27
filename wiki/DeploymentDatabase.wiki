@@ -24,92 +24,37 @@ The following subsections detail the tables and fields which are used by the too
  * Table and field names must be identical (case sensitive)
  * Field types must be identical/compatible
 
-=== !DeploymentData ===
-
-||<font color="red">!DeploymentId</font>||Text||
-||<font color="red">!StartFieldTrip</font>||Number||
-||<font color="red">!EndFieldTrip</font>||Number||
-||<font color="red">Site</font>||Text||
-||!EndSite||Text||
-||Station||Text||
-||!DeploymentType||Text||
-||<font color="red">InstrumentID</font>||Text||
-||SensorID||Text||
-||Sampling||Memo||
-||Sampletype||Text||
-||Capability||Text||
-||<font color="red">!FileName</font>||Text||
-||!PersonnelSetup||Text||
-||!PersonnelDownload||Text||
-||!TimeSwitchOn||Date/Time||
-||!TimeFirstWet||Date/Time||
-||<font color="red">!TimeFirstInPos</font>||Date/Time||
-||!TimeEstimatedRetrieval||Date/Time||
-||<font color="red">!TimeLastInPos</font>||Date/Time||
-||!TimeOnDeck||Date/Time||
-||!TimeSwitchOff||Date/Time||
-||!TimeFirstGoodData||Date/Time||
-||!TimeLastGoodData||Date/Time||
-||<font color="red">!TimeZone</font>||Text||
-||<font color="red">!InstrumentDepth</font>||Number||
-||!DepthTxt||Text||
-||!LinkFile1||Text||
-||!LinkFile2||Text||
-||<font color="red">Comment</font>||Memo||
-||Modified||Date/Time||
-||Complete||Yes/No||
-
-=== !FieldTrip ===
-
-||<font color="red">FieldTripID</font>||Number||
-||<font color="red">!FieldDescription</font>||Memo||
-||<font color="red">!DateStart</font>||Date/Time||
-||<font color="red">!DateEnd</font>||Date/Time||
-||Modified||Date/Time||
-
-=== Instruments ===
-
-||<font color="red">InstrumentID</font>||Text||
-||<font color="red">Make</font>||Text||
-||<font color="red">Model</font>||Text||
-||<font color="red">!SerialNumber</font>||Text||
-||!AssetNumber||Text||
-||!BarCode||Text||
-||!PurchaseDate||Date/Time||
-||!ExpiryDate||Date/Time||
-||!AssetLifeYears||Number||
-||Category||Text||
-||Sensors||Text||
-||Description||Text||
-||Capability||Text||
-||Status||Yes/No||
-||Image||Text||
-||Comment||Text||
-||Modified||Date/Time||
-
-=== Personnel ===
-
-||<font color="red">StaffID</font>||Text||
-||<font color="red">!LastName</font>||Text||
-||<font color="red">!FirstName</font>||Text||
-||<font color="red">Organisation</font>||Text||
-||Comment||Text||
-
-=== Sites ===
-
-||<font color="red">Site</font>||Text||
-||<font color="red">!SiteName</font>||Text||
-||!NominalLongitude||Number||
-||!NominalLatitude||Number||
-||<font color="red">Longitude</font>||Number||
-||<font color="red">Latitude</font>||Number||
-||Datum||Text||
-||<font color="red">Description</font>||Text||
-||Depth||Number||
-||!DepthTxt||Text||
-||Image||Text||
-||Document||Hyperlink||
-||!ResearchActivity||Text||
-||Completed||Yes/No||
-||Comment||Text||
-||Modified||Date/Time||
+||Table Name||Field Name||Data Type||Description||Compatibility||NetCDF default template||
+||FieldTrip||FieldTripID||Text||Field Trip ID - use AIMS Log Req Number||Mandatory||||
+||FieldTrip||FieldDescription||Memo||Descriptive text for field trip||Mandatory||||
+||FieldTrip||DateStart||Date/Time||Start date for field trip||Mandatory||||
+||FieldTrip||DateEnd||Date/Time||End date for field trip||Mandatory||||
+||DeploymentData||DeploymentId||Text||Code-generated unique ID||Mandatory||||
+||DeploymentData||EndFieldTrip||Text||Field Trip number||Mandatory||||
+||DeploymentData||Site||Text||Use to link to sites data table (which contains lat and long)||Mandatory||||
+||DeploymentData||InstrumentID||Text||Use to link to Instruments_Id in Instruments table (Instrument description)||Mandatory||||
+||DeploymentData||FileName||Text||Catalogue number/Sample number/File name - should ideally be a unique identifier||Mandatory||||
+||DeploymentData||TimeSwitchOn||Date/Time||Time instrument is switched on||Mandatory||||
+||DeploymentData||TimeFirstWet||Date/Time||Time instrument first in water||Mandatory||||
+||DeploymentData||TimeFirstInPos||Date/Time||Time instrumentfirst in position||Mandatory||||
+||DeploymentData||TimeLastInPos||Date/Time||Time istrument last in position||Mandatory||||
+||DeploymentData||TimeOnDeck||Date/Time||Time instrument on deck||Mandatory||||
+||DeploymentData||TimeSwitchOff||Date/Time||Time instrument switched off||Mandatory||||
+||DeploymentData||TimeFirstGoodData||Date/Time||Time of first good data||Mandatory||||
+||DeploymentData||TimeLastGoodData||Date/Time||Time of last good data||Mandatory||||
+||DeploymentData||TimeZone||Text||Time zone eg UTC,CST etc||Mandatory||||
+||DeploymentData||InstrumentDepth||Number||Depth of instrument/sample||Mandatory||GA.geospatial_vertical_min||
+||||||||||||GA.geospatial_vertical_max||
+||||||||||||VA.sensor_depth||
+||DeploymentData||Comment||Memo||Any additional comment to be attached to record||OK if template modified, otherwise mandatory||GA.comment||
+||Instruments||InstrumentID||Text||Unique ID for instrument||Mandatory||||
+||Instruments||Make||Text||Select existing make from list or add new one||Mandatory||GA.source||
+||Instruments||Model||Text||Select existing model from list or add new one||Mandatory||GA.source||
+||||||||||||GA.keywords||
+||Sites||Site||Text||Unique Site ID||Mandatory||||
+||Sites||SiteName||Text||Site Name (Not unique)||Mandatory||||
+||Sites||Longitude||Number||Longitude in decimal degrees of Deployment||OK if template modified, otherwise mandatory||GA.geospatial_lon_min||
+||||||||||||GA.geospatial_lon_max||
+||Sites||Latitude||Number||Latitude in decimal degrees of Deployment||OK if template modified, otherwise mandatory||GA.geospatial_lat_min||
+||||||||||||GA.geospatial_lat_max||
+||Sites||Description||Text||Enter description of site: eg, Scott Reef Lagoon||Mandatory||GA.abstract||
