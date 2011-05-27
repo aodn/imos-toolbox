@@ -25,7 +25,7 @@ Download a standalone archive from the [http://code.google.com/p/imos-toolbox/do
 
 === Configure Deployment Database ===
 
-Since imos-toolbox versions strictly above 1.5.5, in addition to the MS-ACCESS deployment database, it is also possible to any user-specific database.
+Since imos-toolbox versions strictly above 1.5.5, in addition to the MS-ACCESS deployment database, it is also possible to connect to any user-specific database.
 
 If you are using the MS-ACCESS deployment database, you must configure it as an ODBC source:
 
