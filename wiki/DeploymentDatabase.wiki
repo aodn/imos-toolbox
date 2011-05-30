@@ -35,7 +35,7 @@ The following subsection details these requirements:
 ||!DeploymentData||!DeploymentId||Text||Code-generated unique ID||<font color="#FF0000">Mandatory</font>||||
 ||!DeploymentData||!EndFieldTrip||Text||Field Trip number||<font color="#FF0000">Mandatory</font>||||
 ||!DeploymentData||Site||Text||Use to link to sites data table (which contains lat and long)||<font color="#FF0000">Mandatory</font>||||
-||!DeploymentData||InstrumentID||Text||Use to link to Instruments_Id in Instruments table (Instrument description)||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||InstrumentID||Text||Use to link to !Instruments_Id in Instruments table (Instrument description)||<font color="#FF0000">Mandatory</font>||||
 ||!DeploymentData||!FileName||Text||Catalogue number/Sample number/File name - should ideally be a unique identifier||<font color="#FF0000">Mandatory</font>||||
 ||!DeploymentData||!TimeSwitchOn||Date/Time||Time instrument is switched on||<font color="#FF0000">Mandatory</font>||||
 ||!DeploymentData||!TimeFirstWet||Date/Time||Time instrument first in water||<font color="#FF0000">Mandatory</font>||||
