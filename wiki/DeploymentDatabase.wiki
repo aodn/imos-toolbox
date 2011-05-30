@@ -30,7 +30,7 @@ The following subsections detail the tables and fields which are used by the too
 ||!FieldTrip||!DateStart||Date/Time||Start date for field trip||<font color="#FF0000">Mandatory</font>||||
 ||!FieldTrip||!DateEnd||Date/Time||End date for field trip||<font color="#FF0000">Mandatory</font>||||
 ||!!DeploymentData||!DeploymentId||Text||Code-generated unique ID||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||EndFieldTrip||Text||Field Trip number||<font color="#FF0000">Mandatory</font>||||
+||!!DeploymentData||!EndFieldTrip||Text||Field Trip number||<font color="#FF0000">Mandatory</font>||||
 ||!!DeploymentData||Site||Text||Use to link to sites data table (which contains lat and long)||<font color="#FF0000">Mandatory</font>||||
 ||!!DeploymentData||InstrumentID||Text||Use to link to Instruments_Id in Instruments table (Instrument description)||<font color="#FF0000">Mandatory</font>||||
 ||!!DeploymentData||!FileName||Text||Catalogue number/Sample number/File name - should ideally be a unique identifier||<font color="#FF0000">Mandatory</font>||||
