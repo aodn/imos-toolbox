@@ -2,9 +2,9 @@
 
 <wiki:toc/>
 
-Within the toolbox, the DDB is accessed through a driver written in Java. The implementation differs depending on the platform:
+Within the toolbox, the DDB is accessed through a driver written in Java. The implementation differs depending on the platform and the target DDB:
 
- * Under Windows, Sun's [http://java.sun.com/javase/6/docs/technotes/guides/jdbc/bridge.html JDBC-ODBC bridge] driver is used:
+ * Under Windows, to work with the MS-Access DDB, Sun's [http://java.sun.com/javase/6/docs/technotes/guides/jdbc/bridge.html JDBC-ODBC bridge] driver is used:
 {{{
               ------
               matlab
@@ -12,7 +12,7 @@ Within the toolbox, the DDB is accessed through a driver written in Java. The im
                  |
                  |
         --------------------
-        org.imos.ddb.JDBCDDB
+        org.imos.ddb.ODBCDDB
         --------------------
                  |
                  |
@@ -30,7 +30,7 @@ Within the toolbox, the DDB is accessed through a driver written in Java. The im
              DDB file
              --------
 }}}
- * Under Linux, libmdbsql, from [http://mdbtools.sourceforge.net/install/ mdbtools] is used, via a JNI wrapper, and a simplified native C wrapper:
+ * Under Linux, to work with the MS-Access DDB, libmdbsql from [http://mdbtools.sourceforge.net/install/ mdbtools] is used, via a JNI wrapper, and a simplified native C wrapper:
 {{{
               ------
               matlab
@@ -55,6 +55,32 @@ Within the toolbox, the DDB is accessed through a driver written in Java. The im
              ---------
              libmdbsql
              ---------
+                 |
+                 |
+             --------
+             DDB file
+             --------
+}}}
+ * Under Windows or Linux, to work with any specific-user DDB of your choice (since imos-toolbox versions strictly above 1.5.5), any java driver can be used as long as the details about your driver's name, connection string, login and password are provided in the toolboxProperties.txt:
+{{{
+              ------
+              matlab
+              ------
+                 |
+                 |
+        --------------------
+        org.imos.ddb.JDBCDDB
+        --------------------
+                 |
+                 |
+            -----------
+            your driver
+            -----------
+                 |
+                 |
+           -------------
+           your standard
+           -------------
                  |
                  |
              --------
