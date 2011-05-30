@@ -19,11 +19,13 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/ddb_schema.png
 
 == Interface requirements ==
 
-The following subsections detail the tables and fields which are used by the toolbox. 
+If one is willing to build its own deployment database, there is a minimum list of requirements to respect in order to prevent the current version of imos-toolbox from crashing (only for versions strictly above 1.5.5).
+
+The following subsection details these requirements:
  * All of these tables and fields must be present
  * Table and field names must be identical (case sensitive)
  * Field types must be identical/compatible
- * Some fields will not be mandatory if they are removed from the default NetCDF template (GA -> global attribute in NetCDF\template\global_attributes.txt, VA -> variable attribute in NetCDF\template\variable_attributes.txt)
+ * A few fields may not be mandatory if they are removed from the default NetCDF template (GA -> global attribute in NetCDF\template\global_attributes.txt, VA -> variable attribute in NetCDF\template\variable_attributes.txt)
 
 || *Table Name* || *Field Name* || *Data Type* || *Description* || *Status* || *NetCDF default template* ||
 ||!FieldTrip||FieldTripID||Text||Field Trip ID - use AIMS Log Req Number||<font color="#FF0000">Mandatory</font>||||
