@@ -24,27 +24,27 @@ The following subsections detail the tables and fields which are used by the too
  * Table and field names must be identical (case sensitive)
  * Field types must be identical/compatible
 
-||*Table Name*||*Field Name*||*Data Type*||*Description*||*Status*||*NetCDF default template*||
-||!FieldTrip||!FieldTripID||Text||Field Trip ID - use AIMS Log Req Number||<font color="#FF0000">Mandatory</font>||||
+|| *Table Name* || *Field Name* || *Data Type* || *Description* || *Status* || *NetCDF default template* ||
+||!FieldTrip||FieldTripID||Text||Field Trip ID - use AIMS Log Req Number||<font color="#FF0000">Mandatory</font>||||
 ||!FieldTrip||!FieldDescription||Memo||Descriptive text for field trip||<font color="#FF0000">Mandatory</font>||||
 ||!FieldTrip||!DateStart||Date/Time||Start date for field trip||<font color="#FF0000">Mandatory</font>||||
 ||!FieldTrip||!DateEnd||Date/Time||End date for field trip||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!DeploymentId||Text||Code-generated unique ID||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!EndFieldTrip||Text||Field Trip number||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||Site||Text||Use to link to sites data table (which contains lat and long)||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||InstrumentID||Text||Use to link to Instruments_Id in Instruments table (Instrument description)||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!FileName||Text||Catalogue number/Sample number/File name - should ideally be a unique identifier||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!TimeSwitchOn||Date/Time||Time instrument is switched on||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!TimeFirstWet||Date/Time||Time instrument first in water||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!TimeFirstInPos||Date/Time||Time instrumentfirst in position||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!TimeLastInPos||Date/Time||Time istrument last in position||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!TimeOnDeck||Date/Time||Time instrument on deck||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!TimeSwitchOff||Date/Time||Time instrument switched off||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!TimeFirstGoodData||Date/Time||Time of first good data||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!TimeLastGoodData||Date/Time||Time of last good data||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!TimeZone||Text||Time zone eg UTC,CST etc||<font color="#FF0000">Mandatory</font>||||
-||!!DeploymentData||!InstrumentDepth||Number||Depth of instrument/sample||<font color="#FF0000">Mandatory</font>||GA.geospatial_vertical_min, GA.geospatial_vertical_max, VA.sensor_depth||
-||!!DeploymentData||Comment||Memo||Any additional comment to be attached to record||Optional if removed from template, otherwise <font color="#FF0000">mandatory</font>||GA.comment||
+||!DeploymentData||!DeploymentId||Text||Code-generated unique ID||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!EndFieldTrip||Text||Field Trip number||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||Site||Text||Use to link to sites data table (which contains lat and long)||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||InstrumentID||Text||Use to link to Instruments_Id in Instruments table (Instrument description)||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!FileName||Text||Catalogue number/Sample number/File name - should ideally be a unique identifier||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!TimeSwitchOn||Date/Time||Time instrument is switched on||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!TimeFirstWet||Date/Time||Time instrument first in water||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!TimeFirstInPos||Date/Time||Time instrumentfirst in position||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!TimeLastInPos||Date/Time||Time istrument last in position||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!TimeOnDeck||Date/Time||Time instrument on deck||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!TimeSwitchOff||Date/Time||Time instrument switched off||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!TimeFirstGoodData||Date/Time||Time of first good data||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!TimeLastGoodData||Date/Time||Time of last good data||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!TimeZone||Text||Time zone eg UTC,CST etc||<font color="#FF0000">Mandatory</font>||||
+||!DeploymentData||!InstrumentDepth||Number||Depth of instrument/sample||<font color="#FF0000">Mandatory</font>||GA.geospatial_vertical_min, GA.geospatial_vertical_max, VA.sensor_depth||
+||!DeploymentData||Comment||Memo||Any additional comment to be attached to record||Optional if removed from template, otherwise <font color="#FF0000">mandatory</font>||GA.comment||
 ||Instruments||InstrumentID||Text||Unique ID for instrument||<font color="#FF0000">Mandatory</font>||||
 ||Instruments||Make||Text||Select existing make from list or add new one||<font color="#FF0000">Mandatory</font>||GA.source||
 ||Instruments||Model||Text||Select existing model from list or add new one||<font color="#FF0000">Mandatory</font>||GA.source, GA.keywords||
