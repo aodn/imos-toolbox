@@ -49,9 +49,9 @@ function imosToolbox(auto, varargin)
 
 if nargin == 0, auto = 'manual'; end
 
-if isempty(strfind(path,pwd))
-    addpath(genpath(pwd));
-
+% if running as a standalone compiled application, we must 
+% manually add the ddb.jar java library to the classpath
+if isdeployed
     % Add any *.jar java library and jdbc drivers to the classpath
     jars = dir(['Java' filesep '*.jar']);
     for j = 1 : length(jars)

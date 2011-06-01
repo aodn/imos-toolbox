@@ -117,13 +117,13 @@ end
 matlabFiles = fsearch('(?<!imosToolbox).m$', toolboxRoot, 'files');
 
 % compile the compiler options
-cflags{1}     =  '-m';
-cflags{end+1} =  '-o ''imosToolbox''';
-cflags{end+1} = ['-d ''' stagingRoot ''''];
-cflags{end+1} =  '-v';
-cflags{end+1} =  '-N';
-cflags{end+1} =  '-w enable';
-cflags{end+1} =  '-e';
+cflags{1}     =  '-m';  % generate a standalone application
+cflags{end+1} =  '-o ''imosToolbox''';  % specify output name
+cflags{end+1} = ['-d ''' stagingRoot '''']; % specified directory for output
+cflags{end+1} =  '-v';  % verbose
+cflags{end+1} =  '-N';  % clear path
+cflags{end+1} =  '-w enable';   % enable complete warning display
+%cflags{end+1} =  '-e';  % disable MS-Dos command window outputs
 
 % add matlab files to the compiler args
 cflags{end+1} = ['''' toolboxRoot filesep 'imosToolbox.m'''];
