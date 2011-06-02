@@ -17,7 +17,13 @@ This page provides an overview of the steps required in order to get the IMOS To
 
 === Install Matlab Runtime ===
 
-Download and execute the [ftp://emii2.its.utas.edu.au/pub/software/MCRInstaller/MCRInstaller.exe Matlab Runtime]. The installer is a straightforward Windows installer; you only need to run it once. After you've downloaded the file, double click on it, and follow the instructions. During installation, you might be warned about requiring the .NET Framework - you may safely ignore this warning.
+In order to run the standalone version of the Toolbox, you must first install the Matlab Component Runtime (MCR). You can download the proper MCR installer [ftp://dataupload.emii.org.au/pub/software/MCRInstaller here] :
+
+ * imos-toolbox version 1.5 : MCRInstaller_7.10.exe
+ * imos-toolbox version 1.5.5 : MCRInstaller_7.12.exe
+ * imos-toolbox > version 1.5.5 : MCRInstaller_7.14.exe
+
+The installer is a straightforward Windows installer; you only need to run it once. After you've downloaded the file, double click on it, and follow the instructions. During installation, you might be warned about requiring the .NET Framework - you may safely ignore this warning.
 
 === Install IMOS Toolbox ===
 

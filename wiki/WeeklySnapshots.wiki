@@ -20,15 +20,7 @@ The Java files are automatically compiled when the snapshot files are created, s
 
 The Java code is compiled with the Sun Java Development Kit, version 1.6.0_25.
 
-In the standalone snapshot, the matlab code is compiled with the Matlab Compiler, version 4.14 (R 2010b) since imos-toolbox versions strictly above 1.5.5. In order to run the standalone version of the Toolbox, you must first install the Matlab Component Runtime (MCR). You can download the proper MCR installer [ftp://emii2.its.utas.edu.au/pub/software/MCRInstaller here] :
-
- * imos-toolbox version 1.5 : MCRInstaller_7.10.exe
- * imos-toolbox version 1.5.5 : MCRInstaller_7.12.exe
- * imos-toolbox > version 1.5.5 : MCRInstaller_7.14.exe
-
-The installer is a straightforward Windows installer; you only need to run it once. After you've downloaded the file, double click on it, and follow the instructions. During installation, you might be warned about requiring the .NET Framework - you may safely ignore this warning.
-
-Once you have the MCR installed, you can run the Toolbox simply by double clicking on the 'imosToolbox.exe' file.
+In the standalone snapshot, the matlab code is compiled with the Matlab Compiler, version 4.14 (R 2010b) since imos-toolbox versions strictly above 1.5.5.
 
 == Submission script ==
 
