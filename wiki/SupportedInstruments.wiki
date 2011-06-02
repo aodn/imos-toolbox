@@ -5,7 +5,7 @@
 
 = Supported Instruments =
 
-This page lists the instruments which are supported by the toolbox, and the data formats required for each instrument. If you have data from an unsupported instrument, or from a supported instrument, but in an unsupported format, send me an [http://code.google.com/u/pauld.mccarthy/ email], or leave a comment on this page, and I'll look into adding support for the instrument/format.
+This page lists the instruments which are supported by the toolbox, and the data formats required for each instrument. If you have data from an unsupported instrument, or from a supported instrument, but in an unsupported format, send me an [http://code.google.com/u/guillaume.galibert/ email], or leave a comment on this page, and I'll look into adding support for the instrument/format.
 
 == Seabird SBE37/SBE39 ==
 

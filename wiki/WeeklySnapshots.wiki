@@ -84,7 +84,7 @@ stdArchive = '%04i-%02i-%02i_standalone_snapshot.zip' % (lt[0], lt[1], lt[2])
 
 srcSummary  = 'IMOS Toolbox SVN source snapshot from %s' % at 
 stdSummary  = 'IMOS Toolbox SVN standalone snapshot from %s' % at 
-compilerLog = 'C:\Documents and Settings\ggalibert\Desktop\IMOS_toolbox\snapshot\export\log.txt'
+compilerLog = '.\%s\log.txt' % exportDir
 
 #
 # export from SVN
