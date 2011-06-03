@@ -157,7 +157,7 @@ function sample_data = netcdfParse( filename )
   time = getVar(dimensions, 'TIME');
   if time ~= 0
       dimensions{time}.data = ...
-      dimensions{time}.data + datenum('1950-01-00 00:00:00');
+      dimensions{time}.data + datenum('1950-01-01 00:00:00');
   end
   
   % fill out the resulting struct
