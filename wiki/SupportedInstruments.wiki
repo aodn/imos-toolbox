@@ -90,23 +90,40 @@ The list of parameters contained in the .cnv file is configurable via the SBE Da
   * Oxygen (mg/L)
   * Salinity (PSU)
 
-== Wetlabs WQM ==
+== WET Labs WQM ==
 
-The toolbox is able to parse data retrieved from a Wetlabs WQM CTD/ECO instrument. The data must be in '.dat' format, i.e. raw data which has been processed by the WQMHost software, in tab-delimited format. WQMHost allows a wide range of fields to be included in the output file; the following are supported by the toolbox:
+The toolbox is able to parse both raw (.raw) and processed (.data) data retrieved from a Wetlabs WQM CTD/ECO instrument. 
 
- * `WQM`: literal 'WQM'
- * `SN`: serial number - required
- * `MMDDYY` (date - required
- * `HHMMSS` (time - required
- * `Conductivity` (floating point, milliSiemens/metre
- * `Temperature` (floating point, Degrees Celsius
- * `Presssure` (floating point, Decibar
- * `Salinity` (floating point, PSS
- * `Dissolved Oxygen`: (floating point, milligrams/Litre
- * `Chlorophyll`: (floating point, micrograms/Litre
- * `Turbidity`: (floating point, NTU
+=== .dat ===
+
+The '.dat' data file format, i.e. raw data which has been processed by the WQMHost software, is a tab-delimited format. WQMHost allows a wide range of fields to be included in the output file; the following are supported by the toolbox:
+
+ * `WQM`             (literal 'WQM')
+ * `SN`              (serial number - required)
+ * `MMDDYY`          (date - required)
+ * `HHMMSS`          (time - required)
+ * `Cond(mmho)`      (floating point conductivity, milliSiemens/metre)
+ * `Temp(C)`         (floating point temperature, Degrees Celsius)
+ * `Pres(dbar)`      (floating point pressure, Decibar)
+ * `Sal(PSU)`        (floating point salinity, Practical Salinity Unit)
+ * `DO(mg/l)`        (floating point dissolved oxygen, milligrams/Litre)
+ * `DO(ml/l)`        (floating point dissolved oxygen, millilitres/Litre)
+ * `DO(mmol/m^3)`    (floating point dissolved oxygen, millimole/metre^3)
+ * `CHL(ug/l)`       (floating point chlorophyll, micrograms/Litre)
+ * `F-Cal-CHL(ug/l)` (floating point factory coefficient chlorophyll, micrograms/Litre)
+ * `U-Cal-CHL(ug/l)` (floating point user coefficient chlorophyll, micrograms/Litre)
+ * `NTU`             (floating point turbidity, NTU)
 
 Any other fields which are present in the input file will be ignored.
+
+=== .raw ===
+
+The '.raw' data file format consists in an ASCII file format with a metadata header and then semi-colon seperated data fields. Although this data file format is not documented by WET Labs, Charles James (South Australia) contributed to this parser in May 2010:
+
+"Data sequence in raw file appears to be an attempt to wake up the instrument code 100 twice - I suspect this contains voltage info and other machine status data which I can't parse at this point. 
+A burst of data with line code 4 with usually only CTP and O2 (other fields are zero);
+A line of code 5 followed by code 100 then a burst of code 5 (more data now in other fields - still some zeros); 
+A line of code 6 followed by code 100 then a burst of code 6 finish up with one code 100 (or sometimes two code 130s and then a 100 - maybe some lag between response after code 6 burst);"
 
 == Aquatec Aqualogger 520 ==
 
