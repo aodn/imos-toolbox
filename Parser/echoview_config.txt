@@ -31,7 +31,7 @@
 %
 % IMOS_variable_name,   CSV_column_name,    Dimensions, Data_type,  QC_expression
 
-processing_software_version_38,    Program_version,    ,   S
+processing_software_version_38, Program_version,    ,   S
 frequency_38,           Frequency,          ,           N
 TIME,                   Date_M,             ,           DT, ones(size(TIME))
 DEPTH,                  Layer_depth,        ,           N,  ones(size(DEPTH))
@@ -40,14 +40,14 @@ DEPTH,                  Layer_depth,        ,           N,  ones(size(DEPTH))
 LATITUDE,               Lat_M,              TIME,       N,  ones(size(LATITUDE))
 LONGITUDE,              Lon_M,              TIME,       N,  ones(size(LONGITUDE))
 
-Sv_38,                  Sv_mean,            TIME DEPTH, N,  (2 - ((Sv_38 < 0) & (Sv_pcnt_good_38 > 50))) * 2 
+Sv_38,                  Sv_mean,            TIME DEPTH, N,  (2 - ((Sv_38 < 0) & (Sv_pcnt_good_38 > 50))) * 2
 Sv_pcnt_good_38,        Pct_good,           TIME DEPTH, N
-%Sv_sd_38,               Standard_deviation,	TIME DEPTH, N
-%Sv_skew_38,             Skewness,           TIME DEPTH, N
-%Sv_kurt_38,             Kurtosis,           TIME DEPTH, N
+Sv_sd_38,               Standard_deviation,	TIME DEPTH, N
+Sv_skew_38,             Skewness,           TIME DEPTH, N
+Sv_kurt_38,             Kurtosis,           TIME DEPTH, N
 mean_height_38,         Height_mean,        TIME DEPTH, N
 mean_depth_38,          Depth_mean,         TIME DEPTH,	N
 Sv_unfilt_38,           Uncleaned_Sv_mean,  TIME DEPTH, N
-%Sv_unfilt_sd_38,        Uncleaned_Standard_deviation, TIME DEPTH, N
-%Sv_unfilt_skew_38,      Uncleaned_Skewness, TIME DEPTH, N
-%Sv_unfilt_kurt_38,      Uncleaned_Kurtosis, TIME DEPTH, N
+Sv_unfilt_sd_38,        Uncleaned_Standard_deviation, TIME DEPTH, N
+Sv_unfilt_skew_38,      Uncleaned_Skewness, TIME DEPTH, N
+Sv_unfilt_kurt_38,      Uncleaned_Kurtosis, TIME DEPTH, N
