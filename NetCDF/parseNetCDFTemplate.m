@@ -272,7 +272,10 @@ function value = castAtt(value, t, qcType, dateFmt)
       % for dates, try to use provided date format, 
       % otherwise assume it is matlab serial
       val = [];
-      try      val = datenum(value, dateFmt);
+      try 
+          if ~isempty(value)
+            val = datenum(value, dateFmt);
+          end
       catch e, val = str2double(value);
       end
       value = val;
