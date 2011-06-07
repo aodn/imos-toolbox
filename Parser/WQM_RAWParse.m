@@ -1,27 +1,8 @@
 function sample_data = WQM_RAWParse( filename )
 %WQMParse Parse a .Raw file retrieved from a Wetlabs WQM instrument.
 %
-% This function is able to parse data retrieved from a Wetlabs WQM CTD/ECO 
-% instrument. The data must be in '.dat' format, i.e. raw data which has been
-% processed by the WQMHost software, in tab-delimited format. WQMHost allows a 
-% wide range of fields to be included in the output file; the following are 
-% supported by this parser:
-%
-%   WQM               (literal 'WQM')
-%   SN                (serial number - required)
-%   MMDDYY            (date - required)
-%   HHMMSS            (time - required)
-%   Conductivity      (floating point, milliSiemens/metre)
-%   Temperature       (floating point, Degrees Celsius)
-%   Presssure         (floating point, Decibar)
-%   Salinity          (floating point, PSS)
-%   Dissolved Oxygen  (floating point, milligrams/Litre)
-%   Dissolved Oxygen  (floating point, millilitres/Litre)
-%   Dissolved Oxygen  (floating point, millimole/metre^3)
-%   Chlorophyll       (floating point, micrograms/Litre)
-%   Turbidity         (floating point, NTU)
-%
-% Any other fields which are present in the input file will be ignored.
+% This function is able to parse raw data retrieved from a Wetlabs WQM CTD/ECO 
+% instrument. 
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
@@ -49,11 +30,7 @@ function sample_data = WQM_RAWParse( filename )
 %                   instrument_model:     'WQM'
 %                   instrument_serial_no: retrieved from input file
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% modified: Charles James 2010 - will now read from .Raw file output
-% directly from instrument.
-%
-% See http://www.wetlabs.com/products/wqm/wqm.htm
+% Author: Charles James 2010
 %
 
 %
@@ -366,7 +343,7 @@ A=sscanf(C,fmt,[nvars inf])';
 % Wetlabs stores conductivity in ohm/M convert to mohms/cm
 WQM.conductivity=10*A(:,1);
 
-% temperture and pressure in C and dbar
+% temperature and pressure in C and dbar
 WQM.temperature=A(:,2);
 WQM.pressure=A(:,3);
 
