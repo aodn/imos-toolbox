@@ -7,19 +7,21 @@ function sample_data = WQM_DATParse( filename )
 % wide range of fields to be included in the output file; the following are 
 % supported by this parser:
 %
-%   WQM               (literal 'WQM')
-%   SN                (serial number - required)
-%   MMDDYY            (date - required)
-%   HHMMSS            (time - required)
-%   Conductivity      (floating point, milliSiemens/metre)
-%   Temperature       (floating point, Degrees Celsius)
-%   Presssure         (floating point, Decibar)
-%   Salinity          (floating point, PSS)
-%   Dissolved Oxygen  (floating point, milligrams/Litre)
-%   Dissolved Oxygen  (floating point, millilitres/Litre)
-%   Dissolved Oxygen  (floating point, millimole/metre^3)
-%   Chlorophyll       (floating point, micrograms/Litre)
-%   Turbidity         (floating point, NTU)
+%   WQM             (literal 'WQM')
+%   SN              (serial number - required)
+%   MMDDYY          (date - required)
+%   HHMMSS          (time - required)
+%   Cond(mmho)      (floating point conductivity, milliSiemens/metre)
+%   Temp(C)         (floating point temperature, Degrees Celsius)
+%   Pres(dbar)      (floating point pressure, Decibar)
+%   Sal(PSU)        (floating point salinity, PSS)
+%   DO(mg/l)        (floating point dissolved oxygen, milligrams/Litre)
+%   DO(ml/l)        (floating point dissolved oxygen, millilitres/Litre)
+%   DO(mmol/m^3)	(floating point dissolved oxygen, millimole/metre^3)
+%   CHL(ug/l)       (floating point chlorophyll, micrograms/Litre)
+%   F-Cal-CHL(ug/l) (floating point factory coefficient chlorophyll, micrograms/Litre)
+%   U-Cal-CHL(ug/l) (floating point user coefficient chlorophyll, micrograms/Litre)
+%   NTU             (floating point turbidity, NTU)
 %
 % Any other fields which are present in the input file will be ignored.
 %
@@ -37,6 +39,7 @@ function sample_data = WQM_DATParse( filename )
 %                   Salinity          ('PSAL'): 1e^(-3) (PSS)
 %                   Dissolved Oxygen  ('DOXY'): kg/m^3
 %                   Dissolved Oxygen  ('DOX2'): mol/kg
+%                   Chlorophyll       ('CPHL'): mg/m^3
 %                   Chlorophyll       ('CPHL'): mg/m^3   (user coefficient)
 %                   Chlorophyll       ('CPHL'): mg/m^3   (factory coefficient)
 %                   Turbidity         ('TURB') NTU
