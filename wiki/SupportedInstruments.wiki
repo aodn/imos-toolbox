@@ -331,3 +331,15 @@ The toolbox currently assumes that the wave data `.wds` file adheres to the foll
 ||2        ||99 rows x 90 columns||m^2/Hz/deg||
 ||.        ||.                   ||.         ||
 ||n        ||99 rows x 90 columns||m^2/Hz/deg||
+
+== EchoView ==
+
+The toolbox includes a draft attempt to parse an echoview results comma separated variable (CSV) file into a sample_data struct. 
+
+This function is almost a generic CSV Parser. The list of fields to define and the column names that populate those fields are defined in a text file `./Parser/echoview_config.txt` or the file specified by the property 'echoview.config' if defined in `toolboxProperties.txt`.
+
+Limitations:
+ * Text quoting is not properly supported (fields cannot contain ,)
+ * Dates are only supported in the format yyyymmdd
+ * Times are only supported in the format HH:MM:SS.ss
+ * Timestamps are only supported as a date field followed by a time field yyyymmdd, HH:MM:SS.ss
