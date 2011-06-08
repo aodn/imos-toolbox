@@ -334,7 +334,7 @@ The toolbox currently assumes that the wave data `.wds` file adheres to the foll
 
 == !EchoView ==
 
-The toolbox includes a draft attempt to parse an EchoView results comma separated variable (CSV) file. 
+The toolbox includes a draft attempt to parse an !EchoView results comma separated variable (CSV) file. 
 
 This function is almost a generic CSV Parser. The list of fields to define and the column names that populate those fields are defined in a text file `./Parser/echoview_config.txt` or the file specified by the property 'echoview.config' if defined in `toolboxProperties.txt`.
 
