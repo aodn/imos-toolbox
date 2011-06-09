@@ -146,7 +146,7 @@ function exportManager(dataSets, levelNames, output, auto)
       icon = 'error';
     end
     
-    uiwait(msgbox(msg, 'Export', icon, 'modal'));
+    uiwait(msgbox(msg, 'Export', icon, 'modal'), 1);
   end
 end
 
