@@ -138,34 +138,42 @@ function flowManager()
       autoQCData{idx} = sync(sample_data, autoQCData{idx}); 
     end
     
-    function target = sync(source, target)
+    function updatedTarget = sync(source, target)
+
+      updatedTarget = source;
+      % all information from source is copied to target
+      % except for :
+      % -file_version
+      % -file_version_quality_control
+      % -meta.level
+      % -meta.log
+      % -variables.data
+      % -variables.dimensions
+      % -variables.flags
+      % -dimensions.data
+      % -dimensions.flags
+
+      updatedTarget.file_version                    = target.file_version;
+      updatedTarget.file_version_quality_control    = target.file_version_quality_control;
+
+      % meta
+      updatedTarget.meta.level       = target.meta.level;
+      updatedTarget.meta.log         = target.meta.log;
       
-      vars  = source.variables;
-      dims  = source.dimensions;
-
       % variables
-      for k = 1:length(vars)
-
-        vars{k}.data       = target.variables{k}.data;
-        vars{k}.dimensions = target.variables{k}.dimensions;
-        vars{k}.flags      = target.variables{k}.flags;
-        target.variables{k} = vars{k};
+      nVar = length(target.variables);
+      for k = 1:nVar
+        updatedTarget.variables{k}.data       = target.variables{k}.data;
+        updatedTarget.variables{k}.dimensions = target.variables{k}.dimensions;
+        updatedTarget.variables{k}.flags      = target.variables{k}.flags;
       end
       
       % dimensions
-      for k = 1:length(dims)
-
-        dims{k}.data  = target.dimensions{k}.data;
-        dims{k}.flags = target.dimensions{k}.flags;
-        target.dimensions{k} = dims{k};
+      nDim = length(target.dimensions);
+      for k = 1:nDim
+        updatedTarget.dimensions{k}.data  = target.dimensions{k}.data;
+        updatedTarget.dimensions{k}.flags = target.dimensions{k}.flags;
       end
-      
-      vars = target.variables;
-      dims = target.dimensions;
-
-      target            = source;
-      target.variables  = vars;
-      target.dimensions = dims;
     end
   end
 
