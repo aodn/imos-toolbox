@@ -87,7 +87,7 @@ function flowManager()
     
     if ~isempty(remove)
       uiwait(msgbox('Duplicate data sets were removed during the import', ...
-             'Duplicate data sets removed', 'modal'));
+             'Duplicate data sets removed', 'modal'), 1);
       importedData(remove) = [];
     end
     

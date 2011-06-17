@@ -124,6 +124,7 @@ function sample_data = aquatecParse( file )
   sample_data.meta.instrument_model     = ['Aqualogger ' model{1}];
   sample_data.meta.instrument_firmware  = firmware{1};
   sample_data.meta.instrument_serial_no = serial{1};
+  sample_data.meta.instrument_sample_interval = NaN;
   
   %
   % get regime data (mode, sample rate, etc)
@@ -148,6 +149,8 @@ function sample_data = aquatecParse( file )
   else 
     sampleInterval = sampleInterval{1}/86400;
   end
+  
+  sample_data.meta.instrument_sample_interval = 24*3600*sampleInterval;
   
   % figure out if burst or continuous mode is used - if burst 
   % mode is used, we need to average the samples in each burst

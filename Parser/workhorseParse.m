@@ -62,7 +62,7 @@ function sample_data = workhorseParse( filename )
 %
 error(nargchk(1,1,nargin));
 
-  ensembles = readWorkhorseEnsembles_cj( filename{1} );
+  ensembles = readWorkhorseEnsembles( filename{1} );
   
   if isempty(ensembles), error('no ensembles found in file'); end
 
@@ -200,6 +200,7 @@ error(nargchk(1,1,nargin));
   sample_data.meta.instrument_make      = 'Teledyne RD';
   sample_data.meta.instrument_model     = 'Workhorse ADCP';
   sample_data.meta.instrument_serial_no =  num2str(fixed.instSerialNumber(1));
+  sample_data.meta.instrument_sample_interval =  NaN;
   sample_data.meta.instrument_firmware  = ...
     strcat(num2str(fixed.cpuFirmwareVersion(1)), '.', num2str(fixed.cpuFirmwareRevision(1)));
                                     

@@ -181,6 +181,8 @@ read_pres = 0;
 % as the calibration data is read in
 sample_data.meta.instrument_make  = 'Sea-bird Electronics';
 sample_data.meta.instrument_model = 'SBE3x';
+sample_data.meta.instrument_serial_no = '';
+sample_data.meta.instrument_sample_interval = NaN;
 
 %% Read file header (which contains sensor and calibration information)
 %

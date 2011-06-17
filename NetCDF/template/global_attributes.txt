@@ -18,6 +18,8 @@ S, naming_authority             = IMOS
 S, cdm_data_type                = 
 S, metadata                     = 
 S, sensorML                     = 
+S, instrument_serial_number     = [mat updateIfEmpty(sample_data.meta.instrument_serial_no, '[ddb InstrumentID Instruments SerialNumber]')]
+N, instrument_sample_interval   = [mat sample_data.meta.instrument_sample_interval]
 S, institution_address          = 
 S, institution_postal_address   = 
 

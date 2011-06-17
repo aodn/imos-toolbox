@@ -68,11 +68,12 @@ function sample_data = DR1050Parse( filename )
   % copy all of the information over to the sample data struct
   sample_data = struct;
   
-  sample_data.meta.instrument_make      = header.make;
-  sample_data.meta.instrument_model     = header.model;
-  sample_data.meta.instrument_firmware  = header.firmware;
-  sample_data.meta.instrument_serial_no = header.serial;
-  sample_data.meta.comment              = header.comment;
+  sample_data.meta.instrument_make              = header.make;
+  sample_data.meta.instrument_model             = header.model;
+  sample_data.meta.instrument_firmware          = header.firmware;
+  sample_data.meta.instrument_serial_no         = header.serial;
+  sample_data.meta.instrument_sample_interval   = 24*3600*header.interval;
+  sample_data.meta.comment                      = header.comment;
   
   sample_data.dimensions{1}.name = 'TIME';
   sample_data.dimensions{1}.data = data.time;
@@ -145,7 +146,7 @@ function header = readHeader(fid)
         % end of sampling
         case 3, header.end      = datenum(tkns{1}{1},   'yy/mm/dd HH:MM:SS');
         
-        % sample interval
+        % sample interval in fraction nb of days
         case 4, tkns{1}{1}      = ['0000/01/00 ' tkns{1}{1}];
                 header.interval = datenum(tkns{1}{1}, 'yyyy/mm/dd HH:MM:SS');
         
