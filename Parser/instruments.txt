@@ -10,10 +10,15 @@
 SEABIRD, SBE37 - CONDUCTIVITY TEMPERATURE AND PRESSURE RECORDER,   SBE37
 SEABIRD, SBE37IM - CONDUCTIVITY TEMPERATURE AND PRESSURE RECORDER, SBE37
 SEABIRD, SBE39 - TEMPERATURE RECORDER,                             SBE39
-SEABIRD, SBE39P - TEMPERATURE & PRESSURE RECORDER,                 SBE39
+SEABIRD, SBE39P - TEMPERATURE AND PRESSURE RECORDER,                 SBE39
 WETLABS, WQM,                                                      WQM
 RDI,     ADCP - WORKHORSE,                                         workhorse
 RDI,     ADCP - QUARTERMASTER,                                     workhorse
-SEABIRD, SBE37SM - MicroCAT C-T Recorder Serial Interface and Memory, SBE37
+SEABIRD, SBE37SM - MicroCAT C-T Recorder Serial Interface and Memory, SBE37SM
 NORTEK, ADCP - AWAC, awac
 NORTEK, ADCP - CONTINENTAL, continental
+Aquatec, Aqualogger 520T, aquatec
+Aquatec, Aqualogger 520PT, aquatec
+Teledyne RD, Workhorse ADCP, workhorse
+FSI, NXIC BIO-500, NXICBinary
+SEABIRD, SBE19plus V2, SBE19
