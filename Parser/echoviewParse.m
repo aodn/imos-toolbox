@@ -73,6 +73,7 @@ function sample_data = echoviewParse( filename, platform, config )
   sample_data.meta.instrument_make = 'Simrad';
   sample_data.meta.instrument_model = 'ES60';
   sample_data.meta.instrument_serial_no = '';
+  sample_data.meta.instrument_sample_interval = NaN;
   
   sample_data.site_code='SOOP-BA';
   sample_data.meta.level=2;

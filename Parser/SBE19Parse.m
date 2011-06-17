@@ -132,13 +132,19 @@ function sample_data = SBE19Parse( filename )
   if isfield(instHeader, 'instrument_firmware')
     sample_data.meta.instrument_firmware = instHeader.instrument_firmware;
   else
-    sample_data.meta.instrument_firmware = '0';
+    sample_data.meta.instrument_firmware = '';
   end
   
   if isfield(instHeader, 'instrument_serial_no')
     sample_data.meta.instrument_serial_no = instHeader.instrument_serial_no;
   else
-    sample_data.meta.instrument_serial_no = '0';
+    sample_data.meta.instrument_serial_no = '';
+  end
+  
+  if isfield(instHeader, 'sampleInterval')
+    sample_data.meta.instrument_sample_interval = instHeader.sampleInterval;
+  else
+    sample_data.meta.instrument_sample_interval = NaN;
   end
   
   sample_data.dimensions = {};  

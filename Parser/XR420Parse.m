@@ -73,6 +73,7 @@ function sample_data = XR420Parse( filename )
   sample_data.meta.instrument_model     = header.model;
   sample_data.meta.instrument_firmware  = header.firmware;
   sample_data.meta.instrument_serial_no = header.serial;
+  sample_data.meta.instrument_sample_interval = 24*3600*header.interval;
   sample_data.meta.correction           = header.correction;
   
   sample_data.dimensions{1}.name = 'TIME';
