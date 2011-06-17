@@ -130,6 +130,7 @@ function sample_data = WQM_RAWParse( filename )
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = wqmdata.SN;
+  sample_data.meta.instrument_sample_interval = wqmdata.interval;
   
   % convert and save the time data
   time = wqmdata.datenumber;
@@ -287,7 +288,7 @@ fclose(fid);
 
 % Instrument Serial Number to start each line
 WQM.instrument='Wetlabs WQM';
-WQM.SN=a{1}(1);
+WQM.SN=num2str(a{1}(1));
 
 WQM.samp_units='datenumber';
 WQM.varlabel={'conductivity','temperature','pressure','salinity','oxygen','fluorescence','backscatterance'};
@@ -432,7 +433,7 @@ WQM.datenumber=datenum(year,month,day,hour,minute,second);
 % get interval and duration from header file
 interval=textscan(header{~cellfun('isempty',strfind(header,'Sample Interval Seconds:'))},'%24c%f');
 duration=textscan(header{~cellfun('isempty',strfind(header,'Sample Seconds:'))},'%15c%f');
-WQM.interval=interval{2}/60;
+WQM.interval=interval{2};
 WQM.duration=duration{2};
 % WQM record samples at 1 Hz
 WQM.frequency=1;

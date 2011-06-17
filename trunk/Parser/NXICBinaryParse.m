@@ -97,7 +97,7 @@ function sample_data = NXICBinaryBISParse( filename )
   sample_data.meta.instrument_make      = header.instrument_make;
   sample_data.meta.instrument_model     = header.instrument_model;
   sample_data.meta.instrument_serial_no = header.instrument_serial_no;
-
+  sample_data.meta.instrument_sample_interval = 1/header.sampleRate;
   
   sample_data.dimensions = {};
   sample_data.dimensions{1}.name = 'TIME';
@@ -291,7 +291,7 @@ bit='1';
   header.instrument_make      = 'Falmouth Scientific Instruments';
   header.instrument_model     = 'NXIC CTD';
   % data bytes 1-2
-  header.instrument_serial_no = bytecast(data(3:4), 'L', 'uint16');
+  header.instrument_serial_no = num2str(bytecast(data(3:4), 'L', 'uint16'));
   
   % Parse Options in byte 5
   option1=dec2bin(data(5),8);

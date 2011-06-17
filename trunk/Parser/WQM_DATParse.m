@@ -157,6 +157,7 @@ function sample_data = WQM_DATParse( filename )
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = samples{1}{1};
+  sample_data.meta.instrument_sample_interval = NaN;
   
   % convert and save the time data
   time = cellstr(samples{2});

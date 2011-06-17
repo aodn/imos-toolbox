@@ -168,6 +168,23 @@ function sample_data = netcdfParse( filename )
   sample_data.meta.instrument_make      = 'Unidata';
   sample_data.meta.instrument_model     = 'NetCDF';
   sample_data.meta.instrument_serial_no = '3.6';
+  sample_data.meta.instrument_sample_interval = NaN;
+  
+  if isfield(sample_data, instrument_make)
+      sample_data.meta.instrument_make = sample_data.instrument_make;
+  end
+  
+  if isfield(sample_data, instrument_model)
+      sample_data.meta.instrument_model = sample_data.instrument_model;
+  end
+  
+  if isfield(sample_data, instrument_serial_no)
+      sample_data.meta.instrument_serial_no = sample_data.instrument_serial_no;
+  end
+  
+  if isfield(sample_data, instrument_sample_interval)
+      sample_data.meta.instrument_sample_interval = sample_data.instrument_sample_interval;
+  end
 end
 
 function v = readVar(ncid, varid)
