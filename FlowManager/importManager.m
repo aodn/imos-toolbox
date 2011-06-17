@@ -297,7 +297,7 @@ function [sample_data rawFiles] = ddbImport(auto)
     % if automatic, just get the defaults from toolboxProperties.txt
     else
       dataDir   =            readProperty('startDialog.dataDir'); 
-      fieldTrip = str2double(readProperty('startDialog.fieldTrip'));
+      fieldTrip = readProperty('startDialog.fieldTrip');
       
       if isempty(dataDir), error('startDialog.dataDir is not set');   end
       if isnan(fieldTrip), error('startDialog.fieldTrip is not set'); end
