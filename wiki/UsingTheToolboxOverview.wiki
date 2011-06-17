@@ -26,7 +26,7 @@ The source version of the toolbox can be executed in an automatic manner, by pas
 
 Alternatively, you can specify the field trip, data directory, QC routines and export directory as arguments to `imosToolbox`:
 {{{
->> imosToolbox('auto', 4788, 'C:\Raw Data\', {'inWaterQC' 'outWaterQC'}, 'C:\NetCDF\')
+>> imosToolbox('auto', '4788', 'C:\Raw Data\', {'inWaterQC' 'outWaterQC'}, 'C:\NetCDF\')
 }}}
 
 == Importing data ==
