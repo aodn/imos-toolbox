@@ -1,4 +1,4 @@
-function sample_data = timeOffsetPP( sample_data )
+function sample_data = timeOffsetPP(sample_data,auto)
 %TIMEOFFSETPP Prompts the user to apply time correction to the given data 
 % sets.
 %
@@ -21,6 +21,7 @@ function sample_data = timeOffsetPP( sample_data )
 
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: Brad Morris (17/08/2010) -> enable running under batch processing
 %
 
 %
@@ -53,11 +54,14 @@ function sample_data = timeOffsetPP( sample_data )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
   
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
   
+  % auto logical in input to enable running under batch processing
+  if nargin<2, auto=false; end
+      
   offsetFile = ['Preprocessing' filesep 'timeOffsetPP.txt'];
 
   descs     = {};
@@ -85,80 +89,82 @@ function sample_data = timeOffsetPP( sample_data )
     if isnan(offsets(k)), offsets(k) = 0; end
   end
   
-  f = figure(...
-    'Name',        'Time Offset',...
-    'Visible',     'off',...
-    'MenuBar'  ,   'none',...
-    'Resize',      'off',...
-    'WindowStyle', 'Modal',...
-    'NumberTitle', 'off');
-    
-  cancelButton  = uicontrol('Style',  'pushbutton', 'String', 'Cancel');
-  confirmButton = uicontrol('Style',  'pushbutton', 'String', 'Ok');
-  
-  setCheckboxes  = [];
-  timezoneLabels = [];
-  offsetFields   = [];
-  
-  for k = 1:length(sample_data)
-    
-    setCheckboxes(k) = uicontrol(...
-      'Style',    'checkbox',...
-      'String',   descs{k},...
-      'Value',    1, ...
-      'UserData', k);
-    
-    timezoneLabels(k) = uicontrol(...
-      'Style', 'text',...
-      'String', timezones{k});
-    
-    offsetFields(k) = uicontrol(...
-      'Style',    'edit',...
-      'UserData', k, ...
-      'String',   num2str(offsets(k)));
+  if ~auto
+      f = figure(...
+          'Name',        'Time Offset',...
+          'Visible',     'off',...
+          'MenuBar'  ,   'none',...
+          'Resize',      'off',...
+          'WindowStyle', 'Modal',...
+          'NumberTitle', 'off');
+      
+      cancelButton  = uicontrol('Style',  'pushbutton', 'String', 'Cancel');
+      confirmButton = uicontrol('Style',  'pushbutton', 'String', 'Ok');
+      
+      setCheckboxes  = [];
+      timezoneLabels = [];
+      offsetFields   = [];
+      
+      for k = 1:length(sample_data)
+          
+          setCheckboxes(k) = uicontrol(...
+              'Style',    'checkbox',...
+              'String',   descs{k},...
+              'Value',    1, ...
+              'UserData', k);
+          
+          timezoneLabels(k) = uicontrol(...
+              'Style', 'text',...
+              'String', timezones{k});
+          
+          offsetFields(k) = uicontrol(...
+              'Style',    'edit',...
+              'UserData', k, ...
+              'String',   num2str(offsets(k)));
+      end
+      
+      % set all widgets to normalized for positioning
+      set(f,              'Units', 'normalized');
+      set(cancelButton,   'Units', 'normalized');
+      set(confirmButton,  'Units', 'normalized');
+      set(setCheckboxes,  'Units', 'normalized');
+      set(timezoneLabels, 'Units', 'normalized');
+      set(offsetFields,   'Units', 'normalized');
+      
+      set(f,             'Position', [0.2 0.35 0.6 0.3]);
+      set(cancelButton,  'Position', [0.0 0.0  0.5 0.1]);
+      set(confirmButton, 'Position', [0.5 0.0  0.5 0.1]);
+      
+      rowHeight = 0.9 / length(sample_data);
+      for k = 1:length(sample_data)
+          
+          rowStart = 1.0 - k * rowHeight;
+          
+          set(setCheckboxes (k), 'Position', [0.0 rowStart 0.6 rowHeight]);
+          set(timezoneLabels(k), 'Position', [0.6 rowStart 0.2 rowHeight]);
+          set(offsetFields  (k), 'Position', [0.8 rowStart 0.2 rowHeight]);
+      end
+      
+      % set back to pixels
+      set(f,              'Units', 'normalized');
+      set(cancelButton,   'Units', 'normalized');
+      set(confirmButton,  'Units', 'normalized');
+      set(setCheckboxes,  'Units', 'normalized');
+      set(timezoneLabels, 'Units', 'normalized');
+      set(offsetFields,   'Units', 'normalized');
+      
+      % set widget callbacks
+      set(f,             'CloseRequestFcn',   @cancelCallback);
+      set(f,             'WindowKeyPressFcn', @keyPressCallback);
+      set(setCheckboxes, 'Callback',          @checkboxCallback);
+      set(offsetFields,  'Callback',          @offsetFieldCallback);
+      set(cancelButton,  'Callback',          @cancelCallback);
+      set(confirmButton, 'Callback',          @confirmCallback);
+      
+      set(f, 'Visible', 'on');
+      
+      uiwait(f);
   end
-  
-  % set all widgets to normalized for positioning
-  set(f,              'Units', 'normalized');
-  set(cancelButton,   'Units', 'normalized');
-  set(confirmButton,  'Units', 'normalized');
-  set(setCheckboxes,  'Units', 'normalized');
-  set(timezoneLabels, 'Units', 'normalized');
-  set(offsetFields,   'Units', 'normalized');
-  
-  set(f,             'Position', [0.2 0.35 0.6 0.3]);
-  set(cancelButton,  'Position', [0.0 0.0  0.5 0.1]);
-  set(confirmButton, 'Position', [0.5 0.0  0.5 0.1]);
-  
-  rowHeight = 0.9 / length(sample_data);
-  for k = 1:length(sample_data)
-    
-    rowStart = 1.0 - k * rowHeight;
-    
-    set(setCheckboxes (k), 'Position', [0.0 rowStart 0.6 rowHeight]);
-    set(timezoneLabels(k), 'Position', [0.6 rowStart 0.2 rowHeight]);
-    set(offsetFields  (k), 'Position', [0.8 rowStart 0.2 rowHeight]);
-  end
-  
-  % set back to pixels
-  set(f,              'Units', 'normalized');
-  set(cancelButton,   'Units', 'normalized');
-  set(confirmButton,  'Units', 'normalized');
-  set(setCheckboxes,  'Units', 'normalized');
-  set(timezoneLabels, 'Units', 'normalized');
-  set(offsetFields,   'Units', 'normalized');
-  
-  % set widget callbacks
-  set(f,             'CloseRequestFcn',   @cancelCallback);
-  set(f,             'WindowKeyPressFcn', @keyPressCallback);
-  set(setCheckboxes, 'Callback',          @checkboxCallback);
-  set(offsetFields,  'Callback',          @offsetFieldCallback);
-  set(cancelButton,  'Callback',          @cancelCallback);
-  set(confirmButton, 'Callback',          @confirmCallback);
-  
-  set(f, 'Visible', 'on');
-  
-  uiwait(f);
   
   % apply the time offset to the selected datasets
   for k = 1:length(sample_data)
