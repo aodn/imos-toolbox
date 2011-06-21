@@ -93,10 +93,11 @@ Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the fo
 
 As with a standalone installation, you must [#Configure_Deployment_Database configure your database].
 
-The ddb is accessed via Java code, thus you must also let Matlab know where the Java classes are, by editing `classpath.txt`. Assuming that matlab is installed in `C:\matlab`, and the toolbox is installed in `C:\imos-toolbox`, add the following line to the file `C:\matlab\toolbox\local\classpath.txt`:
+The ddb is accessed via Java code, thus you must also let Matlab know where the Java classes are, by editing `classpath.txt`. To do so, open Matlab and type `edit classpath.txt` in the console. Assuming that the toolbox is installed in `C:\imos-toolbox`, add the following line to the file `classpath.txt`:
 {{{
-C:\imos-toolbox\Java\*.jar
+C:\imos-toolbox\Java\ddb.jar
 }}}
+Then restart Matlab so that those changes take effect.
 
 === Startup ===
 
