@@ -27,7 +27,7 @@ The installer is a straightforward Windows installer; you only need to run it on
 
 === Install IMOS Toolbox ===
 
-Download a standalone archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Extract the archive to a directory of your choice. 
+Download a standalone archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Most of the users should only use the last stable standalone version : imos-toolbox-X.XX_standalone.zip. Extract the archive to a directory of your choice. 
 
 === Configure Deployment Database ===
 
@@ -56,6 +56,8 @@ You must also follow a [DeploymentDatabase#Interface_requirements minimum interf
 Start the toolbox by double clicking on `imosToolbox.exe`.
 
 == Source installation ==
+
+Only high level users should be interested in using the source code, for example users that would like to contribute to the development of the code. See [http://code.google.com/p/imos-toolbox/wiki/ContributeToTheCode how to contribute to the code] part.
 
 === Requirements ===
 
