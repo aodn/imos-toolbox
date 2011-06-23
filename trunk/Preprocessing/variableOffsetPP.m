@@ -1,4 +1,4 @@
-function sample_data = variableOffsetPP( sample_data )
+function sample_data = variableOffsetPP( sample_data, auto )
 %VARIABLEOFFSETPP Allows the user to apply a linear offset and scale to the 
 % variables in the given data sets.
 %
@@ -11,11 +11,13 @@ function sample_data = variableOffsetPP( sample_data )
 % Inputs:
 %   sample_data - cell array of structs, the data sets for which variable
 %                 offset/scaling is to be applied.
+%   auto - logical, run pre-processing in batch mode
 %
 % Outputs:
 %   sample_data - same as input, potentially with variable data modified.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -47,10 +49,13 @@ function sample_data = variableOffsetPP( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
 
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
+  
+  % auto logical in input to enable running under batch processing
+  if nargin<2, auto=false; end
   
   % generate descriptions for each data set
   descs = {};
@@ -67,172 +72,194 @@ function sample_data = variableOffsetPP( sample_data )
   offsets = {};
   scales  = {};
   
-  % dialog figure
-  f = figure(...
-    'Name',        'Variable Offset',...
-    'Visible',     'off',...
-    'MenuBar',     'none',...
-    'Resize',      'off',...
-    'WindowStyle', 'modal',...
-    'NumberTitle', 'off'...
-  );
-
-  % panel which contains data set tabs
-  tabPanel = uipanel(...
-    'Parent',     f,...
-    'BorderType', 'none'...
-  );
-
-  % ok/cancel buttons
-  cancelButton  = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
-  confirmButton = uicontrol('Style', 'pushbutton', 'String', 'Ok');
-    
-  % use normalized units for positioning
-  set(f,             'Units', 'normalized');
-  set(cancelButton,  'Units', 'normalized');
-  set(confirmButton, 'Units', 'normalized');
-  set(tabPanel,      'Units', 'normalized');
-  
-  % position widgets
-  set(f,             'Position', [0.25, 0.25,  0.5, 0.5]);
-  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.1]);
-  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.1]);
-  set(tabPanel,      'Position', [0.0,  0.1,  1.0,  0.9]);
-  
-  % reset back to pixels
-  set(f,             'Units', 'pixels');
-  set(cancelButton,  'Units', 'pixels');
-  set(confirmButton, 'Units', 'pixels');
-  set(tabPanel,      'Units', 'pixels');
-  
-  % create a panel for each data set
-  setPanels = [];
-  for k = 1:length(sample_data)
-    
-    setPanels(k) = uipanel('BorderType', 'none','UserData', k); 
-  end
-  
-  % put the panels into a tabbed pane
-  tabbedPane(tabPanel, setPanels, descs, false);
-  
-  % populate the data set panels
-  for k = 1:length(sample_data)
-    
-    nVars = length(sample_data{k}.variables);
-    rh    = 0.95 / (nVars + 1);
-    offsets{k} = zeros(nVars,1);
-    scales{ k} = ones( nVars,1);
-    
-    % column headers
-    varHeaderLabel    = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
-      'String', 'Variable', 'FontWeight', 'bold');
-    minHeaderLabel    = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
-      'String', 'Minimum',  'FontWeight', 'bold');
-    meanHeaderLabel   = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
-      'String', 'Mean',     'FontWeight', 'bold');
-    maxHeaderLabel    = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
-      'String', 'Maximum',  'FontWeight', 'bold');
-    offsetHeaderLabel = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
-      'String', 'Offset',   'FontWeight', 'bold');
-    scaleHeaderLabel  = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
-      'String', 'Scale',    'FontWeight', 'bold');
-    
-    % position headers
-    set(varHeaderLabel,    'Units', 'normalized');
-    set(minHeaderLabel,    'Units', 'normalized');
-    set(meanHeaderLabel,   'Units', 'normalized');
-    set(maxHeaderLabel,    'Units', 'normalized');
-    set(offsetHeaderLabel, 'Units', 'normalized');
-    set(scaleHeaderLabel,  'Units', 'normalized');
-    
-    set(varHeaderLabel,    'Position', [0.0,  0.95 - rh, 0.16, rh]);
-    set(minHeaderLabel,    'Position', [0.16, 0.95 - rh, 0.16, rh]);
-    set(meanHeaderLabel,   'Position', [0.32, 0.95 - rh, 0.16, rh]);
-    set(maxHeaderLabel,    'Position', [0.48, 0.95 - rh, 0.16, rh]);
-    set(offsetHeaderLabel, 'Position', [0.64, 0.95 - rh, 0.16, rh]);
-    set(scaleHeaderLabel,  'Position', [0.80, 0.95 - rh, 0.16, rh]);
-    
-    set(varHeaderLabel,    'Units', 'pixels');
-    set(minHeaderLabel,    'Units', 'pixels');
-    set(meanHeaderLabel,   'Units', 'pixels');
-    set(maxHeaderLabel,    'Units', 'pixels');
-    set(offsetHeaderLabel, 'Units', 'pixels');
-    set(scaleHeaderLabel,  'Units', 'pixels');
-    
-    % column values (one row for each variable)
-    for m = 1:nVars
+  if ~auto
+      % dialog figure
+      f = figure(...
+          'Name',        'Variable Offset',...
+          'Visible',     'off',...
+          'MenuBar',     'none',...
+          'Resize',      'off',...
+          'WindowStyle', 'modal',...
+          'NumberTitle', 'off'...
+          );
       
-      v = sample_data{k}.variables{m};
-      try
-        str              = readProperty(v.name, offsetFile);
-        [offsetVal, str] = strtok(str, ',');
-        [scaleVal,  str] = strtok(str, ',');
-      catch
-        offsetVal = '0.0';
-        scaleVal  = '1.0';
+      % panel which contains data set tabs
+      tabPanel = uipanel(...
+          'Parent',     f,...
+          'BorderType', 'none'...
+          );
+      
+      % ok/cancel buttons
+      cancelButton  = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
+      confirmButton = uicontrol('Style', 'pushbutton', 'String', 'Ok');
+      
+      % use normalized units for positioning
+      set(f,             'Units', 'normalized');
+      set(cancelButton,  'Units', 'normalized');
+      set(confirmButton, 'Units', 'normalized');
+      set(tabPanel,      'Units', 'normalized');
+      
+      % position widgets
+      set(f,             'Position', [0.25, 0.25,  0.5, 0.5]);
+      set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.1]);
+      set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.1]);
+      set(tabPanel,      'Position', [0.0,  0.1,  1.0,  0.9]);
+      
+      % reset back to pixels
+      set(f,             'Units', 'pixels');
+      set(cancelButton,  'Units', 'pixels');
+      set(confirmButton, 'Units', 'pixels');
+      set(tabPanel,      'Units', 'pixels');
+      
+      % create a panel for each data set
+      setPanels = [];
+      for k = 1:length(sample_data)
+          
+          setPanels(k) = uipanel('BorderType', 'none','UserData', k);
       end
       
-      varLabel    = uicontrol(...
-        'Parent', setPanels(k), 'Style', 'text', 'String', v.name);
-      minLabel    = uicontrol(...
-        'Parent', setPanels(k), 'Style', 'text', 'String', min(v.data(:)));
-      meanLabel   = uicontrol(...
-        'Parent', setPanels(k), 'Style', 'text', 'String', mean(v.data(:)));
-      maxLabel    = uicontrol(...
-        'Parent', setPanels(k), 'Style', 'text', 'String', max(v.data(:)));
-      offsetField = uicontrol(...
-        'Parent', setPanels(k), 'Style', 'edit', 'String', offsetVal);
-      scaleField  = uicontrol(...
-        'Parent', setPanels(k), 'Style', 'edit', 'String', scaleVal);
+      % put the panels into a tabbed pane
+      tabbedPane(tabPanel, setPanels, descs, false);
       
-      set(offsetField, 'UserData', m);
-      set(offsetField, 'Callback', @offsetFieldCallback);
-      set(scaleField,  'UserData', m);
-      set(scaleField,  'Callback', @scaleFieldCallback);
-      
-      % alternate background colour for each row
-      if mod(m, 2) ~= 0
-        color = get(varLabel, 'BackgroundColor');
-        color = color - 0.05;
-        set(varLabel,    'BackgroundColor', color);
-        set(minLabel,    'BackgroundColor', color);
-        set(meanLabel,   'BackgroundColor', color);
-        set(maxLabel,    'BackgroundColor', color);
-        set(offsetField, 'BackgroundColor', color);
-        set(scaleField,  'BackgroundColor', color);
+      % populate the data set panels
+      for k = 1:length(sample_data)
+          
+          nVars = length(sample_data{k}.variables);
+          rh    = 0.95 / (nVars + 1);
+          offsets{k} = zeros(nVars,1);
+          scales{ k} = ones( nVars,1);
+          
+          % column headers
+          varHeaderLabel    = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+              'String', 'Variable', 'FontWeight', 'bold');
+          minHeaderLabel    = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+              'String', 'Minimum',  'FontWeight', 'bold');
+          meanHeaderLabel   = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+              'String', 'Mean',     'FontWeight', 'bold');
+          maxHeaderLabel    = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+              'String', 'Maximum',  'FontWeight', 'bold');
+          offsetHeaderLabel = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+              'String', 'Offset',   'FontWeight', 'bold');
+          scaleHeaderLabel  = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+              'String', 'Scale',    'FontWeight', 'bold');
+          
+          % position headers
+          set(varHeaderLabel,    'Units', 'normalized');
+          set(minHeaderLabel,    'Units', 'normalized');
+          set(meanHeaderLabel,   'Units', 'normalized');
+          set(maxHeaderLabel,    'Units', 'normalized');
+          set(offsetHeaderLabel, 'Units', 'normalized');
+          set(scaleHeaderLabel,  'Units', 'normalized');
+          
+          set(varHeaderLabel,    'Position', [0.0,  0.95 - rh, 0.16, rh]);
+          set(minHeaderLabel,    'Position', [0.16, 0.95 - rh, 0.16, rh]);
+          set(meanHeaderLabel,   'Position', [0.32, 0.95 - rh, 0.16, rh]);
+          set(maxHeaderLabel,    'Position', [0.48, 0.95 - rh, 0.16, rh]);
+          set(offsetHeaderLabel, 'Position', [0.64, 0.95 - rh, 0.16, rh]);
+          set(scaleHeaderLabel,  'Position', [0.80, 0.95 - rh, 0.16, rh]);
+          
+          set(varHeaderLabel,    'Units', 'pixels');
+          set(minHeaderLabel,    'Units', 'pixels');
+          set(meanHeaderLabel,   'Units', 'pixels');
+          set(maxHeaderLabel,    'Units', 'pixels');
+          set(offsetHeaderLabel, 'Units', 'pixels');
+          set(scaleHeaderLabel,  'Units', 'pixels');
+          
+          % column values (one row for each variable)
+          for m = 1:nVars
+              
+              v = sample_data{k}.variables{m};
+              try
+                  str              = readProperty(v.name, offsetFile);
+                  [offsetVal, str] = strtok(str, ',');
+                  [scaleVal,  str] = strtok(str, ',');
+              catch
+                  offsetVal = '0.0';
+                  scaleVal  = '1.0';
+              end
+              
+              varLabel    = uicontrol(...
+                  'Parent', setPanels(k), 'Style', 'text', 'String', v.name);
+              minLabel    = uicontrol(...
+                  'Parent', setPanels(k), 'Style', 'text', 'String', min(v.data(:)));
+              meanLabel   = uicontrol(...
+                  'Parent', setPanels(k), 'Style', 'text', 'String', mean(v.data(:)));
+              maxLabel    = uicontrol(...
+                  'Parent', setPanels(k), 'Style', 'text', 'String', max(v.data(:)));
+              offsetField = uicontrol(...
+                  'Parent', setPanels(k), 'Style', 'edit', 'String', offsetVal);
+              scaleField  = uicontrol(...
+                  'Parent', setPanels(k), 'Style', 'edit', 'String', scaleVal);
+              
+              set(offsetField, 'UserData', m);
+              set(offsetField, 'Callback', @offsetFieldCallback);
+              set(scaleField,  'UserData', m);
+              set(scaleField,  'Callback', @scaleFieldCallback);
+              
+              % alternate background colour for each row
+              if mod(m, 2) ~= 0
+                  color = get(varLabel, 'BackgroundColor');
+                  color = color - 0.05;
+                  set(varLabel,    'BackgroundColor', color);
+                  set(minLabel,    'BackgroundColor', color);
+                  set(meanLabel,   'BackgroundColor', color);
+                  set(maxLabel,    'BackgroundColor', color);
+                  set(offsetField, 'BackgroundColor', color);
+                  set(scaleField,  'BackgroundColor', color);
+              end
+              
+              % position column values
+              set(varLabel,    'Units', 'normalized');
+              set(minLabel,    'Units', 'normalized');
+              set(meanLabel,   'Units', 'normalized');
+              set(maxLabel,    'Units', 'normalized');
+              set(offsetField, 'Units', 'normalized');
+              set(scaleField,  'Units', 'normalized');
+              
+              set(varLabel,    'Position', [0.0, 0.95 - (rh*(m+1)),  0.16, rh]);
+              set(minLabel,    'Position', [0.16, 0.95 - (rh*(m+1)), 0.16, rh]);
+              set(meanLabel,   'Position', [0.32, 0.95 - (rh*(m+1)), 0.16, rh]);
+              set(maxLabel,    'Position', [0.48, 0.95 - (rh*(m+1)), 0.16, rh]);
+              set(offsetField, 'Position', [0.64, 0.95 - (rh*(m+1)), 0.16, rh]);
+              set(scaleField,  'Position', [0.80, 0.95 - (rh*(m+1)), 0.16, rh]);
+              
+              set(varLabel,    'Units', 'pixels');
+              set(minLabel,    'Units', 'pixels');
+              set(meanLabel,   'Units', 'pixels');
+              set(maxLabel,    'Units', 'pixels');
+              set(offsetField, 'Units', 'pixels');
+              set(scaleField,  'Units', 'pixels');
+          end
       end
       
-      % position column values
-      set(varLabel,    'Units', 'normalized');
-      set(minLabel,    'Units', 'normalized');
-      set(meanLabel,   'Units', 'normalized');
-      set(maxLabel,    'Units', 'normalized');
-      set(offsetField, 'Units', 'normalized');
-      set(scaleField,  'Units', 'normalized');
+      set(f,             'WindowKeyPressFcn', @keyPressCallback);
+      set(f,             'CloseRequestFcn',   @cancelButtonCallback);
+      set(cancelButton,  'Callback',          @cancelButtonCallback);
+      set(confirmButton, 'Callback',          @confirmButtonCallback);
       
-      set(varLabel,    'Position', [0.0, 0.95 - (rh*(m+1)),  0.16, rh]);
-      set(minLabel,    'Position', [0.16, 0.95 - (rh*(m+1)), 0.16, rh]);
-      set(meanLabel,   'Position', [0.32, 0.95 - (rh*(m+1)), 0.16, rh]);
-      set(maxLabel,    'Position', [0.48, 0.95 - (rh*(m+1)), 0.16, rh]);
-      set(offsetField, 'Position', [0.64, 0.95 - (rh*(m+1)), 0.16, rh]);
-      set(scaleField,  'Position', [0.80, 0.95 - (rh*(m+1)), 0.16, rh]);
-      
-      set(varLabel,    'Units', 'pixels');
-      set(minLabel,    'Units', 'pixels');
-      set(meanLabel,   'Units', 'pixels');
-      set(maxLabel,    'Units', 'pixels');
-      set(offsetField, 'Units', 'pixels');
-      set(scaleField,  'Units', 'pixels');
-    end
+      set(f, 'Visible', 'on');
+      uiwait(f);
+  else
+      for k = 1:length(sample_data)
+          
+          nVars = length(sample_data{k}.variables);
+          offsets{k} = zeros(nVars,1);
+          scales{ k} = ones( nVars,1);
+          
+          for m = 1:nVars
+              
+              v = sample_data{k}.variables{m};
+              try
+                  str              = readProperty(v.name, offsetFile);
+                  [offsets{k}(m), str] = strtok(str, ',');
+                  [scales{ k}(m),  str] = strtok(str, ',');
+              catch
+                  offsets{k}(m) = '0.0';
+                  scales{ k}(m)  = '1.0';
+              end
+          end
+      end
   end
-  
-  set(f,             'WindowKeyPressFcn', @keyPressCallback);
-  set(f,             'CloseRequestFcn',   @cancelButtonCallback);
-  set(cancelButton,  'Callback',          @cancelButtonCallback);
-  set(confirmButton, 'Callback',          @confirmButtonCallback);
-  
-  set(f, 'Visible', 'on');
-  uiwait(f);
   
   % user cancelled dialog
   if isempty(offsets) ||  isempty(scales), return; end

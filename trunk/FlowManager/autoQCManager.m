@@ -18,7 +18,8 @@ function qc_data = autoQCManager( sample_data, auto )
 %                 Will be empty if the user cancelled/interrupted the QC
 %                 process.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:	Brad Morris <b.morris@unsw.edu.au>
 %
 
 %
@@ -96,7 +97,7 @@ function qc_data = autoQCManager( sample_data, auto )
   
   % no QC routines to run
   if isempty(qcChain), return; end
-  
+ 
   if ~auto
     progress = waitbar(...
       0, 'Running QC routines', ...
@@ -106,13 +107,17 @@ function qc_data = autoQCManager( sample_data, auto )
        'setappdata(gcbf,''cancel'',true)']);
     setappdata(progress,'cancel',false);
   else
-    progress = nan;
+      %BDM - 17/08/2010 - Added disp to let user know what is going on in
+      %batch mode
+      qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
+      disp(['Using qcChain : ' qcChainStr{:}])
+      progress = nan;
   end
 
   % run each data set through the chain
   try
     for k = 1:length(sample_data),
-
+        
       for m = 1:length(qcChain)
 
         if ~auto
@@ -131,6 +136,8 @@ function qc_data = autoQCManager( sample_data, auto )
         sample_data{k} = qcFilter(...
           sample_data{k}, qcChain{m}, rawFlag, goodFlag, progress);
 
+      
+      
         % set level and file version on each QC'd data set
         sample_data{k}.meta.level = 1; 
         sample_data{k}.file_version = ...
@@ -138,9 +145,18 @@ function qc_data = autoQCManager( sample_data, auto )
         sample_data{k}.file_version_quality_control = ...
           imosFileVersion(1, 'desc');
       end
-    end
+      
+      %BDM - 24/08/2010 - Assume that what has not been flagged is now good data!
+      for l=1:length(sample_data{k}.variables)
+          sample_data{k}.variables{l}.flags(sample_data{k}.variables{l}.flags==rawFlag)=goodFlag;
+      end
+      
+    end    
   catch e
-    delete(progress);
+      %BDM - 16/08/2010 - Added if statement to stop error on auto runs
+      if ishandle(progress)
+          delete(progress);
+      end
     rethrow(e);
   end
   
@@ -210,7 +226,7 @@ function sam = qcFilter(sam, filterName, rawFlag, goodFlag, cancel)
       data  = sam.variables{k}.data;
       flags = sam.variables{k}.flags;
       len = length(data);
-
+      
       % the QC filters work on single vectors of data; 
       % we must 'slice' the data up along its dimensions
       data = data(:);
@@ -232,7 +248,7 @@ function sam = qcFilter(sam, filterName, rawFlag, goodFlag, cancel)
 
         % Flags are not overwritten - if a later routine flags the same 
         % value as a previous routine, the latter value is discarded.
-        sliceIdx = find(flagSlice == rawFlag);
+        sliceIdx = find(flagSlice == rawFlag);                
         flagIdx  = find(f         ~= goodFlag);
         idx = intersect(sliceIdx,flagIdx);
 

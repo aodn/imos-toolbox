@@ -1,15 +1,22 @@
-function autoIMOSToolbox(fieldTrip, dataDir, qcChain, exportDir)
+function autoIMOSToolbox(fieldTrip, dataDir, ppChain, qcChain, exportDir)
 %AUTOIMOSTOOLBOX Executes the toolbox automatically.
 %
 % All inputs are optional.
 %
 % Inputs:
-%   fieldTrip - Numeric ID of field trip. 
+%   fieldTrip - Unique string ID of field trip. 
 %   dataDir   - Directory containing raw data files.
+%   ppChain   - Cell array of strings, the names of pre-process to run.
 %   qcChain   - Cell array of strings, the names of QC filters to run.
-%   exportDir - Directory to store output NetCDF files.
+%   exportDir - Directory to store output files.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Ex.: 
+%   imosToolbox('auto', '4788', 'C:\Raw Data\', {'timeOffset'}, ...
+%           {'inWaterQC' 'outWaterQC'}, 'C:\NetCDF\')
+%
+% Author:		Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:	Brad Morris <b.morris@unsw.edu.au>
+%				Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -41,12 +48,12 @@ function autoIMOSToolbox(fieldTrip, dataDir, qcChain, exportDir)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(0, 4, nargin));
+  error(nargchk(0, 5, nargin));
 
   % validate and save field trip
   if nargin > 0
-    if ~isnumeric(fieldTrip), error('field trip must be numeric'); end
-    writeProperty('startDialog.fieldTrip', num2str(fieldTrip));
+    if isnumeric(fieldTrip), error('field trip must be a string'); end
+    writeProperty('startDialog.fieldTrip', fieldTrip);
   end
 
   % validate and save data dir
@@ -57,8 +64,23 @@ function autoIMOSToolbox(fieldTrip, dataDir, qcChain, exportDir)
     writeProperty('startDialog.dataDir', dataDir);
   end
 
-  % validate and save qc chain
+  % validate and save pp chain
   if nargin > 2
+    if ~iscellstr(ppChain)
+      error('ppChain must be a cell array of strings'); 
+    end
+
+    if ~isempty(qcChain)
+      ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
+      ppChainStr = deblank([ppChainStr{:}]);
+    else
+      ppChainStr = '';
+    end
+    writeProperty('preprocessManager.preprocessChain', ppChainStr);
+  end
+  
+  % validate and save qc chain
+  if nargin > 3
     if ~iscellstr(qcChain)
       error('qcChain must be a cell array of strings'); 
     end
@@ -73,17 +95,23 @@ function autoIMOSToolbox(fieldTrip, dataDir, qcChain, exportDir)
   end
 
   % validate and save export dir
-  if nargin > 3
+  if nargin > 4
     if ~ischar(exportDir),       error('exportDir must be a string');    end
     if ~exist(exportDir, 'dir'), error('exportDir must be a directory'); end
     
     writeProperty('exportDialog.defaultDir', exportDir);
   end
   
-
-  % import, QC, export
-  sample_data = importManager(true);
-  qc_data     = autoQCManager(sample_data, true);
-  exportManager({sample_data qc_data}, {'raw', 'QC'}, 'netcdf', true);
-
+  % import, pre-processing, QC, export
+  sample_data   = importManager(true);
+  sample_data   = preprocessManager(sample_data, true);
+  qc_data       = autoQCManager(sample_data, true);
+  if isempty(qc_data)
+      qc_data   = sample_data;
+  end
+  exportManager({qc_data}, {'QC'}, 'netcdf', true);
+  
+  %BDM - 17/08/2010 - Added disp to let user know what is going on
+  disp(['Writing ' fieldTrip ' to file'])
+  disp(' ')
 end
