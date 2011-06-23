@@ -1,4 +1,4 @@
-function sample_data = timeStartPP( sample_data )
+function sample_data = timeStartPP( sample_data, auto )
 %TIMESTARTPP Allows modification of a data set's starting time.
 %
 % Prompts the user to enter a new starting time for the data set. Useful for 
@@ -8,11 +8,13 @@ function sample_data = timeStartPP( sample_data )
 % Inputs:
 %   sample_data - cell array of structs, the data sets for which the starting 
 %                 time should be modified.
+%   auto - logical, check if pre-processing in batch mode
 %
 % Outputs:
 %   sample_data - same as input, with starting time modified.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -44,10 +46,14 @@ function sample_data = timeStartPP( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
 
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
+
+  % auto logical in input to check if running under batch processing
+  if nargin<2, auto=false; end
+  if auto, error('timeStart pre-processing cannot be ran in batch mode'); end
   
   timeFmt = readProperty('toolbox.timeFormat');
 

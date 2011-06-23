@@ -1,4 +1,4 @@
-function sample_data = salinityPP( sample_data )
+function sample_data = salinityPP( sample_data, auto )
 %SALINITYPP Adds a salinity variable to the given data sets, if they
 % contain conductivity, temperature and pressure variables. 
 %
@@ -10,11 +10,13 @@ function sample_data = salinityPP( sample_data )
 % Inputs:
 %   sample_data - cell array of data sets, ideally with conductivity, 
 %                 temperature and pressure variables.
+%   auto - logical, run pre-processing in batch mode
 %
 % Outputs:
 %   sample_data - the same data sets, with salinity variables added.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -46,10 +48,13 @@ function sample_data = salinityPP( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(nargin, 1, 1));
+error(nargchk(1, 2, nargin));
 
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
+
+% auto logical in input to enable running under batch processing
+if nargin<2, auto=false; end
 
 for k = 1:length(sample_data)
   
