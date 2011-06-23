@@ -1,4 +1,4 @@
-function sample_data = transformPP( sample_data )
+function sample_data = transformPP( sample_data, auto )
 %TRANSFORMPP Prompts the user to select from a list of transformation 
 % functions for the variables in the given data sets.
 %
@@ -24,15 +24,17 @@ function sample_data = transformPP( sample_data )
 %   - comment     - variable comment
 %
 % The user's most recent selections for each variable (e.g. 'VOLT_3' may 
-% always be a fluorometer) are stored in Preprocessing/transform.txt.
+% always be a fluorometer) are stored in Preprocessing/transformPP.txt.
 %
 % Inputs:
 %   sample_data - cell array of sample_data structs.
+%   auto - logical, run pre-processing in batch mode
 %
 % Outputs:
 %   sample_data - cell array of sample_data structs.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -64,10 +66,13 @@ function sample_data = transformPP( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
 
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
+  
+  % auto logical in input to enable running under batch processing
+  if nargin<2, auto=false; end
   
   % generate descriptions for each data set
   descs = {};
@@ -75,7 +80,7 @@ function sample_data = transformPP( sample_data )
     descs{k} = genSampleDataDesc(sample_data{k});
   end
   
-  transformFile = ['Preprocessing' filesep 'transform.txt'];
+  transformFile = ['Preprocessing' filesep 'transformPP.txt'];
   
   [defaultTransformNames, ...
    defaultTransformValues] = listProperties(transformFile);
@@ -85,125 +90,144 @@ function sample_data = transformPP( sample_data )
   % routines for each variable of each data set
   transformations = [];
   
-  % dialog figure
-  f = figure(...
-    'Name',        'Transform',...
-    'Visible',     'off',...
-    'MenuBar',     'none',...
-    'Resize',      'off',...
-    'WindowStyle', 'modal',...
-    'NumberTitle', 'off'...
-  );
-
-  % panel which contains data set tabs
-  tabPanel = uipanel(...
-    'Parent',     f,...
-    'BorderType', 'none'...
-  );
-
-  % ok/cancel buttons
-  cancelButton  = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
-  confirmButton = uicontrol('Style', 'pushbutton', 'String', 'Ok');
-    
-  % use normalized units for positioning
-  set(f,             'Units', 'normalized');
-  set(cancelButton,  'Units', 'normalized');
-  set(confirmButton, 'Units', 'normalized');
-  set(tabPanel,      'Units', 'normalized');
-  
-  % position widgets
-  set(f,             'Position', [0.25, 0.25, 0.5,  0.5]);
-  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.1]);
-  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.1]);
-  set(tabPanel,      'Position', [0.0,  0.1,  1.0,  0.9]);
-  
-  % reset back to pixels
-  set(f,             'Units', 'pixels');
-  set(cancelButton,  'Units', 'pixels');
-  set(confirmButton, 'Units', 'pixels');
-  set(tabPanel,      'Units', 'pixels');
-  
-  % create a panel for each data set
-  setPanels = [];
-  for k = 1:length(sample_data)
-    
-    setPanels(k) = uipanel('BorderType', 'none','UserData', k); 
-  end
-  
-  % put the panels into a tabbed pane
-  tabbedPane(tabPanel, setPanels, descs, false);
-  
-  % populate the data set panels
-  for k = 1:length(sample_data)
-   
-    sam = sample_data{k};
-    
-    nVars = length(sam.variables);
-    rh    = 0.95 / (nVars + 1);
-    
-    % column headers
-    varHeaderLabel = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
-      'String', 'Variable', 'FontWeight', 'bold');
-    tfmHeaderLabel = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
-      'String', 'Transform', 'FontWeight', 'bold');
-    
-    % position headers
-    set(varHeaderLabel, 'Units', 'normalized');
-    set(tfmHeaderLabel, 'Units', 'normalized');
-    
-    set(varHeaderLabel, 'Position', [0.0,  0.95 - rh, 0.5, rh]);
-    set(tfmHeaderLabel, 'Position', [0.5,  0.95 - rh, 0.5, rh]);
-    
-    set(varHeaderLabel, 'Units', 'pixels');
-    set(tfmHeaderLabel, 'Units', 'pixels');
-    
-    % column values (one row for each variable)
-    for m = 1:nVars
+  if ~auto
+      % dialog figure
+      f = figure(...
+          'Name',        'Transform',...
+          'Visible',     'off',...
+          'MenuBar',     'none',...
+          'Resize',      'off',...
+          'WindowStyle', 'modal',...
+          'NumberTitle', 'off'...
+          );
       
-      v    = sam.variables{m};
-      tIdx = find(ismember(defaultTransformNames, v.name));
+      % panel which contains data set tabs
+      tabPanel = uipanel(...
+          'Parent',     f,...
+          'BorderType', 'none'...
+          );
       
-      if isempty(tIdx), transformations(k,m) = 1;
-      else              transformations(k,m) = find(ismember(...
-                          allTransforms, defaultTransformValues{tIdx}));
+      % ok/cancel buttons
+      cancelButton  = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
+      confirmButton = uicontrol('Style', 'pushbutton', 'String', 'Ok');
+      
+      % use normalized units for positioning
+      set(f,             'Units', 'normalized');
+      set(cancelButton,  'Units', 'normalized');
+      set(confirmButton, 'Units', 'normalized');
+      set(tabPanel,      'Units', 'normalized');
+      
+      % position widgets
+      set(f,             'Position', [0.25, 0.25, 0.5,  0.5]);
+      set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.1]);
+      set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.1]);
+      set(tabPanel,      'Position', [0.0,  0.1,  1.0,  0.9]);
+      
+      % reset back to pixels
+      set(f,             'Units', 'pixels');
+      set(cancelButton,  'Units', 'pixels');
+      set(confirmButton, 'Units', 'pixels');
+      set(tabPanel,      'Units', 'pixels');
+      
+      % create a panel for each data set
+      setPanels = [];
+      for k = 1:length(sample_data)
+          
+          setPanels(k) = uipanel('BorderType', 'none','UserData', k);
       end
       
-      varLabel = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
-                           'String', v.name);
-      tfmMenu  = uicontrol('Parent', setPanels(k), 'Style', 'popupmenu', ...
-                           'String', allTransforms, ...
-                           'Value', transformations(k,m));
+      % put the panels into a tabbed pane
+      tabbedPane(tabPanel, setPanels, descs, false);
       
-      % alternate background colour for each row
-      if mod(m, 2) ~= 0
-        color = get(varLabel, 'BackgroundColor');
-        color = color - 0.05;
-        
-        set(varLabel, 'BackgroundColor', color);
-        set(tfmMenu,  'BackgroundColor', color);
+      % populate the data set panels
+      for k = 1:length(sample_data)
+          
+          sam = sample_data{k};
+          
+          nVars = length(sam.variables);
+          rh    = 0.95 / (nVars + 1);
+          
+          % column headers
+          varHeaderLabel = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+              'String', 'Variable', 'FontWeight', 'bold');
+          tfmHeaderLabel = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+              'String', 'Transform', 'FontWeight', 'bold');
+          
+          % position headers
+          set(varHeaderLabel, 'Units', 'normalized');
+          set(tfmHeaderLabel, 'Units', 'normalized');
+          
+          set(varHeaderLabel, 'Position', [0.0,  0.95 - rh, 0.5, rh]);
+          set(tfmHeaderLabel, 'Position', [0.5,  0.95 - rh, 0.5, rh]);
+          
+          set(varHeaderLabel, 'Units', 'pixels');
+          set(tfmHeaderLabel, 'Units', 'pixels');
+          
+          % column values (one row for each variable)
+          for m = 1:nVars
+              
+              v    = sam.variables{m};
+              tIdx = find(ismember(defaultTransformNames, v.name));
+              
+              if isempty(tIdx), transformations(k,m) = 1;
+              else              transformations(k,m) = find(ismember(...
+                      allTransforms, defaultTransformValues{tIdx}));
+              end
+              
+              varLabel = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+                  'String', v.name);
+              tfmMenu  = uicontrol('Parent', setPanels(k), 'Style', 'popupmenu', ...
+                  'String', allTransforms, ...
+                  'Value', transformations(k,m));
+              
+              % alternate background colour for each row
+              if mod(m, 2) ~= 0
+                  color = get(varLabel, 'BackgroundColor');
+                  color = color - 0.05;
+                  
+                  set(varLabel, 'BackgroundColor', color);
+                  set(tfmMenu,  'BackgroundColor', color);
+              end
+              
+              % position column values
+              set(varLabel, 'Units', 'normalized');
+              set(tfmMenu,  'Units', 'normalized');
+              
+              set(varLabel, 'Position', [0.0, 0.95 - (rh*(m+1)),  0.5, rh]);
+              set(tfmMenu,  'Position', [0.5, 0.95 - (rh*(m+1)),  0.5, rh]);
+              
+              set(varLabel, 'Units', 'pixels');
+              set(tfmMenu,  'Units', 'pixels');
+              
+              set(tfmMenu, 'Callback', @menuCallback, 'UserData', [k m]);
+          end
       end
       
-      % position column values
-      set(varLabel, 'Units', 'normalized');
-      set(tfmMenu,  'Units', 'normalized');
+      set(f,             'WindowKeyPressFcn', @keyPressCallback);
+      set(f,             'CloseRequestFcn',   @cancelButtonCallback);
+      set(cancelButton,  'Callback',          @cancelButtonCallback);
+      set(confirmButton, 'Callback',          @confirmButtonCallback);
       
-      set(varLabel, 'Position', [0.0, 0.95 - (rh*(m+1)),  0.5, rh]);
-      set(tfmMenu,  'Position', [0.5, 0.95 - (rh*(m+1)),  0.5, rh]);
-      
-      set(varLabel, 'Units', 'pixels');
-      set(tfmMenu,  'Units', 'pixels');
-      
-      set(tfmMenu, 'Callback', @menuCallback, 'UserData', [k m]);
-    end
+      set(f, 'Visible', 'on');
+      uiwait(f);
+  else
+      for k = 1:length(sample_data)
+          
+          sam = sample_data{k};
+          nVars = length(sam.variables);
+          
+          for m = 1:nVars
+              
+              v    = sam.variables{m};
+              tIdx = find(ismember(defaultTransformNames, v.name));
+              
+              if isempty(tIdx), transformations(k,m) = 1;
+              else              transformations(k,m) = find(ismember(...
+                      allTransforms, defaultTransformValues{tIdx}));
+              end
+          end
+      end
   end
-  
-  set(f,             'WindowKeyPressFcn', @keyPressCallback);
-  set(f,             'CloseRequestFcn',   @cancelButtonCallback);
-  set(cancelButton,  'Callback',          @cancelButtonCallback);
-  set(confirmButton, 'Callback',          @confirmButtonCallback);
-  
-  set(f, 'Visible', 'on');
-  uiwait(f);
   
   if isempty(transformations), return; end
   

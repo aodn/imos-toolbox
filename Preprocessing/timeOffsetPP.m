@@ -1,4 +1,4 @@
-function sample_data = timeOffsetPP(sample_data,auto)
+function sample_data = timeOffsetPP(sample_data, auto)
 %TIMEOFFSETPP Prompts the user to apply time correction to the given data 
 % sets.
 %
@@ -14,6 +14,7 @@ function sample_data = timeOffsetPP(sample_data,auto)
 % Inputs:
 %   sample_data - cell array of structs, the data sets to which time
 %                 correction should be applied.
+%   auto - logical, run pre-processing in batch mode
 %
 % Outputs:
 %   sample_data - same as input, with time correction applied.
@@ -21,7 +22,7 @@ function sample_data = timeOffsetPP(sample_data,auto)
 
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor: Brad Morris (17/08/2010) -> enable running under batch processing
+% Contributor: Brad Morris <b.morris@unsw.edu.au>
 %
 
 %

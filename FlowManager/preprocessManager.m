@@ -1,4 +1,4 @@
-function sample_data = preprocessManager( sample_data )
+function sample_data = preprocessManager( sample_data,auto)
 %PREPROCESSMANAGER Runs preprocessing filters over the given sample data 
 % structs.
 %
@@ -12,7 +12,9 @@ function sample_data = preprocessManager( sample_data )
 %   sample_data - same as input, potentially with preprocessing
 %                 modifications.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:	Brad Morris <b.morris@unsw.edu.au>
+%				Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -44,8 +46,12 @@ function sample_data = preprocessManager( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
 
+  %BDM - 12/08/2010 - added auto logical in input to enable running under
+  %batch processing
+  if nargin < 2, auto = false; end
+    
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
 
   % nothing to do
@@ -55,11 +61,14 @@ function sample_data = preprocessManager( sample_data )
   ppPrompt = true;
   ppChain  = {};
 
-  try
-    ppPrompt = eval(readProperty('preprocessManager.preprocessPrompt'));
-  catch e
+  %BDM - 12/08/2010 - added if statement to run batch
+  if ~auto
+      try
+          ppPrompt = eval(readProperty('preprocessManager.preprocessPrompt'));
+      catch e
+      end
   end
-
+  
   % get default filter chain if there is one
   try
     ppChain = ...
@@ -71,31 +80,40 @@ function sample_data = preprocessManager( sample_data )
   % if ppPrompt property is false, preprocessing is disabled
   if ~ppPrompt, return; end
 
-  % get all preprocessing routines that exist
-  ppRoutines = listPreprocessRoutines();
-
-  % prompt user to select preprocessing filters to run - the list of 
-  % initially selected options is stored in toolboxProperties as 
-  % routine names, but must be provided to the list selection dialog 
-  % as indices
-  ppChainIdx = cellfun(@(x)(find(ismember(ppRoutines,x))),ppChain);
-  ppChain = listSelectionDialog(...
-    'Select Preprocess routines', ppRoutines, ppChainIdx);
+    %BDM - 12/08/2010 - added if statement to run batch without dialogue
+    %box
+  if ~auto
+      % get all preprocessing routines that exist
+      ppRoutines = listPreprocessRoutines();
+      
+      % prompt user to select preprocessing filters to run - the list of
+      % initially selected options is stored in toolboxProperties as
+      % routine names, but must be provided to the list selection dialog
+      % as indices
+      ppChainIdx = cellfun(@(x)(find(ismember(ppRoutines,x))),ppChain);
+      ppChain = listSelectionDialog(...
+          'Select Preprocess routines', ppRoutines, ppChainIdx);
+      
+      % user cancelled dialog
+      if isempty(ppChain), return; end
+      
+      % save user's latest selection for next time - turn the ppChain
+      % cell array into a space-separated string of the names
+      ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
+      writeProperty('preprocessManager.preprocessChain', ...
+          deblank([ppChainStr{:}]));
+  end
   
-  % user cancelled dialog
-  if isempty(ppChain), return; end
-  
-  % save user's latest selection for next time - turn the ppChain
-  % cell array into a space-separated string of the names
-  ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
-  writeProperty('preprocessManager.preprocessChain', ...
-    deblank([ppChainStr{:}]));
-  
-  for k = 1:length(ppChain)
+  for k = 1:length(ppChain)    
     
     ppFunc = str2func(ppChain{k});
     
-    sample_data = ppFunc(sample_data);
+    %BDM - 17/08/2010 - Added disp to let user know what is going on in
+    %batch mode
+    if auto 
+        disp(['Preprocessing using : ' ppChain{k}])
+    end
+    sample_data = ppFunc(sample_data, auto);
   end
 
 end
