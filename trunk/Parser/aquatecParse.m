@@ -283,22 +283,30 @@ end
 %
 % set up the sample_data structure
 %
+% dimensions definition must stay in this order : T, Z, Y, X, others;
+% to be CF compliant
 sample_data.dimensions{1}.name = 'TIME';
 sample_data.dimensions{1}.data = time;
+sample_data.dimensions{2}.name = 'DEPTH';
+sample_data.dimensions{2}.data = NaN;
+sample_data.dimensions{3}.name = 'LATITUDE';
+sample_data.dimensions{3}.data = NaN;
+sample_data.dimensions{4}.name = 'LONGITUDE';
+sample_data.dimensions{4}.data = NaN;
 
 if isempty(timeIdx), error('time column is missing'); end
 
 % add a temperature variable if present
 if ~isempty(tempIdx)
     sample_data.variables{end+1}.name       = 'TEMP';
-    sample_data.variables{end}  .dimensions = [1];
+    sample_data.variables{end}  .dimensions = [1 2 3 4];
     sample_data.variables{end}  .data       = temp;
 end
 
 % add a pressure variable if present
 if ~isempty(presIdx)
     sample_data.variables{end+1}.name       = 'PRES';
-    sample_data.variables{end}  .dimensions = [1];
+    sample_data.variables{end}  .dimensions = [1 2 3 4];
     sample_data.variables{end}  .data       = pres;
 end
 end

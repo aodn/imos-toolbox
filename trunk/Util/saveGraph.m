@@ -155,4 +155,4 @@ end
 
 delete(saveFig);
 close(progress);
-uiwait(msgbox(msg, 'Save graph', icon, 'modal'), 1);
+uiwait(msgbox(msg, 'Save graph', icon, 'non-modal'));

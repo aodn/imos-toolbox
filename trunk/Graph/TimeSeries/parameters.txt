@@ -3,7 +3,7 @@
 % graphTimeSeriesCSPD just calls 
 % graphTimeSeriesTimeDepth, but 
 % changes colour limits
-%CSPD,      TimeFrequency
+CSPD,      CSPD
 CDIR,      TimeDepth
 VCUR,      TimeDepth
 UCUR,      TimeDepth

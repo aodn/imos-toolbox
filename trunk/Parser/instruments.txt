@@ -22,3 +22,4 @@ Aquatec, Aqualogger 520PT, aquatec
 Teledyne RD, Workhorse ADCP, workhorse
 FSI, NXIC BIO-500, NXICBinary
 SEABIRD, SBE19plus V2, SBE19
+RDI, ADCP - WORKHORSE QUARTERMASTER, workhorse

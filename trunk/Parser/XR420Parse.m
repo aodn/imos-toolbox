@@ -76,9 +76,16 @@ function sample_data = XR420Parse( filename )
   sample_data.meta.instrument_sample_interval = 24*3600*header.interval;
   sample_data.meta.correction           = header.correction;
   
+  % dimensions definition must stay in this order : T, Z, Y, X, others;
+  % to be CF compliant
   sample_data.dimensions{1}.name = 'TIME';
   sample_data.dimensions{1}.data = data.time;
-  
+  sample_data.dimensions{2}.name = 'DEPTH';
+  sample_data.dimensions{2}.data = NaN;
+  sample_data.dimensions{3}.name = 'LATITUDE';
+  sample_data.dimensions{3}.data = NaN;
+  sample_data.dimensions{4}.name = 'LONGITUDE';
+  sample_data.dimensions{4}.data = NaN;
   
   % copy variable data over
   data = rmfield(data, 'time');
@@ -97,7 +104,7 @@ function sample_data = XR420Parse( filename )
     
     sample_data.variables{k}.name       = name;
     sample_data.variables{k}.data       = data.(fields{k});
-    sample_data.variables{k}.dimensions = [1];
+    sample_data.variables{k}.dimensions = [1 2 3 4];
     
   end
 end
