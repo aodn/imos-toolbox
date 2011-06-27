@@ -14,7 +14,8 @@ function filename = genIMOSFileName( sample_data, suffix )
 % Outputs:
 %   filename    - the generated file name.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author: 		Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: 	Brad Morris <b.morris@unsw.edu.au>
 %
 
 %
@@ -74,6 +75,10 @@ function filename = genIMOSFileName( sample_data, suffix )
   % sanity check - ensure that file name contains 
   % only alpha numeric, hyphens and underscores
   filename(regexp(filename, '[^0-9a-zA-Z_-]')) = '-';
+  %BDM 24/02/2010 - Quick fix to get rid of multiple '-'
+  while ~isempty(strfind(filename,'--'))
+    filename=strrep(filename,'--','-');
+  end
   
   % it is assumed that the suffix is valid
   filename = [filename '.'    suffix];
@@ -99,8 +104,9 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   config = struct;
   
   % <facility_code>
-  config.facility_code = sample_data.site_code;
-  
+  %BDM 24/02/2010
+  config.facility_code = sample_data.institution;
+    
   % <data_code>
   config.data_code = '';
   

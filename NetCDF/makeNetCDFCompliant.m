@@ -15,7 +15,8 @@ function sample_data = makeNetCDFCompliant( sample_data )
 %   sample_data - same as input, with fields added/modified based on the
 %   NeteCDF template files.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -67,6 +68,31 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % merge global atts into sample_data
   sample_data = mergeAtts(sample_data, globAtts);
 
+  % update DEPTH, LATITUDE, and LONGITUDE data if relevant
+  if ~isempty(globAtts.geospatial_vertical_min) && ~isempty(globAtts.geospatial_vertical_max)
+      if globAtts.geospatial_vertical_min == globAtts.geospatial_vertical_max && ...
+              strcmp(sample_data.dimensions{2}.name, 'DEPTH') && ...
+              length(sample_data.dimensions{2}.data) == 1
+          sample_data.dimensions{2}.data = globAtts.geospatial_vertical_min;
+      end
+  end
+  
+  if ~isempty(globAtts.geospatial_lat_min) && ~isempty(globAtts.geospatial_lat_max)
+      if globAtts.geospatial_lat_min == globAtts.geospatial_lat_max && ...
+              strcmp(sample_data.dimensions{3}.name, 'LATITUDE') && ...
+              length(sample_data.dimensions{3}.data) == 1
+          sample_data.dimensions{3}.data = globAtts.geospatial_lat_min;
+      end
+  end
+  
+  if ~isempty(globAtts.geospatial_lon_min) && ~isempty(globAtts.geospatial_lon_max)
+      if globAtts.geospatial_lon_min == globAtts.geospatial_lon_max && ...
+              strcmp(sample_data.dimensions{4}.name, 'LONGITUDE') && ...
+              length(sample_data.dimensions{4}.data) == 1
+          sample_data.dimensions{4}.data = globAtts.geospatial_lon_min;
+      end
+  end
+  
   %
   % coordinate variables
   %

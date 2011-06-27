@@ -21,11 +21,15 @@ ATMS,      1, air_pressure_at_sea_level,                          Pascal,       
 CDIR,      1, direction_of_sea_water_velocity,                    Degrees clockwise from true North in the direction of the current, V, 999999.0, 0.0,     360.0
 CDOM,      0, concentration_of_coloured_dissolved_organic_matter, mg m-3,                                                            K, 999999.0, 0.0,     0.0
 CNDC,      1, sea_water_electrical_conductivity,                  S m-1,                                                             C, 999999.0, 0.0,     50000.0
-CPHL,      0, concentration_of_chlorophyll_in_sea_water,          mg m-3,                                                            K, 999999.0, 0.0,     20.0
+CPHL,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
+CHLF,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
+CHLU,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
+CHLR,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
 CSPD,      1, sea_water_speed,                                    m s-1,                                                             V, 999999.0, 0.0,     5.0
 DEPTH,     1, depth,                                              m,                                                                 E, 999999.0, 0.0,     12000.0
 DEWT,      1, dew_point_temperature,                              Celsius,                                                           M, 999999.0, -50.0,   50.0
 DIRECTION, 0, direction,                                          Degrees clockwise from true North,                                 E, 999999.0, 0.0,     360.0
+DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,        mol m-3,                                                          O, 999999.0, 0.0,     0.0
 DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         mol kg-1,                                                          O, 999999.0, 0.0,     0.0
 DOXY,      1, mass_concentration_of_oxygen_in_sea_water,          kg m-3,                                                            O, 999999.0, 0.0,     0.0
 DOXY_TEMP, 1, temperature_of_sensor_for_oxygen_in_sea_water,      Celsius,                                                           T, 999999.0, 0.0,     50.0
@@ -48,19 +52,19 @@ LW,        1, surface_downwelling_longwave_flux_in_air,           W m-2,        
 LW_NET,    1, surface_new_upward_longwave_flux,                   W m-2,                                                             F, 999999.0, 0.0,     0.0
 MASS_NET,  1, upward_mass_flux_of_air,                            kg m-2 s-1,                                                        F, 999999.0, 0.0,     0.0
 NSCT,      1, northward_sea_water_velocity,                       m s-1,                                                             V, 999999.0, -5.0,    5.0
-NTRI,      0, mole_concentration_of_nitrate_in_sea_water,         mole m-3,                                                          K, 999999.0, 0.0,     0.0
+NTRI,      1, mole_concentration_of_nitrate_in_sea_water,         mole m-3,                                                          K, 999999.0, 0.0,     0.0
 OPBS,      0, optical_backscattering_coefficient,                 .,                                                                 C, 999999.0, 0.0,     0.0
 PCO2,      1, surface_partial_pressure_of_carbon_dioxide_in_air,  Pascal,                                                            K, 999999.0, 0.0,     0.0
-PHOS,      0, moles_of_phosphate_per_unit_mass_in_sea_water,      mole kg-1,                                                         K, 999999.0, 0.0,     0.0
-PITCH,     0, pitch,                                              Degrees,                                                           E, 999999.0, -180.0,  180.0
+PHOS,      1, moles_of_phosphate_per_unit_mass_in_sea_water,      mole kg-1,                                                         K, 999999.0, 0.0,     0.0
+PITCH,     1, platform_pitch_angle,                               Degrees,                                                           E, 999999.0, -180.0,  180.0
 PRES,      1, sea_water_pressure,                                 dbar,                                                              P, 999999.0, 0.0,     12000.0
 PSAL,      1, sea_water_salinity,                                 1e-3,                                                              S, 999999.0, 0.0,     100.0
 Q,         1, specific_humidity,                                  percent,                                                           M, 999999.0, 0.0,     150.0
 RAIN,      1, rainfall_rate,                                      mm s-1,                                                            M, 999999.0, 0.0,     0.0
 RAIT,      1, thickness_of_rainfall_amount,                       m,                                                                 M, 999999.0, 0.0,     0.0
 RELH,      1, relative_humidity,                                  percent,                                                           M, 999999.0, 0.0,     150.0
-ROLL,      0, roll,                                               Degrees,                                                           E, 999999.0, -180.0,  180.0
-SLCA,      0, mole_concentration_of_silicate_in_sea_water,        mole m-3,                                                          K, 999999.0, 0.0,     0.0
+ROLL,      1, platform_roll_angle,                                Degrees,                                                           E, 999999.0, -180.0,  180.0
+SLCA,      1, mole_concentration_of_silicate_in_sea_water,        mole m-3,                                                          K, 999999.0, 0.0,     0.0
 SRAD,      1, isotropic_shortwave_radiance_in_air,                W m-1 sr-1,                                                        F, 999999.0, 0.0,     0.0
 SST,       1, sea_surface_skin_temperature,                       Celsius,                                                           T, 999999.0, 0.0,     0.0
 SSDS,      0, sea_surface_wave_directional_spread,                Degrees clockwise from true North,                                 W, 999999.0, 0.0,     360.0

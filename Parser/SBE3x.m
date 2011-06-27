@@ -393,13 +393,21 @@ if ~isempty(conductivity), conductivity(nsamples:end) = []; end
 if ~isempty(pressure),     pressure(    nsamples:end) = []; end
 if ~isempty(salinity),     salinity(    nsamples:end) = []; end
 
+% dimensions definition must stay in this order : T, Z, Y, X, others;
+% to be CF compliant
 % copy the data into the sample_data struct
 sample_data.dimensions{1}.name = TIME_NAME;
 sample_data.dimensions{1}.data = time;
+sample_data.dimensions{2}.name = 'DEPTH';
+sample_data.dimensions{2}.data = NaN;
+sample_data.dimensions{3}.name = 'LATITUDE';
+sample_data.dimensions{3}.data = NaN;
+sample_data.dimensions{4}.name = 'LONGITUDE';
+sample_data.dimensions{4}.data = NaN;
 
 for k = 1:length(sample_data.variables)
   
-  sample_data.variables{k}.dimensions = [1];
+  sample_data.variables{k}.dimensions = [1 2 3 4];
   
   switch sample_data.variables{k}.name
     case TEMPERATURE_NAME,  sample_data.variables{k}.data = temperature;
