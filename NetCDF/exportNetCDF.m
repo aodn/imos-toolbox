@@ -133,7 +133,8 @@ function filename = exportNetCDF( sample_data, dest )
       sample_data.dimensions{m}.vid   = vid;
       sample_data.dimensions{m}.qcvid = qcvid;
     end
-
+    
+    
     %
     % variable (and ancillary QC variable) definitions
     %
@@ -199,6 +200,9 @@ function filename = exportNetCDF( sample_data, dest )
       qcvid   = dims{m}.qcvid;
       data    = dims{m}.data;
 
+      % replace NaN's with fill value
+      data(isnan(data)) = dims{m}.FillValue_;
+      
       netcdf.putVar(fid, vid, data');
       
       % ancillary QC variable data

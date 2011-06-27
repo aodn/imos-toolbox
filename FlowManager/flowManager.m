@@ -87,7 +87,7 @@ function flowManager()
     
     if ~isempty(remove)
       uiwait(msgbox('Duplicate data sets were removed during the import', ...
-             'Duplicate data sets removed', 'modal'), 1);
+             'Duplicate data sets removed', 'non-modal'));
       importedData(remove) = [];
     end
     
@@ -173,6 +173,31 @@ function flowManager()
       for k = 1:nDim
         updatedTarget.dimensions{k}.data  = target.dimensions{k}.data;
         updatedTarget.dimensions{k}.flags = target.dimensions{k}.flags;
+        
+        % update DEPTH, LATITUDE, and LONGITUDE data if relevant
+        if ~isempty(updatedTarget.geospatial_vertical_min) && ~isempty(updatedTarget.geospatial_vertical_max)
+            if updatedTarget.geospatial_vertical_min == updatedTarget.geospatial_vertical_max && ...
+                    strcmp(updatedTarget.dimensions{k}.name, 'DEPTH') && ...
+                    length(updatedTarget.dimensions{k}.data) == 1
+                updatedTarget.dimensions{k}.data = updatedTarget.geospatial_vertical_min;
+            end
+        end
+        
+        if ~isempty(updatedTarget.geospatial_lat_min) && ~isempty(updatedTarget.geospatial_lat_max)
+            if updatedTarget.geospatial_lat_min == updatedTarget.geospatial_lat_max && ...
+                    strcmp(updatedTarget.dimensions{k}.name, 'LATITUDE') && ...
+                    length(updatedTarget.dimensions{k}.data) == 1
+                updatedTarget.dimensions{k}.data = updatedTarget.geospatial_lat_min;
+            end
+        end
+        
+        if ~isempty(updatedTarget.geospatial_lon_min) && ~isempty(updatedTarget.geospatial_lon_max)
+            if updatedTarget.geospatial_lon_min == updatedTarget.geospatial_lon_max && ...
+                    strcmp(updatedTarget.dimensions{k}.name, 'LONGITUDE') && ...
+                    length(updatedTarget.dimensions{k}.data) == 1
+                updatedTarget.dimensions{k}.data = updatedTarget.geospatial_lon_min;
+            end
+        end
       end
     end
   end
