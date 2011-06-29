@@ -1,7 +1,8 @@
 % if not listed in this file, -> graphTimeSeriesGeneric
 
 % graphTimeSeriesCSPD just calls 
-% graphTimeSeriesTimeDepth, but 
+% graphTimeSeriesGeneric if length(DEPTH)==1,
+% else graphTimeSeriesTimeDepth and 
 % changes colour limits
 CSPD,      CSPD
 CDIR,      TimeDepth
