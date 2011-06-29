@@ -15,7 +15,8 @@ function [h labels] = graphTimeSeriesCSPD( ax, sample_data, var )
 %   h           - Handle to the surface which was plotted.
 %   labels      - Cell array containing X/Y labels to use
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -48,9 +49,13 @@ function [h labels] = graphTimeSeriesCSPD( ax, sample_data, var )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-[h labels] = graphTimeSeriesTimeDepth(ax, sample_data, var);
-
-% setting max colour limit to 0.25 of the maximum 
-% CSPD value works well for all my test data
-var = sample_data.variables {var};
-set(ax, 'CLim', [0, max(max(var.data))/4]);
+if length(sample_data.dimensions{2}.data) == 1
+    [h labels] = graphTimeSeriesGeneric(ax, sample_data, var);
+else
+    [h labels] = graphTimeSeriesTimeDepth(ax, sample_data, var);
+    
+    % setting max colour limit to 0.25 of the maximum
+    % CSPD value works well for all my test data
+    var = sample_data.variables {var};
+    set(ax, 'CLim', [0, max(max(var.data))/4]);
+end
