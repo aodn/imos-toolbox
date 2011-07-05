@@ -86,7 +86,6 @@ function exportManager(dataSets, levelNames, output, auto)
     [exportDir dataSets] = ...
       exportDialog(dataSets, levelNames, setNames, varOpts);
   else
-      %BDM - 25/08/2010 - Need to add something here to deselect variables (i.e. NXIC - ORS065)
     exportDir = readProperty('exportDialog.defaultDir');
     
     for k = 2:numLevels, dataSets{1} = [dataSets{1} dataSets{k}]; end

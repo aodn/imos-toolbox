@@ -119,7 +119,7 @@ function displayManager(windowTitle, sample_data, callbacks)
   % define the user options, and create the main window
   states = {'Import', 'Metadata', 'Raw data', 'Quality Control', ...
             'Export NetCDF', 'Export Raw'};
-  
+
   mainWindow(windowTitle, sample_data, states, 3, @stateSelectCallback);
       
   function state = stateSelectCallback(event,...
