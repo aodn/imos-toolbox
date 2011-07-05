@@ -110,7 +110,7 @@ function qc_data = autoQCManager( sample_data, auto )
       %BDM - 17/08/2010 - Added disp to let user know what is going on in
       %batch mode
       qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
-      disp(['Using qcChain : ' qcChainStr{:}])
+      disp(['Quality control using : ' qcChainStr{:}])
       progress = nan;
   end
 

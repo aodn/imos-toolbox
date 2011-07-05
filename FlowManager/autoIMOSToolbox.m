@@ -52,66 +52,86 @@ function autoIMOSToolbox(fieldTrip, dataDir, ppChain, qcChain, exportDir)
 
   % validate and save field trip
   if nargin > 0
-    if isnumeric(fieldTrip), error('field trip must be a string'); end
-    writeProperty('startDialog.fieldTrip', fieldTrip);
+      if isnumeric(fieldTrip), error('field trip must be a string'); end
+      writeProperty('startDialog.fieldTrip', fieldTrip);
+  else
+      try
+          fieldTrip = readProperty('startDialog.fieldTrip');
+      catch e
+      end
   end
 
   % validate and save data dir
   if nargin > 1
-    if ~ischar(dataDir),       error('dataDir must be a string');    end
-    if ~exist(dataDir, 'dir'), error('dataDir must be a directory'); end
-
-    writeProperty('startDialog.dataDir', dataDir);
+      if ~ischar(dataDir),       error('dataDir must be a string');    end
+      if ~exist(dataDir, 'dir'), error('dataDir must be a directory'); end
+      
+      writeProperty('startDialog.dataDir', dataDir);
+  else
+      try
+          dataDir = readProperty('startDialog.dataDir');
+      catch e
+      end
   end
 
   % validate and save pp chain
   if nargin > 2
-    if ~iscellstr(ppChain)
-      error('ppChain must be a cell array of strings'); 
-    end
-
-    if ~isempty(qcChain)
-      ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
-      ppChainStr = deblank([ppChainStr{:}]);
-    else
-      ppChainStr = '';
-    end
-    writeProperty('preprocessManager.preprocessChain', ppChainStr);
+      if ~iscellstr(ppChain)
+          error('ppChain must be a cell array of strings');
+      end
+      
+      if ~isempty(qcChain)
+          ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
+          ppChainStr = deblank([ppChainStr{:}]);
+      else
+          ppChainStr = '';
+      end
+      writeProperty('preprocessManager.preprocessChain', ppChainStr);
   end
   
   % validate and save qc chain
   if nargin > 3
-    if ~iscellstr(qcChain)
-      error('qcChain must be a cell array of strings'); 
-    end
-
-    if ~isempty(qcChain)
-      qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
-      qcChainStr = deblank([qcChainStr{:}]);
-    else
-      qcChainStr = '';
-    end
-    writeProperty('autoQCManager.autoQCChain', qcChainStr);
+      if ~iscellstr(qcChain)
+          error('qcChain must be a cell array of strings');
+      end
+      
+      if ~isempty(qcChain)
+          qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
+          qcChainStr = deblank([qcChainStr{:}]);
+      else
+          qcChainStr = '';
+      end
+      writeProperty('autoQCManager.autoQCChain', qcChainStr);
   end
 
   % validate and save export dir
   if nargin > 4
-    if ~ischar(exportDir),       error('exportDir must be a string');    end
-    if ~exist(exportDir, 'dir'), error('exportDir must be a directory'); end
-    
-    writeProperty('exportDialog.defaultDir', exportDir);
+      if ~ischar(exportDir),       error('exportDir must be a string');    end
+      if ~exist(exportDir, 'dir'), error('exportDir must be a directory'); end
+      
+      writeProperty('exportDialog.defaultDir', exportDir);
+  else
+      try
+          exportDir = readProperty('exportDialog.defaultDir');
+      catch e
+      end
   end
   
   % import, pre-processing, QC, export
+  [~, sourceFolder] = fileparts(dataDir);
+  fprintf('%s', ['Importing ' fieldTrip ' from folder ' sourceFolder ' : '])
   sample_data   = importManager(true);
+  fprintf('%s\n', 'done.')
+  
   sample_data   = preprocessManager(sample_data, true);
+  
   qc_data       = autoQCManager(sample_data, true);
+  
+  [~, targetFolder] = fileparts(exportDir);
+  fprintf('%s', ['Writing ' fieldTrip ' to folder ' targetFolder ' : '])
   if isempty(qc_data)
       qc_data   = sample_data;
   end
   exportManager({qc_data}, {'QC'}, 'netcdf', true);
-  
-  %BDM - 17/08/2010 - Added disp to let user know what is going on
-  disp(['Writing ' fieldTrip ' to file'])
-  disp(' ')
+  fprintf('%s\n', 'done.')
 end
