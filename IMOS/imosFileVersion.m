@@ -1,19 +1,20 @@
 function value = imosFileVersion(index, field)
 %IMOSFILEVERSION Returns the name, file ID or description of file version 
-% with the given index.
+% with the given index, or return the index with the given name.
 %
 % IMOS file versions are defined in the imosFileVersion.txt file. This
 % function returns the name, description or file ID of the file version
-% with the given index. The given field parameter must be one of 'fileid',
-% 'name' or 'desc'.
+% with the given index, or the index of the file_version given its name
+% The given field parameter must be one of 'index, 'fileid', 'name' or 
+% 'desc'.
 %
 % Inputs:
-%   index - Index of the required file version. 
-%   field - Either 'fileid', 'name' or 'desc'.
+%   index - Index or name of the required file version. 
+%   field - Either 'index', 'fileid', 'name' or 'desc'.
 %
 % Outputs:
-%   value - the requested field of the given file version, either the file
-%           ID, the name, or the description.
+%   value - the requested field of the given file version, either the index, 
+%           file ID, the name, or the description.
 %
 
 %
@@ -47,7 +48,7 @@ function value = imosFileVersion(index, field)
 %
 
 error(nargchk(2, 2, nargin));
-if ~isnumeric(index), error('index must be a string'); end
+if isnumeric(index), index = num2str(index); end
 if ~ischar(field),    error('field must be a string'); end
 
 index = num2str(index);
@@ -78,14 +79,20 @@ descs   = params{4};
 
 % search the list for an index match
 for k = 1:length(names)
-
-  if strcmp(index, indices{k})
-
     switch field
-      case 'fileid', value = fileids{k};
-      case 'name',   value = names{k};
-      case 'desc',   value = descs{k};
+        case 'index'
+            if strcmp(index, names{k})
+                value = str2double(indices{k});
+                break;
+            end
+        otherwise
+            if strcmp(index, indices{k})
+                switch field
+                    case 'fileid', value = fileids{k};
+                    case 'name',   value = names{k};
+                    case 'desc',   value = descs{k};
+                end
+                break;
+            end
     end
-    break;
-  end
 end
