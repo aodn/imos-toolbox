@@ -98,18 +98,18 @@ function sample_data = SBE19Parse( filename )
   end
   
   % read in the raw instrument header
-  if strcmp('hex', filename(end-2:end))
+  [~, ~, ext] = fileparts(filename);
+  if strcmpi(ext, '.hex')
     instHeader = parseInstrumentHeader(instHeaderLines);
-    procHeader = parseProcessedHeader( procHeaderLines);
   else
-    instHeader=parseInstrumentHeaderCNV(instHeaderLines,procHeaderLines);
-    procHeader = parseProcessedHeader(procHeaderLines);
+    instHeader = parseInstrumentHeaderCNV(instHeaderLines,procHeaderLines);
   end
+  procHeader = parseProcessedHeader(procHeaderLines);
       
   % use the appropriate subfunction to read in the data
   % assume that anything with a suffix not equal to .hex
   % is a .cnv file
-  if strcmp('hex', filename(end-2:end))
+  if strcmpi(ext, '.hex')
     data = readSBE19hex(dataLines, instHeader);
   else
     data = readSBE19cnv(dataLines, instHeader, procHeader);
@@ -151,10 +151,9 @@ function sample_data = SBE19Parse( filename )
   sample_data.dimensions = {};  
   sample_data.variables  = {};
   
-  % dimensions definition must stay in this order : T, Z, Y, X, others;
-  % to be CF compliant
-  % generate time data from header information
+  % dimensions creation
   sample_data.dimensions{1}.name = 'TIME';
+  % generate time data from header information
   sample_data.dimensions{1}.data = genTimestamps(instHeader, data);
   sample_data.dimensions{2}.name = 'DEPTH';
   sample_data.dimensions{2}.data = NaN;
@@ -170,7 +169,10 @@ function sample_data = SBE19Parse( filename )
     
     if strncmp('TIME', vars{k}, 4), continue; end
       
+    % dimensions definition must stay in this order : T, Z, Y, X, others;
+    % to be CF compliant
     sample_data.variables{end+1}.dimensions = [1 2 3 4];
+    
     sample_data.variables{end  }.name       = vars{k};
     sample_data.variables{end  }.data       = data.(vars{k});
   end
@@ -522,7 +524,7 @@ function header = parseInstrumentHeader2CNV(headerLines)
     % then try time start expr
     tkns = regexp(headerLines{k}, timeExpr, 'tokens');
     if ~isempty(tkns)
-      header.castDate   = datenum(   tkns{1}{1}, 'mmm dd yyyy HH:MM:SS')
+      header.castDate = datenum(   tkns{1}{1}, 'mmm dd yyyy HH:MM:SS');
       continue;
     end
     

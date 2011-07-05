@@ -4,11 +4,9 @@ function ensembles = readWorkhorseEnsembles_cj( filename )
 %
 % This function parses a binary file retrieved from a Teledyne RD Workhorse
 % ADCP instrument. This function is only able to interpret raw files in the
-% PD0 format (as it stands at December 2008). See the Workhorse H-ADCP
-% Operation manual for a description of the output format.
+% PD0 format (as it stands at December 2008). See  WorkHorse Commands and
+% Ouput Data Format Document (P/N 957-6156-00)
 %
-% This function is very slow (about 30 seconds on test data of ~8000
-% ensembles/8MB). Re-implementing in C would provide much better performance.
 %
 % A raw Workhorse data file consists of a set of 'ensembles'. Each ensemble
 % contains data for one sample period. An ensemble is made up of a number
@@ -20,16 +18,15 @@ function ensembles = readWorkhorseEnsembles_cj( filename )
 %   - Variable Leader Data:  Time, temperature, salinity etc. Always
 %                            present.
 %   - Velocity:              Current velocities for each depth (a.k.a
-%                            'bins' or 'cells').
+%                            'bins' or 'cells').  Technically optional but
+%                            we are wasting our time if it's not here!
 %   - Correlation Magnitude: 'Magnitude of the normalized echo
 %                            autocorrelation at the lag used for estimating
-%                            the Doppler phase change'. I don't know what
-%                            this means.
-%   - Echo Intensity:        Echo intensity data. I don't know what this
-%                            means.
+%                            the Doppler phase change'. 
+%   - Echo Intensity:        Echo intensity data. 
 %   - Percent Good:          Percentage of good data for each depth cell.
-%   - Bottom Track Data:     Bottom track data. I don't know what this
-%                            means.
+%   - Bottom Track Data:     Bottom track data.  (not really necessary for
+%                            bottom moored upward looking ADCP)
 %
 % This function parses the ensembles, and returns all of them in a cell
 % array.
@@ -40,8 +37,9 @@ function ensembles = readWorkhorseEnsembles_cj( filename )
 % Outputs:
 %   ensembles - Cell array of ensembles.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% vectorized by Charles James May 2010
+% Based on original code from imos-toolbox "readWorkhorseEnsembles.m" by
+% Paul McCarthy <paul.mccarthy@csiro.au>
+% Author: Charles James <paul.mccarthy@csiro.au>
 
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
@@ -108,20 +106,15 @@ dataSourceID=127;
 %ensembles    = {};
 %numEnsembles = 0;
 
-% parse one ensemble at a time until we run out of ensembles
 
-% nah, let's do them all at once!
+% try and parse all ensembles at once
 
+ind=1:length(data)-1;
 % we will try this is a couple of steps
 
 % ensemble is indicated by header and data source IDs is the data field;
 % idx will indicate the start of a possible ensemble
-idh = (data==headerID);
-
-idd = (data==dataSourceID);
-idd = idd & [false; idh(1:end-1)];
-
-idx = find(idd(2:end));
+idx=find((data(ind)==headerID)&(data(ind+1)==dataSourceID));
 
 % this will have found far more than the actual number of ensembles as
 % every pair matching the ID numbers will be interpreted as an ensemble start;
@@ -159,6 +152,33 @@ good = (calcCrc == givenCrc);
 
 % define ensemble variables
 idx=idx(good);
+nBytes=nBytes(good);
+
+% checksum should have been sufficent 
+% but I have still found ensembles that don't
+% have matching bytes (probably due to shear number of ensembles there is a
+% finite chance of an erroneous checksum match)
+%
+% Difference in index should be equal to nBytes or
+% we have a problem.
+% calculate difference in index-2 from start to end of data
+didx=[diff(idx); length(data)-idx(end)+1]-2;
+% compare with number of Bytes to find errors
+idodgy=(didx~=nBytes);
+if sum(idodgy)>0
+% wow! we need to keep trying to fix;
+% at this point I am assuming that nBytes is the same for all good records,
+% since this information is stored in every ensemble this may eventually
+% break down for unseen formats.
+    if std(nBytes(~idodgy))==0
+        % we only have one byte length in data record
+        nBytes0=nBytes(~idodgy);
+        igood=(nBytes==nBytes0(1));
+        idx=idx(igood);
+    else
+        error('this is interesting, need to look at this data file please contact Author');
+    end
+end
 
 % in principle each ensemble could have a different number of data
 % types
@@ -186,7 +206,9 @@ iPCgood=IDX(sType==1024);
 iBTrack=IDX(sType==1536);
 %iMicroCat=IDX(sType==2048);
 
+% major change to PM code - ensembles is a scalar structure not cell array
 ensembles.fixedLeader=parseFixedLeader(data, iFixedLeader);
+% subfields contain the vector time series
 nCells=ensembles.fixedLeader.numCells;
 ensembles.variableLeader = parseVariableLeader(data, iVarLeader);
 ensembles.velocity = parseVelocity(data, nCells, iVel);
@@ -210,6 +232,7 @@ function dsub=indexData(data,istart,iend,dtype)
 % function dsub=indexData(data,istart,iend,dtype)
 % vectorized data index algorithm, converts data between istart and iend
 % from binary 8bit data to dtype, where istart and iend can be vectors!
+% Charles James
 
 % create matrix of indicies
 width=max(iend-istart+1);
@@ -220,6 +243,8 @@ K=meshgrid(iend,0:width-1);
 IND=I+J;
 
 ibad=IND>K;
+
+
 datatst=data(IND(:));
 
 
@@ -297,8 +322,15 @@ idx=idx(1);
   sect.systemBandwidth     = indexData(data,idx+50,idx+51, 'uint16')';
   sect.systemPower         = double(data(idx+52));
   % byte 54 is spare
-  sect.instSerialNumber    = indexData(data,idx+54,idx+57, 'uint32')';
-  sect.beamAngle           = double(data(idx+58));
+  % following two fields are not used for Firmware before 16.30
+  
+  if (sect.cpuFirmwareVersion>=16)&&(sect.cpuFirmwareRevision>=30)
+      sect.instSerialNumber    = num2str(uint32(bytecast(data(idx+54:idx+57), 'L', 'uint32')));
+      sect.beamAngle           = double(data(idx+58));
+  else
+      sect.instSerialNumber='';
+      sect.beamAngle=nan;
+  end
 end
 
 function [sect len] = parseVariableLeader( data, idx )
@@ -353,6 +385,10 @@ function [sect len] = parseVariableLeader( data, idx )
   sect.adcChannel7            = double(data(idx+41));
   sect.errorStatusWord        = indexData(data,idx+42,idx+45, 'uint32')';
   % bytes 47-48 are spare
+  % note pressure is technically supposed to be an unsigned integer so when
+  % at surface negative values appear huge ~4 million dbar we'll read it in
+  % as signed integer to avoid this but need to be careful if deploying
+  % ADCP near centre of earth!
   sect.pressure               = indexData(data,idx+48,idx+51, 'uint32')';
   sect.pressureSensorVariance = indexData(data,idx+52,idx+55, 'uint32')';
   % byte 57 is spare
@@ -387,9 +423,9 @@ function [sect len] = parseVelocity( data, numCells, idx )
   idx = idx + 2;
   
   vels = indexData(data,idx,idx + 8*numCells'-1, 'int16')';
-  [i, j]=size(vels);
+  s=size(vels);
   
-  ibeam=1:4:j;
+  ibeam=1:4:s(2);
   
   sect.velocity1=vels(:,ibeam);
   sect.velocity2=vels(:,ibeam+1);
@@ -423,8 +459,8 @@ sect.([name 'Id']) = indexData(data,idx,idx+1,'uint16');
 idx = idx + 2;
 
 fields = indexData(data,idx,idx + 4*numCells'-1, 'uint8')';
-[i, j]=size(fields);
-ibeam=1:4:j;
+s=size(fields);
+ibeam=1:4:s(2);
 
 sect.field1 = fields(:,ibeam);
 sect.field2 = fields(:,ibeam+1);
