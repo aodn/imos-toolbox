@@ -115,7 +115,7 @@ function sample_data = NXICBinary_cjParse( filename )
   sample_data.variables{2}.name = 'CNDC';
   sample_data.variables{3}.name = 'PRES';
   sample_data.variables{4}.name = 'PSAL';
-  sample_data.variables{5}.name = 'CSPD';
+  sample_data.variables{5}.name = 'SSPD';
   sample_data.variables{6}.name = 'VOLT';
   % these are the analog and digital channels for the external sensors
   % calibration coefficients in header file are unreliable so will need
@@ -261,9 +261,9 @@ function header = parseHeader(data)
 % Byte 191-194  BioScale (coefficients used in sensor math)
 % Byte 195-196  Constant Pressure Value (user option)
 %
-% From here on things are confusing paul has byte 200 as length of record
-% for our instruments byte 200 appears to contain the sample length in
-% bytes
+% From here things differ between old NXIC and format provided by Teledyne
+% Presumably this applies for CTDs with Rinko O2 sensors on them.  First
+% Citadel we looked at seemed to be the same format as old NXIC.
 %
 % Byte 197-200  Alpha (Coef for P,T compensation for Cond.)
 % Byte 201-204  Beta (Coef for P,T compensation for Cond.)
@@ -294,10 +294,17 @@ function header = parseHeader(data)
 bit='1';
 
   header = struct;
-  header.instrument_make      = 'Falmouth Scientific Instruments';
-  header.instrument_model     = 'NXIC CTD';
   % data bytes 1-2
   header.instrument_serial_no = num2str(bytecast(data(3:4), 'L', 'uint16'));
+  
+  % first Citadel we bought was Mark's 2276 for IS2
+  if (header.instrument_serial_no<2276)
+      header.instrument_make      = 'Falmouth Scientific Instruments';
+      header.instrument_model     = 'NXIC CTD';
+  else
+      header.instrument_make      = 'Teledyne';
+      header.instrument_model     = 'Citadel CTD';
+  end
   
   % Parse Options in byte 5
   option1=dec2bin(data(5),8);
@@ -531,48 +538,58 @@ function sample = parseSamples(data, header)
 
  % count any data errors as they occur
  ierr=0;
- 
- while ~isempty(lastgood);
-     ierr=ierr+1;
-     % try to find new valid sample time in remaining data
-     ntimes=isample(lastgood+1):length(data)-5;
-     if ierr==1
-         % this is a big calculation so we'll only do it once
-         times2=index2time(data,ntimes);
-     else
-         % just adjust the existing times
-         times2=times2(end-length(ntimes)+1:end);
-     end
-     
-     dt=times2-times1(lastgood+1);
-     
-     % this should be the offset to the next good sample time
-     goodind=find((dt>0)&(dt<header.interval),1)-1;
-     
-     
-     if isempty(goodind)
-         % there are no other good samples so skip the rest of the data
-         isample(lastgood+1:end)=[];
-         lastgood=[];
-     else
-         % adjust isample indicies to apply new offset;
-         isample(lastgood+1:end)=isample(lastgood+1:end)+goodind;
-         isample(isample>length(data)-4)=[];
-         
-         % any other faults?
-         times1=index2time(data,isample);
-         dt=diff(times1);
-         lastgood=find((dt<0)|(dt>header.interval),1)-1;
+ D=uint8([]);
+ if mod(length(data),len)==0;
+     % could be a flawless record?
+     % if so, only allow a few short gaps in times1
+     ngaps=sum(dt>header.interval);
+     if (ngaps/length(times1))<1e-3
+         D=reshape(data,len,length(data)./len);
      end
  end
  
-% map data to uniform grid each row contains data channel, each column is a
-% observation.
-
-for i=1:len;
-    D(i,:)=data(isample+i-1);
-end
-
+ if isempty(D);
+     while ~isempty(lastgood);
+         ierr=ierr+1;
+         % try to find new valid sample time in remaining data
+         ntimes=isample(lastgood+1):length(data)-5;
+         if ierr==1
+             % this is a big calculation so we'll only do it once
+             times2=index2time(data,ntimes);
+         else
+             % just adjust the existing times
+             times2=times2(end-length(ntimes)+1:end);
+         end
+         
+         dt=times2-times1(lastgood+1);
+         
+         % this should be the offset to the next good sample time
+         goodind=find((dt>0)&(dt<header.interval),1)-1;
+         
+         
+         if isempty(goodind)
+             % there are no other good samples so skip the rest of the data
+             isample(lastgood+1:end)=[];
+             lastgood=[];
+         else
+             % adjust isample indicies to apply new offset;
+             isample(lastgood+1:end)=isample(lastgood+1:end)+goodind;
+             isample(isample>length(data)-4)=[];
+             
+             % any other faults?
+             times1=index2time(data,isample);
+             dt=diff(times1);
+             lastgood=find((dt<0)|(dt>header.interval),1)-1;
+         end
+     end
+ 
+     % map data to uniform grid each row contains data channel, each column is a
+     % observation.
+     
+     for i=1:len;
+         D(i,:)=data(isample+i-1);
+     end
+ end
 
 time1=D(1:4,:);
 t1=bytecast(time1(:),'L','uint32');
@@ -620,11 +637,22 @@ end
 end
 
 function times=index2time(data,index)
-% if machine has problem with memory try breaking  index into smaller
-% chunks?
-%modify chunklength to make it as big as the PC can handle within core memory.
-chunklength=1000000;
-%i=1;
+% function to extract FSI times given the index of the start of the sample
+% check for memory limitation
+ctype=computer;
+switch ctype
+    case 'PCWIN'
+        a=memory;
+        % create a chunklength well within the memory limits (divide by 16 bytes)
+        chunklength=a.MaxPossibleArrayBytes/16;
+    case 'GLNXA64'
+        % assume 4 Gig limit
+        chunklength=4e9/16;
+    otherwise
+        % try it all
+        chunklength=length(index);
+end
+
 % 5 bytes required, but only first 4 needed to generate time in seconds since Jan 1 1970
 tbytes=[0 1 2 3];
  

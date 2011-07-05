@@ -104,7 +104,8 @@ function sample_data = SBE19Parse( filename )
   % use the appropriate subfunction to read in the data
   % assume that anything with a suffix not equal to .hex
   % is a .cnv file
-  if strcmp('hex', filename(end-2:end))
+  [~, ~, ext] = fileparts(filename);
+  if strcmpi(ext, '.hex')
     data = readSBE19hex(dataLines, instHeader);
   else
     data = readSBE19cnv(dataLines, instHeader, procHeader);
@@ -126,22 +127,27 @@ function sample_data = SBE19Parse( filename )
   if isfield(instHeader, 'instrument_firmware')
     sample_data.meta.instrument_firmware = instHeader.instrument_firmware;
   else
-    sample_data.meta.instrument_firmware = '0';
+    sample_data.meta.instrument_firmware = '';
   end
   
   if isfield(instHeader, 'instrument_serial_no')
     sample_data.meta.instrument_serial_no = instHeader.instrument_serial_no;
   else
-    sample_data.meta.instrument_serial_no = '0';
+    sample_data.meta.instrument_serial_no = '';
+  end
+  
+  if isfield(instHeader, 'sampleInterval')
+    sample_data.meta.instrument_sample_interval = instHeader.sampleInterval;
+  else
+    sample_data.meta.instrument_sample_interval = NaN;
   end
   
   sample_data.dimensions = {};  
   sample_data.variables  = {};
   
-  % dimensions definition must stay in this order : T, Z, Y, X, others;
-  % to be CF compliant
-  % generate time data from header information
+  % dimensions creation
   sample_data.dimensions{1}.name = 'TIME';
+  % generate time data from header information
   sample_data.dimensions{1}.data = genTimestamps(instHeader, data);
   sample_data.dimensions{2}.name = 'DEPTH';
   sample_data.dimensions{2}.data = NaN;
@@ -156,8 +162,11 @@ function sample_data = SBE19Parse( filename )
   for k = 1:length(vars)
     
     if strncmp('TIME', vars{k}, 4), continue; end
-      
+    
+    % dimensions definition must stay in this order : T, Z, Y, X, others;
+    % to be CF compliant
     sample_data.variables{end+1}.dimensions = [1 2 3 4];
+    
     sample_data.variables{end  }.name       = vars{k};
     sample_data.variables{end  }.data       = data.(vars{k});
   end
@@ -181,37 +190,40 @@ header = struct;
 % for info we want, and to ignore everything else. inefficient,
 % but it's the nicest way i can think of
 
-%BDM (18/2/2011) - changed expressions to reflect newer SBE header info
-%   headerExpr   = '^\*\s*(SBE \S+|SeacatPlus)\s+V\s+(\S+)\s+SERIAL NO.\s+(\d+)';
-headerExpr   = '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>';
+headerExpr   = '^\*\s*(SBE \S+|SeacatPlus)\s+V\s+(\S+)\s+SERIAL NO.\s+(\d+)';
+%BDM (18/2/2011) - new header expressions to reflect newer SBE header info
+headerExpr2  = '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>';
 scanExpr     = 'number of scans to average = (\d+)';
+scanExpr2    = '*\s+ <ScansToAverage>(\d+)</ScansToAverage>';
 memExpr      = 'samples = (\d+), free = (\d+), casts = (\d+)';
 sampleExpr   = ['sample interval = (\d+) (\w+), ' ...
     'number of measurements per sample = (\d+)'];
+sampleExpr2  ='*\s+ <Samples>(\d+)</Samples>';
+profExpr     = '*\s+ <Profiles>(\d+)</Profiles>';
 modeExpr     = 'mode = (\w+)';
 pressureExpr = 'pressure sensor = (strain gauge|quartz)';
 voltExpr     = 'Ext Volt ?(\d+) = (yes|no)';
 outputExpr   = 'output format = (.*)$';
+castExpr     = ['(?:cast|hdr)\s+(\d+)\s+' ...
+    '(\d+ \w+ \d+ \d+:\d+:\d+)\s+'...
+    'samples (\d+) to (\d+), (?:avg|int) = (\d+)'];
 %Replaced castExpr to be specific to NSW-IMOS PH NRT
 %Note: also replace definitions below in 'case 9'
 %BDM 24/01/2011
-castExpr ='Cast Time = (\w+ \d+ \d+ \d+:\d+:\d+)';
-%   castExpr     = ['(?:cast|hdr)\s+(\d+)\s+' ...
-%                   '(\d+ \w+ \d+ \d+:\d+:\d+)\s+'...
-%                   'samples (\d+) to (\d+), (?:avg|int) = (\d+)'];
+castExpr2    ='Cast Time = (\w+ \d+ \d+ \d+:\d+:\d+)';
 intervalExpr = 'interval = (.*): ([\d\.\+)$';
 sbe38Expr    = 'SBE 38 = (yes|no), Gas Tension Device = (yes|no)';
 optodeExpr   = 'OPTODE = (yes|no)';
 voltCalExpr  = 'volt (\d): offset = (\S+), slope = (\S+)';
 otherExpr    = '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
-firmExpr ='<FirmwareVersion>(\S+)</FirmwareVersion>';
+firmExpr     ='<FirmwareVersion>(\S+)</FirmwareVersion>';
 
 exprs = {...
-    headerExpr   scanExpr     ...
-    memExpr      sampleExpr   ...
-    modeExpr     pressureExpr ...
+    headerExpr   headerExpr2    scanExpr     ...
+    scanExpr2    memExpr      sampleExpr   ...
+    sampleExpr2  profExpr       modeExpr     pressureExpr ...
     voltExpr     outputExpr   ...
-    castExpr     intervalExpr ...
+    castExpr     castExpr2   intervalExpr ...
     sbe38Expr    optodeExpr   ...
     voltCalExpr  otherExpr ...
     firmExpr};
@@ -230,81 +242,99 @@ for k = 1:length(headerLines)
                 
                 % header
                 case 1
-                    %             header.instrument_model     = tkns{1}{1};
-                    %             header.instrument_firmware  = tkns{1}{2};
-                    %             header.instrument_serial_no = tkns{1}{3};
+                    header.instrument_model     = tkns{1}{1};
+                    header.instrument_firmware  = tkns{1}{2};
+                    header.instrument_serial_no = tkns{1}{3};
+                    
+                % header2
+                case 2
                     header.instrument_model     = tkns{1}{1};
                     header.instrument_serial_no = tkns{1}{2};
                     
-                    % scan
-                case 2
+                % scan
+                case 3
                     header.scanAvg = str2double(tkns{1}{1});
                     
-                    % mem
-                case 3
+                % scan2
+                case 4
+                    header.scanAvg = str2double(tkns{1}{1});
+                    %%ADDED by Loz
+                    header.castAvg = header.scanAvg;
+                    
+                % mem
+                case 5
                     header.numSamples = str2double(tkns{1}{1});
                     header.freeMem    = str2double(tkns{1}{2});
                     header.numCasts   = str2double(tkns{1}{3});
                     
-                    % sample
-                case 4
+                % sample
+                case 6
                     header.sampleInterval        = str2double(tkns{1}{1});
                     header.mesaurementsPerSample = str2double(tkns{1}{2});
                     
-                    % mode
-                case 5
+                % sample2
+                case 7
+                    header.castEnd = str2double(tkns{1}{1});
+                
+                % profile
+                case 8
+                    header.castNumber = str2double(tkns{1}{1});    
+                    
+                % mode
+                case 9
                     header.mode = tkns{1}{1};
                     
-                    % pressure
-                case 6
+                % pressure
+                case 10
                     header.pressureSensor = tkns{1}{1};
                     
-                    % volt
-                case 7
+                % volt
+                case 11
                     for n = 1:length(tkns),
                         header.(['ExtVolt' tkns{n}{1}]) = tkns{n}{2};
                     end
                     
-                    % output
-                case 8
+                % output
+                case 12
                     header.outputFormat = tkns{1}{1};
                     
-                    % cast
-                case 9                    
-                    %Modified to suite NSW-IMOS PH NRT CTD sampling
-                    %BDM - 24/01/2010
-                    header.castDate   = datenum(tkns{1}{1}, 'mmm dd yyyy HH:MM:SS');
-                    %             header.castNumber = str2double(tkns{1}{1});
-                    %             header.castDate   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
-                    %             header.castStart  = str2double(tkns{1}{3});
-                    %             header.castEnd    = str2double(tkns{1}{4});
-                    %             header.castAvg    = str2double(tkns{1}{5});
+                % cast
+                case 13                    
+                    header.castNumber = str2double(tkns{1}{1});
+                    header.castDate   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
+                    header.castStart  = str2double(tkns{1}{3});
+                    header.castEnd    = str2double(tkns{1}{4});
+                    header.castAvg    = str2double(tkns{1}{5});
                     
-                    % interval
-                case 10
+                % cast2
+                case 14                    
+                    header.castDate   = datenum(tkns{1}{1}, 'mmm dd yyyy HH:MM:SS');
+                    
+                % interval
+                case 15
                     header.resolution = tkns{1}{1};
                     header.interval   = str2double(tkns{1}{2});
                     
-                    % sbe38 / gas tension device
-                case 11
+                % sbe38 / gas tension device
+                case 16
                     header.sbe38 = tkns{1}{1};
                     header.gtd   = tkns{1}{2};
                     
-                    % optode
-                case 12
+                % optode
+                case 17
                     header.optode = tkns{1}{1};
                     
-                    % volt calibration
-                case 13
+                % volt calibration
+                case 18
                     header.(['volt' tkns{1}{1} 'offset']) = str2double(tkns{1}{2});
                     header.(['volt' tkns{1}{1} 'slope'])  = str2double(tkns{1}{3});
                     
-                    % name = value
-                case 14
+                % name = value
+                case 19
                     header.(genvarname(tkns{1}{1})) = tkns{1}{2};
                     
-                    %firmware version
-                case 15
+                %firmware version
+                case 20
                     header.instrument_firmware  = tkns{1}{1};
                     
             end
@@ -335,7 +365,7 @@ function header = parseProcessedHeader(headerLines)
   nvalExpr = 'nvalues = (\d+)';
   badExpr  = 'bad_flag = (.*)$';
   %BDM (18/02/2011) - added to get start time
-  startExpr = 'start_time = (.+)';
+  startExpr = 'start_time = (\w+ \d+ \d+ \d+:\d+:\d+)';
   
   for k = 1:length(headerLines)
     
@@ -364,7 +394,7 @@ function header = parseProcessedHeader(headerLines)
     % then try startTime expr
     tkns = regexp(headerLines{k}, startExpr, 'tokens');
     if ~isempty(tkns)
-      header.startTime = datenum(tkns{1}{1});
+      header.startTime = datenum(tkns{1}{1}, 'mmm dd yyyy HH:MM:SS');
       continue;
     end
   end

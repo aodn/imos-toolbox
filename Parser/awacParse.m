@@ -168,6 +168,10 @@ sample_data.meta.instrument_firmware  = hardware.FWversion;
 
 sample_data.dimensions{1} .name = 'TIME';
 sample_data.dimensions{2} .name = 'DEPTH';
+sample_data.dimensions{3} .name = 'LATITUDE';
+sample_data.dimensions{4} .name = 'LONGITUDE';
+sample_data.dimensions{5} .name = 'SENSOR_DEPTH';
+
 sample_data.variables {1} .name = 'VCUR';
 sample_data.variables {2} .name = 'UCUR';
 sample_data.variables {3} .name = 'ZCUR';
@@ -181,21 +185,25 @@ sample_data.variables {10}.name = 'PITCH';
 sample_data.variables {11}.name = 'ROLL';
 sample_data.variables {12}.name = 'HEADING';
 
-sample_data.variables {1} .dimensions = [1 2];
-sample_data.variables {2} .dimensions = [1 2];
-sample_data.variables {3} .dimensions = [1 2];
-sample_data.variables {4} .dimensions = [1 2];
-sample_data.variables {5} .dimensions = [1 2];
-sample_data.variables {6} .dimensions = [1 2];
-sample_data.variables {7} .dimensions = [1];
-sample_data.variables {8} .dimensions = [1];
-sample_data.variables {9} .dimensions = [1];
-sample_data.variables {10}.dimensions = [1];
-sample_data.variables {11}.dimensions = [1];
-sample_data.variables {12}.dimensions = [1];
+sample_data.variables {1} .dimensions = [1 2 3 4];
+sample_data.variables {2} .dimensions = [1 2 3 4];
+sample_data.variables {3} .dimensions = [1 2 3 4];
+sample_data.variables {4} .dimensions = [1 2 3 4];
+sample_data.variables {5} .dimensions = [1 2 3 4];
+sample_data.variables {6} .dimensions = [1 2 3 4];
+sample_data.variables {7} .dimensions = [1 5 3 4];
+sample_data.variables {8} .dimensions = [1 5 3 4];
+sample_data.variables {9} .dimensions = [1 5 3 4];
+sample_data.variables {10}.dimensions = [1 5 3 4];
+sample_data.variables {11}.dimensions = [1 5 3 4];
+sample_data.variables {12}.dimensions = [1 5 3 4];
 
 sample_data.dimensions{1} .data = time;
 sample_data.dimensions{2} .data = depth;
+sample_data.dimensions{3} .data = NaN;
+sample_data.dimensions{4} .data = NaN;
+sample_data.dimensions{5} .data = NaN;
+
 sample_data.variables {1} .data = velocity1;
 sample_data.variables {2} .data = velocity2;
 sample_data.variables {3} .data = velocity3;
@@ -231,9 +239,12 @@ sample_data{2} = sample_data{1};
 sample_data{2}.dimensions = {};
 sample_data{2}.variables  = {};
 
-sample_data{2}.dimensions{1}.name = 'TIME';
-sample_data{2}.dimensions{2}.name = 'FREQUENCY';
-sample_data{2}.dimensions{3}.name = 'DIRECTION';
+sample_data{2}.dimensions{1 }.name = 'TIME';
+sample_data{2}.dimensions{2 }.name = 'LATITUDE';
+sample_data{2}.dimensions{3 }.name = 'LONGITUDE';
+sample_data{2}.dimensions{4 }.name = 'FREQUENCY';
+sample_data{2}.dimensions{5 }.name = 'DIRECTION';
+sample_data{2}.dimensions{6 }.name = 'SENSOR_DEPTH';
 
 sample_data{2}.variables {1 }.name = 'VOLT';
 sample_data{2}.variables {2 }.name = 'HEADING';
@@ -247,21 +258,24 @@ sample_data{2}.variables {9 }.name = 'VDEN';
 sample_data{2}.variables {10}.name = 'SSWD';
 sample_data{2}.variables {11}.name = 'SSWV';
 
-sample_data{2}.variables{1 }.dimensions = [1];
-sample_data{2}.variables{2 }.dimensions = [1];
-sample_data{2}.variables{3 }.dimensions = [1];
-sample_data{2}.variables{4 }.dimensions = [1];
-sample_data{2}.variables{5 }.dimensions = [1];
-sample_data{2}.variables{6 }.dimensions = [1];
-sample_data{2}.variables{7 }.dimensions = [1];
-sample_data{2}.variables{8 }.dimensions = [1];
-sample_data{2}.variables{9 }.dimensions = [1 2];
-sample_data{2}.variables{10}.dimensions = [1 2];
-sample_data{2}.variables{11}.dimensions = [1 2 3];
+sample_data{2}.variables{1 }.dimensions = [1 2 3 6];
+sample_data{2}.variables{2 }.dimensions = [1 2 3 6];
+sample_data{2}.variables{3 }.dimensions = [1 2 3 6];
+sample_data{2}.variables{4 }.dimensions = [1 2 3 6];
+sample_data{2}.variables{5 }.dimensions = [1 2 3 6];
+sample_data{2}.variables{6 }.dimensions = [1 2 3 6];
+sample_data{2}.variables{7 }.dimensions = [1 2 3];
+sample_data{2}.variables{8 }.dimensions = [1 2 3];
+sample_data{2}.variables{9 }.dimensions = [1 2 3 4];
+sample_data{2}.variables{10}.dimensions = [1 2 3 4];
+sample_data{2}.variables{11}.dimensions = [1 2 3 4 5];
 
 sample_data{2}.dimensions{1 }.data = waveData.Time;
-sample_data{2}.dimensions{2 }.data = waveData.Frequency;
-sample_data{2}.dimensions{3 }.data = waveData.fullSpectrumDirection;
+sample_data{2}.dimensions{2 }.data = NaN;
+sample_data{2}.dimensions{3 }.data = NaN;
+sample_data{2}.dimensions{4 }.data = waveData.Frequency;
+sample_data{2}.dimensions{5 }.data = waveData.fullSpectrumDirection;
+sample_data{2}.dimensions{6 }.data = NaN;
 
 sample_data{2}.variables {1 }.data = waveData.Battery;
 sample_data{2}.variables {2 }.data = waveData.Heading;
