@@ -2,7 +2,7 @@ function sample_data = workhorse_cjParse( filename )
 %WORKHORSEPARSE Parses a raw (binary) data file from a Teledyne RD Workhorse 
 % ADCP.
 %
-% This function uses the readWorkhorseEnsembles function to read in a set
+% This function uses the readWorkhorseEnsembles_cj function to read in a set
 % of ensembles from a raw binary Workhorse ADCP file. It parses the 
 % ensembles, and extracts and returns the following:
 %
@@ -199,14 +199,17 @@ error(nargchk(1,1,nargin));
   sample_data.meta.fixedLeader          = fixed;
   sample_data.meta.instrument_make      = 'Teledyne RD';
   sample_data.meta.instrument_model     = 'Workhorse ADCP';
-  sample_data.meta.instrument_serial_no =  num2str(fixed.instSerialNumber(1));
+  sample_data.meta.instrument_serial_no =  num2str(fixed.instSerialNumber);
   sample_data.meta.instrument_sample_interval =  NaN;
   sample_data.meta.instrument_firmware  = ...
-    strcat(num2str(fixed.cpuFirmwareVersion(1)), '.', num2str(fixed.cpuFirmwareRevision(1)));
+    strcat(num2str(fixed.cpuFirmwareVersion), '.', num2str(fixed.cpuFirmwareRevision));
                                     
   % add dimensions
   sample_data.dimensions{1}.name       = 'TIME';
   sample_data.dimensions{2}.name       = 'DEPTH';
+  sample_data.dimensions{3}.name       = 'LATITUDE';
+  sample_data.dimensions{4}.name       = 'LONGITUDE';
+  sample_data.dimensions{5}.name       = 'SENSOR_DEPTH';
   
   % add variables
   sample_data.variables{ 1}.name       = 'VCUR';
@@ -235,34 +238,37 @@ error(nargchk(1,1,nargin));
   sample_data.variables{24}.name       = 'HEADING';
   
   % map dimensions to each variable
-  sample_data.variables{ 1}.dimensions = [1 2];
-  sample_data.variables{ 2}.dimensions = [1 2];
-  sample_data.variables{ 3}.dimensions = [1 2];
-  sample_data.variables{ 4}.dimensions = [1 2];
-  sample_data.variables{ 5}.dimensions = [1 2];
-  sample_data.variables{ 6}.dimensions = [1 2];
-  sample_data.variables{ 7}.dimensions = [1 2];
-  sample_data.variables{ 8}.dimensions = [1 2];
-  sample_data.variables{ 9}.dimensions = [1 2];
-  sample_data.variables{10}.dimensions = [1 2];
-  sample_data.variables{11}.dimensions = [1];
-  sample_data.variables{12}.dimensions = [1];
-  sample_data.variables{13}.dimensions = [1];
-  sample_data.variables{14}.dimensions = [1 2];
-  sample_data.variables{15}.dimensions = [1 2];
-  sample_data.variables{16}.dimensions = [1 2];
-  sample_data.variables{17}.dimensions = [1 2];
-  sample_data.variables{18}.dimensions = [1 2];
-  sample_data.variables{19}.dimensions = [1 2];
-  sample_data.variables{20}.dimensions = [1 2];
-  sample_data.variables{21}.dimensions = [1 2];
-  sample_data.variables{22}.dimensions = [1];
-  sample_data.variables{23}.dimensions = [1];
-  sample_data.variables{24}.dimensions = [1];
+  sample_data.variables{ 1}.dimensions = [1 2 3 4];
+  sample_data.variables{ 2}.dimensions = [1 2 3 4];
+  sample_data.variables{ 3}.dimensions = [1 2 3 4];
+  sample_data.variables{ 4}.dimensions = [1 2 3 4];
+  sample_data.variables{ 5}.dimensions = [1 2 3 4];
+  sample_data.variables{ 6}.dimensions = [1 2 3 4];
+  sample_data.variables{ 7}.dimensions = [1 2 3 4];
+  sample_data.variables{ 8}.dimensions = [1 2 3 4];
+  sample_data.variables{ 9}.dimensions = [1 2 3 4];
+  sample_data.variables{10}.dimensions = [1 2 3 4];
+  sample_data.variables{11}.dimensions = [1 5 3 4];
+  sample_data.variables{12}.dimensions = [1 5 3 4];
+  sample_data.variables{13}.dimensions = [1 5 3 4];
+  sample_data.variables{14}.dimensions = [1 2 3 4];
+  sample_data.variables{15}.dimensions = [1 2 3 4];
+  sample_data.variables{16}.dimensions = [1 2 3 4];
+  sample_data.variables{17}.dimensions = [1 2 3 4];
+  sample_data.variables{18}.dimensions = [1 2 3 4];
+  sample_data.variables{19}.dimensions = [1 2 3 4];
+  sample_data.variables{20}.dimensions = [1 2 3 4];
+  sample_data.variables{21}.dimensions = [1 2 3 4];
+  sample_data.variables{22}.dimensions = [1 5 3 4];
+  sample_data.variables{23}.dimensions = [1 5 3 4];
+  sample_data.variables{24}.dimensions = [1 5 3 4];
   
   % copy all the data across
   sample_data.dimensions{1}.data       = time(:);
   sample_data.dimensions{2}.data       = depth(:);
+  sample_data.dimensions{3}.data       = NaN;
+  sample_data.dimensions{4}.data       = NaN;
+  sample_data.dimensions{5}.data       = NaN;
   
   sample_data.variables{ 1}.data       = vvel;
   sample_data.variables{ 2}.data       = uvel;
