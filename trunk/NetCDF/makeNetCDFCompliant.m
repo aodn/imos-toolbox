@@ -68,28 +68,48 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % merge global atts into sample_data
   sample_data = mergeAtts(sample_data, globAtts);
 
-  % update DEPTH, LATITUDE, and LONGITUDE data if relevant
+  % update dimensions DEPTH, LATITUDE, and LONGITUDE data from global 
+  % attributes if relevant for time or time/depth dependant data
+  idDepth = 0;
+  idLat = 0;
+  idLon = 0;
+  idSDepth = 0;
+  for i=1:length(sample_data.dimensions)
+      if strcmpi(sample_data.dimensions{i}.name, 'DEPTH')
+          idDepth = i;
+      end
+      if strcmpi(sample_data.dimensions{i}.name, 'LATITUDE')
+          idLat = i;
+      end
+      if strcmpi(sample_data.dimensions{i}.name, 'LONGITUDE')
+          idLon = i;
+      end
+      if strcmpi(sample_data.dimensions{i}.name, 'SENSOR_DEPTH')
+          idSDepth = i;
+      end
+  end
+  % DEPTH
   if ~isempty(globAtts.geospatial_vertical_min) && ~isempty(globAtts.geospatial_vertical_max)
-      if globAtts.geospatial_vertical_min == globAtts.geospatial_vertical_max && ...
-              strcmp(sample_data.dimensions{2}.name, 'DEPTH') && ...
-              length(sample_data.dimensions{2}.data) == 1
-          sample_data.dimensions{2}.data = globAtts.geospatial_vertical_min;
+      if globAtts.geospatial_vertical_min == globAtts.geospatial_vertical_max && idDepth > 0
+         if length(sample_data.dimensions{idDepth}.data) == 1
+            sample_data.dimensions{idDepth}.data = globAtts.geospatial_vertical_min; 
+         end
       end
   end
-  
+  % LATITUDE
   if ~isempty(globAtts.geospatial_lat_min) && ~isempty(globAtts.geospatial_lat_max)
-      if globAtts.geospatial_lat_min == globAtts.geospatial_lat_max && ...
-              strcmp(sample_data.dimensions{3}.name, 'LATITUDE') && ...
-              length(sample_data.dimensions{3}.data) == 1
-          sample_data.dimensions{3}.data = globAtts.geospatial_lat_min;
+      if globAtts.geospatial_lat_min == globAtts.geospatial_lat_max && idLat > 0
+          if length(sample_data.dimensions{idLat}.data) == 1
+              sample_data.dimensions{idLat}.data = globAtts.geospatial_lat_min;
+          end
       end
   end
-  
+  % LONGITUDE
   if ~isempty(globAtts.geospatial_lon_min) && ~isempty(globAtts.geospatial_lon_max)
-      if globAtts.geospatial_lon_min == globAtts.geospatial_lon_max && ...
-              strcmp(sample_data.dimensions{4}.name, 'LONGITUDE') && ...
-              length(sample_data.dimensions{4}.data) == 1
-          sample_data.dimensions{4}.data = globAtts.geospatial_lon_min;
+      if globAtts.geospatial_lon_min == globAtts.geospatial_lon_max && idLon > 0
+          if length(sample_data.dimensions{idLon}.data) == 1
+              sample_data.dimensions{idLon}.data = globAtts.geospatial_lon_min;
+          end
       end
   end
   
@@ -114,6 +134,9 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % variables
   %
   
+  % update dimension SENSOR_DEPTH data from variable attributes if relevant
+  % for time/depth dependant data
+  varAtts = [];
   for k = 1:length(sample_data.variables)
     
     temp = fullfile(path, 'variable_attributes.txt');
@@ -122,6 +145,11 @@ function sample_data = makeNetCDFCompliant( sample_data )
 
     % merge variable atts back into variable struct
     sample_data.variables{k} = mergeAtts(sample_data.variables{k}, varAtts);
+  end
+  
+  % SENSOR_DEPTH
+  if ~isempty(varAtts.sensor_depth) && idSDepth > 0
+      sample_data.dimensions{idSDepth}.data = varAtts.sensor_depth;
   end
 end
 
