@@ -442,6 +442,9 @@ function sam = finaliseData(sam, rawFiles, dateFmt, flagVal)
   % add IMOS parameters
   sam = makeNetCDFCompliant(sam);
   
+  % populate NetCDF metadata from existing metadata/data if empty
+  sam = populateMetadata(sam);
+  
   % set the time coverage period - use the best field available
   if isfield(sam.meta, 'deployment')
     
