@@ -12,7 +12,8 @@ function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var )
 %   h           - Handle(s) to the line(s)  which was/were plotted.
 %   labels      - Cell array containing x/y labels to use.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -55,4 +56,11 @@ time = sample_data.dimensions{time};
 var  = sample_data.variables {var};
 
 h      = line(time.data, var.data, 'Parent', ax);
+
+% Set axis position so that 1D data and 2D data matches on X axis
+cb = colorbar();
+pos_with_colorbar = get(ax, 'Position');
+colorbar(cb, 'off');
+set(ax, 'Position', pos_with_colorbar);
+
 labels = {'TIME', var.name};

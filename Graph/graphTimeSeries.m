@@ -97,22 +97,23 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     % set x labels and ticks
     set(get(graphs(k), 'XLabel'), 'String', labels{1});
 
-    xLimits = get(graphs(k), 'XLim');
+    % align xticks on first plot's xticks
+%     xLimits = get(graphs(k), 'XLim');
+    xLimits = get(graphs(1), 'XLim');
     xStep   = (xLimits(2) - xLimits(1)) / 5;
     xTicks  = xLimits(1):xStep:xLimits(2);
     set(graphs(k), 'XTick', xTicks);
-
-    % convert the tick labels into date strings
-    xTicks = datestr(xTicks, 'dd-mm-yy'); 
-    set(graphs(k), 'XTickLabel', xTicks);
     
+    % tranformation of datenum xticks in datestr
+    datetick('x', 'dd-mm-yy HH:MM', 'keepticks');
+
     % set y label and ticks
     try      uom = [' (' imosParameters(labels{2}, 'uom') ')'];
     catch e, uom = '';
     end
     yLabel = [labels{2} uom];
     if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
-    set(get(graphs(k), 'YLabel'), 'String', yLabel);
+    set(get(graphs(k), 'YLabel'), 'String', strrep(yLabel, '_', ' '));
     
     yLimits = get(graphs(k), 'YLim');
     yStep   = (yLimits(2) - yLimits(1)) / 5;
@@ -120,19 +121,21 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     set(graphs(k), 'YTick', yTicks);
   end
   
-  % compile variable names for the legend
-  names = {};
-  for k = 1:length(sample_data.variables)
-    names{k} = sample_data.variables{k}.name;
-  end
-  
-  % link axes for panning/zooming, and add a legend - matlab has a habit of
-  % throwing 'Invalid handle object' errors for no apparent reason (i think 
-  % when the user changes selections too quickly, matlab is too slow, and 
-  % ends up confusing itself), so absorb any errors which are thrown
-  try 
-    linkaxes(graphs, 'x');
-    legend(lines(:,1), names);
-  catch e
-  end
+  % GLT : I prefer not adding a legend as it overlaps the figure...
+  % anyway, the different axis and plots labels are sufficient.
+%   % compile variable names for the legend
+%   names = {};
+%   for k = 1:length(sample_data.variables)
+%     names{k} = strrep(sample_data.variables{k}.name, '_', ' ');
+%   end
+%   
+%   % link axes for panning/zooming, and add a legend - matlab has a habit of
+%   % throwing 'Invalid handle object' errors for no apparent reason (i think 
+%   % when the user changes selections too quickly, matlab is too slow, and 
+%   % ends up confusing itself), so absorb any errors which are thrown
+%   try 
+%     linkaxes(graphs, 'x');
+%     legend(lines(:,1), names);
+%   catch e
+%   end
 end

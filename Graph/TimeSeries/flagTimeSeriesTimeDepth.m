@@ -57,8 +57,16 @@ flags = [];
 qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
+zTitle = 'DEPTH';
+
 time  = getVar(sample_data.dimensions, 'TIME');
-depth = getVar(sample_data.dimensions, 'DEPTH');
+depth = getVar(sample_data.dimensions, zTitle);
+
+% case of sensors on the seabed looking upward like moored ADCPs
+if depth == 0
+    zTitle = 'HEIGHT_ABOVE_SENSOR';
+    depth = getVar(sample_data.dimensions, zTitle);
+end
 
 time  = sample_data.dimensions{time};
 depth = sample_data.dimensions{depth};
