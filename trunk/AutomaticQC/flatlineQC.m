@@ -1,4 +1,4 @@
-function [data, flags, log] = flatlineQC( sample_data, data, k )
+function [data, flags, log] = flatlineQC( sample_data, data, k, auto )
 %FLATLINEQC Flags flatline regions in the given data set.
 %
 % Simple filter which finds and flags any 'flatline' regions in the given data.
@@ -12,6 +12,8 @@ function [data, flags, log] = flatlineQC( sample_data, data, k )
 %
 %   k           - Index into the sample_data variable vector.
 %
+%   auto        - logical, run QC in batch mode
+%
 % Outputs:
 %   data        - same as input.
 %
@@ -20,7 +22,8 @@ function [data, flags, log] = flatlineQC( sample_data, data, k )
 %
 %   log         - Empty cell array.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -53,10 +56,13 @@ function [data, flags, log] = flatlineQC( sample_data, data, k )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 3, nargin));
+error(nargchk(3, 4, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+
+% auto logical in input to enable running under batch processing
+if nargin<4, auto=false; end
 
 % read nsamples parameter from flatlineQC properties file
 nsamples = str2double(...
