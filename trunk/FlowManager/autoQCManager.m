@@ -134,7 +134,7 @@ function qc_data = autoQCManager( sample_data, auto )
 
         % run current QC routine over the current data set
         sample_data{k} = qcFilter(...
-          sample_data{k}, qcChain{m}, rawFlag, goodFlag, progress);
+          sample_data{k}, qcChain{m}, auto, rawFlag, goodFlag, progress);
 
       
       
@@ -183,7 +183,7 @@ function filterConfig(filterName)
   propertyDialog(propFileName);
 end
 
-function sam = qcFilter(sam, filterName, rawFlag, goodFlag, cancel)
+function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
 %QCFILTER Runs the given data set through the given automatic QC filter.
 %
   % turn routine name into a function
@@ -192,7 +192,7 @@ function sam = qcFilter(sam, filterName, rawFlag, goodFlag, cancel)
   % if this filter is a Set QC filter, we pass the entire data set
   if ~isempty(regexp(filterName, 'SetQC$', 'start'))
     
-    fsam = filter(sam);
+    fsam = filter(sam, auto);
     
     % Currently only flags are copied across; other changes to the data set
     % are discarded. Flags are not overwritten - if a later routine flags 
