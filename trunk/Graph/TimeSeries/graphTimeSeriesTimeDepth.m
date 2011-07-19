@@ -14,7 +14,8 @@ function [h labels] = graphTimeSeriesTimeDepth( ax, sample_data, var )
 %   h           - Handle to the surface which was plotted.
 %   labels      - Cell array containing x/y labels to use.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -52,23 +53,32 @@ if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 
+zTitle = 'DEPTH';
+
 time  = getVar(sample_data.dimensions, 'TIME');
-depth = getVar(sample_data.dimensions, 'DEPTH');
+depth = getVar(sample_data.dimensions, zTitle);
+
+% case of sensors on the seabed looking upward like moored ADCPs
+if depth == 0
+    zTitle = 'HEIGHT_ABOVE_SENSOR';
+    depth = getVar(sample_data.dimensions, zTitle);
+end
 
 time  = sample_data.dimensions{time};
 depth = sample_data.dimensions{depth};
 var   = sample_data.variables {var};
+
+if strcmpi(depth.positive, 'down')
+    set(ax, 'YDir', 'reverse');
+end
 
 h = pcolor(ax, time.data, depth.data, var.data');
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
 cb = colorbar();
 
 cbLabel = imosParameters(var.name, 'uom');
-cbLabel = [var.name ' (' cbLabel ')'];
+cbLabel = [strrep(var.name, '_', ' ') ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel);
 
-% assume that depth data is ascending
-set(ax, 'YDir', 'reverse');
-
-labels = {'TIME', 'DEPTH'};
+labels = {'TIME', zTitle};
