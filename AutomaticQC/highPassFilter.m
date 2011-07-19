@@ -1,4 +1,4 @@
-function hpf = highPassFilter (data, alpha)
+function hpf = highPassFilter (data, alpha, auto)
 %HIGHPASSFILTER Simple high pass RC filter.
 %
 % Runs a high pass RC filter over the given data.
@@ -11,10 +11,13 @@ function hpf = highPassFilter (data, alpha)
 %           lower value means more filtering. A value of 1.0 equals no 
 %           filtering. Optional - if omitted, defaults to 0.5.
 %
+%   auto  - logical, run QC in batch mode
+%
 % Outputs:
 %   hpf   - Filtered data
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 % Based on pseudocode at http://en.wikipedia.org/wiki/High-pass_filter, which
 % is released under the GNU Free Documentation License, described at 
@@ -53,8 +56,11 @@ function hpf = highPassFilter (data, alpha)
 %
 
 % check mandatory parameters
-error(nargchk(1,2,nargin));
+error(nargchk(1,3,nargin));
 if ~isvector(data), error('data must be a vector'); end
+
+% auto logical in input to enable running under batch processing
+if nargin<3, auto=false; end
 
 % check or set optional alpha parameter
 if nargin == 1

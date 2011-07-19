@@ -1,4 +1,4 @@
-function [data, flags, log] = rangeQC ( sample_data, data, k )
+function [data, flags, log] = rangeQC ( sample_data, data, k, auto )
 %RANGEQC Flags data which is out of the variable's valid range.
 %
 % Iterates through the given data, and returns flags for any samples which
@@ -12,6 +12,8 @@ function [data, flags, log] = rangeQC ( sample_data, data, k )
 %
 %   k           - Index into the sample_data.variables vector.
 %
+%   auto        - logical, run QC in batch mode
+%
 % Outputs:
 %   data        - same as input.
 %
@@ -20,7 +22,8 @@ function [data, flags, log] = rangeQC ( sample_data, data, k )
 %
 %   log         - Empty cell array.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -53,10 +56,13 @@ function [data, flags, log] = rangeQC ( sample_data, data, k )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 3, nargin));
+error(nargchk(3, 4, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+
+% auto logical in input to enable running under batch processing
+if nargin<4, auto=false; end
 
 % get the flag values with which we flag good and out of range data
 qcSet     = str2num(readProperty('toolbox.qc_set'));
