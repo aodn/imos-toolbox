@@ -2,7 +2,7 @@ function sample_data = workhorseParse( filename )
 %WORKHORSEPARSE Parses a raw (binary) data file from a Teledyne RD Workhorse 
 % ADCP.
 %
-% This function uses the readWorkhorseEnsembles function to read in a set
+% This function uses the readWorkhorseEnsembles_cj function to read in a set
 % of ensembles from a raw binary Workhorse ADCP file. It parses the 
 % ensembles, and extracts and returns the following:
 %
@@ -26,10 +26,12 @@ function sample_data = workhorseParse( filename )
 %   sample_data - sample_data struct containing the data retrieved from the
 %                 input file.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-%         Leeying Wu <Wu.Leeying@saugov.sa.gov.au>
-%         Bradley Morris <b.morris@unsw.edu.au>
-%
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributors: Leeying Wu <Wu.Leeying@saugov.sa.gov.au>
+%               Bradley Morris <b.morris@unsw.edu.au>
+%               vectorized by Charles James May 2010 <charles.james@sa.gov.au>
+%               Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%         
 
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
@@ -66,66 +68,51 @@ error(nargchk(1,1,nargin));
   
   if isempty(ensembles), error('no ensembles found in file'); end
   
-  % currently we're only interested in velocity data
-  ensembles = ensembles(cellfun(@(x)(isfield(x, 'velocity')), ensembles));
+  %
+  % retrieve metadata and data from struct
+  %
   
-  % currently assuming that fixed leader 
-  % data is the same for every ensemble
-  fixed = ensembles{1}.fixedLeader;
-    
+  fixed = ensembles.fixedLeader;
+  
+  % metadata for this ensemble
+  variable = ensembles.variableLeader;
+  
+  velocity = ensembles.velocity;
+  
+  backscatter1 = ensembles.echoIntensity.field1;
+  backscatter2 = ensembles.echoIntensity.field2;
+  backscatter3 = ensembles.echoIntensity.field3;
+  backscatter4 = ensembles.echoIntensity.field4;
+  
+  correlation1 = ensembles.corrMag.field1;
+  correlation2 = ensembles.corrMag.field2;
+  correlation3 = ensembles.corrMag.field3;
+  correlation4 = ensembles.corrMag.field4;
+  
+  percentGood1 = ensembles.percentGood.field1;
+  percentGood2 = ensembles.percentGood.field2;
+  percentGood3 = ensembles.percentGood.field3;
+  percentGood4 = ensembles.percentGood.field4;
+  clear ensembles;
+  
   % we use these to set up variables and dimensions
   numBeams   = fixed.numBeams;
   numCells   = fixed.numCells;
   cellLength = fixed.depthCellLength;
   cellStart  = fixed.bin1Distance;
   
-  % preallocate space for sample data
-  time         = zeros(length(ensembles), 1);
-  depth        = zeros(numCells,          1);
-  vvel         = zeros(length(ensembles), numCells);
-  uvel         = zeros(length(ensembles), numCells);
-  wvel         = zeros(length(ensembles), numCells);
-  evel         = zeros(length(ensembles), numCells);
-  speed        = zeros(length(ensembles), numCells);
-  direction    = zeros(length(ensembles), numCells);
-  backscatter1 = zeros(length(ensembles), numCells);
-  backscatter2 = zeros(length(ensembles), numCells);
-  backscatter3 = zeros(length(ensembles), numCells);
-  backscatter4 = zeros(length(ensembles), numCells);
-  correlation1 = zeros(length(ensembles), numCells);
-  correlation2 = zeros(length(ensembles), numCells);
-  correlation3 = zeros(length(ensembles), numCells);
-  correlation4 = zeros(length(ensembles), numCells);
-  percentGood1 = zeros(length(ensembles), numCells);
-  percentGood2 = zeros(length(ensembles), numCells);
-  percentGood3 = zeros(length(ensembles), numCells);
-  percentGood4 = zeros(length(ensembles), numCells);
-  temperature  = zeros(length(ensembles), 1);
-  pressure     = zeros(length(ensembles), 1);
-  salinity     = zeros(length(ensembles), 1);
-  pitch        = zeros(length(ensembles), 1);
-  roll         = zeros(length(ensembles), 1);
-  heading      = zeros(length(ensembles), 1);
-  
   % we can populate depth data now using cellLength and cellStart
   % ( / 100.0, as the ADCP gives the values in centimetres)
   cellStart  = cellStart  / 100.0;
   cellLength = cellLength / 100.0;
   
-  % distances between the transducers and bins
-  depth(:) = (cellStart):  ...
+  % note this is actually distance from the ADCP! 
+  depth =    (cellStart):  ...
              (cellLength): ...
              (cellStart + (numCells-1) * cellLength);
   
   % rearrange the sample data
-  for k = 1:length(ensembles)
-    
-    ensemble = ensembles{k};
-    
-    % metadata for this ensemble
-    variable = ensemble.variableLeader;
-    
-    time(k) = datenum(...
+    time = datenum(...
      [variable.y2kCentury*100 + variable.y2kYear,...
       variable.y2kMonth,...
       variable.y2kDay,...
@@ -136,22 +123,24 @@ error(nargchk(1,1,nargin));
     %
     % auxillary data
     %
-    temperature(k) = variable.temperature;
-    pressure   (k) = variable.pressure;
-    salinity   (k) = variable.salinity;
-    pitch      (k) = variable.pitch;
-    roll       (k) = variable.roll;
-    heading    (k) = variable.heading;
+    temperature = variable.temperature;
+    pressure    = variable.pressure;
+    salinity    = variable.salinity;
+    pitch       = variable.pitch;
+    roll        = variable.roll;
+    heading     = variable.heading;
+    clear variable;
     
     %
     % calculate velocity (speed and direction)
     % currently assuming earth coordinate transform
     %
-    velocity = ensemble.velocity;
+    
     veast = velocity.velocity1;
     vnrth = velocity.velocity2;
     vvert = velocity.velocity3;
     verr  = velocity.velocity4;
+    clear velocity;
     
     % set all bad values to nan. 
     vnrth(vnrth == -32768) = nan;
@@ -159,42 +148,25 @@ error(nargchk(1,1,nargin));
     vvert(vvert == -32768) = nan;
     verr( verr  == -32768) = nan;
     
-    vvel(k,:) = vnrth;
-    uvel(k,:) = veast;
-    wvel(k,:) = vvert;
-    evel(k,:) = verr;
+    vvel = vnrth;
+    uvel = veast;
+    wvel = vvert;
+    evel = verr;
+    clear vvert verr;
     
-    speed(k,:) = sqrt(vnrth.^2 + veast.^2);
+    speed = sqrt(vnrth.^2 + veast.^2);
     
     % direction is in degrees clockwise from north
-    direction(k,:) = atan(abs(veast ./ vnrth)) .* (180 / pi);
+    direction = atan(abs(veast ./ vnrth)) .* (180 / pi);
     
     se = vnrth <  0 & veast >= 0;
     sw = vnrth <  0 & veast <  0;
     nw = vnrth >= 0 & veast <  0;
+    clear vnrth veast;
     
-    direction(k,se) = arrayfun(@(x)(180 - x), direction(k,se));
-    direction(k,sw) = arrayfun(@(x)(180 + x), direction(k,sw));
-    direction(k,nw) = arrayfun(@(x)(360 - x), direction(k,nw));
-    
-    %
-    % retrieve backscatter, correlation and percent good data 
-    %
-    backscatter1(k,:) = ensemble.echoIntensity.field1;
-    backscatter2(k,:) = ensemble.echoIntensity.field2;
-    backscatter3(k,:) = ensemble.echoIntensity.field3;
-    backscatter4(k,:) = ensemble.echoIntensity.field4;
-    
-    correlation1(k,:) = ensemble.corrMag.field1;
-    correlation2(k,:) = ensemble.corrMag.field2;
-    correlation3(k,:) = ensemble.corrMag.field3;
-    correlation4(k,:) = ensemble.corrMag.field4;
-    
-    percentGood1(k,:) = ensemble.percentGood.field1;
-    percentGood2(k,:) = ensemble.percentGood.field2;
-    percentGood3(k,:) = ensemble.percentGood.field3;
-    percentGood4(k,:) = ensemble.percentGood.field4;
-  end
+    direction(se) = 180-direction(se);
+    direction(sw) = 180+direction(sw);
+    direction(nw) = 360-direction(nw);
   
   %
   % temperature / 100.0  (0.01 deg   -> deg)
@@ -233,11 +205,11 @@ error(nargchk(1,1,nargin));
   sample_data.meta.instrument_serial_no =  num2str(fixed.instSerialNumber);
   sample_data.meta.instrument_sample_interval =  NaN;
   sample_data.meta.instrument_firmware  = ...
-    [num2str(fixed.cpuFirmwareVersion) '.' num2str(fixed.cpuFirmwareRevision)];
+    strcat(num2str(fixed.cpuFirmwareVersion), '.', num2str(fixed.cpuFirmwareRevision));
                                     
   % add dimensions
   sample_data.dimensions{1}.name       = 'TIME';
-  sample_data.dimensions{2}.name       = 'DEPTH';
+  sample_data.dimensions{2}.name       = 'HEIGHT_ABOVE_SENSOR';
   sample_data.dimensions{3}.name       = 'LATITUDE';
   sample_data.dimensions{4}.name       = 'LONGITUDE';
   sample_data.dimensions{5}.name       = 'SENSOR_DEPTH';
@@ -295,8 +267,8 @@ error(nargchk(1,1,nargin));
   sample_data.variables{24}.dimensions = [1 5 3 4];
   
   % copy all the data across
-  sample_data.dimensions{1}.data       = time;
-  sample_data.dimensions{2}.data       = depth;
+  sample_data.dimensions{1}.data       = time(:);
+  sample_data.dimensions{2}.data       = depth(:);
   sample_data.dimensions{3}.data       = NaN;
   sample_data.dimensions{4}.data       = NaN;
   sample_data.dimensions{5}.data       = NaN;

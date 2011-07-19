@@ -171,7 +171,7 @@ sample_data.meta.instrument_sample_interval = user.AvgInterval;
 sample_data.meta.instrument_firmware  = hardware.FWversion;
 
 sample_data.dimensions{1} .name = 'TIME';
-sample_data.dimensions{2} .name = 'DEPTH';
+sample_data.dimensions{2} .name = 'HEIGHT_ABOVE_SENSOR';
 sample_data.dimensions{3} .name = 'LATITUDE';
 sample_data.dimensions{4} .name = 'LONGITUDE';
 sample_data.dimensions{5} .name = 'SENSOR_DEPTH';
