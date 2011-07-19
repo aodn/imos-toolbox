@@ -132,6 +132,7 @@ function flowManager()
   %
     idx = sample_data.meta.index;
     
+    sample_data = populateMetadata(sample_data);
     rawData{idx} = sync(sample_data, rawData{idx});
     
     if ~isempty(autoQCData)
@@ -150,7 +151,7 @@ function flowManager()
       % -variables.data
       % -variables.dimensions
       % -variables.flags
-      % -dimensions.data
+%       % -dimensions.data      these fields can be updated by metadata
       % -dimensions.flags
 
       updatedTarget.file_version                    = target.file_version;
@@ -171,34 +172,8 @@ function flowManager()
       % dimensions
       nDim = length(target.dimensions);
       for k = 1:nDim
-        updatedTarget.dimensions{k}.data  = target.dimensions{k}.data;
+%         updatedTarget.dimensions{k}.data  = target.dimensions{k}.data;
         updatedTarget.dimensions{k}.flags = target.dimensions{k}.flags;
-        
-        % update dimensions DEPTH, LATITUDE, and LONGITUDE data if relevant
-        % for time or time/depth dependant data
-        if ~isempty(updatedTarget.geospatial_vertical_min) && ~isempty(updatedTarget.geospatial_vertical_max)
-            if updatedTarget.geospatial_vertical_min == updatedTarget.geospatial_vertical_max && ...
-                    strcmpi(updatedTarget.dimensions{k}.name, 'DEPTH') && ...
-                    length(updatedTarget.dimensions{k}.data) == 1
-                updatedTarget.dimensions{k}.data = updatedTarget.geospatial_vertical_min;
-            end
-        end
-        
-        if ~isempty(updatedTarget.geospatial_lat_min) && ~isempty(updatedTarget.geospatial_lat_max)
-            if updatedTarget.geospatial_lat_min == updatedTarget.geospatial_lat_max && ...
-                    strcmpi(updatedTarget.dimensions{k}.name, 'LATITUDE') && ...
-                    length(updatedTarget.dimensions{k}.data) == 1
-                updatedTarget.dimensions{k}.data = updatedTarget.geospatial_lat_min;
-            end
-        end
-        
-        if ~isempty(updatedTarget.geospatial_lon_min) && ~isempty(updatedTarget.geospatial_lon_max)
-            if updatedTarget.geospatial_lon_min == updatedTarget.geospatial_lon_max && ...
-                    strcmpi(updatedTarget.dimensions{k}.name, 'LONGITUDE') && ...
-                    length(updatedTarget.dimensions{k}.data) == 1
-                updatedTarget.dimensions{k}.data = updatedTarget.geospatial_lon_min;
-            end
-        end
       end
     end
   end
