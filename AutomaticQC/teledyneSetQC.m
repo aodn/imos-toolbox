@@ -1,4 +1,4 @@
-function [sample_data] = teledyneSetQC( sample_data )
+function [sample_data] = teledyneSetQC( sample_data, auto )
 %TELEDYNESETQC Quality control procedure for Teledyne Workhorse (and similar)
 % ADCP instrument data.
 %
@@ -7,13 +7,15 @@ function [sample_data] = teledyneSetQC( sample_data )
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
+%   auto - logical, run QC in batch mode
 %
 % Outputs:
 %   sample_data - same as input, with QC flags added for variable/dimension
 %                 data.
 %
-% Author: Brad Morris   <b.morris@unsw.edu.au>   (Implementation)
-%         Paul McCarthy <paul.mccarthy@csiro.au> (Integration into toolbox)
+% Author:       Brad Morris   <b.morris@unsw.edu.au>   (Implementation)
+%               Paul McCarthy <paul.mccarthy@csiro.au> (Integration into toolbox)
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -45,17 +47,22 @@ function [sample_data] = teledyneSetQC( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 1, nargin));
+error(nargchk(1, 2, nargin));
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
-qcSet = str2num(readProperty('toolbox.qc_set'));
+% auto logical in input to enable running under batch processing
+if nargin<2, auto=false; end
+
+%BDM - 13/08/2010 - Added code to check if the data is from a Teledyne RD
+%ADCP, if not returns.
+if auto
+    if ~strcmp('Teledyne RD Workhorse ADCP',sample_data.source), return; end
+end
+
+qcSet = str2double(readProperty('toolbox.qc_set'));
 badFlag  = imosQCFlag('bad',  qcSet, 'flag');
 goodFlag = imosQCFlag('good', qcSet, 'flag');
 rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
-
-%BDM - 13/08/2010 - Added code to check if the data is from a Teledyne RD
-%ADCP, if not returns. This is very crude, needs to be more elegant??
-if isempty(strmatch('Teledyne RD Workhorse ADCP',sample_data.source)), return; end
 
 adcp = sample_data;
 
@@ -67,17 +74,23 @@ end
 
 %Pull out ADCP bin details
 BinSize=adcp.meta.fixedLeader.depthCellLength/100;
-Bins=adcp.dimensions{2}.data';
+Bins=getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
+Bins=adcp.dimensions{Bins}.data';
 
 %BDM - 16/08/2010 - Added if statement below to take into account ADCPs
 %without pressure records. Use mean of nominal water depth minus sensor height.
 
 %Pull out pressure and calculate array of depth bins
-kk=strmatch('PRES',n);
-if isempty(kk)
-    kk=strmatch('TEMP',n);
+kk=strcmp('PRES',n);
+if ~any(kk)
+    kk=strcmp('TEMP',n);
     ff=union(find(var(kk).flags==rawFlag), find(var(kk).flags==goodFlag));
-    pressure=ones(size(var(kk).data(ff),1),1).*(adcp.geospatial_vertical_min-var(kk).sensor_height);
+    
+    if isempty(adcp.geospatial_vertical_max)
+        error('No pressure data in file => Fill geospatial_vertical_max!');
+    else
+        pressure=ones(size(var(kk).data(ff),1),1).*(adcp.geospatial_vertical_max);
+    end
     disp('Using nominal depth')
 else
     ff=union(find(var(kk).flags==rawFlag), find(var(kk).flags==goodFlag));
@@ -89,29 +102,29 @@ end
 bdepth=pressure*ones(1,length(Bins))-ones(length(pressure),1)*Bins;
 
 %Pull out horizontal velocities
-uIdx=strmatch('UCUR',n);
-vIdx=strmatch('VCUR',n);
-u=fliplr(var(uIdx).data(ff,:))+1i*fliplr(var(vIdx).data(ff,:));
+uIdx=strcmp('UCUR',n);
+vIdx=strcmp('VCUR',n);
+u=var(uIdx).data(ff,:)+1i*var(vIdx).data(ff,:);
 
 %Pull out vertical velocities
-kk=strmatch('WCUR',n);
-w=fliplr(var(kk).data(ff,:));
+kk=strcmp('WCUR',n);
+w=var(kk).data(ff,:);
 
 %Pull out error velocities
-kk=strmatch('ECUR',n);
-erv=fliplr(var(kk).data(ff,:));
+kk=strcmp('ECUR',n);
+erv=var(kk).data(ff,:);
 
 %Pull out percent good/echo amplitude/correlation magnitude
 for j=1:4;
     cc = int2str(j);
-    kk=strmatch(['ADCP_GOOD_' cc],n);
-    eval(['qc(',cc,').pg=fliplr(var(kk).data(ff,:));'])
+    kk=strcmp(['ADCP_GOOD_' cc],n);
+    eval(['qc(',cc,').pg=var(kk).data(ff,:);'])
     
-    kk=strmatch(['ABSI_' cc],n);
-    eval(['qc(',cc,').ea=fliplr(var(kk).data(ff,:));'])
+    kk=strcmp(['ABSI_' cc],n);
+    eval(['qc(',cc,').ea=var(kk).data(ff,:);'])
     
-    kk=strmatch(['ADCP_CORR_' cc],n);
-    eval(['qc(',cc,').cr=fliplr(var(kk).data(ff,:));'])
+    kk=strcmp(['ADCP_CORR_' cc],n);
+    eval(['qc(',cc,').cr=var(kk).data(ff,:);'])
 end
 
 % read in filter parameters
@@ -142,13 +155,12 @@ end
 %Need to take into account that we only used an inwater subset of the adcp
 %data thus ifail is indexed to this subset!!!
 %This is clumsy but works, probably a more elegant way to do this!
-ifail=fliplr(ifail);
 for k=1:size(ifail,2)
     sample_data.variables{uIdx}.flags(ff(ifail(:,k)),k) = badFlag;
     sample_data.variables{vIdx}.flags(ff(ifail(:,k)),k) = badFlag;
 end
-% sample_data.variables{uIdx}.flags(fliplr(ifail)) = badFlag;
-% sample_data.variables{vIdx}.flags(fliplr(ifail)) = badFlag;
+% sample_data.variables{uIdx}.flags(ifail) = badFlag;
+% sample_data.variables{vIdx}.flags(ifail) = badFlag;
 end
 
 function [ifail] = adcpqctest(qcthresh,qc,u,w,erv)
