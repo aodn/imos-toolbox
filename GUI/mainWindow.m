@@ -306,7 +306,7 @@ function mainWindow(...
     % a new data set is being added
     updateMenus = 0;
     if sam.meta.index > length(sample_data), updateMenus = 1; end
-    
+
     sample_data{sam.meta.index} = sam;
     
     % regenerate descriptions
