@@ -336,10 +336,15 @@ data=a{5}(igood);
 % check anyway)
 nvars=length(strfind(data{1},','))+1;
 
+% check that every line has only nvars, otherwise kick it out
+k = strfind(data, ',');
+iGoodLength = (cellfun('length', k) == nvars-1);
+data = data(iGoodLength);
+
 % using sscanf which reads columnwise so put array on side
 C=char(data)';
 
-% one weird thing, scanf will fail if the last column has anything but a
+% one weird thing, sscanf will fail if the last column has anything but a
 % space in it. So sort of a kludge, but by far the fastest fix I know of.
 s=size(C);
 C(s(1)+1,:)=' ';
@@ -350,10 +355,14 @@ for i=1:nvars-1
 fmt=strcat(fmt,',%f');
 end
 
-A=sscanf(C,fmt,[nvars inf])';
+[A, ~, errmsg]=sscanf(C,fmt,[nvars s(2)]);
+
+if ~isempty(errmsg)
+   error(errmsg); 
+end
 % A is one long vector with nvars*samples elements
 % reshape it to make it easier to extract data
-
+A=A';
 
 % C,T,P are in stored in engineering units
 
@@ -432,7 +441,9 @@ WQM.Calibration=Cal;
 
 
 date=a{3}(igood);
+date=date(iGoodLength);
 time=a{4}(igood);
+time=time(iGoodLength);
 
 month=fix(date/10000);
 date=date-month*10000;
