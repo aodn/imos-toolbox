@@ -33,8 +33,11 @@ N, geospatial_lat_min      = [ddb Site Sites Latitude]
 N, geospatial_lat_max      = [ddb Site Sites Latitude]
 N, geospatial_lon_min      = [ddb Site Sites Longitude]
 N, geospatial_lon_max      = [ddb Site Sites Longitude]
-N, geospatial_vertical_min = [ddb InstrumentDepth]
-N, geospatial_vertical_max = [ddb InstrumentDepth]
+N, geospatial_vertical_min = 
+N, geospatial_vertical_max = 
+N, sensor_height           = [ddb InstrumentDepth]
+N, sensor_depth            = 
+S, sensor_depth_source     = 
 
 % when
 N, local_time_zone     = 
