@@ -52,23 +52,27 @@ function sample_data = makeNetCDFCompliant( sample_data )
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
-  %
-  % global attributes
-  %
-
   % get path to templates subdirectory
   path = readProperty('toolbox.templateDir');
   if isempty(path) || ~exist(path, 'dir')
     path = fullfile(pwd, 'NetCDF', 'template');
   end
+  
+  %
+  % global attributes
+  %
 
   globAtts = parseNetCDFTemplate(...
     fullfile(path, 'global_attributes.txt'), sample_data);
 
   % merge global atts into sample_data
   sample_data = mergeAtts(sample_data, globAtts);
-
-  % update dimensions DEPTH, LATITUDE, and LONGITUDE data from global 
+  
+  %
+  % dimensions
+  %
+  
+  % update dimensions DEPTH, SENSOR_DEPTH, LATITUDE, and LONGITUDE data from global 
   % attributes if relevant for time or time/depth dependant data
   idDepth = 0;
   idLat = 0;
@@ -112,6 +116,12 @@ function sample_data = makeNetCDFCompliant( sample_data )
           end
       end
   end
+  % SENSOR_DEPTH
+  if ~isempty(globAtts.sensor_depth) && idSDepth > 0
+      if isnan(sample_data.dimensions{idSDepth}.data)
+          sample_data.dimensions{idSDepth}.data = globAtts.sensor_depth;
+      end
+  end
   
   %
   % coordinate variables
@@ -134,8 +144,6 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % variables
   %
   
-  % update dimension SENSOR_DEPTH data from variable attributes if relevant
-  % for time/depth dependant data
   varAtts = [];
   for k = 1:length(sample_data.variables)
     
@@ -145,11 +153,6 @@ function sample_data = makeNetCDFCompliant( sample_data )
 
     % merge variable atts back into variable struct
     sample_data.variables{k} = mergeAtts(sample_data.variables{k}, varAtts);
-  end
-  
-  % SENSOR_DEPTH
-  if ~isempty(varAtts.sensor_depth) && idSDepth > 0
-      sample_data.dimensions{idSDepth}.data = varAtts.sensor_depth;
   end
 end
 
