@@ -243,7 +243,7 @@ sample_data{2}.dimensions{1 }.name = 'TIME';
 sample_data{2}.dimensions{2 }.name = 'LATITUDE';
 sample_data{2}.dimensions{3 }.name = 'LONGITUDE';
 sample_data{2}.dimensions{4 }.name = 'FREQUENCY';
-sample_data{2}.dimensions{5 }.name = 'DIRECTION';
+sample_data{2}.dimensions{5 }.name = 'WAV_DIR';
 sample_data{2}.dimensions{6 }.name = 'SENSOR_DEPTH';
 
 sample_data{2}.variables {1 }.name = 'VOLT';
