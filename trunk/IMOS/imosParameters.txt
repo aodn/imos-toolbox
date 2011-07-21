@@ -30,7 +30,7 @@ CSPD,      1, sea_water_speed,                                    m s-1,        
 DEPTH,     1, depth,                                              m,                                                                 E, 999999.0, 0.0,     12000.0
 HEIGHT_ABOVE_SENSOR,    0, height_above_sensor,                                m,                                                                 E, 999999.0, 0.0,     12000.0
 DEWT,      1, dew_point_temperature,                              Celsius,                                                           M, 999999.0, -50.0,   50.0
-DIRECTION, 0, direction,                                          Degrees clockwise from true North,                                 E, 999999.0, 0.0,     360.0
+WAV_DIR,   1, sea_surface_wave_from_direction,                    Degrees clockwise from true North,                                 E, 999999.0, 0.0,     360.0
 DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,        mol m-3,                                                          O, 999999.0, 0.0,     0.0
 DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         mol kg-1,                                                          O, 999999.0, 0.0,     0.0
 DOXY,      1, mass_concentration_of_oxygen_in_sea_water,          kg m-3,                                                            O, 999999.0, 0.0,     0.0
