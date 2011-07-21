@@ -13,7 +13,8 @@ function data = readSBE19hex( dataLines, instHeader )
 % Outputs:
 %   data       - Struct containing variable data.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -70,23 +71,25 @@ function data = readSBE19hex( dataLines, instHeader )
   time         = checkField(instHeader, 'mode',           'moored');
   
   % preallocate space for the sample data
-                   data.temperature  = zeros(length(dataLines), 1);
-                   data.conductivity = zeros(length(dataLines), 1);
-  if pressure,     data.pressure     = zeros(length(dataLines), 1); end
-  if pressureVolt, data.pressureVolt = zeros(length(dataLines), 1); end
-  if volt0,        data.volt0        = zeros(length(dataLines), 1); end
-  if volt1,        data.volt1        = zeros(length(dataLines), 1); end
-  if volt2,        data.volt2        = zeros(length(dataLines), 1); end
-  if volt3,        data.volt3        = zeros(length(dataLines), 1); end
-  if volt4,        data.volt4        = zeros(length(dataLines), 1); end
-  if volt5,        data.volt5        = zeros(length(dataLines), 1); end
-  if sbe38,        data.sbe38        = zeros(length(dataLines), 1); end
-  if gtd,          data.gtdPres      = zeros(length(dataLines), 1); 
-                   data.gtdTemp      = zeros(length(dataLines), 1); end
-  if dualgtd,      data.dualgtdPres  = zeros(length(dataLines), 1); 
-                   data.dualgtdTemp  = zeros(length(dataLines), 1); end
-  if optode,       data.optode       = zeros(length(dataLines), 1); end
-  if time,         data.time         = zeros(length(dataLines), 1); end
+  nLines = length(dataLines);
+  preallocZeros = zeros(nLines, 1);
+                   data.temperature  = preallocZeros;
+                   data.conductivity = preallocZeros;
+  if pressure,     data.pressure     = preallocZeros; end
+  if pressureVolt, data.pressureVolt = preallocZeros; end
+  if volt0,        data.volt0        = preallocZeros; end
+  if volt1,        data.volt1        = preallocZeros; end
+  if volt2,        data.volt2        = preallocZeros; end
+  if volt3,        data.volt3        = preallocZeros; end
+  if volt4,        data.volt4        = preallocZeros; end
+  if volt5,        data.volt5        = preallocZeros; end
+  if sbe38,        data.sbe38        = preallocZeros; end
+  if gtd,          data.gtdPres      = preallocZeros; 
+                   data.gtdTemp      = preallocZeros; end
+  if dualgtd,      data.dualgtdPres  = preallocZeros; 
+                   data.dualgtdTemp  = preallocZeros; end
+  if optode,       data.optode       = preallocZeros; end
+  if time,         data.time         = preallocZeros; end
   
   % read in the data
   for k = 1:length(dataLines)
@@ -257,7 +260,9 @@ end
 
 function pressure = convertPressure(pressure, pressureVolt, header)
 %CONVERTPRESSURE Converts pressure A/D counts to decibars, via the 
-% convertion equation provided with SBE19 calibration sheets.
+% convertion equation provided with SBE19 calibration sheets. Here, the
+% constant value 14.7*0.689476 dBar for atmospheric pressure isn't 
+% substracted like in the processed .cnv data.
 %
 
   if ~isfield(header, 'PTEMPA0'), return; end
@@ -304,7 +309,7 @@ function pressure = convertPressure(pressure, pressureVolt, header)
   pressure = PA0 + PA1 * n + PA2 * (n.^2);
   
   % convert from PSIA to decibar
-  pressure = pressure / 1.45037738;
+  pressure = pressure * 0.689476;
 end
 
 function volts = convertVolts(volts, name, header)
