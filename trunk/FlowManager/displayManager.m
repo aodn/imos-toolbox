@@ -194,6 +194,8 @@ function displayManager(windowTitle, sample_data, callbacks)
         % notify of change to metadata
         callbacks.metadataUpdateCallback(sam);
 
+        sam = populateMetadata(sam);
+        
         % update GUI with modified data set
         updateCallback(sam);
       end
