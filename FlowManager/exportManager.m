@@ -132,10 +132,9 @@ function exportManager(dataSets, levelNames, output, auto)
     % display message to user
     msg = '';
     icon = 'none';
-    if isempty(errors), msg = 'All files exported';
-      
+    if isempty(errors)
+        msg = 'All files exported';
     else
-      
       if isempty(filenames)
         msg = sprintf('No files exported\n\n');
       else
