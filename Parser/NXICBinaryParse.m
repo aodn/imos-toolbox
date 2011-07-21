@@ -560,6 +560,7 @@ function sample = parseSamples(data, header)
              % just adjust the existing times
              times2=times2(end-length(ntimes)+1:end);
          end
+         clear ntimes;
          
          dt=times2-times1(lastgood+1);
          
@@ -643,8 +644,9 @@ ctype=computer;
 switch ctype
     case 'PCWIN'
         a=memory;
-        % create a chunklength well within the memory limits (divide by 16 bytes)
-        chunklength=a.MaxPossibleArrayBytes/16;
+        % create a chunklength well within the memory limits 
+        % (need at least 2*16*4 bytes so divide by 2*16*5 bytes to be sure)
+        chunklength=a.MaxPossibleArrayBytes/(2*16*5);
     case 'GLNXA64'
         % assume 4 Gig limit
         chunklength=4e9/16;
@@ -655,20 +657,26 @@ end
 
 % 5 bytes required, but only first 4 needed to generate time in seconds since Jan 1 1970
 tbytes=[0 1 2 3];
- 
-     for i=1:chunklength:length(index);
-         if (i+chunklength-1>length(index))
-             iend=length(index);
-         else
-             iend=i+chunklength-1;
-         end
-         index_sub=index(i:iend);
-        
-     [IT TB]=meshgrid(index_sub,tbytes);
-% these matrices (IT and TB) are double precision by default and will require  4*(chunklength)*16bytes memory storage each
-     IN=IT+TB;
-     tind=IN(:);
-% 5th byte at index_sub+4 is simply 100ths of a second
-     times(i:iend)=bytecast(data(tind),'L','uint32')+double(data(index_sub+4))/100;
-     end
+
+for i=1:chunklength:length(index);
+    if (i+chunklength-1>length(index))
+        iend=length(index);
+    else
+        iend=i+chunklength-1;
+    end
+    i = uint32(i);
+    iend = uint32(iend);
+    index_sub=index(i:iend);
+    
+    [IT TB]=meshgrid(index_sub,tbytes);
+    % these matrices (IT and TB) are double precision by default and
+    % will require  2*4*(chunklength)*16bytes memory storage each
+    IT=IT+TB;
+    clear TB;
+    
+    IT=IT(:);
+    
+    % 5th byte at index_sub+4 is simply 100ths of a second
+    times(i:iend)=bytecast(data(IT),'L','uint32')+double(data(index_sub+4))/100;
+end
 end
