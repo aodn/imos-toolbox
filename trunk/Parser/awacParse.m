@@ -22,7 +22,8 @@ function sample_data = awacParse( filename )
 %   sample_data - Struct containing sample data; If wave data is present, 
 %                 this will be a cell array of two structs.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author: 		Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: 	Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -170,11 +171,10 @@ sample_data.dimensions{1} .name = 'TIME';
 sample_data.dimensions{2} .name = 'HEIGHT_ABOVE_SENSOR';
 sample_data.dimensions{3} .name = 'LATITUDE';
 sample_data.dimensions{4} .name = 'LONGITUDE';
-sample_data.dimensions{5} .name = 'SENSOR_DEPTH';
 
 sample_data.variables {1} .name = 'VCUR';
 sample_data.variables {2} .name = 'UCUR';
-sample_data.variables {3} .name = 'ZCUR';
+sample_data.variables {3} .name = 'WCUR';
 sample_data.variables {4} .name = 'ABSI_1';
 sample_data.variables {5} .name = 'ABSI_2';
 sample_data.variables {6} .name = 'ABSI_3';
@@ -191,18 +191,17 @@ sample_data.variables {3} .dimensions = [1 2 3 4];
 sample_data.variables {4} .dimensions = [1 2 3 4];
 sample_data.variables {5} .dimensions = [1 2 3 4];
 sample_data.variables {6} .dimensions = [1 2 3 4];
-sample_data.variables {7} .dimensions = [1 5 3 4];
-sample_data.variables {8} .dimensions = [1 5 3 4];
-sample_data.variables {9} .dimensions = [1 5 3 4];
-sample_data.variables {10}.dimensions = [1 5 3 4];
-sample_data.variables {11}.dimensions = [1 5 3 4];
-sample_data.variables {12}.dimensions = [1 5 3 4];
+sample_data.variables {7} .dimensions = [1 3 4];
+sample_data.variables {8} .dimensions = [1 3 4];
+sample_data.variables {9} .dimensions = [1 3 4];
+sample_data.variables {10}.dimensions = [1 3 4];
+sample_data.variables {11}.dimensions = [1 3 4];
+sample_data.variables {12}.dimensions = [1 3 4];
 
 sample_data.dimensions{1} .data = time;
 sample_data.dimensions{2} .data = depth;
 sample_data.dimensions{3} .data = NaN;
 sample_data.dimensions{4} .data = NaN;
-sample_data.dimensions{5} .data = NaN;
 
 sample_data.variables {1} .data = velocity1;
 sample_data.variables {2} .data = velocity2;
@@ -244,7 +243,6 @@ sample_data{2}.dimensions{2 }.name = 'LATITUDE';
 sample_data{2}.dimensions{3 }.name = 'LONGITUDE';
 sample_data{2}.dimensions{4 }.name = 'FREQUENCY';
 sample_data{2}.dimensions{5 }.name = 'WAV_DIR';
-sample_data{2}.dimensions{6 }.name = 'SENSOR_DEPTH';
 
 sample_data{2}.variables {1 }.name = 'VOLT';
 sample_data{2}.variables {2 }.name = 'HEADING';
@@ -258,12 +256,12 @@ sample_data{2}.variables {9 }.name = 'VDEN';
 sample_data{2}.variables {10}.name = 'SSWD';
 sample_data{2}.variables {11}.name = 'SSWV';
 
-sample_data{2}.variables{1 }.dimensions = [1 2 3 6];
-sample_data{2}.variables{2 }.dimensions = [1 2 3 6];
-sample_data{2}.variables{3 }.dimensions = [1 2 3 6];
-sample_data{2}.variables{4 }.dimensions = [1 2 3 6];
-sample_data{2}.variables{5 }.dimensions = [1 2 3 6];
-sample_data{2}.variables{6 }.dimensions = [1 2 3 6];
+sample_data{2}.variables{1 }.dimensions = [1 2 3];
+sample_data{2}.variables{2 }.dimensions = [1 2 3];
+sample_data{2}.variables{3 }.dimensions = [1 2 3];
+sample_data{2}.variables{4 }.dimensions = [1 2 3];
+sample_data{2}.variables{5 }.dimensions = [1 2 3];
+sample_data{2}.variables{6 }.dimensions = [1 2 3];
 sample_data{2}.variables{7 }.dimensions = [1 2 3];
 sample_data{2}.variables{8 }.dimensions = [1 2 3];
 sample_data{2}.variables{9 }.dimensions = [1 2 3 4];

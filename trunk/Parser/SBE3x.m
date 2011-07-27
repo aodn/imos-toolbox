@@ -83,7 +83,8 @@ function sample_data = SBE3x( filename )
 %                 header.
 %
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author: 		Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:	Guillaume Galibert <guillaume.galibert>
 %
 % See http://www.seabird.com/products/ModelList.htm for a list of SBE variants 
 % and manuals for each.
@@ -398,16 +399,14 @@ if ~isempty(salinity),     salinity(    nsamples:end) = []; end
 % copy the data into the sample_data struct
 sample_data.dimensions{1}.name = TIME_NAME;
 sample_data.dimensions{1}.data = time;
-sample_data.dimensions{2}.name = 'DEPTH';
+sample_data.dimensions{2}.name = 'LATITUDE';
 sample_data.dimensions{2}.data = NaN;
-sample_data.dimensions{3}.name = 'LATITUDE';
+sample_data.dimensions{3}.name = 'LONGITUDE';
 sample_data.dimensions{3}.data = NaN;
-sample_data.dimensions{4}.name = 'LONGITUDE';
-sample_data.dimensions{4}.data = NaN;
 
 for k = 1:length(sample_data.variables)
   
-  sample_data.variables{k}.dimensions = [1 2 3 4];
+  sample_data.variables{k}.dimensions = [1 2 3];
   
   switch sample_data.variables{k}.name
     case TEMPERATURE_NAME,  sample_data.variables{k}.data = temperature;

@@ -84,12 +84,6 @@ function sample_data = YSI6SeriesParse( filename )
   % to be CF compliant
   sample_data.dimensions{1}.name = 'TIME';
   sample_data.dimensions{1}.data = records.time';
-  sample_data.dimensions{2}.name = 'DEPTH';
-  sample_data.dimensions{2}.data = NaN;
-  sample_data.dimensions{3}.name = 'LATITUDE';
-  sample_data.dimensions{3}.data = NaN;
-  sample_data.dimensions{4}.name = 'LONGITUDE';
-  sample_data.dimensions{4}.data = NaN;
   
   % convert time from seconds since 1 march 1984 00:00:00 
   % to days since 1 jan 0000 00:00:00
@@ -105,7 +99,7 @@ function sample_data = YSI6SeriesParse( filename )
     field = getfield(records, fields{k});
 
     sample_data.variables{k}.data       = field'; 
-    sample_data.variables{k}.dimensions = [1 2 3 4];
+    sample_data.variables{k}.dimensions = [1];
     
     switch fields{k}
       

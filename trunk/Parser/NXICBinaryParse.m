@@ -103,12 +103,10 @@ function sample_data = NXICBinaryParse( filename )
   sample_data.dimensions = {};
   sample_data.dimensions{1}.name = 'TIME';
   sample_data.dimensions{1}.data = samples.time;
-  sample_data.dimensions{2}.name = 'DEPTH';
+  sample_data.dimensions{2}.name = 'LATITUDE';
   sample_data.dimensions{2}.data = NaN;
-  sample_data.dimensions{3}.name = 'LATITUDE';
+  sample_data.dimensions{3}.name = 'LONGITUDE';
   sample_data.dimensions{3}.data = NaN;
-  sample_data.dimensions{4}.name = 'LONGITUDE';
-  sample_data.dimensions{4}.data = NaN;
   
   sample_data.variables = {};
   sample_data.variables{1}.name = 'TEMP';
@@ -126,16 +124,16 @@ function sample_data = NXICBinaryParse( filename )
   %sample_data.vairables{10}.name = '';
   
   
-  sample_data.variables{1}.dimensions = [1 2 3 4];
-  sample_data.variables{2}.dimensions = [1 2 3 4];
-  sample_data.variables{3}.dimensions = [1 2 3 4];
-  sample_data.variables{4}.dimensions = [1 2 3 4];
-  sample_data.variables{5}.dimensions = [1 2 3 4];
-  sample_data.variables{6}.dimensions = [1 2 3 4];
-  %sample_data.variables{7}.dimensions = [1 2 3 4];
-  %sample_data.variables{8}.dimensions = [1 2 3 4];
-  %sample_data.variables{9}.dimensions = [1 2 3 4];
-  %sample_data.variables{10}.dimensions = [1 2 3 4];
+  sample_data.variables{1}.dimensions = [1 2 3];
+  sample_data.variables{2}.dimensions = [1 2 3];
+  sample_data.variables{3}.dimensions = [1 2 3];
+  sample_data.variables{4}.dimensions = [1 2 3];
+  sample_data.variables{5}.dimensions = [1 2 3];
+  sample_data.variables{6}.dimensions = [1 2 3];
+  %sample_data.variables{7}.dimensions = [1 2 3];
+  %sample_data.variables{8}.dimensions = [1 2 3];
+  %sample_data.variables{9}.dimensions = [1 2 3];
+  %sample_data.variables{10}.dimensions = [1 2 3];
   
   sample_data.variables{1}.data = samples.temperature;
   sample_data.variables{2}.data = samples.conductivity;
@@ -151,7 +149,7 @@ function sample_data = NXICBinaryParse( filename )
   %if isfield(samples,'digital');
   % not all instruments have a digital channel.
   %sample_data.variables{11}.name = '';
-  %sample_data.variables{11}.dimensions = [1 2 3 4];
+  %sample_data.variables{11}.dimensions = [1 2 3];
   %sample_data.variables{11}.data = samples.digital; % Aanderaa Optode
   %end;
   
