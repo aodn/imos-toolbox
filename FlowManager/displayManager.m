@@ -221,7 +221,7 @@ function displayManager(windowTitle, sample_data, callbacks)
     %
       % retrieve raw data on state change - if state was already raw data,
       % main window already has the correct data set.
-      if strcmp(lastState, state)
+      if ~strcmp(lastState, state)
         
         sample_data = callbacks.rawDataRequestCallback();
 
