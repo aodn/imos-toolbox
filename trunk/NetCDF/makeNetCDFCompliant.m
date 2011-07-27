@@ -116,12 +116,6 @@ function sample_data = makeNetCDFCompliant( sample_data )
           end
       end
   end
-  % SENSOR_DEPTH
-  if ~isempty(globAtts.sensor_depth) && idSDepth > 0
-      if isnan(sample_data.dimensions{idSDepth}.data)
-          sample_data.dimensions{idSDepth}.data = globAtts.sensor_depth;
-      end
-  end
   
   %
   % coordinate variables
