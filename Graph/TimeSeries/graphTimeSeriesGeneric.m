@@ -57,10 +57,14 @@ var  = sample_data.variables {var};
 
 h      = line(time.data, var.data, 'Parent', ax);
 
-% Set axis position so that 1D data and 2D data matches on X axis
+% Set axis position so that 1D data and 2D data vertically matches on X axis
 cb = colorbar();
 pos_with_colorbar = get(ax, 'Position');
 colorbar(cb, 'off');
 set(ax, 'Position', pos_with_colorbar);
+
+if strncmp(var.name, 'DEPTH', 4)
+    set(ax, 'YDir', 'reverse');
+end
 
 labels = {'TIME', var.name};
