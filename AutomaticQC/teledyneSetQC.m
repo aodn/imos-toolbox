@@ -67,7 +67,9 @@ rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
 adcp = sample_data;
 
 %Get variable names
-for ii=1:size(adcp.variables,2)
+lenVar = size(adcp.variables,2);
+n = cell(lenVar, 1);
+for ii=1:lenVar
     var(ii)=adcp.variables{ii};
     n{ii}=var(ii).name;
 end
