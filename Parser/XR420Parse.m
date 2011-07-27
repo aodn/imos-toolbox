@@ -12,6 +12,7 @@ function sample_data = XR420Parse( filename )
 %   sample_data - Struct containing imported sample data.
 %
 % Contributor : Laurent Besnard <laurent.besnard@utas.edu.au>
+% 				Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
 % Copyright (c) 2010, eMarine Information Infrastructure (eMII) and Integrated 
@@ -80,12 +81,10 @@ function sample_data = XR420Parse( filename )
   % to be CF compliant
   sample_data.dimensions{1}.name = 'TIME';
   sample_data.dimensions{1}.data = data.time;
-  sample_data.dimensions{2}.name = 'DEPTH';
+  sample_data.dimensions{2}.name = 'LATITUDE';
   sample_data.dimensions{2}.data = NaN;
-  sample_data.dimensions{3}.name = 'LATITUDE';
+  sample_data.dimensions{3}.name = 'LONGITUDE';
   sample_data.dimensions{3}.data = NaN;
-  sample_data.dimensions{4}.name = 'LONGITUDE';
-  sample_data.dimensions{4}.data = NaN;
   
   % copy variable data over
   data = rmfield(data, 'time');
@@ -93,19 +92,17 @@ function sample_data = XR420Parse( filename )
   
   for k = 1:length(fields)
     
-    switch fields{k}
-      
-    case 'Cond', name = 'CNDC';
-    case 'Temp', name = 'TEMP';
-    case 'Pres', name = 'PRES';
-    case 'FlCa', name = 'CPHL';
-
-    end
+      switch fields{k}
+          
+          case 'Cond', name = 'CNDC';
+          case 'Temp', name = 'TEMP';
+          case 'Pres', name = 'PRES';
+          case 'FlCa', name = 'CPHL';
+      end
     
-    sample_data.variables{k}.name       = name;
-    sample_data.variables{k}.data       = data.(fields{k});
-    sample_data.variables{k}.dimensions = [1 2 3 4];
-    
+      sample_data.variables{k}.name       = name;
+      sample_data.variables{k}.data       = data.(fields{k});
+      sample_data.variables{k}.dimensions = [1 2 3];
   end
 end
   

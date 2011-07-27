@@ -145,12 +145,10 @@ sample_data.variables  = {};
 % generate time data from header information
 sample_data.dimensions{1}.name = 'TIME';
 sample_data.dimensions{1}.data = genTimestamps(instHeader, data);
-sample_data.dimensions{2}.name = 'DEPTH';
+sample_data.dimensions{2}.name = 'LATITUDE';
 sample_data.dimensions{2}.data = NaN;
-sample_data.dimensions{3}.name = 'LATITUDE';
+sample_data.dimensions{3}.name = 'LONGITUDE';
 sample_data.dimensions{3}.data = NaN;
-sample_data.dimensions{4}.name = 'LONGITUDE';
-sample_data.dimensions{4}.data = NaN;
 
 % scan through the list of parameters that were read
 % from the file, and create a variable for each
@@ -159,7 +157,7 @@ for k = 1:length(vars)
     
     if strncmp('TIME', vars{k}, 4), continue; end
     
-    sample_data.variables{end+1}.dimensions = [1 2 3 4];
+    sample_data.variables{end+1}.dimensions = [1 2 3];
     sample_data.variables{end  }.name       = vars{k};
     sample_data.variables{end  }.data       = data.(vars{k});
 end

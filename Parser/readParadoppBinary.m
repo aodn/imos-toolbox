@@ -312,7 +312,8 @@ function [sect len off] = readAquadoppVelocity(data, idx)
   sect.Id          = data(idx+1);
   sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
   sect.Time        = readClockData(data, idx+4); 
-  block            = bytecast(data(idx+10:idx+23), 'L', 'uint16');
+  % !!! Heading, pitch and roll can be negative
+  block            = bytecast(data(idx+10:idx+23), 'L', 'int16');
   sect.Error       = block(1);
   sect.Analn1      = block(2);
   sect.Battery     = block(3);
@@ -441,7 +442,8 @@ function [sect len off] = readVectorSystem(data, idx)
   sect.Id          = data(idx+1);
   sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
   sect.Time        = readClockData(data, idx+4);
-  block            = bytecast(data(idx+10:idx+19), 'L', 'uint16');
+  % !!! Heading, pitch and roll can be negative
+  block            = bytecast(data(idx+10:idx+19), 'L', 'int16');
   sect.Battery     = block(1);
   sect.SoundSpeed  = block(2);
   sect.Heading     = block(3);
@@ -468,7 +470,8 @@ function [sect len off] = readAquadoppProfilerVelocity(data, idx)
   len              = sect.Size * 2;
   off              = len;
   sect.Time        = readClockData(data, idx+4);
-  block            = bytecast(data(idx+10:idx+23), 'L', 'uint16');
+  % !!! Heading, pitch and roll can be negative
+  block            = bytecast(data(idx+10:idx+23), 'L', 'int16');
   sect.Error       = block(1);
   sect.Analn1      = block(2);
   sect.Battery     = block(3);
@@ -476,6 +479,7 @@ function [sect len off] = readAquadoppProfilerVelocity(data, idx)
   sect.Heading     = block(5);
   sect.Pitch       = block(6);
   sect.Roll        = block(7);
+  
   sect.PressureMSB = data(idx+24);
   sect.Status      = data(idx+25);
   block            = bytecast(data(idx+26:idx+29), 'L', 'uint16');
@@ -497,7 +501,8 @@ function [sect len off] = readAquadoppProfilerVelocity(data, idx)
   
   % a fill byte is present if the number of cells is odd
   if mod(nCells, 2), csOff = csOff + 1; end
- 
+
+  % !!! velocity can be negative
   sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16');
   sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16');
   sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16');
@@ -522,7 +527,8 @@ function [sect len off] = readHRAquadoppProfile(data, idx)
   len               = sect.Size * 2;
   off               = len;
   sect.Time         = readClockData(data, idx+4);
-  block             = bytecast(data(idx+10:idx+23), 'L', 'uint16');
+  % !!! Heading, pitch and roll can be negative
+  block             = bytecast(data(idx+10:idx+23), 'L', 'int16');
   sect.Milliseconds = block(1);
   sect.Error        = block(2);
   sect.Battery      = block(3);
@@ -599,7 +605,8 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
   len              = sect.Size * 2;
   off              = len;
   sect.Time        = readClockData(data, idx+4);
-  block            = bytecast(data(idx+10:idx+23), 'L', 'uint16');
+  % !!! Heading, pitch and roll can be negative
+  block            = bytecast(data(idx+10:idx+23), 'L', 'int16');
   sect.Error       = block(1);
   sect.Analn1      = block(2);
   sect.Battery     = block(3);
@@ -629,6 +636,7 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
   % fill value is included if number of cells is odd
   if mod(nCells, 2), csOff = csOff + 1; end
   
+  % !!! Velocity can be negative
   sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16');
   sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16');
   sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16');

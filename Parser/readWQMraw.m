@@ -155,12 +155,10 @@ function sample_data = readWQMraw( filename )
   % to be CF compliant
   sample_data.dimensions{1}.name = 'TIME';
   sample_data.dimensions{1}.data = time;
-  sample_data.dimensions{2}.name = 'DEPTH';
+  sample_data.dimensions{2}.name = 'LATITUDE';
   sample_data.dimensions{2}.data = NaN;
-  sample_data.dimensions{3}.name = 'LATITUDE';
+  sample_data.dimensions{3}.name = 'LONGITUDE';
   sample_data.dimensions{3}.data = NaN;
-  sample_data.dimensions{4}.name = 'LONGITUDE';
-  sample_data.dimensions{4}.data = NaN;
 
   % create a variables struct in sample_data for each field in the file
   % start index at 4 to skip serial, date and time
@@ -174,6 +172,12 @@ function sample_data = readWQMraw( filename )
 
     % some fields are not in IMOS uom - scale them so that they are
     switch name
+        
+        % WQM uses SeaBird pressure sensor
+        case 'pressure'
+            % add the constant pressure atmosphere previously substracted by SeaBird
+            % software so that we are back to the raw absolute presure measurement
+            data = data + 14.7*0.689476;
         
         % WQM provides conductivity in mS/m; we need it in S/m.
         case 'conductivity'
@@ -222,7 +226,7 @@ function sample_data = readWQMraw( filename )
             
     end
         
-    sample_data.variables{k}.dimensions = [1 2 3 4];
+    sample_data.variables{k}.dimensions = [1 2 3];
     sample_data.variables{k}.comment    = comment;
     sample_data.variables{k}.name       = name;
     sample_data.variables{k}.data       = data;
@@ -231,7 +235,6 @@ function sample_data = readWQMraw( filename )
   % remove empty entries (could occur if DO(ml/l) data is 
   % present, but temp/pressure/salinity data is not)
   sample_data.variables(cellfun(@isempty, sample_data.variables)) = [];
-
 end
 
 function [name comment] = getParamDetails(field, params)

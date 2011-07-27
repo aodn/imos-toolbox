@@ -13,8 +13,9 @@ function data = readSBE37cnv( dataLines, instHeader, procHeader )
 % Outputs:
 %   data       - Struct containing data.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% Modified by: Brad Morris <b.morris@unsw.edu.au>
+% Author: 		Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: 	Brad Morris <b.morris@unsw.edu.au>
+% 				Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
@@ -128,6 +129,10 @@ switch name
         %case 'prdM'
     case 'prM'
         name = 'PRES';
+        
+        % add the constant pressure atmosphere previously substracted by SeaBird
+        % software so that we are back to the raw absolute presure measurement
+        data = data + 14.7*0.689476;
         
         % temperature (deg C)
         %case 'tv290C'

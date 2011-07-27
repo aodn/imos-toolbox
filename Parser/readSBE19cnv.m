@@ -13,7 +13,8 @@ function data = readSBE19cnv( dataLines, instHeader, procHeader )
 % Outputs:
 %   data       - Struct containing data.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -121,7 +122,7 @@ function [name, data] = convertData(name, data, instHeader)
       name = 'PRES';
       
       % add the constant pressure atmosphere previously substracted by SeaBird
-      % so that we are back to the raw absolute presure measurement
+      % software so that we are back to the raw absolute presure measurement
       data = data + 14.7*0.689476;
       
     % temperature (deg C)
