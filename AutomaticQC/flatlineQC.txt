@@ -1,1 +1,1 @@
-nsamples = 10
+nsamples = 100
