@@ -74,13 +74,14 @@ k_param = str2double(...
 
 % we need to modify the data set, so work with a copy
 fdata = data;
+lenData = length(data);
 
-qcSet     = str2num(readProperty('toolbox.qc_set'));
+qcSet     = str2double(readProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
 log                   = {};
-flags(1:length(data)) = goodFlag;
+flags = ones(lenData,1)*goodFlag;
 
 % remove mean, and apply a mild high pass 
 % filter before applying spike detection
@@ -89,22 +90,30 @@ fdata = data - mean(fdata);
 
 stddev = std(fdata);
 
-u1 = zeros(length(fdata)-4,1);
-u2 = zeros(length(u1)-2, 1);
-u3 = zeros(length(u2)-1, 1);
+lenU1 = lenData-4;
+lenU2 = lenU1-2;
+lenU3 = lenU2-1;
+
+u1 = zeros(lenU1,1);
+u2 = zeros(lenU2, 1);
+u3 = zeros(lenU3, 1);
 
 % calculate x', x'' and x'''
-% could be pipelined, but i'm lazy, and it's not too slow
-for m = 3:(length(fdata)-2), u1(m-2) = median(fdata(m-2:m+2));              end
-for m = 2:(length(u1)-1),    u2(m-1) = median(u1(m-1:m+1));                 end
-for m = 2:(length(u2)-1),    u3(m-1) = 0.25 *(u2(m-1) + 2*u2(m) + u2(m+1)); end
+m = (3:lenData-2)';
+mMinus2ToPlus2 = [m-2 m-1 m m+1 m+2];
+u1(1:lenData-4) = median(fdata(mMinus2ToPlus2), 2);
+clear mMinus2ToPlus2;
 
-
+m = (2:lenU1-1)';
+mMinus1ToPlus1 = [m-1 m m+1];
+u2(1:lenU1-2) = median(u1(mMinus1ToPlus1), 2);
+clear mMinus1ToPlus1;
+u3(1:lenU2-2) = 0.25 *(u2(1:lenU2-2) + 2*u2(2:lenU2-1) + u2(3:lenU2));
 
 % search the data for spikes
-for m = 4:(length(fdata)-5)
-  
-  delta = abs(fdata(m) - u3(m-3));
-  if delta > k_param * stddev, flags(m) = spikeFlag; end;
-  
+mydelta = abs(fdata(4:lenData-5) - u3(1:lenData-8));
+iSpike = mydelta > k_param * stddev;
+iSpike = [false; false; false; iSpike; false; false; false; false; false];
+if any(iSpike)
+    flags(iSpike) = spikeFlag;
 end

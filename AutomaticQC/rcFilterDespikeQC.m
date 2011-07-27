@@ -99,18 +99,15 @@ sq   = fdata .* fdata;
 lpsq = lowPassFilter(sq, 0.8);
 sqlp = lp .* lp;
 
-for m = 1:(length(fdata) - 1)
+variance = lpsq(1:end-1) - sqlp(1:end-1);
+% check that data is good
+low_bound  = lp(1:end-1) - (k_param * (variance .^ 0.5));
+high_bound = lp(1:end-1) + (k_param * (variance .^ 0.5));
 
-  variance = lpsq(m) - sqlp(m);
-
-  % check that data is good
-  low_bound  = lp(m) - (k_param * (variance .^ 0.5));
-  high_bound = lp(m) + (k_param * (variance .^ 0.5));
-
-  % if bad, flag it
-  if fdata(m+1) <= low_bound || fdata(m+1) >= high_bound
-
-    flags(m+1) = spikeFlag;
+% if bad, flag it
+iLow = fdata(2:end) <= low_bound;
+iHigh = fdata(2:end) >= high_bound;
+iBad = iLow | iHigh;
+iBad = [false; iBad];
     
-  end
-end
+flags(iBad) = spikeFlag;
