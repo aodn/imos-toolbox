@@ -370,8 +370,8 @@ for k = 1:length(sample_data)
         maxDistance = round(max(sam.dimensions{idHeight}.data)*100)/100;
         diff = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
         
-        if diff < 10/100
-            % Depth from PRES Ok if diff < 10%
+        if diff < 30/100
+            % Depth from PRES Ok if diff < 30%
             % add depth data as new variable in data set
             sample_data{k} = addVar(...
                 sam, ...

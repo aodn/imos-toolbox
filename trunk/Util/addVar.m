@@ -59,9 +59,8 @@ rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
 % add new variable to data set
 sam.variables{end+1}.name       = name;
-sam.variables{end  }.data       = data;
 sam.variables{end  }.dimensions = dimensions;
-sam.variables{end  }.comment    = comment;
+sam.variables{end  }.data       = data;
 
 % create an empty flags matrix for the new variable
 sam.variables{end}.flags(1:numel(sam.variables{end}.data)) = rawFlag;
@@ -72,4 +71,8 @@ sam.variables{end}.flags = reshape(...
 % required NetCDF  attributes - all existing fields are 
 % left unmodified by the makeNetCDFCompliant function
 sam = makeNetCDFCompliant(sam);
+
+if isfield(sam.variables{end  }, 'comment')
+    sam.variables{end  }.comment       = comment;
+end
   
