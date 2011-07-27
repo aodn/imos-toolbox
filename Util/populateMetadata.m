@@ -218,8 +218,8 @@ function sample_data = populateMetadata( sample_data )
               if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
                   sample_data.geospatial_vertical_min = 0;
                   
-                  if diff < 10/100
-                      % Depth from PRES Ok if diff < 10% and latitude
+                  if diff < 30/100
+                      % Depth from PRES Ok if diff < 30% and latitude
                       % filled
                       sample_data.geospatial_vertical_max = computedMedianDepth;
                       comment  = strrep(computedMedianDepthComment, 'min/', '');
