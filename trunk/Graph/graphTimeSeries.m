@@ -18,7 +18,8 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
 %                        graphs.
 %   vars               - Indices of variables which were graphed.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -55,9 +56,6 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   if ~ishandle( parent),       error('parent must be a handle');      end
   if ~isstruct( sample_data),  error('sample_data must be a struct'); end
   if ~isnumeric(vars),         error('vars must be a numeric');       end
-  
-  graphs = [];
-  lines  = [];
     
   if isempty(vars)
     warning('no variables to graph');
@@ -66,31 +64,38 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   
   % get rid of variables that we should ignore
   sample_data.variables = sample_data.variables(vars);
+  lenVar = length(sample_data.variables);
   
-  for k = 1:length(sample_data.variables)
+  graphs = nan(lenVar, 1);
+  lines = nan(lenVar, 1);
+  distinctFlagsValue = [];
+  
+  for k = 1:lenVar
     
     name = sample_data.variables{k}.name;
+    distinctFlagsValue = union(distinctFlagsValue, unique(sample_data.variables{k}.flags));
     
     % create the axes
-    graphs(k) = subplot(length(sample_data.variables), 1, k);
+    graphs(k) = subplot(lenVar, 1, k);
     
     set(graphs(k), 'Parent', parent,...
                    'XGrid',  'on',...
                    'Color', 'none',...
                    'YGrid',  'on');
     
+    % plot the variable
+    plotFunc            = getGraphFunc('TimeSeries', 'graph', name);
+    [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, k);
+    
     % make sure line colour alternate; because we are creating 
     % multiple axes, this is not done automatically for us
     col = get(graphs(k), 'ColorOrder');
     col = col(mod(k,length(col))+1,:);
     
-    % plot the variable
-    plotFunc            = getGraphFunc('TimeSeries', 'graph', name);
-    [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, k);
-    
     % set the line colour - wrap in a try block, 
     % as surface plot colour cannot be set
-    try set(lines(k,:), 'Color', col);
+    try 
+        set(lines(k,:), 'Color', col);
     catch e
     end
     
@@ -115,17 +120,67 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
     set(get(graphs(k), 'YLabel'), 'String', strrep(yLabel, '_', ' '));
     
+    if sample_data.meta.level == 1 && strcmp(func2str(plotFunc), 'graphTimeSeriesGeneric')
+        qcSet     = str2double(readProperty('toolbox.qc_set'));
+        goodFlag  = imosQCFlag('good',  qcSet, 'flag');
+        
+        % set y limits so that only good data are visible
+        curData = sample_data.variables{k}.data;
+        curFlag = sample_data.variables{k}.flags;
+        iGood = curFlag == goodFlag;
+        yLimits = [floor(min(curData(iGood))), ceil(max(curData(iGood)))];
+        set(graphs(k), 'YLim', yLimits);
+    end
+    
     yLimits = get(graphs(k), 'YLim');
     yStep   = (yLimits(2) - yLimits(1)) / 5;
     yTicks  = yLimits(1):yStep:yLimits(2);
     set(graphs(k), 'YTick', yTicks);
   end
   
-  % GLT : I prefer not adding a legend as it overlaps the figure...
-  % anyway, the different axis and plots labels are sufficient.
+  if sample_data.meta.level == 1
+      % Let's add a QC legend
+      qcSet     = str2double(readProperty('toolbox.qc_set'));
+      lenFlagsValue = length(distinctFlagsValue);
+      distinctFlagName = cell(lenFlagsValue, 1);
+      distinctFlag = nan(lenFlagsValue, 1);
+      for i=1:length(distinctFlagsValue)
+          distinctFlagName{i} = strrep(imosQCFlag(distinctFlagsValue(i),  qcSet, 'desc'), '_', ' ');
+          distinctFlagColor = imosQCFlag(distinctFlagsValue(i),  qcSet, 'color');
+          distinctFlag(i) = line(0, 0,...
+              'Parent', graphs(1),...
+              'LineStyle', 'none',...
+              'Marker', 'o',...
+              'MarkerFaceColor', distinctFlagColor,...
+              'MarkerEdgeColor', 'none',...
+              'Visible', 'off');
+      end
+      
+      % link axes for panning/zooming, and add a legend - matlab has a habit of
+      % throwing 'Invalid handle object' errors for no apparent reason (i think
+      % when the user changes selections too quickly, matlab is too slow, and
+      % ends up confusing itself), so absorb any errors which are thrown
+      try
+          linkaxes(graphs, 'x');
+          for k = 1:lenVar
+              legend(graphs(k), distinctFlag, distinctFlagName, 'Location', 'NorthEastOutside');
+              if k == 1
+                  legend(graphs(k), 'show');
+              else
+                  legend(graphs(k), 'hide');
+                  xLimits = get(graphs(1), 'XLim');
+                  set(graphs(k), 'XLim', xLimits);
+              end
+          end
+      catch e
+      end
+  end
+  
+  % GLT : I prefer not adding a legend for variables as it overlaps the figure
+  % and in addition the different axis and plots labels are already detailed enough.
 %   % compile variable names for the legend
 %   names = {};
-%   for k = 1:length(sample_data.variables)
+%   for k = 1:lenVar
 %     names{k} = strrep(sample_data.variables{k}.name, '_', ' ');
 %   end
 %   

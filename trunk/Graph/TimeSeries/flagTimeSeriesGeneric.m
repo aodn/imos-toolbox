@@ -15,7 +15,8 @@ function flags = flagTimeSeriesGeneric( ax, sample_data, var )
 %   flags       - Vector of handles to line objects, which are the flag
 %                 overlays.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -53,8 +54,6 @@ if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be numeric');          end
 
-flags = [];
-
 qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
@@ -67,13 +66,17 @@ data  = sample_data.variables{var}.data;
 
 % get a list of the different flag types to be graphed
 flagTypes = unique(fl);
+lenFlag = length(flagTypes);
 
 % if no flags to plot, put a dummy handle in - the 
 % caller is responsible for checking and ignoring
-flags = 0.0;
+flags = nan(lenFlag, 1);
+if isempty(flags)
+    flags = 0.0;
+end
 
 % a different line for each flag type
-for m = 1:length(flagTypes)
+for m = 1:lenFlag
 
   % don't display raw data flags
   if flagTypes(m) == rawFlag, continue; end
