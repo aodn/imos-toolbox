@@ -12,7 +12,8 @@ function flags = flagTimeSeries( parent, graphs, sample_data, vars )
 % Outputs:
 %   flag        - handles to line objects that make up the flag overlays.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author: 		Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: 	Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -52,20 +53,20 @@ if ~ishandle(graphs),      error('graphs must be a graphic handle(s)'); end
 if ~isstruct(sample_data), error('sample_data must be a struct');       end
 if ~isnumeric(vars),       error('vars must be a numeric');             end
 
-flags = [];
-
 if isempty(vars), return; end
 
 % remove ungraphed variables
 sample_data.variables = sample_data.variables(vars);
-if length(graphs) ~= length(sample_data.variables)
+lenVar = length(sample_data.variables);
+if length(graphs) ~= lenVar
   error('graphs must be the same length as vars');
 end
 
 hold on;
 
-for k = 1:length(sample_data.variables)
-  
+flags = nan(lenVar, 1);
+
+for k = 1:lenVar
   % apply the flag function for this variable
   flagFunc = getGraphFunc('TimeSeries', 'flag', sample_data.variables{k}.name);
   f = flagFunc(graphs(k), sample_data, k);
