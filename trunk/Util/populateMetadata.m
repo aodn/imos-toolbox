@@ -52,7 +52,6 @@ function sample_data = populateMetadata( sample_data )
   idHeight = 0;
   idLat = 0;
   idLon = 0;
-  idSDepth = 0;
   for i=1:length(sample_data.dimensions)
       if strcmpi(sample_data.dimensions{i}.name, 'DEPTH')
           idDepth = i;
@@ -66,120 +65,226 @@ function sample_data = populateMetadata( sample_data )
       if strcmpi(sample_data.dimensions{i}.name, 'LONGITUDE')
           idLon = i;
       end
-      if strcmpi(sample_data.dimensions{i}.name, 'SENSOR_DEPTH')
-          idSDepth = i;
-      end
   end
   
   metadataChanged = false;
   
   % geospatial_vertical  
   updateFromDepth = false;
-  if idDepth > 0
-      if length(sample_data.dimensions{idDepth}.data) > 1
-          updateFromDepth = true;
+  ivDepth = getVar(sample_data.variables, 'DEPTH');
+  if idDepth > 0 && idHeight == 0
+      if ~all(isnan(sample_data.dimensions{idDepth}.data)) && ...
+              isempty(sample_data.geospatial_vertical_min) && ...
+              isempty(sample_data.geospatial_vertical_max);
+        updateFromDepth = true;
+      end
+  end
+  if ivDepth > 0 && idHeight == 0
+      if ~all(isnan(sample_data.variables{ivDepth}.data)) && ...
+              isempty(sample_data.geospatial_vertical_min) && ...
+              isempty(sample_data.geospatial_vertical_max);
+        updateFromDepth = true;
       end
   end
   
   if updateFromDepth
-      sample_data.geospatial_vertical_min = min(sample_data.dimensions{idDepth}.data);
-      sample_data.geospatial_vertical_max = max(sample_data.dimensions{idDepth}.data);
+      % Update from DEPTH data
+      % Let's find out if it's a profile or a mooring
+      if ivDepth > 0
+          iNan = isnan(sample_data.variables{ivDepth}.data);
+          dataDepth = sample_data.variables{ivDepth}.data(~iNan);
+          maxDepth      = max(dataDepth);
+          minDepth      = min(dataDepth);
+          MedianDepth   = median(dataDepth);
+      end
+      if idDepth > 0
+          iNan = isnan(sample_data.dimensions{idDepth}.data);
+          dataDepth = sample_data.dimensions{idDepth}.data(~iNan);
+          maxDepth      = max(dataDepth);
+          minDepth      = min(dataDepth);
+          MedianDepth   = median(dataDepth);
+      end
+      
+      threshold = maxDepth - maxDepth*20/100;
+      iDataDeploying = sample_data.variables{ivDepth}.data < threshold;
+      nDataDeploying = sum(iDataDeploying);
+      nDataMooring = sum(~iDataDeploying);
+      
+      verticalComment = ['Geospatial vertical min/max information has '...
+              'been filled using the'];
+      
+      if nDataDeploying < nDataMooring/10
+          % Moored => geospatial_vertical_min ~=
+          % geospatial_vertical_max
+          sample_data.geospatial_vertical_min = MedianDepth;
+          sample_data.geospatial_vertical_max = MedianDepth;
+          verticalComment = [verticalComment ' DEPTH median (mooring).'];
+      else
+          % Profile
+          sample_data.geospatial_vertical_min = minDepth;
+          sample_data.geospatial_vertical_max = maxDepth;
+          verticalComment = [verticalComment ' DEPTH min and max (vertical profile).'];
+      end
+      
+      if isempty(sample_data.comment)
+          sample_data.comment = verticalComment;
+      else
+          sample_data.comment = [sample_data.comment ' ' verticalComment];
+      end
+      
       metadataChanged = true;
   else
-      idPres = getVar(sample_data.variables, 'PRES');
-      if idPres > 0
-          % update from PRES via a relative pressure like SeaBird computes
+      % Update from PRES if available
+      ivPres = getVar(sample_data.variables, 'PRES');
+      if ivPres > 0
+          % update from a relative pressure like SeaBird computes
           % it in its processed files, substracting a constant value
-          % 14.7*0.689476 dBar for atmospheric pressure
-          relPres = sample_data.variables{idPres}.data - 14.7*0.689476;
+          % 14.7*0.689476 dBar for nominal atmospheric pressure
+          relPres = sample_data.variables{ivPres}.data - 14.7*0.689476;
           if ~isempty(sample_data.geospatial_lat_min) && ~isempty(sample_data.geospatial_lat_max)
               % compute vertical min/max with SeaWater toolbox
               if sample_data.geospatial_lat_min == sample_data.geospatial_lat_max
-                  computedMedianDepth = sw_dpth(median(relPres), ...
+                  computedDepth         = sw_dpth(relPres, ...
                       sample_data.geospatial_lat_min);
-                  computedMinDepth = sw_dpth(min(relPres), ...
+                  computedMedianDepth   = sw_dpth(median(relPres), ...
                       sample_data.geospatial_lat_min);
-                  computedMaxDepth = sw_dpth(max(relPres), ...
+                  computedMinDepth      = sw_dpth(min(relPres), ...
                       sample_data.geospatial_lat_min);
+                  computedMaxDepth      = sw_dpth(max(relPres), ...
+                      sample_data.geospatial_lat_min);
+                  computedDepthComment  = ['depthPP: Depth computed using the '...
+                      'SeaWater toolbox from latitude and absolute '...
+                      'pressure measurements to which a nominal '...
+                      'value for atmospheric pressure (14.7*0689476 dBar) '...
+                      'has been substracted.'];
+                  computedMedianDepthComment  = ['Geospatial vertical '...
+                      'min/max information has been computed using the '...
+                      'SeaWater toolbox from latitude and absolute '...
+                      'pressure measurements median to which a nominal '...
+                      'value for atmospheric pressure (14.7*0689476 dBar) '...
+                      'has been substracted.'];
               else
-                  computedMedianDepth = sw_dpth(median(relPres), ...
-                      sample_data.geospatial_lat_min + (sample_data.geospatial_lat_max - sample_data.geospatial_lat_min)/2);
-                  computedMinDepth = sw_dpth(min(relPres), ...
-                      sample_data.geospatial_lat_min + (sample_data.geospatial_lat_max - sample_data.geospatial_lat_min)/2);
-                  computedMaxDepth = sw_dpth(max(relPres), ...
-                      sample_data.geospatial_lat_min + (sample_data.geospatial_lat_max - sample_data.geospatial_lat_min)/2);
+                  meanLat = sample_data.geospatial_lat_min + ...
+                      (sample_data.geospatial_lat_max - sample_data.geospatial_lat_min)/2;
+                  
+                  computedDepth         = sw_dpth(relPres, meanLat);
+                  computedMedianDepth   = sw_dpth(median(relPres), meanLat);
+                  computedMinDepth      = sw_dpth(min(relPres), meanLat);
+                  computedMaxDepth      = sw_dpth(max(relPres), meanLat);
+                  computedDepthComment  = ['depthPP: Depth computed using the '...
+                      'SeaWater toolbox from mean latitude and absolute '...
+                      'pressure measurements to which a nominal '...
+                      'value for atmospheric pressure (14.7*0689476 dBar) '...
+                      'has been substracted.'];
+                  computedMedianDepthComment  = ['Geospatial vertical '...
+                      'min/max information has been computed using the '...
+                      'SeaWater toolbox from mean latitude and absolute '...
+                      'pressure measurements median to which a nominal '...
+                      'value for atmospheric pressure (14.7*0689476 dBar) '...
+                      'has been substracted.'];
               end
           else
               % without latitude information, we assume 1dBar ~= 1m
-              computedMedianDepth = median(relPres);
-              computedMinDepth = min(relPres);
-              computedMaxDepth = max(relPres);
+              computedDepth         = relPres;
+              computedMedianDepth   = median(relPres);
+              computedMinDepth      = min(relPres);
+              computedMaxDepth      = max(relPres);
+              computedDepthComment  = ['depthPP: Depth computed from absolute '...
+                  'pressure measurements to which a nominal '...
+                  'value for atmospheric pressure (14.7*0689476 dBar) '...
+                  'has been substracted, assuming 1dBar ~= 1m.'];
+              computedMedianDepthComment  = ['Geospatial vertical min/max '...
+                  'information has been computed from absolute '...
+                  'pressure measurements median to which a nominal '...
+                  'value for atmospheric pressure (14.7*0689476 dBar) '...
+                  'has been substracted, assuming 1dBar ~= 1m.'];
           end
-          computedMedianDepth = round(computedMedianDepth*100)/100;
-          computedMinDepth = round(computedMinDepth*100)/100;
-          computedMaxDepth = round(computedMaxDepth*100)/100;
+          computedDepth         = round(computedDepth*100)/100;
+          computedMedianDepth   = round(computedMedianDepth*100)/100;
+          computedMinDepth      = round(computedMinDepth*100)/100;
+          computedMaxDepth      = round(computedMaxDepth*100)/100;
           
-          if idSDepth > 0 && idHeight > 0
+          if idHeight > 0
               % ADCP
               % Let's compare this computed depth from pressure
-              % with the maximum distance the ADCP can measure
+              % with the maximum distance the ADCP can measure. Sometimes,
+              % PRES from ADCP pressure sensor is just wrong
               maxDistance = round(max(sample_data.dimensions{idHeight}.data)*100)/100;
               diff = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
               
-              % update sensor_depth metadata from data if
-              % empty
-              if isempty(sample_data.sensor_depth)
-                  if diff < 10/100 && ...
-                          ~isempty(sample_data.geospatial_lat_min) && ~isempty(sample_data.geospatial_lat_max)
-                      % Depth from PRES Ok if diff < 10% and latitude
-                      % filled
-                      sample_data.sensor_depth = computedMedianDepth;
-                      sample_data.sensor_depth_source = ...
-                          'Depth computed from median of pressure measurements and latitude (SeaWater toolbox).';
-                  else
-                      % Depth is taken from maxDistance between ADCP and bins
-                      sample_data.sensor_depth = maxDistance;
-                      sample_data.sensor_depth_source = ...
-                          'Depth assumed as the distance between the ADCP''s tranducers and the furthest bin measured.';
-                  end
-                  metadataChanged = true;
-              end
-              
+              % update vertical min/max metadata from data
               % we assume that data is collected between the
               % vertical extremes of surface and sensor depth
               if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
                   sample_data.geospatial_vertical_min = 0;
-                  sample_data.geospatial_vertical_max = sample_data.sensor_depth;
+                  
+                  if diff < 10/100
+                      % Depth from PRES Ok if diff < 10% and latitude
+                      % filled
+                      sample_data.geospatial_vertical_max = computedMedianDepth;
+                      comment  = strrep(computedMedianDepthComment, 'min/', '');
+                  else
+                      % Depth is taken from maxDistance between ADCP and bins
+                      sample_data.geospatial_vertical_max = maxDistance;
+                      comment  = ['Geospatial vertical max '...
+                          'information has been assumed as the distance '...
+                          'between the ADCP''s tranducers and the furthest '...
+                          'bin measured.'];
+                  end
+                  
+                  if isempty(sample_data.comment)
+                      sample_data.comment = comment;
+                  else
+                      sample_data.comment = [sample_data.comment ' ' comment];
+                  end
+                  
                   metadataChanged = true;
               end
           else
-              % CTD
-              % Let's find out if it's a profile CTD or a moored CTD
+              % Not an ADCP, so we can update existing DEPTH dimension/variable from PRES data
+              if idDepth > 0
+                  sample_data.dimensions{idDepth}.data = computedDepth;
+                  sample_data.dimensions{idDepth}.comment = computedDepthComment;
+                  metadataChanged = true;
+              end
+              if ivDepth > 0
+                  sample_data.variables{ivDepth}.data = computedDepth;
+                  sample_data.variables{ivDepth}.comment = computedDepthComment;
+                  metadataChanged = true;
+              end
+              
+              % Let's find out if it's a profile or a mooring
               nDataDeploying = 0;
               nDataMooring = 0;
               
-              if idPres > 0
+              if ivPres > 0
                   maxPressure = max(relPres);
                   threshold = maxPressure - maxPressure*20/100;
                   iDataDeploying = relPres < threshold;
                   nDataDeploying = sum(iDataDeploying);
                   nDataMooring = sum(~iDataDeploying);
               end
-              
-              if nDataDeploying < nDataMooring/10 || idPres == 0
-                  % Moored => geospatial_vertical_min ~=
-                  % geospatial_vertical_max
-                  if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
+          
+              if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
+                  if nDataDeploying < nDataMooring/10 || ivPres == 0
+                      % Moored => geospatial_vertical_min ~=
+                      % geospatial_vertical_max
                       sample_data.geospatial_vertical_min = computedMedianDepth;
                       sample_data.geospatial_vertical_max = computedMedianDepth;
+                      comment  = strrep(computedMedianDepthComment, 'median', 'median (mooring)');
                       metadataChanged = true;
-                  end
-              else
-                  % Profile
-                  if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
+                  else
+                      % Profile
                       sample_data.geospatial_vertical_min = computedMinDepth;
                       sample_data.geospatial_vertical_max = computedMaxDepth;
+                      comment  = strrep(computedMedianDepthComment, 'median', 'min and max (vertical profile)');
                       metadataChanged = true;
+                  end
+                  
+                  if isempty(sample_data.comment)
+                      sample_data.comment = comment;
+                  else
+                      sample_data.comment = [sample_data.comment ' ' comment];
                   end
               end
           end
@@ -214,11 +319,6 @@ function sample_data = populateMetadata( sample_data )
             sample_data.dimensions{idDepth}.data = sample_data.geospatial_vertical_min; 
          end
       end
-  end
-  
-  % SENSOR_DEPTH
-  if ~isempty(sample_data.sensor_depth) && idSDepth > 0
-      sample_data.dimensions{idSDepth}.data = sample_data.sensor_depth;
   end
   
   % regenerate table content
