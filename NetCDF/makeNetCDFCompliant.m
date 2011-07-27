@@ -72,12 +72,11 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % dimensions
   %
   
-  % update dimensions DEPTH, SENSOR_DEPTH, LATITUDE, and LONGITUDE data from global 
+  % update dimensions DEPTH, LATITUDE, and LONGITUDE data from global 
   % attributes if relevant for time or time/depth dependant data
   idDepth = 0;
   idLat = 0;
   idLon = 0;
-  idSDepth = 0;
   for i=1:length(sample_data.dimensions)
       if strcmpi(sample_data.dimensions{i}.name, 'DEPTH')
           idDepth = i;
@@ -87,9 +86,6 @@ function sample_data = makeNetCDFCompliant( sample_data )
       end
       if strcmpi(sample_data.dimensions{i}.name, 'LONGITUDE')
           idLon = i;
-      end
-      if strcmpi(sample_data.dimensions{i}.name, 'SENSOR_DEPTH')
-          idSDepth = i;
       end
   end
   % DEPTH
