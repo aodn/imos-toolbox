@@ -96,8 +96,9 @@ function mainWindow(...
   currentState = states{startState};
   
   % sample menu entries (1-1 mapping to sample_data structs)
-  sampleDataDescs = {};
-  for k = 1:length(sample_data)
+  lenSam = length(sample_data);
+  sampleDataDescs = cell(lenSam, 1);
+  for k = 1:lenSam
     sampleDataDescs{k} = genSampleDataDesc(sample_data{k});
   end
 
@@ -128,9 +129,41 @@ function mainWindow(...
     'Parent',     fig,...
     'BorderType', 'none');
   
+%   % zoom/pan buttons
+%   logo = load('zoomInCData.mat');
+%   zoomPlus = logo.P;
+%   
+%   logo = load('zoomOutCData.mat');
+%   zoomMinus = logo.P;
+%   
+%   logo = load('pan.mat');
+%   icoPan = logo.cdata;
+%   % zoom +
+%   pushbutZoomPlus = uicontrol(...
+%       'style',            'togglebutton',...
+%       'Parent',           sidePanel,...
+%       'units',            'normalized',...
+%       'CData',            zoomPlus,...
+%       'tag',              'zoomPlus');
+%   % Zoom -
+%   pushbutZoomMinus = uicontrol(...
+%       'style',            'pushbutton',...
+%       'Parent',           sidePanel,...
+%       'units',            'normalized',...
+%       'CData',            zoomMinus,...
+%       'tag',              'zoomMinus');
+%   % Pan
+%   pushbutPan = uicontrol(...
+%       'style',            'togglebutton',...
+%       'Parent',           sidePanel,...
+%       'units',            'normalized',...
+%       'CData',            icoPan,...
+%       'tag',              'pan');
+    
   % state buttons
-  stateButtons = [];
-  for k = 1:length(states)
+  lenStates = length(states);
+  stateButtons = nan(lenStates, 1);
+  for k = 1:lenStates
     stateButtons(k) = uicontrol(...
       'Parent', sidePanel,...
       'Style',  'pushbutton',...
@@ -155,14 +188,17 @@ function mainWindow(...
     'BorderType', 'none');
   
   % use normalized units
-  set(fig,          'Units', 'normalized');
-  set(sidePanel,    'Units', 'normalized');
-  set(mainPanel,    'Units', 'normalized');
-  set(varPanel,     'Units', 'normalized');
-  set(graphButton,  'Units', 'normalized');
-  set(sampleMenu,   'Units', 'normalized');
-  set(graphMenu,    'Units', 'normalized');
-  set(stateButtons, 'Units', 'normalized');
+  set(fig,              'Units', 'normalized');
+  set(sidePanel,        'Units', 'normalized');
+  set(mainPanel,        'Units', 'normalized');
+  set(varPanel,         'Units', 'normalized');
+  set(graphButton,      'Units', 'normalized');
+  set(sampleMenu,       'Units', 'normalized');
+  set(graphMenu,        'Units', 'normalized');
+  set(stateButtons,     'Units', 'normalized');
+%   set(pushbutZoomPlus,  'Units', 'normalized');
+%   set(pushbutZoomMinus, 'Units', 'normalized');
+%   set(pushbutPan,       'Units', 'normalized');
   
   % set window and widget positions
   set(fig,        'Position', [0.1,  0.15, 0.8,  0.7 ]);
@@ -270,6 +306,7 @@ function mainWindow(...
   %STATEBUTTONCALLBACK Called when the user pushes a state button. Updates
   % the current state, then delegates to selectionChange.
   %
+
     currentState = get(source, 'String');
     selectionChange('state');
   end
@@ -305,13 +342,13 @@ function mainWindow(...
     
     % a new data set is being added
     updateMenus = 0;
-    if sam.meta.index > length(sample_data), updateMenus = 1; end
+    if sam.meta.index > lenSam, updateMenus = 1; end
 
     sample_data{sam.meta.index} = sam;
     
     % regenerate descriptions
-    sampleDataDescs = {};
-    for k = 1:length(sample_data)
+    sampleDataDescs = cell(lenSam, 1);
+    for k = 1:lenSam
       sampleDataDescs{k} = genSampleDataDesc(sample_data{k}); 
     end
     
