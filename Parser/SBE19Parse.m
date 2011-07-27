@@ -25,6 +25,7 @@ function sample_data = SBE19Parse( filename )
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Brad Morris <b.morris@unsw.edu.au>
+% 				Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -149,12 +150,10 @@ function sample_data = SBE19Parse( filename )
   sample_data.dimensions{1}.name = 'TIME';
   % generate time data from header information
   sample_data.dimensions{1}.data = genTimestamps(instHeader, data);
-  sample_data.dimensions{2}.name = 'DEPTH';
+  sample_data.dimensions{2}.name = 'LATITUDE';
   sample_data.dimensions{2}.data = NaN;
-  sample_data.dimensions{3}.name = 'LATITUDE';
+  sample_data.dimensions{3}.name = 'LONGITUDE';
   sample_data.dimensions{3}.data = NaN;
-  sample_data.dimensions{4}.name = 'LONGITUDE';
-  sample_data.dimensions{4}.data = NaN;
   
   % scan through the list of parameters that were read 
   % from the file, and create a variable for each
@@ -165,7 +164,7 @@ function sample_data = SBE19Parse( filename )
     
     % dimensions definition must stay in this order : T, Z, Y, X, others;
     % to be CF compliant
-    sample_data.variables{end+1}.dimensions = [1 2 3 4];
+    sample_data.variables{end+1}.dimensions = [1 2 3];
     
     sample_data.variables{end  }.name       = vars{k};
     sample_data.variables{end  }.data       = data.(vars{k});

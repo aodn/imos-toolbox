@@ -56,7 +56,7 @@ function sample_data = readWQMdat( filename )
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Brad Morris <b.morris@unsw.edu.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% 				Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 % See http://www.wetlabs.com/products/wqm/wqm.htm
 %
@@ -184,12 +184,10 @@ function sample_data = readWQMdat( filename )
   % to be CF compliant
   sample_data.dimensions{1}.name = 'TIME';
   sample_data.dimensions{1}.data = time;
-  sample_data.dimensions{2}.name = 'DEPTH';
+  sample_data.dimensions{2}.name = 'LATITUDE';
   sample_data.dimensions{2}.data = NaN;
-  sample_data.dimensions{3}.name = 'LATITUDE';
+  sample_data.dimensions{3}.name = 'LONGITUDE';
   sample_data.dimensions{3}.data = NaN;
-  sample_data.dimensions{4}.name = 'LONGITUDE';
-  sample_data.dimensions{4}.data = NaN;
 
   % create a variables struct in sample_data for each field in the file
   % start index at 4 to skip serial, date and time
@@ -200,6 +198,12 @@ function sample_data = readWQMdat( filename )
 
     % some fields are not in IMOS uom - scale them so that they are
     switch fields{k}
+        
+        % WQM uses SeaBird pressure sensor
+        case 'Pres(dbar)'
+            % add the constant pressure atmosphere previously substracted by SeaBird
+            % software so that we are back to the raw absolute presure measurement
+            data = data + 14.7*0.689476;
         
         % WQM provides conductivity in mS/m; we need it in S/m.
         case 'Cond(mmho)'
@@ -253,7 +257,7 @@ function sample_data = readWQMdat( filename )
         % hopefully it is equivalent.
     end
         
-    sample_data.variables{k-3}.dimensions = [1 2 3 4];
+    sample_data.variables{k-3}.dimensions = [1 2 3];
     sample_data.variables{k-3}.comment    = comment;
     sample_data.variables{k-3}.name       = name;
     sample_data.variables{k-3}.data       = data;
