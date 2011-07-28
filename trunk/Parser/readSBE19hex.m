@@ -261,7 +261,7 @@ end
 function pressure = convertPressure(pressure, pressureVolt, header)
 %CONVERTPRESSURE Converts pressure A/D counts to decibars, via the 
 % convertion equation provided with SBE19 calibration sheets. Here, the
-% constant value 14.7*0.689476 dBar for atmospheric pressure isn't 
+% constant value 14.7*0.689476 dbar for atmospheric pressure isn't 
 % substracted like in the processed .cnv data.
 %
 
@@ -308,7 +308,7 @@ function pressure = convertPressure(pressure, pressureVolt, header)
   
   pressure = PA0 + PA1 * n + PA2 * (n.^2);
   
-  % convert from PSIA to decibar
+  % convert from PSIA to decibar (1 PSI = 6894.76 Pa)
   pressure = pressure * 0.689476;
 end
 
