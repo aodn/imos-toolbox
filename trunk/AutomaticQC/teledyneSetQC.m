@@ -55,9 +55,7 @@ if nargin<2, auto=false; end
 
 %BDM - 13/08/2010 - Added code to check if the data is from a Teledyne RD
 %ADCP, if not returns.
-if auto
-    if ~strcmp('Teledyne RD Workhorse ADCP',sample_data.source), return; end
-end
+if ~strcmp('Teledyne RD Workhorse ADCP',sample_data.source), return; end
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
 badFlag  = imosQCFlag('bad',  qcSet, 'flag');
