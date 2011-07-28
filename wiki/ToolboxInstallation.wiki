@@ -27,7 +27,7 @@ The installer is a straightforward Windows installer; you only need to run it on
 
 === Install IMOS Toolbox ===
 
-Download a standalone archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Most of the users should only use the last stable standalone version : imos-toolbox-X.XX_standalone.zip. Extract the archive to a directory of your choice. 
+Download an archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Most of the users should only use the last stable version : imos-toolbox-X.XX.zip. Extract the archive to a directory of your choice. 
 
 === Configure Deployment Database ===
 
@@ -47,9 +47,7 @@ If you are using the MS-Access deployment database, you must configure it as an 
 
 Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name. If you are not using a deployment database, ensure the `toolbox.ddb` property is unset.
 
-If you are using your own database, you must put the driver (.jar file) used to connect to it in the Java directory and set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) properly.
-
-You must also follow a [DeploymentDatabase#Interface_requirements minimum interface requirements] to prevent the toolbox from crashes.
+If you are using your own database, you must put the driver (.jar file) used to connect to it in the Java directory and set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) properly. You must also follow a [DeploymentDatabase#Interface_requirements minimum interface requirements] to prevent the toolbox from crashes.
 
 === Startup ===
 
@@ -68,7 +66,7 @@ Only high level users should be interested in using the source code, for example
 
 === Download and install ===
 
-Download a source archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Extract the archive to a directory of your choice. Before you can use the toolbox, you must configure the matlab path and deployment database.
+Download an archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Extract the archive to a directory of your choice. Before you can use the toolbox, you must configure the matlab path and deployment database.
 
 === Matlab path ===
 
@@ -113,4 +111,4 @@ See the [UsingTheToolboxOverview overview] on using the toolbox to get started.
 
 == Using the toolbox under Linux ==
 
-The toolbox will run under Linux. If you are using a deployment database however, MS Access support under Linux is flaky at best. Having said that, I've developed the toolbox almost exclusively under Ubuntu 9.04 (testing under Windows regularly, of course). See [DeploymentDatabaseInterface here] for more details on running the toolbox under Linux.
+The toolbox should run under Linux. If you are using a deployment database however, MS Access support under Linux is flaky at best. Having said that, the development of the toolbox until version 1.5.5 has been almost exclusively performed under Ubuntu 9.04 (testing under Windows regularly, of course). See [DeploymentDatabaseInterface here] for more details on running the toolbox under Linux. Since version 1.5.5 and above, the development have only been performed under Windows.

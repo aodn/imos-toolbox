@@ -9,7 +9,7 @@ This page gives a brief overview on how to use the toolbox. You are encouraged t
 
 == Starting the toolbox ==
 
-For standalone installations, the toolbox is started by double clicking on `imosToolbox.exe`.
+The standalone version of the toolbox is started by double clicking on `imosToolbox.exe`.
 
 If you are using the toolbox within Matlab, the toolbox is started via the `imosToolbox` function:
 {{{
