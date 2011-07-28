@@ -1,37 +1,36 @@
-#summary Weekly SVN snapshots
+#summary Weekly SVN snapshot
 #labels Support
 
 <wiki:toc/>
 
-= Weekly SVN Snapshots =
+= Weekly SVN Snapshot =
 
-Weekly snapshots of the Toolbox codebase are available from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. The snapshots are created every Monday at 13:00 (AEST). Two snapshot files are created:
+Weekly snapshot of the Toolbox codebase is available from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. A snapshot is created every Monday at 13:00 (AEST).
 
- * *Source snapshot*: contains the source code straight from the SVN. Download this file if you have a licensed copy of Matlab.
- * *Standalone snapshot*: Contains a compiled version of the source code straight from the SVN. Download this file if you don't have access to Matlab.
+ * *Snapshot*: Contains a compiled version of the source code and the source code straight from the SVN.
 
-Compilation of the standalone snapshot requires use of the Matlab Compiler, which is on a shared license. This means that if someone else is using the compiler when the snapshot script runs, the script will fail, and the standalone snapshot will not be uploaded. When this happens, I will attempt to compile a standalone snapshot as soon as possible.
+Compilation of the snapshot requires use of the Matlab Compiler, which is on a shared license. This means that if someone else is using the compiler when the snapshot script runs, the script will fail, and the snapshot will not be uploaded. When this happens, I will attempt to compile a standalone snapshot as soon as possible.
 
 == File format and contents ==
 
-The source snapshots are zip files which contain the contents of the SVN `trunk` directory, minus the `Tests/sample_data` directory. 
+The snapshot is a zip file which contains the contents of the SVN `trunk` directory, minus the `Tests/sample_data` directory. 
 
-The Java files are automatically compiled when the snapshot files are created, so there is no need to do any compilation. 
+The Java files are automatically compiled when the snapshot file is created, so there is no need to do any compilation. 
 
 The Java code is compiled with the Sun Java Development Kit, version 1.6.0_25.
 
-In the standalone snapshot, the matlab code is compiled with the Matlab Compiler, version 4.14 (R 2010b) since imos-toolbox versions strictly above 1.5.5.
+The matlab code is compiled with the Matlab Compiler, version 4.14 (R 2010b) since imos-toolbox versions strictly above 1.5.5.
 
 == Submission script ==
 
-The snapshots are created on a Windows XP platform. Snapshot creation is triggered by a weekly cronjob, which executes the simple snapshot.bat script below :
+The snapshot is created on a Windows XP platform. Snapshot creation is triggered by a weekly cronjob, which executes the simple snapshot.bat script below :
 
 {{{
 python snapshot.py
 pause
 }}} 
 
-The snapshot.py python script exports the SVN trunk, compiles the Java and then Matlab files, creates the snapshots, and finally calls another python script which uploads the snapshots to the project website. This [http://code.google.com/p/support/wiki/ScriptedUploads upload script] is conveniently provided by Google Code.
+The snapshot.py python script exports the SVN trunk, compiles the Java and then Matlab files, creates the snapshot, and finally calls another python script which uploads it to the project website. This [http://code.google.com/p/support/wiki/ScriptedUploads upload script] is conveniently provided by Google Code.
 
 {{{
 #!/usr/bin/python
@@ -40,7 +39,6 @@ import os
 import sys
 import time
 import shutil
-import ziputil
 import gmail
 
 # snapshot.py
@@ -79,10 +77,8 @@ def googleSubmit(archive, summary):
 
 url        = 'http://%s.googlecode.com/svn/trunk' % project
 exportDir  = 'export'
-srcArchive = '%04i-%02i-%02i_source_snapshot.zip' % (lt[0], lt[1], lt[2])
-stdArchive = '%04i-%02i-%02i_standalone_snapshot.zip' % (lt[0], lt[1], lt[2])
+stdArchive = '%04i-%02i-%02i_snapshot.zip' % (lt[0], lt[1], lt[2])
 
-srcSummary  = 'IMOS Toolbox SVN source snapshot from %s' % at 
 stdSummary  = 'IMOS Toolbox SVN standalone snapshot from %s' % at 
 compilerLog = '.\%s\log.txt' % exportDir
 
@@ -116,22 +112,15 @@ if compiled is not 0:
     "my_gmail_password")
 
 #
-# create source snapshot
+# create snapshot
 #
-print('\n--creating source snapshot')
-ziputil.zipdir(exportDir, srcArchive, False)
-
-#
-# create standalone snapshot
-#
-print('\n--creating standalone snapshot')
+print('\n--creating snapshot')
 matlabOpts = '-wait -nosplash -nodesktop -logfile "%s"' % compilerLog
 matlabCmd = "addpath('Util'); try, imosCompile(); catch e, disp(e.message); end; exit();"
 os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 shutil.copy('%s/imos-toolbox.zip' % exportDir, './%s' % stdArchive)
 
 try:
-  googleSubmit(srcArchive, srcSummary)
   googleSubmit(stdArchive, stdSummary)
 
 except:
@@ -150,7 +139,6 @@ except:
 
 print('\n--removing local SVN tree and archives')
 shutil.rmtree('%s' % exportDir)
-os.remove(srcArchive)
 os.remove(stdArchive)
 }}}
 
@@ -193,46 +181,4 @@ def send(to, subject, text, attach, user, pwd):
   mailServer.login(user, pwd)
   mailServer.sendmail(user, to, msg.as_string())
   mailServer.close()
-}}}
-
-The `ziputil` module, which enables me creating zip files:
-{{{
-#!/usr/bin/python
-
-import os
-import zipfile
-
-def zipdir(dirPath=None, zipFilePath=None, includeDirInZip=True):
-
-	if not zipFilePath:
-		zipFilePath = dirPath + ".zip"
-	if not os.path.isdir(dirPath):
-		raise OSError("dirPath argument must point to a directory. "
-			"'%s' does not." % dirPath)
-	parentDir, dirToZip = os.path.split(dirPath)
-	#Little nested function to prepare the proper archive path
-	def trimPath(path):
-		archivePath = path.replace(parentDir, "", 1)
-		if parentDir:
-			archivePath = archivePath.replace(os.path.sep, "", 1)
-		if not includeDirInZip:
-			archivePath = archivePath.replace(dirToZip + os.path.sep, "", 1)
-		return os.path.normcase(archivePath)
-
-	outFile = zipfile.ZipFile(zipFilePath, "w",
-		compression=zipfile.ZIP_DEFLATED)
-	for (archiveDirPath, dirNames, fileNames) in os.walk(dirPath):
-		for fileName in fileNames:
-			filePath = os.path.join(archiveDirPath, fileName)
-			outFile.write(filePath, trimPath(filePath))
-		#Make sure we get empty directories as well
-		if not fileNames and not dirNames:
-			zipInfo = zipfile.ZipInfo(trimPath(archiveDirPath) + "/")
-			#some web sites suggest doing
-			#zipInfo.external_attr = 16
-			#or
-			#zipInfo.external_attr = 48
-			#Here to allow for inserting an empty directory.  Still TBD/TODO.
-			outFile.writestr(zipInfo, "")
-	outFile.close()
 }}}
