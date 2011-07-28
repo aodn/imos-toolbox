@@ -171,6 +171,7 @@ error(nargchk(1,1,nargin));
   %
   % temperature / 100.0  (0.01 deg   -> deg)
   % pressure    / 1000.0 (decapascal -> decibar)
+  % pressure    + 10.1325(relative to 1 atm -> absolute)
   % vvel        / 1000.0 (mm/s       -> m/s)
   % uvel        / 1000.0 (mm/s       -> m/s)
   % wvel        / 1000.0 (mm/s       -> m/s)
@@ -185,6 +186,7 @@ error(nargchk(1,1,nargin));
   %
   temperature  = temperature  / 100.0;
   pressure     = pressure     / 1000.0;
+  pressure     = pressure     + 10.1325;
   vvel         = vvel         / 1000.0;
   uvel         = uvel         / 1000.0;
   wvel         = wvel         / 1000.0;

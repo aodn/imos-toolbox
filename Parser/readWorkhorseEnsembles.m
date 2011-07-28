@@ -428,8 +428,8 @@ function [sect len] = parseVariableLeader( data, idx )
   % at surface negative values appear huge ~4 million dbar we'll read it in
   % as signed integer to avoid this but need to be careful if deploying
   % ADCP near centre of earth!
-  sect.pressure               = indexData(data,idx+48,idx+51, 'uint32')';
-  sect.pressureSensorVariance = indexData(data,idx+52,idx+55, 'uint32')';
+  sect.pressure               = indexData(data,idx+48,idx+51, 'int32')';
+  sect.pressureSensorVariance = indexData(data,idx+52,idx+55, 'int32')';
   % byte 57 is spare
   sect.y2kCentury             = double(data(idx+57));
   sect.y2kYear                = double(data(idx+58));
