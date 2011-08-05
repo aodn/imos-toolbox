@@ -129,7 +129,9 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
         curFlag = sample_data.variables{k}.flags;
         iGood = curFlag == goodFlag;
         yLimits = [floor(min(curData(iGood))), ceil(max(curData(iGood)))];
-        set(graphs(k), 'YLim', yLimits);
+        if any(iGood)
+            set(graphs(k), 'YLim', yLimits);
+        end
     end
     
     yLimits = get(graphs(k), 'YLim');
@@ -141,6 +143,8 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   if sample_data.meta.level == 1
       % Let's add a QC legend
       qcSet     = str2double(readProperty('toolbox.qc_set'));
+      rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+      distinctFlagsValue(distinctFlagsValue == rawFlag) = [];
       lenFlagsValue = length(distinctFlagsValue);
       distinctFlagName = cell(lenFlagsValue, 1);
       distinctFlag = nan(lenFlagsValue, 1);
