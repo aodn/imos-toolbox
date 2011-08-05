@@ -158,7 +158,6 @@ function sample_data = readWQMdat( filename )
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = samples{1}{1};
-  sample_data.meta.instrument_sample_interval = NaN;
   
   % convert and save the time data
   time = cellstr(samples{2});
@@ -179,6 +178,8 @@ function sample_data = readWQMdat( filename )
     if k == 2, continue; end
     samples{k}(invalid) = []; 
   end
+  
+  sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
   
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant

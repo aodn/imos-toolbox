@@ -74,7 +74,11 @@ function sample_data = DR1050Parse( filename )
   sample_data.meta.instrument_model             = header.model;
   sample_data.meta.instrument_firmware          = header.firmware;
   sample_data.meta.instrument_serial_no         = header.serial;
-  sample_data.meta.instrument_sample_interval   = 24*3600*header.interval;
+  if header.interval > 0
+      sample_data.meta.instrument_sample_interval = 24*3600*header.interval;
+  else
+      sample_data.meta.instrument_sample_interval = median(diff(data.time*24*3600));
+  end
   sample_data.meta.comment                      = header.comment;
   
   % dimensions definition must stay in this order : T, Z, Y, X, others;
