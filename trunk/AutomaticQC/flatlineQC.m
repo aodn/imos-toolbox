@@ -69,17 +69,19 @@ nsamples = str2double(...
   readProperty('nsamples', fullfile('AutomaticQC', 'flatlineQC.txt')));
 if nsamples < 2, nsamples = 2; end
 
-qcSet    = str2num(readProperty('toolbox.qc_set'));
+qcSet    = str2double(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',        qcSet, 'flag');
 flatFlag = imosQCFlag('probablyBad', qcSet, 'flag');
 
-log                   = {};
-flags(1:length(data)) = goodFlag;
+lenData = length(data);
+
+log   = {};
+flags = ones(lenData, 1)*goodFlag;
 
 % size of the current flatline region we are stepping through
 flatlineSize = 1;
 
-for m = 2:length(data)
+for m = 2:lenData
   
   % this data point is the same as the last one
   if data(m-1) == data(m);

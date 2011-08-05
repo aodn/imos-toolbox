@@ -71,14 +71,15 @@ qcSet     = str2double(readProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 flagVal   = imosQCFlag('bad',   qcSet, 'flag');
 
-log                   = {};
-flags(1:length(data)) = goodFlag;
+lenData = length(data);
+log   = {};
+flags = ones(lenData, 1)*goodFlag;
 
 % find samples which were taken out of water
 time = sample_data.dimensions{1}.data;
-after = find(time > time_coverage_end);
+after = time > time_coverage_end;
 
-if isempty(after), return; end
+if ~any(after), return; end
   
 % flag the after out-water samples
 flags(after) = flagVal;

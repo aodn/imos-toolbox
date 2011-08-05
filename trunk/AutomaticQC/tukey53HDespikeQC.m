@@ -80,7 +80,7 @@ qcSet     = str2double(readProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
-log                   = {};
+log   = {};
 flags = ones(lenData,1)*goodFlag;
 
 % remove mean, and apply a mild high pass 

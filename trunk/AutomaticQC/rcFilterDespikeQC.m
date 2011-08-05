@@ -72,13 +72,14 @@ k_param = str2double(...
 
 % we need to modify the data set, so work with a copy
 fdata = data;
+lenData = length(data);
 
-qcSet     = str2num(readProperty('toolbox.qc_set'));
+qcSet     = str2double(readProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
-log                   = {};
-flags(1:length(data)) = goodFlag;
+log   = {};
+flags = ones(lenData, 1)*goodFlag;
 
 % remove the mean and run a mild high pass filter 
 % over the data before applying spike detection
