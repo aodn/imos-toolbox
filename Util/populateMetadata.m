@@ -2,7 +2,7 @@ function sample_data = populateMetadata( sample_data )
 %POPULATEMETADATA poulates metadata fields in the given sample_data struct 
 % given the content of existing metadata and data.
 %
-% Mainly populates depth metadata according to PRES or HEIGHT_ABOVE_SENSOR 
+% Mainly populates depth metadata according to PRES, PRES_REL, DEPTH or HEIGHT_ABOVE_SENSOR 
 % data from moored/profiling CTD or moored ADCP.
 %
 % Inputs:
@@ -105,7 +105,7 @@ function sample_data = populateMetadata( sample_data )
           MedianDepth   = median(dataDepth);
       end
       
-      threshold = maxDepth - maxDepth*20/100;
+      threshold = MedianDepth - MedianDepth*20/100;
       iDataDeploying = sample_data.variables{ivDepth}.data < threshold;
       nDataDeploying = sum(iDataDeploying);
       nDataMooring = sum(~iDataDeploying);
@@ -113,7 +113,7 @@ function sample_data = populateMetadata( sample_data )
       verticalComment = ['Geospatial vertical min/max information has '...
               'been filled using the'];
       
-      if nDataDeploying < nDataMooring/10
+      if nDataDeploying < nDataMooring/4
           % Moored => geospatial_vertical_min ~=
           % geospatial_vertical_max
           sample_data.geospatial_vertical_min = MedianDepth;
@@ -135,12 +135,29 @@ function sample_data = populateMetadata( sample_data )
       metadataChanged = true;
   else
       % Update from PRES if available
-      ivPres = getVar(sample_data.variables, 'PRES');
-      if ivPres > 0
-          % update from a relative pressure like SeaBird computes
-          % it in its processed files, substracting a constant value
-          % 10.1325 dbar for nominal atmospheric pressure
-          relPres = sample_data.variables{ivPres}.data - 10.1325;
+      ivPres    = getVar(sample_data.variables, 'PRES');
+      ivPresRel = getVar(sample_data.variables, 'PRES_REL');
+      anyPres = false;
+      if ivPres > 0 || ivPresRel > 0
+          anyPres = true;
+          if ivPresRel == 0
+              % update from a relative pressure like SeaBird computes
+              % it in its processed files, substracting a constant value
+              % 10.1325 dbar for nominal atmospheric pressure
+              relPres = sample_data.variables{ivPres}.data - 10.1325;
+              presComment = ['absolute '...
+                  'pressure measurements to which a nominal '...
+                  'value for atmospheric pressure (10.1325 dbar) '...
+                  'has been substracted'];
+          else
+              % update from a relative measured pressure
+              relPres = sample_data.variables{ivPresRel}.data;
+              presComment = ['relative '...
+                  'pressure measurements (calibration offset '...
+                  'usually performed to balance current '...
+                  'atmospheric pressure and acute sensor '...
+                  'precision at a deployed depth)'];
+          end
           if ~isempty(sample_data.geospatial_lat_min) && ~isempty(sample_data.geospatial_lat_max)
               % compute vertical min/max with SeaWater toolbox
               if sample_data.geospatial_lat_min == sample_data.geospatial_lat_max
@@ -153,16 +170,12 @@ function sample_data = populateMetadata( sample_data )
                   computedMaxDepth      = sw_dpth(max(relPres), ...
                       sample_data.geospatial_lat_min);
                   computedDepthComment  = ['depthPP: Depth computed using the '...
-                      'SeaWater toolbox from latitude and absolute '...
-                      'pressure measurements to which a nominal '...
-                      'value for atmospheric pressure (10.1325 dbar) '...
-                      'has been substracted.'];
+                      'SeaWater toolbox from latitude and '...
+                      presComment '.'];
                   computedMedianDepthComment  = ['Geospatial vertical '...
                       'min/max information has been computed using the '...
-                      'SeaWater toolbox from latitude and absolute '...
-                      'pressure measurements median to which a nominal '...
-                      'value for atmospheric pressure (10.1325 dbar) '...
-                      'has been substracted.'];
+                      'SeaWater toolbox from latitude and '...
+                      presComment '.'];
               else
                   meanLat = sample_data.geospatial_lat_min + ...
                       (sample_data.geospatial_lat_max - sample_data.geospatial_lat_min)/2;
@@ -172,16 +185,12 @@ function sample_data = populateMetadata( sample_data )
                   computedMinDepth      = sw_dpth(min(relPres), meanLat);
                   computedMaxDepth      = sw_dpth(max(relPres), meanLat);
                   computedDepthComment  = ['depthPP: Depth computed using the '...
-                      'SeaWater toolbox from mean latitude and absolute '...
-                      'pressure measurements to which a nominal '...
-                      'value for atmospheric pressure (10.1325 dbar) '...
-                      'has been substracted.'];
+                      'SeaWater toolbox from mean latitude and '...
+                      presComment '.'];
                   computedMedianDepthComment  = ['Geospatial vertical '...
                       'min/max information has been computed using the '...
-                      'SeaWater toolbox from mean latitude and absolute '...
-                      'pressure measurements median to which a nominal '...
-                      'value for atmospheric pressure (10.1325 dbar) '...
-                      'has been substracted.'];
+                      'SeaWater toolbox from mean latitude and '...
+                      presComment '.'];
               end
           else
               % without latitude information, we assume 1dbar ~= 1m
@@ -189,17 +198,13 @@ function sample_data = populateMetadata( sample_data )
               computedMedianDepth   = median(relPres);
               computedMinDepth      = min(relPres);
               computedMaxDepth      = max(relPres);
-              computedDepthComment  = ['depthPP: Depth computed from absolute '...
-                  'pressure measurements to which a nominal '...
-                  'value for atmospheric pressure (10.1325 dbar) '...
-                  'has been substracted, assuming 1dbar ~= 1m.'];
+              computedDepthComment  = ['depthPP: Depth computed from '...
+                  presComment ', assuming 1dbar ~= 1m.'];
               computedMedianDepthComment  = ['Geospatial vertical min/max '...
-                  'information has been computed from absolute '...
-                  'pressure measurements median to which a nominal '...
-                  'value for atmospheric pressure (10.1325 dbar) '...
-                  'has been substracted, assuming 1dbar ~= 1m.'];
+                  'information has been computed from '...
+                  presComment ', assuming 1dbar ~= 1m.'];
           end
-          computedDepth         = round(computedDepth*100)/100;
+%           computedDepth         = round(computedDepth*100)/100;
           computedMedianDepth   = round(computedMedianDepth*100)/100;
           computedMinDepth      = round(computedMinDepth*100)/100;
           computedMaxDepth      = round(computedMaxDepth*100)/100;
@@ -257,16 +262,16 @@ function sample_data = populateMetadata( sample_data )
               nDataDeploying = 0;
               nDataMooring = 0;
               
-              if ivPres > 0
-                  maxPressure = max(relPres);
-                  threshold = maxPressure - maxPressure*20/100;
+              if anyPres
+                  medianPressure = median(relPres);
+                  threshold = medianPressure - medianPressure*20/100;
                   iDataDeploying = relPres < threshold;
                   nDataDeploying = sum(iDataDeploying);
                   nDataMooring = sum(~iDataDeploying);
               end
           
               if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
-                  if nDataDeploying < nDataMooring/10 || ivPres == 0
+                  if nDataDeploying < nDataMooring/4 || ~anyPres
                       % Moored => geospatial_vertical_min ~=
                       % geospatial_vertical_max
                       sample_data.geospatial_vertical_min = computedMedianDepth;
