@@ -96,7 +96,11 @@ function sample_data = NXICBinaryParse( filename )
   sample_data.meta.instrument_make      = header.instrument_make;
   sample_data.meta.instrument_model     = header.instrument_model;
   sample_data.meta.instrument_serial_no = header.instrument_serial_no;
-  sample_data.meta.instrument_sample_interval = 1/header.sampleRate;
+  if header.sampleRate > 0
+      sample_data.meta.instrument_sample_interval = 1/header.sampleRate;
+  else
+      sample_data.meta.instrument_sample_interval = median(diff(samples.time*24*3600));
+  end
   
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant

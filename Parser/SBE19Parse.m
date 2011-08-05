@@ -137,10 +137,12 @@ function sample_data = SBE19Parse( filename )
     sample_data.meta.instrument_serial_no = '';
   end
   
+  time = genTimestamps(instHeader, data);
+  
   if isfield(instHeader, 'sampleInterval')
     sample_data.meta.instrument_sample_interval = instHeader.sampleInterval;
   else
-    sample_data.meta.instrument_sample_interval = NaN;
+    sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
   end
   
   sample_data.dimensions = {};  
@@ -149,7 +151,7 @@ function sample_data = SBE19Parse( filename )
   % dimensions creation
   sample_data.dimensions{1}.name = 'TIME';
   % generate time data from header information
-  sample_data.dimensions{1}.data = genTimestamps(instHeader, data);
+  sample_data.dimensions{1}.data = time;
   sample_data.dimensions{2}.name = 'LATITUDE';
   sample_data.dimensions{2}.data = NaN;
   sample_data.dimensions{3}.name = 'LONGITUDE';

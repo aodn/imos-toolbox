@@ -183,7 +183,6 @@ read_pres = 0;
 sample_data.meta.instrument_make  = 'Sea-bird Electronics';
 sample_data.meta.instrument_model = 'SBE3x';
 sample_data.meta.instrument_serial_no = '';
-sample_data.meta.instrument_sample_interval = NaN;
 
 %% Read file header (which contains sensor and calibration information)
 %
@@ -393,6 +392,8 @@ if ~isempty(temperature),  temperature( nsamples:end) = []; end
 if ~isempty(conductivity), conductivity(nsamples:end) = []; end
 if ~isempty(pressure),     pressure(    nsamples:end) = []; end
 if ~isempty(salinity),     salinity(    nsamples:end) = []; end
+
+sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
 
 % dimensions definition must stay in this order : T, Z, Y, X, others;
 % to be CF compliant

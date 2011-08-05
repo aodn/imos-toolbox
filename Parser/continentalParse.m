@@ -168,7 +168,7 @@ sample_data.meta.user     = user;
 sample_data.meta.instrument_make      = 'Nortek';
 sample_data.meta.instrument_model     = 'Continental';
 sample_data.meta.instrument_serial_no = hardware.SerialNo;
-sample_data.meta.instrument_sample_interval = user.AvgInterval;
+sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
 sample_data.meta.instrument_firmware  = hardware.FWversion;
 
 sample_data.dimensions{1} .name = 'TIME';
