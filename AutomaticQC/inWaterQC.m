@@ -71,15 +71,16 @@ qcSet     = str2double(readProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 flagVal   = imosQCFlag('bad',   qcSet, 'flag');
 
-log                   = {};
-flags(1:length(data)) = goodFlag;
+lenData = length(data);
+log   = {};
+flags = ones(lenData, 1)*goodFlag;
 
 
 % find samples which were taken before in water
 time = sample_data.dimensions{1}.data;
-before = find(time < time_coverage_start);
+before = time < time_coverage_start;
 
-if isempty(before), return; end
+if ~any(before), return; end
 
 % flag the samples that are before the in water time
 flags(before) = flagVal;

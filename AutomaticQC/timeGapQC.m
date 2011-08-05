@@ -67,16 +67,17 @@ if nargin<4, auto=false; end
 gapsize = str2double(...
   readProperty('gapsize', fullfile('AutomaticQC', 'timeGapQC.txt')));
 
-qcSet    = str2num(readProperty('toolbox.qc_set'));
+qcSet    = str2double(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',    qcSet, 'flag');
 gapFlag  = imosQCFlag('discont', qcSet, 'flag');
 
-log                   = {};
-flags(1:length(data)) = goodFlag;
-
 dim  = sample_data.dimensions{1}.data;
+lenData = length(dim);
 
-for k = 2:length(dim)
+log   = {};
+flags = ones(lenData, 1)*goodFlag;
+
+for k = 2:lenData
   
   if (dim(k)-dim(k-1)) >= gapsize, flags([k-1 k]) = gapFlag; end
 end

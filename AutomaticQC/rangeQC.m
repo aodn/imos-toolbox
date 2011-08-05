@@ -65,13 +65,14 @@ if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 if nargin<4, auto=false; end
 
 % get the flag values with which we flag good and out of range data
-qcSet     = str2num(readProperty('toolbox.qc_set'));
+qcSet     = str2double(readProperty('toolbox.qc_set'));
 rangeFlag = imosQCFlag('bound', qcSet, 'flag');
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 
 % initialise all flags to good
-log                   = {};
-flags(1:length(data)) = goodFlag;
+lenData = length(data);
+log   = {};
+flags = ones(lenData, 1)*goodFlag;
 
 max  = sample_data.variables{k}.valid_max;
 min  = sample_data.variables{k}.valid_min;
