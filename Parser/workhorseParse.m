@@ -171,7 +171,6 @@ error(nargchk(1,1,nargin));
   %
   % temperature / 100.0  (0.01 deg   -> deg)
   % pressure    / 1000.0 (decapascal -> decibar)
-  % pressure    + 10.1325(relative to 1 atm -> absolute)
   % vvel        / 1000.0 (mm/s       -> m/s)
   % uvel        / 1000.0 (mm/s       -> m/s)
   % wvel        / 1000.0 (mm/s       -> m/s)
@@ -186,7 +185,6 @@ error(nargchk(1,1,nargin));
   %
   temperature  = temperature  / 100.0;
   pressure     = pressure     / 1000.0;
-  pressure     = pressure     + 10.1325;
   vvel         = vvel         / 1000.0;
   uvel         = uvel         / 1000.0;
   wvel         = wvel         / 1000.0;
@@ -227,7 +225,7 @@ error(nargchk(1,1,nargin));
   sample_data.variables{ 9}.name       = 'ABSI_3';
   sample_data.variables{10}.name       = 'ABSI_4';
   sample_data.variables{11}.name       = 'TEMP';
-  sample_data.variables{12}.name       = 'PRES';
+  sample_data.variables{12}.name       = 'PRES_REL';
   sample_data.variables{13}.name       = 'PSAL';
   sample_data.variables{14}.name       = 'ADCP_CORR_1';
   sample_data.variables{15}.name       = 'ADCP_CORR_2';
@@ -285,6 +283,7 @@ error(nargchk(1,1,nargin));
   sample_data.variables{10}.data       = backscatter4;
   sample_data.variables{11}.data       = temperature;
   sample_data.variables{12}.data       = pressure;
+  sample_data.variables{12}.applied_offset = -10.1325;
   sample_data.variables{13}.data       = salinity;
   sample_data.variables{14}.data       = correlation1;
   sample_data.variables{15}.data       = correlation2;
@@ -310,7 +309,7 @@ error(nargchk(1,1,nargin));
   % indices of variables to remove
   remove = [];
   
-  if ~hasPres,    remove(end+1) = getVar(sample_data.variables, 'PRES');    end
+  if ~hasPres,    remove(end+1) = getVar(sample_data.variables, 'PRES_REL');    end
   if ~hasHeading, remove(end+1) = getVar(sample_data.variables, 'HEADING'); end
   if ~hasPitch,   remove(end+1) = getVar(sample_data.variables, 'PITCH');   end
   if ~hasRoll,    remove(end+1) = getVar(sample_data.variables, 'ROLL');    end

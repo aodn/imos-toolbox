@@ -119,11 +119,7 @@ function [name, data] = convertData(name, data, instHeader)
     
     % strain gauge pressure (dbar)
     case 'prdM'
-      name = 'PRES';
-      
-      % add the constant pressure atmosphere previously substracted by SeaBird
-      % software so that we are back to the raw absolute presure measurement
-      data = data + 14.7*0.689476;
+      name = 'PRES_REL';
       
     % temperature (deg C)
     case 'tv290C'

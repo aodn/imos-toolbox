@@ -14,7 +14,7 @@ function sample_data = readWQMraw( filename )
 %
 %                   Conductivity      ('CNDC'): S m^-1
 %                   Temperature       ('TEMP'): Degrees Celsius
-%                   Pressure          ('PRES'): Decibars
+%                   Pressure          ('PRES_REL'): Decibars
 %                   Salinity          ('PSAL'): 1e^(-3) (PSS)
 %                   Dissolved Oxygen  ('DOXY'): kg/m^3
 %                   Dissolved Oxygen  ('DOX1'): mmol/m^3
@@ -85,7 +85,7 @@ function sample_data = readWQMraw( filename )
   params{end+1} = {'HHMMSS',          {'',     ''}};
   params{end+1} = {'conductivity',    {'CNDC', ''}};
   params{end+1} = {'temperature',     {'TEMP', ''}};
-  params{end+1} = {'pressure',        {'PRES', ''}};
+  params{end+1} = {'pressure',        {'PRES_REL', ''}};
   params{end+1} = {'salinity',        {'PSAL', ''}};
   params{end+1} = {'DO(mg/l)',        {'DOXY', ''}};
   params{end+1} = {'DO(mmol/m^3)',    {'DOX1', ''}};
@@ -173,12 +173,6 @@ function sample_data = readWQMraw( filename )
     % some fields are not in IMOS uom - scale them so that they are
     switch name
         
-        % WQM uses SeaBird pressure sensor
-        case 'pressure'
-            % add the constant pressure atmosphere previously substracted by SeaBird
-            % software so that we are back to the raw absolute presure measurement
-            data = data + 14.7*0.689476;
-        
         % WQM provides conductivity in mS/m; we need it in S/m.
         case 'conductivity'
             data = data / 1000.0;
@@ -230,6 +224,13 @@ function sample_data = readWQMraw( filename )
     sample_data.variables{k}.comment    = comment;
     sample_data.variables{k}.name       = name;
     sample_data.variables{k}.data       = data;
+    
+    % WQM uses SeaBird pressure sensor
+    if strncmp('PRES_REL', sample_data.variables{k}.name, 8)
+        % let's document the constant pressure atmosphere offset previously 
+        % applied by SeaBird software on the absolute presure measurement
+        sample_data.variables{k}.applied_offset = -14.7*0.689476;
+    end
   end
   
   % remove empty entries (could occur if DO(ml/l) data is 

@@ -35,7 +35,7 @@ function sample_data = readWQMdat( filename )
 %
 %                   Conductivity      ('CNDC'): S m^-1
 %                   Temperature       ('TEMP'): Degrees Celsius
-%                   Pressure          ('PRES'): Decibars
+%                   Pressure          ('PRES_REL'): Decibars
 %                   Salinity          ('PSAL'): 1e^(-3) (PSS)
 %                   Dissolved Oxygen  ('DOXY'): kg/m^3
 %                   Dissolved Oxygen  ('DOX1'): mmol/m^3
@@ -109,7 +109,7 @@ function sample_data = readWQMdat( filename )
   params{end+1} = {'HHMMSS',          {'',     ''}};
   params{end+1} = {'Cond(mmho)',      {'CNDC', ''}};
   params{end+1} = {'Temp(C)',         {'TEMP', ''}};
-  params{end+1} = {'Pres(dbar)',      {'PRES', ''}};
+  params{end+1} = {'Pres(dbar)',      {'PRES_REL', ''}};
   params{end+1} = {'Sal(PSU)',        {'PSAL', ''}};
   params{end+1} = {'DO(mg/l)',        {'DOXY', ''}};
   params{end+1} = {'DO(mmol/m^3)',    {'DOX1', ''}};
@@ -199,12 +199,6 @@ function sample_data = readWQMdat( filename )
     % some fields are not in IMOS uom - scale them so that they are
     switch fields{k}
         
-        % WQM uses SeaBird pressure sensor
-        case 'Pres(dbar)'
-            % add the constant pressure atmosphere previously substracted by SeaBird
-            % software so that we are back to the raw absolute presure measurement
-            data = data + 14.7*0.689476;
-        
         % WQM provides conductivity in mS/m; we need it in S/m.
         case 'Cond(mmho)'
             data = data / 1000.0;
@@ -224,7 +218,7 @@ function sample_data = readWQMdat( filename )
             % density of sea water; for this, we need temperature,
             % salinity, and pressure data to be present
             temp = getVar(sample_data.variables, 'TEMP');
-            pres = getVar(sample_data.variables, 'PRES');
+            pres = getVar(sample_data.variables, 'PRES_REL');
             psal = getVar(sample_data.variables, 'PSAL');
             
             % if any of this data isn't present,
@@ -261,6 +255,13 @@ function sample_data = readWQMdat( filename )
     sample_data.variables{k-3}.comment    = comment;
     sample_data.variables{k-3}.name       = name;
     sample_data.variables{k-3}.data       = data;
+    
+    % WQM uses SeaBird pressure sensor
+    if strncmp('PRES_REL', sample_data.variables{k-3}.name, 8)
+        % let's document the constant pressure atmosphere offset previously 
+        % applied by SeaBird software on the absolute presure measurement
+        sample_data.variables{k-3}.applied_offset = -14.7*0.689476;
+    end
   end
   
   % remove empty entries (could occur if DO(ml/l) data is 
