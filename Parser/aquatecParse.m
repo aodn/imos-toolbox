@@ -126,7 +126,6 @@ sample_data.meta.instrument_make      = 'Aquatec';
 sample_data.meta.instrument_model     = ['Aqualogger ' model{1}];
 sample_data.meta.instrument_firmware  = firmware{1};
 sample_data.meta.instrument_serial_no = serial{1};
-sample_data.meta.instrument_sample_interval = NaN;
 %
 % get regime data (mode, sample rate, etc)
 %
@@ -279,6 +278,10 @@ if isBurst
         temp = newTemp;
         pres = newPres;        
     end
+end
+
+if isnan(sample_data.meta.instrument_sample_interval) || sample_data.meta.instrument_sample_interval <= 0
+    sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
 end
 
 %

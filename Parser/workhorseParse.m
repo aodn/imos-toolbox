@@ -203,7 +203,7 @@ error(nargchk(1,1,nargin));
   sample_data.meta.instrument_make      = 'Teledyne RD';
   sample_data.meta.instrument_model     = 'Workhorse ADCP';
   sample_data.meta.instrument_serial_no =  num2str(fixed.instSerialNumber);
-  sample_data.meta.instrument_sample_interval =  NaN;
+  sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
   sample_data.meta.instrument_firmware  = ...
     strcat(num2str(fixed.cpuFirmwareVersion), '.', num2str(fixed.cpuFirmwareRevision));
                                     

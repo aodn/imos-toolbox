@@ -130,7 +130,6 @@ function sample_data = readWQMraw( filename )
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = wqmdata.SN;
-  sample_data.meta.instrument_sample_interval = wqmdata.interval;
   
   % convert and save the time data
   time = wqmdata.datenumber;
@@ -140,16 +139,11 @@ function sample_data = readWQMraw( filename )
   % inserting a 0 instead of the correct in the output to .DAT files.
   % This is a simple check to make sure that all of the timestamps appear
   % to be correct; there's only so much we can do though.
-  invalid = [];
-  for k = 2:length(time)
-    if time(k) < time(k-1), invalid(end+1) = k; end
-  end
+  invalid = diff(time) <= 0;
   
   time(invalid) = [];
-  for k = 1:length(samples)
-    if k == 2, continue; end
-    samples{k}(invalid) = []; 
-  end
+  
+  sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
   
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant
@@ -169,6 +163,7 @@ function sample_data = readWQMraw( filename )
     [name comment] = getParamDetails(varlabel{k}, params);  
 
     data = wqmdata.(varlabel{k});
+    data(invalid) = [];
 
     % some fields are not in IMOS uom - scale them so that they are
     switch name
