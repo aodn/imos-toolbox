@@ -145,12 +145,6 @@ function qc_data = autoQCManager( sample_data, auto )
         sample_data{k}.file_version_quality_control = ...
           imosFileVersion(1, 'desc');
       end
-      
-      %BDM - 24/08/2010 - Assume that what has not been flagged is now good data!
-      for l=1:length(sample_data{k}.variables)
-          sample_data{k}.variables{l}.flags(sample_data{k}.variables{l}.flags==rawFlag)=goodFlag;
-      end
-      
     end    
   catch e
       %BDM - 16/08/2010 - Added if statement to stop error on auto runs
@@ -199,20 +193,26 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
     % the same value as a previous routine, the latter value is discarded.
     for k = 1:length(sam.variables)
       
-      rawIdx  = find( sam.variables{k}.flags == rawFlag);
-      flagIdx = find(fsam.variables{k}.flags ~= goodFlag);
+      canBeFlagIdx  =  sam.variables{k}.flags == rawFlag | ...
+          sam.variables{k}.flags == goodFlag;
       
-      flagIdx = intersect(rawIdx, flagIdx);
+      goodIdx = fsam.variables{k}.flags == goodFlag;
+      flagIdx = fsam.variables{k}.flags ~= goodFlag;
+      
+      goodIdx = canBeFlagIdx & goodIdx;
+      flagIdx = canBeFlagIdx & flagIdx;
+      
+      sam.variables{k}.flags(goodIdx) = fsam.variables{k}.flags(goodIdx);
       sam.variables{k}.flags(flagIdx) = fsam.variables{k}.flags(flagIdx);
       
       % add a log entry
-      if ~isempty(flagIdx)
+      if any(flagIdx)
 
         flags = unique(fsam.variables{k}.flags);
         flags(flags == rawFlag) = [];
 
         sam.meta.log{end+1} = [filterName ...
-          ' flagged ' num2str(length(flagIdx)) ' ' ...
+          ' flagged ' num2str(sum(flagIdx)) ' ' ...
           sam.variables{k}.name ' samples: ' num2str(flags)'];
       end
     end
@@ -248,16 +248,19 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
 
         % Flags are not overwritten - if a later routine flags the same 
         % value as a previous routine, the latter value is discarded.
-        sliceIdx = find(flagSlice == rawFlag);                
-        flagIdx  = find(f         ~= goodFlag);
-        idx = intersect(sliceIdx,flagIdx);
+        sliceIdx = flagSlice == rawFlag | flagSlice == goodFlag;
+        goodIdx  = f         == goodFlag;
+        flagIdx  = f         ~= goodFlag;
+        goodIdx  = sliceIdx & goodIdx;
+        flagIdx  = sliceIdx & flagIdx;
 
         % set the flags
-        flagSlice(idx) = f(idx);
+        flagSlice(goodIdx) = f(goodIdx);
+        flagSlice(flagIdx) = f(flagIdx);
         flags(len*(m-1)+1:len*(m)) = flagSlice;
 
         % update count (for log entry)
-        nFlagged = nFlagged + length(flagIdx);
+        nFlagged = nFlagged + sum(flagIdx);
       end
 
       sam.variables{k}.flags = reshape(flags, size(sam.variables{k}.flags));
