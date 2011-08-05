@@ -59,6 +59,7 @@ PCO2,      1, surface_partial_pressure_of_carbon_dioxide_in_air,  Pascal,       
 PHOS,      1, moles_of_phosphate_per_unit_mass_in_sea_water,      mole kg-1,                                                         K, 999999.0, 0.0,     0.0
 PITCH,     1, platform_pitch_angle,                               Degrees,                                                           E, 999999.0, -180.0,  180.0
 PRES,      1, sea_water_pressure,                                 dbar,                                                              P, 999999.0, 0.0,     12000.0
+PRES_REL,  0, sea_water_relative_pressure,                        dbar,                                                              P, 999999.0, -10.0,     12000.0
 PSAL,      1, sea_water_salinity,                                 1e-3,                                                              S, 999999.0, 0.0,     100.0
 Q,         1, specific_humidity,                                  percent,                                                           M, 999999.0, 0.0,     150.0
 RAIN,      1, rainfall_rate,                                      mm s-1,                                                            M, 999999.0, 0.0,     0.0
