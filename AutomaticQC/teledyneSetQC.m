@@ -53,78 +53,110 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 % auto logical in input to enable running under batch processing
 if nargin<2, auto=false; end
 
-%BDM - 13/08/2010 - Added code to check if the data is from a Teledyne RD
-%ADCP, if not returns.
-if ~strcmp('Teledyne RD Workhorse ADCP',sample_data.source), return; end
+% get all necessary dimensions and variables id in sample_data struct
+idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
+idPres = 0;
+idPresRel = 0;
+idTemp = 0;
+idUcur = 0;
+idVcur = 0;
+idWcur = 0;
+idEcur = 0;
+idADCP_GOOD = cell(4, 1);
+idABSI      = cell(4, 1);
+idADCP_CORR = cell(4, 1);
+for j=1:4
+    idADCP_GOOD{j}  = 0;
+    idABSI{j}       = 0;
+    idADCP_CORR{j}  = 0;
+end
+lenVar = size(sample_data.variables,2);
+for i=1:lenVar
+    if strcmpi(sample_data.variables{i}.name, 'PRES'), idPres = i; end
+    if strcmpi(sample_data.variables{i}.name, 'PRES_REL'), idPresRel = i; end
+    if strcmpi(sample_data.variables{i}.name, 'TEMP'), idTemp = i; end
+    if strcmpi(sample_data.variables{i}.name, 'UCUR'), idUcur = i; end
+    if strcmpi(sample_data.variables{i}.name, 'VCUR'), idVcur = i; end
+    if strcmpi(sample_data.variables{i}.name, 'WCUR'), idWcur = i; end
+    if strcmpi(sample_data.variables{i}.name, 'ECUR'), idEcur = i; end
+    for j=1:4
+        cc = int2str(j);
+        if strcmpi(sample_data.variables{i}.name, ['ADCP_GOOD_' cc]),   idADCP_GOOD{j}  = i; end
+        if strcmpi(sample_data.variables{i}.name, ['ABSI_' cc]),        idABSI{j}       = i; end
+        if strcmpi(sample_data.variables{i}.name, ['ADCP_CORR_' cc]),   idADCP_CORR{j}  = i; end
+    end
+end
+
+% check if the data is compatible with the QC algorithm
+idMandatory = idHeight & idUcur & idVcur & idWcur & idEcur;
+for j=1:4
+    idMandatory = idMandatory & idADCP_GOOD{j} & idABSI{j} & idADCP_CORR{j};
+end
+if ~idMandatory || (idPres == 0 && idPresRel == 0 && idTemp == 0), return; end
+
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
 badFlag  = imosQCFlag('bad',  qcSet, 'flag');
 goodFlag = imosQCFlag('good', qcSet, 'flag');
 rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
 
-adcp = sample_data;
-
-%Get variable names
-lenVar = size(adcp.variables,2);
-n = cell(lenVar, 1);
-for ii=1:lenVar
-    var(ii)=adcp.variables{ii};
-    n{ii}=var(ii).name;
-end
-
 %Pull out ADCP bin details
-BinSize=adcp.meta.fixedLeader.depthCellLength/100;
-Bins=getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
-Bins=adcp.dimensions{Bins}.data';
+BinSize=sample_data.meta.fixedLeader.depthCellLength/100;
+Bins=sample_data.dimensions{idHeight}.data';
 
 %BDM - 16/08/2010 - Added if statement below to take into account ADCPs
 %without pressure records. Use mean of nominal water depth minus sensor height.
 
 %Pull out pressure and calculate array of depth bins
-kk=strcmp('PRES',n);
-if ~any(kk)
-    kk=strcmp('TEMP',n);
-    ff=union(find(var(kk).flags==rawFlag), find(var(kk).flags==goodFlag));
+if idPres == 0 && idPresRel == 0
+    sizeData = size(sample_data.variables{idTemp}.flags);
+    ff = true(sizeData);
     
-    if isempty(adcp.geospatial_vertical_max)
+    if isempty(sample_data.geospatial_vertical_max)
         error('No pressure data in file => Fill geospatial_vertical_max!');
     else
-        pressure=ones(size(var(kk).data(ff),1),1).*(adcp.geospatial_vertical_max);
+        pressure = ones(sizeData).*(sample_data.geospatial_vertical_max);
     end
     disp('Using nominal depth')
 else
-    ff=union(find(var(kk).flags==rawFlag), find(var(kk).flags==goodFlag));
-    pressure=var(kk).data(ff);
+    if idPresRel == 0
+        ff = (sample_data.variables{idPres}.flags == rawFlag) | ...
+        (sample_data.variables{idPres}.flags == goodFlag);
+        % relative pressure is used to compute depth
+        pressure = sample_data.variables{idPres}.data - 10.1325;
+    else
+        ff = (sample_data.variables{idPresRel}.flags == rawFlag) | ...
+        (sample_data.variables{idPresRel}.flags == goodFlag);
+        pressure = sample_data.variables{idPresRel}.data;
+    end
 end
 
 %BDM (07/04/2010) - Bug fix due to scaling of pressure! Was originally setup to scale for pressure in mm.
 %   bdepth=(pressure/1e6)*ones(1,length(Bins))-ones(length(pressure),1)*Bins;
-bdepth=pressure*ones(1,length(Bins))-ones(length(pressure),1)*Bins;
+% assuming 1 dbar = 1 m
+bdepth = pressure*ones(1,length(Bins)) - ones(length(pressure),1)*Bins;
 
 %Pull out horizontal velocities
-uIdx=strcmp('UCUR',n);
-vIdx=strcmp('VCUR',n);
-u=var(uIdx).data(ff,:)+1i*var(vIdx).data(ff,:);
+u = sample_data.variables{idUcur}.data;
+v = sample_data.variables{idVcur}.data;
+u = u + 1i*v;
+clear v;
 
 %Pull out vertical velocities
-kk=strcmp('WCUR',n);
-w=var(kk).data(ff,:);
+w = sample_data.variables{idWcur}.data;
 
 %Pull out error velocities
-kk=strcmp('ECUR',n);
-erv=var(kk).data(ff,:);
+erv = sample_data.variables{idEcur}.data;
 
 %Pull out percent good/echo amplitude/correlation magnitude
+qc = struct;
 for j=1:4;
-    cc = int2str(j);
-    kk=strcmp(['ADCP_GOOD_' cc],n);
-    eval(['qc(',cc,').pg=var(kk).data(ff,:);'])
-    
-    kk=strcmp(['ABSI_' cc],n);
-    eval(['qc(',cc,').ea=var(kk).data(ff,:);'])
-    
-    kk=strcmp(['ADCP_CORR_' cc],n);
-    eval(['qc(',cc,').cr=var(kk).data(ff,:);'])
+    pg = sample_data.variables{idADCP_GOOD{j}}.data;
+    qc(j).pg = pg;
+    ea = sample_data.variables{idABSI{j}}.data;
+    qc(j).ea = ea;
+    cr = sample_data.variables{idADCP_CORR{j}}.data;
+    qc(j).cr = cr;
 end
 
 % read in filter parameters
@@ -143,24 +175,26 @@ sCutOff            = str2double(readProperty('cutoff',    propFile));
 %Clean up above-surface bins
 %Edited to correct above surface bin cutoff, it is a function of bin size, i.e. sCutOff=2*BinSize;
 %BDM (08/04/2010)
-for k=1:size(bdepth,2)
-    %     jjr=find(bdepth(:,k)<=sCutOff);
-    jjr=find(bdepth(:,k)<=sCutOff*BinSize);
-    if ~isempty(jjr)
-        ifail(jjr,k)=1;
-    end
+jjr = (bdepth <= sCutOff*BinSize);
+if any(jjr)
+    ifail(jjr) = true;
 end
 
+sizeCur = size(sample_data.variables{idUcur}.flags);
+uFlags = ones(sizeCur)*goodFlag;
+vFlags = ones(sizeCur)*goodFlag;
+
 %Run QC filter (ifail) on velocity data
-%Need to take into account that we only used an inwater subset of the adcp
-%data thus ifail is indexed to this subset!!!
-%This is clumsy but works, probably a more elegant way to do this!
-for k=1:size(ifail,2)
-    sample_data.variables{uIdx}.flags(ff(ifail(:,k)),k) = badFlag;
-    sample_data.variables{vIdx}.flags(ff(ifail(:,k)),k) = badFlag;
-end
-% sample_data.variables{uIdx}.flags(ifail) = badFlag;
-% sample_data.variables{vIdx}.flags(ifail) = badFlag;
+%Need to take into account QC from previous algorithms
+allFF = repmat(ff, 1, size(uFlags, 2));
+ifail = allFF & ifail;
+
+uFlags(ifail) = badFlag;
+vFlags(ifail) = badFlag;
+
+sample_data.variables{idUcur}.flags = uFlags;
+sample_data.variables{idVcur}.flags = vFlags;
+
 end
 
 function [ifail] = adcpqctest(qcthresh,qc,u,w,erv)
@@ -176,7 +210,7 @@ function [ifail] = adcpqctest(qcthresh,qc,u,w,erv)
 err_vel = qcthresh.err_vel;  %test 1
 pgood =qcthresh.pgood;   %test 2
 cmag = qcthresh.cmag;    %test 3
-vvel = qcthresh.vvel;    % test 4
+vvel = qcthresh.vvel;    %test 4
 hvel = qcthresh.hvel;   %test 5
 ea_thresh = qcthresh.ea_thresh;   %test 6
 clear ib* isub* ifb ifail*
@@ -215,7 +249,7 @@ ib5 = abs(u) >= hvel;
 % above this are also considered to have failed.
 % This test is only applied from the middle bin to the end bin, since it is
 % a test designed to get rid of surface bins
-[ii,jj] = size(u);
+[~,jj] = size(u);
 ib6=zeros(size(u));
 ik = round(jj/2);
 
