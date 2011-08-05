@@ -1,0 +1,13 @@
+% Default pressure offset value used by pressureRelPP adding it to PRES variable 
+% to create PRES_REL variable.
+%
+% In order to be able to apply different offsets for different sensors, 
+% the considered offsets is the one in front of the matching 'source' 
+% global atribute value. If no relevant 'source', use default.
+%
+% Each line is of the format:
+%
+%   source, offset
+%
+
+default,                                    -10.1325

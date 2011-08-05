@@ -6,10 +6,8 @@ function sample_data = depthPP( sample_data, auto )
 % from pressure. It adds the depth data as a new variable in the data sets.
 % Data sets which do not contain a pressure variable are left unmodified.
 %
-% This function uses a latitude of -30.0 degrees. A future easy enhancement
-% would be to prompt the user to enter a latitude, but different latitude
-% values don't make much of a difference to the result (a variation of around
-% 6 metres for depths of ~ 1000 metres).
+% This function uses the latitude from metadata. Without any latitude information,
+% 1 dbar ~= 1 m.
 %
 % Inputs:
 %   sample_data - cell array of data sets, ideally with pressure variables.
@@ -67,11 +65,12 @@ for k = 1:length(sample_data)
     if getVar(sam.variables, 'DEPTH'), continue; end
     if getVar(sam.dimensions, 'DEPTH'), continue; end
     
-    presIdx = getVar(sam.variables, 'PRES');
+    presIdx     = getVar(sam.variables, 'PRES');
+    presRelIdx  = getVar(sam.variables, 'PRES_REL');
     
     % if no pressure data, try to compute it from other sensors in the
     % mooring, otherwise go to next sample data
-    if ~presIdx
+    if presIdx == 0 && presRelIdx == 0
         if ~isempty(sam.sensor_height)
             % let's see if part of a mooring with pressure data from other
             % sensors
@@ -82,7 +81,8 @@ for k = 1:length(sample_data)
                 if l == k || isempty(curSam.sensor_height), continue; end
                 curSource = textscan(curSam.source, '%s');
                 curSource = curSource{1};
-                presCurIdx = getVar(curSam.variables, 'PRES');
+                presCurIdx      = getVar(curSam.variables, 'PRES');
+                presRelCurIdx   = getVar(curSam.variables, 'PRES_REL');
                 
                 p=0;
                 for n = 1:length(curSource)
@@ -91,7 +91,7 @@ for k = 1:length(sample_data)
                     end
                 end
                 
-                if presCurIdx > 0 && p > 1
+                if (presCurIdx > 0 || presRelCurIdx > 0) && p > 1
                     m = m+1;
                     otherSam{m} = curSam;
                 end
@@ -111,17 +111,34 @@ for k = 1:length(sample_data)
                     % we found 2 sensors, one above and another below
                     diffAbove = min(diff(iAllSamAbove));
                     samAbove = otherSam{diff == diffAbove};
-                    presIdxAbove = getVar(samAbove.variables, 'PRES');
+                    presIdxAbove    = getVar(samAbove.variables, 'PRES');
+                    presRelIdxAbove = getVar(samAbove.variables, 'PRES_REL');
                     
                     diffBelow = min(diff(iAllSamBelow));
                     samBelow = otherSam{diff == diffBelow};
-                    presIdxBelow = getVar(samBelow.variables, 'PRES');
+                    presIdxBelow    = getVar(samBelow.variables, 'PRES');
+                    presRelIdxBelow = getVar(samBelow.variables, 'PRES_REL');
                     
-                    % update from a relative pressure like SeaBird computes
-                    % it in its processed files, substracting a constant value
-                    % 10.1325 dbar for nominal atmospheric pressure
-                    relPresAbove = samAbove.variables{presIdxAbove}.data - 10.1325;
-                    relPresBelow = samBelow.variables{presIdxBelow}.data - 10.1325;
+                    if presRelIdxAbove == 0 || presRelIdxBelow == 0
+                        % update from a relative pressure like SeaBird computes
+                        % it in its processed files, substracting a constant value
+                        % 10.1325 dbar for nominal atmospheric pressure
+                        relPresAbove = samAbove.variables{presIdxAbove}.data - 10.1325;
+                        relPresBelow = samBelow.variables{presIdxBelow}.data - 10.1325;
+                        presComment = ['absolute '...
+                            'pressure measurements to which a nominal '...
+                            'value for atmospheric pressure (10.1325 dbar) '...
+                            'has been substracted'];
+                    else
+                        % update from a relative measured pressure
+                        relPresAbove = samAbove.variables{presRelIdxAbove}.data;
+                        relPresBelow = samBelow.variables{presRelIdxBelow}.data;
+                        presComment = ['relative '...
+                            'pressure measurements (calibration offset '...
+                            'usually performed to balance current '...
+                            'atmospheric pressure and acute sensor '...
+                            'precision at a deployed depth)'];
+                    end
                     
                     % compute pressure at current sensor using trigonometry and
                     % assuming sensors repartition on a line between the two
@@ -167,10 +184,8 @@ for k = 1:length(sample_data)
                                 * (zBelow(iOverlapOthers) - zAbove(iOverlapOthers)) + zAbove(iOverlapOthers);
                             computedDepthComment  = ['depthPP: Depth computed from '...
                                 'nearest pressure sensors available, using the '...
-                                'SeaWater toolbox from latitude and absolute '...
-                                'pressure measurements to which a nominal '...
-                                'value for atmospheric pressure (10.1325 dbar) '...
-                                'has been substracted.'];
+                                'SeaWater toolbox from latitude and '...
+                                presComment '.'];
                         else
                             meanLat = sam.geospatial_lat_min + ...
                                 (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
@@ -197,10 +212,8 @@ for k = 1:length(sample_data)
                                 * (zBelow(iOverlapOthers) - zAbove(iOverlapOthers)) + zAbove(iOverlapOthers);
                             computedDepthComment  = ['depthPP: Depth computed from '...
                                 'nearest pressure sensors available, using the '...
-                                'SeaWater toolbox from mean latitude and absolute '...
-                                'pressure measurements to which a nominal '...
-                                'value for atmospheric pressure (10.1325 dbar) '...
-                                'has been substracted.'];
+                                'SeaWater toolbox from mean latitude and '...
+                                presComment '.'];
                         end
                     else
                         % without latitude information, we assume 1dbar ~= 1m
@@ -222,10 +235,8 @@ for k = 1:length(sample_data)
                         computedDepth(iOverlapCur) = (distAboveCurSensor/distAboveBelow) ...
                             * (relPresBelow(iOverlapOthers) - relPresAbove(iOverlapOthers)) + relPresAbove(iOverlapOthers);
                         computedDepthComment  = ['depthPP: Depth computed from '...
-                            'nearest pressure sensors available with absolute '...
-                            'pressure measurements to which a nominal '...
-                            'value for atmospheric pressure (10.1325 dbar) '...
-                            'has been substracted, assuming 1dbar ~= 1m.'];
+                            'nearest pressure sensors available with '...
+                            presComment ', assuming 1dbar ~= 1m.'];
                     end
                     
                 elseif (any(iAllSamAbove) && ~any(iAllSamBelow)) || (~any(iAllSamAbove) && any(iAllSamBelow))
@@ -237,11 +248,26 @@ for k = 1:length(sample_data)
                     end
                     otherSam = otherSam{diff == diff};
                     presIdxOther = getVar(otherSam.variables, 'PRES');
+                    presRelIdxOther = getVar(otherSam.variables, 'PRES_REL');
                     
-                    % update from a relative pressure like SeaBird computes
-                    % it in its processed files, substracting a constant value
-                    % 10.1325 dbar for nominal atmospheric pressure
-                    relPresOther = otherSam.variables{presIdxOther}.data - 10.1325;
+                    if presRelIdxOther == 0
+                        % update from a relative pressure like SeaBird computes
+                        % it in its processed files, substracting a constant value
+                        % 10.1325 dbar for nominal atmospheric pressure
+                        relPresOther = otherSam.variables{presIdxOther}.data - 10.1325;
+                        presComment = ['absolute '...
+                            'pressure measurements to which a nominal '...
+                            'value for atmospheric pressure (10.1325 dbar) '...
+                            'has been substracted'];
+                    else
+                        % update from a relative measured pressure
+                        relPresOther = otherSam.variables{presRelIdxOther}.data;
+                        presComment = ['relative '...
+                            'pressure measurements (calibration offset '...
+                            'usually performed to balance current '...
+                            'atmospheric pressure and acute sensor '...
+                            'precision at a deployed depth)'];
+                    end
                     
                     % compute pressure at current sensor assuming sensors 
                     % repartition on a vertical line between current sensor
@@ -267,10 +293,8 @@ for k = 1:length(sample_data)
                             computedDepth(iOverlapCur) = zOther(iOverlapOther) + distOtherCurSensor;
                             computedDepthComment  = ['depthPP: Depth computed from '...
                                 'the nearest pressure sensor available, using the '...
-                                'SeaWater toolbox from latitude and absolute '...
-                                'pressure measurements to which a nominal '...
-                                'value for atmospheric pressure (10.1325 dbar) '...
-                                'has been substracted.'];
+                                'SeaWater toolbox from latitude and '...
+                                presComment '.'];
                         else
                             meanLat = sam.geospatial_lat_min + ...
                                 (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
@@ -287,10 +311,8 @@ for k = 1:length(sample_data)
                             computedDepth(iOverlapCur) = zOther(iOverlapOther) - distOtherCurSensor;
                             computedDepthComment  = ['depthPP: Depth computed from '...
                                 'the nearest pressure sensor available, using the '...
-                                'SeaWater toolbox from mean latitude and absolute '...
-                                'pressure measurements to which a nominal '...
-                                'value for atmospheric pressure (10.1325 dbar) '...
-                                'has been substracted.'];
+                                'SeaWater toolbox from mean latitude and '...
+                                presComment '.'];
                         end
                     else
                         % without latitude information, we assume 1dbar ~= 1m
@@ -303,10 +325,8 @@ for k = 1:length(sample_data)
                         
                         computedDepth(iOverlapCur) = relPresOther(iOverlapOther) - distOtherCurSensor;
                         computedDepthComment  = ['depthPP: Depth computed from '...
-                            'the nearest pressure sensor available with absolute '...
-                            'pressure measurements to which a nominal '...
-                            'value for atmospheric pressure (10.1325 dbar) '...
-                            'has been substracted, assuming 1dbar ~= 1m.'];
+                            'the nearest pressure sensor available with '...
+                            presComment ', assuming 1dbar ~= 1m.'];
                     end
                 end
             else
@@ -320,10 +340,24 @@ for k = 1:length(sample_data)
         idx = getVar(sam.variables, 'TEMP');
         dimensions = sam.variables{idx}.dimensions;
     else
-        % update from a relative pressure like SeaBird computes
-        % it in its processed files, substracting a constant value
-        % 10.1325 dbar for nominal atmospheric pressure
-        relPres = sam.variables{presIdx}.data - 10.1325;
+        if presRelIdx == 0
+            % update from a relative pressure like SeaBird computes
+            % it in its processed files, substracting a constant value
+            % 10.1325 dbar for nominal atmospheric pressure
+            relPres = sam.variables{presIdx}.data - 10.1325;
+            presComment = ['absolute '...
+                'pressure measurements to which a nominal '...
+                'value for atmospheric pressure (10.1325 dbar) '...
+                'has been substracted'];
+        else
+            % update from a relative measured pressure
+            relPres = sam.variables{presRelIdx}.data;
+            presComment = ['relative '...
+                'pressure measurements (calibration offset '...
+                'usually performed to balance current '...
+                'atmospheric pressure and acute sensor '...
+                'precision at a deployed depth)'];
+        end
         
         if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
             % compute vertical min/max with SeaWater toolbox
@@ -331,34 +365,32 @@ for k = 1:length(sample_data)
                 computedDepth         = sw_dpth(relPres, ...
                     sam.geospatial_lat_min);
                 computedDepthComment  = ['depthPP: Depth computed using the '...
-                    'SeaWater toolbox from latitude and absolute '...
-                    'pressure measurements to which a nominal '...
-                    'value for atmospheric pressure (10.1325 dbar) '...
-                    'has been substracted.'];
+                    'SeaWater toolbox from latitude and '...
+                    presComment '.'];
             else
                 meanLat = sam.geospatial_lat_min + ...
                     (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
                 
                 computedDepth         = sw_dpth(relPres, meanLat);
                 computedDepthComment  = ['depthPP: Depth computed using the '...
-                    'SeaWater toolbox from mean latitude and absolute '...
-                    'pressure measurements to which a nominal '...
-                    'value for atmospheric pressure (10.1325 dbar) '...
-                    'has been substracted.'];
+                    'SeaWater toolbox from mean latitude and '...
+                    presComment '.'];
             end
         else
             % without latitude information, we assume 1dbar ~= 1m
             computedDepth         = relPres;
-            computedDepthComment  = ['depthPP: Depth computed from absolute '...
-                'pressure measurements to which a nominal '...
-                'value for atmospheric pressure (10.1325 dbar) '...
-                'has been substracted, assuming 1dbar ~= 1m.'];
+            computedDepthComment  = ['depthPP: Depth computed from '...
+                presComment ', assuming 1dbar ~= 1m.'];
         end
         
-        dimensions = sam.variables{presIdx}.dimensions;
+        if presRelIdx == 0
+            dimensions = sam.variables{presIdx}.dimensions;
+        else
+            dimensions = sam.variables{presRelIdx}.dimensions;
+        end
     end
     
-    computedDepth         = round(computedDepth*100)/100;
+%     computedDepth         = round(computedDepth*100)/100;
     computedMedianDepth   = round(median(computedDepth)*100)/100;
     
     idHeight = getVar(sam.dimensions, 'HEIGHT_ABOVE_SENSOR');
