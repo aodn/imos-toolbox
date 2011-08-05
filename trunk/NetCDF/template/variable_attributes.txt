@@ -6,6 +6,7 @@ N, valid_min                 = [mat imosParameters(sample_data.variables{k}.name
 N, valid_max                 = [mat imosParameters(sample_data.variables{k}.name, 'valid_max')]
 N, add_offset                = 
 N, scale_factor              = 
+N, applied_offset            = 
 S, original_units            = 
 S, original_name             = 
 S, comment                   = 
