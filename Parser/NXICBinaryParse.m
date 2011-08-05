@@ -532,7 +532,11 @@ function sample = parseSamples(data, header)
  dt=diff(times1);
  % sample before the last time was found in the right place
  % is the only one we know is good as the time is at the start of sample
- lastgood=find((dt<0)|(dt>header.interval),1)-1;
+ if header.interval > 0
+     lastgood=find((dt<0)|(fix(dt)>header.interval),1)-1;
+ else
+     lastgood=find((dt<0),1)-1;
+ end
 
  % count any data errors as they occur
  ierr=0;
@@ -540,7 +544,7 @@ function sample = parseSamples(data, header)
  if mod(length(data),len)==0;
      % could be a flawless record?
      % if so, only allow a few short gaps in times1
-     ngaps=sum(dt>header.interval);
+     ngaps=sum(fix(dt)>header.interval);
      if (ngaps/length(times1))<1e-3
          D=reshape(data,len,length(data)./len);
      end
@@ -563,7 +567,11 @@ function sample = parseSamples(data, header)
          dt=times2-times1(lastgood+1);
          
          % this should be the offset to the next good sample time
-         goodind=find((dt>0)&(dt<header.interval),1)-1;
+         if header.interval > 0
+             goodind=find((dt>0)&(fix(dt)<header.interval),1)-1;
+         else
+             goodind=find((dt>0),1)-1;
+         end
          
          
          if isempty(goodind)
@@ -578,7 +586,11 @@ function sample = parseSamples(data, header)
              % any other faults?
              times1=index2time(data,isample);
              dt=diff(times1);
-             lastgood=find((dt<0)|(dt>header.interval),1)-1;
+             if header.interval > 0
+                 lastgood=find((dt<0)|(fix(dt)>header.interval),1)-1;
+             else
+                 lastgood=find((dt<0),1)-1;
+             end
          end
      end
  

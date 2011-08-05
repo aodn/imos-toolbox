@@ -160,6 +160,12 @@ for k = 1:length(vars)
     sample_data.variables{end+1}.dimensions = [1 2 3];
     sample_data.variables{end  }.name       = vars{k};
     sample_data.variables{end  }.data       = data.(vars{k});
+    
+    if strncmp('PRES_REL', vars{k}, 8)
+        % let's document the constant pressure atmosphere offset previously 
+        % applied by SeaBird software on the absolute presure measurement
+        sample_data.variables{end  }.applied_offset = -14.7*0.689476;
+    end
 end
 end
 
