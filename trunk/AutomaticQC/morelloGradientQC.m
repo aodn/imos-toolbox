@@ -1,29 +1,27 @@
-function [data, flags, log] = rangeQC ( sample_data, data, k, auto )
-%RANGEQC Flags data which is out of the variable's valid range.
+function [data, flags, log] = morelloGradientQC( sample_data, data, k, auto )
+%MORELLOGRADIENT Flags consecutive values with gradient > threshold.
 %
-% Iterates through the given data, and returns flags for any samples which
-% do not fall within the valid_min and valid_max fields for the given
-% variable.
+% Gradient test which finds and flags any consecutive data which gradient
+% is > threshold
 %
 % Inputs:
-%   sample_data - struct containing the entire data set and dimension data.
+%   sample_data - struct containing the data set.
 %
 %   data        - the vector of data to check.
 %
-%   k           - Index into the sample_data.variables vector.
+%   k           - Index into the sample_data variable vector.
 %
 %   auto        - logical, run QC in batch mode
 %
 % Outputs:
 %   data        - same as input.
 %
-%   flags       - Vector the same length as data, with flags for corresponding
-%                 data which is out of range.
+%   flags       - Vector the same length as data, with flags for flatline 
+%                 regions.
 %
 %   log         - Empty cell array.
 %
-% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -64,25 +62,54 @@ if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 % auto logical in input to enable running under batch processing
 if nargin<4, auto=false; end
 
-% get the flag values with which we flag good and out of range data
-qcSet     = str2double(readProperty('toolbox.qc_set'));
-rangeFlag = imosQCFlag('bound', qcSet, 'flag');
-rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
-goodFlag  = imosQCFlag('good',  qcSet, 'flag');
+qcSet    = str2double(readProperty('toolbox.qc_set'));
+rawFlag = imosQCFlag('raw',  qcSet, 'flag');
+goodFlag = imosQCFlag('good',  qcSet, 'flag');
+spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
-% initialise all flags to good
 lenData = length(data);
+
 log   = {};
+flags = ones(lenData, 1)*rawFlag;
 
-max  = sample_data.variables{k}.valid_max;
-min  = sample_data.variables{k}.valid_min;
+% define thresholds
+threshold = flags*NaN;
+% Threshold = 6 for temperature when pressure < 500 dbar
+% Threshold = 2 for temperature when pressure >= 500 dbar
+%
+% Threshold = 0.9 for salinity when pressure < 500 dbar
+% Threshold = 0.3 for salinity when pressure >= 500 dbar
 
-if max == min
-    flags = ones(lenData, 1)*rawFlag;
+presIdx     = getVar(sample_data.variables, 'PRES');
+presRelIdx  = getVar(sample_data.variables, 'PRES_REL');
+
+if presRelIdx == 0
+    % update from a relative pressure like SeaBird computes
+    % it in its processed files, substracting a constant value
+    % 10.1325 dbar for nominal atmospheric pressure
+    relPres = sample_data.variables{presIdx}.data - 10.1325;
 else
-    flags = ones(lenData, 1)*goodFlag;
-    
-    % add flags for out of range values
-    flags(data > max) = rangeFlag;
-    flags(data < min) = rangeFlag;
+    % update from a relative measured pressure
+    relPres = sample_data.variables{presRelIdx}.data;
+end
+
+if strcmpi(sample_data.variables{k}.name, 'TEMP')
+    threshold(relPres < 500) = 6;
+    threshold(relPres >= 500) = 2;
+elseif strcmpi(sample_data.variables{k}.name, 'PSAL')
+    threshold(relPres < 500) = 0.9;
+    threshold(relPres >= 500) = 0.3;
+else
+    return;
+end
+
+% initially all data is good
+flags = ones(lenData, 1)*goodFlag;
+
+gradient = [0; data(2:end) - data(1:end-1)];
+
+iGrad = abs(gradient) >= threshold;
+
+if any(iGrad)
+    flags(iGrad) = spikeFlag;
 end
