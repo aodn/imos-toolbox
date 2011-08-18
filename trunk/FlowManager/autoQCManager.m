@@ -145,7 +145,7 @@ function qc_data = autoQCManager( sample_data, auto )
         sample_data{k}.file_version_quality_control = ...
           imosFileVersion(1, 'desc');
       end
-    end    
+    end
   catch e
       %BDM - 16/08/2010 - Added if statement to stop error on auto runs
       if ishandle(progress)
