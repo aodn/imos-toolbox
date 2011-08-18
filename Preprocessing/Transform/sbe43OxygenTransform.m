@@ -59,18 +59,26 @@ function [data, name, comment] = sbe43OxygenTransform( sam, varIdx )
 
   temp    = getVar(sam.variables, 'TEMP');
   psal    = getVar(sam.variables, 'PSAL');
-  pres    = getVar(sam.variables, 'PRES');
+  presRel = getVar(sam.variables, 'PRES_REL');
+  if presRel == 0
+      pres    = getVar(sam.variables, 'PRES');
+  end
   doxy    = varIdx;
+  
+  if ~(temp && psal && (presRel || pres) && doxy), return; end
   
   data    = sam.variables{doxy}.data;
   name    = sam.variables{doxy}.name;
   comment = sam.variables{doxy}.comment;
-
-  if ~(temp && psal && pres && doxy), return; end
   
   % measured parameters
   T = sam.variables{temp}.data;
-  P = sam.variables{pres}.data;
+  if presRel == 0
+      P = sam.variables{pres}.data;
+      P = P - 14.7*0.689476;
+  else
+      P = sam.variables{presRel}.data;
+  end
   S = sam.variables{psal}.data;
   V = sam.variables{doxy}.data;
   
