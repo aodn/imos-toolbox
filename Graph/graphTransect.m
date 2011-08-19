@@ -14,7 +14,8 @@ function [graphs lines vars] = graphTransect( parent, sample_data, vars )
 %                        graphs.
 %   vars               - Indices of variables which were graphed.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -69,8 +70,10 @@ function [graphs lines vars] = graphTransect( parent, sample_data, vars )
   end
   
   % ignore request to plot lat/lon against themselves
-  if ~isempty(find(vars == lat, 1)), vars(vars == lat) = []; end
-  if ~isempty(find(vars == lon, 1)), vars(vars == lon) = []; end
+  iLat = vars == lat;
+  iLon = vars == lon;
+  if any(iLat), vars(iLat) = []; end
+  if any(iLon), vars(iLon) = []; end
   
   if isempty(vars)
     warning('no variables to graph');

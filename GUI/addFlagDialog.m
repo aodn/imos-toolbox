@@ -12,7 +12,8 @@ function flagVal = addFlagDialog( defaultVal )
 %   flagVal    - The selected value. If the user cancelled the dialog, 
 %                flagVal will be the empty matrix.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -54,11 +55,12 @@ function flagVal = addFlagDialog( defaultVal )
   flagDescs  = {};
   flagColors = {};
   
-  if isempty(find(flagTypes == flagVal, 1))
+  iFlagVal = (flagTypes == flagVal);
+  if ~any(iFlagVal)
     error('defaultVal is not a member of the current QC set'); 
   end
 
-  % retrieve all the flag decsriptions and display colours
+  % retrieve all the flag descriptions and display colours
   for k = 1:length(flagTypes)
 
     flagDescs{k}  = imosQCFlag(flagTypes(k), qcSet, 'desc');
@@ -84,7 +86,7 @@ function flagVal = addFlagDialog( defaultVal )
 
   % flag list
   listOpt = 1;
-  if ~isempty(flagVal), listOpt = find(flagTypes == flagVal); end
+  if ~isempty(flagVal), listOpt = find(iFlagVal); end
   if  isempty(listOpt), listOpt = 1; end
   
   optList = uicontrol(...

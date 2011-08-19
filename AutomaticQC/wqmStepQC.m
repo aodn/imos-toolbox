@@ -80,7 +80,8 @@ edges = (min(data) : (max(data)-min(data))/99 : max(data));
 n = histc(data, edges);
 
 % let's find values for which we have local max/min in the distribution
-diffN = diff(n);
+% diffN = diff(n);
+diffN = n(2:end) - n(1:end-1);
 posSign = diffN > 0;
 negSign = diffN < 0;
 nulSign = diffN == 0;
@@ -91,7 +92,13 @@ localMax = posSign(1:end-1) & negSign(2:end);
 % sign change from pos to nul
 localMax = localMax | (posSign(1:end-1) & nulSign(2:end));
 
-% max could also be present at the edges of distribution
+% sign change from neg to pos
+localMin = negSign(1:end-1) & posSign(2:end);
+
+% sign change from neg to nul
+localMin = localMin | (negSign(1:end-1) & nulSign(2:end));
+
+% max/min could also be present at the edges of distribution
 if negSign(1)
     localMax = [true; localMax];
 else
@@ -104,13 +111,6 @@ else
     localMax = [localMax; false];
 end
 
-% sign change from neg to pos
-localMin = negSign(1:end-1) & posSign(2:end);
-
-% sign change from neg to nul
-localMin = localMin | (negSign(1:end-1) & nulSign(2:end));
-
-% min could also be present at the edges of distribution
 if posSign(1)
     localMin = [true; localMin];
 else
@@ -123,7 +123,7 @@ else
     localMin = [localMin; false];
 end
 
-% mode 1
+% compute mode 1
 nMax = n(localMax);
 nMin = n(localMin);
 edgesMax = edges(localMax);
@@ -132,14 +132,23 @@ iNMax = nMax == max(nMax);
 
 mod1 = edgesMax(iNMax);
 
-% look for first mode with value < mode 1 - 3*standard_deviation
+% standard deviation around mean
+% stdDev = std(data);
+
+% standard deviation around mode 1
+stdDev = sqrt(mean((data - mod1).^2));
+
+% look for every other important modes
 edgesMax(iNMax)    = [];
 nMax(iNMax)        = [];
-stdDev = std(data);
-test = false;
+testBelow = false;
+testAbove = false;
 modN = NaN;
-nearestLocalMin = NaN;
-while ~isempty(nMax) && ~test
+modNBelow = NaN;
+modNAbove = NaN;
+nearestLocalMinBelow = NaN;
+nearestLocalMinAbove = NaN;
+while ~isempty(nMax) && (~testBelow || ~testAbove)
     iNMax = nMax == max(nMax);
     
     if sum(iNMax) > 1
@@ -152,13 +161,30 @@ while ~isempty(nMax) && ~test
     edgesMax(iNMax)    = [];
     nMax(iNMax)        = [];
     
-    % test
-    test = (modN < mod1 - 3*stdDev);
-    if test
-        % let's find the nearest > local min
-        nearestLocalMin = min(edgesMin(modN < edgesMin));
-        iToFlag = data < nearestLocalMin;
-        flags(iToFlag) = stepFlag;
+    % look for most important mode with value < mode 1 - 3*standard_deviation
+    % test below
+    if ~testBelow
+        testBelow = (modN < mod1 - 3*stdDev);
+        if testBelow
+            modNBelow = modN;
+            % let's find the nearest > local min
+            nearestLocalMinAbove = min(edgesMin(modN < edgesMin));
+            iToFlag = data < nearestLocalMinAbove;
+            flags(iToFlag) = stepFlag;
+        end
+    end
+    
+    % look for most important mode with value > mode 1 + 3*standard_deviation
+    % test above
+    if ~testAbove
+        testAbove = (modN > mod1 + 3*stdDev);
+        if testAbove
+            modNAbove = modN;
+            % let's find the nearest < local min
+            nearestLocalMinBelow = max(edgesMin(modN > edgesMin));
+            iToFlag = data > nearestLocalMinBelow;
+            flags(iToFlag) = stepFlag;
+        end
     end
 end
 
@@ -177,15 +203,24 @@ end
 % xCoordMod1 = [mod1, mod1];
 % hMod1 = line('XData', xCoordMod1, 'YData', yCoord, 'Parent', ha, 'Color', 'green');
 % 
-% xCoordModN = [modN, modN];
-% hModN = line('XData', xCoordModN, 'YData', yCoord, 'Parent', ha, 'Color', 'red');
+% xCoordModNBelow = [modNBelow, modNBelow];
+% hModNBelow = line('XData', xCoordModNBelow, 'YData', yCoord, 'Parent', ha, 'Color', 'red');
+% 
+% xCoordModNAbove = [modNAbove, modNAbove];
+% hModNAbove = line('XData', xCoordModNAbove, 'YData', yCoord, 'Parent', ha, 'Color', 'red');
 % 
 % xCoord3StdDevM = [mod1-3*stdDev, mod1-3*stdDev];
 % h3StdDevM = line('XData', xCoord3StdDevM, 'YData', yCoord, 'Parent', ha, 'Color', 'red', 'LineStyle', '-.');
 % 
-% xCoordLocalMin = [nearestLocalMin, nearestLocalMin];
-% hLocalMin = line('XData', xCoordLocalMin, 'YData', yCoord, 'Parent', ha, 'Color', 'magenta', 'LineStyle', '--');
+% xCoord3StdDevP = [mod1+3*stdDev, mod1+3*stdDev];
+% h3StdDevP = line('XData', xCoord3StdDevP, 'YData', yCoord, 'Parent', ha, 'Color', 'red', 'LineStyle', '-.');
 % 
-% legend(ha, [hMod1, hModN, h3StdDevM, hLocalMin], {'mode 1', 'first mode N < test', 'test = mode 1 - 3*std. dev.', 'nearest local min from mode N'}, 'Location', 'NorthWest');
+% xCoordLocalMinAbove = [nearestLocalMinAbove, nearestLocalMinAbove];
+% hLocalMinAbove = line('XData', xCoordLocalMinAbove, 'YData', yCoord, 'Parent', ha, 'Color', 'magenta', 'LineStyle', '--');
+% 
+% xCoordLocalMinBelow = [nearestLocalMinBelow, nearestLocalMinBelow];
+% hLocalMinBelow = line('XData', xCoordLocalMinBelow, 'YData', yCoord, 'Parent', ha, 'Color', 'magenta', 'LineStyle', '--');
+% 
+% legend(ha, [hMod1, hModNBelow, h3StdDevM, hLocalMinBelow], {'mode 1', 'highest mode N < or > threshold', 'threshold = mode 1 +/- 3*std. dev.', 'nearest local min > or < mode N'}, 'Location', 'NorthWest');
 % set(0, 'CurrentFigure', h_gcf);
 % set(h_gcf, 'CurrentAxes', h_gca);
