@@ -14,7 +14,8 @@ function dataIdx = getSelectedTimeSeriesTimeDepth( ...
 %   dataIdx     - Vector of indices into the data, defining the indices
 %                 which are selected (and which were clicked on).
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -56,8 +57,16 @@ if ~isnumeric(click),      error('click must be numeric');               end
 
 dataIdx = [];
 
+zTitle = 'DEPTH';
+
 time  = getVar(sample_data.dimensions, 'TIME');
-depth = getVar(sample_data.dimensions, 'DEPTH');
+depth = getVar(sample_data.dimensions, zTitle);
+
+% case of sensors on the seabed looking upward like moored ADCPs
+if depth == 0
+    zTitle = 'HEIGHT_ABOVE_SENSOR';
+    depth = getVar(sample_data.dimensions, zTitle);
+end
 
 time  = sample_data.dimensions{time} .data;
 depth = sample_data.dimensions{depth}.data;

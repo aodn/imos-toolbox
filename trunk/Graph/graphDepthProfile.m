@@ -19,7 +19,8 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
 %                        graphs.
 %   vars               - Indices of variables which were graphed.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -73,8 +74,9 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     
     % we don't want to plot depth against itself, so if depth has been
     % passed in as one of the variables to plot, remove it from the list
-    if ~isempty(find(vars == depth, 1))
-      vars(vars == depth) = []; 
+    iDepth = vars == depth;
+    if any(iDepth)
+      vars(iDepth) = []; 
       if isempty(vars)
         warning('no variables to graph');
         return; 
@@ -93,7 +95,8 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     % if depth is a dimension, we can only plot those variables 
     % which provide data along the depth dimension
     for k = 1:length(vars)
-      if isempty(find(sample_data.variables{vars(k)}.dimensions == depth, 1))
+        iDepth = sample_data.variables{vars(k)}.dimensions == depth;
+      if ~any(iDepth)
         remove(end+1) = vars(k);
       end  
     end
