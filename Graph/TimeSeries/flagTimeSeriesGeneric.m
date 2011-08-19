@@ -66,6 +66,11 @@ data  = sample_data.variables{var}.data;
 
 % get a list of the different flag types to be graphed
 flagTypes = unique(fl);
+
+% don't display raw data flags
+iRawFlag = (flagTypes == rawFlag);
+if any(iRawFlag), flagTypes(iRawFlag) = []; end
+  
 lenFlag = length(flagTypes);
 
 % if no flags to plot, put a dummy handle in - the 
@@ -78,10 +83,7 @@ end
 % a different line for each flag type
 for m = 1:lenFlag
 
-  % don't display raw data flags
-  if flagTypes(m) == rawFlag, continue; end
-
-  f = find(fl == flagTypes(m));
+  f = (fl == flagTypes(m));
 
   fc = imosQCFlag(flagTypes(m), qcSet, 'color');
 

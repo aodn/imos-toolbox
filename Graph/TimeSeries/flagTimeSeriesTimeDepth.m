@@ -14,7 +14,8 @@ function flags = flagTimeSeriesTimeDepth( ax, sample_data, var )
 %   flags       - Vector of handles to line objects, which are the flag
 %                 overlays.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -52,8 +53,6 @@ if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be numeric');          end
 
-flags = [];
-
 qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
@@ -72,32 +71,34 @@ time  = sample_data.dimensions{time};
 depth = sample_data.dimensions{depth};
 
 fl    = sample_data.variables{var}.flags;
-data  = sample_data.variables{var}.data;
 
 % get a list of the different flag types to be graphed
 flagTypes = unique(fl);
 
+% don't display raw data flags
+iRawFlag = (flagTypes == rawFlag);
+if any(iRawFlag), flagTypes(iRawFlag) = []; end
+  
+lenFlag = length(flagTypes);
+
 % if no flags to plot, put a dummy handle in - the 
 % caller is responsible for checking and ignoring
-flags = 0.0;
+flags = nan(lenFlag, 1);
+if isempty(flags)
+    flags = 0.0;
+end
 
 % a different patch for each flag type
-for m = 1:length(flagTypes)
+for m = 1:lenFlag
 
-  % don't display raw data flags
-  if flagTypes(m) == rawFlag, continue; end
-
-  f = find(fl == flagTypes(m));
+  f = (fl == flagTypes(m));
 
   fc = imosQCFlag(flagTypes(m), qcSet, 'color');
-
-  fx = mod(f, size(fl,1));
-  fx(fx == 0) = size(fl, 1);
-  fy = ceil(mod(f / size(fl,1), size(fl,2)));
-  fy(fy == 0) = size(fl, 2);
   
-  fx = time.data(fx);
-  fy = depth.data(fy);
+  fx = repmat(time.data, 1, size(depth.data));
+  fx = fx(f);
+  fy = repmat(depth.data', size(time.data), 1);
+  fy = fy(f);
     
   flags(m) = line(fx, fy,...
     'Parent', ax,...

@@ -38,7 +38,8 @@ function value = imosQCFlag( qcClass, qcSet, field )
 %   value    - One of the flag value, flag description, output type, color 
 %              spec, or set description.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -107,8 +108,8 @@ if isempty(sets{1}), return; end
 if isempty(flags{1}), return; end
 
 % get the qc set description (or reset the qc set to 1)
-qcSetIdx = find(sets{1} == qcSet);
-if isempty(qcSetIdx), qcSetIdx = 1; end;
+qcSetIdx = (sets{1} == qcSet);
+if ~any(qcSetIdx), qcSetIdx(1) = 1; end;
 
 % if the request was the set description, set values, output 
 % type, or minimum/maximum value, retrieve and return them 

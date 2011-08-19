@@ -16,7 +16,8 @@ function highlight = highlightTimeSeriesGeneric( region, data, variable, type )
 %               data. If no data points lie within the highlight region, 
 %               an empty matrix is returned.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -73,14 +74,14 @@ if strcmp(type, 'alt')
 end
 
 % figure out indices of all data points within the range
-xidx  = find(xdata >= region(1) & xdata <= region(3));
-yidx  = find(ydata >= region(2) & ydata <= region(4));
+xidx  = (xdata >= region(1) & xdata <= region(3));
+yidx  = (ydata >= region(2) & ydata <= region(4));
 
 % figure out indices of all the points to be highlighted
-idx = intersect(xidx, yidx);
+idx = xidx & yidx;
 
 % return nothing if no points to plot
-if isempty(idx), highlight = [];
+if ~any(idx), highlight = [];
     
 % create the highlight
 else

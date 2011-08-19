@@ -16,7 +16,8 @@ function highlight = highlightTimeSeriesTimeDepth( ...
 % Outputs:
 %   highlight - handle to the patch highlight.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -61,47 +62,30 @@ if ~ischar(type),       error('type must be a string');          end
 xdata = get(data, 'XData');
 ydata = get(data, 'YData');
 
+Xdata = repmat(xdata, 1, size(ydata));
+Ydata = repmat(ydata', size(xdata), 1);
+clear xdata ydata;
+
 % figure out indices of all data points within the range
-x = find((xdata >= region(1)) & (xdata <= region(3)));
-y = find((ydata >= region(2)) & (ydata <= region(4)));
+X = ((Xdata >= region(1)) & (Xdata <= region(3)));
+Y = ((Ydata >= region(2)) & (Ydata <= region(4)));
+idx = X & Y;
+clear X Y;
 
 % on right click, only highlight unflagged points
 if strcmp(type, 'alt')
   
-  % see if any points in the region have been flagged
-  flags = variable.flags(x, y);
-  flags = flags == 0;
-  if ~any(flags), return; end
-  
-  % find the indices of those flagged points
-  xidx = mod( find(flags) , length(x));
-  yidx = ceil(find(flags) / length(x));
-  
-  xidx(xidx == 0) = length(x);
-  
-  xidx = xidx + x(1) - 1;
-  yidx = yidx + y(1) - 1;
-  
-else
-
-  % create points for every point in the region
-  k = 1:(length(x)*length(y));
-
-  xidx = mod(k, length(x));
-  xidx(xidx == 0) = length(x);
-  yidx = mod(ceil(k / length(x)), length(y));
-  yidx(yidx == 0) = length(y);
-  xidx = x(xidx);
-  
-  yidx = y(yidx);
+  % see if any points in the region haven't been flagged
+  idx = (variable.flags == 0) & idx;
+  if ~any(any(flags)), return; end
   
 end
 
-if isempty(x) || isempty(y), highlight = [];
+if ~any(any(idx)), highlight = [];
   
 else
 
-  highlight = line(xdata(xidx),ydata(yidx),...
+  highlight = line(Xdata(idx),Ydata(idx),...
     'Parent',          gca,...
     'LineStyle',       'none',...
     'Marker',          'o',...
