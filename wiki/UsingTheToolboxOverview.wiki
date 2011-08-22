@@ -45,13 +45,7 @@ pause
 -Using the source code within MATLAB just type as follow :
 
 {{{
->> imosToolbox 'auto' '4788' 'C:\Raw Data\' {'timeOffsetPP' 'depthPP'} {'inWaterQC' 'outWaterQC'} 'C:\NetCDF\'
-}}}
-
-or
-
-{{{
->> imosToolbox('auto', '4788', 'C:\Raw Data\', '{''timeOffsetPP'' ''depthPP''}', '{''inWaterQC'' ''outWaterQC''}', 'C:\NetCDF\')
+>> imosToolbox auto '4788' 'C:\Raw Data\' {'timeOffsetPP' 'depthPP'} {'inWaterQC' 'outWaterQC'} 'C:\NetCDF\'
 }}}
 
 If no pre-processing or quality control routine should be performed then provide an empty {}.
