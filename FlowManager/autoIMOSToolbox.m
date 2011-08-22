@@ -1,18 +1,33 @@
-function autoIMOSToolbox(fieldTrip, dataDir, ppChain, qcChain, exportDir)
+function autoIMOSToolbox(toolboxVersion, fieldTrip, dataDir, ppChain, qcChain, exportDir)
 %AUTOIMOSTOOLBOX Executes the toolbox automatically.
 %
 % All inputs are optional.
 %
 % Inputs:
-%   fieldTrip - Unique string ID of field trip. 
-%   dataDir   - Directory containing raw data files.
-%   ppChain   - Cell array of strings, the names of pre-process to run.
-%   qcChain   - Cell array of strings, the names of QC filters to run.
-%   exportDir - Directory to store output files.
+%   toolboxVersion  - string containing the current version of the toolbox.
+%   parent          - handle to parent figure/uipanel.
+%   fieldTrip       - Unique string ID of field trip. 
+%   dataDir         - Directory containing raw data files.
+%   ppChain         - Cell array of strings, the names of pre-process to run.
+%   qcChain         - Cell array of strings, the names of QC filters to run.
+%   exportDir       - Directory to store output files.
 %
-% Ex.: 
-%   imosToolbox('auto', '4788', 'C:\Raw Data\', {'timeOffset'}, ...
-%           {'inWaterQC' 'outWaterQC'}, 'C:\NetCDF\')
+%   if no PP/QC then provide empty cell array {} for ppChain/qcChain
+%
+% Can be called from imosToolbox executable
+%
+%   Standalone : imosToolbox.exe auto "4788" "C:\Raw Data\" "{'timeOffset'}" ...
+%           "{'inWaterQC' 'outWaterQC'}" "C:\NetCDF\"
+%
+%   Matlab script : imosToolbox auto 4788 'C:\Raw Data\' {'timeOffset'} ...
+%           {'inWaterQC' 'outWaterQC'} 'C:\NetCDF\'
+%
+%                   or,
+%
+%                   imosToolbox('auto', '4788', 'C:\Raw Data\', '{''timeOffset''}' ...
+%           '{''inWaterQC'' ''outWaterQC''}', 'C:\NetCDF\')
+%
+%   Using toolboxProperties.txt : imosToolbox auto
 %
 % Author:		Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:	Brad Morris <b.morris@unsw.edu.au>
@@ -48,10 +63,10 @@ function autoIMOSToolbox(fieldTrip, dataDir, ppChain, qcChain, exportDir)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(0, 5, nargin));
-
+  error(nargchk(1, 6, nargin));
+  
   % validate and save field trip
-  if nargin > 0
+  if nargin > 1
       if isnumeric(fieldTrip), error('field trip must be a string'); end
       writeProperty('startDialog.fieldTrip', fieldTrip);
   else
@@ -62,7 +77,7 @@ function autoIMOSToolbox(fieldTrip, dataDir, ppChain, qcChain, exportDir)
   end
 
   % validate and save data dir
-  if nargin > 1
+  if nargin > 2
       if ~ischar(dataDir),       error('dataDir must be a string');    end
       if ~exist(dataDir, 'dir'), error('dataDir must be a directory'); end
       
@@ -75,12 +90,20 @@ function autoIMOSToolbox(fieldTrip, dataDir, ppChain, qcChain, exportDir)
   end
 
   % validate and save pp chain
-  if nargin > 2
+  if nargin > 3
+      if ischar(ppChain)
+          try
+              [~] = evalc(['ppChain = ' ppChain]);
+          catch e
+              error('ppChain must be a cell array of strings');
+          end
+      end
+      
       if ~iscellstr(ppChain)
           error('ppChain must be a cell array of strings');
       end
       
-      if ~isempty(qcChain)
+      if ~isempty(ppChain)
           ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
           ppChainStr = deblank([ppChainStr{:}]);
       else
@@ -90,7 +113,15 @@ function autoIMOSToolbox(fieldTrip, dataDir, ppChain, qcChain, exportDir)
   end
   
   % validate and save qc chain
-  if nargin > 3
+  if nargin > 4
+      if ischar(qcChain)
+          try
+              [~] = evalc(['qcChain = ' qcChain]);
+          catch e
+              error('qcChain must be a cell array of strings');
+          end
+      end
+      
       if ~iscellstr(qcChain)
           error('qcChain must be a cell array of strings');
       end
@@ -105,7 +136,7 @@ function autoIMOSToolbox(fieldTrip, dataDir, ppChain, qcChain, exportDir)
   end
 
   % validate and save export dir
-  if nargin > 4
+  if nargin > 5
       if ~ischar(exportDir),       error('exportDir must be a string');    end
       if ~exist(exportDir, 'dir'), error('exportDir must be a directory'); end
       
@@ -120,7 +151,7 @@ function autoIMOSToolbox(fieldTrip, dataDir, ppChain, qcChain, exportDir)
   % import, pre-processing, QC, export
   [~, sourceFolder] = fileparts(dataDir);
   fprintf('%s', ['Importing ' fieldTrip ' from folder ' sourceFolder ' : '])
-  sample_data   = importManager(true);
+  sample_data   = importManager(toolboxVersion, true);
   fprintf('%s\n', 'done.')
   
   sample_data   = preprocessManager(sample_data, true);
