@@ -49,6 +49,9 @@ function imosToolbox(auto, varargin)
 
 if nargin == 0, auto = 'manual'; end
 
+% Set current toolbox version
+toolboxVersion = '2.1 beta';
+
 % if running as a standalone compiled application, we must 
 % manually add the ddb.jar java library to the classpath
 if isdeployed
@@ -61,6 +64,6 @@ end
 
 switch auto
   
-  case 'auto', autoIMOSToolbox(varargin{:});
-  otherwise,   flowManager;
+  case 'auto', autoIMOSToolbox(toolboxVersion, varargin{:});
+  otherwise,   flowManager(toolboxVersion);
 end
