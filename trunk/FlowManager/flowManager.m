@@ -1,8 +1,12 @@
-function flowManager()
+function flowManager(toolboxVersion)
 %FLOWMANAGER Manages the overall flow of IMOS toolbox execution and acts as 
 % the custodian for all data sets.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Inputs:
+%   toolboxVersion      - string containing the current version of the toolbox.
+%
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -38,9 +42,9 @@ function flowManager()
   autoQCData   = {};
   
   lastAutoQCSetIdx = 0;
-
+  
   % import data
-  rawData = importManager();
+  rawData = importManager(toolboxVersion);
   
   if isempty(rawData), return; end
   
@@ -60,7 +64,7 @@ function flowManager()
   callbacks.exportNetCDFRequestCallback = @exportNetCDFRequestCallback;
   callbacks.exportRawRequestCallback    = @exportRawRequestCallback;
   
-  displayManager('imos-toolbox', rawData, callbacks);
+  displayManager(['imos-toolbox v' toolboxVersion], rawData, callbacks);
   
   function importRequestCallback()
   %IMPORTREQUESTCALLBACK Called when the user wishes to import more data.
@@ -70,7 +74,7 @@ function flowManager()
   %
   
     % prompt user to import more data
-    importedData = importManager();
+    importedData = importManager(toolboxVersion);
     
     if isempty(importedData), return; end
     

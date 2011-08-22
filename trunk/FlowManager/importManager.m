@@ -1,4 +1,4 @@
-function sample_data = importManager(auto)
+function sample_data = importManager(toolboxVersion, auto)
 %IMPORTMANAGER Manages the import of raw instrument data into the toolbox.
 %
 % Imports raw data. If a deployment database exists, prompts the user to 
@@ -14,17 +14,21 @@ function sample_data = importManager(auto)
 % operation, empty arrays are returned.
 %
 % Inputs:
-%   auto        - Optional boolean. If true, the import process runs
-%                 automatically with no user interaction. A DDB must be 
-%                 present for this to work.
+%   toolboxVersion  - version of the current toolbox, used to fill NetCDF
+%                   files metadata
+%
+%   auto            - Optional boolean. If true, the import process runs
+%                   automatically with no user interaction. A DDB must be 
+%                   present for this to work.
 %
 % Outputs:
 %   sample_data - Cell array of sample_data structs, each containing sample
 %                 data for one instrument. 
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor: Gordon Keith <gordon.keith@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Gordon Keith <gordon.keith@csiro.au>
 %   -bug fixes
+%               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -56,9 +60,9 @@ function sample_data = importManager(auto)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(0,1,nargin));
+  error(nargchk(1,2,nargin));
 
-  if nargin == 0, auto = false; end
+  if nargin == 1, auto = false; end
 
   % If the toolbox.ddb property has been set, assume that we have a
   % deployment database. Otherwise perform a manual import
@@ -69,7 +73,7 @@ function sample_data = importManager(auto)
   
   if ~isempty(ddb), [structs rawFiles] = ddbImport(auto);
   else
-    if auto, error('manual import cannot be automated'); end
+    if auto, error('manual import cannot be automated without deployment database'); end
     [structs rawFiles] = manualImport();
   end
   
@@ -88,14 +92,14 @@ function sample_data = importManager(auto)
       
       for m = 1:length(structs{k})
         sample_data{end+1} = ...
-          finaliseData(structs{k}{m}, rawFiles{k}, dateFmt, rawFlag);
+          finaliseData(structs{k}{m}, rawFiles{k}, dateFmt, rawFlag, toolboxVersion);
       end
       
     % more likely, only one struct generated for one raw data file
     else
       
       sample_data{end+1} = ...
-        finaliseData(structs{k}, rawFiles{k}, dateFmt, rawFlag);
+        finaliseData(structs{k}, rawFiles{k}, dateFmt, rawFlag, toolboxVersion);
     end
   end
 end
@@ -390,11 +394,14 @@ function [sample_data rawFiles] = ddbImport(auto)
   end
 end
 
-function sam = finaliseData(sam, rawFiles, dateFmt, flagVal)
+function sam = finaliseData(sam, rawFiles, dateFmt, flagVal, toolboxVersion)
 %FINALISEDATA Adds all required/relevant information from the given field
 %trip and deployment structs to the given sample data.
 %
 
+  % add toolbox version info
+  sam.toolbox_version = toolboxVersion;
+  
   % add IMOS file version info
   if ~isfield(sam.meta, 'level') 
       sam.meta.level = 0; 

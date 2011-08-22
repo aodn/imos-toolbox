@@ -51,7 +51,8 @@ function mainWindow(...
 %                         state          - the new state, if it changed.
 % 
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -341,18 +342,18 @@ function mainWindow(...
     if ~isfield(sam.meta, 'index'), error('sam must have an index field'); end
     
     % a new data set is being added
-    updateMenus = 0;
-    if sam.meta.index > lenSam, updateMenus = 1; end
-
-    sample_data{sam.meta.index} = sam;
-    
-    % regenerate descriptions
-    sampleDataDescs = cell(lenSam, 1);
-    for k = 1:lenSam
-      sampleDataDescs{k} = genSampleDataDesc(sample_data{k}); 
+    if sam.meta.index > lenSam 
+        sample_data{sam.meta.index} = sam;
+        lenSam = length(sample_data);
+        
+        % regenerate descriptions
+        sampleDataDescs = cell(lenSam, 1);
+        for k = 1:lenSam
+            sampleDataDescs{k} = genSampleDataDesc(sample_data{k});
+        end
+        
+        set(sampleMenu, 'String', sampleDataDescs);
     end
-    
-    set(sampleMenu, 'String', sampleDataDescs);
     
   end
 
