@@ -20,7 +20,7 @@ If you are using the toolbox within Matlab, the toolbox is started via the `imos
 
 The toolbox can be executed in an automatic manner, by passing some arguments to the `imosToolbox` function. A deployment database must be present in order to run the toolbox automatically. When you pass the string `'auto'` to the `imosToolbox` function, the toolbox will import all of the files specified in the deployment database, using the field trip and data directory specified in `toolboxProperties.txt`, run the data sets through the default set of automatic pre-processing and QC routines, and export the data sets as NetCDF to the default export directory.
 
-Using the standalone version, create an `imosToolboxBatch.bat` file, in the same directory of `imosToolbox.exe`, containing :
+Using the standalone version, create an `imosToolboxBatch.bat` file, in the same directory of `imosToolbox.exe`, containing the following code :
 {{{
 imosToolbox.exe auto
 pause
@@ -34,23 +34,23 @@ Using the source code within MATLAB just proceed as follow :
 
 Alternatively, you can specify the field trip, data directory, pre-processing routines, QC routines and export directory as arguments to `imosToolbox`.
 
-Using the standalone version, the `imosToolboxBatch.bat` file would look like something like :
+Using the standalone version, the code of the `imosToolboxBatch.bat` file would be something like :
 
 {{{
-imosToolbox.exe auto "4788" "C:\Raw Data\" "{'timeOffsetPP', 'depthPP'}", "{'inWaterQC' 'outWaterQC'}", "C:\NetCDF\"
+imosToolbox.exe auto "4788" "C:\Raw Data\" "{'timeOffsetPP' 'depthPP'}" "{'inWaterQC' 'outWaterQC'}" "C:\NetCDF\"
 pause
 }}}
 
 Using the source code within MATLAB just type as follow :
 
 {{{
->> imosToolbox 'auto' '4788' 'C:\Raw Data\' {'timeOffsetPP', 'depthPP'} {'inWaterQC' 'outWaterQC'} 'C:\NetCDF\'
+>> imosToolbox 'auto' '4788' 'C:\Raw Data\' {'timeOffsetPP' 'depthPP'} {'inWaterQC' 'outWaterQC'} 'C:\NetCDF\'
 }}}
 
 or
 
 {{{
->> imosToolbox('auto', '4788', 'C:\Raw Data\', '{''timeOffsetPP'', ''depthPP''}', '{''inWaterQC'' ''outWaterQC''}', 'C:\NetCDF\')
+>> imosToolbox('auto', '4788', 'C:\Raw Data\', '{''timeOffsetPP'' ''depthPP''}', '{''inWaterQC'' ''outWaterQC''}', 'C:\NetCDF\')
 }}}
 
 If no pre-processing or quality control routine should be performed then provide an empty {}.
