@@ -341,19 +341,17 @@ function mainWindow(...
     if ~isstruct(sam),              error('sam must be a struct');         end
     if ~isfield(sam.meta, 'index'), error('sam must have an index field'); end
     
-    % a new data set is being added
-    if sam.meta.index > lenSam 
-        sample_data{sam.meta.index} = sam;
-        lenSam = length(sample_data);
-        
-        % regenerate descriptions
-        sampleDataDescs = cell(lenSam, 1);
-        for k = 1:lenSam
-            sampleDataDescs{k} = genSampleDataDesc(sample_data{k});
-        end
-        
-        set(sampleMenu, 'String', sampleDataDescs);
+    % synchronise current data sets and sample_data
+    sample_data{sam.meta.index} = sam;
+    lenSam = length(sample_data);
+    
+    % regenerate descriptions
+    sampleDataDescs = cell(lenSam, 1);
+    for k = 1:lenSam
+        sampleDataDescs{k} = genSampleDataDesc(sample_data{k});
     end
+    
+    set(sampleMenu, 'String', sampleDataDescs);
     
   end
 
