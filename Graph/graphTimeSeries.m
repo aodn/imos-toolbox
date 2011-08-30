@@ -81,7 +81,8 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     set(graphs(k), 'Parent', parent,...
                    'XGrid',  'on',...
                    'Color', 'none',...
-                   'YGrid',  'on');
+                   'YGrid',  'on',...
+                   'Layer', 'top');
     
     % plot the variable
     plotFunc            = getGraphFunc('TimeSeries', 'graph', name);
@@ -103,7 +104,6 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     set(get(graphs(k), 'XLabel'), 'String', labels{1});
 
     % align xticks on first plot's xticks
-%     xLimits = get(graphs(k), 'XLim');
     xLimits = get(graphs(1), 'XLim');
     xStep   = (xLimits(2) - xLimits(1)) / 5;
     xTicks  = xLimits(1):xStep:xLimits(2);
@@ -140,45 +140,45 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     set(graphs(k), 'YTick', yTicks);
   end
   
-  if sample_data.meta.level == 1
-      % Let's add a QC legend
-      qcSet     = str2double(readProperty('toolbox.qc_set'));
-      rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
-      distinctFlagsValue(distinctFlagsValue == rawFlag) = [];
-      lenFlagsValue = length(distinctFlagsValue);
-      distinctFlagName = cell(lenFlagsValue, 1);
-      distinctFlag = nan(lenFlagsValue, 1);
-      for i=1:length(distinctFlagsValue)
-          distinctFlagName{i} = strrep(imosQCFlag(distinctFlagsValue(i),  qcSet, 'desc'), '_', ' ');
-          distinctFlagColor = imosQCFlag(distinctFlagsValue(i),  qcSet, 'color');
-          distinctFlag(i) = line(0, 0,...
-              'Parent', graphs(1),...
-              'LineStyle', 'none',...
-              'Marker', 'o',...
-              'MarkerFaceColor', distinctFlagColor,...
-              'MarkerEdgeColor', 'none',...
-              'Visible', 'off');
-      end
-      
-      % link axes for panning/zooming, and add a legend - matlab has a habit of
-      % throwing 'Invalid handle object' errors for no apparent reason (i think
-      % when the user changes selections too quickly, matlab is too slow, and
-      % ends up confusing itself), so absorb any errors which are thrown
-      try
-          linkaxes(graphs, 'x');
-          for k = 1:lenVar
-              legend(graphs(k), distinctFlag, distinctFlagName, 'Location', 'NorthEastOutside');
-              if k == 1
-                  legend(graphs(k), 'show');
-              else
-                  legend(graphs(k), 'hide');
-                  xLimits = get(graphs(1), 'XLim');
-                  set(graphs(k), 'XLim', xLimits);
-              end
-          end
-      catch e
-      end
-  end
+  % GLT : Eventually I prefered not displaying the QC legend as it
+  % influences too badly the quality of the plots. I didn't manage to have
+  % a satisfying result with a ghost axis hosting the legend... So for now
+  % I added the possiblity to the user to right-click on a QC'd data point
+  % and it displays the description of the color flag.
+%   if sample_data.meta.level == 1
+%       % Let's add a QC legend
+%       qcSet     = str2double(readProperty('toolbox.qc_set'));
+%       rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+%       distinctFlagsValue(distinctFlagsValue == rawFlag) = [];
+%       lenFlagsValue = length(distinctFlagsValue);
+%       distinctFlagName = cell(lenFlagsValue, 1);
+%       distinctFlag = nan(lenFlagsValue, 1);
+%       for i=1:length(distinctFlagsValue)
+%           distinctFlagName{i} = strrep(imosQCFlag(distinctFlagsValue(i),  qcSet, 'desc'), '_', ' ');
+%           distinctFlagColor = imosQCFlag(distinctFlagsValue(i),  qcSet, 'color');
+%           distinctFlag(i) = line(0, 0,...
+%               'Parent', graphs(1),...
+%               'LineStyle', 'none',...
+%               'Marker', 'o',...
+%               'MarkerFaceColor', distinctFlagColor,...
+%               'MarkerEdgeColor', 'none',...
+%               'Visible', 'off');
+%       end
+%       
+%       % link axes for panning/zooming, and add a legend - matlab has a habit of
+%       % throwing 'Invalid handle object' errors for no apparent reason (i think
+%       % when the user changes selections too quickly, matlab is too slow, and
+%       % ends up confusing itself), so absorb any errors which are thrown
+%       try
+%           linkaxes(graphs, 'x');
+%           for k = 2:lenVar
+%               % Let's make different X axes match with the first one
+%               xLimits = get(graphs(1), 'XLim');
+%               set(graphs(k), 'XLim', xLimits);
+%           end
+%       catch e
+%       end
+%   end
   
   % GLT : I prefer not adding a legend for variables as it overlaps the figure
   % and in addition the different axis and plots labels are already detailed enough.

@@ -76,9 +76,72 @@ h = pcolor(ax, time.data, depth.data, var.data');
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
 cb = colorbar();
 
+% Define a context menu
+hMenu = uicontextmenu;
+
+% Define callbacks for context menu items that change linestyle
+hcb11 = 'colormap(jet)';
+hcb12 = 'colormap(r_b)';
+
+% Define the context menu items and install their callbacks
+mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
+item11 = uimenu(mainItem1, 'Label', 'jet (default)', 'Callback', hcb11);
+item12 = uimenu(mainItem1, 'Label', 'r_b', 'Callback', hcb12);
+
+mainItem2 = uimenu(hMenu, 'Label', 'Color range');
+item21 = uimenu(mainItem2, 'Label', 'normal (default)',     'Callback', {@cbCLimRange, 'normal', var.data});
+item22 = uimenu(mainItem2, 'Label', 'auto (+/-3*stdDev)',   'Callback', {@cbCLimRange, 'auto', var.data});
+item23 = uimenu(mainItem2, 'Label', 'manual',               'Callback', {@cbCLimRange, 'manual', var.data});
+
+% Attach the context menu to each line
+set(cb,'uicontextmenu',hMenu);
+
+% Let's redefine grid lines after pcolor to make sure grid lines appear
+% above color data
+set(ax, 'XGrid',  'on',...
+    'YGrid',  'on',...
+    'Layer', 'top');
+
 cbLabel = imosParameters(var.name, 'uom');
 cbLabel = [strrep(var.name, '_', ' ') ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel);
 
 labels = {'TIME', zTitle};
+
+end
+
+% Callback function for CLim range
+function cbCLimRange(src,eventdata, cLimMode, data)
+
+CLim = [min(min(data)), max(max(data))];
+
+switch cLimMode
+    case 'auto'
+        iNan = isnan(data);
+        med = median(data(~iNan));
+        stdDev = sqrt(mean((data(~iNan) - med).^2));
+%         CLim = [med-3*stdDev, med+3*stdDev];
+        CLim = [-3*stdDev, 3*stdDev];
+    case 'manual'
+        CLimCurr = get(gca, 'CLim');
+        prompt = {['{\bf', sprintf('Colorbar range :}\n\nmin value :')],...
+            'max value :'};
+        def                 = {num2str(CLimCurr(1)), num2str(CLimCurr(2))};
+        dlg_title           = 'Set the colorbar range';
+        
+        options.Resize      = 'on';
+        options.WindowStyle = 'modal';
+        options.Interpreter = 'tex';
+        
+        answ = inputdlg( prompt, dlg_title, 1, def, options );
+        if ~isempty(answ)
+            CLim = [str2double(answ{1}), str2double(answ{2})];
+        else
+            CLim = CLimCurr;
+        end
+end
+
+set(gca, 'CLim', CLim);
+
+end
