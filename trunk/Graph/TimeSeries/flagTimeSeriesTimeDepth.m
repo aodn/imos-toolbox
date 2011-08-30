@@ -90,21 +90,35 @@ end
 
 % a different patch for each flag type
 for m = 1:lenFlag
-
-  f = (fl == flagTypes(m));
-
-  fc = imosQCFlag(flagTypes(m), qcSet, 'color');
-  
-  fx = repmat(time.data, 1, size(depth.data));
-  fx = fx(f);
-  fy = repmat(depth.data', size(time.data), 1);
-  fy = fy(f);
     
-  flags(m) = line(fx, fy,...
-    'Parent', ax,...
-    'LineStyle', 'none',...
-    'Marker', 's',...
-    'MarkerFaceColor', fc,...
-    'MarkerEdgeColor', 'none',...
-    'MarkerSize', 3);
+    f = (fl == flagTypes(m));
+    
+    fc = imosQCFlag(flagTypes(m), qcSet, 'color');
+    fn = strrep(imosQCFlag(flagTypes(m),  qcSet, 'desc'), '_', ' ');
+    
+    fx = repmat(time.data, 1, size(depth.data));
+    fx = fx(f);
+    fy = repmat(depth.data', size(time.data), 1);
+    fy = fy(f);
+    
+    flags(m) = line(fx, fy,...
+        'Parent', ax,...
+        'LineStyle', 'none',...
+        'Marker', 's',...
+        'MarkerFaceColor', fc,...
+        'MarkerEdgeColor', 'none',...
+        'MarkerSize', 3);
+    
+    % Create a UICONTEXTMENU, and assign a UIMENU to it
+    hContext = uicontextmenu;
+    hMenu = uimenu('parent',hContext);
+    
+    % Set the UICONTEXTMENU to the line object
+    set(flags(m),'uicontextmenu',hContext);
+    
+    % Create a WindowButtonDownFcn callback that will update
+    % the label on the UICONTEXTMENU's UIMENU
+%     set(gcf,'WindowButtondownFcn', ...
+%         'set(hMenu, ''label'', fn)');
+    set(hMenu, 'label', fn);
 end
