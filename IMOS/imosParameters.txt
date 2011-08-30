@@ -1,4 +1,4 @@
-e%
+%
 % A list of all IMOS compliant parameter names, standard names, units of 
 % measurement, fill values, and valid min/max values.This list has been copied 
 % verbatim from the IMOS NetCDF User's manual version 1.2, and the IMOS NetCDF 
