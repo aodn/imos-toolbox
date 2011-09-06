@@ -129,37 +129,6 @@ function mainWindow(...
   sidePanel = uipanel(...
     'Parent',     fig,...
     'BorderType', 'none');
-  
-%   % zoom/pan buttons
-%   logo = load('zoomInCData.mat');
-%   zoomPlus = logo.P;
-%   
-%   logo = load('zoomOutCData.mat');
-%   zoomMinus = logo.P;
-%   
-%   logo = load('pan.mat');
-%   icoPan = logo.cdata;
-%   % zoom +
-%   pushbutZoomPlus = uicontrol(...
-%       'style',            'togglebutton',...
-%       'Parent',           sidePanel,...
-%       'units',            'normalized',...
-%       'CData',            zoomPlus,...
-%       'tag',              'zoomPlus');
-%   % Zoom -
-%   pushbutZoomMinus = uicontrol(...
-%       'style',            'pushbutton',...
-%       'Parent',           sidePanel,...
-%       'units',            'normalized',...
-%       'CData',            zoomMinus,...
-%       'tag',              'zoomMinus');
-%   % Pan
-%   pushbutPan = uicontrol(...
-%       'style',            'togglebutton',...
-%       'Parent',           sidePanel,...
-%       'units',            'normalized',...
-%       'CData',            icoPan,...
-%       'tag',              'pan');
     
   % state buttons
   lenStates = length(states);
@@ -197,9 +166,6 @@ function mainWindow(...
   set(sampleMenu,       'Units', 'normalized');
   set(graphMenu,        'Units', 'normalized');
   set(stateButtons,     'Units', 'normalized');
-%   set(pushbutZoomPlus,  'Units', 'normalized');
-%   set(pushbutZoomMinus, 'Units', 'normalized');
-%   set(pushbutPan,       'Units', 'normalized');
   
   % set window and widget positions
   set(fig,        'Position', [0.1,  0.15, 0.8,  0.7 ]);
@@ -254,6 +220,12 @@ function mainWindow(...
   buttons(buttons == panb)     = [];
   
   delete(buttons);
+  
+  %set zoom/pan post-callback
+  hZoom = zoom(fig);
+  hPan = pan(fig);
+  set(hZoom, 'ActionPostCallback', @zoomPostCallback);
+  set(hPan, 'ActionPostCallback', @zoomPostCallback);
   
   %% Widget Callbacks
   
@@ -329,6 +301,67 @@ function mainWindow(...
   % changes. Delegates to selectionChange.
   %
     selectionChange('var');
+  end
+
+  function zoomPostCallback(source,ev)
+  %ZOOMPOSTCALLBACK Called when the zoom function is called. Redraws axis ticks. 
+  %
+    graphs1D = findobj('Tag', 'axis1D');
+    graphs2D = findobj('Tag', 'axis2D');
+    
+    isCurAx1D = false;
+    iGraph1D = (gca == graphs1D);
+    if any(iGraph1D)
+        isCurAx1D = true;
+        graphs1D(iGraph1D) = [];
+    else
+        graphs2D(gca == graphs2D) = [];
+    end
+    
+    graphs = [graphs1D; graphs2D];
+    
+    % reset current axis yTicks
+    yLimits = get(gca, 'YLim');
+    yStep   = (yLimits(2) - yLimits(1)) / 5;
+    yTicks  = yLimits(1):yStep:yLimits(2);
+    set(gca, 'YTick', yTicks);
+    
+    % sync all other 2D Y axis if needed
+    if ~isCurAx1D && ~isempty(graphs2D)
+        set(graphs2D, 'YLim', yLimits);
+        set(graphs2D, 'YTick', yTicks);
+    end
+    
+    % reset current axis xTicks
+    xLimits = get(gca, 'XLim');
+    xStep   = (xLimits(2) - xLimits(1)) / 5;
+    xTicks  = xLimits(1):xStep:xLimits(2);
+    set(gca, 'XTick', xTicks);
+    
+    % sync all other X axis
+    set(graphs, 'XLim', xLimits);
+    set(graphs, 'XTick', xTicks);
+    
+    % reset other 1D axis yTicks if needed because the X axis sync causes a
+    % change in the Y range
+    if ~isempty(graphs1D)
+        for i=1:length(graphs1D)
+            yLimits = get(graphs1D(i), 'YLim');
+            yStep   = (yLimits(2) - yLimits(1)) / 5;
+            yTicks  = yLimits(1):yStep:yLimits(2);
+            set(graphs1D(i), 'YTick', yTicks);
+        end
+    end
+    
+    % tranformation of datenum xticks in datestr
+    graphName = get(graphMenu, 'String');
+    graphName = graphName{get(graphMenu, 'Value')};
+    if strcmpi(graphName, 'TimeSeries')
+        datetick(gca, 'x', 'dd-mm-yy HH:MM', 'keepticks');
+        for i=1:length(graphs)
+            datetick(graphs(i), 'x', 'dd-mm-yy HH:MM', 'keepticks');
+        end
+    end
   end
 
   %% Data update callback
