@@ -1,4 +1,4 @@
-function selected = listSelectionDialog( ...
+function [selected, cancel] = listSelectionDialog( ...
   title, allOpts, initialOpts, selectCB, selectLabel )
 %LISTSELECTIONDIALOG Prompts the user to select a subset from a list of
 % options.
@@ -72,6 +72,8 @@ function selected = listSelectionDialog( ...
   if  exist('selectLabel', 'var') && ~ischar(selectLabel)
                               error('selectLabel must be a string');        end
   
+  cancel = false;
+                          
   % create the dialog  figure and widgets
   f = figure(...
     'Name',        title, ...
@@ -284,6 +286,7 @@ function selected = listSelectionDialog( ...
   %CANCELCALLBACK Discards user input and closes the dialog.
   %
     selected = [];
+    cancel = true;
     delete(f);
   end
 

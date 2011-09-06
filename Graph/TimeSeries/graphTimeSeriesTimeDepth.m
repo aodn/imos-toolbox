@@ -82,25 +82,28 @@ hMenu = uicontextmenu;
 % Define callbacks for context menu items that change linestyle
 hcb11 = 'colormap(jet)';
 hcb12 = 'colormap(r_b)';
+hcb13 = 'colormapeditor';
 
 % Define the context menu items and install their callbacks
 mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
-item11 = uimenu(mainItem1, 'Label', 'jet (default)', 'Callback', hcb11);
-item12 = uimenu(mainItem1, 'Label', 'r_b', 'Callback', hcb12);
+uimenu(mainItem1, 'Label', 'jet (default)', 'Callback', hcb11);
+uimenu(mainItem1, 'Label', 'r_b', 'Callback', hcb12);
+uimenu(mainItem1, 'Label', 'other', 'Callback', hcb13);
 
 mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-item21 = uimenu(mainItem2, 'Label', 'normal (default)',     'Callback', {@cbCLimRange, 'normal', var.data});
-item22 = uimenu(mainItem2, 'Label', 'auto (+/-3*stdDev)',   'Callback', {@cbCLimRange, 'auto', var.data});
-item23 = uimenu(mainItem2, 'Label', 'manual',               'Callback', {@cbCLimRange, 'manual', var.data});
+uimenu(mainItem2, 'Label', 'normal (default)',     'Callback', {@cbCLimRange, 'normal', var.data});
+uimenu(mainItem2, 'Label', 'auto (+/-2*stdDev)',   'Callback', {@cbCLimRange, 'auto', var.data});
+uimenu(mainItem2, 'Label', 'manual',               'Callback', {@cbCLimRange, 'manual', var.data});
 
-% Attach the context menu to each line
+% Attach the context menu to colorbar
 set(cb,'uicontextmenu',hMenu);
 
 % Let's redefine grid lines after pcolor to make sure grid lines appear
 % above color data
 set(ax, 'XGrid',  'on',...
     'YGrid',  'on',...
-    'Layer', 'top');
+    'Layer', 'top',...
+    'Tag', 'axis2D');
 
 cbLabel = imosParameters(var.name, 'uom');
 cbLabel = [strrep(var.name, '_', ' ') ' (' cbLabel ')'];
@@ -119,10 +122,14 @@ CLim = [min(min(data)), max(max(data))];
 switch cLimMode
     case 'auto'
         iNan = isnan(data);
-        med = median(data(~iNan));
-        stdDev = sqrt(mean((data(~iNan) - med).^2));
-%         CLim = [med-3*stdDev, med+3*stdDev];
-        CLim = [-3*stdDev, 3*stdDev];
+%         med = median(data(~iNan));
+%         stdDev = sqrt(mean((data(~iNan) - med).^2));
+%         CLim = [med-2*stdDev, med+2*stdDev];
+
+        % let's compute a pseudo standard deviation around 0 as we are
+        % displaying current values symetrically around 0
+        stdDev = sqrt(mean((data(~iNan) - 0).^2));
+        CLim = [-2*stdDev, 2*stdDev];
     case 'manual'
         CLimCurr = get(gca, 'CLim');
         prompt = {['{\bf', sprintf('Colorbar range :}\n\nmin value :')],...

@@ -128,7 +128,7 @@ if isnan(value)
     case 'uom',            value = '?';
     case 'data_code',      value = '';
     case 'fill_value',     value = 999999.0;
-    case 'valid_min',      value = 0.0;
-    case 'valid_max',      value = 0.0;
+    case 'valid_min',      value = [];
+    case 'valid_max',      value = [];
   end
 end

@@ -20,6 +20,7 @@ function qc_data = autoQCManager( sample_data, auto )
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:	Brad Morris <b.morris@unsw.edu.au>
+%           	Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -82,42 +83,46 @@ function qc_data = autoQCManager( sample_data, auto )
     % selected options is stored in toolboxProperties as routine names, 
     % but must be provided to the list selection dialog as indices
     qcChain = cellfun(@(x)(find(ismember(qcRoutines,x))),qcChain);
-    qcChain = listSelectionDialog('Select QC filters', qcRoutines, ...
+    [qcChain, qcCancel] = listSelectionDialog('Select QC filters', qcRoutines, ...
                                   qcChain, @filterConfig, 'Configure');
     
+	% save user's latest selection for next time - turn the qcChain
+    % cell array into a space-separated string of the names
     if ~isempty(qcChain)
-    
-      % save user's latest selection for next time - turn the qcChain
-      % cell array into a space-separated string of the names
-      qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
-      writeProperty('autoQCManager.autoQCChain', ...
-                           deblank([qcChainStr{:}]));
+        qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
+        writeProperty('autoQCManager.autoQCChain', deblank([qcChainStr{:}]));
+    else
+        if ~qcCancel
+            writeProperty('autoQCManager.autoQCChain', '');
+        end
     end
   end
   
   % no QC routines to run
-  if isempty(qcChain), return; end
+  if qcCancel, return; end
  
-  if ~auto
-    progress = waitbar(...
-      0, 'Running QC routines', ...
-      'Name', 'Running QC routines',...
-      'CreateCancelBtn', ...
-      ['waitbar(1,gcbf,''Cancelling - please wait...'');'...
-       'setappdata(gcbf,''cancel'',true)']);
-    setappdata(progress,'cancel',false);
-  else
-      %BDM - 17/08/2010 - Added disp to let user know what is going on in
-      %batch mode
-      qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
-      disp(['Quality control using : ' qcChainStr{:}])
-      progress = nan;
+  if ~isempty(qcChain)
+      if ~auto
+          progress = waitbar(...
+              0, 'Running QC routines', ...
+              'Name', 'Running QC routines',...
+              'CreateCancelBtn', ...
+              ['waitbar(1,gcbf,''Cancelling - please wait...'');'...
+              'setappdata(gcbf,''cancel'',true)']);
+          setappdata(progress,'cancel',false);
+      else
+          %BDM - 17/08/2010 - Added disp to let user know what is going on in
+          %batch mode
+          qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
+          disp(['Quality control using : ' qcChainStr{:}])
+          progress = nan;
+      end
   end
 
   % run each data set through the chain
   try
-    for k = 1:length(sample_data),
-        
+    for k = 1:length(sample_data)
+      
       for m = 1:length(qcChain)
 
         if ~auto
@@ -145,6 +150,20 @@ function qc_data = autoQCManager( sample_data, auto )
         sample_data{k}.file_version_quality_control = ...
           imosFileVersion(1, 'desc');
       end
+      
+      if isempty(qcChain)
+          rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+          for l=1:length(sample_data{k}.variables)
+              sample_data{k}.variables{l}.flags = rawFlag*ones(size(sample_data{k}.variables{l}.flags));
+          end
+          
+          % set level and file version on each unQC'd data set
+          sample_data{k}.meta.level = 0;
+          sample_data{k}.file_version = ...
+              imosFileVersion(0, 'name');
+          sample_data{k}.file_version_quality_control = ...
+              imosFileVersion(0, 'desc');
+      end
     end
   catch e
       %BDM - 16/08/2010 - Added if statement to stop error on auto runs
@@ -154,7 +173,7 @@ function qc_data = autoQCManager( sample_data, auto )
     rethrow(e);
   end
   
-  if ~auto, delete(progress); end
+  if ~auto && ~isempty(qcChain), delete(progress); end
 
   qc_data = sample_data;
 end

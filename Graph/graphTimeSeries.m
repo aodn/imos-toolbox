@@ -91,7 +91,7 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     % make sure line colour alternate; because we are creating 
     % multiple axes, this is not done automatically for us
     col = get(graphs(k), 'ColorOrder');
-    col = col(mod(k,length(col))+1,:);
+    col = col(mod(vars(k),length(col))+1,:);
     
     % set the line colour - wrap in a try block, 
     % as surface plot colour cannot be set
