@@ -56,6 +56,7 @@ time = sample_data.dimensions{time};
 var  = sample_data.variables {var};
 
 h      = line(time.data, var.data, 'Parent', ax);
+set(ax, 'Tag', 'axis1D');
 
 % Set axis position so that 1D data and 2D data vertically matches on X axis
 cb = colorbar();

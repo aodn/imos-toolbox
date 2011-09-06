@@ -77,7 +77,7 @@ if strcmp(type, 'alt')
   
   % see if any points in the region haven't been flagged
   idx = (variable.flags == 0) & idx;
-  if ~any(any(flags)), return; end
+  if ~any(any(variable.flags)), return; end
   
 end
 

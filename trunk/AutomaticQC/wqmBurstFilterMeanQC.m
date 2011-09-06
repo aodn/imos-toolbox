@@ -1,34 +1,26 @@
-function [data, flags, log] = tukey53HDespikeQC( sample_data, data, k, auto )
-%TUKEY53HDESPIKEQC Detects spikes in the given data using the Tukey 53H method.
+function [data, flags, log] = wqmBurstFilterMeanQC( sample_data, data, k, auto )
+%WQMBURSTFILTERMEAN Flags all values within a burts which are not between 
+% mean +/- 2*standard_deviation. Mean and standard deviation are computed
+% for each burst.
 %
-% Detects spikes in the given data using the Tukey 53H method, as described in
-% 
-%   Otnes RK & Enochson Loren, 1978 'Applied Time Series Analysis Volume 1:
-%   Basic Techniques', pgs 96-97, Wiley.:
-%
-%   Goring DG & Nikora VI 2002 'Despiking Acoustic Doppler Velocimeter Data',
-%   Journal of Hydraulic Engineering, January 2002, vol 128, issue 1, 
-%   pp 117-126.
 %
 % Inputs:
-%   sample_data - struct containing the entire data set and dimension data.
+%   sample_data - struct containing the data set.
 %
 %   data        - the vector of data to check.
 %
-%   k           - Index into the sample_data.variables vector.
+%   k           - Index into the sample_data variable vector.
 %
 %   auto        - logical, run QC in batch mode
 %
 % Outputs:
 %   data        - same as input.
 %
-%   flags       - Vector the same length as data, with flags for corresponding
-%                 data which has been detected as spiked.
+%   flags       - Vector the same length as data, with flags
 %
 %   log         - Empty cell array.
 %
-% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -69,51 +61,54 @@ if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 % auto logical in input to enable running under batch processing
 if nargin<4, auto=false; end
 
-k_param = str2double(...
-  readProperty('k', fullfile('AutomaticQC', 'wqmBurstTukey53HDespikeQC.txt')));
-
-% we need to modify the data set, so work with a copy
-fdata = data;
-lenData = length(data);
-
-qcSet     = str2double(readProperty('toolbox.qc_set'));
-goodFlag  = imosQCFlag('good',  qcSet, 'flag');
+qcSet    = str2double(readProperty('toolbox.qc_set'));
+rawFlag = imosQCFlag('raw',  qcSet, 'flag');
+goodFlag = imosQCFlag('good',  qcSet, 'flag');
+rangeFlag = imosQCFlag('bound', qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
+lenData = length(data);
+
 log   = {};
-flags = ones(lenData,1)*goodFlag;
 
-% remove mean, and apply a mild high pass 
-% filter before applying spike detection
-fdata = highPassFilter(fdata, 0.99);
-fdata = data - mean(fdata);
+% initially all data is good
+flags = ones(lenData, 1)*goodFlag;
 
-stddev = std(fdata);
+% Let's find each start of bursts
+dt = [0; diff(sample_data.dimensions{1}.data)];
+iBurst = [1; find(dt>(1/24/60)); length(sample_data.dimensions{1}.data)+1];
 
-lenU1 = lenData-4;
-lenU2 = lenU1-2;
-lenU3 = lenU2-1;
-
-u1 = zeros(lenU1,1);
-u2 = zeros(lenU2, 1);
-u3 = zeros(lenU3, 1);
-
-% calculate x', x'' and x'''
-m = (3:lenData-2)';
-mMinus2ToPlus2 = [m-2 m-1 m m+1 m+2];
-u1(1:lenData-4) = median(fdata(mMinus2ToPlus2), 2);
-clear mMinus2ToPlus2;
-
-m = (2:lenU1-1)';
-mMinus1ToPlus1 = [m-1 m m+1];
-u2(1:lenU1-2) = median(u1(mMinus1ToPlus1), 2);
-clear mMinus1ToPlus1;
-u3(1:lenU2-2) = 0.25 *(u2(1:lenU2-2) + 2*u2(2:lenU2-1) + u2(3:lenU2));
-
-% search the data for spikes
-mydelta = abs(fdata(4:lenData-5) - u3(1:lenData-8));
-iSpike = mydelta > k_param * stddev;
-iSpike = [false; false; false; iSpike; false; false; false; false; false];
-if any(iSpike)
-    flags(iSpike) = spikeFlag;
+% let's read data burst by burst
+for i=1:length(iBurst)-1
+    dataBurst = data(iBurst(i):iBurst(i+1)-1);
+    flagBurst = flags(iBurst(i):iBurst(i+1)-1);
+    
+    %Do some quick and dirty tidy up QA/QC
+    switch sample_data.variables{k}.name
+        case {'TEMP' 'CNDC'}
+            flagBurst(dataBurst==0 | dataBurst>30) = rangeFlag;
+        case {'PRES' 'PRES_REL'}
+            flagBurst(dataBurst==0 | dataBurst>150) = rangeFlag;
+        case 'PSAL'
+            flagBurst(dataBurst==99 | dataBurst>40 | dataBurst<30) = rangeFlag;
+        case 'DOXY'
+            flagBurst(dataBurst<0) = rangeFlag;
+        case {'FLU2' 'TURB'}
+            % Let's compute mean / median
+            iGood = (flagBurst == goodFlag);
+            dataBurstGood = dataBurst(iGood);
+            dataBurstMean   = mean(dataBurstGood)';
+            
+            % Let's compute variability
+            stdDevMean = std(dataBurstGood);
+            
+            % Flag outliers using previously computed variability
+            coef = 2;
+            flagBurst(dataBurst > (dataBurstMean + coef*stdDevMean)) = spikeFlag;
+            flagBurst(dataBurst < (dataBurstMean - coef*stdDevMean)) = spikeFlag;
+        otherwise
+            flagBurst(:) = rawFlag;
+    end
+    
+    flags(iBurst(i):iBurst(i+1)-1) = flagBurst;
 end
