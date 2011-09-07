@@ -76,9 +76,6 @@ rawFlag = imosQCFlag('raw',  qcSet, 'flag');
 goodFlag = imosQCFlag('good',  qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
-midWindowLength = str2double(...
-  readProperty('midWindowLength', fullfile('AutomaticQC', 'wqmBurstFilterMedianWindowQC.txt')));
-
 lenData = length(data);
 
 log   = {};

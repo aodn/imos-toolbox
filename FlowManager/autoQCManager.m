@@ -216,7 +216,7 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
           sam.variables{k}.flags == goodFlag;
       
       goodIdx = fsam.variables{k}.flags == goodFlag;
-      flagIdx = fsam.variables{k}.flags ~= goodFlag;
+      flagIdx = fsam.variables{k}.flags ~= rawFlag && fsam.variables{k}.flags ~= goodFlag;
       
       goodIdx = canBeFlagIdx & goodIdx;
       flagIdx = canBeFlagIdx & flagIdx;
@@ -229,10 +229,19 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
 
         flags = unique(fsam.variables{k}.flags);
         flags(flags == rawFlag) = [];
-
-        sam.meta.log{end+1} = [filterName ...
-          ' flagged ' num2str(sum(flagIdx)) ' ' ...
-          sam.variables{k}.name ' samples: ' num2str(flags)'];
+        flags(flags == goodFlag) = [];
+        flagString = [];
+        qcSet    = str2double(readProperty('toolbox.qc_set'));
+        for i=1:length(flags)
+            flagString = ['"' imosQCFlag(flags(i),  qcSet, 'desc') '"'];
+            
+            flagIdxI = fsam.variables{k}.flags == flags(i);
+            flagIdxI = canBeFlagIdx & flagIdxI;
+            
+            sam.meta.log{end+1} = [filterName ...
+                ' flagged ' num2str(sum(flagIdxI)) ' ' ...
+                sam.variables{k}.name ' samples with flag ' flagString];
+        end
       end
     end
   
@@ -252,6 +261,7 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
       slices = length(data) / len;
 
       flags = flags(:);
+      nUFlags = zeros(1, 10);
 
       for m = 1:slices
 
@@ -269,7 +279,7 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
         % value as a previous routine, the latter value is discarded.
         sliceIdx = flagSlice == rawFlag | flagSlice == goodFlag;
         goodIdx  = f         == goodFlag;
-        flagIdx  = f         ~= goodFlag;
+        flagIdx  = f         ~= rawFlag & f         ~= goodFlag;
         goodIdx  = sliceIdx & goodIdx;
         flagIdx  = sliceIdx & flagIdx;
 
@@ -280,6 +290,16 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
 
         % update count (for log entry)
         nFlagged = nFlagged + sum(flagIdx);
+        
+        uFlags = unique(flags);
+        uFlags(uFlags == rawFlag) = [];
+        uFlags(uFlags == goodFlag) = [];
+
+        for i=1:length(uFlags)
+            uFlagIdx = flags == uFlags(i);
+            uFlagIdx = sliceIdx & uFlagIdx;
+            nUFlags(uFlags(i)) = nUFlags(uFlags(i)) + sum(uFlagIdx);
+        end
       end
 
       sam.variables{k}.flags = reshape(flags, size(sam.variables{k}.flags));
@@ -289,10 +309,16 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
 
         flags = unique(flags);
         flags(flags == rawFlag) = [];
-
-        sam.meta.log{end+1} = [filterName ...
-          ' flagged ' num2str(nFlagged) ' ' ...
-          sam.variables{k}.name ' samples: ' num2str(flags)'];
+        flags(flags == goodFlag) = [];
+        flagString = [];
+        qcSet    = str2double(readProperty('toolbox.qc_set'));
+        for i=1:length(flags)
+            flagString = ['"' imosQCFlag(flags(i),  qcSet, 'desc') '"'];
+            
+            sam.meta.log{end+1} = [filterName ...
+                ' flagged ' num2str(nUFlags(uFlags(i))) ' ' ...
+                sam.variables{k}.name ' samples with flag ' flagString];
+        end
       end
     end
   end
