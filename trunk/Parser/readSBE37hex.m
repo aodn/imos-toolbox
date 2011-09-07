@@ -97,7 +97,8 @@ function newData = convertData(data, header)
             
         case 'pressure'
             pressureRangeInDbar = 0.6894757 * (header.PressureRange - 14.7);
-            newData.PRES = (data.pressure * pressureRangeInDbar /(0.85*65536)) - (0.05*pressureRangeInDbar);
+            % pressure in dbar is relative to the ocean surface
+            newData.PRES_REL = (data.pressure * pressureRangeInDbar /(0.85*65536)) - (0.05*pressureRangeInDbar);
         
         % seconds since jan 1 2000 -> days since jan 1 0000
         case 'time'
