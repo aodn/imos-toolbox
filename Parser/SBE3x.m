@@ -72,8 +72,8 @@ function sample_data = SBE3x( filename )
 %
 %                   Conductivity ('CNDC'): Siemens/metre (only on SBE37)
 %
-%                   Pressure     ('PRES'): decibars (only if optional 
-%                                          pressure sensor is present)
+%                   Pressure     ('PRES_REL'): decibars (only if optional 
+%                                          pressure sensor is present) -14.7*0.689476
 %
 %                   Salinity     ('PSAL'): PSU (only on SBE37 sensors which
 %                                          support the 'OutputSal' command)
@@ -121,14 +121,7 @@ function sample_data = SBE3x( filename )
 %
 
 %% Check input, set up data structures
-
-% ensure that there is exactly one argument, 
-% and that it is a cell array of strings
 error(nargchk(1, 1, nargin));
-if ~iscell(filename), error('filename must be a cell array'); end
-
-filename = filename{1};
-if ~ischar(filename), error('filename must contain a string'); end
 
 % save file size and open file; this will throw an error if file doesn't exist
 filesize = dir(filename);
@@ -138,7 +131,7 @@ fid = fopen(filename, 'rt');
 % Values used for metadata fields (IMOS compliant)
 TEMPERATURE_NAME  = 'TEMP';
 CONDUCTIVITY_NAME = 'CNDC';
-PRESSURE_NAME     = 'PRES';
+PRESSURE_NAME     = 'PRES_REL'; % relative pressure (absolute -14.7*0.689476 dbar)
 SALINITY_NAME     = 'PSAL';
 TIME_NAME         = 'TIME';
 
