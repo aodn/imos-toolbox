@@ -143,27 +143,39 @@ clear nLen;
 % to coumpute Crc sum over each ensemble
 
 % !!! double(data) may be too big to be handled with current free memory
-userview = memory;
-% 10% margin
-bytesAvailable = userview.MaxPossibleArrayBytes - 10*userview.MaxPossibleArrayBytes/100;
+ctype = computer;
 
-% let's see if double(data) fit
-if length(data)*8 < bytesAvailable
-    dataSum = uint32(cumsum(double(data)));
-else
-    % we have to chop the process in a number of times the current free memory
-    % allow us to, with the hack of casting dataSum in uint32
-    n = ceil((length(data)*8) / bytesAvailable);
-    dataSum = [];
-    for i=1:n
-        iStart = floor((i-1)*length(data)/n) + 1;
-        iEnd   = floor(i*length(data)/n);
-        if isempty(dataSum)
-            dataSum = uint32(cumsum(double(data(iStart:iEnd))));
+switch ctype
+    case 'PCWIN'
+        % Let's consider memory issues
+        userview = memory;
+        
+        % 10% margin
+        bytesAvailable = userview.MaxPossibleArrayBytes - 10*userview.MaxPossibleArrayBytes/100;
+        
+        % let's see if double(data) fit
+        if length(data)*8 < bytesAvailable
+            dataSum = uint32(cumsum(double(data)));
         else
-            dataSum = [dataSum; uint32(cumsum(double(data(iStart:iEnd))))+dataSum(end)];
+            % we have to chop the process in a number of times the current free memory
+            % allow us to, with the hack of casting dataSum in uint32
+            n = ceil((length(data)*8) / bytesAvailable);
+            dataSum = [];
+            for i=1:n
+                iStart = floor((i-1)*length(data)/n) + 1;
+                iEnd   = floor(i*length(data)/n);
+                if isempty(dataSum)
+                    dataSum = uint32(cumsum(double(data(iStart:iEnd))));
+                else
+                    dataSum = [dataSum; uint32(cumsum(double(data(iStart:iEnd))))+dataSum(end)];
+                end
+            end
         end
-    end
+        
+    otherwise
+        % We suppose we can read the whole file at once without any memory
+        % trouble
+        dataSum = uint32(cumsum(double(data)));
 end
 
 % idx is the start of the sum sequence, iend is the end
