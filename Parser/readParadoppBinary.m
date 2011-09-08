@@ -621,7 +621,7 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
   sect.Temperature = block(2);
   % bytes 30-117 are spare
   
-  % calculate number of celfrom structure size
+  % calculate number of cells from structure size
   % (size is in 16 bit words)
   nCells = floor(((sect.Size) * 2 - 120) / 9);
   
@@ -637,9 +637,9 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
   if mod(nCells, 2), csOff = csOff + 1; end
   
   % !!! Velocity can be negative
-  sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16');
-  sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16');
-  sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16');
+  sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16'); %U comp (East)
+  sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16'); %V comp (North)
+  sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16'); %W comp (up)
   sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8');
   sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8');
   sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8');
