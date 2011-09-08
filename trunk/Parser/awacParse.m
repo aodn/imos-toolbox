@@ -172,8 +172,8 @@ sample_data.dimensions{2} .name = 'HEIGHT_ABOVE_SENSOR';
 sample_data.dimensions{3} .name = 'LATITUDE';
 sample_data.dimensions{4} .name = 'LONGITUDE';
 
-sample_data.variables {1} .name = 'VCUR';
-sample_data.variables {2} .name = 'UCUR';
+sample_data.variables {1} .name = 'UCUR';
+sample_data.variables {2} .name = 'VCUR';
 sample_data.variables {3} .name = 'WCUR';
 sample_data.variables {4} .name = 'ABSI_1';
 sample_data.variables {5} .name = 'ABSI_2';
