@@ -236,19 +236,19 @@ function [sample_data rawFiles] = ddbImport(auto)
   for k = 1:length(deps)
     
     try
-      fileDisplay = '';
       if isempty(allFiles{k}), error('no files to import'); end
 
+      fileDisplay = '';
       % update progress dialog
       if ~auto
-        for m = 1:length(allFiles{k})
-          [path name ext] = fileparts(allFiles{k}{m});
-          fileDisplay = [fileDisplay ', ' name ext];
-        end
-        fileDisplay = fileDisplay(3:end);
-        waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
+          for m = 1:length(allFiles{k})
+              [~, name, ext] = fileparts(allFiles{k}{m});
+              fileDisplay = [fileDisplay ', ' name ext];
+          end
+          fileDisplay = fileDisplay(3:end);
+          waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
       end
-
+      
       % import data
       sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt);
       rawFiles{   end+1} = allFiles{k};
@@ -265,11 +265,7 @@ function [sample_data rawFiles] = ddbImport(auto)
     
     % failure is not fatal
     catch e
-      disp(['skipping ' fileDisplay '(' e.message ')']);
-      for m = 1:length(e.stack)
-        disp([e.stack(m).file ':' ...
-        num2str(e.stack(m).line) ':' e.stack(m).name]);
-      end
+      disp(['Warning : skipping ' deps(k).FileName]);
     end
   end
   
