@@ -96,10 +96,10 @@ function qc_data = autoQCManager( sample_data, auto )
             writeProperty('autoQCManager.autoQCChain', '');
         end
     end
+    
+    % no QC routines to run
+    if qcCancel, return; end
   end
-  
-  % no QC routines to run
-  if qcCancel, return; end
  
   if ~isempty(qcChain)
       if ~auto
@@ -216,7 +216,7 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
           sam.variables{k}.flags == goodFlag;
       
       goodIdx = fsam.variables{k}.flags == goodFlag;
-      flagIdx = fsam.variables{k}.flags ~= rawFlag && fsam.variables{k}.flags ~= goodFlag;
+      flagIdx = fsam.variables{k}.flags ~= rawFlag & fsam.variables{k}.flags ~= goodFlag;
       
       goodIdx = canBeFlagIdx & goodIdx;
       flagIdx = canBeFlagIdx & flagIdx;
@@ -230,7 +230,6 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
         flags = unique(fsam.variables{k}.flags);
         flags(flags == rawFlag) = [];
         flags(flags == goodFlag) = [];
-        flagString = [];
         qcSet    = str2double(readProperty('toolbox.qc_set'));
         for i=1:length(flags)
             flagString = ['"' imosQCFlag(flags(i),  qcSet, 'desc') '"'];
@@ -291,12 +290,12 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
         % update count (for log entry)
         nFlagged = nFlagged + sum(flagIdx);
         
-        uFlags = unique(flags);
+        uFlags = unique(flagSlice);
         uFlags(uFlags == rawFlag) = [];
         uFlags(uFlags == goodFlag) = [];
 
         for i=1:length(uFlags)
-            uFlagIdx = flags == uFlags(i);
+            uFlagIdx = flagSlice == uFlags(i);
             uFlagIdx = sliceIdx & uFlagIdx;
             nUFlags(uFlags(i)) = nUFlags(uFlags(i)) + sum(uFlagIdx);
         end
@@ -310,7 +309,6 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
         flags = unique(flags);
         flags(flags == rawFlag) = [];
         flags(flags == goodFlag) = [];
-        flagString = [];
         qcSet    = str2double(readProperty('toolbox.qc_set'));
         for i=1:length(flags)
             flagString = ['"' imosQCFlag(flags(i),  qcSet, 'desc') '"'];
