@@ -1,6 +1,4 @@
 % filename or ODBC DSN of MS-ACCESS deployment database
-% imos-ddb_prigby
-% imos-ddb_bmorris
 toolbox.ddb = 
 
 % or full connection details to other kind of deployment database :
@@ -33,14 +31,14 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
-autoQCManager.autoQCChain = morelloSpikeQC
+autoQCManager.autoQCChain = 
 
 % prompt for preprocessing (if false, 
 % preprocessing routines are not executed)
-preprocessManager.preprocessPrompt = true
+preprocessManager.preprocessPrompt = false
 
 % default set of preprocessing routines
-preprocessManager.preprocessChain = depthPP pressureRelPP
+preprocessManager.preprocessChain = 
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
@@ -50,16 +48,16 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % default values for start dialog
-startDialog.dataDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\NSW
-startDialog.fieldTrip = SYD100_022
-startDialog.lowDate = 712224
-startDialog.highDate = 734868
+startDialog.dataDir = C:
+startDialog.fieldTrip = 
+startDialog.lowDate = 
+startDialog.highDate = 
 
 % default directory for manual data import
-importManager.manualDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\NortekDataExamples\CONTINENTAL\
+importManager.manualDir = 
 
 % default directory for file export
-exportDialog.defaultDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\temp
+exportDialog.defaultDir = 
 
 % prompt user to select parser if an appropriate one 
 % cannot be found (if false, the data is not imported)
@@ -67,6 +65,6 @@ importManager.noParserPrompt = true
 
 % default directory for saving graphs as images
 saveGraph.noPrompt  = false
-saveGraph.exportDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\USA\OOI\SBE37-IM\
+saveGraph.exportDir = 
 saveGraph.imgType   = png
 
