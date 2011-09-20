@@ -101,8 +101,8 @@ goodFlag = imosQCFlag('good', qcSet, 'flag');
 rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
 
 %Pull out ADCP bin details
-BinSize=sample_data.meta.fixedLeader.depthCellLength/100;
-Bins=sample_data.dimensions{idHeight}.data';
+BinSize = sample_data.meta.fixedLeader.depthCellLength/100;
+Bins    = sample_data.dimensions{idHeight}.data';
 
 %BDM - 16/08/2010 - Added if statement below to take into account ADCPs
 %without pressure records. Use mean of nominal water depth minus sensor height.
@@ -183,6 +183,7 @@ end
 sizeCur = size(sample_data.variables{idUcur}.flags);
 uFlags = ones(sizeCur)*goodFlag;
 vFlags = ones(sizeCur)*goodFlag;
+wFlags = ones(sizeCur)*goodFlag;
 
 %Run QC filter (ifail) on velocity data
 %Need to take into account QC from previous algorithms
@@ -191,9 +192,11 @@ ifail = allFF & ifail;
 
 uFlags(ifail) = badFlag;
 vFlags(ifail) = badFlag;
+wFlags(ifail) = badFlag;
 
 sample_data.variables{idUcur}.flags = uFlags;
 sample_data.variables{idVcur}.flags = vFlags;
+sample_data.variables{idWcur}.flags = wFlags;
 
 end
 
@@ -207,13 +210,14 @@ function [ifail] = adcpqctest(qcthresh,qc,u,w,erv)
 %   qcthresh.hvel    :  horizontal velocity
 %   qcthresh.ea      :  echo amplitude
 
-err_vel = qcthresh.err_vel;  %test 1
-pgood =qcthresh.pgood;   %test 2
-cmag = qcthresh.cmag;    %test 3
-vvel = qcthresh.vvel;    %test 4
-hvel = qcthresh.hvel;   %test 5
-ea_thresh = qcthresh.ea_thresh;   %test 6
+err_vel   = qcthresh.err_vel;   %test 1
+pgood     = qcthresh.pgood;     %test 2
+cmag      = qcthresh.cmag;      %test 3
+vvel      = qcthresh.vvel;      %test 4
+hvel      = qcthresh.hvel;      %test 5
+ea_thresh = qcthresh.ea_thresh; %test 6
 clear ib* isub* ifb ifail*
+
 %test 1, Error Velocity test
 % measurement of disagreement of measurement estimates of opposite beams.
 % Derived from 2 idpt beams and therefore is 2 indp measures of vertical
@@ -249,20 +253,29 @@ ib5 = abs(u) >= hvel;
 % above this are also considered to have failed.
 % This test is only applied from the middle bin to the end bin, since it is
 % a test designed to get rid of surface bins
-[~,jj] = size(u);
-ib6=zeros(size(u));
+[ii,jj] = size(u);
+ib6 = zeros(ii,jj);
 ik = round(jj/2);
 
-for it=1:length(erv)
-    ib = (diff(qc(1).ea(it,ik:jj),1,2)>ea_thresh)+ ...
-        (diff(qc(2).ea(it,ik:jj),1,2)>ea_thresh)+ ...
-        (diff(qc(3).ea(it,ik:jj),1,2)>ea_thresh)+ ...
-        (diff(qc(4).ea(it,ik:jj),1,2)>ea_thresh);
-    ifb = find(ib>=1);
-    if(ifb)
-        
-        ib6(it,ik+ifb(1):jj) = 1;
-    end
+ib = (diff(qc(1).ea(:,ik:jj),1,2) > ea_thresh) | ...
+     (diff(qc(2).ea(:,ik:jj),1,2) > ea_thresh) | ...
+     (diff(qc(3).ea(:,ik:jj),1,2) > ea_thresh) | ...
+     (diff(qc(4).ea(:,ik:jj),1,2) > ea_thresh);
+ 
+ib = [false(ii, ik), ib];
+ 
+jkf = (1:1:jj);
+jkf = repmat(jkf, ii, 1);
+
+iii = double(ib).*jkf;
+clear ib;
+iii(iii == 0) = NaN;
+iif = min(iii, [], 2);
+clear iii;
+iifNotNan = ~isnan(iif);
+
+if any(iifNotNan)
+    ib6(jkf >= repmat(iif, 1, jj)) = 1;
 end
 
 %Find the number that fail the first five tests
