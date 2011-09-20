@@ -176,8 +176,8 @@ sample_data.dimensions{2} .name = 'HEIGHT_ABOVE_SENSOR';
 sample_data.dimensions{3} .name = 'LATITUDE';
 sample_data.dimensions{4} .name = 'LONGITUDE';
 
-sample_data.variables {1} .name = 'UCUR';
-sample_data.variables {2} .name = 'VCUR';
+sample_data.variables {1} .name = 'VCUR';
+sample_data.variables {2} .name = 'UCUR';
 sample_data.variables {3} .name = 'WCUR';
 sample_data.variables {4} .name = 'ABSI_1';
 sample_data.variables {5} .name = 'ABSI_2';
@@ -207,8 +207,8 @@ sample_data.dimensions{2} .data = depth;
 sample_data.dimensions{3} .data = NaN;
 sample_data.dimensions{4} .data = NaN;
   
-sample_data.variables {1} .data = velocity1;
-sample_data.variables {2} .data = velocity2;
+sample_data.variables {1} .data = velocity2; % V
+sample_data.variables {2} .data = velocity1; % U
 sample_data.variables {3} .data = velocity3;
 sample_data.variables {4} .data = backscatter1;
 sample_data.variables {5} .data = backscatter2;

@@ -143,6 +143,12 @@ function sample_data = makeNetCDFCompliant( sample_data )
 
     % merge variable atts back into variable struct
     sample_data.variables{k} = mergeAtts(sample_data.variables{k}, varAtts);
+    
+    % look for sensor serial numbers if exist
+    if isfield(sample_data.meta, 'deployment')
+        sample_data.variables{k}.sensor_serial_number = ...
+            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.deployment.InstrumentID);
+    end
   end
 end
 
@@ -160,4 +166,34 @@ function target = mergeAtts ( target, atts )
     
     target.(fields{m}) = atts.(fields{m});
   end
+end
+
+function target = getSensorSerialNumber ( IMOSParam, InstrumentID )
+%GETSENSORSERIALNUMBER gets the sensor serial number associated to an IMOS
+%paramter for a given deployment ID
+%
+
+target = '';
+
+% query the ddb for all sensor config related to this instrument ID
+InstrumentSensorConfig = executeDDBQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
+
+lenConfig = length(InstrumentSensorConfig);
+% only consider current config
+for i=1:lenConfig
+    if InstrumentSensorConfig(i).CurrentConfig == 1;
+        % query the ddb for each sensor
+        Sensors = executeDDBQuery('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
+        if ~isempty(Sensors)
+           % check if this sensor is associated to the current IMOS parameter
+           parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
+           if ~isempty(parameters)
+               parameters = parameters{1};
+               if any(strcmpi(IMOSParam, parameters))
+                   target = Sensors.SerialNumber;
+               end
+           end
+        end
+    end
+end
 end

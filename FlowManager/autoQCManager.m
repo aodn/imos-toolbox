@@ -225,7 +225,7 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
       sam.variables{k}.flags(flagIdx) = fsam.variables{k}.flags(flagIdx);
       
       % add a log entry
-      if any(flagIdx)
+      if any(any(flagIdx))
 
         flags = unique(fsam.variables{k}.flags);
         flags(flags == rawFlag) = [];
@@ -238,7 +238,7 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
             flagIdxI = canBeFlagIdx & flagIdxI;
             
             sam.meta.log{end+1} = [filterName ...
-                ' flagged ' num2str(sum(flagIdxI)) ' ' ...
+                ' flagged ' num2str(sum(sum(flagIdxI))) ' ' ...
                 sam.variables{k}.name ' samples with flag ' flagString];
         end
       end
