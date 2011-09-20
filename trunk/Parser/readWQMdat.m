@@ -11,7 +11,7 @@ function sample_data = readWQMdat( filename )
 %   SN              (serial number - required)
 %   MMDDYY          (date - required)
 %   HHMMSS          (time - required)
-%   Cond(mmho)      (floating point conductivity, milliSiemens/metre)
+%   Cond(mmho)      (floating point conductivity, Siemens/metre)
 %   Temp(C)         (floating point temperature, Degrees Celsius)
 %   Pres(dbar)      (floating point pressure, Decibar)
 %   Sal(PSU)        (floating point salinity, PSS)
@@ -196,13 +196,11 @@ function sample_data = readWQMdat( filename )
 
     [name comment] = getParamDetails(fields{k}, params);  
     data = samples{k-1};
-
+    
     % some fields are not in IMOS uom - scale them so that they are
     switch fields{k}
         
-        % WQM provides conductivity in mS/m; we need it in S/m.
-        case 'Cond(mmho)'
-            data = data / 1000.0;
+        % WQM provides conductivity S/m; exactly like we want it to be!
             
         % convert dissolved oxygen in mg/L to kg/m^3.
         case 'DO(mg/l)'
@@ -252,10 +250,10 @@ function sample_data = readWQMdat( filename )
         % hopefully it is equivalent.
     end
         
-    sample_data.variables{k-3}.dimensions = [1 2 3];
-    sample_data.variables{k-3}.comment    = comment;
-    sample_data.variables{k-3}.name       = name;
-    sample_data.variables{k-3}.data       = data;
+    sample_data.variables{k-3}.dimensions           = [1 2 3];
+    sample_data.variables{k-3}.comment              = comment;
+    sample_data.variables{k-3}.name                 = name;
+    sample_data.variables{k-3}.data                 = data;
     
     % WQM uses SeaBird pressure sensor
     if strncmp('PRES_REL', sample_data.variables{k-3}.name, 8)

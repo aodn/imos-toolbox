@@ -9,6 +9,7 @@ N, scale_factor              =
 N, applied_offset            = 
 S, original_units            = 
 S, original_name             = 
+S, sensor_serial_number      = 
 S, comment                   = 
 S, history                   = 
 S, references                = 
