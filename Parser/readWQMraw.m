@@ -157,7 +157,7 @@ function sample_data = readWQMraw( filename )
   % create a variables struct in sample_data for each field in the file
   % start index at 4 to skip serial, date and time
   
-    varlabel=wqmdata.varlabel;
+  varlabel=wqmdata.varlabel;
   for k = 1:length(varlabel)
 
     [name comment] = getParamDetails(varlabel{k}, params);  
@@ -166,11 +166,9 @@ function sample_data = readWQMraw( filename )
     data(invalid) = [];
 
     % some fields are not in IMOS uom - scale them so that they are
-    switch name
+    switch varlabel{k}
         
-        % WQM provides conductivity in mS/m; we need it in S/m.
-        case 'conductivity'
-            data = data / 1000.0;
+        % WQM provides conductivity in S/m; exactly like we want it to be!
         
         % convert dissolved oxygen in mg/L to kg/m^3.
         case 'DO(mg/l)'
@@ -212,13 +210,13 @@ function sample_data = readWQMraw( filename )
         case 'PAR'
             % don't seem to know what to do with PAR yet
             continue;
-            
+
     end
         
-    sample_data.variables{k}.dimensions = [1 2 3];
-    sample_data.variables{k}.comment    = comment;
-    sample_data.variables{k}.name       = name;
-    sample_data.variables{k}.data       = data;
+    sample_data.variables{k}.dimensions             = [1 2 3];
+    sample_data.variables{k}.comment                = comment;
+    sample_data.variables{k}.name                   = name;
+    sample_data.variables{k}.data                   = data;
     
     % WQM uses SeaBird pressure sensor
     if strncmp('PRES_REL', sample_data.variables{k}.name, 8)
@@ -288,26 +286,63 @@ iline=0;
 
 % read header information
 while ~strcmp(str{1},'<EOH>');
-str=textscan(fid,'%s',1,'delimiter','\n');
-iline=iline+1;
-header(iline)=str{1};
+    str=textscan(fid,'%s',1,'delimiter','\n');
+    iline=iline+1;
+    headerLine(iline)=str{1};
 end
-% 
 
+wqmSNExpr    = ['^WQM SN: +' '(\S+)$'];
+ctdSNExpr    = ['^CTDO SN: +' '(\S+)$'];
+doSNExpr     = 'DOSN=(\S+)';
+opticsSNExpr = ['Optics SN: +' '(\S+)'];
 
+exprs = {wqmSNExpr ctdSNExpr doSNExpr opticsSNExpr};
 
+for l = 1:length(headerLine)
+    
+    % try each of the expressions
+    for m = 1:length(exprs)
+        
+        % until one of them matches
+        tkns = regexp(headerLine{l}, exprs{m}, 'tokens');
+        if ~isempty(tkns)
+            
+            % yes, ugly, but easiest way to figure out which regex we're on
+            switch m
+                
+                % wqm
+                case 1
+                    WQM.SN          = tkns{1}{1};
+                    
+                % ctd
+                case 2
+                    WQM.CTDO_SN     = tkns{1}{1};
+                    
+                % do
+                case 3
+                    WQM.DO_SN       = tkns{1}{1};
+                    
+                    if strcmpi(WQM.DO_SN, '0'), WQM.DO_SN = WQM.CTDO_SN; end
+                    
+                % optics
+                case 4
+                    WQM.Optics_SN   = tkns{1}{1};
+            end
+            break;
+        end
+    end
+end
 
+% read data information
 a=textscan(fid,'%f,%f,%f,%f,%s','delimiter','\n');
 fclose(fid);
 
-
 % Instrument Serial Number to start each line
 WQM.instrument='Wetlabs WQM';
-WQM.SN=num2str(a{1}(1));
 
 WQM.samp_units='datenumber';
 WQM.varlabel={'conductivity','temperature','pressure','salinity','oxygen','fluorescence','backscatterance'};
-WQM.varunits={'mohm/cm','C','dbar','PSU','ml/l','ug/l','NTU'};
+WQM.varunits={'S/m','C','dbar','PSU','ml/l','ug/l','NTU'};
 
 
 % the next number is one of 7 codes
@@ -327,7 +362,6 @@ WQM.varunits={'mohm/cm','C','dbar','PSU','ml/l','ug/l','NTU'};
 % we will only retain data with line code 6
 dcode=a{2};
 igood=dcode==6;
-
 
 data=a{5}(igood);
 
@@ -364,31 +398,28 @@ end
 A=A';
 
 % C,T,P are in stored in engineering units
-
-% Wetlabs stores conductivity in ohm/M convert to mohms/cm
-WQM.conductivity=10*A(:,1);
+WQM.conductivity=A(:,1);    % S/m
 
 % temperature and pressure in C and dbar
 WQM.temperature=A(:,2);
 WQM.pressure=A(:,3);
 
 % compute conductivity ratio to use seawater salinity algorithm
-crat=WQM.conductivity./sw_c3515;
+% Wetlabs conductivity is in S/m and sw_c3515 in mS/cm
+crat=10*WQM.conductivity./sw_c3515;
 
 WQM.salinity=sw_salt(crat,WQM.temperature,WQM.pressure);
-
-
 
 % find sensor coefficients
 
 % Oxygen
 %
-Soc=textscan(header{~cellfun('isempty',strfind(header,'Soc'))},'%4c%f');
-FOffset=textscan(header{~cellfun('isempty',strfind(header,'FOffset'))},'%8c%f');
-A52=textscan(header{~cellfun('isempty',strfind(header,'A52'))},'%4c%f');
-B52=textscan(header{~cellfun('isempty',strfind(header,'B52'))},'%4c%f');
-C52=textscan(header{~cellfun('isempty',strfind(header,'C52'))},'%4c%f');
-E52=textscan(header{~cellfun('isempty',strfind(header,'E52'))},'%4c%f');
+Soc=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'Soc'))},'%4c%f');
+FOffset=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'FOffset'))},'%8c%f');
+A52=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'A52'))},'%4c%f');
+B52=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'B52'))},'%4c%f');
+C52=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'C52'))},'%4c%f');
+E52=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'E52'))},'%4c%f');
 
 O2.Soc=Soc{2};
 O2.FOffset=FOffset{2};
@@ -403,8 +434,8 @@ WQM.oxygen=O2cal(oxygen,O2,WQM);
 
 
 % FLNTU Sensor
-chl=textscan(header{~cellfun('isempty',strfind(header,'UserCHL'))},'%8c%f%f\n');
-ntu=textscan(header{~cellfun('isempty',strfind(header,'NTU'))},'%4c%f%f\n');
+chl=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'UserCHL'))},'%8c%f%f\n');
+ntu=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'NTU'))},'%4c%f%f\n');
 CHL.scale=chl{2};
 CHL.offset=chl{3};
 NTU.scale=ntu{2};
@@ -421,9 +452,9 @@ Cal.CHL=CHL;
 Cal.NTU=NTU;
 
 % Optional PAR sensor
-isPar = ~cellfun('isempty',strfind(header,'PAR='));
+isPar = ~cellfun('isempty',strfind(headerLine,'PAR='));
 if any(isPar)
-    par=textscan(header{isPar},'%4c%f%f%f\n');
+    par=textscan(headerLine{isPar},'%4c%f%f%f\n');
     PAR.Im=par{2};
     PAR.a0=par{3};
     PAR.a1=par{4};
@@ -457,8 +488,8 @@ second=time-minute*100;
 WQM.datenumber=datenum(year,month,day,hour,minute,second);
 
 % get interval and duration from header file
-interval=textscan(header{~cellfun('isempty',strfind(header,'Sample Interval Seconds:'))},'%24c%f');
-duration=textscan(header{~cellfun('isempty',strfind(header,'Sample Seconds:'))},'%15c%f');
+interval=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'Sample Interval Seconds:'))},'%24c%f');
+duration=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'Sample Seconds:'))},'%15c%f');
 WQM.interval=interval{2};
 WQM.duration=duration{2};
 % WQM record samples at 1 Hz
