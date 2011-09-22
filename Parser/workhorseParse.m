@@ -2,7 +2,7 @@ function sample_data = workhorseParse( filename )
 %WORKHORSEPARSE Parses a raw (binary) data file from a Teledyne RD Workhorse 
 % ADCP.
 %
-% This function uses the readWorkhorseEnsembles_cj function to read in a set
+% This function uses the readWorkhorseEnsembles function to read in a set
 % of ensembles from a raw binary Workhorse ADCP file. It parses the 
 % ensembles, and extracts and returns the following:
 %
