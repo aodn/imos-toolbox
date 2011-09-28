@@ -57,6 +57,26 @@ if isempty(sample_data), return;                                    end
 % auto logical in input to enable running under batch processing
 if nargin<2, auto=false; end
 
+% check wether height or target depth information is documented
+isSensorHeight = false;
+isSensorTargetDepth = false;
+
+if isfield(sample_data{1}, 'sensor_height')
+    if ~isempty(sample_data{1}.sensor_height)
+        isSensorHeight = true;
+    end
+else
+    
+end
+
+if isfield(sample_data{1}, 'target_depth')
+    if ~isempty(sample_data{1}.target_depth)
+        isSensorTargetDepth = true;
+    end
+else
+    
+end
+
 for k = 1:length(sample_data)
     
     sam = sample_data{k};
@@ -71,14 +91,21 @@ for k = 1:length(sample_data)
     % if no pressure data, try to compute it from other sensors in the
     % mooring, otherwise go to next sample data
     if presIdx == 0 && presRelIdx == 0
-        if ~isempty(sam.sensor_height)
+        if isSensorHeight || isSensorTargetDepth
             % let's see if part of a mooring with pressure data from other
             % sensors
             m = 0;
             otherSam = [];
             for l = 1:length(sample_data)
                 curSam = sample_data{l};
-                if l == k || isempty(curSam.sensor_height), continue; end
+                
+                if isSensorHeight
+                    curSensorZ = curSam.sensor_height;
+                else
+                    curSensorZ = curSam.target_depth;
+                end
+                
+                if l == k || isempty(curSensorZ), continue; end
                 curSource = textscan(curSam.source, '%s');
                 curSource = curSource{1};
                 presCurIdx      = getVar(curSam.variables, 'PRES');
@@ -98,241 +125,210 @@ for k = 1:length(sample_data)
             end
             
             % re-compute a pressure from nearest pressure sensors
-            if m > 0
+            if m > 1
                 % find the 2 nearest pressure data
-                diff = nan(m,1);
+                diffWithOthers = nan(m,1);
                 for l = 1:m
-                    diff(l) = sam.sensor_height - otherSam{l}.sensor_height;
+                    if isSensorHeight
+                    	diffWithOthers(l) = abs(sam.sensor_height - otherSam{l}.sensor_height);
+                    else
+                        diffWithOthers(l) = abs(sam.target_depth - otherSam{l}.target_depth);
+                    end
                 end
-                iAllSamAbove = diff < 0;
-                iAllSamBelow = diff > 0;
                 
-                if any(iAllSamAbove) && any(iAllSamBelow)
-                    % we found 2 sensors, one above and another below
-                    diffAbove = min(diff(iAllSamAbove));
-                    samAbove = otherSam{diff == diffAbove};
-                    presIdxAbove    = getVar(samAbove.variables, 'PRES');
-                    presRelIdxAbove = getVar(samAbove.variables, 'PRES_REL');
-                    
-                    diffBelow = min(diff(iAllSamBelow));
-                    samBelow = otherSam{diff == diffBelow};
-                    presIdxBelow    = getVar(samBelow.variables, 'PRES');
-                    presRelIdxBelow = getVar(samBelow.variables, 'PRES_REL');
-                    
-                    if presRelIdxAbove == 0 || presRelIdxBelow == 0
-                        % update from a relative pressure like SeaBird computes
-                        % it in its processed files, substracting a constant value
-                        % 10.1325 dbar for nominal atmospheric pressure
-                        relPresAbove = samAbove.variables{presIdxAbove}.data - 10.1325;
-                        relPresBelow = samBelow.variables{presIdxBelow}.data - 10.1325;
-                        presComment = ['absolute '...
-                            'pressure measurements to which a nominal '...
-                            'value for atmospheric pressure (10.1325 dbar) '...
-                            'has been substracted'];
-                    else
-                        % update from a relative measured pressure
-                        relPresAbove = samAbove.variables{presRelIdxAbove}.data;
-                        relPresBelow = samBelow.variables{presRelIdxBelow}.data;
-                        presComment = ['relative '...
-                            'pressure measurements (calibration offset '...
-                            'usually performed to balance current '...
-                            'atmospheric pressure and acute sensor '...
-                            'precision at a deployed depth)'];
-                    end
-                    
-                    % compute pressure at current sensor using trigonometry and
-                    % assuming sensors repartition on a line between the two
-                    % nearest pressure sensors
-                    distAboveBelow = samAbove.sensor_height - samBelow.sensor_height;
-                    distAboveCurSensor = samAbove.sensor_height - sam.sensor_height;
-                    
-                    % theta is the angle between the vertical and line
-                    % formed by the sensors
-                    %
-                    % cos(theta) = depthAboveBelow/distAboveBelow
-                    % and
-                    % cos(theta) = depthAboveCurSensor/distAboveCurSensor
-                    %
-                    % computedDepth = (distAboveCurSensor/distAboveBelow) ...
-                    %        * (zBelow - zAbove) + zAbove
-                    %
-                    % pressure = density*gravity*depth
-                    %
-                    if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
-                        % compute depth with SeaWater toolbox
-                        % depth ~= sw_dpth(pressure, latitude)
-                        if sam.geospatial_lat_min == sam.geospatial_lat_max
-                            zAbove = sw_dpth(relPresAbove, sam.geospatial_lat_min);
-                            tAbove = samAbove.dimensions{getVar(samAbove.dimensions, 'TIME')}.data;
-                            
-                            zBelow = sw_dpth(relPresBelow, sam.geospatial_lat_min);
-                            tBelow = samBelow.dimensions{getVar(samBelow.dimensions, 'TIME')}.data;
-                            
-                            % let's find which data are overlapping in time
-                            [~, iOverlapAbove, iOverlapBelow] = intersect(tAbove, tBelow);
-                            zAbove = zAbove(iOverlapAbove);
-                            tAbove = tAbove(iOverlapAbove);
-                            zBelow = zBelow(iOverlapBelow);
-                            tBelow = tBelow(iOverlapBelow);
-                            
-                            tCur = sam.dimensions{getVar(sam.dimensions, 'TIME')}.data;
-                            computedDepth = nan(size(tCur));
-                            
-                            [~, iOverlapCur, iOverlapOthers] = intersect(tCur, tAbove);
-                            
-                            computedDepth(iOverlapCur) = (distAboveCurSensor/distAboveBelow) ...
-                                * (zBelow(iOverlapOthers) - zAbove(iOverlapOthers)) + zAbove(iOverlapOthers);
-                            computedDepthComment  = ['depthPP: Depth computed from '...
-                                'nearest pressure sensors available, using the '...
-                                'SeaWater toolbox from latitude and '...
-                                presComment '.'];
-                        else
-                            meanLat = sam.geospatial_lat_min + ...
-                                (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
-                            
-                            zAbove = sw_dpth(relPresAbove, meanLat);
-                            tAbove = samAbove.dimensions{getVar(samAbove.dimensions, 'TIME')}.data;
-                            
-                            zBelow = sw_dpth(relPresBelow, meanLat);
-                            tBelow = samBelow.dimensions{getVar(samBelow.dimensions, 'TIME')}.data;
-                            
-                            % let's find which data are overlapping in time
-                            [~, iOverlapAbove, iOverlapBelow] = intersect(tAbove, tBelow);
-                            zAbove = zAbove(iOverlapAbove);
-                            tAbove = tAbove(iOverlapAbove);
-                            zBelow = zBelow(iOverlapBelow);
-                            tBelow = tBelow(iOverlapBelow);
-                            
-                            tCur = sam.dimensions{getVar(sam.dimensions, 'TIME')}.data;
-                            computedDepth = nan(size(tCur));
-                            
-                            [~, iOverlapCur, iOverlapOthers] = intersect(tCur, tAbove);
-                            
-                            computedDepth(iOverlapCur) = (distAboveCurSensor/distAboveBelow) ...
-                                * (zBelow(iOverlapOthers) - zAbove(iOverlapOthers)) + zAbove(iOverlapOthers);
-                            computedDepthComment  = ['depthPP: Depth computed from '...
-                                'nearest pressure sensors available, using the '...
-                                'SeaWater toolbox from mean latitude and '...
-                                presComment '.'];
-                        end
-                    else
-                        % without latitude information, we assume 1dbar ~= 1m
-                        tAbove = samAbove.dimensions{getVar(samAbove.dimensions, 'TIME')}.data;
-                        tBelow = samBelow.dimensions{getVar(samBelow.dimensions, 'TIME')}.data;
-                        
-                        % let's find which data are overlapping in time
-                        [~, iOverlapAbove, iOverlapBelow] = intersect(tAbove, tBelow);
-                        relPresAbove = relPresAbove(iOverlapAbove);
-                        tAbove = tAbove(iOverlapAbove);
-                        relPresBelow = relPresBelow(iOverlapBelow);
-                        tBelow = tBelow(iOverlapBelow);
-                        
-                        tCur = sam.dimensions{getVar(sam.dimensions, 'TIME')}.data;
-                        computedDepth = nan(size(tCur));
-                        
-                        [~, iOverlapCur, iOverlapOthers] = intersect(tCur, tAbove);
-                        
-                        computedDepth(iOverlapCur) = (distAboveCurSensor/distAboveBelow) ...
-                            * (relPresBelow(iOverlapOthers) - relPresAbove(iOverlapOthers)) + relPresAbove(iOverlapOthers);
-                        computedDepthComment  = ['depthPP: Depth computed from '...
-                            'nearest pressure sensors available with '...
-                            presComment ', assuming 1dbar ~= 1m.'];
-                    end
-                    
-                elseif (any(iAllSamAbove) && ~any(iAllSamBelow)) || (~any(iAllSamAbove) && any(iAllSamBelow))
-                    % we found only one sensor above/below
-                    if any(iAllSamAbove)
-                        diff = min(diff(iAllSamAbove));
-                    else
-                        diff = min(diff(iAllSamBelow));
-                    end
-                    otherSam = otherSam{diff == diff};
-                    presIdxOther = getVar(otherSam.variables, 'PRES');
-                    presRelIdxOther = getVar(otherSam.variables, 'PRES_REL');
-                    
-                    if presRelIdxOther == 0
-                        % update from a relative pressure like SeaBird computes
-                        % it in its processed files, substracting a constant value
-                        % 10.1325 dbar for nominal atmospheric pressure
-                        relPresOther = otherSam.variables{presIdxOther}.data - 10.1325;
-                        presComment = ['absolute '...
-                            'pressure measurements to which a nominal '...
-                            'value for atmospheric pressure (10.1325 dbar) '...
-                            'has been substracted'];
-                    else
-                        % update from a relative measured pressure
-                        relPresOther = otherSam.variables{presRelIdxOther}.data;
-                        presComment = ['relative '...
-                            'pressure measurements (calibration offset '...
-                            'usually performed to balance current '...
-                            'atmospheric pressure and acute sensor '...
-                            'precision at a deployed depth)'];
-                    end
-                    
-                    % compute pressure at current sensor assuming sensors 
-                    % repartition on a vertical line between current sensor
-                    % and the nearest
-                    %
-                    % computedDepth = zOther - distOtherCurSensor
-                    %
-                    distOtherCurSensor = otherSam.sensor_height - sam.sensor_height;
-                    
-                    if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
-                        % compute depth with SeaWater toolbox
-                        % depth ~= sw_dpth(pressure, latitude)
-                        if sam.geospatial_lat_min == sam.geospatial_lat_max
-                            % let's find which data are overlapping in time
-                            zOther = sw_dpth(relPresOther, sam.geospatial_lat_min);
-                            tOther = otherSam.dimensions{getVar(otherSam.dimensions, 'TIME')}.data;
-                            
-                            tCur = sam.dimensions{getVar(sam.dimensions, 'TIME')}.data;
-                            computedDepth = nan(size(tCur));
-                            
-                            [~, iOverlapCur, iOverlapOther] = intersect(tCur, tOther);
-                            
-                            computedDepth(iOverlapCur) = zOther(iOverlapOther) + distOtherCurSensor;
-                            computedDepthComment  = ['depthPP: Depth computed from '...
-                                'the nearest pressure sensor available, using the '...
-                                'SeaWater toolbox from latitude and '...
-                                presComment '.'];
-                        else
-                            meanLat = sam.geospatial_lat_min + ...
-                                (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
-                            
-                            % let's find which data are overlapping in time
-                            zOther = sw_dpth(relPresOther, meanLat);
-                            tOther = otherSam.dimensions{getVar(otherSam.dimensions, 'TIME')}.data;
-                            
-                            tCur = sam.dimensions{getVar(sam.dimensions, 'TIME')}.data;
-                            computedDepth = nan(size(tCur));
-                            
-                            [~, iOverlapCur, iOverlapOther] = intersect(tCur, tOther);
-                            
-                            computedDepth(iOverlapCur) = zOther(iOverlapOther) - distOtherCurSensor;
-                            computedDepthComment  = ['depthPP: Depth computed from '...
-                                'the nearest pressure sensor available, using the '...
-                                'SeaWater toolbox from mean latitude and '...
-                                presComment '.'];
-                        end
-                    else
-                        % without latitude information, we assume 1dbar ~= 1m
-                        tOther = otherSam.dimensions{getVar(otherSam.dimensions, 'TIME')}.data;
-                        
-                        tCur = sam.dimensions{getVar(sam.dimensions, 'TIME')}.data;
-                        computedDepth = nan(size(tCur));
-                        
-                        [~, iOverlapCur, iOverlapOther] = intersect(tCur, tOther);
-                        
-                        computedDepth(iOverlapCur) = relPresOther(iOverlapOther) - distOtherCurSensor;
-                        computedDepthComment  = ['depthPP: Depth computed from '...
-                            'the nearest pressure sensor available with '...
-                            presComment ', assuming 1dbar ~= 1m.'];
-                    end
+                iFirst              = diffWithOthers == min(diffWithOthers);
+                samFirst            = otherSam{iFirst};
+                presIdxFirst        = getVar(samFirst.variables, 'PRES');
+                presRelIdxFirst     = getVar(samFirst.variables, 'PRES_REL');
+                
+                iSecond             = diffWithOthers == min(diffWithOthers(~iFirst));
+                samSecond           = otherSam{iSecond};
+                presIdxSecond       = getVar(samSecond.variables, 'PRES');
+                presRelIdxSecond    = getVar(samSecond.variables, 'PRES_REL');
+                
+                if presRelIdxFirst == 0 || presRelIdxSecond == 0
+                    % update from a relative pressure like SeaBird computes
+                    % it in its processed files, substracting a constant value
+                    % 10.1325 dbar for nominal atmospheric pressure
+                    relPresFirst    = samFirst.variables{presIdxFirst}.data - 10.1325;
+                    relPresSecond   = samSecond.variables{presIdxSecond}.data - 10.1325;
+                    presComment     = ['absolute '...
+                        'pressure measurements to which a nominal '...
+                        'value for atmospheric pressure (10.1325 dbar) '...
+                        'has been substracted'];
+                else
+                    % update from a relative measured pressure
+                    relPresFirst    = samFirst.variables{presRelIdxFirst}.data;
+                    relPresSecond   = samSecond.variables{presRelIdxSecond}.data;
+                    presComment     = ['relative '...
+                        'pressure measurements (calibration offset '...
+                        'usually performed to balance current '...
+                        'atmospheric pressure and acute sensor '...
+                        'precision at a deployed depth)'];
                 end
+                
+                % compute pressure at current sensor using trigonometry and
+                % assuming sensors repartition on a line between the two
+                % nearest pressure sensors
+                if isSensorHeight
+                    distFirstSecond     = samFirst.sensor_height - samSecond.sensor_height;
+                    distFirstCurSensor  = samFirst.sensor_height - sam.sensor_height;
+                else
+                    distFirstSecond     = samFirst.target_depth - samSecond.target_depth;
+                    distFirstCurSensor  = samFirst.target_depth - sam.target_depth;
+                end
+                
+                % theta is the angle between the vertical and line
+                % formed by the sensors
+                %
+                % cos(theta) = depthFirstSecond/distFirstSecond
+                % and
+                % cos(theta) = depthFirstCurSensor/distFirstCurSensor
+                %
+                % computedDepth = (distFirstCurSensor/distFirstSecond) ...
+                %        * (zSecond - zFirst) + zFirst
+                %
+                % pressure = density*gravity*depth
+                %
+                if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
+                    % compute depth with SeaWater toolbox
+                    % depth ~= sw_dpth(pressure, latitude)
+                    if sam.geospatial_lat_min == sam.geospatial_lat_max
+                        zFirst = sw_dpth(relPresFirst, sam.geospatial_lat_min);
+                        zSecond = sw_dpth(relPresSecond, sam.geospatial_lat_min);
+                        
+                        computedDepthComment  = ['depthPP: Depth computed from '...
+                            'the 2 nearest pressure sensors available, using the '...
+                            'SeaWater toolbox from latitude and '...
+                            presComment '.'];
+                    else
+                        meanLat = sam.geospatial_lat_min + ...
+                            (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
+                        
+                        zFirst = sw_dpth(relPresFirst, meanLat);
+                        zSecond = sw_dpth(relPresSecond, meanLat);    
+                        
+                        computedDepthComment  = ['depthPP: Depth computed from '...
+                            'the 2 nearest pressure sensors available, using the '...
+                            'SeaWater toolbox from mean latitude and '...
+                            presComment '.'];
+                    end
+                else
+                    % without latitude information, we assume 1dbar ~= 1m
+                    zFirst = relPresFirst;
+                    zSecond = relPresSecond;
+                    
+                    computedDepthComment  = ['depthPP: Depth computed from '...
+                        'the 2 nearest pressure sensors available with '...
+                        presComment ', assuming 1dbar ~= 1m.'];
+                end
+                
+                tFirst = samFirst.dimensions{getVar(samFirst.dimensions, 'TIME')}.data;
+                tSecond = samSecond.dimensions{getVar(samSecond.dimensions, 'TIME')}.data;
+                
+                % let's find which data are overlapping in time
+                [~, iOverlapFirst, iOverlapSecond] = intersect(tFirst, tSecond);
+                zFirst = zFirst(iOverlapFirst);
+                tFirst = tFirst(iOverlapFirst);
+                zSecond = zSecond(iOverlapSecond);
+                tSecond = tSecond(iOverlapSecond);
+                
+                tCur = sam.dimensions{getVar(sam.dimensions, 'TIME')}.data;
+                computedDepth = nan(size(tCur));
+                
+                [~, iOverlapCur, iOverlapOthers] = intersect(tCur, tFirst);
+                
+                computedDepth(iOverlapCur) = (distFirstCurSensor/distFirstSecond) ...
+                    * (zSecond(iOverlapOthers) - zFirst(iOverlapOthers)) + zFirst(iOverlapOthers);
+            
+            elseif m == 1
+                warning('Computing actual depth from only one pressure sensor on mooring');
+                % we found only one sensor
+                otherSam = otherSam{1};
+                presIdxOther = getVar(otherSam.variables, 'PRES');
+                presRelIdxOther = getVar(otherSam.variables, 'PRES_REL');
+                
+                if presRelIdxOther == 0
+                    % update from a relative pressure like SeaBird computes
+                    % it in its processed files, substracting a constant value
+                    % 10.1325 dbar for nominal atmospheric pressure
+                    relPresOther = otherSam.variables{presIdxOther}.data - 10.1325;
+                    presComment = ['absolute '...
+                        'pressure measurements to which a nominal '...
+                        'value for atmospheric pressure (10.1325 dbar) '...
+                        'has been substracted'];
+                else
+                    % update from a relative measured pressure
+                    relPresOther = otherSam.variables{presRelIdxOther}.data;
+                    presComment = ['relative '...
+                        'pressure measurements (calibration offset '...
+                        'usually performed to balance current '...
+                        'atmospheric pressure and acute sensor '...
+                        'precision at a deployed depth)'];
+                end
+                
+                % compute pressure at current sensor assuming sensors
+                % repartition on a vertical line between current sensor
+                % and the nearest. This is the best we can do as we can't
+                % have any idea of the angle of the mooring with one
+                % pressure sensor (could consider the min pressure value
+                % in the future?).
+                %
+                % computedDepth = zOther - distOtherCurSensor
+                %
+                if isSensorHeight
+                    distOtherCurSensor = otherSam.sensor_height - sam.sensor_height;
+                else
+                    distOtherCurSensor = otherSam.target_depth - sam.target_depth;
+                end
+                
+                if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
+                    % compute depth with SeaWater toolbox
+                    % depth ~= sw_dpth(pressure, latitude)
+                    if sam.geospatial_lat_min == sam.geospatial_lat_max
+                        zOther = sw_dpth(relPresOther, sam.geospatial_lat_min);
+                        
+                        computedDepthComment  = ['depthPP: Depth computed from '...
+                            'the only pressure sensor available, using the '...
+                            'SeaWater toolbox from latitude and '...
+                            presComment '.'];
+                    else
+                        meanLat = sam.geospatial_lat_min + ...
+                            (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
+                        zOther = sw_dpth(relPresOther, meanLat);
+                        
+                        computedDepthComment  = ['depthPP: Depth computed from '...
+                            'the only pressure sensor available, using the '...
+                            'SeaWater toolbox from mean latitude and '...
+                            presComment '.'];
+                    end
+                else
+                    % without latitude information, we assume 1dbar ~= 1m
+                    zOther = relPresOther;
+                    
+                    computedDepthComment  = ['depthPP: Depth computed from '...
+                        'the only pressure sensor available with '...
+                        presComment ', assuming 1dbar ~= 1m.'];
+                end
+                
+                tOther = otherSam.dimensions{getVar(otherSam.dimensions, 'TIME')}.data;
+                
+                tCur = sam.dimensions{getVar(sam.dimensions, 'TIME')}.data;
+                computedDepth = nan(size(tCur));
+                
+                % let's find which data are overlapping in time
+                [~, iOverlapCur, iOverlapOther] = intersect(tCur, tOther);
+                
+                computedDepth(iOverlapCur) = zOther(iOverlapOther) + distOtherCurSensor;
             else
+                warning(['There is no pressure sensor on this mooring from '...
+                    'which an actual depth can be computed']);
                 continue;
             end
         else
+            warning(['Please document either sensor_height or target_depth '...
+                'global attributes so that an actual depth can be '...
+                'computed from other pressure sensors in the mooring']);
             continue;
         end
         
@@ -390,7 +386,6 @@ for k = 1:length(sample_data)
         end
     end
     
-%     computedDepth         = round(computedDepth*100)/100;
     computedMedianDepth   = round(median(computedDepth)*100)/100;
     
     idHeight = getVar(sam.dimensions, 'HEIGHT_ABOVE_SENSOR');
@@ -400,9 +395,9 @@ for k = 1:length(sample_data)
         % with the maximum distance the ADCP can measure. Sometimes,
         % PRES from ADCP pressure sensor is just wrong
         maxDistance = round(max(sam.dimensions{idHeight}.data)*100)/100;
-        diff = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
+        diffPresDist = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
         
-        if diff < 30/100
+        if diffPresDist < 30/100
             % Depth from PRES Ok if diff < 30%
             % add depth data as new variable in data set
             sample_data{k} = addVar(...
@@ -424,5 +419,4 @@ for k = 1:length(sample_data)
         % update vertical min/max from new computed DEPTH
         sample_data{k} = populateMetadata(sample_data{k});
     end
-end
 end

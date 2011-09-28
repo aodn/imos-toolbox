@@ -77,6 +77,10 @@ function sample_data = populateMetadata( sample_data )
               isempty(sample_data.geospatial_vertical_min) && ...
               isempty(sample_data.geospatial_vertical_max);
         updateFromDepth = true;
+        
+        dataDepth = sample_data.dimensions{idDepth}.data;
+        iNan = isnan(dataDepth);
+        dataDepth = dataDepth(~iNan);
       end
   end
   if ivDepth > 0 && idHeight == 0
@@ -84,26 +88,24 @@ function sample_data = populateMetadata( sample_data )
               isempty(sample_data.geospatial_vertical_min) && ...
               isempty(sample_data.geospatial_vertical_max);
         updateFromDepth = true;
+        
+        dataDepth = sample_data.variables{ivDepth}.data;
+        iNan = isnan(dataDepth);
+        dataDepth = dataDepth(~iNan);
       end
   end
   
   if updateFromDepth
       % Update from DEPTH data
       % Let's find out if it's a profile or a mooring
-      if ivDepth > 0
-          iNan = isnan(sample_data.variables{ivDepth}.data);
-          dataDepth = sample_data.variables{ivDepth}.data(~iNan);
-          maxDepth      = max(dataDepth);
-          minDepth      = min(dataDepth);
-          MedianDepth   = median(dataDepth);
-      end
-      if idDepth > 0
-          iNan = isnan(sample_data.dimensions{idDepth}.data);
-          dataDepth = sample_data.dimensions{idDepth}.data(~iNan);
-          maxDepth      = max(dataDepth);
-          minDepth      = min(dataDepth);
-          MedianDepth   = median(dataDepth);
-      end
+
+      maxDepth      = max(dataDepth);
+      minDepth      = min(dataDepth);
+      MedianDepth   = median(dataDepth);
+      
+      maxDepth      = round(maxDepth*100)/100;
+      minDepth      = round(minDepth*100)/100;
+      MedianDepth   = round(MedianDepth*100)/100;
       
       threshold = MedianDepth - MedianDepth*20/100;
       iDataDeploying = sample_data.variables{ivDepth}.data < threshold;
@@ -204,7 +206,7 @@ function sample_data = populateMetadata( sample_data )
                   'information has been computed from '...
                   presComment ', assuming 1dbar ~= 1m.'];
           end
-%           computedDepth         = round(computedDepth*100)/100;
+            
           computedMedianDepth   = round(computedMedianDepth*100)/100;
           computedMinDepth      = round(computedMinDepth*100)/100;
           computedMaxDepth      = round(computedMaxDepth*100)/100;
