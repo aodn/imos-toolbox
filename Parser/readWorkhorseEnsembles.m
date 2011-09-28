@@ -35,11 +35,11 @@ function ensembles = readWorkhorseEnsembles( filename )
 %   filename  - Raw binary data file retrieved from a Workhorse.
 %
 % Outputs:
-%   ensembles - Cell array of ensembles.
+%   ensembles - Scalar structure of ensembles.
 %
-% Based on original code from imos-toolbox "readWorkhorseEnsembles.m" by
-% Paul McCarthy <paul.mccarthy@csiro.au>
-% Author: Charles James <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Charles James <charles.james@sa.gov.au>
+%               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
@@ -73,8 +73,6 @@ function ensembles = readWorkhorseEnsembles( filename )
 
 % ensure that there is exactly one argument,
 % and that it is a string
-
- %filename=cellstr('DR1050_sample_data.txt')%
 error(nargchk(1, 1, nargin));
 if ~ischar(filename), error('filename must be a string');
 end
@@ -95,22 +93,16 @@ catch e
 end
 
 % get ensemble start key
-headerID=127;
-dataSourceID=127;
+headerID        = 127;      % hexadecimal '7F'
+dataSourceID    = 127;      % hexadecimal '7F'
 % WH headerID=127, dataSourceID=127
 % note other IDs identified
-% dataSourceID=121 probably for waves burst samples (ignore here)
-
-
-% ensembles are stored in a cell array of structs
-%ensembles    = {};
-%numEnsembles = 0;
-
+% dataSourceID=121 (hex '79') probably for waves burst samples (ignore here)
 
 % try and parse all ensembles at once
-% we will try this is a couple of steps
+% we will try this in a couple of steps
 
-% ensemble is indicated by header and data source IDs is the data field;
+% ensemble is indicated by header and data source IDs in the data field;
 % idx will indicate the start of a possible ensemble
 idh = data(1:end-1) == headerID;
 ids = data(2:end) == dataSourceID;
@@ -119,28 +111,28 @@ clear idh ids;
 
 % this will have found far more than the actual number of ensembles as
 % every pair matching the ID numbers will be interpreted as an ensemble start;
-bpe=[data(idx(:)+2) data(idx(:)+3)]';
 
 % number of bytes in ensemble (not including the 2 checksum bytes)
-nBytes=bytecast(bpe(:), 'L', 'uint16');
+bpe     = [data(idx(:)+2) data(idx(:)+3)]';
+nBytes  = bytecast(bpe(:), 'L', 'uint16');
 clear bpe;
 % number of bytes in ensemble
-nLen=nBytes+2;
+nLen = nBytes + 2;
 
 % keep funky eLen values from putting us out of bounds
-oob=(idx+nLen-1)>length(data);
-idx(oob)=[];
-nBytes(oob)=[];
-nLen(oob)=[];
+oob = (idx+nLen-1) > length(data);
+idx(oob)    = [];
+nBytes(oob) = [];
+nLen(oob)   = [];
 clear oob;
 
 % check sum is in last two bytes
-givenCrc=indexData(data,idx+nLen-2,idx+nLen-1,'uint16')';
+givenCrc = indexData(data, idx+nLen-2, idx+nLen-1, 'uint16')';
 clear nLen;
 
 % could use indexData to recover data between idx and idx+nBytes-1
 % but at this point nBytes could be as big as FFFFh so ...
-% to coumpute Crc sum over each ensemble
+% to compute Crc sum over each ensemble
 
 % !!! double(data) may be too big to be handled with current free memory
 ctype = computer;
@@ -179,9 +171,10 @@ switch ctype
 end
 
 % idx is the start of the sum sequence, iend is the end
-iend=idx+nBytes-1;
+iend = idx+nBytes-1;
+
 % following formula gives total sum between idx and iend
-calcCrc = double(data(idx))+double(dataSum(iend)-dataSum(idx));
+calcCrc = double(data(idx)) + double(dataSum(iend) - dataSum(idx));
 clear dataSum;
 
 % this is the checksum formula
@@ -191,103 +184,110 @@ calcCrc = bitand(calcCrc, 65535);
 good = (calcCrc == givenCrc);
 
 % define ensemble variables
-idx=idx(good);
-nBytes=nBytes(good);
+idx     = idx(good);
+nBytes  = nBytes(good);
 
 % checksum should have been sufficent 
 % but I have still found ensembles that don't
-% have matching bytes (probably due to shear number of ensembles there is a
+% have matching bytes (probably due to sheer number of ensembles there is a
 % finite chance of an erroneous checksum match)
 %
 % Difference in index should be equal to nBytes or
 % we have a problem.
+
 % calculate difference in index-2 from start to end of data
-didx=[diff(idx); length(data)-idx(end)+1]-2;
+didx = [diff(idx); length(data) - idx(end) + 1] - 2;
+
 % compare with number of Bytes to find errors
-idodgy=(didx~=nBytes);
-if sum(idodgy)>0
+idodgy = (didx ~= nBytes);
+
+if any(idodgy)
 % wow! we need to keep trying to fix;
 % at this point I am assuming that nBytes is the same for all good records,
 % since this information is stored in every ensemble this may eventually
 % break down for unseen formats.
-    if std(nBytes(~idodgy))==0
+    if std(nBytes(~idodgy)) == 0
         % we only have one byte length in data record
-        nBytes0=nBytes(~idodgy);
-        igood=(nBytes==nBytes0(1));
-        idx=idx(igood);
+        nBytes0 = nBytes(~idodgy);
+        igood = (nBytes == nBytes0(1));
+        
+        idx     = idx(igood);
+        nBytes  = nBytes(igood);
     else
-        error('this is interesting, need to look at this data file please contact Author');
+        error('this is interesting, need to look at this data file please contact developer');
     end
 end
 
 % in principle each ensemble could have a different number of data
 % types
-
-nDataTypes       = double(data(idx+5));
+nDataTypes = double(data(idx+5));
 
 % in each ensemble bytes 6:2*nDataTypes give offsets to data
-dataOffsets=indexData(data,idx+6,idx+6+2*nDataTypes-1,'uint16');
-[i j]=size(dataOffsets);
+dataOffsets = indexData(data, idx+6, idx+6+2*nDataTypes-1, 'uint16');
+[i j] = size(dataOffsets);
 
 % create a big index matrix!
-IDX=meshgrid(idx,1:i)+dataOffsets;
+IDX = meshgrid(idx, 1:i) + dataOffsets;
 
 % get rid of possible NaN
 iNaN = isnan(IDX);
 IDXnoNan = IDX(~iNaN);
 
 % what type of sections do we have in each ensemble;
-sType=indexData(data,IDXnoNan(:),IDXnoNan(:)+1,'uint16');
+sType = indexData(data, IDXnoNan(:), IDXnoNan(:)+1, 'uint16');
 
-iFixedLeader=IDX(sType==0);
-iVarLeader=IDX(sType==128);
-iVel=IDX(sType==256);
-iCorr=IDX(sType==512);
-iEcho=IDX(sType==768);
-iPCgood=IDX(sType==1024);
-%iStatProf=IDX(sType==1280);
-iBTrack=IDX(sType==1536);
-%iMicroCat=IDX(sType==2048);
+iFixedLeader    = IDX(sType == 0);
+iVarLeader      = IDX(sType == 128);
+iVel            = IDX(sType == 256);
+iCorr           = IDX(sType == 512);
+iEcho           = IDX(sType == 768);
+iPCgood         = IDX(sType == 1024);
+%iStatProf      = IDX(sType == 1280);
+iBTrack         = IDX(sType == 1536);
+%iMicroCat      = IDX(sType == 2048);
 
 % major change to PM code - ensembles is a scalar structure not cell array
-ensembles.fixedLeader=parseFixedLeader(data, iFixedLeader);
+ensembles.fixedLeader       = parseFixedLeader(data, iFixedLeader);
+ensembles.variableLeader    = parseVariableLeader(data, iVarLeader);
+
 % subfields contain the vector time series
-nCells=ensembles.fixedLeader.numCells;
-ensembles.variableLeader = parseVariableLeader(data, iVarLeader);
-ensembles.velocity = parseVelocity(data, nCells, iVel);
+nCells = ensembles.fixedLeader.numCells;
+
+ensembles.velocity          = parseVelocity(data, nCells, iVel);
 
 if ~isempty(iCorr)
-    ensembles.corrMag = parseX(data, nCells, 'corrMag', iCorr);
+    ensembles.corrMag       = parseX(data, nCells, 'corrMag', iCorr);
 end
+
 if ~isempty(iEcho)
     ensembles.echoIntensity = parseX(data, nCells, 'echoIntensity', iEcho);
 end
+
 if ~isempty(iPCgood)
-    ensembles.percentGood = parseX(data, nCells, 'percentGood', iPCgood);
+    ensembles.percentGood   = parseX(data, nCells, 'percentGood', iPCgood);
 end
+
 if ~isempty(iBTrack)
-    ensembles.bottomTrack = parseBottomTrack(data, iBTrack);
+    ensembles.bottomTrack   = parseBottomTrack(data, iBTrack);
 end
 
-
-
 end
 
-function dsub=indexData(data,istart,iend,dtype)
-% function dsub=indexData(data,istart,iend,dtype)
+function dsub = indexData(data, istart, iend, dtype)
+% function dsub = indexData(data, istart, iend, dtype)
 % vectorized data index algorithm, converts data between istart and iend
 % from binary 8bit data to dtype, where istart and iend can be vectors!
 % Charles James
 
 % create matrix of indicies
-width=max(iend-istart+1);
+width = max(iend-istart+1);
 
-[I J]=meshgrid(istart,0:width-1);
-K=meshgrid(iend,0:width-1);
+[I J]   = meshgrid(istart, 0:width-1);
+K       = meshgrid(iend,   0:width-1);
 
-IND=I+J;
+IND = I + J;
 
-ibad=IND>K;
+ibad = IND > K;
 
 if any(any(ibad))
     % We assume that if an ensemble contain one bad data, all data are bad
@@ -295,24 +295,19 @@ if any(any(ibad))
     ibad(:,any(ibad)) = ones(size(ibad,1), 1);
 end
 
+datatst = data(IND(:));
+datatst(ibad) = 0;
 
-datatst=data(IND(:));
+dsub = bytecast(datatst, 'L', dtype);
+ibad = bytecast(uint8(ibad(:)), 'L', dtype);
 
+i = length(istart);
+j = length(dsub)/i;
 
-datatst(ibad)=0;
+dsub = reshape(dsub, j, i);
+ibad = reshape(ibad, j, i) ~= 0;
 
-
-dsub=bytecast(datatst,'L',dtype);
-ibad=bytecast(uint8(ibad(:)),'L',dtype);
-
-i=length(istart);
-j=length(dsub)/i;
-
-dsub=reshape(dsub,j,i);
-ibad=reshape(ibad,j,i)~=0;
-
-dsub(ibad)=nan;
-
+dsub(ibad) = nan;
 
 end
 
@@ -335,15 +330,15 @@ idx=idx(1);
   sect = struct;
   len = 59;
   
-  sect.fixedLeaderId       = indexData(data,idx,idx+1,'uint16')';
+  sect.fixedLeaderId       = indexData(data, idx, idx+1, 'uint16')';
   sect.cpuFirmwareVersion  = double(data(idx+2));
   sect.cpuFirmwareRevision = double(data(idx+3));
-  sect.systemConfiguration = indexData(data,idx+4,idx+5,'uint16')';
+  sect.systemConfiguration = indexData(data, idx+4, idx+5, 'uint16')';
   sect.realSimFlag         = double(data(idx+6));
   sect.lagLength           = double(data(idx+7));
   sect.numBeams            = double(data(idx+8));
   sect.numCells            = double(data(idx+9));
-  block                    = indexData(data,idx+10,idx+15, 'uint16')';
+  block                    = indexData(data, idx+10, idx+15, 'uint16')';
   sect.pingsPerEnsemble    = block(:,1);
   sect.depthCellLength     = block(:,2);
   sect.blankAfterTransmit  = block(:,3);
@@ -351,36 +346,36 @@ idx=idx(1);
   sect.lowCorrThresh       = double(data(idx+17));
   sect.numCodeReps         = double(data(idx+18));
   sect.gdMinimum           = double(data(idx+19));
-  sect.errVelocityMax      = indexData(data,idx+20,idx+21, 'uint16')';
+  sect.errVelocityMax      = indexData(data, idx+20, idx+21, 'uint16')';
   sect.tppMinutes          = double(data(idx+22));
   sect.tppSeconds          = double(data(idx+23));
   sect.tppHundredths       = double(data(idx+24));
   sect.coordinateTransform = double(data(idx+25));
-  block                    = indexData(data,idx+26,idx+29, 'int16')';
+  block                    = indexData(data, idx+26, idx+29, 'int16')';
   sect.headingAlignment    = block(:,1);
   sect.headingBias         = block(:,2);
   sect.sensorSource        = double(data(idx+30));
   sect.sensorsAvailable    = double(data(idx+31));
-  block                    = indexData(data,idx+32,idx+35, 'uint16')';
+  block                    = indexData(data, idx+32, idx+35, 'uint16')';
   sect.bin1Distance        = block(:,1);
   sect.xmitPulseLength     = block(:,2);
   sect.wpRefLayerAvgStart  = double(data(idx+36));
   sect.wpRefLayerAvgEnd    = double(data(idx+37));
   sect.falseTargetThresh   = double(data(idx+38));
   % byte 40 is spare
-  sect.transmitLagDistance = indexData(data,idx+40,idx+41, 'uint16')';
-  sect.cpuBoardSerialNo    = indexData(data,idx+42,idx+49, 'uint64')';
-  sect.systemBandwidth     = indexData(data,idx+50,idx+51, 'uint16')';
+  sect.transmitLagDistance = indexData(data, idx+40, idx+41, 'uint16')';
+  sect.cpuBoardSerialNo    = indexData(data, idx+42, idx+49, 'uint64')';
+  sect.systemBandwidth     = indexData(data, idx+50, idx+51, 'uint16')';
   sect.systemPower         = double(data(idx+52));
   % byte 54 is spare
   % following two fields are not used for Firmware before 16.30
   
-  if (sect.cpuFirmwareVersion>=16)&&(sect.cpuFirmwareRevision>=30)
+  if (sect.cpuFirmwareVersion >= 16) && (sect.cpuFirmwareRevision >= 30)
       sect.instSerialNumber    = num2str(uint32(bytecast(data(idx+54:idx+57), 'L', 'uint32')));
       sect.beamAngle           = double(data(idx+58));
   else
-      sect.instSerialNumber='';
-      sect.beamAngle=nan;
+      sect.instSerialNumber    = '';
+      sect.beamAngle           = NaN;
   end
 end
 
@@ -467,21 +462,22 @@ function [sect len] = parseVelocity( data, numCells, idx )
 %   len      - number of bytes that were parsed.
 %
   sect = struct;
-  len = 2 + numCells * 8;
+  nBeams = 4;
+  len = 2 + numCells * nBeams * 2; % 2 bytes per beam
   
   sect.velocityId = indexData(data,idx,idx+1, 'uint16')';
   
   idx = idx + 2;
   
-  vels = indexData(data,idx,idx + 8*numCells'-1, 'int16')';
-  s=size(vels);
+  vels = indexData(data, idx, idx + 2*nBeams*numCells'-1, 'int16')';
+  s = size(vels);
   
-  ibeam=1:4:s(2);
+  ibeam = 1:nBeams:s(2);
   
-  sect.velocity1=vels(:,ibeam);
-  sect.velocity2=vels(:,ibeam+1);
-  sect.velocity3=vels(:,ibeam+2);
-  sect.velocity4=vels(:,ibeam+3);
+  sect.velocity1 = vels(:, ibeam);
+  sect.velocity2 = vels(:, ibeam+1);
+  sect.velocity3 = vels(:, ibeam+2);
+  sect.velocity4 = vels(:, ibeam+3);
   
 end
 
@@ -503,20 +499,21 @@ function [sect len] = parseX( data, numCells, name, idx )
 %   len      - number of bytes that were parsed.
 %
 sect = struct;
-len = 2 + numCells * 4;
+nBeams = 4;
+len = 2 + numCells * nBeams;
 
 sect.([name 'Id']) = indexData(data,idx,idx+1,'uint16');
 
 idx = idx + 2;
 
-fields = indexData(data,idx,idx + 4*numCells'-1, 'uint8')';
-s=size(fields);
-ibeam=1:4:s(2);
+fields = indexData(data,idx,idx + nBeams*numCells'-1, 'uint8')';
+s = size(fields);
+ibeam = 1:nBeams:s(2);
 
-sect.field1 = fields(:,ibeam);
-sect.field2 = fields(:,ibeam+1);
-sect.field3 = fields(:,ibeam+2);
-sect.field4 = fields(:,ibeam+3);
+sect.field1 = fields(:, ibeam);
+sect.field2 = fields(:, ibeam+1);
+sect.field3 = fields(:, ibeam+2);
+sect.field4 = fields(:, ibeam+3);
     
 end
 
@@ -536,7 +533,7 @@ function [sect length] = parseBottomTrack( data, idx )
   sect = struct;
   length = 85;
   
-  block                       = indexData(data,idx,idx+5, 'uint16')';
+  block                       = indexData(data, idx, idx+5, 'uint16')';
   sect.bottomTrackId          = block(:,1);
   sect.btPingsPerEnsemble     = block(:,2);
   sect.btDelayBeforeReacquire = block(:,3);
@@ -544,9 +541,9 @@ function [sect length] = parseBottomTrack( data, idx )
   sect.btEvalAmpMin           = double(data(idx+7));
   sect.btPercentGoodMin       = double(data(idx+8));
   sect.btMode                 = double(data(idx+9));
-  sect.btErrVelMax            = indexData(data,idx+10,idx+11, 'uint16')';
+  sect.btErrVelMax            = indexData(data, idx+10, idx+11, 'uint16')';
   % bytes 13-16 are spare
-  block                       = indexData(data,idx+16,idx+31, 'uint16')';
+  block                       = indexData(data, idx+16, idx+31, 'uint16')';
   sect.btBeam1Range           = block(:,1);
   sect.btBeam2Range           = block(:,2);
   sect.btBeam3Range           = block(:,3);
@@ -567,11 +564,11 @@ function [sect length] = parseBottomTrack( data, idx )
   sect.btBeam2PercentGood     = double(data(idx+41));
   sect.btBeam3PercentGood     = double(data(idx+42));
   sect.btBeam4PercentGood     = double(data(idx+43));
-  block                       = indexData(data,idx+44,idx+49, 'uint16')';
+  block                       = indexData(data, idx+44, idx+49, 'uint16')';
   sect.btRefLayerMin          = block(:,1);
   sect.btRefLayerNear         = block(:,2);
   sect.btRefLayerFar          = block(:,3);
-  block                       = indexData(data,idx+50,idx+57, 'int16')';
+  block                       = indexData(data, idx+50, idx+57, 'int16')';
   sect.btBeam1RefLayerVel     = block(:,1);
   sect.btBeam2RefLayerVel     = block(:,2);
   sect.btBeam3RefLayerVel     = block(:,3);
@@ -588,7 +585,7 @@ function [sect length] = parseBottomTrack( data, idx )
   sect.btBeam2RefGood         = double(data(idx+67));
   sect.btBeam3RefGood         = double(data(idx+68));
   sect.btBeam4RefGood         = double(data(idx+69));
-  sect.btMaxDepth             = indexData(data,idx+70,idx+71, 'uint16')';
+  sect.btMaxDepth             = indexData(data, idx+70, idx+71, 'uint16')';
   sect.btBeam1RssiAmp         = double(data(idx+72));
   sect.btBeam2RssiAmp         = double(data(idx+73));
   sect.btBeam3RssiAmp         = double(data(idx+74));

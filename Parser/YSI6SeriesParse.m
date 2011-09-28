@@ -14,7 +14,8 @@ function sample_data = YSI6SeriesParse( filename )
 % Outputs:
 %   sample_data - Struct containing sample data.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -108,16 +109,15 @@ function sample_data = YSI6SeriesParse( filename )
         
       % convert conductivity from mS/cm to S/m
       case 'cond'
-        sample_data.variables{k}.name = 'CNDC_1';
+        sample_data.variables{k}.name = 'CNDC';
         sample_data.variables{k}.data = ...
           sample_data.variables{k}.data / 10.0;
         
       % convert conductivity from mS/cm to S/m
       case 'spcond'
-        sample_data.variables{k}.name = 'CNDC_2';
+        sample_data.variables{k}.name = 'SPEC_CNDC';
         sample_data.variables{k}.data = ...
           sample_data.variables{k}.data / 10.0;
-        sample_data.variables{k}.comment = 'Specific Conductance';
         
       % total dissolved solids
       case 'tds'
@@ -162,19 +162,20 @@ function sample_data = YSI6SeriesParse( filename )
         sample_data.variables{k}.name    = 'TURB';
         sample_data.variables{k}.comment = 'Turbidity from 6136 sensor';
         
-      % convert dissolved oxygen from % to kg/m^3
+      % % saturation
       case 'odo'
-        sample_data.variables{k}.name    = 'DOXY_1';
+        sample_data.variables{k}.name    = 'DOXS';
         sample_data.variables{k}.comment = ...
-          'Dissolved oxygen from Rapid Pulse Sensor (%)';
-        sample_data.variables{k}.data = ...
-          sample_data.variables{k}.data * 10000.0;
+          'Dissolved oxygen saturation from ROX optical sensor';
         
-      % mg/L == kg/m^3
+      % mg/L == 10-3 * kg/m^3
       case 'odo2'
-        sample_data.variables{k}.name    = 'DOXY_2';
+        sample_data.variables{k}.name    = 'DOXY';
         sample_data.variables{k}.comment = ...
-          'Dissolved oxygen from Rapid Pulse Sensor (mg/L)';
+          ['Dissolved oxygen from ROX optical sensor originally expressed '...
+          'in mg/l, 1l = 0.001m3 was assumed.'];
+        sample_data.variables{k}.data = ...
+          sample_data.variables{k}.data / 1000.0;
     end
   end
 end
@@ -235,7 +236,7 @@ function records = readRecords(header, data)
     rNum   = rNum + 1;
     
     % missing sync byte - corrupt; fast
-    % forward to the next sync byte
+    % forward to the next sync byte (0x44)
     if record(1) ~= 68, 
       
       while ~isempty(data) && data(1) ~= 68, data = data(2:end); end
@@ -257,14 +258,14 @@ function records = readRecords(header, data)
         case 4,   records.cond          (rNum) = val; % 0x04
         case 6,   records.spcond        (rNum) = val; % 0x06
         case 10,  records.tds           (rNum) = val; % 0x0A
-        case 12,  records.salinity      (rNum) = val; % 0x1C
+        case 12,  records.salinity      (rNum) = val; % 0x0C
         case 18,  records.ph            (rNum) = val; % 0x12
         case 19,  records.orp           (rNum) = val; % 0x13
         case 22,  records.depth         (rNum) = val; % 0x16
         case 24,  records.bp            (rNum) = val; % 0x18
         case 28,  records.battery       (rNum) = val; % 0x1C
         case 193, records.chlorophyll   (rNum) = val; % 0xC1
-        %case 194, records.chlorophyllRFU(rNum) = val; % 0xC2
+        %case 194, records.chlorophyllRFU(rNum) = val;% 0xC2
         case 196, records.latitude      (rNum) = val; % 0xC4
         case 197, records.longitude     (rNum) = val; % 0xC5
         case 203, records.turbidity     (rNum) = val; % 0xCB

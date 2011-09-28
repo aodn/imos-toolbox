@@ -148,7 +148,7 @@ switch name
         % conductivity (uS/cm)
     case 'c0us0x2Fcm'
         name = 'CNDC';
-        data = data ./ 100000;
+        data = data ./ 10000;
         
         % fluorescence (ug/L)
         % ug/L == mg/m^-3
@@ -160,35 +160,14 @@ switch name
         name = 'FLU2';
         
         % oxygen (mg/L)
-        % mg/L == kg/m^3
-    case 'oxsolMg0x2FL'
+        % mg/L == 10-3 * kg/m^3
+    case {'oxsolMg0x2FL', 'oxsatMg0x2FL', 'sbeox0Mg0x2FL'}
         name = 'DOXY';
+        data = data ./ 1000;
         
         % oxygen (umol/Kg)
         % umol/Kg -> mol/Kg
-    case 'oxsolMm0x2FKg'
-        name = 'DOX2';
-        data = data ./ 1000000;
-        
-        % oxygen (mg/L)
-        % mg/L == kg/m^3
-    case 'oxsatMg0x2FL'
-        name = 'DOXY';
-        
-        % oxygen (umol/Kg)
-        % umol/Kg -> mol/Kg
-    case 'oxsatMm0x2FKg'
-        name = 'DOX2';
-        data = data ./ 1000000;
-        
-        % oxygen (mg/L)
-        % mg/L == kg/m^3
-    case 'sbeox0Mg0x2FL'
-        name = 'DOXY';
-        
-        % oxygen (umol/Kg)
-        % umol/Kg -> mol/Kg
-    case 'sbeox0Mm0x2FKg'
+    case {'oxsolMm0x2FKg', 'oxsatMm0x2FKg', 'sbeox0Mm0x2FKg'}
         name = 'DOX2';
         data = data ./ 1000000;
         
@@ -197,19 +176,11 @@ switch name
         name = 'PSAL';
         
         % turbidity (NTU)
-    case 'obs'
-        name = 'TURB';
-        
-        % turbidity (NTU)
-    case 'upoly0'
+    case {'obs', 'upoly0'}
         name = 'TURB';
         
         % depth (m)
-    case 'depSM'
-        name = 'DEPTH';
-        
-        % depth (m)
-    case 'depFM'
+    case {'depSM', 'depFM'}
         name = 'DEPTH';
                       
     otherwise

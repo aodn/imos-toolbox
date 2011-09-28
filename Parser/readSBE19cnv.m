@@ -130,55 +130,34 @@ function [name, data] = convertData(name, data, instHeader)
       name = 'CNDC';
     
     % conductivity (mS/cm)
-    % mS/cm -> S/m
+    % mS/cm -> 10-1 * S/m
     case 'c0ms0x2Fcm'
       name = 'CNDC';
       data = data ./ 10;
     
     % conductivity (uS/cm)
+    % uS/cm -> 10-4 S/m
     case 'c0us0x2Fcm'
       name = 'CNDC';
-      data = data ./ 100000;
+      data = data ./ 10000;
     
     % fluorescence (ug/L)
-    % ug/L == mg/m^-3
     case 'flC'
       name = 'FLU2';
-    
-    % fluorescence (mg/m^3)
+      
+    % fluorescence (ug/L) == (mg/m^3)
     case 'flECO0x2DAFL'
       name = 'FLU2';
       
     % oxygen (mg/L)
-    % mg/L == kg/m^3
-    case 'oxsolMg0x2FL'
+    % mg/L == 10-3 * kg/m^3
+    case {'oxsolMg0x2FL', 'oxsatMg0x2FL', 'sbeox0Mg0x2FL'}
       name = 'DOXY';
+      data = data ./ 1000;
     
     % oxygen (umol/Kg)
     % umol/Kg -> mol/Kg
-    case 'oxsolMm0x2FKg'
-      name = 'DOX2';
-      data = data ./ 1000000;
-      
-    % oxygen (mg/L)
-    % mg/L == kg/m^3
-    case 'oxsatMg0x2FL'
-      name = 'DOXY';
-      
-    % oxygen (umol/Kg)
-    % umol/Kg -> mol/Kg
-    case 'oxsatMm0x2FKg'
-      name = 'DOX2';
-      data = data ./ 1000000;
-    
-    % oxygen (mg/L)
-    % mg/L == kg/m^3
-    case 'sbeox0Mg0x2FL'
-      name = 'DOXY';
-      
-    % oxygen (umol/Kg)
-    % umol/Kg -> mol/Kg
-    case 'sbeox0Mm0x2FKg'
+    case {'oxsolMm0x2FKg', 'oxsatMm0x2FKg', 'sbeox0Mm0x2FKg'}
       name = 'DOX2';
       data = data ./ 1000000;
     
@@ -195,11 +174,7 @@ function [name, data] = convertData(name, data, instHeader)
       name = 'TURB';
     
     % depth (m)
-    case 'depSM'
-      name = 'DEPTH';
-    
-    % depth (m)
-    case 'depFM'
+    case {'depSM', 'depFM'}
       name = 'DEPTH';
     
     otherwise 

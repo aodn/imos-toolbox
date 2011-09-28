@@ -8,20 +8,7 @@ function sample_data = WQMParse( filename )
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
 %                 vector of up to nine variable structs, containing sample 
-%                 data. The possible variables are as follows:
-%
-%                   Conductivity      ('CNDC'): S m^-1
-%                   Temperature       ('TEMP'): Degrees Celsius
-%                   Pressure          ('PRES'): Decibars
-%                   Salinity          ('PSAL'): 1e^(-3) (PSS)
-%                   Dissolved Oxygen  ('DOXY'): kg/m^3
-%                   Dissolved Oxygen  ('DOX1'): mmol/m^3
-%                   Dissolved Oxygen  ('DOX2'): mol/kg
-%                   Chlorophyll       ('CPHL'): mg/m^3
-%                   Chlorophyll       ('CHLU'): mg/m^3   (user coefficient)
-%                   Chlorophyll       ('CHLF'): mg/m^3   (factory coefficient)
-%                   Chlorophyll       ('CHLR'): mg/m^3   (raw counts)
-%                   Turbidity         ('TURB') NTU
+%                 data.
 %                 
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
@@ -64,7 +51,7 @@ function sample_data = WQMParse( filename )
   filename = filename{1};
   if ~ischar(filename), error('filename must contain a string'); end
 
-  [pathstr, name, ext] = fileparts(filename);
+  [~, ~, ext] = fileparts(filename);
   
   sample_data = [];
   
