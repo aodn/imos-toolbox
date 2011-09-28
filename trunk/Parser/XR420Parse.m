@@ -96,17 +96,31 @@ function sample_data = XR420Parse( filename )
   
   for k = 1:length(fields)
     
+      comment = '';
+      
       switch fields{k}
           
-          case 'Cond', name = 'CNDC';
+          %Conductivity (mS/cm) = 10-1*(S/m)
+          case 'Cond'
+              name = 'CNDC';
+              data.(fields{k}) = data.(fields{k})/10;
+              
+          %Temperature (Celsius degree)
           case 'Temp', name = 'TEMP';
+              
+          %Pressure (dBar)
           case 'Pres', name = 'PRES';
-          case 'FlCa', name = 'CPHL';
+              
+          %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
+          case 'FlCa'
+              name = 'CPHL';
+              comment = 'Originally expressed in ug/l, 1l = 0.001m3 was assumed.';
       end
     
       sample_data.variables{k}.name       = name;
       sample_data.variables{k}.data       = data.(fields{k});
       sample_data.variables{k}.dimensions = [1 2 3];
+      sample_data.variables{k}.comment    = comment;
   end
 end
   

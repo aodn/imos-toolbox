@@ -29,7 +29,7 @@ function sample_data = workhorseParse( filename )
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributors: Leeying Wu <Wu.Leeying@saugov.sa.gov.au>
 %               Bradley Morris <b.morris@unsw.edu.au>
-%               vectorized by Charles James May 2010 <charles.james@sa.gov.au>
+%               Charles James May 2010 <charles.james@sa.gov.au>
 %               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %         
 
@@ -142,32 +142,33 @@ error(nargchk(1,1,nargin));
     verr  = velocity.velocity4;
     clear velocity;
     
-    % set all bad values to nan. 
-    vnrth(vnrth == -32768) = nan;
-    veast(veast == -32768) = nan;
-    vvert(vvert == -32768) = nan;
-    verr( verr  == -32768) = nan;
+    % set all bad values to NaN. 
+    vnrth(vnrth == -32768) = NaN;
+    veast(veast == -32768) = NaN;
+    vvert(vvert == -32768) = NaN;
+    verr( verr  == -32768) = NaN;
     
     vvel = vnrth;
     uvel = veast;
     wvel = vvert;
     evel = verr;
-    clear vvert verr;
+    clear vvert verr vnrth veast;
     
-    speed = sqrt(vnrth.^2 + veast.^2);
+    speed = sqrt(vvel.^2 + uvel.^2);
     
     % direction is in degrees clockwise from north
-    direction = atan(abs(veast ./ vnrth)) .* (180 / pi);
+    direction = atan(abs(uvel ./ vvel)) .* (180 / pi);
     
-    se = vnrth <  0 & veast >= 0;
-    sw = vnrth <  0 & veast <  0;
-    nw = vnrth >= 0 & veast <  0;
-    clear vnrth veast;
+    % !!! if vvel == 0 we get NaN !!!
+    direction(vvel == 0) = 90;
     
-    direction(se) = 180-direction(se);
-    direction(sw) = 180+direction(sw);
-    direction(nw) = 360-direction(nw);
-  
+    se = vvel <  0 & uvel >= 0;
+    sw = vvel <  0 & uvel <  0;
+    nw = vvel >= 0 & uvel <  0;
+    
+    direction(se) = 180 - direction(se);
+    direction(sw) = 180 + direction(sw);
+    direction(nw) = 360 - direction(nw);
   %
   % temperature / 100.0  (0.01 deg   -> deg)
   % pressure    / 1000.0 (decapascal -> decibar)
@@ -309,18 +310,21 @@ error(nargchk(1,1,nargin));
   % indices of variables to remove
   remove = [];
   
-  if ~hasPres,    remove(end+1) = getVar(sample_data.variables, 'PRES_REL');    end
+  if ~hasPres,    remove(end+1) = getVar(sample_data.variables, 'PRES_REL');end
   if ~hasHeading, remove(end+1) = getVar(sample_data.variables, 'HEADING'); end
   if ~hasPitch,   remove(end+1) = getVar(sample_data.variables, 'PITCH');   end
   if ~hasRoll,    remove(end+1) = getVar(sample_data.variables, 'ROLL');    end
   if ~hasPsal,    remove(end+1) = getVar(sample_data.variables, 'PSAL');    end
   if ~hasTemp,    remove(end+1) = getVar(sample_data.variables, 'TEMP');    end
   
-  % also remove empty backscatter and correlation data
+  % also remove empty backscatter and correlation data in case of ADCP with
+  % less than 4 beams
   for k = 4:-1:numBeams+1
     remove(end+1) = getVar(sample_data.variables, ['ABSI_' num2str(k)]);
     remove(end+1) = ...
-      getVar(sample_data.variables, ['ABSI_CORR_' num2str(k)]);
+      getVar(sample_data.variables, ['ADCP_CORR_' num2str(k)]);
+    remove(end+1) = ...
+      getVar(sample_data.variables, ['ADCP_GOOD_' num2str(k)]);
   end
   
   sample_data.variables(remove) = [];

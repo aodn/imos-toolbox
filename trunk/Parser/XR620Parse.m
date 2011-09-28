@@ -122,40 +122,8 @@ function sample_data = XR620Parse( filename )
               name = '';
               comment = 'Corrected temperature.';
           
-          %Rinko dissolved O2 (%) -> mol.kg-1
-          case 'R_D_O2'
-              % to perform this conversion, we need to calculate the
-              % density of sea water; for this, we need temperature,
-              % salinity, and pressure data to be present
-              if isfield(data, 'Temp') && isfield(data, 'Pres') && isfield(data, 'Salin')
-                  name = '';
-                  temp = data.Temp;
-                  pres = data.Pres;
-                  psal = data.Salin;
-              else
-                  % if any of this data isn't present,
-                  % we can't perform the conversion
-                  continue;
-              end
-              
-              % calculate density from salinity, temperature and pressure
-              dens = sw_dens(psal, temp, pres);
-              
-              % '%' ~= cl/l -> mol/kg
-              %
-              %   % kg/m^3 -> g/cm^3
-              %   dens = dens ./ 1000.0;
-              %
-              %   % cl/l ->umol/kg
-              %   data = data .* (446.596 ./ dens);
-              %
-              %   % umol/kg -> mol/kg
-              %   data = data ./ 1000000.0;
-              %
-              data.(fields{k}) = data.(fields{k}) .* (0.446596 ./ dens);
-              comment = ['Originally expressed in %, density computed from '...
-                  'salinity, temperature and pressure using the Seawater '...
-                  'toolbox and assuming 1cl(O2) = 0.446596mol.'];
+          %Rinko dissolved O2 (%)
+          case 'R_D_O2', name = 'DOXS';
               
           %Depth (m)    
           case 'Depth', name = 'DEPTH';
@@ -165,9 +133,8 @@ function sample_data = XR620Parse( filename )
               
           %Specific conductivity (uS/cm) = 10-4 * (S/m)
           case 'SpecCond'
-              name = '';
+              name = 'SPEC_CNDC';
               data.(fields{k}) = data.(fields{k})/10000;
-              comment = 'Specific conductivity.';
               
           %Density anomaly (n/a)
           case 'DensAnom', name = '';

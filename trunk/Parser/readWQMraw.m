@@ -113,8 +113,8 @@ function sample_data = readWQMraw( filename )
   fields  = [];
   format  = [];
   try
-    % cj use my routine to access raw file
-    wqmdata=readWQMinternal(filename);
+    % use Charles James routine to access raw file
+    wqmdata = readWQMinternal(filename);
 
   catch e
     if fid ~= -1, fclose(fid); end

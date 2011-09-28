@@ -79,7 +79,7 @@ if ~noPrompt
     % user cancelled dialog
     if fileName == 0, return; end
 
-    [p name ext v] = fileparts(fileName);
+    [~, name, ext] = fileparts(fileName);
 
     % Stupid matlab. The uiputfile function automatically adds an 'All Files' 
     % option to the list of file types. What purpose could this possibly 
