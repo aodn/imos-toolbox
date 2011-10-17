@@ -201,14 +201,10 @@ function data = readData(fid, header)
   % using  column names as struct field names
   for k = 1:length(cols), data.(cols{k}) = samples{k}; end
   
-  % regenerate interval from start/end time, and number of 
-  % samples, rather than using the one listed in the header
+  % generate time data from start/end/interval time, and number of 
+  % observed samples, rather than using the one listed in the header
   nSamples = length(samples{1});
   
-   %This section is overwriting the interval with an incorrect value so can
- %we comment it out
- % header.interval = (header.end - header.start) / (nSamples-1); 
-  % generate time stamps from start/interval/end
   data.time = header.start:header.interval:header.end;
-  data.time = data.time(1:length(samples{1}))';
+  data.time = data.time(1:nSamples)';
 end

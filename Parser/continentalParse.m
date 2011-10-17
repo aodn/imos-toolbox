@@ -146,16 +146,16 @@ end
 % pressure    / 1000.0 (mm       -> m)   assuming equivalence to dbar
 % temperature / 100.0  (0.01 deg -> deg)
 % velocities  / 1000.0 (mm/s     -> m/s) assuming earth coordinates
-% backscatter * 0.45   (counts   -> dB)
-battery     = battery       / 10.0;
-heading     = heading       / 10.0;
-pitch       = pitch         / 10.0;
-roll        = roll          / 10.0;
-pressure    = pressure      / 1000.0;
-temperature = temperature   / 100.0;
-velocity1   = velocity1     / 1000.0;
-velocity2   = velocity2     / 1000.0;
-velocity3   = velocity3     / 1000.0;
+% backscatter * 0.45   (counts   -> dB)  see http://www.nortek-as.com/lib/technical-notes/seditments
+battery      = battery      / 10.0;
+heading      = heading      / 10.0;
+pitch        = pitch        / 10.0;
+roll         = roll         / 10.0;
+pressure     = pressure     / 1000.0;
+temperature  = temperature  / 100.0;
+velocity1    = velocity1    / 1000.0;
+velocity2    = velocity2    / 1000.0;
+velocity3    = velocity3    / 1000.0;
 backscatter1 = backscatter1 * 0.45;
 backscatter2 = backscatter2 * 0.45;
 backscatter3 = backscatter3 * 0.45;

@@ -1,4 +1,4 @@
-function data = readSBE19hex( dataLines, instHeader )
+function [data, comment] = readSBE19hex( dataLines, instHeader )
 %READSBE19HEX Parses the given data lines from a SBE19 .hex data file. 
 %
 % Currently, only raw hex (raw voltages and frequencies) output format is 
@@ -12,6 +12,7 @@ function data = readSBE19hex( dataLines, instHeader )
 %
 % Outputs:
 %   data       - Struct containing variable data.
+%   comment    - Struct containing variable comment.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
@@ -117,22 +118,26 @@ function data = readSBE19hex( dataLines, instHeader )
     if time,         data.time        (k) = hex2dec(line(l:l+7)); l=l+8; end
   end
   
-  data = convertData(data, instHeader);
+  [data, comment] = convertData(data, instHeader);
 end
 
-function newData = convertData(data, header)
+function [newData, comment] = convertData(data, header)
 %CONVERTDATA Converts the data contained in the .hex file into IMOS
 % compliant parameters.
 %
   newData = struct;
+  comment = struct;
   
   % temperature, pressure and conductivity will always be 
   % present, and conductivity conversion requires temperature 
   % and pressure, so we manually do all three
   newData.TEMP = convertTemperature(data.temperature, header);
+  comment.TEMP = '';
   newData.PRES = convertPressure(   data.pressure, data.pressureVolt, header);
+  comment.PRES = '';
   newData.CNDC = convertConductivity(data.conductivity, ...
     newData.PRES, newData.TEMP, header);
+  comment.CNDC = '';
   
   names = fieldnames(data);
   
@@ -145,37 +150,84 @@ function newData = convertData(data, header)
       % already in degrees celsius
       case 'sbe38'
         newData.TEMP_2 = data.sbe38;
+        comment.TEMP_2 = '';
     
       % millibars -> decibars
       case 'gtdPres'
         newData.PRES_2 = data.gtdPres / 100.0;
+        comment.PRES_2 = '';
       
       % already in degrees celsius
       case 'gtdTemp'
         newData.TEMP_3 = data.gtdTemp;
+        comment.TEMP_3 = '';
       
       % millibars -> decibars
       case 'dualgtdPres'
         newData.PRES_3 = data.dualgtdPres / 100.0;
+        comment.PRES_3 = '';
       
       % already in degrees celsius
       case 'dualgtdTemp'
         newData.TEMP_4 = data.dualgtdTemp;
+        comment.TEMP_4 = '';
       
-      % umol/L -> kg/m^3
+      % umol/l
       case 'optode'
-        newData.DOXY = data.optode * 32.0;
+        % Exactly like we want it to be.
+        newData.DOX1 = data.optode;
+        comment.DOX1 = '';
     
       % seconds since jan 1 2000 -> days since jan 1 0000
       case 'time'
         newData.TIME = (data.time / 86400) - datenum('2000-01-00 00:00:00');
+        comment.TIME = '';
       
       % A/D counts to volts
       case {'volt0', 'volt1', 'volt2', 'volt3', 'volt4', 'volt5'}
         newName = ['VOLT_' name(end)];
         newData.(newName) = convertVolts(data.(name), name, header);
+        comment.(newName) = '';
       
     end
+  end
+  
+  % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are present
+  if isfield(newData, 'DOX1')
+      % umol/l -> umol/kg
+      %
+      % to perform this conversion, we need to calculate the
+      % density of sea water; for this, we need temperature,
+      % salinity, and pressure data to be present
+      temp = isfield(newData, 'TEMP');
+      pres = isfield(newData, 'PRES');
+      psal = isfield(newData, 'PSAL');
+      cndc = isfield(newData, 'CNDC');
+      
+      % if any of this data isn't present,
+      % we can't perform the conversion to umol/kg
+      if temp && pres && (psal || cndc)
+          temp = newData.TEMP;
+          pres = newData.PRES;
+          if psal
+              psal = newData.PSAL;
+          else
+              cndc = newData.CNDC;
+              % conductivity is in S/m and sw_c3515 in mS/cm
+              crat = 10*cndc ./ sw_c3515;
+              
+              psal = sw_salt(crat, temp, pres);
+          end
+          
+          % calculate density from salinity, temperature and pressure
+          dens = sw_dens(psal, newData.TEMP, newData.PRES);
+          
+          % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
+          newData.DOX2 = newData.DOX1 .* 1000.0 ./ dens;
+          comment.DOX2 = ['Originally expressed in umol/l, assuming 1l = 0.001m3 '...
+              'and using density computed from Temperature, Salinity and Pressure '...
+              'using the Seawater toolbox.'];
+      end
   end
 end
 

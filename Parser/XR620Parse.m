@@ -112,7 +112,9 @@ function sample_data = XR620Parse( filename )
           %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
           case 'FlC'
               name = 'CPHL';
-              comment = 'Originally expressed in ug/l, 1l = 0.001m3 was assumed.';
+              comment = ['Artificial chlorophyll data '...
+            'computed from bio-optical sensor raw counts fluorometry. '...
+            'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'];
               
           %Turbidity (NTU)
           case 'Turb', name = 'TURB'; 
@@ -142,11 +144,11 @@ function sample_data = XR620Parse( filename )
           %Speed of sound (m/s)
           case 'SoSUN', name = 'SSPD';
               
-          %Rinko dissolved O2 concentration (mg/l) == 10-3 * (kg/m3)
+          %Rinko dissolved O2 concentration (mg/l) => (umol/l)
           case 'rdO2C'
-              name = 'DOXY';
-              comment = 'Originally expressed in mg/l, 1l = 0.001m3 was assumed.';
-              data.(fields{k}) = data.(fields{k})/1000;
+              name = 'DOX1';
+              comment = 'Originally expressed in mg/l, 1mg/l = 31.25umol/l was assumed.';
+              data.(fields{k}) = data.(fields{k}) * 31.25;
       end
     
       if ~isempty(name)
@@ -155,6 +157,53 @@ function sample_data = XR620Parse( filename )
           sample_data.variables{l}.dimensions = [1 2 3];
           sample_data.variables{l}.comment    = comment;
           l = l+1;
+      end
+      
+      % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are present
+      dox1 = getVar(sample_data.variables, 'DOX1');
+      if dox1 ~= 0
+          dox1 = sample_data.variables{dox1};
+          name = 'DOX2';
+          
+          % umol/l -> umol/kg
+          %
+          % to perform this conversion, we need to calculate the
+          % density of sea water; for this, we need temperature,
+          % salinity, and pressure data to be present
+          temp = getVar(sample_data.variables, 'TEMP');
+          pres = getVar(sample_data.variables, 'PRES');
+          psal = getVar(sample_data.variables, 'PSAL');
+          cndc = getVar(sample_data.variables, 'CNDC');
+          
+          % if any of this data isn't present,
+          % we can't perform the conversion to umol/kg
+          if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
+              temp = sample_data.variables{temp};
+              pres = sample_data.variables{pres};
+              if psal ~= 0
+                  psal = sample_data.variables{psal};
+              else
+                  cndc = sample_data.variables{cndc};
+                  % conductivity is in S/m and sw_c3515 in mS/cm
+                  crat = 10*cndc.data ./ sw_c3515;
+                  
+                  psal.data = sw_salt(crat, temp.data, pres.data);
+              end
+              
+              % calculate density from salinity, temperature and pressure
+              dens = sw_dens(psal.data, temp.data, pres.data);
+              
+              % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
+              data = dox1.data .* 1000.0 ./ dens;
+              comment = ['Originally expressed in mg/l, assuming 1mg/l = 31.25umol/l '...
+                  'and using density computed from Temperature, Salinity and Pressure '...
+                  'using the Seawater toolbox.'];
+              
+              sample_data.variables{l}.dimensions             = [1 2 3];
+              sample_data.variables{l}.comment                = comment;
+              sample_data.variables{l}.name                   = name;
+              sample_data.variables{l}.data                   = data;
+          end
       end
   end
 end

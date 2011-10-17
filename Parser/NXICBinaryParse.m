@@ -7,8 +7,6 @@ function sample_data = NXICBinaryParse( filename )
 % specification for the .ctd file format is not available, so this parser
 % relies upon reverse engineering efforts which may not be reliable.
 %
-% Currently, this parser only provides conductivity, temperature and
-% pressure data.
 %
 % Inputs:
 %   filename    - cell array of strings, names of the files to import. Only 
@@ -17,20 +15,21 @@ function sample_data = NXICBinaryParse( filename )
 % Outputs:
 %   sample_data - struct containing sample data.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Charles James <charles.james@sa.gov.au>
+%               May 2010
+%               Recoded to vectorize reading and improve speed
 %
-% Charles James May 2010
-% Recoded to vectorize reading and improve speed
+%               June 2010
+%               Added Header File information and parsing based on discussions with
+%               Teledyne Engineers 
 %
-% Charles James June 2010
-% Added Header File information and parsing based on discussions with
-% Teledyne Engineers 
+%               Fixed units for analog channels - all are now in voltages according to
+%               the RANGE setting as specified in the header file.
+%               Note: calibration coefficients for analog channels are unreliable - user
+%               should apply coefficients from sensor manufacturers data sheets.
 %
-% Charles James June 2010
-% Fixed units for analog channels - all are now in voltages according to
-% the RANGE setting as specified in the header file.
-% Note: calibration coefficients for analog channels are unreliable - user
-% should apply coefficients from sensor manufacturers data sheets.
+%               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -291,9 +290,7 @@ function header = parseHeader(data)
 % Byte 215-217 = Byte 29-31 Interval
 % Byte 218-220 = Byte 32-34 On Time
 
-
-
-bit='1';
+  bit='1';
 
   header = struct;
   % data bytes 1-2
@@ -309,28 +306,28 @@ bit='1';
   end
   
   % Parse Options in byte 5
-  option1=dec2bin(data(5),8);
+  option1 = dec2bin(data(5),8);
   % start with bit 7
-  Options.externalSensors=strcmp(option1(1),bit); % has sensors
-  Options.enableRS232=strcmp(option1(2),bit);      % use rs232
-  Options.enableAutologging=strcmp(option1(3),bit);     % enable autologging
-  Options.enableClock=strcmp(option1(4),bit);      % enable clock
-  Options.useCheckSum=strcmp(option1(5),bit);  % run mode checksum
-  Options.addressOperations=strcmp(option1(6),bit);      % address operations?
-  Options.scaleOutput=strcmp(option1(7),bit);   % scaled output
-  Options.continuousOn=strcmp(option1(8),bit);     % continuous on power up
+  Options.externalSensors   = strcmp(option1(1),bit);	% has sensors
+  Options.enableRS232       = strcmp(option1(2),bit);	% use rs232
+  Options.enableAutologging = strcmp(option1(3),bit);	% enable autologging
+  Options.enableClock       = strcmp(option1(4),bit);	% enable clock
+  Options.useCheckSum       = strcmp(option1(5),bit);	% run mode checksum
+  Options.addressOperations = strcmp(option1(6),bit);	% address operations?
+  Options.scaleOutput       = strcmp(option1(7),bit);   % scaled output
+  Options.continuousOn      = strcmp(option1(8),bit);	% continuous on power up
   
   % Parse Options in byte 6
-  option2=dec2bin(data(6),8);
+  option2 = dec2bin(data(6),8);
   % start with bit 7
-  Options.autoIntervalLogging=strcmp(option2(1),bit);% auto interval logging
-  Options.delayedDateSet=strcmp(option2(2),bit); % delayed date setting
-  Options.delayedTimeSet=strcmp(option2(3),bit); % delayed time setting
-  Options.delayedStart=strcmp(option2(4),bit);   % delayed start operations
+  Options.autoIntervalLogging   = strcmp(option2(1),bit);   % auto interval logging
+  Options.delayedDateSet        = strcmp(option2(2),bit);	% delayed date setting
+  Options.delayedTimeSet        = strcmp(option2(3),bit);	% delayed time setting
+  Options.delayedStart          = strcmp(option2(4),bit);	% delayed start operations
   
-  Options.onTime=strcmp(option2(6),bit);          % on time setting
-  Options.intervalTime=strcmp(option2(7),bit);    % interval time setting
-  Options.intervalOperation=strcmp(option2(8),bit);           % interval operation
+  Options.onTime                = strcmp(option2(6),bit);	% on time setting
+  Options.intervalTime          = strcmp(option2(7),bit);	% interval time setting
+  Options.intervalOperation     = strcmp(option2(8),bit);	% interval operation
 
 
   % mode depends on Opt1 and Opt2 settings
@@ -353,7 +350,7 @@ bit='1';
   % skip bytes 7-9 (baud rate, channels, mem card)
   
   % Sample frequency in Hz
-  header.sampleRate=bytecast(data(10:11),'L','uint16');
+  header.sampleRate = bytecast(data(10:11),'L','uint16');
   % skip A/D sample rate bytes 12-13
   % and AdrH and AdrL 14-15
   % and spike filter 16-17
@@ -363,25 +360,25 @@ bit='1';
   % time this function was used and not necessairly the stat date of this
   % deployment!
   if Options.delayedStart
-  second = double(data(18));
-  minute = double(data(19));
-  hour   = double(data(20));
-  day    = double(data(21));
-  month  = double(data(22));
-  year   = double(data(23)) + 2000;
-  
-  header.delayedStartDate = datenum(year, month, day, hour, minute, second);
+      second = double(data(18));
+      minute = double(data(19));
+      hour   = double(data(20));
+      day    = double(data(21));
+      month  = double(data(22));
+      year   = double(data(23)) + 2000;
+      
+      header.delayedStartDate = datenum(year, month, day, hour, minute, second);
   else
-      header.delayedStartDate=[];
+      header.delayedStartDate = [];
   end
   
   % averaging interval hours and minutes
-  minute=double(data(27));
-  second=double(data(28));
-  header.average=minute*60+second;
+  minute = double(data(27));
+  second = double(data(28));
+  header.average = minute * 60 + second;
   
   if Options.intervalOperation
-  % interval and record times are stored in seconds
+      % interval and record times are stored in seconds
       hour   = double(data(29));
       minute = double(data(30));
       second = double(data(31));
@@ -392,68 +389,64 @@ bit='1';
       second = double(data(34));
       header.record = hour * 3600 + minute * 60 + second;
   else
-      header.interval=0;
-      header.record=inf;
+      header.interval = 0;
+      header.record = inf;
   end
   % Calibration Constants;
   % Conductivity
-  Calibration.Conductivity.A1=bytecast(data(35:38),'L','single');
-  Calibration.Conductivity.B1=bytecast(data(39:42),'L','single');
-  Calibration.Conductivity.C1=bytecast(data(43:46),'L','single');
-  Calibration.Conductivity.D1=bytecast(data(47:50),'L','single');
+  Calibration.Conductivity.A1 = bytecast(data(35:38),'L','single');
+  Calibration.Conductivity.B1 = bytecast(data(39:42),'L','single');
+  Calibration.Conductivity.C1 = bytecast(data(43:46),'L','single');
+  Calibration.Conductivity.D1 = bytecast(data(47:50),'L','single');
   
   % no idea
-  Calibration.Cell.Kfactor=bytecast(data(51:54),'L','single');
+  Calibration.Cell.Kfactor = bytecast(data(51:54),'L','single');
   
   % Temperature
-  Calibration.Temperature.A2=bytecast(data(55:58),'L','single');
-  Calibration.Temperature.B2=bytecast(data(59:62),'L','single');  
-  Calibration.Temperature.C2=bytecast(data(63:66),'L','single');
-  Calibration.Temperature.D2=bytecast(data(67:70),'L','single');  
+  Calibration.Temperature.A2 = bytecast(data(55:58),'L','single');
+  Calibration.Temperature.B2 = bytecast(data(59:62),'L','single');  
+  Calibration.Temperature.C2 = bytecast(data(63:66),'L','single');
+  Calibration.Temperature.D2 = bytecast(data(67:70),'L','single');  
   
   % Calibration coeffients for analog/digital channels
   % quite often appear to be wrong!
-  Calibration.Analog.A1A=bytecast(data(71:74),'L','single');
-  Calibration.Analog.A1B=bytecast(data(75:78),'L','single');  
-  Calibration.Analog.A2A=bytecast(data(79:82),'L','single');
-  Calibration.Analog.A2B=bytecast(data(83:86),'L','single');
-  Calibration.Analog.A3A=bytecast(data(87:90),'L','single');  
-  Calibration.Analog.A3B=bytecast(data(91:94),'L','single');  
-  Calibration.Analog.A4A=bytecast(data(95:98),'L','single');
-  Calibration.Analog.A4B=bytecast(data(99:102),'L','single');  
+  Calibration.Analog.A1A = bytecast(data(71:74),'L','single');
+  Calibration.Analog.A1B = bytecast(data(75:78),'L','single');  
+  Calibration.Analog.A2A = bytecast(data(79:82),'L','single');
+  Calibration.Analog.A2B = bytecast(data(83:86),'L','single');
+  Calibration.Analog.A3A = bytecast(data(87:90),'L','single');  
+  Calibration.Analog.A3B = bytecast(data(91:94),'L','single');  
+  Calibration.Analog.A4A = bytecast(data(95:98),'L','single');
+  Calibration.Analog.A4B = bytecast(data(99:102),'L','single');  
   
   % Pressure
-  Calibration.Pressure.A03=bytecast(data(103:106),'L','single');
-  Calibration.Pressure.B03=bytecast(data(107:110),'L','single');
-  Calibration.Pressure.C03=bytecast(data(111:114),'L','single');
+  Calibration.Pressure.A03 = bytecast(data(103:106),'L','single');
+  Calibration.Pressure.B03 = bytecast(data(107:110),'L','single');
+  Calibration.Pressure.C03 = bytecast(data(111:114),'L','single');
   
-  Calibration.Pressure.A503=bytecast(data(115:118),'L','single');
-  Calibration.Pressure.B503=bytecast(data(119:122),'L','single');
-  Calibration.Pressure.C503=bytecast(data(123:126),'L','single');
+  Calibration.Pressure.A503 = bytecast(data(115:118),'L','single');
+  Calibration.Pressure.B503 = bytecast(data(119:122),'L','single');
+  Calibration.Pressure.C503 = bytecast(data(123:126),'L','single');
   
-  Calibration.Pressure.A1003=bytecast(data(127:130),'L','single');    
-  Calibration.Pressure.B1003=bytecast(data(131:134),'L','single');
-  Calibration.Pressure.C1003=bytecast(data(135:138),'L','single');
+  Calibration.Pressure.A1003 = bytecast(data(127:130),'L','single');    
+  Calibration.Pressure.B1003 = bytecast(data(131:134),'L','single');
+  Calibration.Pressure.C1003 = bytecast(data(135:138),'L','single');
     
-  Calibration.Pressure.A3=bytecast(data(139:142),'L','single');
+  Calibration.Pressure.A3 = bytecast(data(139:142),'L','single');
   
-  Calibration.Pressure.PS0=bytecast(data(143:146),'L','single');
-  Calibration.Pressure.PS50=bytecast(data(147:150),'L','single');
-  Calibration.Pressure.PS100=bytecast(data(151:154),'L','single');
-  
-  
-  
-  header.Calibration=Calibration;
-  
-  
+  Calibration.Pressure.PS0      = bytecast(data(143:146),'L','single');
+  Calibration.Pressure.PS50     = bytecast(data(147:150),'L','single');
+  Calibration.Pressure.PS100    = bytecast(data(151:154),'L','single');
+
+  header.Calibration = Calibration;
  
  % test checksum (don't know what to do if fails, warn I suppose)
-  isgood=bitand(sum(data(1:154)),255)==data(155);
+  isgood = bitand(sum(data(1:154)),255) == data(155);
   if ~isgood
       disp('Warning header checksum failed');
-      header.checksum=false;
+      header.checksum = false;
   else
-      header.checksum=true;
+      header.checksum = true;
   end
  
   header.Calibration.Date = char(data(156:163)');
@@ -462,41 +455,41 @@ bit='1';
   
   % Range and Gain values
   % stored in separate parts of byte
-  option3=dec2bin(data(178),8);
+  option3 = dec2bin(data(178),8);
   % first check range from first 2 bits
   switch option3(7:8)
       case '00'
-          Options.RANGE=0; %+/-5V
-          vunit='int16';
-          vscale=5/2^15;
+          Options.RANGE = 0; %+/-5V
+          vunit     = 'int16';
+          vscale    = 5/2^15;
       case '10'
-          Options.RANGE=1; %0-5V
-          vunit='uint16';
-          vscale=5/2^16;
+          Options.RANGE = 1; %0-5V
+          vunit     = 'uint16';
+          vscale    = 5/2^16;
       case '01'
-          Options.RANGE=2; %+/- 10V
-          vunit='int16';
-          vscale=10/2^15;
+          Options.RANGE = 2; %+/- 10V
+          vunit     = 'int16';
+          vscale    = 10/2^15;
       case '11'
-          Options.RANGE=3; %0-10V
-          vunit='uint16';
-          vscale=10/2^16;
+          Options.RANGE = 3; %0-10V
+          vunit     = 'uint16';
+          vscale    = 10/2^16;
   end
   
-  Options.analogUnit=vunit;
-  Options.analogScale=vscale; % to convert from bits to voltage
+  Options.analogUnit  = vunit;
+  Options.analogScale = vscale; % to convert from bits to voltage
   
   % next 4 bits set GAINS
-  Options.GAIN0_0=strcmp(option3(6),bit);
-  Options.GAIN0_1=strcmp(option3(5),bit);
-  Options.GAIN1_0=strcmp(option3(4),bit);
-  Options.GAIN1_1=strcmp(option3(3),bit);
+  Options.GAIN0_0 = strcmp(option3(6),bit);
+  Options.GAIN0_1 = strcmp(option3(5),bit);
+  Options.GAIN1_0 = strcmp(option3(4),bit);
+  Options.GAIN1_1 = strcmp(option3(3),bit);
   
   header.sampleLength = double(data(200));
   
-  header.Options=Options;
+  header.Options = Options;
   
-  header.binaryData=data;
+  header.binaryData = data;
   
 end
 
@@ -512,8 +505,8 @@ function sample = parseSamples(data, header)
 %   samples - struct containing sample data.
 %
   len = header.sampleLength;
-  Options=header.Options;
-  mlstart=datenum('01-01-1970');
+  Options = header.Options;
+  mlstart = datenum('01-01-1970');
   
   % try to vectorize based on time stamp
   
@@ -524,76 +517,76 @@ function sample = parseSamples(data, header)
 % usually Cond, Temp, Press, Salinity, Sound Speed, Voltage
 % Ext. Sensors stored at end
  
- itimes=1:len:length(data);
+ itimes = 1:len:length(data);
   
  % contains the start index of samples within data
  % assume uncorrupted record to start
- isample=itimes;
+ isample = itimes;
 
  % compute time at isample intervals
- times1=index2time(data,isample);
+ times1 = index2time(data,isample);
  
- dt=diff(times1);
+ dt = diff(times1);
  % sample before the last time was found in the right place
  % is the only one we know is good as the time is at the start of sample
  if header.interval > 0
-     lastgood=find((dt<0)|(fix(dt)>header.interval),1)-1;
+     lastgood = find((dt<0) | (fix(dt)>header.interval), 1) - 1;
  else
-     lastgood=find((dt<0),1)-1;
+     lastgood = find((dt<0), 1) - 1;
  end
 
  % count any data errors as they occur
- ierr=0;
- D=uint8([]);
- if mod(length(data),len)==0;
+ ierr = 0;
+ D = uint8([]);
+ if mod(length(data), len) == 0;
      % could be a flawless record?
      % if so, only allow a few short gaps in times1
-     ngaps=sum(fix(dt)>header.interval);
-     if (ngaps/length(times1))<1e-3
-         D=reshape(data,len,length(data)./len);
+     ngaps = sum(fix(dt) > header.interval);
+     if (ngaps/length(times1)) < 1e-3
+         D = reshape(data, len, length(data)./len);
      end
  end
  
  if isempty(D);
      while ~isempty(lastgood);
-         ierr=ierr+1;
+         ierr = ierr+1;
          % try to find new valid sample time in remaining data
-         ntimes=isample(lastgood+1):length(data)-5;
+         ntimes = isample(lastgood+1):length(data)-5;
          if ierr==1
              % this is a big calculation so we'll only do it once
-             times2=index2time(data,ntimes);
+             times2 = index2time(data, ntimes);
          else
              % just adjust the existing times
-             times2=times2(end-length(ntimes)+1:end);
+             times2 = times2(end-length(ntimes)+1:end);
          end
          clear ntimes;
          
-         dt=times2-times1(lastgood+1);
+         dt = times2 - times1(lastgood + 1);
          
          % this should be the offset to the next good sample time
          if header.interval > 0
-             goodind=find((dt>0)&(fix(dt)<header.interval),1)-1;
+             goodind = find((dt > 0) & (fix(dt) < header.interval), 1) - 1;
          else
-             goodind=find((dt>0),1)-1;
+             goodind = find((dt > 0), 1) - 1;
          end
          
          
          if isempty(goodind)
              % there are no other good samples so skip the rest of the data
-             isample(lastgood+1:end)=[];
-             lastgood=[];
+             isample(lastgood+1:end) = [];
+             lastgood = [];
          else
              % adjust isample indicies to apply new offset;
-             isample(lastgood+1:end)=isample(lastgood+1:end)+goodind;
-             isample(isample>length(data)-4)=[];
+             isample(lastgood+1:end) = isample(lastgood+1:end) + goodind;
+             isample(isample > length(data) - 4) = [];
              
              % any other faults?
-             times1=index2time(data,isample);
-             dt=diff(times1);
+             times1 = index2time(data, isample);
+             dt = diff(times1);
              if header.interval > 0
-                 lastgood=find((dt<0)|(fix(dt)>header.interval),1)-1;
+                 lastgood = find((dt<0) | (fix(dt)>header.interval), 1) - 1;
              else
-                 lastgood=find((dt<0),1)-1;
+                 lastgood = find((dt<0), 1) - 1;
              end
          end
      end
@@ -602,95 +595,95 @@ function sample = parseSamples(data, header)
      % observation.
      
      for i=1:len;
-         D(i,:)=data(isample+i-1);
+         D(i,:) = data(isample+i-1);
      end
  end
 
-time1=D(1:4,:);
-t1=bytecast(time1(:),'L','uint32');
-t2=double(D(5,:))/100;
-sample.time=mlstart+(t1(:)+t2(:))/86400;
+time1 = D(1:4,:);
+t1 = bytecast(time1(:), 'L', 'uint32');
+t2 = double(D(5,:))/100;
+sample.time = mlstart + (t1(:) + t2(:))/86400;
 
-cond=D(6:9,:);
-sample.conductivity=bytecast(cond(:),'L','single');
+cond = D(6:9,:);
+sample.conductivity = bytecast(cond(:), 'L', 'single');
 % in units of mmho/cm IMOS needs S/m
-sample.conductivity=sample.conductivity./10;
+sample.conductivity = sample.conductivity./10;
 
-temp=D(10:13,:);
-sample.temperature=bytecast(temp(:),'L','single');
+temp = D(10:13,:);
+sample.temperature = bytecast(temp(:), 'L', 'single');
 
-pres=D(14:17,:);
-sample.pressure=bytecast(pres(:),'L','single');
+pres = D(14:17,:);
+sample.pressure = bytecast(pres(:), 'L', 'single');
 
-sal=D(18:21,:);
-sample.salinity=bytecast(sal(:),'L','single');
+sal = D(18:21,:);
+sample.salinity = bytecast(sal(:), 'L', 'single');
 
-sspd=D(22:25,:);
-sample.soundSpeed=bytecast(sspd(:),'L','single');
+sspd = D(22:25,:);
+sample.soundSpeed = bytecast(sspd(:), 'L', 'single');
 
-volt=D(26:29,:);
-sample.voltage=bytecast(volt(:),'L','single');
+volt = D(26:29,:);
+sample.voltage = bytecast(volt(:), 'L', 'single');
 
-a1=D(30:31,:);  % turbidity if fitted with FLNTU
-sample.analog1=bytecast(a1(:),'L',Options.analogUnit).*Options.analogScale;
+a1 = D(30:31,:);  % turbidity if fitted with FLNTU
+sample.analog1 = bytecast(a1(:), 'L', Options.analogUnit).*Options.analogScale;
 
-a2=D(32:33,:);  % fluorescence if fitted with FLNTU
-sample.analog2=bytecast(a2(:),'L',Options.analogUnit).*Options.analogScale;
+a2 = D(32:33,:);  % fluorescence if fitted with FLNTU
+sample.analog2 = bytecast(a2(:), 'L', Options.analogUnit).*Options.analogScale;
 
-a3=D(34:35,:); % PAR if fitted wit Biospherical par sensor
-sample.analog3=bytecast(a3(:),'L',Options.analogUnit).*Options.analogScale;
+a3 = D(34:35,:); % PAR if fitted wit Biospherical par sensor
+sample.analog3 = bytecast(a3(:), 'L', Options.analogUnit).*Options.analogScale;
 
-ch4=D(36:37,:); % 
-sample.analog4=bytecast(ch4(:),'L',Options.analogUnit).*Options.analogScale;
+ch4 = D(36:37,:); % 
+sample.analog4 = bytecast(ch4(:), 'L', Options.analogUnit).*Options.analogScale;
 
-if len==41;
-% if digital channel exists    
-dig=D(38:41,:); % may be used by Aanderra Optode
-sample.digital=bytecast(dig(:),'L','single');
+if len==41
+    % if digital channel exists
+    dig = D(38:41,:); % may be used by Aanderra Optode
+    sample.digital = bytecast(dig(:), 'L', 'single');
 end
 
 end
 
-function times=index2time(data,index)
+function times = index2time(data, index)
 % function to extract FSI times given the index of the start of the sample
 % check for memory limitation
-ctype=computer;
+ctype = computer;
 switch ctype
     case 'PCWIN'
-        a=memory;
+        a = memory;
         % create a chunklength well within the memory limits 
         % (need at least 2*16*4 bytes so divide by 2*16*5 bytes to be sure)
-        chunklength=a.MaxPossibleArrayBytes/(2*16*5);
+        chunklength = a.MaxPossibleArrayBytes/(2*16*5);
     case 'GLNXA64'
         % assume 4 Gig limit
-        chunklength=4e9/16;
+        chunklength = 4e9/16;
     otherwise
         % try it all
-        chunklength=length(index);
+        chunklength = length(index);
 end
 
 % 5 bytes required, but only first 4 needed to generate time in seconds since Jan 1 1970
-tbytes=[0 1 2 3];
+tbytes = [0 1 2 3];
 
-for i=1:chunklength:length(index);
-    if (i+chunklength-1>length(index))
-        iend=length(index);
+for i=1:chunklength:length(index)
+    if (i+chunklength-1 > length(index))
+        iend = length(index);
     else
-        iend=i+chunklength-1;
+        iend = i+chunklength-1;
     end
-    i = uint32(i);
-    iend = uint32(iend);
-    index_sub=index(i:iend);
+    i           = uint32(i);
+    iend        = uint32(iend);
+    index_sub   = index(i:iend);
     
-    [IT TB]=meshgrid(index_sub,tbytes);
+    [IT TB] = meshgrid(index_sub, tbytes);
     % these matrices (IT and TB) are double precision by default and
     % will require  2*4*(chunklength)*16bytes memory storage each
-    IT=IT+TB;
+    IT = IT + TB;
     clear TB;
     
-    IT=IT(:);
+    IT = IT(:);
     
     % 5th byte at index_sub+4 is simply 100ths of a second
-    times(i:iend)=bytecast(data(IT),'L','uint32')+double(data(index_sub+4))/100;
+    times(i:iend) = bytecast(data(IT), 'L', 'uint32') + double(data(index_sub+4))/100;
 end
 end

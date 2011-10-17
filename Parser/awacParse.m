@@ -76,26 +76,28 @@ nsamples = length(structures) - 3;
 ncells   = user.NBins;
 
 % preallocate memory for all sample data
-time        = zeros(nsamples, 1);
-depth       = zeros(ncells,   1);
-analn1      = zeros(nsamples, 1);
-battery     = zeros(nsamples, 1);
-analn2      = zeros(nsamples, 1);
-heading     = zeros(nsamples, 1);
-pitch       = zeros(nsamples, 1);
-roll        = zeros(nsamples, 1);
-pressure    = zeros(nsamples, 1);
-temperature = zeros(nsamples, 1);
-velocity1   = zeros(nsamples, ncells);
-velocity2   = zeros(nsamples, ncells);
-velocity3   = zeros(nsamples, ncells);
-amplitude1  = zeros(nsamples, ncells);
-amplitude2  = zeros(nsamples, ncells);
-amplitude3  = zeros(nsamples, ncells);
+time         = zeros(nsamples, 1);
+depth        = zeros(ncells,   1);
+analn1       = zeros(nsamples, 1);
+battery      = zeros(nsamples, 1);
+analn2       = zeros(nsamples, 1);
+heading      = zeros(nsamples, 1);
+pitch        = zeros(nsamples, 1);
+roll         = zeros(nsamples, 1);
+pressure     = zeros(nsamples, 1);
+temperature  = zeros(nsamples, 1);
+velocity1    = zeros(nsamples, ncells);
+velocity2    = zeros(nsamples, ncells);
+velocity3    = zeros(nsamples, ncells);
+backscatter1 = zeros(nsamples, ncells);
+backscatter2 = zeros(nsamples, ncells);
+backscatter3 = zeros(nsamples, ncells);
 
 %
 % calculate depth values from metadata. See continentalParse.m 
 % inline comments for a brief discussion of this process
+%
+% http://www.nortek-as.com/en/knowledge-center/forum/hr-profilers/736804717
 %
 freq       = head.Frequency; % this is in KHz
 cellStart  = user.T2;        % counts
@@ -142,16 +144,16 @@ end
 % pressure    / 1000.0 (mm       -> m)   assuming equivalence to dbar
 % temperature / 100.0  (0.01 deg -> deg)
 % velocities  / 1000.0 (mm/s     -> m/s) assuming earth coordinates
-% backscatter * 0.45   (counts   -> dB)
-battery     = battery     / 10.0;
-heading     = heading     / 10.0;
-pitch       = pitch       / 10.0;
-roll        = roll        / 10.0;
-pressure    = pressure    / 1000.0;
-temperature = temperature / 100.0;
-velocity1   = velocity1   / 1000.0;
-velocity2   = velocity2   / 1000.0;
-velocity3   = velocity3   / 1000.0;
+% backscatter * 0.45   (counts   -> dB)  see http://www.nortek-as.com/lib/technical-notes/seditments
+battery      = battery      / 10.0;
+heading      = heading      / 10.0;
+pitch        = pitch        / 10.0;
+roll         = roll         / 10.0;
+pressure     = pressure     / 1000.0;
+temperature  = temperature  / 100.0;
+velocity1    = velocity1    / 1000.0;
+velocity2    = velocity2    / 1000.0;
+velocity3    = velocity3    / 1000.0;
 backscatter1 = backscatter1 * 0.45;
 backscatter2 = backscatter2 * 0.45;
 backscatter3 = backscatter3 * 0.45;

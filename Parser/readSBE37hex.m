@@ -100,7 +100,7 @@ function newData = convertData(data, header)
             % pressure in dbar is relative to the ocean surface
             newData.PRES_REL = (data.pressure * pressureRangeInDbar /(0.85*65536)) - (0.05*pressureRangeInDbar);
         
-        % seconds since jan 1 2000 -> days since jan 1 0000
+        % seconds since jan 1 2000 -> days since jan 0 0000
         case 'time'
             newData.TIME = (data.time / (3600*24)) + datenum('2000-01-00 00:00:00');
       
