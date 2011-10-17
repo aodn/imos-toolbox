@@ -16,8 +16,8 @@ function [data, name, comment] = sbe43OxygenTransform( sam, varIdx )
 %             the raw oxygen voltage data.
 %
 % Outputs:
-%   data    - array of oxygen concentration values, kg/m^3
-%   name    - new variable name 'DOXY'
+%   data    - array of oxygen concentration values, umol/l
+%   name    - new variable name 'DOX1'
 %   comment - string which can be used for variable comment
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
@@ -105,11 +105,16 @@ function [data, name, comment] = sbe43OxygenTransform( sam, varIdx )
   V    = hysteresisCorrection(V, T, P, params);
   data = oxygenConcentration(V, T, S, P, params);
   
-  % convert from mL/L to mg/L to kg/m^3
-  data = data .* 1.42903;
-  data = data ./ 1000.0;
+  % convert from ml/l to umol/l
+  %
+  % Conversion factors from Saunders (1986) :
+  % https://darchive.mblwhoilibrary.org/bitstream/handle/1912/68/WHOI-89-23.pdf?sequence=3
+  % 1ml/l = 43.57 umol/kg (with dens = 1.025 kg/l)
+  % 1ml/l = 44.660 umol/l
   
-  name    = 'DOXY';
+  data = data .* 44.660;
+  
+  name    = 'DOX1';
   comment = ['sbe43Transform: derived from ' sam.variables{doxy}.name];
 
 end
