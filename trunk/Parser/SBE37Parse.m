@@ -14,7 +14,8 @@ function sample_data = SBE37Parse( filename )
 % Outputs:
 %   sample_data - struct containing the sample data
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:           Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:      Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 % See SBE3x.m
 %

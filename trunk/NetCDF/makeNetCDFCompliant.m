@@ -114,17 +114,22 @@ function sample_data = makeNetCDFCompliant( sample_data )
   end
   
   %
-  % coordinate variables
+  % coordinate dimensions
   %
-  
+  existZAxis = false;
   for k = 1:length(sample_data.dimensions)
 
     dim = sample_data.dimensions{k};
     
     temp = fullfile(path, [lower(dim.name) '_attributes.txt']);
-    if isempty(dir(temp)), continue; end
+    if ~exist(temp, 'file'), continue; end
 
     dimAtts = parseNetCDFTemplate(temp, sample_data);
+    
+    % check existing Z coordinate dimension
+    if strcmpi(dimAtts.axis, 'Z')
+        existZAxis = true;
+    end
 
     % merge dimension atts back into dimension struct
     sample_data.dimensions{k} = mergeAtts(sample_data.dimensions{k}, dimAtts);
@@ -137,12 +142,28 @@ function sample_data = makeNetCDFCompliant( sample_data )
   varAtts = [];
   for k = 1:length(sample_data.variables)
     
+    
+    var = sample_data.variables{k};
     temp = fullfile(path, 'variable_attributes.txt');
 
     varAtts = parseNetCDFTemplate(temp, sample_data, k);
 
     % merge variable atts back into variable struct
-    sample_data.variables{k} = mergeAtts(sample_data.variables{k}, varAtts);
+    sample_data.variables{k} = mergeAtts(var, varAtts);
+    
+    % check for specificly defined variables
+    temp = fullfile(path, [lower(var.name) '_attributes.txt']);
+    if exist(temp, 'file')
+        varAtts = parseNetCDFTemplate(temp, sample_data, k);
+        
+        % check for existing Z coordinate variable
+        if isfield(varAtts, 'axis')
+            if existZAxis && strcmpi(varAtts.axis, 'Z')
+                varAtts = rmfield(varAtts, 'axis');
+            end
+        end
+        sample_data.variables{k} = mergeAtts(sample_data.variables{k}, varAtts);
+    end
     
     % look for sensor serial numbers if exist
     if isfield(sample_data.meta, 'deployment')
@@ -161,8 +182,11 @@ function target = mergeAtts ( target, atts )
   
   for m = 1:length(fields)
     
-    % don't overwrite existing fields in the target
-    if isfield(target, fields{m}), continue; end;
+    % only overwrite existing empty fields in the target except from
+    % date_created
+    if isfield(target, fields{m})
+        if ~isempty(target.(fields{m})) && ~strcmpi(fields{m}, 'date_created'), continue; end;
+    end
     
     target.(fields{m}) = atts.(fields{m});
   end

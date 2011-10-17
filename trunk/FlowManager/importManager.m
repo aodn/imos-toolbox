@@ -92,14 +92,14 @@ function sample_data = importManager(toolboxVersion, auto)
       
       for m = 1:length(structs{k})
         sample_data{end+1} = ...
-          finaliseData(structs{k}{m}, rawFiles{k}, dateFmt, rawFlag, toolboxVersion);
+          finaliseData(structs{k}{m}, rawFiles{k}, rawFlag, toolboxVersion);
       end
       
     % more likely, only one struct generated for one raw data file
     else
       
       sample_data{end+1} = ...
-        finaliseData(structs{k}, rawFiles{k}, dateFmt, rawFlag, toolboxVersion);
+        finaliseData(structs{k}, rawFiles{k}, rawFlag, toolboxVersion);
     end
   end
 end
@@ -387,103 +387,5 @@ function [sample_data rawFiles] = ddbImport(auto)
 
     % get the parser function handle
     parser = getParser(parser);
-  end
-end
-
-function sam = finaliseData(sam, rawFiles, dateFmt, flagVal, toolboxVersion)
-%FINALISEDATA Adds all required/relevant information from the given field
-%trip and deployment structs to the given sample data.
-%
-
-  % add toolbox version info
-  sam.toolbox_version = toolboxVersion;
-  
-  % add IMOS file version info
-  if ~isfield(sam.meta, 'level') 
-      sam.meta.level = 0; 
-      sam.file_version                 = imosFileVersion(sam.meta.level, 'name');
-      sam.file_version_quality_control = imosFileVersion(sam.meta.level, 'desc');
-      sam.date_created = now;
-  end
-
-  % turn raw data files a into semicolon separated string
-  rawFiles = cellfun(@(x)([x ';']), rawFiles, 'UniformOutput', false);
-  
-  sam.meta.log           = {};
-  sam.meta.raw_data_file = [rawFiles{:}];
-  
-  if isfield(sam.meta, 'deployment')
-    sam.meta.site_name     = sam.meta.deployment.Site;
-    sam.meta.depth         = sam.meta.deployment.InstrumentDepth;
-    sam.meta.timezone      = sam.meta.deployment.TimeZone;
-  else
-    sam.meta.site_name     = 'UNKNOWN';
-    sam.meta.depth         = nan;
-    sam.meta.timezone      = 'UTC';
-  end
-  
-  % add empty QC flags for all variables
-  for k = 1:length(sam.variables)
-    
-    if isfield(sam.variables{k}, 'flags'), continue; end
-    
-    sam.variables{k}.flags(1:numel(sam.variables{k}.data)) = flagVal;
-    sam.variables{k}.flags = reshape(...
-    sam.variables{k}.flags, size(sam.variables{k}.data));
-  end
-  
-  % and for all dimensions
-  for k = 1:length(sam.dimensions)
-    
-    if isfield(sam.dimensions{k}, 'flags'), continue; end
-    
-    sam.dimensions{k}.flags(1:numel(sam.dimensions{k}.data)) = flagVal;
-    sam.dimensions{k}.flags = reshape(...
-    sam.dimensions{k}.flags, size(sam.dimensions{k}.data));
-  end
-  
-  % add IMOS parameters
-  sam = makeNetCDFCompliant(sam);
-  
-  % populate NetCDF metadata from existing metadata/data if empty
-  sam = populateMetadata(sam);
-  
-  % set the time coverage period - use the best field available
-  if isfield(sam.meta, 'deployment')
-    
-    if ~isempty(sam.meta.deployment.TimeFirstGoodData)
-      sam.time_coverage_start = sam.meta.deployment.TimeFirstGoodData;
-    elseif ~isempty(sam.meta.deployment.TimeFirstInPos)
-      sam.time_coverage_start = sam.meta.deployment.TimeFirstInPos;
-    elseif ~isempty(sam.meta.deployment.TimeFirstWet)
-      sam.time_coverage_start = sam.meta.deployment.TimeFirstWet;
-    elseif ~isempty(sam.meta.deployment.TimeSwitchOn)
-      sam.time_coverage_start = sam.meta.deployment.TimeSwitchOn;
-    end
-
-    if ~isempty(sam.meta.deployment.TimeLastGoodData)
-      sam.time_coverage_end = sam.meta.deployment.TimeLastGoodData;
-    elseif ~isempty(sam.meta.deployment.TimeLastInPos)
-      sam.time_coverage_end = sam.meta.deployment.TimeLastInPos;
-    elseif ~isempty(sam.meta.deployment.TimeOnDeck)
-      sam.time_coverage_end = sam.meta.deployment.TimeOnDeck;
-    elseif ~isempty(sam.meta.deployment.TimeSwitchOff)
-      sam.time_coverage_end = sam.meta.deployment.TimeSwitchOff;
-    end
-  else
-    
-    time = getVar(sam.dimensions, 'TIME');
-    
-    if time ~= 0
-      if isempty(sam.time_coverage_start),
-        sam.time_coverage_start = sam.dimensions{time}.data(1);
-      end
-      if isempty(sam.time_coverage_end),
-        sam.time_coverage_end   = sam.dimensions{time}.data(end);
-      end
-    else
-      if isempty(sam.time_coverage_start), sam.time_coverage_start = 0; end
-      if isempty(sam.time_coverage_end),   sam.time_coverage_end   = 0; end
-    end
   end
 end

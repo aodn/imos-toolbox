@@ -107,9 +107,9 @@ function sample_data = SBE19Parse( filename )
   % is a .cnv file
   [~, ~, ext] = fileparts(filename);
   if strcmpi(ext, '.hex')
-    data = readSBE19hex(dataLines, instHeader);
+    [data, comment] = readSBE19hex(dataLines, instHeader);
   else
-    data = readSBE19cnv(dataLines, instHeader, procHeader);
+    [data, comment] = readSBE19cnv(dataLines, instHeader, procHeader);
   end
   
   % create sample data struct, 
@@ -170,6 +170,7 @@ function sample_data = SBE19Parse( filename )
     
     sample_data.variables{end  }.name       = vars{k};
     sample_data.variables{end  }.data       = data.(vars{k});
+    sample_data.variables{end  }.comment    = comment.(vars{k});
     
     if strncmp('PRES_REL', vars{k}, 8)
         % let's document the constant pressure atmosphere offset previously 

@@ -170,7 +170,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
         
         % make sure numeric values are not rounded (too much)
         case 'N',
-          data{k,2} = sprintf('%.10f', data{k,2});
+          data{k,2} = sprintf('%.10g', data{k,2});
         
         % make everything else a string - i'm assuming that when 
         % num2str is passed a string, it will return that string 

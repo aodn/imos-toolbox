@@ -75,25 +75,30 @@ end
 h = pcolor(ax, time.data, depth.data, var.data');
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
 cb = colorbar();
+% Default colormap and CLim for ADCP data (the only existing time/depth
+% data so far).
+colormap(r_b);
+cbCLimRange('', '', 'full, 0 centred', var.data);
 
 % Define a context menu
 hMenu = uicontextmenu;
 
 % Define callbacks for context menu items that change linestyle
-hcb11 = 'colormap(jet)';
-hcb12 = 'colormap(r_b)';
+hcb11 = 'colormap(r_b)';
+hcb12 = 'colormap(jet)';
 hcb13 = 'colormapeditor';
 
 % Define the context menu items and install their callbacks
 mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
-uimenu(mainItem1, 'Label', 'jet (default)', 'Callback', hcb11);
-uimenu(mainItem1, 'Label', 'r_b', 'Callback', hcb12);
-uimenu(mainItem1, 'Label', 'other', 'Callback', hcb13);
+uimenu(mainItem1, 'Label', 'r_b (default)', 'Callback', hcb11);
+uimenu(mainItem1, 'Label', 'jet',           'Callback', hcb12);
+uimenu(mainItem1, 'Label', 'other',         'Callback', hcb13);
 
 mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-uimenu(mainItem2, 'Label', 'normal (default)',     'Callback', {@cbCLimRange, 'normal', var.data});
-uimenu(mainItem2, 'Label', 'auto (+/-2*stdDev)',   'Callback', {@cbCLimRange, 'auto', var.data});
-uimenu(mainItem2, 'Label', 'manual',               'Callback', {@cbCLimRange, 'manual', var.data});
+uimenu(mainItem2, 'Label', 'full, 0 centred (default)', 'Callback', {@cbCLimRange, 'full, 0 centred', var.data});
+uimenu(mainItem2, 'Label', 'full',                      'Callback', {@cbCLimRange, 'full', var.data});
+uimenu(mainItem2, 'Label', 'auto (+/-2*stdDev)',        'Callback', {@cbCLimRange, 'auto', var.data});
+uimenu(mainItem2, 'Label', 'manual',                    'Callback', {@cbCLimRange, 'manual', var.data});
 
 % Attach the context menu to colorbar
 set(cb,'uicontextmenu',hMenu);
@@ -120,6 +125,9 @@ function cbCLimRange(src,eventdata, cLimMode, data)
 CLim = [min(min(data)), max(max(data))];
 
 switch cLimMode
+    case 'full, 0 centred'
+        maxVal = max(abs(CLim));
+        CLim = [-maxVal, maxVal];
     case 'auto'
         iNan = isnan(data);
 %         med = median(data(~iNan));

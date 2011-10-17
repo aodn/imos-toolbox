@@ -103,7 +103,7 @@ function sample_data = echoviewParse( filename, platform, config )
   % map maps CSV columns to sample_data variables and dimensions
   %
   
-  if nargin < 2 || isempty(config)
+  if nargin < 3 || isempty(config)
   % get path to config file
     try
       config = readProperty('echoview.config');
@@ -458,29 +458,14 @@ function sample_data = echoviewParse( filename, platform, config )
   
   %
   % Populate variables need for file name generation
-  % most of these are a hack to get around assumptions in the IMOStoolbox
   %
   
-  % create fields that will cause the toolbox to error if they aren't there
-  sample_data.meta.deployment.Site = '';
-  sample_data.meta.deployment.InstrumentDepth = 0;
-  sample_data.meta.deployment.TimeZone = 'UTC';
-  sample_data.meta.deployment.TimeFirstGoodData = [];
-  sample_data.meta.deployment.TimeFirstInPos = [];
-  sample_data.meta.deployment.TimeFirstWet = [];
-  sample_data.meta.deployment.TimeSwitchOn = [];
-  sample_data.meta.deployment.TimeLastGoodData = [];
-  sample_data.meta.deployment.TimeLastInPos = [];
-  sample_data.meta.deployment.TimeOnDeck = [];
-  sample_data.meta.deployment.TimeOnDeck = [];
-  sample_data.meta.deployment.TimeSwitchOff = [];
-  
-  if isfield(sample_data, 'frequency')
-      sample_data.meta.deployment.InstrumentDepth = sample_data.frequency;
+  if isfield(sample_data, 'vessel_name')
+      sample_data.meta.site_name = sample_data.vessel_name;
   end
   
-  if isfield(sample_data, 'vessel_name')
-      sample_data.meta.deployment.Site = sample_data.vessel_name;
+  if isfield(sample_data, 'frequency')
+      sample_data.meta.depth = sample_data.frequency;
   end
   
   if isfield(sample_data, 'make')
@@ -716,12 +701,12 @@ function sample_data = getBounds(sample_data)
   % set the depth range
   mindepth = NaN;
   maxdepth = NaN;
-  depth = getVar(sample_data.dimensions, 'RANGE');
+  depth = getVar(sample_data.dimensions, 'DEPTH');
   if depth ~= 0
       mindepth = min(sample_data.dimensions{depth}.data);
       maxdepth = max(sample_data.dimensions{depth}.data);
   else
-      depth = getVar(sample_data.variables, 'RANGE');
+      depth = getVar(sample_data.variables, 'DEPTH');
       if depth ~= 0
           mindepth = min(sample_data.variables{depth}.data);
           maxdepth = max(sample_data.variables{depth}.data);

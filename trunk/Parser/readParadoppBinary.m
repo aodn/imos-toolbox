@@ -312,7 +312,7 @@ function [sect len off] = readAquadoppVelocity(data, idx)
   sect.Id          = data(idx+1);
   sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
   sect.Time        = readClockData(data, idx+4); 
-  % !!! Heading, pitch and roll can be negative
+  % !!! Heading, pitch and roll can be negative => signed integer
   block            = bytecast(data(idx+10:idx+23), 'L', 'int16');
   sect.Error       = block(1);
   sect.Analn1      = block(2);
@@ -321,18 +321,18 @@ function [sect len off] = readAquadoppVelocity(data, idx)
   sect.Heading     = block(5);
   sect.Pitch       = block(6);
   sect.Roll        = block(7);
-  sect.PressureMSB = data(idx+24);
+  sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8');
   sect.Status      = data(idx+25);
-  block            = bytecast(data(idx+16:idx+33), 'L', 'uint16');
+  block            = bytecast(data(idx+26:idx+33), 'L', 'uint16');
   sect.PressureLSW = block(1);
   sect.Temperature = block(2); 
   sect.VelB1       = block(3);
   sect.VelB2       = block(4);
   sect.VelB3       = block(5);
-  sect.AmpB1       = data(idx+36);
-  sect.AmpB2       = data(idx+37);
-  sect.AmpB3       = data(idx+38);
-  sect.Fill        = data(idx+39);
+  sect.AmpB1       = bytecast(data(idx+36), 'L', 'uint8');
+  sect.AmpB2       = bytecast(data(idx+37), 'L', 'uint8');
+  sect.AmpB3       = bytecast(data(idx+38), 'L', 'uint8');
+  sect.Fill        = bytecast(data(idx+39), 'L', 'uint8');
   sect.Checksum    = bytecast(data(idx+40:idx+41), 'L', 'uint16');
 
 end
@@ -351,10 +351,10 @@ function [sect len off] = readAquadoppDiagHeader(data, idx)
   sect.Size      = block(1);
   sect.Records   = block(2);
   sect.Cell      = block(3);
-  sect.Noise1    = data(idx+8);
-  sect.Noise2    = data(idx+9);
-  sect.Noise3    = data(idx+10);
-  sect.Noise4    = data(idx+11);
+  sect.Noise1    = bytecast(data(idx+8), 'L', 'uint8');
+  sect.Noise2    = bytecast(data(idx+9), 'L', 'uint8');
+  sect.Noise3    = bytecast(data(idx+10), 'L', 'uint8');
+  sect.Noise4    = bytecast(data(idx+11), 'L', 'uint8');
   block          = bytecast(data(idx+12:idx+27), 'L', 'uint16');
   sect.ProcMagn1 = block(1);
   sect.ProcMagn2 = block(2);
@@ -389,14 +389,14 @@ function [sect len off] = readVectorVelocityHeader(data, idx)
   sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16');
   sect.Time         = readClockData(data, idx+4);
   sect.NRecords     = bytecast(data(idx+10:idx+11), 'L', 'uint16');
-  sect.Noise1       = data(idx+12);
-  sect.Noise2       = data(idx+13);
-  sect.Noise3       = data(idx+14);
-  sect.Noise4       = data(idx+15);
-  sect.Correlation1 = data(idx+16);
-  sect.Correlation2 = data(idx+17);
-  sect.Correlation3 = data(idx+18);
-  sect.Correlation4 = data(idx+19);
+  sect.Noise1       = bytecast(data(idx+12), 'L', 'uint8');
+  sect.Noise2       = bytecast(data(idx+13), 'L', 'uint8');
+  sect.Noise3       = bytecast(data(idx+14), 'L', 'uint8');
+  sect.Noise4       = bytecast(data(idx+15), 'L', 'uint8');
+  sect.Correlation1 = bytecast(data(idx+16), 'L', 'uint8');
+  sect.Correlation2 = bytecast(data(idx+17), 'L', 'uint8');
+  sect.Correlation3 = bytecast(data(idx+18), 'L', 'uint8');
+  sect.Correlation4 = bytecast(data(idx+19), 'L', 'uint8');
   % bytes 20-39 are spare
   sect.Checksum     = bytecast(data(idx+40:idx+41), 'L', 'uint16');
 end
@@ -411,22 +411,24 @@ function [sect len off] = readVectorVelocity(data, idx)
   
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
-  sect.Analn2LSB   = data(idx+2);
-  sect.Count       = data(idx+3);
-  sect.PressureMSB = data(idx+4);
-  sect.Analn2MSB   = data(idx+5);
-  block            = bytecast(data(idx+6:idx+15), 'L', 'uint16');
+  sect.Analn2LSB   = bytecast(data(idx+2), 'L', 'uint8');
+  sect.Count       = bytecast(data(idx+3), 'L', 'uint8');
+  sect.PressureMSB = bytecast(data(idx+4), 'L', 'uint8');
+  sect.Analn2MSB   = bytecast(data(idx+5), 'L', 'uint8');
+  block            = bytecast(data(idx+6:idx+9), 'L', 'uint16');
   sect.PressureLSW = block(1);
   sect.Analn1      = block(2);
-  sect.VelB1       = block(3);
-  sect.VelB2       = block(4);
-  sect.VelB3       = block(5);
-  sect.AmpB1       = data(idx+16);
-  sect.AmpB2       = data(idx+17);
-  sect.AmpB3       = data(idx+18);
-  sect.CorrB1      = data(idx+19);
-  sect.CorrB2      = data(idx+20);
-  sect.CorrB3      = data(idx+21);
+  % !!! velocities can be negative
+  block            = bytecast(data(idx+10:idx+15), 'L', 'int16');
+  sect.VelB1       = block(1);
+  sect.VelB2       = block(2);
+  sect.VelB3       = block(3);
+  sect.AmpB1       = bytecast(data(idx+16), 'L', 'uint8');
+  sect.AmpB2       = bytecast(data(idx+17), 'L', 'uint8');
+  sect.AmpB3       = bytecast(data(idx+18), 'L', 'uint8');
+  sect.CorrB1      = bytecast(data(idx+19), 'L', 'uint8');
+  sect.CorrB2      = bytecast(data(idx+20), 'L', 'uint8');
+  sect.CorrB3      = bytecast(data(idx+21), 'L', 'uint8');
   sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16');
 end
 
@@ -443,7 +445,7 @@ function [sect len off] = readVectorSystem(data, idx)
   sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
   sect.Time        = readClockData(data, idx+4);
   % !!! Heading, pitch and roll can be negative
-  block            = bytecast(data(idx+10:idx+19), 'L', 'int16');
+  block            = bytecast(data(idx+10:idx+21), 'L', 'int16');
   sect.Battery     = block(1);
   sect.SoundSpeed  = block(2);
   sect.Heading     = block(3);
@@ -480,7 +482,7 @@ function [sect len off] = readAquadoppProfilerVelocity(data, idx)
   sect.Pitch       = block(6);
   sect.Roll        = block(7);
   
-  sect.PressureMSB = data(idx+24);
+  sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8');
   sect.Status      = data(idx+25);
   block            = bytecast(data(idx+26:idx+29), 'L', 'uint16');
   sect.PressureLSW = block(1);
@@ -488,7 +490,7 @@ function [sect len off] = readAquadoppProfilerVelocity(data, idx)
   
   % calculate number of cells from structure size 
   % (* 2 because size is specified in 16 bit words)
-  nCells = floor(((sect.Size) * 2 - 32) / 9);
+  nCells = floor(((sect.Size) * 2 - (30+2)) / (3*2 + 3));
   
   % offsets for each velocity/amplitude section
   vel1Off = idx+30;
@@ -536,15 +538,15 @@ function [sect len off] = readHRAquadoppProfile(data, idx)
   sect.Heading      = block(5);
   sect.Pitch        = block(6);
   sect.Roll         = block(7);
-  sect.PressureMSB  = data(idx+24);
+  sect.PressureMSB  = bytecast(data(idx+24), 'L', 'uint8');
   % byte 25 is a fill byte
   block             = bytecast(data(idx+26:idx+33), 'L', 'uint16');
   sect.PressureLSW  = block(1);
   sect.Temperature  = block(2);
   sect.Analn1       = block(3);
   sect.Analn2_2     = block(4);
-  sect.Beams        = data(idx+34);
-  sect.Cells        = data(idx+35);
+  sect.Beams        = bytecast(data(idx+34), 'L', 'uint8');
+  sect.Cells        = bytecast(data(idx+35), 'L', 'uint8');
   sect.VelLag2      = bytecast(data(idx+36:idx+41), 'L', 'uint16');
   block             = bytecast(data(idx+42:idx+47), 'L', 'uint8');
   sect.AmpLag2      = block(1:3);
@@ -563,9 +565,9 @@ function [sect len off] = readHRAquadoppProfile(data, idx)
     
     sOff = velOff + (k-1) * (sect.Cells * 2);
     eOff = sOff + (sect.Cells * 2)-1;
-    
+    % !!! velocity can be negative
     sect.(['Vel' num2str(k)]) = ...
-      bytecast(data(sOff:eOff), 'L', 'uint16');
+      bytecast(data(sOff:eOff), 'L', 'int16');
   end
   
   % amplitude data
@@ -614,7 +616,7 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
   sect.Heading     = block(5);
   sect.Pitch       = block(6);
   sect.Roll        = block(7);
-  sect.PressureMSB = data(idx+24);
+  sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8');
   sect.Status      = data(idx+25);
   block            = bytecast(data(idx+ 26:idx+29), 'L', 'uint16');
   sect.PressureLSW = block(1);
@@ -623,7 +625,7 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
   
   % calculate number of cells from structure size
   % (size is in 16 bit words)
-  nCells = floor(((sect.Size) * 2 - 120) / 9);
+  nCells = floor(((sect.Size) * 2 - (118 + 2)) / (3*2 + 3));
   
   vel1Off = idx+118;
   vel2Off = vel1Off + nCells*2;
@@ -687,33 +689,33 @@ function [sect len off] = readVectrinoVelocityHeader(data, idx)
   sect.DistQuality  = block(3);
   sect.Lag1         = block(4);
   sect.Lag2         = block(5);
-  sect.Noise1       = data(idx+12);
-  sect.Noise2       = data(idx+13);
-  sect.Noise3       = data(idx+14);
-  sect.Noise4       = data(idx+15);
-  sect.Correlation1 = data(idx+16);
-  sect.Correlation2 = data(idx+17);
-  sect.Correlation3 = data(idx+18);
-  sect.Correlation4 = data(idx+19);
+  sect.Noise1       = bytecast(data(idx+12), 'L', 'uint8');
+  sect.Noise2       = bytecast(data(idx+13), 'L', 'uint8');
+  sect.Noise3       = bytecast(data(idx+14), 'L', 'uint8');
+  sect.Noise4       = bytecast(data(idx+15), 'L', 'uint8');
+  sect.Correlation1 = bytecast(data(idx+16), 'L', 'uint8');
+  sect.Correlation2 = bytecast(data(idx+17), 'L', 'uint8');
+  sect.Correlation3 = bytecast(data(idx+18), 'L', 'uint8');
+  sect.Correlation4 = bytecast(data(idx+19), 'L', 'uint8');
   block             = bytecast(data(idx+20:idx+23), 'L', 'uint16');
   sect.Temperature  = block(1);
   sect.SoundSpeed   = block(2);
-  sect.AmpZ01       = data(idx+24);
-  sect.AmpZ02       = data(idx+25);
-  sect.AmpZ03       = data(idx+26);
-  sect.AmpZ04       = data(idx+27);
-  sect.AmpX11       = data(idx+28);
-  sect.AmpX12       = data(idx+29);
-  sect.AmpX13       = data(idx+30);
-  sect.AmpX14       = data(idx+31);
-  sect.AmpZ0PLag11  = data(idx+32);
-  sect.AmpZ0PLag12  = data(idx+33);
-  sect.AmpZ0PLag13  = data(idx+34);
-  sect.AmpZ0PLag14  = data(idx+35);
-  sect.AmpZ0PLag21  = data(idx+36);
-  sect.AmpZ0PLag22  = data(idx+37);
-  sect.AmpZ0PLag23  = data(idx+38);
-  sect.AmpZ0PLag24  = data(idx+39);
+  sect.AmpZ01       = bytecast(data(idx+24), 'L', 'uint8');
+  sect.AmpZ02       = bytecast(data(idx+25), 'L', 'uint8');
+  sect.AmpZ03       = bytecast(data(idx+26), 'L', 'uint8');
+  sect.AmpZ04       = bytecast(data(idx+27), 'L', 'uint8');
+  sect.AmpX11       = bytecast(data(idx+28), 'L', 'uint8');
+  sect.AmpX12       = bytecast(data(idx+29), 'L', 'uint8');
+  sect.AmpX13       = bytecast(data(idx+30), 'L', 'uint8');
+  sect.AmpX14       = bytecast(data(idx+31), 'L', 'uint8');
+  sect.AmpZ0PLag11  = bytecast(data(idx+32), 'L', 'uint8');
+  sect.AmpZ0PLag12  = bytecast(data(idx+33), 'L', 'uint8');
+  sect.AmpZ0PLag13  = bytecast(data(idx+34), 'L', 'uint8');
+  sect.AmpZ0PLag14  = bytecast(data(idx+35), 'L', 'uint8');
+  sect.AmpZ0PLag21  = bytecast(data(idx+36), 'L', 'uint8');
+  sect.AmpZ0PLag22  = bytecast(data(idx+37), 'L', 'uint8');
+  sect.AmpZ0PLag23  = bytecast(data(idx+38), 'L', 'uint8');
+  sect.AmpZ0PLag24  = bytecast(data(idx+39), 'L', 'uint8');
   sect.Checksum     = bytecast(data(idx+40:idx+41), 'L', 'uint16');
 end
 
@@ -734,7 +736,7 @@ function [sect len off] = readVectrinoVelocity(data, idx)
   nBeams = bitor(sect.Status, 3) + 1;
   nCells = bitor(bitshift(sect.Status, 2), 7) + 1;
   
-  len = 6 + 16*nCells;
+  len = 4 + (4*2 + 4 + 4)*nCells + 2;
   sect.Size = len;
   off = len;
   
@@ -748,9 +750,9 @@ function [sect len off] = readVectrinoVelocity(data, idx)
     
     sOff = velOff + (k-1) * (nCells * 2);
     eOff = sOff + (nCells * 2) - 1;
-    
+    % !!! Velocity can be negative
     sect.(['Vel' num2str(k)]) = ...
-      bytecast(data(sOff:eOff), 'L', 'uint16');
+      bytecast(data(sOff:eOff), 'L', 'int16');
   end
   
   % amplitude
