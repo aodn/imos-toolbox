@@ -87,12 +87,12 @@ function sample_data = readWQMraw( filename )
   params{end+1} = {'temperature',     {'TEMP', ''}};
   params{end+1} = {'pressure',        {'PRES_REL', ''}};
   params{end+1} = {'salinity',        {'PSAL', ''}};
-  params{end+1} = {'DO(mg/l)',        {'DOXY', ''}};
-  params{end+1} = {'DO(mmol/m^3)',    {'DOX1', ''}};
-  params{end+1} = {'oxygen',          {'DOX2', ''}};
+  params{end+1} = {'DO(mg/l)',        {'DOX1_3', ''}};
+  params{end+1} = {'DO(mmol/m^3)',    {'DOX1_1', ''}};
+  params{end+1} = {'oxygen',          {'DOX1_2', ''}};
   params{end+1} = {'fluorescence',    {'FLU2', ''}};
-  params{end+1} = {'F-Cal-CHL(ug/l)', {'CHLF', 'Factory coefficient'}};
-  params{end+1} = {'U-Cal-CHL(ug/l)', {'CHLU', 'User coefficient'}};
+  params{end+1} = {'F_Cal_CHL',       {'CHLF', 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements using factory calibration coefficient. Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
+  params{end+1} = {'U_Cal_CHL',       {'CHLU', 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements using user calibration coefficient. Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
   params{end+1} = {'backscatterance', {'TURB', ''}};
   % CJ where is PAR?? 
  % params{end+1} = {'PAR',             {'PAR', ''}};
@@ -155,9 +155,9 @@ function sample_data = readWQMraw( filename )
   sample_data.dimensions{3}.data = NaN;
 
   % create a variables struct in sample_data for each field in the file
-  % start index at 4 to skip serial, date and time
+  isUmolPerL = false;
   
-  varlabel=wqmdata.varlabel;
+  varlabel = wqmdata.varlabel;
   for k = 1:length(varlabel)
 
     [name comment] = getParamDetails(varlabel{k}, params);  
@@ -170,42 +170,35 @@ function sample_data = readWQMraw( filename )
         
         % WQM provides conductivity in S/m; exactly like we want it to be!
         
-        % convert dissolved oxygen in mg/L to kg/m^3.
+        % convert dissolved oxygen in mg/L to umol/l.
         case 'DO(mg/l)'
-            data = data / 1000.0;
+            data = data * 31.25;
+            comment = 'Originally expressed in mg/l, 1mg/l = 31.25umol/l was assumed.';
+            isUmolPerL = true;
         
-        % convert dissolved oxygen in mmol/m^3 to mol/m^3
+        % WQM can provide Dissolved Oxygen in mmol/m3,
+        % hopefully 1 mmol/m3 = 1 umol/l
+        % exactly like we want it to be!
         case 'DO(mmol/m^3)'
-            data = data / 1000.0;
+            comment = 'Originally expressed in mmol/m3, 1l = 0.001m3 was assumed.';
+            isUmolPerL = true;
             
-        % convert dissolved oxygen in ml/l to mol/kg
+        % convert dissolved oxygen in ml/l to umol/l
         case 'oxygen'
+            comment = 'Originally expressed in ml/l, 1ml/l = 44.660umol/l was assumed.';
+            isUmolPerL = true;
             
-            % to perform this conversion, we need to calculate the
-            % density of sea water; for this, we need temperature,
-            % salinity, and pressure data to be present
-            temp = wqmdata.temperature;
-            pres = wqmdata.pressure;
-            psal = wqmdata.salinity;
+            % ml/l -> umol/l
+            %
+            % Conversion factors from Saunders (1986) :
+            % https://darchive.mblwhoilibrary.org/bitstream/handle/1912/68/WHOI-89-23.pdf?sequence=3
+            % 1ml/l = 43.57 umol/kg (with dens = 1.025 kg/l)
+            % 1ml/l = 44.660 umol/l
             
-            % calculate density from salinity, temperature and pressure
-            dens = sw_dens(psal, temp, pres);
+            data = data .* 44.660;
             
-            % ml/l -> mol/kg
-            %
-            %   % kg/m^3 -> gm/cm^3
-            %   dens = dens ./ 1000.0;
-            %
-            %   % ml/l ->umol/kg
-            %   data = data .* (44.6596 ./ dens);
-            %
-            %   % umol/kg -> mol/kg
-            %   data = data ./ 1000000.0;
-            %
-            data = data .* (0.0446596 ./ dens);
-            
-        % WQM provides chlorophyll in ug/L; we need it in mg/m^3, 
-        % hopefully it is equivalent.
+            % WQM provides chlorophyll in ug/L; we need it in mg/m^3,
+            % hopefully it is equivalent.
             
         case 'PAR'
             % don't seem to know what to do with PAR yet
@@ -229,6 +222,66 @@ function sample_data = readWQMraw( filename )
   % remove empty entries (could occur if DO(ml/l) data is 
   % present, but temp/pressure/salinity data is not)
   sample_data.variables(cellfun(@isempty, sample_data.variables)) = [];
+  
+  % Let's add a new parameter
+  if isUmolPerL
+      data = getVar(sample_data.variables, 'DOX1_1');
+      comment = ['Originally expressed in mmol/m3, assuming 1l = 0.001m3 '...
+          'and using density computed from Temperature, Salinity and Pressure '...
+          'using the Seawater toolbox.'];
+      if data == 0
+          data = getVar(sample_data.variables, 'DOX1_2');
+          comment = ['Originally expressed in ml/l, assuming 1ml/l = 44.660umol/l '...
+          'and using density computed from Temperature, Salinity and Pressure '...
+          'using the Seawater toolbox.'];
+          if data == 0
+              data = getVar(sample_data.variables, 'DOX1_3');
+              comment = ['Originally expressed in mg/l, 1mg/l = 31.25umol/l '...
+                  'and using density computed from Temperature, Salinity and Pressure '...
+                  'using the Seawater toolbox.'];
+          end
+      end
+      data = sample_data.variables{data};
+      data = data.data;
+      name = 'DOX2';
+      
+      % umol/l -> umol/kg
+      %
+      % to perform this conversion, we need to calculate the
+      % density of sea water; for this, we need temperature,
+      % salinity, and pressure data to be present
+      temp = getVar(sample_data.variables, 'TEMP');
+      pres = getVar(sample_data.variables, 'PRES_REL');
+      psal = getVar(sample_data.variables, 'PSAL');
+      cndc = getVar(sample_data.variables, 'CNDC');
+      
+      % if any of this data isn't present,
+      % we can't perform the conversion to umol/kg
+      if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
+          temp = sample_data.variables{temp};
+          pres = sample_data.variables{pres};
+          if psal ~= 0
+              psal = sample_data.variables{psal};
+          else
+              cndc = sample_data.variables{cndc};
+              % conductivity is in S/m and sw_c3515 in mS/cm
+              crat = 10*cndc.data ./ sw_c3515;
+              
+              psal.data = sw_salt(crat, temp.data, pres.data);
+          end
+          
+          % calculate density from salinity, temperature and pressure
+          dens = sw_dens(psal.data, temp.data, pres.data);
+          
+          % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
+          data = data .* 1000.0 ./ dens;
+          
+          sample_data.variables{end+1}.dimensions           = [1 2 3];
+          sample_data.variables{end}.comment                = comment;
+          sample_data.variables{end}.name                   = name;
+          sample_data.variables{end}.data                   = data;
+      end
+  end
 end
 
 function [name comment] = getParamDetails(field, params)
@@ -341,7 +394,7 @@ fclose(fid);
 WQM.instrument='Wetlabs WQM';
 
 WQM.samp_units='datenumber';
-WQM.varlabel={'conductivity','temperature','pressure','salinity','oxygen','fluorescence','backscatterance'};
+WQM.varlabel={'conductivity','temperature','pressure','salinity','oxygen','U_Cal_CHL','backscatterance'};
 WQM.varunits={'S/m','C','dbar','PSU','ml/l','ug/l','NTU'};
 
 
@@ -443,7 +496,7 @@ NTU.offset=ntu{3};
 
 fluor=A(:,5);
 turb=A(:,6);
-WQM.fluorescence=FLNTUcal(fluor,CHL);
+WQM.U_Cal_CHL=FLNTUcal(fluor,CHL);
 WQM.backscatterance=FLNTUcal(turb,NTU);
 
 % Store calibration coefficients in meta data
@@ -521,7 +574,7 @@ oxsat=sw_satO2(S,T);
 
 O2=P1.*P2.*oxsat.*P3;
 % is 30000 a bad flag can't tell but O2 is bad if freq sticks
-O2(freq==30000)=0;
+O2(freq==30000)=NaN;
 end
 
 function PAR=PARcal(freq,Cal)

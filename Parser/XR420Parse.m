@@ -114,7 +114,9 @@ function sample_data = XR420Parse( filename )
           %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
           case 'FlCa'
               name = 'CPHL';
-              comment = 'Originally expressed in ug/l, 1l = 0.001m3 was assumed.';
+              comment = ['Artificial chlorophyll data '...
+            'computed from bio-optical sensor raw counts fluorometry. '...
+            'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'];
       end
     
       sample_data.variables{k}.name       = name;

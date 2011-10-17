@@ -214,11 +214,11 @@ data = textscan(data, format, 'Delimiter', delims);
 
 % if the file contains timestamps, use them
 if ~isempty(timeIdx)
-    time = datenum(data{6},data{5},data{4},data{1},data{2},data{3});
-    
+    time = datenum(data{6}, data{5}, data{4}, data{1}, data{2}, data{3});
+else
     % otherwise generate timestamps from
     % the start time and sample interval
-else time = startTime:sampleInterval:stopTime;
+    time = startTime:sampleInterval:stopTime;
 end
 
 % get temperature if present

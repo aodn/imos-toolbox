@@ -203,7 +203,7 @@ function filename = exportNetCDF( sample_data, dest )
       % replace NaN's with fill value
       data(isnan(data)) = dims{m}.FillValue_;
       
-      netcdf.putVar(fid, vid, data');
+      netcdf.putVar(fid, vid, data);
       
       % ancillary QC variable data
       data    = dims{m}.flags;

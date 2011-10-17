@@ -285,6 +285,7 @@ error(nargchk(1,1,nargin));
   sample_data.variables{11}.data       = temperature;
   sample_data.variables{12}.data       = pressure;
   sample_data.variables{12}.applied_offset = -10.1325;
+  
   sample_data.variables{13}.data       = salinity;
   sample_data.variables{14}.data       = correlation1;
   sample_data.variables{15}.data       = correlation2;

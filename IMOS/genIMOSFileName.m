@@ -16,6 +16,7 @@ function filename = genIMOSFileName( sample_data, suffix )
 %
 % Author: 		Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor: 	Brad Morris <b.morris@unsw.edu.au>
+%               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -134,7 +135,7 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   
   % <product_type>
   config.product_type  = [...
-    sample_data.meta.site_name '-' ...
+%     sample_data.meta.site_name '-' ...
     sample_data.meta.instrument_model    '-' ...
     num2str(sample_data.meta.depth)
   ];

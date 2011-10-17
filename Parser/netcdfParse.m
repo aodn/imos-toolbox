@@ -9,8 +9,9 @@ function sample_data = netcdfParse( filename )
 % Outputs:
 %   sample_data - struct containing the imported data set.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor : Laurent Besnard <laurent.besnard@utas.edu.au>
+%               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
@@ -113,7 +114,7 @@ function sample_data = netcdfParse( filename )
       
       k = k + 1;
       
-      % skip coordinate variables - they have 
+      % skip dimensions - they have 
       % already been added as dimensions
       if getVar(dimensions, v.name) ~= 0, continue; end
       
@@ -134,6 +135,8 @@ function sample_data = netcdfParse( filename )
   catch e
   end
   
+  netcdf.close(ncid);
+  
   % add QC flags to dimensions
   for k = 1:length(dimensions)
     
@@ -149,8 +152,6 @@ function sample_data = netcdfParse( filename )
     if idx == 0, continue; end
     variables{k}.flags = qcVars{idx}.data;
   end
-  
-  netcdf.close(ncid);
   
   % offset time dimension - IMOS files store date as 
   % days since 1950; matlab stores as days since 0000
@@ -204,10 +205,12 @@ function v = readVar(ncid, varid)
   v.data       = netcdf.getVar(ncid, varid);
   
   % multi-dimensional data must be transformed, as matlab-netcdf api 
-  % requires fastest changing dimension first, but toolbox requires
-  % slowest changing dimension first
+  % reverse dimensions order in variable when reading
   nDims = length(v.dimensions);
-  if nDims > 1, v.data = permute(v.data, nDims:-1:1); end
+  if nDims > 1
+      v.dimensions = fliplr(v.dimensions);
+      v.data = permute(v.data, nDims:-1:1); 
+  end
 
   % get variable attributes
   atts = readAtts(ncid, varid);

@@ -86,6 +86,8 @@ backscatter3 = zeros(nsamples, ncells);
 % calculate depth values from metadata. See continentalParse.m 
 % inline comments for a brief discussion of this process
 %
+% http://www.nortek-as.com/en/knowledge-center/forum/hr-profilers/736804717
+%
 freq       = head.Frequency; % this is in KHz
 cellStart  = user.T2;        % counts
 cellLength = user.BinLength; % counts
@@ -135,7 +137,7 @@ end
 % pressure    / 1000.0 (mm       -> m)   assuming equivalence to dbar
 % temperature / 100.0  (0.01 deg -> deg)
 % velocities  / 1000.0 (mm/s     -> m/s) assuming earth coordinates
-% backscatter * 0.45   (counts   -> dB)
+% backscatter * 0.45   (counts   -> dB)  see http://www.nortek-as.com/lib/technical-notes/seditments
 battery      = battery      / 10.0;
 heading      = heading      / 10.0;
 pitch        = pitch        / 10.0;
