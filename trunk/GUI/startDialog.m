@@ -53,7 +53,7 @@ function [fieldTrip dataDir] = startDialog()
   dataDir     = pwd;
   fieldTripId = '1';
   lowDate     = 0;
-  highDate    = now;
+  highDate    = now_utc;
   dateFmt     = readProperty('toolbox.dateFormat');
     
   % if default values exist for data dir and field trip, use them
@@ -66,7 +66,7 @@ function [fieldTrip dataDir] = startDialog()
   end
 
   if isnan(lowDate),  lowDate  = 0;   end
-  if isnan(highDate), highDate = now; end
+  if isnan(highDate), highDate = now_utc; end
 
   % retrieve all field trip IDs; they are displayed as a drop down menu
   fieldTrips = executeDDBQuery('FieldTrip', [], []);
