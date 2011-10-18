@@ -169,23 +169,35 @@ function sample_data = timeOffsetPP(sample_data, auto)
   
   % apply the time offset to the selected datasets
   for k = 1:length(sample_data)
-    
-    % this set has been deselected
-    if ~sets(k), continue; end
-    
-    timeIdx = getVar(sample_data{k}.dimensions, 'TIME');
-    
-    % no time dimension in this dataset
-    if timeIdx == 0, continue; end
-    
-    % otherwise apply the offset
-    sample_data{k}.dimensions{timeIdx}.data = ...
-      sample_data{k}.dimensions{timeIdx}.data + (offsets(k) / 24);
-    sample_data{k}.time_coverage_start = ...
-      sample_data{k}.time_coverage_start      + (offsets(k) / 24);
-    sample_data{k}.time_coverage_end   = ...
-      sample_data{k}.time_coverage_end        + (offsets(k) / 24);
-    
+      
+      % this set has been deselected
+      if ~sets(k), continue; end
+      
+      timeIdx = getVar(sample_data{k}.dimensions, 'TIME');
+      
+      % no time dimension in this dataset
+      if timeIdx == 0, continue; end
+      
+      signOffset = sign(offsets(k));
+      if signOffset >= 0
+          signOffset = '+';
+      else
+          signOffset = '-';
+      end
+      
+      timeOffsetComment = ['timeOffsetPP: TIME dimension and time_coverage_start/end global attributes have been '...
+          'applied the following offset : ' signOffset num2str(abs(offsets(k))) ' hours .'];
+      
+      % otherwise apply the offset
+      sample_data{k}.dimensions{timeIdx}.data = ...
+          sample_data{k}.dimensions{timeIdx}.data + (offsets(k) / 24);
+      sample_data{k}.dimensions{timeIdx}.comment = timeOffsetComment;
+      sample_data{k}.time_coverage_start = ...
+          sample_data{k}.time_coverage_start      + (offsets(k) / 24);
+      sample_data{k}.time_coverage_end   = ...
+          sample_data{k}.time_coverage_end        + (offsets(k) / 24);
+      
+      
   end
   
   function keyPressCallback(source,ev)

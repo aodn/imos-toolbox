@@ -67,7 +67,7 @@ rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
 sample_data.dimensions             = {};
 sample_data.dimensions{1}.name     = 'TIME';
-startDate                          = now;
+startDate                          = now_utc;
 sample_data.dimensions{1}.data     = (startDate:startDate+nsamples-1)';
 
 sample_data.dimensions{1}. ...
@@ -83,7 +83,7 @@ sample_data.meta.instrument_serial_no = '6079';
 sample_data.quality_control_set  = qcSet;
 sample_data.time_coverage_start  = startDate + in_water_time  - 1;
 sample_data.time_coverage_end    = startDate + out_water_time - 1;
-sample_data.date_created         = now;
+sample_data.date_created         = now_utc;
 
 % add arbitrary deployment info
 trip = executeDDBQuery('FieldTrip', 'FieldTripID', 4814);

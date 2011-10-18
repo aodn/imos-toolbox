@@ -3,7 +3,7 @@ S, project                      = Integrated Marine Observing System (IMOS)
 S, conventions                  = IMOS version 1.3
 S, title                        = 
 S, institution                  = 
-D, date_created                 = [mat now]
+D, date_created                 = [mat now_utc]
 D, date_modified                = 
 S, abstract                     = [ddb Site Sites Description]
 S, comment                      = [ddb Comment]
@@ -14,6 +14,7 @@ S, netcdf_version               = 3.6
 N, quality_control_set          = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
 S, site_code                    = 
 S, platform_code                = 
+S, station_code                 = 
 S, naming_authority             = IMOS
 S, cdm_data_type                = 
 S, metadata                     = 
@@ -36,8 +37,8 @@ N, geospatial_lon_max      = [ddb Site Sites Longitude]
 N, geospatial_vertical_min = 
 N, geospatial_vertical_max = 
 N, sensor_height           = 
-N, target_depth            = [ddb InstrumentDepth]
-N, nominal_site_depth      = [ddb Site Sites Depth]
+N, target_depth            = 
+N, nominal_site_depth      = 
 
 % when
 N, local_time_zone     = 
