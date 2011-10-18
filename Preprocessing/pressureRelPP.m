@@ -185,10 +185,17 @@ for k = 1:lenSam
     
     computedPresRel = sam.variables{presIdx}.data + offsets(k);
     
+    signOffset = sign(offsets(k));
+    if signOffset >= 0
+        signOffset = '+';
+    else
+        signOffset = '-';
+    end
+      
     % add PRES_REL data as new variable in data set
     dimensions = sam.variables{presIdx}.dimensions;
     computedPresRelComment = ['pressureRelPP: PRES_REL computed from PRES '...
-        'applying the following offset : ' num2str(offsets(k)) ' .'];
+        'applying the following offset : ' signOffset num2str(abs(offsets(k))) ' .'];
     
     sample_data{k} = addVar(...
         sam, ...
