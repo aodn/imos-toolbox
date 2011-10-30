@@ -1,0 +1,10 @@
+# dateMin is used as the minimum acceptable date associated to a data.
+# Any time < dateMin will be flagged (for example, in IMOS, no WQM moorings 
+# were deployed before 2008).
+# Format 'dd/mm/yyyy' must be used.
+dateMin = 01/01/2007
+
+# dateMin is used as the minimum acceptable date associated to a data. = 
+# Any time < dateMin will be flagged (for example, in IMOS, no WQM moorings = 
+# were deployed before 2008). = 
+# Format 'dd/mm/yyyy' must be used. = 

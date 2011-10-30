@@ -64,7 +64,7 @@ for k = 1:lenSam
     descs{k}    = genSampleDataDesc(sample_data{k});
     sources{k}  = [];
     if isfield(sample_data{k}.meta, 'timezone')
-        sources{k}  = sample_data{k}.source;
+        sources{k}  = sample_data{k}.instrument;
     end
     
     % if data set already contains PRES_REL data then next sample data

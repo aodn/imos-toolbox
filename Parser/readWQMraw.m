@@ -143,7 +143,25 @@ function sample_data = readWQMraw( filename )
   
   time(invalid) = [];
   
-  sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+  % Let's find each start of bursts
+  dt = [0; diff(time)];
+  iBurst = [1; find(dt>(1/24/60)); length(time)+1];
+  
+  % let's read data burst by burst
+  nBurst = length(iBurst)-1;
+  firstTimeBurst = zeros(nBurst, 1);
+  sampleIntervalInBurst = zeros(nBurst, 1);
+  durationBurst = zeros(nBurst, 1);
+  for i=1:nBurst
+      timeBurst = time(iBurst(i):iBurst(i+1)-1);
+      sampleIntervalInBurst(i) = median(diff(timeBurst*24*3600));
+      firstTimeBurst(i) = timeBurst(1);
+      durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600;
+  end
+  
+  sample_data.meta.instrument_sample_interval   = round(median(sampleIntervalInBurst));
+  sample_data.meta.instrument_burst_interval    = round(median(diff(firstTimeBurst*24*3600)));
+  sample_data.meta.instrument_burst_duration    = round(median(durationBurst));
   
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant
@@ -172,8 +190,8 @@ function sample_data = readWQMraw( filename )
         
         % convert dissolved oxygen in mg/L to umol/l.
         case 'DO(mg/l)'
-            data = data * 31.25;
-            comment = 'Originally expressed in mg/l, 1mg/l = 31.25umol/l was assumed.';
+            data = data * 44.660/1.429; % O2 density = 1.429kg/m3
+            comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
             isUmolPerL = true;
         
         % WQM can provide Dissolved Oxygen in mmol/m3,
@@ -228,17 +246,17 @@ function sample_data = readWQMraw( filename )
       data = getVar(sample_data.variables, 'DOX1_1');
       comment = ['Originally expressed in mmol/m3, assuming 1l = 0.001m3 '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'using the Seawater toolbox.'];
+          'with the Seawater toolbox.'];
       if data == 0
           data = getVar(sample_data.variables, 'DOX1_2');
           comment = ['Originally expressed in ml/l, assuming 1ml/l = 44.660umol/l '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'using the Seawater toolbox.'];
+          'with the Seawater toolbox.'];
           if data == 0
               data = getVar(sample_data.variables, 'DOX1_3');
-              comment = ['Originally expressed in mg/l, 1mg/l = 31.25umol/l '...
+              comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
                   'and using density computed from Temperature, Salinity and Pressure '...
-                  'using the Seawater toolbox.'];
+                  'with the Seawater toolbox.'];
           end
       end
       data = sample_data.variables{data};

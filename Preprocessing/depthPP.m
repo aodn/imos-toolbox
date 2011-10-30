@@ -106,14 +106,14 @@ for k = 1:length(sample_data)
                 end
                 
                 if l == k || isempty(curSensorZ), continue; end
-                curSource = textscan(curSam.source, '%s');
+                curSource = textscan(curSam.instrument, '%s');
                 curSource = curSource{1};
                 presCurIdx      = getVar(curSam.variables, 'PRES');
                 presRelCurIdx   = getVar(curSam.variables, 'PRES_REL');
                 
                 p=0;
                 for n = 1:length(curSource)
-                    if ~isempty(strfind(sam.source, curSource{n}))
+                    if ~isempty(strfind(sam.instrument, curSource{n}))
                         p = p+1;
                     end
                 end

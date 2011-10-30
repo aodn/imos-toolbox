@@ -74,8 +74,8 @@ function filename = genIMOSFileName( sample_data, suffix )
   filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
   
   % sanity check - ensure that file name contains 
-  % only alpha numeric, hyphens and underscores
-  filename(regexp(filename, '[^0-9a-zA-Z_-]')) = '-';
+  % only alpha numeric, hyphens, underscores and dots
+  filename(regexp(filename, '[^0-9a-zA-Z_-.]')) = '-';
   %BDM 24/02/2010 - Quick fix to get rid of multiple '-'
   while ~isempty(strfind(filename,'--'))
     filename=strrep(filename,'--','-');
@@ -129,13 +129,17 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   end
   
   % <start_date>, <platform_code>, <file_version>
-  config.start_date    = datestr(sample_data.time_coverage_start, dateFmt);
+  if isempty(sample_data.time_deployment_start)
+      config.start_date    = datestr(sample_data.time_coverage_start, dateFmt);
+  else
+      config.start_date    = datestr(sample_data.time_deployment_start, dateFmt);
+  end
   config.platform_code = sample_data.platform_code;
   config.file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
   
   % <product_type>
   config.product_type  = [...
-%     sample_data.meta.site_name '-' ...
+    sample_data.meta.site_id '-' ...
     sample_data.meta.instrument_model    '-' ...
     num2str(sample_data.meta.depth)
   ];
@@ -145,7 +149,11 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   config.product_type(config.product_type == '_') = '-';
   
   % <end_date>, <creation_date>
-  config.end_date      = datestr(sample_data.time_coverage_end,   dateFmt);
+  if isnan(sample_data.time_deployment_end)
+      config.end_date    = datestr(sample_data.time_coverage_end, dateFmt);
+  else
+      config.end_date    = datestr(sample_data.time_deployment_end, dateFmt);
+  end
   config.creation_date = datestr(sample_data.date_created,        dateFmt);
 end
 

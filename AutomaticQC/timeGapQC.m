@@ -1,4 +1,4 @@
-function [data flags log] = timeGapQC( sample_data, data, k, auto )
+function [data flags log] = timeGapQC( sample_data, data, k, type, auto )
 %TIMEGAPQC Flags consecutive samples which have a suspiciously large 
 % temporal difference.
 %
@@ -12,6 +12,8 @@ function [data flags log] = timeGapQC( sample_data, data, k, auto )
 %   data        - the vector of data to check.
 %
 %   k           - Index into the sample_data variables vector.
+%
+%   type        - dimensions/variables type to check in sample_data.
 %
 %   auto        - logical, run QC in batch mode
 %
@@ -55,14 +57,20 @@ function [data flags log] = timeGapQC( sample_data, data, k, auto )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,4,nargin));
+error(nargchk(4,5,nargin));
 
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+if ~ischar(type),                 error('type must be a string');        end
 
 % auto logical in input to enable running under batch processing
-if nargin<4, auto=false; end
+if nargin<5, auto=false; end
+
+log   = {};
+flags   = [];
+
+if ~strcmp(type, 'variables'), return; end
 
 gapsize = str2double(...
   readProperty('gapsize', fullfile('AutomaticQC', 'timeGapQC.txt')));
@@ -74,7 +82,6 @@ gapFlag  = imosQCFlag('discont', qcSet, 'flag');
 dim  = sample_data.dimensions{1}.data;
 lenData = length(dim);
 
-log   = {};
 flags = ones(lenData, 1)*goodFlag;
 
 for k = 2:lenData

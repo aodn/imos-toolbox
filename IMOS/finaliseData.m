@@ -66,11 +66,13 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   sam.meta.raw_data_file = [rawFiles{:}];
   
   if isfield(sam.meta, 'deployment')
-    sam.meta.site_name     = sam.meta.deployment.Site;
+    sam.meta.site_name     = sam.meta.site.SiteName;
+    sam.meta.site_id       = sam.meta.deployment.Site;
     sam.meta.depth         = sam.meta.deployment.InstrumentDepth;
     sam.meta.timezone      = sam.meta.deployment.TimeZone;
   else
     if ~isfield(sam.meta, 'site_name'); sam.meta.site_name  = 'UNKNOWN';  end
+    if ~isfield(sam.meta, 'site_id');   sam.meta.site_id    = 'UNKNOWN';  end
     if ~isfield(sam.meta, 'depth');     sam.meta.depth      = NaN;        end
     if ~isfield(sam.meta, 'timezone');  sam.meta.timezone   = 'UTC';      end
   end
@@ -101,42 +103,44 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   % populate NetCDF metadata from existing metadata/data if empty
   sam = populateMetadata(sam);
   
-  % set the time coverage period - use the best field available
+  % set the time deployment period from the metadata
   if isfield(sam.meta, 'deployment')
-    
-    if ~isempty(sam.meta.deployment.TimeFirstGoodData)
-      sam.time_coverage_start = sam.meta.deployment.TimeFirstGoodData;
-    elseif ~isempty(sam.meta.deployment.TimeFirstInPos)
-      sam.time_coverage_start = sam.meta.deployment.TimeFirstInPos;
-    elseif ~isempty(sam.meta.deployment.TimeFirstWet)
-      sam.time_coverage_start = sam.meta.deployment.TimeFirstWet;
-    elseif ~isempty(sam.meta.deployment.TimeSwitchOn)
-      sam.time_coverage_start = sam.meta.deployment.TimeSwitchOn;
-    end
-
-    if ~isempty(sam.meta.deployment.TimeLastGoodData)
-      sam.time_coverage_end = sam.meta.deployment.TimeLastGoodData;
-    elseif ~isempty(sam.meta.deployment.TimeLastInPos)
-      sam.time_coverage_end = sam.meta.deployment.TimeLastInPos;
-    elseif ~isempty(sam.meta.deployment.TimeOnDeck)
-      sam.time_coverage_end = sam.meta.deployment.TimeOnDeck;
-    elseif ~isempty(sam.meta.deployment.TimeSwitchOff)
-      sam.time_coverage_end = sam.meta.deployment.TimeSwitchOff;
-    end
-  else
-    
-    time = getVar(sam.dimensions, 'TIME');
-    
-    if time ~= 0
+      if ~isempty(sam.meta.deployment.TimeFirstGoodData)
+          sam.time_deployment_start = sam.meta.deployment.TimeFirstGoodData;
+      elseif ~isempty(sam.meta.deployment.TimeFirstInPos)
+          sam.time_deployment_start = sam.meta.deployment.TimeFirstInPos;
+      elseif ~isempty(sam.meta.deployment.TimeFirstWet)
+          sam.time_deployment_start = sam.meta.deployment.TimeFirstWet;
+      elseif ~isempty(sam.meta.deployment.TimeSwitchOn)
+          sam.time_deployment_start = sam.meta.deployment.TimeSwitchOn;
+      end
+      
+      if ~isempty(sam.meta.deployment.TimeLastGoodData)
+          sam.time_deployment_end = sam.meta.deployment.TimeLastGoodData;
+      elseif ~isempty(sam.meta.deployment.TimeLastInPos)
+          sam.time_deployment_end = sam.meta.deployment.TimeLastInPos;
+      elseif ~isempty(sam.meta.deployment.TimeOnDeck)
+          sam.time_deployment_end = sam.meta.deployment.TimeOnDeck;
+      elseif ~isempty(sam.meta.deployment.TimeSwitchOff)
+          sam.time_deployment_end = sam.meta.deployment.TimeSwitchOff;
+      end
+  end
+  
+  if isempty(sam.time_deployment_start), sam.time_deployment_start = []; end
+  if isempty(sam.time_deployment_end),   sam.time_deployment_end   = []; end
+  
+  % set the time coverage period from the data
+  time = getVar(sam.dimensions, 'TIME');
+  if time ~= 0
       if isempty(sam.time_coverage_start),
-        sam.time_coverage_start = sam.dimensions{time}.data(1);
+          sam.time_coverage_start = sam.dimensions{time}.data(1);
       end
       if isempty(sam.time_coverage_end),
-        sam.time_coverage_end   = sam.dimensions{time}.data(end);
+          sam.time_coverage_end   = sam.dimensions{time}.data(end);
       end
-    else
-      if isempty(sam.time_coverage_start), sam.time_coverage_start = 0; end
-      if isempty(sam.time_coverage_end),   sam.time_coverage_end   = 0; end
-    end
+  else
+      if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
+      if isempty(sam.time_coverage_end),   sam.time_coverage_end   = []; end
   end
+  
 end

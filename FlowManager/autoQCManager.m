@@ -244,80 +244,91 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, cancel)
       end
     end
   
-  % otherwise we pass variables one at a time
+  % otherwise we pass dimensions/variables one at a time
   else
-
-    for k = 1:length(sam.variables)
-
-      nFlagged = 0;
-      data  = sam.variables{k}.data;
-      flags = sam.variables{k}.flags;
-      len = length(data);
-      
-      % the QC filters work on single vectors of data; 
-      % we must 'slice' the data up along its dimensions
-      data = data(:);
-      slices = length(data) / len;
-
-      flags = flags(:);
-      nUFlags = zeros(1, 10);
-
-      for m = 1:slices
-
-        % user cancelled
-        if ~isnan(cancel) && getappdata(cancel, 'cancel'), return; end
-
-        slice     = data( len*(m-1)+1:len*(m));
-        flagSlice = flags(len*(m-1)+1:len*(m));
-
-        % log entries and any data changes that the routine generates
-        % are currently discarded; only the flags are retained. 
-        [d f l] = filter(sam, slice, k);
-
-        % Flags are not overwritten - if a later routine flags the same 
-        % value as a previous routine, the latter value is discarded.
-        sliceIdx = flagSlice == rawFlag | flagSlice == goodFlag;
-        goodIdx  = f         == goodFlag;
-        flagIdx  = f         ~= rawFlag & f         ~= goodFlag;
-        goodIdx  = sliceIdx & goodIdx;
-        flagIdx  = sliceIdx & flagIdx;
-
-        % set the flags
-        flagSlice(goodIdx) = f(goodIdx);
-        flagSlice(flagIdx) = f(flagIdx);
-        flags(len*(m-1)+1:len*(m)) = flagSlice;
-
-        % update count (for log entry)
-        nFlagged = nFlagged + sum(flagIdx);
-        
-        uFlags = unique(flagSlice);
-        uFlags(uFlags == rawFlag) = [];
-        uFlags(uFlags == goodFlag) = [];
-
-        for i=1:length(uFlags)
-            uFlagIdx = flagSlice == uFlags(i);
-            uFlagIdx = sliceIdx & uFlagIdx;
-            nUFlags(uFlags(i)) = nUFlags(uFlags(i)) + sum(uFlagIdx);
-        end
-      end
-
-      sam.variables{k}.flags = reshape(flags, size(sam.variables{k}.flags));
-      
-      % add a log entry
-      if nFlagged ~= 0
-
-        flags = unique(flags);
-        flags(flags == rawFlag) = [];
-        flags(flags == goodFlag) = [];
-        qcSet    = str2double(readProperty('toolbox.qc_set'));
-        for i=1:length(flags)
-            flagString = ['"' imosQCFlag(flags(i),  qcSet, 'desc') '"'];
+    % check dimensions first, then variables
+    type{1} = 'dimensions';
+    type{2} = 'variables';
+    for m = 1:length(type)
+        for k = 1:length(sam.(type{m}))
             
-            sam.meta.log{end+1} = [filterName ...
-                ' flagged ' num2str(nUFlags(uFlags(i))) ' ' ...
-                sam.variables{k}.name ' samples with flag ' flagString];
+            data  = sam.(type{m}){k}.data;
+            flags = sam.(type{m}){k}.flags;
+            len = length(data);
+            
+            nUFlags = zeros(1, 10);
+            
+            % user cancelled
+            if ~isnan(cancel) && getappdata(cancel, 'cancel'), return; end
+            
+            % matrix case, we unfold the matrix in one vector
+            isMatrix = ismatrix(data);
+            if isMatrix
+                len1 = size(data, 1);
+                len2 = size(data, 2);
+                data = data(:);
+            end
+            
+            % log entries and any data changes that the routine generates
+            % are currently discarded; only the flags are retained.
+            [d f l] = filter(sam, data, k, type{m}, auto);
+            
+            if isempty(f), continue; end
+            
+            if isMatrix
+                % we fold the vector back into a matrix
+                data = reshape(data, len1, len2);
+                d = reshape(d, len1, len2);
+                f = reshape(f, len1, len2);
+            end
+            
+            % Flags are not overwritten - if a later routine flags the same
+            % value as a previous routine, the latter value is discarded.
+            notBadIdx = flags == rawFlag | flags == goodFlag;
+            goodIdx  = f         == goodFlag;
+            flagIdx  = f         ~= rawFlag & f         ~= goodFlag;
+            goodIdx  = notBadIdx & goodIdx;
+            flagIdx  = notBadIdx & flagIdx;
+            
+            % set the flags
+            flags(goodIdx) = f(goodIdx);
+            flags(flagIdx) = f(flagIdx);
+            
+            % update count (for log entry)
+            uFlags = unique(flags);
+            uFlags(uFlags == rawFlag) = [];
+            uFlags(uFlags == goodFlag) = [];
+            
+            for i=1:length(uFlags)
+                uFlagIdx = flags == uFlags(i);
+                uFlagIdx = notBadIdx & uFlagIdx;
+                if isMatrix
+                    nUFlags(uFlags(i)) = sum(sum(uFlagIdx));
+                else
+                    nUFlags(uFlags(i)) = sum(uFlagIdx);
+                end
+            end
+            
+            sam.(type{m}){k}.flags = flags;
+            
+            % add a log entry
+            qcSet    = str2double(readProperty('toolbox.qc_set'));
+            if isempty(uFlags)
+                % all good
+                flagString = ['"' imosQCFlag(goodFlag,  qcSet, 'desc') '"'];
+                sam.meta.log{end+1} = [filterName ...
+                    ' flagged all ' ...
+                    sam.(type{m}){k}.name ' samples with flag ' flagString];
+            else
+                for i=1:length(uFlags)
+                    flagString = ['"' imosQCFlag(uFlags(i),  qcSet, 'desc') '"'];
+                    
+                    sam.meta.log{end+1} = [filterName ...
+                        ' flagged ' num2str(nUFlags(uFlags(i))) ' ' ...
+                        sam.(type{m}){k}.name ' samples with flag ' flagString];
+                end
+            end
         end
-      end
     end
   end
 end

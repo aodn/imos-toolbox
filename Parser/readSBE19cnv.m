@@ -119,9 +119,9 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader )
           
           % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
           data.DOX2 = data.DOX1 .* 1000.0 ./ dens;
-          comment.DOX2 = ['Originally expressed in mg/l, assuming 1mg/l = 31.25umol/l '...
+          comment.DOX2 = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'using the Seawater toolbox.'];
+          'with the Seawater toolbox.'];
       end
   end
 end
@@ -207,8 +207,8 @@ function [name, data, comment] = convertData(name, data, instHeader)
     % mg/l => umol/l
     case {'oxsolMg0x2FL', 'oxsatMg0x2FL', 'sbeox0Mg0x2FL'}
       name = 'DOX1';
-      data = data .* 31.25;
-      comment = 'Originally expressed in mg/l, 1mg/l = 31.25umol/l was assumed.';
+      data = data .* 44.660/1.429; % O2 density = 1.429kg/m3
+      comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
     
     % oxygen (umol/Kg)
     % umol/Kg
