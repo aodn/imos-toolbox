@@ -9,10 +9,10 @@ function c = sw_satO2(S,T)
 % sw_satO2 $Revision$  $Date$
 %          Copyright (C) CSIRO, Phil Morgan 1998.
 %
-% USAGE:  satO2 = sw_satO2(S,T,P)
+% USAGE:  satO2 = sw_satO2(S,T)
 %
 % DESCRIPTION:
-%    Solubility (satuaration) of Oxygen (O2) in sea water
+%    Solubility (saturation) of Oxygen (O2) in sea water
 %
 % INPUT:  (all must have same dimensions)
 %   S = salinity    [psu      (PSS-78)]

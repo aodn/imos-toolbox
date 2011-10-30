@@ -1,4 +1,4 @@
-function lpf = lowPassFilter (data, alpha, auto)
+function lpf = lowPassFilter (data, alpha)
 %LOWPASSFILTER Simple low pass RC filter.
 %
 % Runs a low pass RC filter over the given data. The filter used is as
@@ -21,7 +21,6 @@ function lpf = lowPassFilter (data, alpha, auto)
 %   lpf   - Filtered data
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 % 
@@ -55,11 +54,8 @@ function lpf = lowPassFilter (data, alpha, auto)
 %
 
 % check mandatory parameters
-error(nargchk(1,3,nargin));
+error(nargchk(1,2,nargin));
 if ~isvector(data), error('data must be a vector'); end
-
-% auto logical in input to enable running under batch processing
-if nargin<3, auto=false; end
 
 % check or set optional alpha parameter
 if nargin == 1

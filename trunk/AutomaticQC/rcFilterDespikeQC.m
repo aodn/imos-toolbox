@@ -1,4 +1,4 @@
-function [data flags log] = rcFilterDespikeQC( sample_data, data, k, auto )
+function [data flags log] = rcFilterDespikeQC( sample_data, data, k, type, auto )
 %RCFILTERDESPIKEQC Uses an RC filter technique to detect spikes in the given
 %data.
 %
@@ -14,6 +14,8 @@ function [data flags log] = rcFilterDespikeQC( sample_data, data, k, auto )
 %   data        - the vector of data to check.
 %
 %   k           - Index into the sample_data.variables vector.
+%
+%   type        - dimensions/variables type to check in sample_data.
 %
 %   auto        - logical, run QC in batch mode
 %
@@ -59,13 +61,19 @@ function [data flags log] = rcFilterDespikeQC( sample_data, data, k, auto )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 4, nargin));
+error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+if ~ischar(type),                 error('type must be a string');        end
 
 % auto logical in input to enable running under batch processing
-if nargin<4, auto=false; end
+if nargin<5, auto=false; end
+
+log   = {};
+flags   = [];
+
+if ~strcmp(type, 'variables'), return; end
 
 k_param = str2double(...
   readProperty('k', fullfile('AutomaticQC', 'rcFilterDespikeQC.txt')));
@@ -78,7 +86,6 @@ qcSet     = str2double(readProperty('toolbox.qc_set'));
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
-log   = {};
 flags = ones(lenData, 1)*goodFlag;
 
 % remove the mean and run a mild high pass filter 

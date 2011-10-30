@@ -64,7 +64,8 @@ function sample_data = netcdfParse( filename )
   globals = readAtts(ncid, netcdf.getConstant('NC_GLOBAL'));
   
   % transform any time attributes into matlab serial dates
-  timeAtts = {'date_created', 'time_coverage_start', 'time_coverage_end'};
+  timeAtts = {'date_created', 'time_coverage_start', 'time_coverage_end', ...
+      'time_deployment_start', 'time_deployment_end'};
   for k = 1:length(timeAtts)
     
     if isfield(globals, timeAtts{k})

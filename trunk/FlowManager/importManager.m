@@ -193,7 +193,7 @@ function [sample_data rawFiles] = ddbImport(auto)
   
   while true
 
-    [fieldTrip deps dataDir] = getDeployments(auto);
+    [fieldTrip deps sits dataDir] = getDeployments(auto);
 
     if isempty(deps), return; end
 
@@ -257,10 +257,12 @@ function [sample_data rawFiles] = ddbImport(auto)
         
         for m = 1:length(sample_data{end})
           sample_data{end}{m}.meta.deployment = deps(k);
+          sample_data{end}{m}.meta.site = sits(k);
         end
         
       else
         sample_data{end}.meta.deployment = deps(k);
+        sample_data{end}.meta.site = sits(k);
       end
     
     % failure is not fatal
@@ -272,7 +274,7 @@ function [sample_data rawFiles] = ddbImport(auto)
   % close progress dialog
   if ~auto, close(progress); end
   
-  function [fieldTrip deployments dataDir] = getDeployments(auto)
+  function [fieldTrip deployments sites dataDir] = getDeployments(auto)
   %GETDEPLOYMENTS Prompts the user for a field trip ID and data directory.
   % Retrieves and returns the field trip, all deployments from the DDB that 
   % are related to the field trip, and the selected data directory.
@@ -286,9 +288,12 @@ function [sample_data rawFiles] = ddbImport(auto)
   %   fieldTrip   - field trip struct - the field trip selected by the user.
   %   deployments - vector of deployment structs related to the selected 
   %                 field trip.
+  %   sites       - vector of site structs related to the selected 
+  %                 field trip.
   %   dataDir     - String containing data directory path selected by user.
   %
-    deployments = [];
+    deployments = struct;
+    sites       = struct;
 
     % prompt the user to select a field trip and 
     % directory which contains raw data files
@@ -311,8 +316,17 @@ function [sample_data rawFiles] = ddbImport(auto)
     fId = fieldTrip.FieldTripID;
 
     % query the ddb for all deployments related to this field trip
-    deployments = executeDDBQuery('DeploymentData', 'EndFieldTrip',   fId);
+    deployments = executeDDBQuery('DeploymentData', 'EndFieldTrip', fId);
     
+    % query the ddb for all sites related to these deployments
+    lenDep = length(deployments);
+    for i=1:lenDep
+        if i==1
+            sites = executeDDBQuery('Sites', 'Site', deployments(i).Site);
+        else
+            sites(i) = executeDDBQuery('Sites', 'Site', deployments(i).Site);
+        end
+    end
   end
 
   function sam = parse(deployment, files, parsers, noParserPrompt)

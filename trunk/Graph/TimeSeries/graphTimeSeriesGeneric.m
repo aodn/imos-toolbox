@@ -58,6 +58,25 @@ var  = sample_data.variables {var};
 h      = line(time.data, var.data, 'Parent', ax);
 set(ax, 'Tag', 'axis1D');
 
+% test for climatology display
+% mWh = findobj('Tag', 'mainWindow');
+% morelloRange = get(mWh, 'UserData');
+% if strcmpi(var.name, 'TEMP') && ~isempty(morelloRange)
+%     hMnT   = line(time.data, morelloRange.meanT, 'Parent', ax);
+%     hRMinT = line(time.data, morelloRange.rangeMinT, 'Parent', ax);
+%     hRMaxT = line(time.data, morelloRange.rangeMaxT, 'Parent', ax);
+%     set(hMnT, 'Color', 'b');
+%     set(hRMinT, 'Color', 'r');
+%     set(hRMaxT, 'Color', 'r');
+% elseif strcmpi(var.name, 'PSAL') && ~isempty(morelloRange)
+%     hMnS   = line(time.data, morelloRange.meanS, 'Parent', ax);
+%     hRMinS = line(time.data, morelloRange.rangeMinS, 'Parent', ax);
+%     hRMaxS = line(time.data, morelloRange.rangeMaxS, 'Parent', ax);
+%     set(hMnS, 'Color', 'b');
+%     set(hRMinS, 'Color', 'r');
+%     set(hRMaxS, 'Color', 'r');
+% end
+
 % Set axis position so that 1D data and 2D data vertically matches on X axis
 cb = colorbar();
 pos_with_colorbar = get(ax, 'Position');

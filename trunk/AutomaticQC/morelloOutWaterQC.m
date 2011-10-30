@@ -1,26 +1,27 @@
-function [data, flags, log] = flatlineQC( sample_data, data, k, type, auto )
-%FLATLINEQC Flags flatline regions in the given data set.
+function [data flags log] = morelloOutWaterQC( sample_data, data, k, type, auto )
+%MORELLOOUTWATERQC Flags TEMP and PSAL samples which were taken after the 
+% instrument was taken out of the water.
 %
-% Simple filter which finds and flags any 'flatline' regions in the given data.
-% A flatline is defined as a consecutive set of samples which have the same
-% value.
+% Flags all samples from the data set which have a time that is after the 
+% out water time. Assumes that all of these samples will be at the end of the 
+% data set.
 %
 % Inputs:
-%   sample_data - struct containing the data set.
+%   sample_data - struct containing the entire data set and dimension data.
 %
 %   data        - the vector of data to check.
 %
-%   k           - Index into the sample_data variable vector.
+%   k           - Index into the sample_data.variables vector.
 %
 %   type        - dimensions/variables type to check in sample_data.
 %
 %   auto        - logical, run QC in batch mode
 %
 % Outputs:
-%   data        - same as input.
+%   data        - Same as input.
 %
-%   flags       - Vector the same length as data, with flags for flatline 
-%                 regions.
+%   flags       - Vector the same size as data, with after out-water samples 
+%                 flagged. Empty if no values were flagged.
 %
 %   log         - Empty cell array.
 %
@@ -72,39 +73,27 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-% read nsamples parameter from flatlineQC properties file
-nsamples = str2double(...
-  readProperty('nsamples', fullfile('AutomaticQC', 'flatlineQC.txt')));
-if nsamples < 2, nsamples = 2; end
+time_out_water = sample_data.time_deployment_end;
 
-qcSet    = str2double(readProperty('toolbox.qc_set'));
-goodFlag = imosQCFlag('good',        qcSet, 'flag');
-flatFlag = imosQCFlag('probablyBad', qcSet, 'flag');
+if isnan(time_out_water), return; end
 
-lenData = length(data);
-
-flags = ones(lenData, 1)*goodFlag;
-
-% size of the current flatline region we are stepping through
-flatlineSize = 1;
-
-for m = 2:lenData
-  
-  % this data point is the same as the last one
-  if data(m-1) == data(m);
-
-    % increase current number of consecutive points
-    flatlineSize = flatlineSize + 1;
-
-  % this data point is different from the last one if the flatlineSize 
-  % is big enough, flag every point in the flatline; reset the count
-  else
+if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
+        strcmpi(sample_data.(type){k}.name, 'PSAL')
     
-    % the number of consecutive points is big 
-    % enough to warrent flagging it as a flatline
-    if flatlineSize >= nsamples, flags(m-flatlineSize:m-1) = flatFlag; end
+    qcSet     = str2double(readProperty('toolbox.qc_set'));
+    passFlag  = imosQCFlag('raw',          qcSet, 'flag');
+    failFlag  = imosQCFlag('probablyBad',   qcSet, 'flag');
     
-    flatlineSize = 1; 
-  end
-
+    lenData = length(data);
+    
+    flags = ones(lenData, 1)*passFlag;
+    
+    % find samples which were taken out of water
+    time = sample_data.dimensions{1}.data;
+    after = time > time_out_water;
+    
+    if any(after)
+        % flag the after out-water samples
+        flags(after) = failFlag;
+    end
 end

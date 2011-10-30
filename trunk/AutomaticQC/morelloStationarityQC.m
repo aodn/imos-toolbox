@@ -1,5 +1,5 @@
-function [data, flags, log] = morelloStationarityQC( sample_data, data, k, auto )
-%MORELLOSTATIONARITY Flags consecutive equal values in the given data set.
+function [data, flags, log] = morelloStationarityQC( sample_data, data, k, type, auto )
+%MORELLOSTATIONARITY Flags consecutive TEMP or PSAL equal values in the given data set.
 %
 % Stationarity test from IOC which finds and flags any consecutive equal values
 % when number of consecutive points > T = 24*(60/delta_t) where delta_t is
@@ -11,6 +11,8 @@ function [data, flags, log] = morelloStationarityQC( sample_data, data, k, auto 
 %   data        - the vector of data to check.
 %
 %   k           - Index into the sample_data variable vector.
+%
+%   type        - dimensions/variables type to check in sample_data.
 %
 %   auto        - logical, run QC in batch mode
 %
@@ -55,73 +57,82 @@ function [data, flags, log] = morelloStationarityQC( sample_data, data, k, auto 
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 4, nargin));
+error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+if ~ischar(type),                 error('type must be a string');        end
 
 % auto logical in input to enable running under batch processing
-if nargin<4, auto=false; end
-
-qcSet    = str2double(readProperty('toolbox.qc_set'));
-goodFlag = imosQCFlag('good',        qcSet, 'flag');
-flatFlag = imosQCFlag('probablyBad', qcSet, 'flag');
-
-lenData = length(data);
+if nargin<5, auto=false; end
 
 log   = {};
-% initially all data is good
-flags = ones(lenData, 1)*goodFlag;
+flags   = [];
 
-% calc the max allowed number of consecutive values
-delta_t = sample_data.meta.instrument_sample_interval/60;
-nt = floor(24 * (60 / delta_t));
+if ~strcmp(type, 'variables'), return; end
 
-equVal  = (diff(data) == 0);
-if equVal(1)
-    equVal = [true; equVal];
-else
-    equVal = [false; equVal];
-end
-diffVal = ~equVal;
-
-lastEqVal   = (equVal(1:end-1) - equVal(2:end)) == 1;
-lastDiffVal = (diffVal(1:end-1) - diffVal(2:end)) == 1;
-
-if equVal(end)
-    lastEqVal(end+1)   = true;
-    lastDiffVal(end+1) = false;
-else
-    lastEqVal(end+1)   = false;
-    lastDiffVal(end+1) = true;
-end
-
-pos = (1:1:lenData)';
-
-posLastEqVal    = pos(lastEqVal);
-posLastDiffVal  = pos(lastDiffVal);
-
-if equVal(1) && equVal(end)
-    % starts and finish with a same value portion
-    numLastEqVal = [posLastEqVal(1); posLastEqVal(2:end) - (posLastDiffVal-1)];
-elseif equVal(1) && ~equVal(end)
-    % starts with a same value portion and finish with distincts values
-    numLastEqVal = [posLastEqVal(1); posLastEqVal(2:end) - (posLastDiffVal(1:end-1)-1)];
-elseif ~equVal(1) && equVal(end)
-    % starts with distinct values and finish with a same value portion
-    numLastEqVal = posLastEqVal - (posLastDiffVal-1);
-else
-    % starts and finish with a same value portion
-    numLastEqVal = posLastEqVal - (posLastDiffVal(1:end-1)-1);
-end
-
-lastEqValNum = double(lastEqVal);
-lastEqValNum(lastEqVal) = numLastEqVal;
-
-iFlatline = find(lastEqValNum >= nt);
-if ~isempty(iFlatline)
-    nFlatline = length(iFlatline);
-    for i=1:nFlatline
-        flags(iFlatline(i)-lastEqValNum(iFlatline(i))+1:iFlatline(i)) = flatFlag;
+if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
+        strcmpi(sample_data.(type){k}.name, 'PSAL')
+    
+    qcSet    = str2double(readProperty('toolbox.qc_set'));
+    passFlag = imosQCFlag('good', qcSet, 'flag');
+    failFlag = imosQCFlag('bad',  qcSet, 'flag');
+    
+    lenData = length(data);
+    
+    % initially all data is good
+    flags = ones(lenData, 1)*passFlag;
+    
+    % calc the max allowed number of consecutive values
+    delta_t = sample_data.meta.instrument_sample_interval/60;
+    nt = floor(24 * (60 / delta_t));
+    
+    equVal  = (diff(data) == 0);
+    if equVal(1)
+        equVal = [true; equVal];
+    else
+        equVal = [false; equVal];
+    end
+    diffVal = ~equVal;
+    
+    lastEqVal   = (equVal(1:end-1) - equVal(2:end)) == 1;
+    lastDiffVal = (diffVal(1:end-1) - diffVal(2:end)) == 1;
+    
+    if equVal(end)
+        lastEqVal(end+1)   = true;
+        lastDiffVal(end+1) = false;
+    else
+        lastEqVal(end+1)   = false;
+        lastDiffVal(end+1) = true;
+    end
+    
+    pos = (1:1:lenData)';
+    
+    posLastEqVal    = pos(lastEqVal);
+    posLastDiffVal  = pos(lastDiffVal);
+    
+    if equVal(1) && equVal(end)
+        % starts and finish with a same value portion
+        numLastEqVal = [posLastEqVal(1); posLastEqVal(2:end) - (posLastDiffVal-1)];
+    elseif equVal(1) && ~equVal(end)
+        % starts with a same value portion and finish with distincts values
+        numLastEqVal = [posLastEqVal(1); posLastEqVal(2:end) - (posLastDiffVal(1:end-1)-1)];
+    elseif ~equVal(1) && equVal(end)
+        % starts with distinct values and finish with a same value portion
+        numLastEqVal = posLastEqVal - (posLastDiffVal-1);
+    else
+        % starts and finish with a same value portion
+        numLastEqVal = posLastEqVal - (posLastDiffVal(1:end-1)-1);
+    end
+    
+    lastEqValNum = double(lastEqVal);
+    lastEqValNum(lastEqVal) = numLastEqVal;
+    
+    iFlatline = find(lastEqValNum >= nt);
+    if ~isempty(iFlatline)
+        nFlatline = length(iFlatline);
+        for i=1:nFlatline
+            flags(iFlatline(i)-lastEqValNum(iFlatline(i))+1:iFlatline(i)) = failFlag;
+        end
     end
 end

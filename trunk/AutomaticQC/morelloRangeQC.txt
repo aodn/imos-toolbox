@@ -1,0 +1,3 @@
+CLIM_STEP = monthly
+DAILY_METHOD = harmonic
+MAX_TIME_SD = 6

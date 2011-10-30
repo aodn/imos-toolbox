@@ -1,4 +1,4 @@
-function [data, flags, log] = wqmBurstTukey53HDespikeQC( sample_data, data, k, auto )
+function [data, flags, log] = wqmBurstTukey53HDespikeQC( sample_data, data, k, type, auto )
 %WQMBURSTTUKEY53HDESPIKE Detects spikes in WQM data using the Tukey 53H method on each burst.
 %
 % Detects spikes in the given data using the Tukey 53H method, as described in
@@ -16,6 +16,8 @@ function [data, flags, log] = wqmBurstTukey53HDespikeQC( sample_data, data, k, a
 %   data        - the vector of data to check.
 %
 %   k           - Index into the sample_data.variables vector.
+%
+%   type        - dimensions/variables type to check in sample_data.
 %
 %   auto        - logical, run QC in batch mode
 %
@@ -60,13 +62,19 @@ function [data, flags, log] = wqmBurstTukey53HDespikeQC( sample_data, data, k, a
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 4, nargin));
+error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+if ~ischar(type),                 error('type must be a string');        end
 
 % auto logical in input to enable running under batch processing
-if nargin<4, auto=false; end
+if nargin<5, auto=false; end
+
+log   = {};
+flags   = [];
+
+if ~strcmp(type, 'variables'), return; end
 
 k_param = str2double(...
   readProperty('k', fullfile('AutomaticQC', 'tukey53HDespikeQC.txt')));
@@ -78,13 +86,11 @@ spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
 lenData = length(data);
 
-log   = {};
-
 % initially all data is good
 flags = ones(lenData, 1)*goodFlag;
 
 % Let's find each start of bursts
-dt = [0; diff(sample_data.dimensions{1}.data)];
+dt = [0; diff(sample_data.dimensions{1}.data)'];
 iBurst = [1; find(dt>(1/24/60)); length(sample_data.dimensions{1}.data)+1];
 
 % let's read data burst by burst

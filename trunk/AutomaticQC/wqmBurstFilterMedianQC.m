@@ -1,4 +1,4 @@
-function [data, flags, log] = wqmBurstFilterMedianQC( sample_data, data, k, auto )
+function [data, flags, log] = wqmBurstFilterMedianQC( sample_data, data, k, type, auto )
 %WQMBURSTFILTERMEDIAN Flags all values within a burts which are not between 
 % median +/- 2*variability_around_median. Median and variability are computed
 % for each burst.
@@ -10,6 +10,8 @@ function [data, flags, log] = wqmBurstFilterMedianQC( sample_data, data, k, auto
 %   data        - the vector of data to check.
 %
 %   k           - Index into the sample_data variable vector.
+%
+%   type        - dimensions/variables type to check in sample_data.
 %
 %   auto        - logical, run QC in batch mode
 %
@@ -53,13 +55,19 @@ function [data, flags, log] = wqmBurstFilterMedianQC( sample_data, data, k, auto
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 4, nargin));
+error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+if ~ischar(type),                 error('type must be a string');        end
 
 % auto logical in input to enable running under batch processing
-if nargin<4, auto=false; end
+if nargin<5, auto=false; end
+
+log   = {};
+flags   = [];
+
+if ~strcmp(type, 'variables'), return; end
 
 qcSet    = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw',  qcSet, 'flag');
@@ -68,8 +76,6 @@ rangeFlag = imosQCFlag('bound', qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
 lenData = length(data);
-
-log   = {};
 
 % initially all data is good
 flags = ones(lenData, 1)*goodFlag;

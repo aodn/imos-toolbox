@@ -1,4 +1,4 @@
-function [data, flags, log] = rangeQC ( sample_data, data, k, auto )
+function [data, flags, log] = rangeQC ( sample_data, data, k, type, auto )
 %RANGEQC Flags data which is out of the variable's valid range.
 %
 % Iterates through the given data, and returns flags for any samples which
@@ -11,6 +11,8 @@ function [data, flags, log] = rangeQC ( sample_data, data, k, auto )
 %   data        - the vector of data to check.
 %
 %   k           - Index into the sample_data.variables vector.
+%
+%   type        - dimensions/variables type to check in sample_data.
 %
 %   auto        - logical, run QC in batch mode
 %
@@ -56,13 +58,19 @@ function [data, flags, log] = rangeQC ( sample_data, data, k, auto )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 4, nargin));
+error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+if ~ischar(type),                 error('type must be a string');        end
 
 % auto logical in input to enable running under batch processing
-if nargin<4, auto=false; end
+if nargin<5, auto=false; end
+
+log   = {};
+flags   = [];
+
+if ~strcmp(type, 'variables'), return; end
 
 % get the flag values with which we flag good and out of range data
 qcSet     = str2double(readProperty('toolbox.qc_set'));
@@ -72,7 +80,6 @@ goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 
 % initialise all flags to good
 lenData = length(data);
-log   = {};
 
 max  = sample_data.variables{k}.valid_max;
 min  = sample_data.variables{k}.valid_min;
