@@ -1,12 +1,12 @@
-function sample_data = timeOffsetPP(sample_data, auto)
-%TIMEOFFSETPP Prompts the user to apply time correction to the given data 
-% sets.
+function sample_data = timeMetaOffsetPP(sample_data, auto)
+%TIMEMEATOFFSETPP Prompts the user to apply time correction to the given metadata 
+% date in deployment database.
 %
-% All IMOS datasets should be provided in UTC time. Raw data may not
-% necessarily have been captured in UTC time, so a correction must be made
-% before the data can be considered to be in an IMOS compatible format.
+% All IMOS datasets should be provided in UTC time. Metadata may not
+% necessarily have been documented in UTC time, so a correction must be made
+% before the metadata can be considered to be in an IMOS compatible format.
 % This function prompts the user to provide a time offset value (in hours)
-% to apply to each of the data sets.
+% to apply to each metadata related to the data sets.
 %
 % Default time offset values for timezone codes are stored in a plain text
 % file, timeOffsetPP.txt.
@@ -21,8 +21,7 @@ function sample_data = timeOffsetPP(sample_data, auto)
 %
 
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor: Brad Morris <b.morris@unsw.edu.au>
+% Author:   Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -92,7 +91,7 @@ function sample_data = timeOffsetPP(sample_data, auto)
   
   if ~auto
       f = figure(...
-          'Name',        'Time Data Offset',...
+          'Name',        'Time Metadata Offset',...
           'Visible',     'off',...
           'MenuBar'  ,   'none',...
           'Resize',      'off',...
@@ -173,31 +172,11 @@ function sample_data = timeOffsetPP(sample_data, auto)
       % this set has been deselected
       if ~sets(k), continue; end
       
-      timeIdx = getVar(sample_data{k}.dimensions, 'TIME');
-      
-      % no time dimension in this dataset
-      if timeIdx == 0, continue; end
-      
-      signOffset = sign(offsets(k));
-      if signOffset >= 0
-          signOffset = '+';
-      else
-          signOffset = '-';
-      end
-      
-      timeOffsetComment = ['timeOffsetPP: TIME dimension and time_coverage_start/end global attributes have been '...
-          'applied the following offset : ' signOffset num2str(abs(offsets(k))) ' hours .'];
-      
       % otherwise apply the offset
-      sample_data{k}.dimensions{timeIdx}.data = ...
-          sample_data{k}.dimensions{timeIdx}.data + (offsets(k) / 24);
-      sample_data{k}.dimensions{timeIdx}.comment = timeOffsetComment;
-      sample_data{k}.time_coverage_start = ...
-          sample_data{k}.time_coverage_start      + (offsets(k) / 24);
-      sample_data{k}.time_coverage_end   = ...
-          sample_data{k}.time_coverage_end        + (offsets(k) / 24);
-      
-      
+      sample_data{k}.time_deployment_start = ...
+          sample_data{k}.time_deployment_start      + (offsets(k) / 24);
+      sample_data{k}.time_deployment_end   = ...
+          sample_data{k}.time_deployment_end        + (offsets(k) / 24);
   end
   
   function keyPressCallback(source,ev)

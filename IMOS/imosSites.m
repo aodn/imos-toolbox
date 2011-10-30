@@ -1,30 +1,27 @@
-function hpf = highPassFilter (data, alpha)
-%HIGHPASSFILTER Simple high pass RC filter.
+function site = imosSites(name)
+%IMOSSITES Returns the name, longitude, latitude and different thresholds 
+% to QC data with the Morello et Al. 2011 impossible location test. 
 %
-% Runs a high pass RC filter over the given data.
+% IMOS sites longitude and latitude were taken from the IMOS portal 
+% metadata.
 %
 % Inputs:
-%
-%   data  - Array of data.
-%
-%   alpha - Smoothing factor between 0.0 (exclusive) and 1.0 (inclusive). A 
-%           lower value means more filtering. A value of 1.0 equals no 
-%           filtering. Optional - if omitted, defaults to 0.5.
-%
-%   auto  - logical, run QC in batch mode
+%   name - name of the required site details. 
 %
 % Outputs:
-%   hpf   - Filtered data
+%   site - structure with the following fields for the requested site :
+%               -name
+%               -longitude
+%               -latitude
+%               -latitudePlusMinusThreshold
+%               -longitudePlusMinusThreshold
+%               -distanceKmPlusMinusThreshold (optional, 
+%                       if documented overrules previous thresholds values)
 %
-% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-%
-% Based on pseudocode at http://en.wikipedia.org/wiki/High-pass_filter, which
-% is released under the GNU Free Documentation License, described at 
-% http://en.wikipedia.org/wiki/Wikipedia:Text_of_the_GNU_Free_Documentation_Lic
-% ense.
+% Author:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
-% 
+%
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
@@ -54,33 +51,40 @@ function hpf = highPassFilter (data, alpha)
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-% check mandatory parameters
-error(nargchk(1,2,nargin));
-if ~isvector(data), error('data must be a vector'); end
+error(nargchk(1, 1, nargin));
+if ~ischar(name),    error('name must be a string'); end
 
-% check or set optional alpha parameter
-if nargin == 1
-  alpha = 0.5;
+site = [];
+
+% get the location of this m-file, which is 
+% also the location of imosSite.txt
+path = [pwd filesep 'IMOS'];
+
+fid = -1;
+params = [];
+try
+  fid = fopen([path filesep 'imosSites.txt'], 'rt');
+  if fid == -1, return; end
+  
+  params = textscan(fid, '%s%f%f%f%f%f', 'delimiter', ',', 'commentStyle', '%');
+  fclose(fid);
+catch e
+  if fid ~= -1, fclose(fid); end
+  rethrow(e);
+end
+
+% look for a site name match
+iName = strcmpi(name, params{1});
+
+if any(iName)
+    site = struct;
+    
+    site.name                           = params{1}{iName};
+    site.longitude                      = params{2}(iName);
+    site.latitude                       = params{3}(iName);
+    site.latitudePlusMinusThreshold     = params{4}(iName);
+    site.longitudePlusMinusThreshold    = params{5}(iName);
+    site.distanceKmPlusMinusThreshold   = params{6}(iName);
 else
-  if ~isnumeric(alpha)...
-  || ~isscalar( alpha), error('alpha must be a scalar numeric'); end
-  if (alpha <= 0.0)... 
-  || (alpha > 1.0),     error('alpha must be 0.0 < alpha <= 1.0'); end
+    return;
 end
-
-% subtract mean before applying filter
-mn = mean(data);
-data = data - mn;
-
-hpf = zeros(size(data));
-
-hpf(1) = data(1);
-
-for k = 2:length(data)
-  
-  hpf(k) = (alpha) * hpf(k-1) + (alpha) * (data(k) - data(k-1));
-  
-end
-
-% add mean back to filtered data
-hpf = hpf+mn;

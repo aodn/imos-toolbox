@@ -119,6 +119,9 @@ end
 %
 
 model    = getValues({'LOGGER TYPE'},keys, meta);
+model    = strtrim(strrep(model, 'Pressure & Temperature', ''));
+model    = strtrim(strrep(model, 'Pressure', ''));
+model    = strtrim(strrep(model, 'Temperature', ''));
 firmware = getValues({'VERSION'},    keys, meta);
 serial   = getValues({'LOGGER'},     keys, meta);
 

@@ -11,7 +11,7 @@ function sample_data = XR620Parse( filename )
 % Outputs:
 %   sample_data - Struct containing imported sample data.
 %
-% Contributor : Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author : Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
 % Copyright (c) 2010, eMarine Information Infrastructure (eMII) and Integrated 
@@ -80,15 +80,14 @@ function sample_data = XR620Parse( filename )
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant
   sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.data = datenum(data.Date, 'yy/mm/dd') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
+  sample_data.dimensions{1}.data = data.time;
   sample_data.dimensions{2}.name = 'LATITUDE';
   sample_data.dimensions{2}.data = NaN;
   sample_data.dimensions{3}.name = 'LONGITUDE';
   sample_data.dimensions{3}.data = NaN;
   
   % copy variable data over
-  data = rmfield(data, 'Date');
-  data = rmfield(data, 'Time');
+  data = rmfield(data, 'time');
   fields = fieldnames(data);
   
   l = 1;
@@ -147,8 +146,8 @@ function sample_data = XR620Parse( filename )
           %Rinko dissolved O2 concentration (mg/l) => (umol/l)
           case 'rdO2C'
               name = 'DOX1';
-              comment = 'Originally expressed in mg/l, 1mg/l = 31.25umol/l was assumed.';
-              data.(fields{k}) = data.(fields{k}) * 31.25;
+              comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
+              data.(fields{k}) = data.(fields{k}) * 44.660/1.429; % O2 density = 1.429 kg/m3
       end
     
       if ~isempty(name)
@@ -158,52 +157,126 @@ function sample_data = XR620Parse( filename )
           sample_data.variables{l}.comment    = comment;
           l = l+1;
       end
+  end
+  
+  % Let's add DOX1/DOX2 if PSAL/CNDC, TEMP and DOXS are present and DOX1 not
+  % already present
+  doxs = getVar(sample_data.variables, 'DOXS');
+  dox1 = getVar(sample_data.variables, 'DOX1');
+  if doxs ~= 0 && dox1 == 0
+      doxs = sample_data.variables{doxs};
+      name = 'DOX1';
       
-      % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are present
-      dox1 = getVar(sample_data.variables, 'DOX1');
-      if dox1 ~= 0
-          dox1 = sample_data.variables{dox1};
+      % to perform this conversion, we need temperature,
+      % and salinity/conductivity+pressure data to be present
+      temp = getVar(sample_data.variables, 'TEMP');
+      psal = getVar(sample_data.variables, 'PSAL');
+      cndc = getVar(sample_data.variables, 'CNDC');
+      pres = getVar(sample_data.variables, 'PRES');
+      
+      % if any of this data isn't present,
+      % we can't perform the conversion
+      if temp ~= 0 && (psal ~= 0 || (cndc ~= 0 && pres ~= 0))
+          temp = sample_data.variables{temp};
+          if psal ~= 0
+              psal = sample_data.variables{psal};
+          else
+              cndc = sample_data.variables{cndc};
+              pres = sample_data.variables{pres};
+              % conductivity is in S/m and sw_c3515 in mS/cm
+              crat = 10*cndc.data ./ sw_c3515;
+              
+              psal.data = sw_salt(crat, temp.data, pres.data);
+          end
+          
+          % O2 solubility (Garcia and Gordon, 1992-1993)
+          %
+          solubility = O2sol(psal.data, temp.data, 'ml/l');
+          
+          % O2 saturation to O2 concentration measured
+          % O2 saturation (per cent) = 100* [O2/O2sol]
+          %
+          % that is to say : O2 = O2sol * O2sat / 100
+          data = solubility .* doxs.data / 100;
+          
+          % conversion from ml/l to umol/l
+          data = data * 44.660;
+          comment = ['Originally expressed in % of saturation, using Garcia '...
+              'and Gordon equations (1992-1993) and ml/l coefficients, assuming 1ml/l = 44.660umol/l.'];
+          
+          sample_data.variables{end+1}.dimensions           = [1 2 3];
+          sample_data.variables{end}.comment                = comment;
+          sample_data.variables{end}.name                   = name;
+          sample_data.variables{end}.data                   = data;
+          
+          % Let's add DOX2
           name = 'DOX2';
           
-          % umol/l -> umol/kg
+          % O2 solubility (Garcia and Gordon, 1992-1993)
           %
-          % to perform this conversion, we need to calculate the
-          % density of sea water; for this, we need temperature,
-          % salinity, and pressure data to be present
-          temp = getVar(sample_data.variables, 'TEMP');
-          pres = getVar(sample_data.variables, 'PRES');
-          psal = getVar(sample_data.variables, 'PSAL');
-          cndc = getVar(sample_data.variables, 'CNDC');
+          solubility = O2sol(psal.data, temp.data, 'umol/kg');
           
-          % if any of this data isn't present,
-          % we can't perform the conversion to umol/kg
-          if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
-              temp = sample_data.variables{temp};
-              pres = sample_data.variables{pres};
-              if psal ~= 0
-                  psal = sample_data.variables{psal};
-              else
-                  cndc = sample_data.variables{cndc};
-                  % conductivity is in S/m and sw_c3515 in mS/cm
-                  crat = 10*cndc.data ./ sw_c3515;
-                  
-                  psal.data = sw_salt(crat, temp.data, pres.data);
-              end
+          % O2 saturation to O2 concentration measured
+          % O2 saturation (per cent) = 100* [O2/O2sol]
+          %
+          % that is to say : O2 = O2sol * O2sat / 100
+          data = solubility .* doxs.data / 100;
+          comment = ['Originally expressed in % of saturation, using Garcia '...
+              'and Gordon equations (1992-1993) and umol/kg coefficients.'];
+          
+          sample_data.variables{end+1}.dimensions           = [1 2 3];
+          sample_data.variables{end}.comment                = comment;
+          sample_data.variables{end}.name                   = name;
+          sample_data.variables{end}.data                   = data;
+      end
+  end
+  
+  % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are
+  % present and DOX2 not already present
+  dox1 = getVar(sample_data.variables, 'DOX1');
+  dox2 = getVar(sample_data.variables, 'DOX2');
+  if dox1 ~= 0 && dox2 == 0
+      dox1 = sample_data.variables{dox1};
+      name = 'DOX2';
+      
+      % umol/l -> umol/kg
+      %
+      % to perform this conversion, we need to calculate the
+      % density of sea water; for this, we need temperature,
+      % salinity, and pressure data to be present
+      temp = getVar(sample_data.variables, 'TEMP');
+      pres = getVar(sample_data.variables, 'PRES');
+      psal = getVar(sample_data.variables, 'PSAL');
+      cndc = getVar(sample_data.variables, 'CNDC');
+      
+      % if any of this data isn't present,
+      % we can't perform the conversion to umol/kg
+      if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
+          temp = sample_data.variables{temp};
+          pres = sample_data.variables{pres};
+          if psal ~= 0
+              psal = sample_data.variables{psal};
+          else
+              cndc = sample_data.variables{cndc};
+              % conductivity is in S/m and sw_c3515 in mS/cm
+              crat = 10*cndc.data ./ sw_c3515;
               
-              % calculate density from salinity, temperature and pressure
-              dens = sw_dens(psal.data, temp.data, pres.data);
-              
-              % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
-              data = dox1.data .* 1000.0 ./ dens;
-              comment = ['Originally expressed in mg/l, assuming 1mg/l = 31.25umol/l '...
-                  'and using density computed from Temperature, Salinity and Pressure '...
-                  'using the Seawater toolbox.'];
-              
-              sample_data.variables{l}.dimensions             = [1 2 3];
-              sample_data.variables{l}.comment                = comment;
-              sample_data.variables{l}.name                   = name;
-              sample_data.variables{l}.data                   = data;
+              psal.data = sw_salt(crat, temp.data, pres.data);
           end
+          
+          % calculate density from salinity, temperature and pressure
+          dens = sw_dens(psal.data, temp.data, pres.data);
+          
+          % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
+          data = dox1.data .* 1000.0 ./ dens;
+          comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
+              'and using density computed from Temperature, Salinity and Pressure '...
+              'with the Seawater toolbox.'];
+          
+          sample_data.variables{end+1}.dimensions           = [1 2 3];
+          sample_data.variables{end}.comment                = comment;
+          sample_data.variables{end}.name                   = name;
+          sample_data.variables{end}.data                   = data;
       end
   end
 end
@@ -233,6 +306,7 @@ function header = readHeader(fid)
     ['^LoggingEndDate=+' '(\S+)$']
     ['^LoggingEndTime=+' '(\S+)$']
     ['^LoggingSamplingPeriod=+' '(\d+)Hz']
+    ['^LoggingSamplingPeriod=+' '(\d\d:\d\d:\d\d)']
     ['^NumberOfChannels=+' '(\d+)']
     ['^CorrectionToConductivity=+' '(\d+)']
     ['^NumberOfSamples=+' '(\d+)']
@@ -280,26 +354,39 @@ function header = readHeader(fid)
           case 8
               header.interval = 1/str2double(tkns{1}{1});
               
-          % number of channels
+          % other sample interval
           case 9
+              tkns{1}{1}      = ['0000/01/00 ' tkns{1}{1}];
+              header.interval = datenum(tkns{1}{1}, 'yyyy/mm/dd HH:MM:SS');
+              
+          % number of channels
+          case 10
               header.channels = str2double(tkns{1}{1});
           
           % correction to conductivity
-          case 10
+          case 11
               header.correction  = tkns{1}{1};
               
           % number of samples
-          case 11
+          case 12
               header.samples  = str2double(tkns{1}{1});
       end
     end
   end
   
   if ~isempty(startDate) && ~isempty(startTime)
-      header.start    = datenum([startDate ' ' startTime],  'yy/mm/dd HH:MM:SS.FFF');
+      if length(startDate) == 8 
+          header.start    = datenum([startDate ' ' startTime],  'yy/mm/dd HH:MM:SS.FFF');
+      else
+          header.start    = datenum([startDate ' ' startTime],  'yyyy/mmm/dd HH:MM:SS.FFF');
+      end
   end
   if ~isempty(endDate) && ~isempty(endTime)
-      header.end      = datenum([endDate   ' ' endTime],    'yy/mm/dd HH:MM:SS.FFF');
+      if length(endDate) == 8
+          header.end      = datenum([endDate   ' ' endTime],    'yy/mm/dd HH:MM:SS.FFF');
+      else
+          header.end      = datenum([endDate   ' ' endTime],    'yyyy/mmm/dd HH:MM:SS.FFF');
+      end
   end
 end
 
@@ -348,4 +435,13 @@ function data = readData(fid, header)
       % using  column names as struct field names
       data.(cols{k}) = samples{k}; 
   end
+  
+  if length(data.Date{1}) == 8 
+      data.time = datenum(data.Date, 'yy/mm/dd') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
+  else
+      data.time = datenum(data.Date, 'yyyy/mmm/dd') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
+  end
+  
+  data = rmfield(data, 'Date');
+  data = rmfield(data, 'Time');
 end

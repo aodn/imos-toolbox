@@ -1,16 +1,18 @@
-function [data, flags, log] = flatlineQC( sample_data, data, k, type, auto )
-%FLATLINEQC Flags flatline regions in the given data set.
+function [data, flags, log] = morelloImpossibleDateQC( sample_data, data, k, type, auto )
+%MORELLOIMPOSSIBLEDATE Flags impossible TIME values 
 %
-% Simple filter which finds and flags any 'flatline' regions in the given data.
-% A flatline is defined as a consecutive set of samples which have the same
-% value.
+% Impossible date test described in Morello et Al. 2011 paper. Only the
+% test year > 2007 will be performed as date information is stored in
+% datenum format (decimal days since 01/01/0000) before being output in 
+% addition not all the date information in input files are in ASCII format 
+% or expressed with day, month and year information...
 %
 % Inputs:
 %   sample_data - struct containing the data set.
 %
 %   data        - the vector of data to check.
 %
-%   k           - Index into the sample_data variable vector.
+%   k           - Index into the sample_data dimensions/variables vector.
 %
 %   type        - dimensions/variables type to check in sample_data.
 %
@@ -24,8 +26,7 @@ function [data, flags, log] = flatlineQC( sample_data, data, k, type, auto )
 %
 %   log         - Empty cell array.
 %
-% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -68,43 +69,36 @@ if ~ischar(type),                 error('type must be a string');        end
 if nargin<5, auto=false; end
 
 log   = {};
-flags   = [];
 
-if ~strcmp(type, 'variables'), return; end
+dataTime = [];
+flags    = [];
 
-% read nsamples parameter from flatlineQC properties file
-nsamples = str2double(...
-  readProperty('nsamples', fullfile('AutomaticQC', 'flatlineQC.txt')));
-if nsamples < 2, nsamples = 2; end
+if ~strcmp(type, 'dimensions'), return; end
+
+if strcmpi(sample_data.(type){k}.name, 'TIME')
+    dataTime = sample_data.(type){k}.data;
+else
+    return;
+end
 
 qcSet    = str2double(readProperty('toolbox.qc_set'));
-goodFlag = imosQCFlag('good',        qcSet, 'flag');
-flatFlag = imosQCFlag('probablyBad', qcSet, 'flag');
+passFlag = imosQCFlag('good',           qcSet, 'flag');
+failFlag = imosQCFlag('probablyBad',    qcSet, 'flag');
 
-lenData = length(data);
-
-flags = ones(lenData, 1)*goodFlag;
-
-% size of the current flatline region we are stepping through
-flatlineSize = 1;
-
-for m = 2:lenData
-  
-  % this data point is the same as the last one
-  if data(m-1) == data(m);
-
-    % increase current number of consecutive points
-    flatlineSize = flatlineSize + 1;
-
-  % this data point is different from the last one if the flatlineSize 
-  % is big enough, flag every point in the flatline; reset the count
-  else
+if ~isempty(dataTime)
+    lenData = length(dataTime);
     
-    % the number of consecutive points is big 
-    % enough to warrent flagging it as a flatline
-    if flatlineSize >= nsamples, flags(m-flatlineSize:m-1) = flatFlag; end
+    % initially all data is good
+    flags = ones(1, lenData)*passFlag;
     
-    flatlineSize = 1; 
-  end
-
+    % read site name from morelloImpossibleDateQC properties file
+    dateMin = readProperty('dateMin', fullfile('AutomaticQC', 'morelloImpossibleDateQC.txt'));
+    
+    dateMin = datenum(dateMin, 'dd/mm/yyyy');
+    
+    iBadTime = dataTime < dateMin;
+    
+    if any(iBadTime)
+        flags(iBadTime) = failFlag;
+    end
 end

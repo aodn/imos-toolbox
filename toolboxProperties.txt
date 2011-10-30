@@ -56,6 +56,9 @@ startDialog.highDate =
 % default directory for manual data import
 importManager.manualDir = 
 
+% default directory for climatology data
+importManager.climDir = 
+
 % default directory for file export
 exportDialog.defaultDir = 
 

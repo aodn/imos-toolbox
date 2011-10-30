@@ -1,4 +1,4 @@
-function [data flags log] = inWaterQC( sample_data, data, k, auto )
+function [data flags log] = inWaterQC( sample_data, data, k, type, auto )
 %INWATERQC Flags samples which were taken before the instrument was placed
 % in the water.
 %
@@ -12,6 +12,8 @@ function [data flags log] = inWaterQC( sample_data, data, k, auto )
 %   data        - the vector of data to check.
 %
 %   k           - Index into the sample_data.variables vector.
+%
+%   type        - dimensions/variables type to check in sample_data.
 %
 %   auto        - logical, run QC in batch mode
 %
@@ -57,30 +59,44 @@ function [data flags log] = inWaterQC( sample_data, data, k, auto )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 4, nargin));
+error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
+if ~ischar(type),                 error('type must be a string');        end
 
 % auto logical in input to enable running under batch processing
-if nargin<4, auto=false; end
+if nargin<5, auto=false; end
 
-time_coverage_start = sample_data.time_coverage_start;
+log   = {};
+flags   = [];
+
+if ~strcmp(type, 'variables'), return; end
+
+time_in_water = sample_data.time_deployment_start;
+
+if isnan(time_in_water), return; end
 
 qcSet     = str2double(readProperty('toolbox.qc_set'));
-goodFlag  = imosQCFlag('good',  qcSet, 'flag');
-flagVal   = imosQCFlag('bad',   qcSet, 'flag');
+passFlag  = imosQCFlag('raw',          qcSet, 'flag');
+failFlag  = imosQCFlag('probablyBad',   qcSet, 'flag');
 
 lenData = length(data);
-log   = {};
-flags = ones(lenData, 1)*goodFlag;
 
+flags = ones(lenData, 1)*passFlag;
 
 % find samples which were taken before in water
 time = sample_data.dimensions{1}.data;
-before = time < time_coverage_start;
 
-if ~any(before), return; end
+% case data is originaly a matrix
+lenTime = length(time);
+if lenData > lenTime
+    time = repmat(time, lenData/lenTime, 1);
+end
+
+before = time < time_in_water;
 
 % flag the samples that are before the in water time
-flags(before) = flagVal;
+if any(before)
+    flags(before) = failFlag;
+end
