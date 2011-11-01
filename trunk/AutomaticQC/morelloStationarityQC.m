@@ -88,6 +88,12 @@ if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
     nt = floor(24 * (60 / delta_t));
     
     equVal  = (diff(data) == 0);
+    
+    % special case when not one consecutive couple of same value
+    if all(~equVal)
+        return;
+    end
+    
     if equVal(1)
         equVal = [true; equVal];
     else
@@ -121,7 +127,7 @@ if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
         % starts with distinct values and finish with a same value portion
         numLastEqVal = posLastEqVal - (posLastDiffVal-1);
     else
-        % starts and finish with a same value portion
+        % starts and finish with a distinct value portion
         numLastEqVal = posLastEqVal - (posLastDiffVal(1:end-1)-1);
     end
     

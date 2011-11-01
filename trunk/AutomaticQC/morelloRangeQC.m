@@ -70,8 +70,15 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
-        strcmpi(sample_data.(type){k}.name, 'PSAL')
+dataName  = sample_data.(type){k}.name;
+iVar = 0;
+if strcmpi(dataName, 'TEMP')
+    iVar = 1;
+elseif strcmpi(dataName, 'PSAL')
+    iVar = 2;
+end
+    
+if iVar > 0
     
     % we'll need time and depth information
     idTime  = getVar(sample_data.dimensions, 'TIME');
@@ -88,6 +95,7 @@ if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
     % get details from this site
     site = sample_data.meta.site_name; % source = ddb
     if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes.txt
+    clear sample_data;
     
     site = imosSites(site);
     
@@ -134,6 +142,9 @@ if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
                 
                 flags = ones(lenData, 1)*passFlag;
                 
+                % read step type from morelloRangeQC properties file
+                maxTimeStdDev = str2double(readProperty('MAX_TIME_SD', fullfile('AutomaticQC', 'morelloRangeQC.txt')));
+                
                 % let's find the nearest depth in climatology
                 lenClimDepth = length(clim.depth);
                 climDepth = repmat(clim.depth, lenData, 1);
@@ -156,82 +167,110 @@ if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
                 iDepth = iDepth(iClimDepth);
                 clear iClimDepth;
                 
-                if strcmpi(sample_data.(type){k}.name, 'TEMP')
-                    mean    = squeeze(clim.monmn(1, iDepth, :));
-                    meanCor = squeeze(clim.mncor(1, iDepth))';
-                    stdDev  = squeeze(clim.monsd(1, iDepth, :));
-                    tf_coef = squeeze(clim.tf_coef(1, iDepth))';
-                elseif strcmpi(sample_data.(type){k}.name, 'PSAL')
-                    mean    = squeeze(clim.monmn(2, iDepth, :));
-                    meanCor = squeeze(clim.mncor(2, iDepth))';
-                    stdDev  = squeeze(clim.monsd(2, iDepth, :));
-                    tf_coef = squeeze(clim.tf_coef(2, iDepth))';
+                % read method type from morelloRangeQC properties file
+                method = readProperty('DAILY_METHOD', fullfile('AutomaticQC', 'morelloRangeQC.txt'));
+                isMethodSupported = true;
+                if all(~strcmpi(stepType, {'trend_corr', 'loess'}))
+                    isMethodSupported = false;
                 end
                 
                 if strcmpi(stepType, 'monthly')
+                    clear meanCor tf_coef;
                     % let's find the nearest month in climatology
                     [~, iMonth, ~, ~, ~, ~] = datevec(dataTime');
                     lenMonths = length(clim.monmn(1, 1, :));
                     months = (1:1:lenMonths);
-                    months = repmat(months, lenData, 1);
-                    iMonth = repmat(iMonth, 1, lenMonths);
-                    iMonth = iMonth == months;
-                    clear months;
+                    iLogMonth = false(lenData, lenMonths);
                     
-                    mean    = mean(iMonth);
-                    stdDev  = stdDev(iMonth);
-                    clear iMonth;
+                    % loop style (less memory issues)
+                    for i=1:lenMonths
+                        iLogMonth(:, i) = iMonth == months(i);
+                    end
+                    
+                    % vector style => memory overflow caused by repmat months
+%                     months = repmat(months, lenData, 1);
+%                     iMonth = repmat(iMonth, 1, lenMonths);
+%                     iLogMonth = iMonth == months;
+
+                    clear iMonth months;
+                
+                    mean    = squeeze(clim.monmn(iVar, iDepth, :));
+                    mean    = mean(iLogMonth);
+                    
+                    stdDev  = squeeze(clim.monsd(iVar, iDepth, :));
+                    stdDev  = stdDev(iLogMonth);
+                    clear iDepth iLogMonth;
                     
                 elseif strcmpi(stepType, 'daily')
-                    % let's compute interpolated daily mean
-                    [baseyear, ~, ~, ~, ~, ~] = datevec(dataTime');
-                    dtime = dataTime' - datenum(baseyear, 1, 1);
-
-                    meanInterp      = nan(lenData, 1);
-                    stdDevInterp    = nan(lenData, 1);
-                    mn              = nan(lenData, 1);
-                    an              = nan(lenData, 1);
-                    sa              = nan(lenData, 1);
-                    tco             = nan(lenData, 1);
-                    t2co            = nan(lenData, 1);
-                    for i=1:lenData
-                        meanInterp(i)   = interp1(clim.dm, mean(i, :),   dtime(i));
-                        stdDevInterp(i) = interp1(clim.dm, stdDev(i, :), dtime(i));
-                        mn(i)           = tf_coef(i).mn;
-                        an(i)           = tf_coef(i).an;
-                        sa(i)           = tf_coef(i).sa;
-                        tco(i)          = tf_coef(i).tco;
-                        t2co(i)         = tf_coef(i).t2co;
-                    end
-                    
-%                     meanInterp(i) = interp1(clim.dm, mean', dtime');
-                    
-                    % Apply corrections on interpolated mean
-                    % read method type from morelloRangeQC properties file
-                    method = readProperty('DAILY_METHOD', fullfile('AutomaticQC', 'morelloRangeQC.txt'));
-            
-                    if strcmpi(method, 'trend_corr')
-                        % first method
-                        mean = meanInterp;
-                        iNaN = isnan(meanCor);
-                        mean(~iNaN) = meanInterp(~iNaN) + meanCor(~iNaN) + tco(~iNaN).*dtime(~iNaN)/365.25 + t2co(~iNaN).*(dtime(~iNaN)/365.25).^2;
-                    elseif strcmpi(method, 'harmonic')
-                        % second method
-                        i = sqrt(-1);
-                        idy =   i * 2 * pi * dtime / 366;
-                        mean = meanInterp;
-                        iNaN = isnan(mn);
-                        mean(~iNaN) = mn(~iNaN) + real(an(~iNaN).*exp(idy(~iNaN)))+ real(sa(~iNaN).*exp(2*idy(~iNaN)));
+                    if isMethodSupported
+                        % let's compute interpolated daily mean
+                        [baseyear, ~, ~, ~, ~, ~] = datevec(dataTime');
+                        dtime = dataTime' - datenum(baseyear, 1, 1);
+                        
+                        meanInterp      = nan(lenData, 1);
+                        stdDevInterp    = nan(lenData, 1);
+                        if strcmpi(method, 'loess')
+                            mn              = nan(lenData, 1);
+                            an              = nan(lenData, 1);
+                            sa              = nan(lenData, 1);
+                        end
+                        if strcmpi(method, 'trend_corr')
+                            tco             = nan(lenData, 1);
+                            t2co            = nan(lenData, 1);
+                        end
+                        
+                        mean    = squeeze(clim.monmn(iVar, iDepth, :));
+                        stdDev  = squeeze(clim.monsd(iVar, iDepth, :));
+                        if strcmpi(method, 'trend_corr')
+                            meanCor = squeeze(clim.mncor(iVar, iDepth))';
+                            tf_coef = squeeze(clim.tf_coef(iVar, iDepth))';
+                        end
+                        if strcmpi(method, 'loess')
+                            tf_coef = squeeze(clim.tf_coef(iVar, iDepth))';
+                        end
+                        clear iDepth;
+                        
+                        for i=1:lenData
+                            meanInterp(i)   = interp1(clim.dm, mean(i, :),   dtime(i));
+                            stdDevInterp(i) = interp1(clim.dm, stdDev(i, :), dtime(i));
+                            if strcmpi(method, 'loess')
+                                mn(i)           = tf_coef(i).mn;
+                                an(i)           = tf_coef(i).an;
+                                sa(i)           = tf_coef(i).sa;
+                            end
+                            if strcmpi(method, 'trend_corr')
+                                tco(i)          = tf_coef(i).tco;
+                                t2co(i)         = tf_coef(i).t2co;
+                            end
+                        end
+                        clear tf_coef
+                        %                     meanInterp(i) = interp1(clim.dm, mean', dtime');
+                        
+                        % Apply corrections on interpolated mean
+                        if strcmpi(method, 'trend_corr')
+                            % first method
+                            mean = meanInterp;
+                            iNaN = isnan(meanCor);
+                            mean(~iNaN) = meanInterp(~iNaN) + meanCor(~iNaN) + tco(~iNaN).*dtime(~iNaN)/365.25 + t2co(~iNaN).*(dtime(~iNaN)/365.25).^2;
+                        elseif strcmpi(method, 'loess')
+                            % second method
+                            i = sqrt(-1);
+                            idy =   i * 2 * pi * dtime / 366;
+                            mean = meanInterp;
+                            iNaN = isnan(mn);
+                            mean(~iNaN) = mn(~iNaN) + real(an(~iNaN).*exp(idy(~iNaN)))+ real(sa(~iNaN).*exp(2*idy(~iNaN)));
+                        else
+                            % linear interpolation
+                            mean = meanInterp;
+                        end
+                        
+                        stdDev = stdDevInterp;
                     else
-                        % linear interpolation
-                        mean = meanInterp;
+                        warning(['DAILY_METHOD : ' method ' in morelloRangeQC.txt is not supported to perform range QC test']);
+                        flags = ones(lenData, 1)*rawFlag;
+                        return;
                     end
-                    
-                    stdDev = stdDevInterp;
                 end
-                
-                % read step type from morelloRangeQC properties file
-                maxTimeStdDev = str2double(readProperty('MAX_TIME_SD', fullfile('AutomaticQC', 'morelloRangeQC.txt')));
                 
                 % let's compute range values
                 rangeMin = mean - maxTimeStdDev*stdDev;
@@ -240,11 +279,11 @@ if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
                 % for test in display
 %                 mWh = findobj('Tag', 'mainWindow');
 %                 morelloRange = get(mWh, 'UserData');
-%                 if strcmpi(sample_data.(type){k}.name, 'TEMP')
+%                 if strcmpi(dataName, 'TEMP')
 %                     morelloRange.meanT = mean;
 %                     morelloRange.rangeMinT = rangeMin;
 %                     morelloRange.rangeMaxT = rangeMax;
-%                 elseif strcmpi(sample_data.(type){k}.name, 'PSAL')
+%                 elseif strcmpi(dataName, 'PSAL')
 %                     morelloRange.meanS = mean;
 %                     morelloRange.rangeMinS = rangeMin;
 %                     morelloRange.rangeMaxS = rangeMax;
@@ -265,7 +304,7 @@ if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
                 iClimDepthTooFar = minDistClimData > distMaxDepth;
                 if any(iClimDepthTooFar)
                     flags(iClimDepthTooFar) = rawFlag;
-                    warning(['some data points are located further than ' distMaxDepth 'm in depth from the depth values climatology and won''t be QC''d']);
+                    warning(['some data points are located further than ' num2str(distMaxDepth) 'm in depth from the depth values climatology and won''t be QC''d']);
                 end
             end
         end
