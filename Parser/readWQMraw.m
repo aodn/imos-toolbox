@@ -405,7 +405,70 @@ for l = 1:length(headerLine)
 end
 
 % read data information
-a=textscan(fid,'%f,%f,%f,%f,%s','delimiter','\n');
+% sometimes, when file is corrupted, all variables are not output.
+a = [];
+while ~feof(fid)
+    if isempty(a)
+        a = textscan(fid, '%f,%f,%f,%f,%s', 'delimiter', '\n');
+        
+        % get rid of any uncomplete line
+        lenA1 = length(a{1});
+        lenA2 = length(a{2});
+        lenA3 = length(a{3});
+        lenA4 = length(a{4});
+        lenA5 = length(a{5});
+        if lenA5 < lenA4
+            a{4}(end) = [];
+        end
+        if lenA5 < lenA3
+            a{3}(end) = [];
+        end
+        if lenA5 < lenA2
+            a{2}(end) = [];
+        end
+        if lenA5 < lenA1
+            a{1}(end) = [];
+        end
+    else
+        % continue parsing file
+        b = textscan(fid, '%f,%f,%f,%f,%s', 'delimiter', '\n');
+        
+        if isempty(b{1})
+            % let's skip this line or it will get stuck in it
+            line = fgetl(fid);
+        end
+        
+        % get rid of any uncomplete line
+        lenB1 = length(b{1});
+        lenB2 = length(b{2});
+        lenB3 = length(b{3});
+        lenB4 = length(b{4});
+        lenB5 = length(b{5});
+        if lenB5 < lenB4
+            b{4}(end) = [];
+        end
+        if lenB5 < lenB3
+            b{3}(end) = [];
+        end
+        if lenB5 < lenB2
+            b{2}(end) = [];
+        end
+        if lenB5 < lenB1
+            b{1}(end) = [];
+        end
+        
+        % append to existing structure
+        if ~isempty(b{1})
+            a{1} = [a{1}; b{1}];
+            a{2} = [a{2}; b{2}];
+            a{3} = [a{3}; b{3}];
+            a{4} = [a{4}; b{4}];
+            a{5} = [a{5}; b{5}];
+        end
+        clear b;
+    end
+end
+
 fclose(fid);
 
 % Instrument Serial Number to start each line
@@ -429,16 +492,25 @@ WQM.varunits={'S/m','C','dbar','PSU','ml/l','ug/l','NTU'};
 % 120 - 3 fields, pretty rare right near end as well
 % 130 - 1 field Unable to Wake CTD
 
-
 % we will only retain data with line code 6
-dcode=a{2};
-igood=dcode==6;
+dcode = a{2};
+igood = dcode == 6;
 
-data=a{5}(igood);
+data = a{5}(igood);
+
+% sometimes, when file is corrupted, a dot "." or coma "," is inserted in
+% the variable value. As is it impossible to know where will occure this
+% error, the simplest thing to do is to remove the whole corresponding
+% lines
+iGoodDataLine = cellfun('isempty', strfind(data, '.,'));
+iGoodDataLine = iGoodDataLine & cellfun('isempty', strfind(data, ',,'));
+iGoodDataLine = iGoodDataLine & cellfun('isempty', strfind(data, ',.'));
+iGoodDataLine = iGoodDataLine & cellfun('isempty', strfind(data, '..'));
+data = data(iGoodDataLine);
 
 % how many variables (don't know if this changes if PAR sensor is on so
 % check anyway)
-nvars=length(strfind(data{1},','))+1;
+nvars = length(strfind(data{1}, ',')) + 1;
 
 % check that every line has only nvars, otherwise kick it out
 k = strfind(data, ',');
@@ -446,81 +518,106 @@ iGoodLength = (cellfun('length', k) == nvars-1);
 data = data(iGoodLength);
 
 % using sscanf which reads columnwise so put array on side
-C=char(data)';
+C = char(data)';
 
 % one weird thing, sscanf will fail if the last column has anything but a
 % space in it. So sort of a kludge, but by far the fastest fix I know of.
-s=size(C);
-C(s(1)+1,:)=' ';
+s = size(C);
+C(s(1)+1,:) = ' ';
 
-
-fmt='%f';
+fmt = '%f';
 for i=1:nvars-1
-fmt=strcat(fmt,',%f');
+    fmt = strcat(fmt, ',%f');
 end
 
-[A, ~, errmsg]=sscanf(C,fmt,[nvars s(2)]);
+[A, count, errmsg] = sscanf(C, fmt, [nvars s(2)]);
 
+% sometimes, when file is corrupted, a value can contain several dots "." 
+% in the same variable value, the whole line cannot be read properly and 
+% sscanf stops at this point.
 if ~isempty(errmsg)
-   error(errmsg); 
+    % let's replace any erroneous value by NaN
+    A(:, end) = NaN;
+end
+
+lenC = size(C, 2);
+nextPosInC = size(A, 2) + 1;
+while ~isempty(errmsg) && nextPosInC <= lenC
+    % go to next line
+    [B, newCount, errmsg] = sscanf(C(:, nextPosInC:end), fmt, [nvars s(2)-size(A, 2)]);
+    if ~isempty(errmsg) && ~isempty(B)
+        % let's replace any erroneous value by NaN
+        B(:, end) = NaN;
+    end
+
+    % Let's fill any undocumented line by NaN
+    while size(B, 1) < 6
+        B = [B; nan(size(B, 2), 1)];
+    end
+    
+    % append to existing matrix
+    A = [A, B];
+    
+    % increment next position in C to continue reading
+    nextPosInC = size(A, 2) + 1;
 end
 % A is one long vector with nvars*samples elements
 % reshape it to make it easier to extract data
-A=A';
+A = A';
 
 % C,T,P are in stored in engineering units
-WQM.conductivity=A(:,1);    % S/m
+WQM.conductivity = A(:,1);    % S/m
 
 % temperature and pressure in C and dbar
-WQM.temperature=A(:,2);
-WQM.pressure=A(:,3);
+WQM.temperature = A(:,2);
+WQM.pressure = A(:,3);
 
 % compute conductivity ratio to use seawater salinity algorithm
 % Wetlabs conductivity is in S/m and sw_c3515 in mS/cm
-crat=10*WQM.conductivity./sw_c3515;
+crat = 10*WQM.conductivity./sw_c3515;
 
-WQM.salinity=sw_salt(crat,WQM.temperature,WQM.pressure);
+WQM.salinity = sw_salt(crat, WQM.temperature, WQM.pressure);
 
 % find sensor coefficients
 
 % Oxygen
 %
-Soc=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'Soc'))},'%4c%f');
-FOffset=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'FOffset'))},'%8c%f');
-A52=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'A52'))},'%4c%f');
-B52=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'B52'))},'%4c%f');
-C52=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'C52'))},'%4c%f');
-E52=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'E52'))},'%4c%f');
+Soc = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'Soc'))},'%4c%f');
+FOffset = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'FOffset'))},'%8c%f');
+A52 = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'A52'))},'%4c%f');
+B52 = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'B52'))},'%4c%f');
+C52 = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'C52'))},'%4c%f');
+E52 = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'E52'))},'%4c%f');
 
-O2.Soc=Soc{2};
-O2.FOffset=FOffset{2};
-O2.A=A52{2};
-O2.B=B52{2};
-O2.C=C52{2};
-O2.E=E52{2};
+O2.Soc = Soc{2};
+O2.FOffset = FOffset{2};
+O2.A = A52{2};
+O2.B = B52{2};
+O2.C = C52{2};
+O2.E = E52{2};
 
-oxygen=A(:,4);
+oxygen = A(:,4);
 
-WQM.oxygen=O2cal(oxygen,O2,WQM);
+WQM.oxygen = O2cal(oxygen, O2, WQM);
 
 
 % FLNTU Sensor
-chl=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'UserCHL'))},'%8c%f%f\n');
-ntu=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'NTU'))},'%4c%f%f\n');
-CHL.scale=chl{2};
-CHL.offset=chl{3};
-NTU.scale=ntu{2};
-NTU.offset=ntu{3};
+chl = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'UserCHL'))},'%8c%f%f\n');
+ntu = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'NTU'))},'%4c%f%f\n');
+CHL.scale = chl{2};
+CHL.offset = chl{3};
+NTU.scale = ntu{2};
+NTU.offset = ntu{3};
 
-fluor=A(:,5);
-turb=A(:,6);
-WQM.U_Cal_CHL=FLNTUcal(fluor,CHL);
-WQM.backscatterance=FLNTUcal(turb,NTU);
+fluor = A(:,5);
+turb = A(:,6);
+WQM.U_Cal_CHL = FLNTUcal(fluor, CHL);
+WQM.backscatterance = FLNTUcal(turb, NTU);
 
 % Store calibration coefficients in meta data
-Cal.O2=O2;
-Cal.CHL=CHL;
-Cal.NTU=NTU;
+Cal.O2 = O2;
+Cal.CHL = CHL;
+Cal.NTU = NTU;
 
 % Optional PAR sensor
 isPar = ~cellfun('isempty',strfind(headerLine,'PAR='));
@@ -538,33 +635,47 @@ if any(isPar)
     Cal.PAR=PAR;
 end
 
-WQM.Calibration=Cal;
+WQM.Calibration = Cal;
 
+date = a{3}(igood);
+date = date(iGoodDataLine);
+date = date(iGoodLength);
 
-date=a{3}(igood);
-date=date(iGoodLength);
-time=a{4}(igood);
-time=time(iGoodLength);
+time = a{4}(igood);
+time = time(iGoodDataLine);
+time = time(iGoodLength);
 
-month=fix(date/10000);
-date=date-month*10000;
-day=fix(date/100);
-year=2000+date-day*100;
+month = fix(date/10000);
+date = date - month*10000;
+day = fix(date/100);
+year = 2000 + date - day*100;
 
-hour=fix(time/10000);
-time=time-hour*10000;
-minute=fix(time/100);
-second=time-minute*100;
+hour = fix(time/10000);
+time = time - hour*10000;
+minute = fix(time/100);
+second = time - minute*100;
 
-WQM.datenumber=datenum(year,month,day,hour,minute,second);
+WQM.datenumber = datenum(year, month, day, hour, minute, second);
 
 % get interval and duration from header file
-interval=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'Sample Interval Seconds:'))},'%24c%f');
-duration=textscan(headerLine{~cellfun('isempty',strfind(headerLine,'Sample Seconds:'))},'%15c%f');
-WQM.interval=interval{2};
-WQM.duration=duration{2};
+interval = ~cellfun('isempty', strfind(headerLine, 'Sample Interval Seconds:'));
+if any (interval)
+    interval = textscan(headerLine{interval}, '%24c%f');
+    interval = interval{2};
+else
+    interval = NaN;
+end
+duration = ~cellfun('isempty', strfind(headerLine, 'Sample Seconds:'));
+if any (duration)
+    duration = textscan(headerLine{duration}, '%15c%f');
+    duration = duration{2};
+else
+    duration = NaN;
+end
+WQM.interval = interval;
+WQM.duration = duration;
 % WQM record samples at 1 Hz
-WQM.frequency=1;
+WQM.frequency = 1;
 end
 
 

@@ -1,27 +1,16 @@
-function [data, flags, log] = morelloImpossibleLocationQC( sample_data, data, k, type, auto )
-%MORELLOIMPOSSIBLELOCATION Flags impossible Latitude and Longitude values 
+function [sample_data] = morelloImpossibleLocationSetQC( sample_data, auto )
+%MORELLOIMPOSSIBLELOCATIONSET Flags impossible Latitude and Longitude values 
 % using IMOS sites information in imosSites.txt.
 %
 % Impossible location test described in Morello et Al. 2011 paper.
 %
 % Inputs:
-%   sample_data - struct containing the data set.
-%
-%   data        - the vector of data to check.
-%
-%   k           - Index into the sample_data dimensions/variables vector.
-%
-%   type        - dimensions/variables type to check in sample_data.
-%
-%   auto        - logical, run QC in batch mode
+%   sample_data - struct containing the entire data set and dimension data.
+%   auto - logical, run QC in batch mode
 %
 % Outputs:
-%   data        - same as input.
-%
-%   flags       - Vector the same length as data, with flags for flatline 
-%                 regions.
-%
-%   log         - Empty cell array.
+%   sample_data - same as input, with QC flags added for variable/dimension
+%                 data.
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -56,34 +45,32 @@ function [data, flags, log] = morelloImpossibleLocationQC( sample_data, data, k,
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(4, 5, nargin));
-if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isvector(data),               error('data must be a vector');        end
-if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
-if ~ischar(type),                 error('type must be a string');        end
+error(nargchk(1, 2, nargin));
+if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
 % auto logical in input to enable running under batch processing
-if nargin<5, auto=false; end
-
-log   = {};
+if nargin<2, auto=false; end
 
 dataLon = [];
 dataLat = [];
-flags   = [];
+flagLon = [];
+flagLat = [];
 
 qcSet    = str2double(readProperty('toolbox.qc_set'));
 passFlag = imosQCFlag('good',           qcSet, 'flag');
 failFlag = imosQCFlag('probablyBad',    qcSet, 'flag');
 
-if strcmpi(sample_data.(type){k}.name, 'LONGITUDE')
-    dataLon = sample_data.(type){k}.data;
+idLon = getVar(sample_data.dimensions, 'LONGITUDE');
+if idLon > 0
+    dataLon = sample_data.dimensions{idLon}.data;
 end
 
-if strcmpi(sample_data.(type){k}.name, 'LATITUDE')
-    dataLat = sample_data.(type){k}.data;
+idLat = getVar(sample_data.dimensions, 'LATITUDE');
+if idLat > 0
+    dataLat = sample_data.dimensions{idLat}.data;
 end
 
-if ~isempty(dataLon) || ~isempty(dataLat)
+if ~isempty(dataLon) && ~isempty(dataLat)
     % get details from this site
     site = sample_data.meta.site_name; % source = ddb
     if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes.txt
@@ -94,50 +81,35 @@ if ~isempty(dataLon) || ~isempty(dataLat)
     if isempty(site)
         warning('No site information found to perform impossible location QC test');
     else
-        if ~isempty(dataLon)
-            lenData = length(dataLon);
-        end
-        
-        if ~isempty(dataLat)
-            lenData = length(dataLat);
-        end
+        lenData = length(dataLon);
         
         % initially all data is good
-        flags = ones(lenData, 1)*passFlag;
+        flagLon = ones(lenData, 1)*passFlag;
+        flagLat = flagLon;
         
         %test location
-        if ~isempty(dataLon)
             if isnan(site.distanceKmPlusMinusThreshold)
+                % test each independent coordinate on a rectangular area
                 iBadLon = dataLon < site.longitude - site.longitudePlusMinusThreshold || ...
                     dataLon > site.longitude + site.longitudePlusMinusThreshold;
-            else
-                [~, longitudeMax] = WGS84reckon(site.latitude*pi/180, site.longitude*pi/180, ...
-                    site.distanceKmPlusMinusThreshold*1000, pi/2);
-                [~, longitudeMin] = WGS84reckon(site.latitude*pi/180, site.longitude*pi/180, ...
-                    site.distanceKmPlusMinusThreshold*1000, -pi/2);
-                iBadLon = dataLon < longitudeMin*180/pi || dataLon > longitudeMax*180/pi;
-            end
-            
-            if any(iBadLon)
-                flags(iBadLon) = failFlag;
-            end
-        end
-        
-        if ~isempty(dataLat)
-            if isnan(site.distanceKmPlusMinusThreshold)
                 iBadLat = dataLat < site.latitude - site.latitudePlusMinusThreshold || ...
                     dataLat > site.latitude + site.latitudePlusMinusThreshold;
             else
-                [latitudeMax, ~] = WGS84reckon(site.latitude*pi/180, site.longitude*pi/180, ...
-                    site.distanceKmPlusMinusThreshold*1000, 0);
-                [latitudeMin, ~] = WGS84reckon(site.latitude*pi/180, site.longitude*pi/180, ...
-                    site.distanceKmPlusMinusThreshold*1000, pi);
-                iBadLat = dataLat < latitudeMin*180/pi || dataLat > latitudeMax*180/pi;
+                % test each couple of coordinate on a circle area
+                obsDist = WGS84dist(site.latitude, site.longitude, dataLat, dataLon);
+                iBadLon = obsDist/1000 > site.distanceKmPlusMinusThreshold;
+                iBadLat = iBadLon;
             end
             
-            if any(iBadLat)
-                flags(iBadLat) = failFlag;
+            if any(iBadLon)
+                flagLon(iBadLon) = failFlag;
+                
             end
-        end
+            if any(iBadLat)
+                flagLat(iBadLat) = failFlag;
+            end
+            
+            sample_data.dimensions{idLon}.flags = flagLon;
+            sample_data.dimensions{idLat}.flags = flagLat;
     end
 end

@@ -63,22 +63,32 @@ for k = 1:length(sample_data)
   cndcIdx = getVar(sam.variables, 'CNDC');
   tempIdx = getVar(sam.variables, 'TEMP');
   presIdx = getVar(sam.variables, 'PRES');
+  presRelIdx = getVar(sam.variables, 'PRES_REL');
   
-  % cndc, temp, or pres not present in data set
-  if ~(cndcIdx || tempIdx || presIdx), continue; end
+  % cndc, temp, or pres/pres_rel not present in data set
+  if ~(cndcIdx && tempIdx && (presIdx || presRelIdx)), continue; end
   
   % data set already contains salinity
   if getVar(sam.variables, 'PSAL'), continue; end
   
   cndc = sam.variables{cndcIdx}.data;
   temp = sam.variables{tempIdx}.data;
-  pres = sam.variables{presIdx}.data;
+  if presRelIdx > 0
+      presRel = sam.variables{presRelIdx}.data;
+      presName = 'PRES_REL';
+  else
+      % update from a relative pressure like SeaBird computes
+      % it in its processed files, substracting a constant value
+      % 10.1325 dbar for nominal atmospheric pressure
+      presRel = sam.variables{presIdx}.data - 10.1325;
+      presName = 'PRES substracting a constant value 10.1325 dbar for nominal atmospheric pressure';
+  end
   
   % calculate C(S,T,P)/C(35,15,0) ratio
   R = cndc ./ 4.2914;
   
   % calculate salinity
-  psal = sw_salt(R, temp, pres);
+  psal = sw_salt(R, temp, presRel);
   
   % add salinity data as new variable in data set
   sample_data{k} = addVar(...
@@ -86,5 +96,5 @@ for k = 1:length(sample_data)
     'PSAL', ...
     psal, ...
     getVar(sam.dimensions, 'TIME'), ...
-    'salinityPP.m: derived from CNDC, TEMP and PRES');
+    ['salinityPP.m: derived from CNDC, TEMP and ' presName]);
 end
