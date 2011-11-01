@@ -75,7 +75,7 @@ if ~strcmp(type, 'variables'), return; end
 
 time_out_water = sample_data.time_deployment_end;
 
-if isnan(time_out_water), return; end
+if isempty(time_out_water), return; end
 
 qcSet     = str2double(readProperty('toolbox.qc_set'));
 passFlag  = imosQCFlag('raw',          qcSet, 'flag');

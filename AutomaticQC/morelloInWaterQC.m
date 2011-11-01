@@ -75,7 +75,7 @@ if ~strcmp(type, 'variables'), return; end
 
 time_in_water = sample_data.time_deployment_start;
 
-if isnan(time_in_water), return; end
+if isempty(time_in_water), return; end
 
 if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
         strcmpi(sample_data.(type){k}.name, 'PSAL')
