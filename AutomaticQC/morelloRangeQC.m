@@ -84,7 +84,8 @@ if iVar > 0
     idTime  = getVar(sample_data.dimensions, 'TIME');
     ivDepth = getVar(sample_data.variables, 'DEPTH');
     if ivDepth == 0
-        warning('No depth information found to perform range QC test');
+        cprintf([1, 0.5, 0], '%s\n', ['Warning : ' 'No depth information found to '...
+            'perform range QC test']);
         return;
     end
     dataTime  = sample_data.dimensions{idTime}.data;
@@ -101,33 +102,43 @@ if iVar > 0
     
     % test if site information exists
     if isempty(site)
-        warning('No site information found to perform range QC test');
+        cprintf([1, 0.5, 0], '%s\n', ['Warning : ' 'No site information found to '...
+            'perform range QC test']);
     else
         % test if climatology exist
         climFile = fullfile(climDir, site.name, 'clim_output.mat');
         if ~exist(climFile, 'file')
-            warning('No climatology file found to perform range QC test');
+            cprintf([1, 0.5, 0], '%s\n', ['Warning : ' 'No climatology file found '...
+                'to perform range QC test']);
         else
             clim = load(climFile);
             
             % read step type from morelloRangeQC properties file
             stepType = readProperty('CLIM_STEP', fullfile('AutomaticQC', 'morelloRangeQC.txt'));
             if all(~strcmpi(stepType, {'monthly', 'daily'}))
-                warning(['CLIM_STEP : ' stepType ' in morelloRangeQC.txt is not supported to perform range QC test']);
+                cprintf([1, 0.5, 0], '%s\n', ['Warning : ' 'CLIM_STEP : ' stepType...
+                    ' in morelloRangeQC.txt is not supported to perform '...
+                    'range QC test']);
             else
                 if strcmpi(stepType, 'monthly')
                     % test if needed information is available
                     if ~all(isfield(clim, {'monmn', 'monsd'}))
-                        warning('monmn and/or monsd variables are missing in climatology file');
+                        cprintf([1, 0.5, 0], '%s\n', ['Warning : ' 'monmn and/or '...
+                            'monsd variables are missing in climatology file']);
                         return;
                     end
                 elseif strcmpi(stepType, 'daily')
                     if ~all(isfield(clim, {'monmn', 'monsd', 'dm', 'tf_coef'}))
-                        warning('monmn, monsd, dm and/or tfcoef variables are missing in climatology file');
+                        cprintf([1, 0.5, 0], '%s\n', ['Warning : ' 'monmn, monsd, '...
+                            'dm and/or tfcoef variables are missing in '...
+                            'climatology file']);
                         return;
                     else
                         if ~all(isfield(clim.tf_coef, {'mn', 'an', 'sa', 'tco', 't2co'}))
-                            warning('tf_coef.mn, tf_coef.an, tf_coef.sa, tf_coef.tco and/or tf_coef.t2co variables are missing in climatology file');
+                            cprintf([1, 0.5, 0], '%s\n', ['Warning : ' 'tf_coef.mn, '...
+                                'tf_coef.an, tf_coef.sa, tf_coef.tco and/or '...
+                                'tf_coef.t2co variables are missing in '...
+                                'climatology file']);
                             return;
                         end
                     end
@@ -266,7 +277,9 @@ if iVar > 0
                         
                         stdDev = stdDevInterp;
                     else
-                        warning(['DAILY_METHOD : ' method ' in morelloRangeQC.txt is not supported to perform range QC test']);
+                        cprintf([1, 0.5, 0], '%s\n', ['Warning : ' 'DAILY_METHOD : '...
+                            method ' in morelloRangeQC.txt is not supported '...
+                            'to perform range QC test']);
                         flags = ones(lenData, 1)*rawFlag;
                         return;
                     end
@@ -304,7 +317,10 @@ if iVar > 0
                 iClimDepthTooFar = minDistClimData > distMaxDepth;
                 if any(iClimDepthTooFar)
                     flags(iClimDepthTooFar) = rawFlag;
-                    warning(['some data points are located further than ' num2str(distMaxDepth) 'm in depth from the depth values climatology and won''t be QC''d']);
+                    cprintf([1, 0.5, 0], '%s\n', ['Warning : ' 'some data points '...
+                        'are located further than ' num2str(distMaxDepth)...
+                        'm in depth from the depth values climatology and '...
+                        'won''t be QC''d']);
                 end
             end
         end

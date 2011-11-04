@@ -172,10 +172,10 @@ function sample_data = netcdfParse( filename )
       sample_data.meta.level = imosFileVersion(sample_data.file_version, 'index');
   end
   
-  sample_data.meta.instrument_make      = '';
-  sample_data.meta.instrument_model     = '';
-  sample_data.meta.instrument_serial_no = '';
-  sample_data.meta.instrument_sample_interval = NaN;
+  sample_data.meta.instrument_make              = '';
+  sample_data.meta.instrument_model             = '';
+  sample_data.meta.instrument_serial_no         = '';
+  sample_data.meta.instrument_sample_interval   = NaN;
   
   if isfield(sample_data, 'instrument_make')
       sample_data.meta.instrument_make = sample_data.instrument_make;

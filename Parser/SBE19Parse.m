@@ -105,7 +105,8 @@ function sample_data = SBE19Parse( filename )
   % use the appropriate subfunction to read in the data
   % assume that anything with a suffix not equal to .hex
   % is a .cnv file
-  [~, ~, ext] = fileparts(filename);
+  [~, filename, ext] = fileparts(filename);
+  filename = [filename ext];
   if strcmpi(ext, '.hex')
     [data, comment] = readSBE19hex(dataLines, instHeader);
   else
@@ -115,8 +116,10 @@ function sample_data = SBE19Parse( filename )
   % create sample data struct, 
   % and copy all the data in
   sample_data = struct;
-  sample_data.meta.instHeader = instHeader;
-  sample_data.meta.procHeader = procHeader;
+  
+  sample_data.original_file_name    = filename;
+  sample_data.meta.instHeader       = instHeader;
+  sample_data.meta.procHeader       = procHeader;
   
   sample_data.meta.instrument_make = 'Seabird';
   if isfield(instHeader, 'instrument_model')

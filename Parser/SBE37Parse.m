@@ -134,7 +134,12 @@ if strcmpi(ext, '.DAT') && strcmp(line, '//Status Information')
     % create sample data struct,
     % and copy all the data in
     sample_data = struct;
-    sample_data.meta.instHeader = instHeader;
+    
+    [~, filename, ext] = fileparts(filename);
+    filename = [filename ext];
+  
+    sample_data.original_file_name  = filename;
+    sample_data.meta.instHeader     = instHeader;
     
     sample_data.meta.instrument_make = 'Seabird';
     if isfield(instHeader, 'instrument_model')

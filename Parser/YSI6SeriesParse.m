@@ -76,10 +76,14 @@ function sample_data = YSI6SeriesParse( filename )
   % parse all of the records
   records = readRecords(header, data);
   
-  sample_data.meta.instrument_make      = 'YSI';
-  sample_data.meta.instrument_model     = '6 Series';
-  sample_data.meta.instrument_serial_no = '';
-  sample_data.meta.instrument_sample_interval = median(diff(records.time*24*3600));
+  [~, filename, ext] = fileparts(filename);
+  filename = [filename ext];
+    
+  sample_data.original_file_name                = filename;
+  sample_data.meta.instrument_make              = 'YSI';
+  sample_data.meta.instrument_model             = '6 Series';
+  sample_data.meta.instrument_serial_no         = '';
+  sample_data.meta.instrument_sample_interval   = median(diff(records.time*24*3600));
   
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant

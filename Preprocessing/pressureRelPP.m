@@ -50,7 +50,7 @@ if isempty(sample_data), return;                                    end
 % auto logical in input to enable running under batch processing
 if nargin<2, auto=false; end
 
-offsetFile = ['Preprocessing' filesep 'pressureRelPP.txt'];
+pressureRelFile = ['Preprocessing' filesep 'pressureRelPP.txt'];
 lenSam = length(sample_data);
 
 descs     = cell(lenSam, 1);
@@ -77,14 +77,14 @@ for k = 1:lenSam
     
     if isempty(sources{k})
         try
-            offsets(k) = str2double(readProperty('default', offsetFile, ','));
+            offsets(k) = str2double(readProperty('default', pressureRelFile, ','));
         end
     else
         try
-            offsets(k) = str2double(readProperty(sources{k}, offsetFile, ','));
+            offsets(k) = str2double(readProperty(sources{k}, pressureRelFile, ','));
         catch
             try
-                offsets(k) = str2double(readProperty('default', offsetFile, ','));
+                offsets(k) = str2double(readProperty('default', pressureRelFile, ','));
             end
         end
     end

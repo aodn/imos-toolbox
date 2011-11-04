@@ -118,7 +118,7 @@ depth(:) = (cellStart):  ...
 
 for k = 1:nsamples
   
-  st = structures{k+3};
+  st = structures{3 + k};
   
   time(k)           = st.Time;
   analn1(k)         = st.Analn1;
@@ -160,14 +160,18 @@ backscatter3 = backscatter3 * 0.45;
 
 sample_data = struct;
 
-sample_data.meta.head     = head;
-sample_data.meta.hardware = hardware;
-sample_data.meta.user     = user;
-sample_data.meta.instrument_make      = 'Nortek';
-sample_data.meta.instrument_model     = 'AWAC';
-sample_data.meta.instrument_serial_no = hardware.SerialNo;
+[~, filename, ext] = fileparts(filename);
+filename = [filename ext];
+    
+sample_data.original_file_name              = filename;
+sample_data.meta.head                       = head;
+sample_data.meta.hardware                   = hardware;
+sample_data.meta.user                       = user;
+sample_data.meta.instrument_make            = 'Nortek';
+sample_data.meta.instrument_model           = 'AWAC';
+sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
-sample_data.meta.instrument_firmware  = hardware.FWversion;
+sample_data.meta.instrument_firmware        = hardware.FWversion;
 
 sample_data.dimensions{1} .name = 'TIME';
 sample_data.dimensions{2} .name = 'HEIGHT_ABOVE_SENSOR';
@@ -237,6 +241,16 @@ sample_data = temp;
 % copy wave data into a sample_data struct; start with a copy of the 
 % first sample_data struct, as all the metadata is the same
 sample_data{2} = sample_data{1};
+
+[~, filename, ~] = fileparts(filename);
+filename = [filename '.wap'];
+
+sample_data{2}.original_file_name              = filename;
+sample_data{2}.meta.head                       = [];
+sample_data{2}.meta.hardware                   = [];
+sample_data{2}.meta.user                       = [];
+sample_data{2}.meta.instrument_sample_interval = median(diff(waveData.Time*24*3600));
+
 sample_data{2}.dimensions = {};
 sample_data{2}.variables  = {};
 

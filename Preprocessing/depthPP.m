@@ -57,6 +57,27 @@ if isempty(sample_data), return;                                    end
 % auto logical in input to enable running under batch processing
 if nargin<2, auto=false; end
 
+% read options from parameter file
+depthFile       = ['Preprocessing' filesep 'depthPP.txt'];
+same_familly    = readProperty('same_familly', depthFile, ',');
+include         = readProperty('include', depthFile, ',');
+exclude         = readProperty('exclude', depthFile, ',');
+
+if strcmpi(same_familly, 'yes')
+    same_familly = true;
+else
+    same_familly = false;
+end
+
+if ~isempty(include)
+    include = textscan(include, '%s');
+    include = include{1};
+end
+if ~isempty(exclude)
+    exclude = textscan(exclude, '%s');
+    exclude = exclude{1};
+end
+
 % check wether height or target depth information is documented
 isSensorHeight = false;
 isSensorTargetDepth = false;
@@ -77,16 +98,17 @@ else
     
 end
 
+% loop on every data sets
 for k = 1:length(sample_data)
-    
-    sam = sample_data{k};
+    % current data set
+    curSam = sample_data{k};
     
     % if data set already contains depth data then next sample data
-    if getVar(sam.variables, 'DEPTH'), continue; end
-    if getVar(sam.dimensions, 'DEPTH'), continue; end
+    if getVar(curSam.variables, 'DEPTH'), continue; end
+    if getVar(curSam.dimensions, 'DEPTH'), continue; end
     
-    presIdx     = getVar(sam.variables, 'PRES');
-    presRelIdx  = getVar(sam.variables, 'PRES_REL');
+    presIdx     = getVar(curSam.variables, 'PRES');
+    presRelIdx  = getVar(curSam.variables, 'PRES_REL');
     
     % if no pressure data, try to compute it from other sensors in the
     % mooring, otherwise go to next sample data
@@ -96,32 +118,65 @@ for k = 1:length(sample_data)
             % sensors
             m = 0;
             otherSam = [];
+            % loop on every other data sets
             for l = 1:length(sample_data)
-                curSam = sample_data{l};
+                sam = sample_data{l};
+                
+                presCurIdx      = getVar(sam.variables, 'PRES');
+                presRelCurIdx   = getVar(sam.variables, 'PRES_REL');
+                
+                % samples without pressure information are excluded
+                if (presCurIdx == 0 && presRelCurIdx == 0), continue; end
                 
                 if isSensorHeight
-                    curSensorZ = curSam.sensor_height;
+                    samSensorZ = sam.sensor_height;
                 else
-                    curSensorZ = curSam.target_depth;
+                    samSensorZ = sam.target_depth;
                 end
                 
-                if l == k || isempty(curSensorZ), continue; end
-                curSource = textscan(curSam.instrument, '%s');
-                curSource = curSource{1};
-                presCurIdx      = getVar(curSam.variables, 'PRES');
-                presRelCurIdx   = getVar(curSam.variables, 'PRES_REL');
+                % current sample or samples without vertical nominal 
+                % information are excluded
+                if l == k || isempty(samSensorZ), continue; end
                 
-                p=0;
-                for n = 1:length(curSource)
-                    if ~isempty(strfind(sam.instrument, curSource{n}))
-                        p = p+1;
+                % only samples that are from the same instrument
+                % familly/brand of the current sample are selected
+                samSource = textscan(sam.instrument, '%s');
+                samSource = samSource{1};
+                p = 0;
+                % is from the same familly
+                if same_familly
+                    % loop on every words composing the instrument global
+                    % attribute of current other data set
+                    for n = 1:length(samSource)
+                        if ~isempty(strfind(curSam.instrument, samSource{n}))
+                            p = 1;
+                        end
+                    end
+                else
+                    p = 1;
+                end
+                
+                % loop on every words that would include current other data set
+                for n = 1:length(include)
+                    % is included
+                    if ~isempty(strfind(sam.instrument, include{n}))
+                        p = 1;
                     end
                 end
                 
-                if (presCurIdx > 0 || presRelCurIdx > 0) && p > 1
-                    m = m+1;
-                    otherSam{m} = curSam;
+                % loop on every words that would exclude current other data set
+                for n = 1:length(exclude)
+                    % is excluded
+                    if ~isempty(strfind(sam.instrument, exclude{n}))
+                        p = 0;
+                    end
                 end
+                
+                if p > 0
+                    m = m+1;
+                    otherSam{m} = sam;
+                end
+                clear sam;
             end
             
             % re-compute a pressure from nearest pressure sensors
@@ -130,21 +185,31 @@ for k = 1:length(sample_data)
                 diffWithOthers = nan(m,1);
                 for l = 1:m
                     if isSensorHeight
-                    	diffWithOthers(l) = abs(sam.sensor_height - otherSam{l}.sensor_height);
+                    	diffWithOthers(l) = abs(curSam.sensor_height - otherSam{l}.sensor_height);
                     else
-                        diffWithOthers(l) = abs(sam.target_depth - otherSam{l}.target_depth);
+                        diffWithOthers(l) = abs(curSam.target_depth - otherSam{l}.target_depth);
                     end
                 end
                 
-                iFirst              = diffWithOthers == min(diffWithOthers);
+                iTwoFirst           = find(diffWithOthers == min(diffWithOthers), 2, 'first');
+                iFirst              = iTwoFirst(1);
                 samFirst            = otherSam{iFirst};
                 presIdxFirst        = getVar(samFirst.variables, 'PRES');
                 presRelIdxFirst     = getVar(samFirst.variables, 'PRES_REL');
                 
-                iSecond             = diffWithOthers == min(diffWithOthers(~iFirst));
+                if length(iTwoFirst) == 2
+                    % in case the second nearest is as close as the first
+                    % one
+                    iSecond         = iTwoFirst(2);
+                else
+                    newDiffWithOthers = diffWithOthers;
+                    newDiffWithOthers(iFirst) = [];
+                    iSecond         = find(diffWithOthers == min(newDiffWithOthers));
+                end
                 samSecond           = otherSam{iSecond};
                 presIdxSecond       = getVar(samSecond.variables, 'PRES');
                 presRelIdxSecond    = getVar(samSecond.variables, 'PRES_REL');
+                clear otherSam;
                 
                 if presRelIdxFirst == 0 || presRelIdxSecond == 0
                     % update from a relative pressure like SeaBird computes
@@ -172,10 +237,10 @@ for k = 1:length(sample_data)
                 % nearest pressure sensors
                 if isSensorHeight
                     distFirstSecond     = samFirst.sensor_height - samSecond.sensor_height;
-                    distFirstCurSensor  = samFirst.sensor_height - sam.sensor_height;
+                    distFirstCurSensor  = samFirst.sensor_height - curSam.sensor_height;
                 else
                     distFirstSecond     = samFirst.target_depth - samSecond.target_depth;
-                    distFirstCurSensor  = samFirst.target_depth - sam.target_depth;
+                    distFirstCurSensor  = samFirst.target_depth - curSam.target_depth;
                 end
                 
                 % theta is the angle between the vertical and line
@@ -190,23 +255,25 @@ for k = 1:length(sample_data)
                 %
                 % pressure = density*gravity*depth
                 %
-                if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
+                if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
                     % compute depth with SeaWater toolbox
                     % depth ~= sw_dpth(pressure, latitude)
-                    if sam.geospatial_lat_min == sam.geospatial_lat_max
-                        zFirst = sw_dpth(relPresFirst, sam.geospatial_lat_min);
-                        zSecond = sw_dpth(relPresSecond, sam.geospatial_lat_min);
+                    if curSam.geospatial_lat_min == curSam.geospatial_lat_max
+                        zFirst = sw_dpth(relPresFirst, curSam.geospatial_lat_min);
+                        zSecond = sw_dpth(relPresSecond, curSam.geospatial_lat_min);
+                        clear relPresFirst relPresSecond;
                         
                         computedDepthComment  = ['depthPP: Depth computed from '...
                             'the 2 nearest pressure sensors available, using the '...
                             'SeaWater toolbox from latitude and '...
                             presComment '.'];
                     else
-                        meanLat = sam.geospatial_lat_min + ...
-                            (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
+                        meanLat = curSam.geospatial_lat_min + ...
+                            (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
                         
                         zFirst = sw_dpth(relPresFirst, meanLat);
-                        zSecond = sw_dpth(relPresSecond, meanLat);    
+                        zSecond = sw_dpth(relPresSecond, meanLat);  
+                        clear relPresFirst relPresSecond;
                         
                         computedDepthComment  = ['depthPP: Depth computed from '...
                             'the 2 nearest pressure sensors available, using the '...
@@ -217,6 +284,7 @@ for k = 1:length(sample_data)
                     % without latitude information, we assume 1dbar ~= 1m
                     zFirst = relPresFirst;
                     zSecond = relPresSecond;
+                    clear relPresFirst relPresSecond;
                     
                     computedDepthComment  = ['depthPP: Depth computed from '...
                         'the 2 nearest pressure sensors available with '...
@@ -225,24 +293,23 @@ for k = 1:length(sample_data)
                 
                 tFirst = samFirst.dimensions{getVar(samFirst.dimensions, 'TIME')}.data;
                 tSecond = samSecond.dimensions{getVar(samSecond.dimensions, 'TIME')}.data;
+                tCur = curSam.dimensions{getVar(curSam.dimensions, 'TIME')}.data;
+                clear samFirst samSecond;
                 
-                % let's find which data are overlapping in time
-                [~, iOverlapFirst, iOverlapSecond] = intersect(tFirst, tSecond);
-                zFirst = zFirst(iOverlapFirst);
-                tFirst = tFirst(iOverlapFirst);
-                zSecond = zSecond(iOverlapSecond);
-                tSecond = tSecond(iOverlapSecond);
+                % let's interpolate data so we have consistent period
+                % sample and time sample over the 3 data sets
+                zFirst = interp1(tFirst, zFirst, tCur);
+                zSecond = interp1(tSecond, zSecond, tCur);
+                clear tFirst tSecond tCur;
                 
-                tCur = sam.dimensions{getVar(sam.dimensions, 'TIME')}.data;
-                computedDepth = nan(size(tCur));
-                
-                [~, iOverlapCur, iOverlapOthers] = intersect(tCur, tFirst);
-                
-                computedDepth(iOverlapCur) = (distFirstCurSensor/distFirstSecond) ...
-                    * (zSecond(iOverlapOthers) - zFirst(iOverlapOthers)) + zFirst(iOverlapOthers);
+                computedDepth = (distFirstCurSensor/distFirstSecond) ...
+                    * (zSecond - zFirst) + zFirst;
+                clear zFirst zSecond;
             
             elseif m == 1
-                warning('Computing actual depth from only one pressure sensor on mooring');
+                cprintf([1, 0.5, 0], '%s\n', ['Warning : ' curSam.original_file_name ...
+                    ' computing actual depth from only one pressure sensor '...
+                    'on mooring']);
                 % we found only one sensor
                 otherSam = otherSam{1};
                 presIdxOther = getVar(otherSam.variables, 'PRES');
@@ -277,25 +344,27 @@ for k = 1:length(sample_data)
                 % computedDepth = zOther - distOtherCurSensor
                 %
                 if isSensorHeight
-                    distOtherCurSensor = otherSam.sensor_height - sam.sensor_height;
+                    distOtherCurSensor = otherSam.sensor_height - curSam.sensor_height;
                 else
-                    distOtherCurSensor = otherSam.target_depth - sam.target_depth;
+                    distOtherCurSensor = otherSam.target_depth - curSam.target_depth;
                 end
                 
-                if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
+                if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
                     % compute depth with SeaWater toolbox
                     % depth ~= sw_dpth(pressure, latitude)
-                    if sam.geospatial_lat_min == sam.geospatial_lat_max
-                        zOther = sw_dpth(relPresOther, sam.geospatial_lat_min);
+                    if curSam.geospatial_lat_min == curSam.geospatial_lat_max
+                        zOther = sw_dpth(relPresOther, curSam.geospatial_lat_min);
+                        clear relPresOther;
                         
                         computedDepthComment  = ['depthPP: Depth computed from '...
                             'the only pressure sensor available, using the '...
                             'SeaWater toolbox from latitude and '...
                             presComment '.'];
                     else
-                        meanLat = sam.geospatial_lat_min + ...
-                            (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
+                        meanLat = curSam.geospatial_lat_min + ...
+                            (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
                         zOther = sw_dpth(relPresOther, meanLat);
+                        clear relPresOther;
                         
                         computedDepthComment  = ['depthPP: Depth computed from '...
                             'the only pressure sensor available, using the '...
@@ -305,6 +374,7 @@ for k = 1:length(sample_data)
                 else
                     % without latitude information, we assume 1dbar ~= 1m
                     zOther = relPresOther;
+                    clear relPresOther;
                     
                     computedDepthComment  = ['depthPP: Depth computed from '...
                         'the only pressure sensor available with '...
@@ -312,42 +382,47 @@ for k = 1:length(sample_data)
                 end
                 
                 tOther = otherSam.dimensions{getVar(otherSam.dimensions, 'TIME')}.data;
+                tCur = curSam.dimensions{getVar(curSam.dimensions, 'TIME')}.data;
+                clear otherSam;
                 
-                tCur = sam.dimensions{getVar(sam.dimensions, 'TIME')}.data;
-                computedDepth = nan(size(tCur));
+                % let's interpolate the other data set depth values in time
+                % to fit with the current data set time values
+                zOther = interp1(tOther, zOther, tCur);
+                clear tOther tCur;
                 
-                % let's find which data are overlapping in time
-                [~, iOverlapCur, iOverlapOther] = intersect(tCur, tOther);
-                
-                computedDepth(iOverlapCur) = zOther(iOverlapOther) + distOtherCurSensor;
+                computedDepth = zOther + distOtherCurSensor;
+                clear zOther;
             else
-                warning(['There is no pressure sensor on this mooring from '...
+                cprintf([1, 0.5, 0], '%s\n', ['Warning : ' curSam.original_file_name ...
+                    ' there is no pressure sensor on this mooring from '...
                     'which an actual depth can be computed']);
                 continue;
             end
         else
-            warning(['Please document either sensor_height or target_depth '...
+            warning([]);
+            cprintf([1, 0.5, 0], '%s\n', ['Warning : ' curSam.original_file_name ...
+                ' please document either sensor_height or target_depth '...
                 'global attributes so that an actual depth can be '...
                 'computed from other pressure sensors in the mooring']);
             continue;
         end
         
         % looking for dimensions to give to variable Depth
-        idx = getVar(sam.variables, 'TEMP');
-        dimensions = sam.variables{idx}.dimensions;
+        idx = getVar(curSam.variables, 'TEMP');
+        dimensions = curSam.variables{idx}.dimensions;
     else
         if presRelIdx == 0
             % update from a relative pressure like SeaBird computes
             % it in its processed files, substracting a constant value
             % 10.1325 dbar for nominal atmospheric pressure
-            relPres = sam.variables{presIdx}.data - 10.1325;
+            relPres = curSam.variables{presIdx}.data - 10.1325;
             presComment = ['absolute '...
                 'pressure measurements to which a nominal '...
                 'value for atmospheric pressure (10.1325 dbar) '...
                 'has been substracted'];
         else
             % update from a relative measured pressure
-            relPres = sam.variables{presRelIdx}.data;
+            relPres = curSam.variables{presRelIdx}.data;
             presComment = ['relative '...
                 'pressure measurements (calibration offset '...
                 'usually performed to balance current '...
@@ -355,19 +430,21 @@ for k = 1:length(sample_data)
                 'precision at a deployed depth)'];
         end
         
-        if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
+        if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
             % compute vertical min/max with SeaWater toolbox
-            if sam.geospatial_lat_min == sam.geospatial_lat_max
+            if curSam.geospatial_lat_min == curSam.geospatial_lat_max
                 computedDepth         = sw_dpth(relPres, ...
-                    sam.geospatial_lat_min);
+                    curSam.geospatial_lat_min);
+                clear relPres;
                 computedDepthComment  = ['depthPP: Depth computed using the '...
                     'SeaWater toolbox from latitude and '...
                     presComment '.'];
             else
-                meanLat = sam.geospatial_lat_min + ...
-                    (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
+                meanLat = curSam.geospatial_lat_min + ...
+                    (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
                 
                 computedDepth         = sw_dpth(relPres, meanLat);
+                clear relPres;
                 computedDepthComment  = ['depthPP: Depth computed using the '...
                     'SeaWater toolbox from mean latitude and '...
                     presComment '.'];
@@ -375,48 +452,52 @@ for k = 1:length(sample_data)
         else
             % without latitude information, we assume 1dbar ~= 1m
             computedDepth         = relPres;
+            clear relPres;
             computedDepthComment  = ['depthPP: Depth computed from '...
                 presComment ', assuming 1dbar ~= 1m.'];
         end
         
         if presRelIdx == 0
-            dimensions = sam.variables{presIdx}.dimensions;
+            dimensions = curSam.variables{presIdx}.dimensions;
         else
-            dimensions = sam.variables{presRelIdx}.dimensions;
+            dimensions = curSam.variables{presRelIdx}.dimensions;
         end
     end
     
     computedMedianDepth   = round(median(computedDepth)*100)/100;
     
-    idHeight = getVar(sam.dimensions, 'HEIGHT_ABOVE_SENSOR');
+    idHeight = getVar(curSam.dimensions, 'HEIGHT_ABOVE_SENSOR');
     if idHeight > 0
         % ADCP
         % Let's compare this computed depth from pressure
         % with the maximum distance the ADCP can measure. Sometimes,
         % PRES from ADCP pressure sensor is just wrong
-        maxDistance = round(max(sam.dimensions{idHeight}.data)*100)/100;
+        maxDistance = round(max(curSam.dimensions{idHeight}.data)*100)/100;
         diffPresDist = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
         
         if diffPresDist < 30/100
             % Depth from PRES Ok if diff < 30%
             % add depth data as new variable in data set
             sample_data{k} = addVar(...
-                sam, ...
+                curSam, ...
                 'DEPTH', ...
                 computedDepth, ...
                 dimensions, ...
                 computedDepthComment);
+            clear computedDepth;
         end
     else
         % add depth data as new variable in data set
         sample_data{k} = addVar(...
-            sam, ...
+            curSam, ...
             'DEPTH', ...
             computedDepth, ...
             dimensions, ...
             computedDepthComment);
+        clear computedDepth;
         
         % update vertical min/max from new computed DEPTH
         sample_data{k} = populateMetadata(sample_data{k});
     end
+    clear curSam;
 end

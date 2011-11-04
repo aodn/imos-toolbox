@@ -1,5 +1,5 @@
 function sample_data = SBE37SMParse( filename )
-%SBE37SMPARSE Parses a .cnv data file from a Seabird SBE37SM
+%SBE37SMPARSE Parses a .cnv or .asc data file from a Seabird SBE37SM
 % CTD recorder.
 %
 % This function is able to read in a .cnv data file retrieved
@@ -15,6 +15,9 @@ function sample_data = SBE37SMParse( filename )
 %
 % This function reads in the header sections, and delegates to the two file
 % specific sub functions to process the data.
+%
+% If it appears the input file is a .asc file, then the function delegates
+% the reading of it to the generic SBEx.m parser.
 %
 % Inputs:
 %   filename    - cell array of files to import (only one supported).
@@ -63,109 +66,122 @@ end
 % only one file supported currently
 filename = filename{1};
 
-% read in every line in the file, separating
-% them out into each of the three sections
-instHeaderLines = {};
-procHeaderLines = {};
-dataLines       = {};
-try
-    
-    fid = fopen(filename, 'rt');
-    line = fgetl(fid);
-    while ischar(line)
+[~, ~, ext] = fileparts(filename);
+
+if strcmpi(ext, '.cnv')
+    % read in every line in the file, separating
+    % them out into each of the three sections
+    instHeaderLines = {};
+    procHeaderLines = {};
+    dataLines       = {};
+    try
         
-        line = deblank(line);
-        if isempty(line)
-            line = fgetl(fid);
-            continue;
-        end
-        
-        if     line(1) == '*', instHeaderLines{end+1} = line;
-        elseif line(1) == '#', procHeaderLines{end+1} = line;
-        else                   dataLines{      end+1} = line;
-        end
-        
+        fid = fopen(filename, 'rt');
         line = fgetl(fid);
+        while ischar(line)
+            
+            line = deblank(line);
+            if isempty(line)
+                line = fgetl(fid);
+                continue;
+            end
+            
+            if     line(1) == '*', instHeaderLines{end+1} = line;
+            elseif line(1) == '#', procHeaderLines{end+1} = line;
+            else                   dataLines{      end+1} = line;
+            end
+            
+            line = fgetl(fid);
+        end
+        
+        fclose(fid);
+        
+    catch e
+        if fid ~= -1, fclose(fid); end
+        rethrow(e);
     end
     
-    fclose(fid);
+    % read in the raw instrument header
+    instHeader = parseInstrumentHeader(instHeaderLines);
+    procHeader = parseProcessedHeader( procHeaderLines);
     
-catch e
-    if fid ~= -1, fclose(fid); end
-    rethrow(e);
-end
-
-% read in the raw instrument header
-instHeader = parseInstrumentHeader(instHeaderLines);
-procHeader = parseProcessedHeader( procHeaderLines);
-
-%BDM (18/2/2011) Use new SBE37 specific cnv reader function
-[data, comment] = readSBE37cnv(dataLines, instHeader, procHeader);
-
-% create sample data struct,
-% and copy all the data in
-sample_data = struct;
-sample_data.meta.instHeader = instHeader;
-sample_data.meta.procHeader = procHeader;
-
-sample_data.meta.instrument_make = 'Seabird';
-if isfield(instHeader, 'instrument_model')
-    sample_data.meta.instrument_model = instHeader.instrument_model;
-else
-    sample_data.meta.instrument_model = 'SBE37SM';
-end
-
-if isfield(instHeader, 'instrument_firmware')
-    sample_data.meta.instrument_firmware = instHeader.instrument_firmware;
-else
-    sample_data.meta.instrument_firmware = '';
-end
-
-if isfield(instHeader, 'instrument_serial_no')
-    sample_data.meta.instrument_serial_no = instHeader.instrument_serial_no;
-else
-    sample_data.meta.instrument_serial_no = '';
-end
-
-time = genTimestamps(instHeader, data);
-
-if isfield(instHeader, 'sampleInterval')
-    sample_data.meta.instrument_sample_interval = instHeader.sampleInterval;
-else
-    sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
-end
-
-sample_data.dimensions = {};
-sample_data.variables  = {};
-
-% dimensions definition must stay in this order : T, Z, Y, X, others;
-% to be CF compliant
-% generate time data from header information
-sample_data.dimensions{1}.name = 'TIME';
-sample_data.dimensions{1}.data = time;
-sample_data.dimensions{2}.name = 'LATITUDE';
-sample_data.dimensions{2}.data = NaN;
-sample_data.dimensions{3}.name = 'LONGITUDE';
-sample_data.dimensions{3}.data = NaN;
-
-% scan through the list of parameters that were read
-% from the file, and create a variable for each
-vars = fieldnames(data);
-for k = 1:length(vars)
+    %BDM (18/2/2011) Use new SBE37 specific cnv reader function
+    [data, comment] = readSBE37cnv(dataLines, instHeader, procHeader);
     
-    if strncmp('TIME', vars{k}, 4), continue; end
+    % create sample data struct,
+    % and copy all the data in
+    sample_data = struct;
     
-    sample_data.variables{end+1}.dimensions = [1 2 3];
-    sample_data.variables{end  }.name       = vars{k};
-    sample_data.variables{end  }.data       = data.(vars{k});
-    sample_data.variables{end  }.comment    = comment.(vars{k});
+    [~, filename, ext] = fileparts(filename);
+    filename = [filename ext];
     
-    if strncmp('PRES_REL', vars{k}, 8)
-        % let's document the constant pressure atmosphere offset previously 
-        % applied by SeaBird software on the absolute presure measurement
-        sample_data.variables{end  }.applied_offset = -14.7*0.689476;
+    sample_data.original_file_name  = filename;
+    sample_data.meta.instHeader     = instHeader;
+    sample_data.meta.procHeader     = procHeader;
+    
+    sample_data.meta.instrument_make = 'Seabird';
+    if isfield(instHeader, 'instrument_model')
+        sample_data.meta.instrument_model = instHeader.instrument_model;
+    else
+        sample_data.meta.instrument_model = 'SBE37SM';
     end
+    
+    if isfield(instHeader, 'instrument_firmware')
+        sample_data.meta.instrument_firmware = instHeader.instrument_firmware;
+    else
+        sample_data.meta.instrument_firmware = '';
+    end
+    
+    if isfield(instHeader, 'instrument_serial_no')
+        sample_data.meta.instrument_serial_no = instHeader.instrument_serial_no;
+    else
+        sample_data.meta.instrument_serial_no = '';
+    end
+    
+    time = genTimestamps(instHeader, data);
+    
+    if isfield(instHeader, 'sampleInterval')
+        sample_data.meta.instrument_sample_interval = instHeader.sampleInterval;
+    else
+        sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+    end
+    
+    sample_data.dimensions = {};
+    sample_data.variables  = {};
+    
+    % dimensions definition must stay in this order : T, Z, Y, X, others;
+    % to be CF compliant
+    % generate time data from header information
+    sample_data.dimensions{1}.name = 'TIME';
+    sample_data.dimensions{1}.data = time;
+    sample_data.dimensions{2}.name = 'LATITUDE';
+    sample_data.dimensions{2}.data = NaN;
+    sample_data.dimensions{3}.name = 'LONGITUDE';
+    sample_data.dimensions{3}.data = NaN;
+    
+    % scan through the list of parameters that were read
+    % from the file, and create a variable for each
+    vars = fieldnames(data);
+    for k = 1:length(vars)
+        
+        if strncmp('TIME', vars{k}, 4), continue; end
+        
+        sample_data.variables{end+1}.dimensions = [1 2 3];
+        sample_data.variables{end  }.name       = vars{k};
+        sample_data.variables{end  }.data       = data.(vars{k});
+        sample_data.variables{end  }.comment    = comment.(vars{k});
+        
+        if strncmp('PRES_REL', vars{k}, 8)
+            % let's document the constant pressure atmosphere offset previously
+            % applied by SeaBird software on the absolute presure measurement
+            sample_data.variables{end  }.applied_offset = -14.7*0.689476;
+        end
+    end
+else
+    % use the classic SBE3x ASCII format suggested for IMOS
+    sample_data = SBE3x(filename);
 end
+
 end
 
 function header = parseInstrumentHeader(headerLines)

@@ -64,7 +64,9 @@ function sample_data = workhorseParse( filename )
 %
 error(nargchk(1,1,nargin));
 
-  ensembles = readWorkhorseEnsembles( filename{1} );
+  filename = filename{1};
+
+  ensembles = readWorkhorseEnsembles( filename );
   
   if isempty(ensembles), error('no ensembles found in file'); end
   
@@ -200,6 +202,10 @@ error(nargchk(1,1,nargin));
   heading      = heading      / 100.0;
   
   % fill in the sample_data struct
+  [~, filename, ext] = fileparts(filename);
+  filename = [filename ext];
+
+  sample_data.original_file_name        = filename;
   sample_data.meta.fixedLeader          = fixed;
   sample_data.meta.instrument_make      = 'Teledyne RD';
   sample_data.meta.instrument_model     = 'Workhorse ADCP';
