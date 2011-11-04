@@ -1,4 +1,4 @@
-function sample_data = aquatecParse( file )
+function sample_data = aquatecParse( filename )
 %AQUATECPARSE Parses a raw data file retrieved from an Aquatec AQUAlogger.
 %
 % Parses a raw data file retrieved from an Aquatec AQUAlogger 520. The
@@ -24,7 +24,7 @@ function sample_data = aquatecParse( file )
 % If the logger was configured to use burst mode, the bursts are averaged.
 %
 % Inputs:
-%   file - cell array of file names (Only supports one currently).
+%   filename - cell array of filename names (Only supports one currently).
 %
 % Outputs:
 %   sample_data - struct containing sample data.
@@ -65,7 +65,7 @@ function sample_data = aquatecParse( file )
 %
 error(nargchk(1,1,nargin));
 
-if ~iscellstr(file), error('file must be a cell array of strings'); end
+if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 
 sample_data            = struct;
 sample_data.meta       = struct;
@@ -73,17 +73,18 @@ sample_data.dimensions = {};
 sample_data.variables  = {};
 
 %
-% read in the file
+% read in the filename
 %
 
 % read in the header information into 'keys' and
-% 'meta', and the rest of the file into 'data'
+% 'meta', and the rest of the filename into 'data'
 fid = -1;
 keys = {};
 meta = {};
 data = '';
 try
-    fid = fopen(file{1}, 'rt');
+    filename = filename{1};
+    fid = fopen(filename, 'rt');
     
     % note the use of fgets - the newline is kept, so we can reconstruct
     % the first data line read after all the metadata has been read in
@@ -99,11 +100,11 @@ try
         line = fgets(fid);
     end
     
-    % we reached end of file before any
+    % we reached end of filename before any
     % DATA or BURSTSTART lines were read
-    if ~ischar(line), error('no data in file'); end
+    if ~ischar(line), error('no data in filename'); end
     
-    % read the rest of the file into 'data'
+    % read the rest of the filename into 'data'
     % - we've already got the first line
     data = char(fread(fid, inf, 'char')');
     data = [line data];
@@ -125,6 +126,10 @@ model    = strtrim(strrep(model, 'Temperature', ''));
 firmware = getValues({'VERSION'},    keys, meta);
 serial   = getValues({'LOGGER'},     keys, meta);
 
+[~, filename, ext] = fileparts(filename);
+filename = [filename ext];
+    
+sample_data.original_file_name        = filename;
 sample_data.meta.instrument_make      = 'Aquatec';
 sample_data.meta.instrument_model     = ['Aqualogger ' model{1}];
 sample_data.meta.instrument_firmware  = firmware{1};
@@ -181,7 +186,7 @@ else
 end
 
 %
-% figure out what data (temperature, pressure) is in the file
+% figure out what data (temperature, pressure) is in the filename
 %
 heading = getValues({'HEADING'}, keys, meta);
 heading = textscan(heading{1}, '%s', 'Delimiter', ',');
@@ -215,7 +220,7 @@ pres = [];
 
 data = textscan(data, format, 'Delimiter', delims);
 
-% if the file contains timestamps, use them
+% if the filename contains timestamps, use them
 if ~isempty(timeIdx)
     time = datenum(data{6}, data{5}, data{4}, data{1}, data{2}, data{3});
 else

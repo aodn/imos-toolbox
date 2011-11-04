@@ -118,9 +118,10 @@ nBytes  = bytecast(bpe(:), 'L', 'uint16');
 clear bpe;
 % number of bytes in ensemble
 nLen = nBytes + 2;
+lenData = length(data);
 
 % keep funky eLen values from putting us out of bounds
-oob = (idx+nLen-1) > length(data);
+oob = (idx+nLen-1) > lenData;
 idx(oob)    = [];
 nBytes(oob) = [];
 nLen(oob)   = [];
@@ -145,17 +146,18 @@ switch ctype
         % 10% margin
         bytesAvailable = userview.MaxPossibleArrayBytes - 10*userview.MaxPossibleArrayBytes/100;
         
-        % let's see if double(data) fit
-        if length(data)*8 < bytesAvailable
+        % let's see if cumsum(double(data)) fit
+        bytesNeeded = lenData*8 * 2;
+        if bytesNeeded < bytesAvailable
             dataSum = uint32(cumsum(double(data)));
         else
             % we have to chop the process in a number of times the current free memory
             % allow us to, with the hack of casting dataSum in uint32
-            n = ceil((length(data)*8) / bytesAvailable);
+            n = ceil((bytesNeeded) / bytesAvailable);
             dataSum = [];
             for i=1:n
-                iStart = floor((i-1)*length(data)/n) + 1;
-                iEnd   = floor(i*length(data)/n);
+                iStart = floor((i-1)*lenData/n) + 1;
+                iEnd   = floor(i*lenData/n);
                 if isempty(dataSum)
                     dataSum = uint32(cumsum(double(data(iStart:iEnd))));
                 else
@@ -196,7 +198,7 @@ nBytes  = nBytes(good);
 % we have a problem.
 
 % calculate difference in index-2 from start to end of data
-didx = [diff(idx); length(data) - idx(end) + 1] - 2;
+didx = [diff(idx); lenData - idx(end) + 1] - 2;
 
 % compare with number of Bytes to find errors
 idodgy = (didx ~= nBytes);

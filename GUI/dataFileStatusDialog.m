@@ -66,6 +66,16 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   
   deploymentDescs = genDepDescriptions(deployments, files);
   
+  % put deployments in alphabetical order
+  %
+  % [B, iX] = sort(A);
+  % =>
+  % A(iX) == B
+  %
+  [deploymentDescs, iSort] = sort(deploymentDescs);
+  deployments = deployments(iSort);
+  files = files(iSort);
+  
   nofile   = readProperty('dataFileStatusDialog.noFileFormat');
   multiple = readProperty('dataFileStatusDialog.multipleFileFormat');
   invalid  = readProperty('dataFileStatusDialog.invalidFileNameFormat');

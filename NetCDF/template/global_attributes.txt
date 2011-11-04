@@ -5,7 +5,7 @@ S, title                        =
 S, institution                  = 
 D, date_created                 = [mat now_utc]
 D, date_modified                = 
-S, abstract                     = [ddb Site Sites Description]
+S, abstract                     = 
 S, comment                      = [ddb Comment]
 S, source                       = [ddb DeploymentType]
 S, instrument                   = [ddb InstrumentID Instruments Make] [ddb InstrumentID Instruments Model]
@@ -13,11 +13,10 @@ S, keywords                     = [ddb InstrumentID Instruments Model], [mat cel
 S, references                   = http://www.imos.org.au
 S, netcdf_version               = 3.6
 N, quality_control_set          = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
-S, site_code                    = 
-S, platform_code                = 
-S, deployment_code              = 
+S, site_code                    = [ddb Site Sites SiteName]
+S, platform_code                = [ddb Site]
+S, deployment_code              = [ddb Site Sites Site]
 S, naming_authority             = IMOS
-S, cdm_data_type                = 
 S, metadata                     = 
 S, sensorML                     = 
 S, instrument_serial_number     = [mat updateIfEmpty(sample_data.meta.instrument_serial_no, '[ddb InstrumentID Instruments SerialNumber]')]
@@ -37,11 +36,14 @@ N, geospatial_lat_min      = [ddb Site Sites Latitude]
 N, geospatial_lat_max      = [ddb Site Sites Latitude]
 N, geospatial_lon_min      = [ddb Site Sites Longitude]
 N, geospatial_lon_max      = [ddb Site Sites Longitude]
+N, sensor_height           = 
+N, target_depth            = 
+N, nominal_site_depth      = [ddb Site Sites Depth]
+
+% these fields are automatically populated upon import 
+% when DEPTH variable exist (if not use depthPP pre-processing routine)
 N, geospatial_vertical_min = 
 N, geospatial_vertical_max = 
-N, sensor_height           = 
-N, target_depth            = [ddb InstrumentDepth]
-N, nominal_site_depth      = [ddb Site Sites Depth]
 
 % when
 N, local_time_zone     		= 

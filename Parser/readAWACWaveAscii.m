@@ -4,7 +4,8 @@ function waveData = readAWACWaveAscii( filename )
 %
 % This function takes the name of a raw AWAC binary file (.wpr), and from
 % that name locates the wave header and processed wave data files (.whd,
-% .wap), and power and directional spectra files (.was, .wdr, .wds). It is 
+% .wap), and power and directional spectra files (.was, .wdr, .wds). Those 
+% files can be obtained using QuickWave or Storm Nortek softwares. It is 
 % assumed that these files are located in the same directory as the raw 
 % binary file.
 %

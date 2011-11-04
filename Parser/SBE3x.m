@@ -171,11 +171,16 @@ read_sal  = 0;
 read_cond = 0;
 read_pres = 0;
 
+[~, filename, ext] = fileparts(filename);
+filename = [filename ext];
+    
+sample_data.original_file_name          = filename;
+
 % The instrument_model field will be overwritten 
 % as the calibration data is read in
-sample_data.meta.instrument_make  = 'Sea-bird Electronics';
-sample_data.meta.instrument_model = 'SBE3x';
-sample_data.meta.instrument_serial_no = '';
+sample_data.meta.instrument_make        = 'Sea-bird Electronics';
+sample_data.meta.instrument_model       = 'SBE3x';
+sample_data.meta.instrument_serial_no   = '';
 
 %% Read file header (which contains sensor and calibration information)
 %

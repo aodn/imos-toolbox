@@ -90,13 +90,18 @@ function structures = readParadoppBinary( filename )
   %   user configuration
   %
   structures = {};
-  
+  lastLen = 0;
   while dIdx < dataLen
     
     [sect len] = readSection(data, dIdx);
     
     if ~isempty(sect), structures{end+1} = sect; end
-    dIdx = dIdx + len;
+    if ~isempty(len)
+        dIdx = dIdx + len;
+    else
+        return;
+    end
+    lastLen = len;
   end
 end
 
@@ -109,10 +114,14 @@ function [sect off] = readSection(data, idx)
 %READSECTION Reads the next data structure in the data array, starting at
 % the given index.
 %
+  sect = [];
+  off = [];
 
   % check sync byte
-  if data(idx) ~= 165
-    error(['bad sync (idx ' num2str(idx) ', val ' num2str(data(idx)) ')']); 
+  if data(idx) ~= 165 % hex a5
+    cprintf([1, 0.5, 0], '%s\n', ['Warning : ' filename ' bad sync (idx '...
+        num2str(idx) ', val ' num2str(data(idx)) ')']);
+    return;
   end
   
   sectType = data(idx+1);
@@ -133,7 +142,10 @@ function [sect off] = readSection(data, idx)
     case 33,  [sect len off] = readAquadoppProfilerVelocity(data, idx);
     case 36,  [sect len off] = readContinental             (data, idx);
     case 43,  [sect len off] = readHRAquadoppProfile       (data, idx);
+    case 48,  [sect len off] = readAwacWaveData            (data, idx);
     case 49,  [sect len off] = readAwacWaveHeader          (data, idx);
+    case 54,  [sect len off] = readAwacWaveData            (data, idx); % from what I've seen in data sets, 54 fits.
+    case 66,  [sect len off] = readAwacStageData           (data, idx);
     case 80,  [sect len off] = readVectrinoVelocityHeader  (data, idx);
     case 81,  [sect len off] = readVectrinoVelocity        (data, idx);
     case 128, [sect len off] = readAquadoppDiagnostics     (data, idx);
@@ -146,10 +158,9 @@ function [sect off] = readSection(data, idx)
   cs = genChecksum(data, idx, len-2);
   
   if cs ~= sect.Checksum
-    error(['bad checksum ' ...
-           '(idx ' num2str(idx) ', ' ...
-           'checksum ' num2str(sect.Checksum) ', ' ...
-           'calculated ' num2str(cs) ')']); 
+    cprintf([1, 0.5, 0], '%s\n', ['Warning : ' filename ' bad checksum (idx '...
+        num2str(idx) ', checksum ' num2str(sect.Checksum) ', calculated '...
+        num2str(cs) ')']);
   end
 end
 
@@ -651,17 +662,112 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
 end
 
 function [sect len off] = readAwacWaveHeader(data, idx)
-%READAWACWAVEHEADER Skips over an AWAC Wave header section, and all of the
-% wave data sections that follow.
+%READAWACWAVEHEADER Reads an AWAC wave header section (pg 
+% 40 of system integrator manual).
 %
+  sect = struct;
+  len = 60;
+  off = len;
   sect = [];
-  len  = 60;
-  off  = len;
+%   sect.Sync         = data(idx);
+%   sect.Id           = data(idx+1);
+%   sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16');
+%   sect.Time         = readClockData(data, idx+4);
+%   block             = bytecast(data(idx+10:idx+17), 'L', 'uint16');
+%   sect.NRecords     = block(1);
+%   sect.Blanking     = block(2);
+%   sect.Battery      = block(3);
+%   sect.SoundSpeed   = block(4);
+%   block             = bytecast(data(idx+18:idx+23), 'L', 'int16');
+%   sect.Heading      = block(1);
+%   sect.Pitch        = block(2);
+%   sect.Roll         = block(3);
+%   block             = bytecast(data(idx+24:idx+31), 'L', 'uint16');
+%   sect.MinPress     = block(1);
+%   sect.HMaxPress    = block(2);
+%   sect.Temperature  = block(3);
+%   sect.CellSize     = block(4);
+%   sect.Noise1       = bytecast(data(idx+32), 'L', 'uint8');
+%   sect.Noise2       = bytecast(data(idx+33), 'L', 'uint8');
+%   sect.Noise3       = bytecast(data(idx+34), 'L', 'uint8');
+%   sect.Noise4       = bytecast(data(idx+35), 'L', 'uint8');
+%   block             = bytecast(data(idx+36:idx+43), 'L', 'uint16');
+%   sect.ProcMagn1    = block(1);
+%   sect.ProcMagn2    = block(2);
+%   sect.ProcMagn3    = block(3);
+%   sect.ProcMagn4    = block(4);
+%   % bytes 44-57 are spare
+%   sect.Checksum     = bytecast(data(idx+58:idx+59), 'L', 'uint16');
+end
 
-  NRecords = bytecast(data(idx+10:idx+11), 'L', 'uint16');
+function [sect len off] = readAwacWaveData(data, idx)
+%READAWACWAVEDATA Reads an AWAC Wave data section (pg 41
+% of the system integrator manual).
+%
+  sect = struct;
+  len = 24;
+  off = len;
+  sect = [];
+%   sect.Sync        = data(idx);
+%   sect.Id          = data(idx+1);
+%   sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
+%   block            = bytecast(data(idx+4:idx+9), 'L', 'uint16');
+%   sect.Pressure    = block(1);
+%   sect.Distance    = block(2);
+%   sect.Analn       = block(3);
+%   % !!! velocity can be negative
+%   block            = bytecast(data(idx+10:idx+17), 'L', 'int16');
+%   sect.Vel1        = block(1);
+%   sect.Vel2        = block(2);
+%   sect.Vel3        = block(3);
+%   sect.Vel4        = block(4);
+%   sect.Amp1        = bytecast(data(idx+18), 'L', 'uint8');
+%   sect.Amp2        = bytecast(data(idx+19), 'L', 'uint8');
+%   sect.Amp3        = bytecast(data(idx+20), 'L', 'uint8');
+%   sect.Amp4        = bytecast(data(idx+21), 'L', 'uint8');
+%   sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16');
+end
+
+function [sect len off] = readAwacStageData(data, idx)
+%READAWACSTAGEDATA Reads an AWAC Stage data section (pg 41
+% of the system integrator manual).
+%
+  sect = struct;
+  len = 0;
+
+%   sect.Sync        = data(idx);
+%   sect.Id          = data(idx+1);
+  sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
   
-  idx = idx + len;
-  off = off + NRecords*24;
+  len              = sect.Size * 2;
+  off              = len;
+  sect = [];
+%   sect.Blanking    = bytecast(data(idx+4:idx+5), 'L', 'uint16');
+%   % !!! Heading, pitch and roll can be negative
+%   block            = bytecast(data(idx+6:idx+9), 'L', 'int16');
+%   sect.Pitch       = block(1);
+%   sect.Roll        = block(2);
+%   block            = bytecast(data(idx+10:idx+21), 'L', 'uint16');
+%   sect.Pressure    = block(1);
+%   sect.Stage       = block(2);
+%   sect.Quality     = block(3);
+%   sect.SoundSpeed  = block(4);
+%   sect.StageP      = block(5);
+%   % bytes 22-31 are spare
+%   
+%   % calculate number of cells from structure size
+%   % (size is in 16 bit words)
+%   nCells = floor(((sect.Size) * 2 - (32 + 2)));
+%   
+%   ampOff = idx+32;
+%   csOff  = ampOff + nCells;
+%   
+%   % fill value is included if number of cells is odd
+%   if mod(nCells, 2), csOff = csOff + 1; end
+%   
+%   sect.Amp = bytecast(data(ampOff:ampOff+nCells-1),   'L', 'uint8');
+%   
+%   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
 end
 
 function [sect len off] = readContinental(data, idx)

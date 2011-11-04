@@ -1,4 +1,4 @@
-function sample_data = importManager(toolboxVersion, auto)
+function sample_data = importManager(toolboxVersion, auto, iMooring)
 %IMPORTMANAGER Manages the import of raw instrument data into the toolbox.
 %
 % Imports raw data. If a deployment database exists, prompts the user to 
@@ -20,6 +20,10 @@ function sample_data = importManager(toolboxVersion, auto)
 %   auto            - Optional boolean. If true, the import process runs
 %                   automatically with no user interaction. A DDB must be 
 %                   present for this to work.
+%
+%   iMooring        - Optional logical(comes with auto == true). Contains
+%                   the logical indices to extract only the deployments 
+%                   from one mooring set of deployments.
 %
 % Outputs:
 %   sample_data - Cell array of sample_data structs, each containing sample
@@ -60,9 +64,12 @@ function sample_data = importManager(toolboxVersion, auto)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,2,nargin));
+  error(nargchk(1,3,nargin));
 
-  if nargin == 1, auto = false; end
+  if nargin == 1
+      auto = false;
+      iMooring = [];
+  end
 
   % If the toolbox.ddb property has been set, assume that we have a
   % deployment database. Otherwise perform a manual import
@@ -71,7 +78,7 @@ function sample_data = importManager(toolboxVersion, auto)
   sample_data = {};
   rawFiles    = {};
   
-  if ~isempty(ddb), [structs rawFiles] = ddbImport(auto);
+  if ~isempty(ddb), [structs rawFiles] = ddbImport(auto, iMooring);
   else
     if auto, error('manual import cannot be automated without deployment database'); end
     [structs rawFiles] = manualImport();
@@ -173,7 +180,7 @@ function [sample_data rawFile]= manualImport()
   end
 end
 
-function [sample_data rawFiles] = ddbImport(auto)
+function [sample_data rawFiles] = ddbImport(auto, iMooring)
 %DDBIMPORT Imports data sets using metadata retrieved from a deployment
 % database.
 %
@@ -194,6 +201,11 @@ function [sample_data rawFiles] = ddbImport(auto)
   while true
 
     [fieldTrip deps sits dataDir] = getDeployments(auto);
+    
+    if ~isempty(iMooring)
+        deps = deps(iMooring);
+        sits = sits(iMooring);
+    end
 
     if isempty(deps), return; end
 
@@ -265,69 +277,18 @@ function [sample_data rawFiles] = ddbImport(auto)
         sample_data{end}.meta.site = sits(k);
       end
     
+      if auto
+          fprintf('%s\n', ['	-' deps(k).FileName]);
+      end
+      
     % failure is not fatal
     catch e
-      disp(['Warning : skipping ' deps(k).FileName]);
+      cprintf([1, 0.5, 0], '%s\n', ['Warning : skipping ' deps(k).FileName]);
     end
   end
   
   % close progress dialog
   if ~auto, close(progress); end
-  
-  function [fieldTrip deployments sites dataDir] = getDeployments(auto)
-  %GETDEPLOYMENTS Prompts the user for a field trip ID and data directory.
-  % Retrieves and returns the field trip, all deployments from the DDB that 
-  % are related to the field trip, and the selected data directory.
-  %
-  % Inputs:
-  %   auto        - if true, the user is not prompted to select a field
-  %                 trip/directory; the values in toolboxProperties are
-  %                 used.
-  %
-  % Outputs:
-  %   fieldTrip   - field trip struct - the field trip selected by the user.
-  %   deployments - vector of deployment structs related to the selected 
-  %                 field trip.
-  %   sites       - vector of site structs related to the selected 
-  %                 field trip.
-  %   dataDir     - String containing data directory path selected by user.
-  %
-    deployments = struct;
-    sites       = struct;
-
-    % prompt the user to select a field trip and 
-    % directory which contains raw data files
-    if ~auto
-      [fieldTrip dataDir] = startDialog();
-    % if automatic, just get the defaults from toolboxProperties.txt
-    else
-      dataDir   =            readProperty('startDialog.dataDir'); 
-      fieldTrip = readProperty('startDialog.fieldTrip');
-      
-      if isempty(dataDir), error('startDialog.dataDir is not set');   end
-      if isnan(fieldTrip), error('startDialog.fieldTrip is not set'); end
-      
-      fieldTrip = executeDDBQuery('FieldTrip', 'FieldTripID', fieldTrip);
-    end
-
-    % user cancelled start dialog
-    if isempty(fieldTrip) || isempty(dataDir), return; end
-
-    fId = fieldTrip.FieldTripID;
-
-    % query the ddb for all deployments related to this field trip
-    deployments = executeDDBQuery('DeploymentData', 'EndFieldTrip', fId);
-    
-    % query the ddb for all sites related to these deployments
-    lenDep = length(deployments);
-    for i=1:lenDep
-        if i==1
-            sites = executeDDBQuery('Sites', 'Site', deployments(i).Site);
-        else
-            sites(i) = executeDDBQuery('Sites', 'Site', deployments(i).Site);
-        end
-    end
-  end
 
   function sam = parse(deployment, files, parsers, noParserPrompt)
   %PARSE Parses a raw data file, returns a sample_data struct.

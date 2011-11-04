@@ -155,28 +155,31 @@ function sample_data = readWQMdat( filename )
   sample_data.dimensions = {};
   sample_data.variables  = {};
 
+  [~, filename, ext] = fileparts(filename);
+  filename = [filename ext];
+
+  sample_data.original_file_name        = filename;
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = samples{1}{1};
   
   % convert and save the time data
   time = cellstr(samples{2});
-  time = datenum(time, 'mmddyy HHMMSS')';
+  timeFormat = 'mmddyy HHMMSS';
+  time = datenum(time, timeFormat)';
   
   % WQM instrumensts (or the .DAT conversion sofware) have a habit of
   % generating erroneous data sometimes, either missing a character , or 
   % inserting a 0 instead of the correct in the output to .DAT files.
   % This is a simple check to make sure that all of the timestamps appear
   % to be correct; there's only so much we can do though.
-  invalid = [];
-  for k = 2:length(time)
-    if time(k) < time(k-1), invalid(end+1) = k; end
-  end
+  iBadTime = (diff(time) <= 0);
+  iBadTime = [false, iBadTime];
+  time(iBadTime) = [];
   
-  time(invalid) = [];
   for k = 1:length(samples)
-    if k == 2, continue; end
-    samples{k}(invalid) = []; 
+    if k == 2, continue; end % time data has already been collected and filtered
+    samples{k}(iBadTime) = []; 
   end
   
   % Let's find each start of bursts

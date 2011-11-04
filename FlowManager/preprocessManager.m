@@ -111,7 +111,13 @@ function sample_data = preprocessManager( sample_data,auto)
     %BDM - 17/08/2010 - Added disp to let user know what is going on in
     %batch mode
     if auto 
-        disp(['Preprocessing using : ' ppChain{k}])
+        if k == 1
+            fprintf('%s', ['Preprocessing using : ' ppChain{k}]);
+        elseif k == length(ppChain) 
+            fprintf('%s\n', [' ' ppChain{k}]);
+        else
+            fprintf('%s', [' ' ppChain{k}]); 
+        end
     end
     sample_data = ppFunc(sample_data, auto);
   end
