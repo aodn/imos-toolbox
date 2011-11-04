@@ -61,6 +61,7 @@ rawFlag = imosQCFlag('raw', qcSet, 'flag');
 sam.variables{end+1}.name       = name;
 sam.variables{end  }.dimensions = dimensions;
 sam.variables{end  }.data       = data;
+clear data;
 
 % create an empty flags matrix for the new variable
 sam.variables{end}.flags(1:numel(sam.variables{end}.data)) = rawFlag;

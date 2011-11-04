@@ -153,13 +153,17 @@ backscatter3 = backscatter3 * 0.45;
 
 sample_data = struct;
 
-sample_data.meta.head     = head;
-sample_data.meta.hardware = hardware;
-sample_data.meta.user     = user;
-sample_data.meta.instrument_make      = 'Nortek';
-sample_data.meta.instrument_model     = 'Aquadopp Profiler';
-sample_data.meta.instrument_serial_no = hardware.SerialNo;
-sample_data.meta.instrument_firmware  = hardware.FWversion;
+[~, filename, ext] = fileparts(filename);
+filename = [filename ext];
+    
+sample_data.original_file_name              = filename;
+sample_data.meta.head                       = head;
+sample_data.meta.hardware                   = hardware;
+sample_data.meta.user                       = user;
+sample_data.meta.instrument_make            = 'Nortek';
+sample_data.meta.instrument_model           = 'Aquadopp Profiler';
+sample_data.meta.instrument_serial_no       = hardware.SerialNo;
+sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
 
 sample_data.dimensions{1} .name = 'TIME';

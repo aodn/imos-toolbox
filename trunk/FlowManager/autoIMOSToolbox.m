@@ -148,23 +148,37 @@ else
     end
 end
 
-% import, pre-processing, QC, export
+% import, pre-processing, QC and export
+% moorings by moorings for the current field trip.
 [~, sourceFolder] = fileparts(dataDir);
-fprintf('%s', ['Importing ' fieldTrip ' from folder ' sourceFolder ' : '])
-sample_data   = importManager(toolboxVersion, true);
-fprintf('%s\n', 'done.')
+fprintf('%s\n', ['Processing field trip ' fieldTrip ' from folder ' sourceFolder]);
 
-sample_data   = preprocessManager(sample_data, true);
+% get infos from current field trip
+[~, deps, sits, dataDir] = getDeployments(true);
 
-qc_data       = autoQCManager(sample_data, true);
+moorings = {deps.Site}';
+distinctMooring = unique(moorings);
+lenMooring = length(distinctMooring);
 
-[~, targetFolder] = fileparts(exportDir);
-fprintf('%s', ['Writing ' fieldTrip ' to folder ' targetFolder ' : '])
-% if isempty(qc_data)
-%     qc_data   = sample_data;
-% end
-exportManager({sample_data}, {'raw'}, 'netcdf', true);
-if ~isempty(qc_data)
-    exportManager({qc_data}, {'QC'}, 'netcdf', true);
+for i=1:lenMooring
+    fprintf('%s\n', ['Importing mooring set of deployments ' distinctMooring{i} ' : ']);
+    iMooring = strcmpi(distinctMooring(i), moorings);
+    
+    sample_data   = importManager(toolboxVersion, true, iMooring);
+    
+    sample_data   = preprocessManager(sample_data, true);
+    
+    qc_data       = autoQCManager(sample_data, true);
+    
+    [~, targetFolder] = fileparts(exportDir);
+    fprintf('%s', ['Writing ' distinctMooring{i} ' to folder ' targetFolder ' : '])
+
+    exportManager({sample_data}, {'raw'}, 'netcdf', true);
+    clear sample_data; % important, otherwise memory leak leads to crash
+    if ~isempty(qc_data)
+        exportManager({qc_data}, {'QC'}, 'netcdf', true);
+        clear qc_data; % important, otherwise memory leak leads to crash
+    end
+    fprintf('%s\n', 'done.')
 end
-fprintf('%s\n', 'done.')
+disp('');

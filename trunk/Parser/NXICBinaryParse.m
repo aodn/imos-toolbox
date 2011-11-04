@@ -92,6 +92,11 @@ function sample_data = NXICBinaryParse( filename )
   % create the sample_data struct
   % This was what PM got out of the header
   sample_data = struct;
+  
+  [~, filename, ext] = fileparts(filename);
+  filename = [filename ext];
+  
+  sample_data.original_file_name        = filename;
   sample_data.meta.instrument_make      = header.instrument_make;
   sample_data.meta.instrument_model     = header.instrument_model;
   sample_data.meta.instrument_serial_no = header.instrument_serial_no;
@@ -443,7 +448,7 @@ function header = parseHeader(data)
  % test checksum (don't know what to do if fails, warn I suppose)
   isgood = bitand(sum(data(1:154)),255) == data(155);
   if ~isgood
-      disp('Warning header checksum failed');
+      cprintf([1, 0.5, 0], '%s\n', ['Warning : ' filename ' header checksum failed']);
       header.checksum = false;
   else
       header.checksum = true;

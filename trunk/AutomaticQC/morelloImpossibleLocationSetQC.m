@@ -79,7 +79,8 @@ if ~isempty(dataLon) && ~isempty(dataLat)
     
     % test if site information exists
     if isempty(site)
-        warning('No site information found to perform impossible location QC test');
+        cprintf([1, 0.5, 0], '%s\n', ['Warning : ' 'No site information found to '...
+            'perform impossible location QC test']);
     else
         lenData = length(dataLon);
         

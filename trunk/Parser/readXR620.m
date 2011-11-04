@@ -1,9 +1,11 @@
-function sample_data = XR620Parse( filename )
-%XR620PARSE Parses a data file retrieved from an RBR XR620 depth logger.
+function sample_data = readXR620( filename )
+%readXR620 Parses a data file retrieved from an RBR XR620 or XR420 depth 
+% logger.
 %
 % This function is able to read in a single file retrieved from an RBR
-% XR620 data logger in Engineering unit .txt format. The pressure data 
-% is returned in a sample_data struct.
+% XR620 or RX420 data logger in Engineering unit .txt format (processed 
+% using Ruskin software). The pressure data is returned in a sample_data 
+% struct.
 %
 % Inputs:
 %   filename    - Cell array containing the name of the file to parse.
@@ -42,14 +44,11 @@ function sample_data = XR620Parse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
- error(nargchk(1,1,nargin));
+  error(nargchk(1,1,nargin));
   
-  if ~iscellstr(filename)  
-    error('filename must be a cell array of strings'); 
+  if ~ischar(filename)  
+    error('filename must be a string'); 
   end
-  
-  % only one file supported
-  filename = filename{1};
   
   % open the file, and read in the header and data
   try 
@@ -67,6 +66,10 @@ function sample_data = XR620Parse( filename )
   % copy all of the information over to the sample data struct
   sample_data = struct;
   
+  [~, filename, ext] = fileparts(filename);
+  filename = [filename ext];
+
+  sample_data.original_file_name        = filename;
   sample_data.meta.instrument_make      = header.make;
   sample_data.meta.instrument_model     = header.model;
   sample_data.meta.instrument_firmware  = header.firmware;

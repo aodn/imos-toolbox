@@ -127,6 +127,10 @@ function sample_data = readWQMraw( filename )
   sample_data.dimensions = {};
   sample_data.variables  = {};
 
+  [~, filename, ext] = fileparts(filename);
+  filename = [filename ext];
+
+  sample_data.original_file_name        = filename;
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = wqmdata.SN;
@@ -139,9 +143,9 @@ function sample_data = readWQMraw( filename )
   % inserting a 0 instead of the correct in the output to .DAT files.
   % This is a simple check to make sure that all of the timestamps appear
   % to be correct; there's only so much we can do though.
-  invalid = diff(time) <= 0;
-  
-  time(invalid) = [];
+  iBadTime = (diff(time) <= 0);
+  iBadTime = [false; iBadTime];
+  time(iBadTime) = [];
   
   % Let's find each start of bursts
   dt = [0; diff(time)];
@@ -181,7 +185,7 @@ function sample_data = readWQMraw( filename )
     [name comment] = getParamDetails(varlabel{k}, params);  
 
     data = wqmdata.(varlabel{k});
-    data(invalid) = [];
+    data(iBadTime) = [];
 
     % some fields are not in IMOS uom - scale them so that they are
     switch varlabel{k}
@@ -495,8 +499,12 @@ WQM.varunits={'S/m','C','dbar','PSU','ml/l','ug/l','NTU'};
 % we will only retain data with line code 6
 dcode = a{2};
 igood = dcode == 6;
+clear dcode;
 
 data = a{5}(igood);
+date = a{3}(igood);
+time = a{4}(igood);
+clear a igood;
 
 % sometimes, when file is corrupted, a dot "." or coma "," is inserted in
 % the variable value. As is it impossible to know where will occure this
@@ -507,6 +515,9 @@ iGoodDataLine = iGoodDataLine & cellfun('isempty', strfind(data, ',,'));
 iGoodDataLine = iGoodDataLine & cellfun('isempty', strfind(data, ',.'));
 iGoodDataLine = iGoodDataLine & cellfun('isempty', strfind(data, '..'));
 data = data(iGoodDataLine);
+date = date(iGoodDataLine);
+time = time(iGoodDataLine);
+clear iGoodDataLine;
 
 % how many variables (don't know if this changes if PAR sensor is on so
 % check anyway)
@@ -515,10 +526,31 @@ nvars = length(strfind(data{1}, ',')) + 1;
 % check that every line has only nvars, otherwise kick it out
 k = strfind(data, ',');
 iGoodLength = (cellfun('length', k) == nvars-1);
+clear k;
 data = data(iGoodLength);
+date = date(iGoodLength);
+time = time(iGoodLength);
+clear iGoodLength;
+
+month = fix(date/10000);
+date = date - month*10000;
+day = fix(date/100);
+year = 2000 + date - day*100;
+clear date;
+
+hour = fix(time/10000);
+time = time - hour*10000;
+minute = fix(time/100);
+second = time - minute*100;
+clear time;
+
+WQM.datenumber = datenum(year, month, day, hour, minute, second);
+clear year month day hour minute second;
 
 % using sscanf which reads columnwise so put array on side
-C = char(data)';
+C = char(data);
+clear data;
+C = C';
 
 % one weird thing, sscanf will fail if the last column has anything but a
 % space in it. So sort of a kludge, but by far the fastest fix I know of.
@@ -600,7 +632,6 @@ oxygen = A(:,4);
 
 WQM.oxygen = O2cal(oxygen, O2, WQM);
 
-
 % FLNTU Sensor
 chl = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'UserCHL'))},'%8c%f%f\n');
 ntu = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'NTU'))},'%4c%f%f\n');
@@ -636,26 +667,6 @@ if any(isPar)
 end
 
 WQM.Calibration = Cal;
-
-date = a{3}(igood);
-date = date(iGoodDataLine);
-date = date(iGoodLength);
-
-time = a{4}(igood);
-time = time(iGoodDataLine);
-time = time(iGoodLength);
-
-month = fix(date/10000);
-date = date - month*10000;
-day = fix(date/100);
-year = 2000 + date - day*100;
-
-hour = fix(time/10000);
-time = time - hour*10000;
-minute = fix(time/100);
-second = time - minute*100;
-
-WQM.datenumber = datenum(year, month, day, hour, minute, second);
 
 % get interval and duration from header file
 interval = ~cellfun('isempty', strfind(headerLine, 'Sample Interval Seconds:'));

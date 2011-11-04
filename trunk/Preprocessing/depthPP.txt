@@ -1,0 +1,32 @@
+% This file specifies how Depth should be computed when an instrument on a 
+% mooring doesn't have any pressure sensor. It enables the user to restrict 
+% the other instruments in the mooring with pressure information to be
+% considered when calculating Depth for another without pressure information. 
+% It is used by the depthPP.m function. 
+%
+% Each line is of the format:
+%
+%   option,     value
+%
+% where option can be used as follow :
+%
+% -same_familly : Values can be yes or no. If value is yes, then only data 
+% sets with strings in their global attribute 'instrument' having something
+% in common will be considered. Ex. : In a mooring equiped with an ADCP, a 
+% WQM, Aqualoggers 520PT and Aqualoggers 520T, the depth of the Aqualoggers
+% 520T will be computed taking into account Aqualoggers 520PT pressure data
+% only.
+%
+% -include : list of ';' delimited strings to be compared with data sets 
+% global attribute 'instrument'. If it has anything in common, this data 
+% set will be considered in the Depth computation.
+% Ex. : include,        Aqualoggers
+%
+% -exclude : list of ';' delimited strings to be compared with data sets 
+% global attribute 'instrument'. If it has anything in common, this data 
+% set will not be considered in the Depth computation.
+% Ex. : exclude,        ADCP WQM
+
+same_familly,   no
+include,        
+exclude,        ADCP

@@ -70,6 +70,10 @@ function sample_data = DR1050Parse( filename )
   % copy all of the information over to the sample data struct
   sample_data = struct;
   
+  [~, filename, ext] = fileparts(filename);
+  filename = [filename ext];
+  
+  sample_data.original_file_name                = filename;
   sample_data.meta.instrument_make              = header.make;
   sample_data.meta.instrument_model             = header.model;
   sample_data.meta.instrument_firmware          = header.firmware;
