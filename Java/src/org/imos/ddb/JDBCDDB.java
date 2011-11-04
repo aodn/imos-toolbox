@@ -41,7 +41,7 @@ import java.util.List;
 /**
  * In memory representation of the IMOS deployment database using JDBC. 
  * This class uses a generic JDBC driver and connection string so is
- * database agnostic, allowing the deploymnet database to by hosted on any
+ * database agnostic, allowing the deployment database to be hosted on any
  * JDBC supported database platform.
  * 
  * This class should never be instantiated directly; use the static method
