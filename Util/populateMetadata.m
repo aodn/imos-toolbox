@@ -251,12 +251,22 @@ function sample_data = populateMetadata( sample_data )
               % Not an ADCP, so we can update existing DEPTH dimension/variable from PRES data
               if idDepth > 0
                   sample_data.dimensions{idDepth}.data = computedDepth;
-                  sample_data.dimensions{idDepth}.comment = computedDepthComment;
+                  comment = sample_data.dimensions{idDepth}.comment;
+                  if isempty(comment)
+                      sample_data.dimensions{idDepth}.comment = computedDepthComment;
+                  else
+                      sample_data.dimensions{idDepth}.comment = [comment ' ' computedDepthComment];
+                  end
                   metadataChanged = true;
               end
               if ivDepth > 0
                   sample_data.variables{ivDepth}.data = computedDepth;
-                  sample_data.variables{ivDepth}.comment = computedDepthComment;
+                  comment = sample_data.variables{ivDepth}.comment;
+                  if isempty(comment)
+                      sample_data.variables{ivDepth}.comment = computedDepthComment;
+                  else
+                      sample_data.variables{ivDepth}.comment = [comment ' ' computedDepthComment];
+                  end
                   metadataChanged = true;
               end
               

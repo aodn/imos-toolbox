@@ -161,7 +161,12 @@ function sample_data = timeStartPP( sample_data, auto )
       sample_data{k}.dimensions{timeIdx}.data - oldStart;
     sample_data{k}.dimensions{timeIdx}.data = ...
       sample_data{k}.dimensions{timeIdx}.data + newStart;
-    sample_data{k}.dimensions{timeIdx}.comment = timeStartComment;
+    comment = sample_data{k}.dimensions{timeIdx}.comment;
+    if isempty(comment)
+        sample_data{k}.dimensions{timeIdx}.comment = timeStartComment;
+    else
+        sample_data{k}.dimensions{timeIdx}.comment = [comment ' ' timeStartComment];
+    end
     
     % and to the time coverage atttributes
     sample_data{k}.time_coverage_start = newStart;

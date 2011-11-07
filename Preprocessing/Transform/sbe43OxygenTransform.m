@@ -115,8 +115,7 @@ function [data, name, comment] = sbe43OxygenTransform( sam, varIdx )
   data = data .* 44.660;
   
   name    = 'DOX1';
-  comment = ['sbe43Transform: derived from ' sam.variables{doxy}.name];
-
+  comment = ['sbe43Transform: derived from ' sam.variables{doxy}.name '.'];
 end
 
 function oxygen = oxygenConcentration(V, T, S, P, params)

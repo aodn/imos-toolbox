@@ -284,8 +284,14 @@ function sample_data = variableOffsetPP( sample_data, auto )
               (offsets{k}(m) ~= 0 || scales{k}(m) ~= 1)
           vars{m}.data = o + (s .* d);
           
-          vars{m}.comment = ['variableOffsetPP: variable values modified applying '...
-              'the following offset : ' num2str(offsets{k}(m)) ' and scale : ' num2str(scales{k}(m)) '.'];
+          comment = vars{m}.comment;
+          if isempty(comment)
+              vars{m}.comment = ['variableOffsetPP: variable values modified applying '...
+                  'the following offset : ' num2str(offsets{k}(m)) ' and scale : ' num2str(scales{k}(m)) '.'];
+          else
+              vars{m}.comment = [comment ' ' 'variableOffsetPP: variable values modified applying '...
+                  'the following offset : ' num2str(offsets{k}(m)) ' and scale : ' num2str(scales{k}(m)) '.'];
+          end
           
           str = sprintf('%0.6f,%0.6f', offsets{k}(m), scales{k}(m));
           writeProperty(vars{m}.name, str, offsetFile);
