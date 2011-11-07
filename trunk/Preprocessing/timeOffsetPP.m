@@ -191,7 +191,12 @@ function sample_data = timeOffsetPP(sample_data, auto)
       % otherwise apply the offset
       sample_data{k}.dimensions{timeIdx}.data = ...
           sample_data{k}.dimensions{timeIdx}.data + (offsets(k) / 24);
-      sample_data{k}.dimensions{timeIdx}.comment = timeOffsetComment;
+      comment = sample_data{k}.dimensions{timeIdx}.comment;
+      if isempty(comment)
+          sample_data{k}.dimensions{timeIdx}.comment = timeOffsetComment;
+      else
+          sample_data{k}.dimensions{timeIdx}.comment = [comment ' ' timeOffsetComment];
+      end
       sample_data{k}.time_coverage_start = ...
           sample_data{k}.time_coverage_start      + (offsets(k) / 24);
       sample_data{k}.time_coverage_end   = ...
