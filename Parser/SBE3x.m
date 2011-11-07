@@ -174,7 +174,7 @@ read_pres = 0;
 [~, filename, ext] = fileparts(filename);
 filename = [filename ext];
     
-sample_data.original_file_name          = filename;
+sample_data.toolbox_input_file          = filename;
 
 % The instrument_model field will be overwritten 
 % as the calibration data is read in

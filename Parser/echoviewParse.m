@@ -73,7 +73,7 @@ function sample_data = echoviewParse( filename, platform, config )
   [~, filename, ext] = fileparts(filename);
   filename = [filename ext];
 
-  sample_data.original_file_name                = filename;
+  sample_data.toolbox_input_file                = filename;
   sample_data.meta.instrument_make              = 'Simrad';
   sample_data.meta.instrument_model             = 'ES60';
   sample_data.meta.instrument_serial_no         = '';

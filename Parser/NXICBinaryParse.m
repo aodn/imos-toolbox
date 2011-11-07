@@ -96,7 +96,7 @@ function sample_data = NXICBinaryParse( filename )
   [~, filename, ext] = fileparts(filename);
   filename = [filename ext];
   
-  sample_data.original_file_name        = filename;
+  sample_data.toolbox_input_file        = filename;
   sample_data.meta.instrument_make      = header.instrument_make;
   sample_data.meta.instrument_model     = header.instrument_model;
   sample_data.meta.instrument_serial_no = header.instrument_serial_no;
