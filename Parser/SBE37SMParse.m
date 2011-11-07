@@ -115,7 +115,7 @@ if strcmpi(ext, '.cnv')
     [~, filename, ext] = fileparts(filename);
     filename = [filename ext];
     
-    sample_data.original_file_name  = filename;
+    sample_data.toolbox_input_file  = filename;
     sample_data.meta.instHeader     = instHeader;
     sample_data.meta.procHeader     = procHeader;
     
