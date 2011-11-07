@@ -167,13 +167,13 @@ function sample_data = YSI6SeriesParse( filename )
         
       case 'turbidity'
         sample_data.variables{k}.name    = 'TURB';
-        sample_data.variables{k}.comment = 'Turbidity from 6136 sensor';
+        sample_data.variables{k}.comment = 'Turbidity from 6136 sensor.';
         
       % % saturation
       case 'odo'
         sample_data.variables{k}.name    = 'DOXS';
         sample_data.variables{k}.comment = ...
-          'Dissolved oxygen saturation from ROX optical sensor';
+          'Dissolved oxygen saturation from ROX optical sensor.';
         
       % mg/l => umol/l
       case 'odo2'
