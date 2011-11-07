@@ -178,6 +178,9 @@ function sample_data = variableOffsetPP( sample_data, auto )
                   scaleVal  = '1.0';
               end
               
+              offsets{k}(m) = str2double(offsetVal);
+              scales{ k}(m) = str2double(scaleVal);
+          
               varLabel    = uicontrol(...
                   'Parent', setPanels(k), 'Style', 'text', 'String', v.name);
               minLabel    = uicontrol(...
@@ -251,12 +254,15 @@ function sample_data = variableOffsetPP( sample_data, auto )
               v = sample_data{k}.variables{m};
               try
                   str              = readProperty(v.name, offsetFile);
-                  [offsets{k}(m), str] = strtok(str, ',');
-                  [scales{ k}(m),  str] = strtok(str, ',');
+                  [offsetVal, str] = strtok(str, ',');
+                  [scaleVal,  str] = strtok(str, ',');
               catch
-                  offsets{k}(m) = '0.0';
-                  scales{ k}(m)  = '1.0';
+                  offsetVal = '0.0';
+                  scaleVal  = '1.0';
               end
+              
+              offsets{k}(m) = str2double(offsetVal);
+              scales{ k}(m) = str2double(scaleVal);
           end
       end
   end
@@ -274,11 +280,15 @@ function sample_data = variableOffsetPP( sample_data, auto )
       o = offsets{k}(m);
       s = scales{k}(m);
       
-      vars{m}.data = o + (s .* d);
-      
-      if offsets{k}(m) ~= 0 || scales{k}(m) ~= 1
-        str = sprintf('%0.6f,%0.6f', offsets{k}(m), scales{k}(m));
-        writeProperty(vars{m}.name, str, offsetFile);
+      if ~isnan(offsets{k}(m)) && ~isnan(scales{k}(m)) && ...
+              (offsets{k}(m) ~= 0 || scales{k}(m) ~= 1)
+          vars{m}.data = o + (s .* d);
+          
+          vars{m}.comment = ['variableOffsetPP: variable values modified applying '...
+              'the following offset : ' num2str(offsets{k}(m)) ' and scale : ' num2str(scales{k}(m)) '.'];
+          
+          str = sprintf('%0.6f,%0.6f', offsets{k}(m), scales{k}(m));
+          writeProperty(vars{m}.name, str, offsetFile);
       end
     end
     sample_data{k}.variables = vars;

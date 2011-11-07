@@ -137,6 +137,10 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   config.platform_code = sample_data.platform_code;
   config.file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
   
+  if isempty(sample_data.target_depth)
+      sample_data.target_depth = NaN;
+  end
+  
   % <product_type>
   config.product_type  = [...
     sample_data.meta.site_id '-' ...

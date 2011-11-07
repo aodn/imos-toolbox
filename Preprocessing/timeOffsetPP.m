@@ -186,7 +186,7 @@ function sample_data = timeOffsetPP(sample_data, auto)
       end
       
       timeOffsetComment = ['timeOffsetPP: TIME dimension and time_coverage_start/end global attributes have been '...
-          'applied the following offset : ' signOffset num2str(abs(offsets(k))) ' hours .'];
+          'applied the following offset : ' signOffset num2str(abs(offsets(k))) ' hours.'];
       
       % otherwise apply the offset
       sample_data{k}.dimensions{timeIdx}.data = ...

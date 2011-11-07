@@ -150,11 +150,18 @@ function sample_data = timeStartPP( sample_data, auto )
     oldStart = sample_data{k}.dimensions{timeIdx}.data(1);
     newStart = startTimes(k);
     
+    if oldStart == newStart, continue; end
+    
+    timeStartComment = ['timeStartPP: TIME dimension and time_coverage_start/end global attributes have been '...
+          'changed applying a new start time ' datestr(newStart, 'dd-mm-yyyy HH:MM:SS') ', the former being ' ...
+          datestr(oldStart, 'dd-mm-yyyy HH:MM:SS') '.'];
+      
     % apply the new start time to the data
     sample_data{k}.dimensions{timeIdx}.data = ...
       sample_data{k}.dimensions{timeIdx}.data - oldStart;
     sample_data{k}.dimensions{timeIdx}.data = ...
       sample_data{k}.dimensions{timeIdx}.data + newStart;
+    sample_data{k}.dimensions{timeIdx}.comment = timeStartComment;
     
     % and to the time coverage atttributes
     sample_data{k}.time_coverage_start = newStart;
