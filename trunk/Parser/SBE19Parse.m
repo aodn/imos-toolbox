@@ -117,7 +117,7 @@ function sample_data = SBE19Parse( filename )
   % and copy all the data in
   sample_data = struct;
   
-  sample_data.original_file_name    = filename;
+  sample_data.toolbox_input_file    = filename;
   sample_data.meta.instHeader       = instHeader;
   sample_data.meta.procHeader       = procHeader;
   

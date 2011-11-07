@@ -163,7 +163,7 @@ sample_data = struct;
 [~, filename, ext] = fileparts(filename);
 filename = [filename ext];
     
-sample_data.original_file_name              = filename;
+sample_data.toolbox_input_file              = filename;
 sample_data.meta.head                       = head;
 sample_data.meta.hardware                   = hardware;
 sample_data.meta.user                       = user;
@@ -245,7 +245,7 @@ sample_data{2} = sample_data{1};
 [~, filename, ~] = fileparts(filename);
 filename = [filename '.wap'];
 
-sample_data{2}.original_file_name              = filename;
+sample_data{2}.toolbox_input_file              = filename;
 sample_data{2}.meta.head                       = [];
 sample_data{2}.meta.hardware                   = [];
 sample_data{2}.meta.user                       = [];

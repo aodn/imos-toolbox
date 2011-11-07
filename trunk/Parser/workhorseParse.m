@@ -205,7 +205,7 @@ error(nargchk(1,1,nargin));
   [~, filename, ext] = fileparts(filename);
   filename = [filename ext];
 
-  sample_data.original_file_name        = filename;
+  sample_data.toolbox_input_file        = filename;
   sample_data.meta.fixedLeader          = fixed;
   sample_data.meta.instrument_make      = 'Teledyne RD';
   sample_data.meta.instrument_model     = 'Workhorse ADCP';

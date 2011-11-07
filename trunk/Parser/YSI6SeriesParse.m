@@ -79,7 +79,7 @@ function sample_data = YSI6SeriesParse( filename )
   [~, filename, ext] = fileparts(filename);
   filename = [filename ext];
     
-  sample_data.original_file_name                = filename;
+  sample_data.toolbox_input_file                = filename;
   sample_data.meta.instrument_make              = 'YSI';
   sample_data.meta.instrument_model             = '6 Series';
   sample_data.meta.instrument_serial_no         = '';

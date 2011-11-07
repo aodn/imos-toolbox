@@ -129,7 +129,7 @@ serial   = getValues({'LOGGER'},     keys, meta);
 [~, filename, ext] = fileparts(filename);
 filename = [filename ext];
     
-sample_data.original_file_name        = filename;
+sample_data.toolbox_input_file        = filename;
 sample_data.meta.instrument_make      = 'Aquatec';
 sample_data.meta.instrument_model     = ['Aqualogger ' model{1}];
 sample_data.meta.instrument_firmware  = firmware{1};

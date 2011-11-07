@@ -156,7 +156,7 @@ sample_data = struct;
 [~, filename, ext] = fileparts(filename);
 filename = [filename ext];
     
-sample_data.original_file_name              = filename;
+sample_data.toolbox_input_file              = filename;
 sample_data.meta.head                       = head;
 sample_data.meta.hardware                   = hardware;
 sample_data.meta.user                       = user;
