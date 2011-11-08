@@ -118,24 +118,24 @@ depth(:) = (cellStart):  ...
 
 for k = 1:nsamples
   
-  st = structures{3 + k};
-  
-  time(k)           = st.Time;
-  analn1(k)         = st.Analn1;
-  battery(k)        = st.Battery;
-  analn2(k)         = st.Analn2;
-  heading(k)        = st.Heading;
-  pitch(k)          = st.Pitch;
-  roll(k)           = st.Roll;
-  pressure(k)       = st.PressureMSB*65536 + st.PressureLSW;
-  temperature(k)    = st.Temperature;
-  velocity1(k,:)    = st.Vel1;
-  velocity2(k,:)    = st.Vel2;
-  velocity3(k,:)    = st.Vel3;
-  backscatter1(k,:) = st.Amp1;
-  backscatter2(k,:) = st.Amp2;
-  backscatter3(k,:) = st.Amp3;
+  time(k)           = structures{3 + k}.Time;
+  analn1(k)         = structures{3 + k}.Analn1;
+  battery(k)        = structures{3 + k}.Battery;
+  analn2(k)         = structures{3 + k}.Analn2;
+  heading(k)        = structures{3 + k}.Heading;
+  pitch(k)          = structures{3 + k}.Pitch;
+  roll(k)           = structures{3 + k}.Roll;
+  pressure(k)       = structures{3 + k}.PressureMSB*65536 + ...
+                        structures{3 + k}.PressureLSW;
+  temperature(k)    = structures{3 + k}.Temperature;
+  velocity1(k,:)    = structures{3 + k}.Vel1;
+  velocity2(k,:)    = structures{3 + k}.Vel2;
+  velocity3(k,:)    = structures{3 + k}.Vel3;
+  backscatter1(k,:) = structures{3 + k}.Amp1;
+  backscatter2(k,:) = structures{3 + k}.Amp2;
+  backscatter3(k,:) = structures{3 + k}.Amp3;
 end
+clear structures;
 
 % battery     / 10.0   (0.1 V    -> V)
 % heading     / 10.0   (0.1 deg  -> deg)
@@ -160,7 +160,7 @@ backscatter3 = backscatter3 * 0.45;
 
 sample_data = struct;
 
-[~, filename, ext] = fileparts(filename);
+[path, filename, ext] = fileparts(filename);
 filename = [filename ext];
     
 sample_data.toolbox_input_file              = filename;
@@ -221,22 +221,24 @@ sample_data.variables {9} .data = battery;
 sample_data.variables {10}.data = pitch;
 sample_data.variables {11}.data = roll;
 sample_data.variables {12}.data = heading;
+clear analn1 analn2 time depth velocity1 velocity2 velocity3 ...
+    backscatter1 backscatter2 backscatter3 ...
+    temperature pressure battery pitch roll heading;
 
 %
 % if wave data files are present, read them in
 %
-waveData = [];
-try waveData = readAWACWaveAscii(filename);
-catch e
-end
+filename = fullfile(path, filename);
+
+waveData = readAWACWaveAscii(filename);
 
 % no wave data, no problem
 if isempty(waveData), return; end
 
 % turn sample data into a cell array
-temp = {};
 temp{1} = sample_data;
 sample_data = temp;
+clear temp;
 
 % copy wave data into a sample_data struct; start with a copy of the 
 % first sample_data struct, as all the metadata is the same
@@ -302,3 +304,4 @@ sample_data{2}.variables {8 }.data = waveData.MeanZeroCrossingPeriod;
 sample_data{2}.variables {9 }.data = waveData.pwrSpectrum;
 sample_data{2}.variables {10}.data = waveData.dirSpectrum;
 sample_data{2}.variables {11}.data = waveData.fullSpectrum;
+clear waveData;

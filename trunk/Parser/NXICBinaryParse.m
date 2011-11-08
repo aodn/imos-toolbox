@@ -448,7 +448,7 @@ function header = parseHeader(data)
  % test checksum (don't know what to do if fails, warn I suppose)
   isgood = bitand(sum(data(1:154)),255) == data(155);
   if ~isgood
-      cprintf([1, 0.5, 0], '%s\n', ['Warning : ' filename ' header checksum failed']);
+      fprintf('%s\n', ['Warning : ' filename ' header checksum failed']);
       header.checksum = false;
   else
       header.checksum = true;
