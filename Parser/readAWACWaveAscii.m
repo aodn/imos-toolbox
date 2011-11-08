@@ -1,6 +1,6 @@
 function waveData = readAWACWaveAscii( filename )
 %READAWACWAVEASCII Reads AWAC wave data from processed wave text files 
-% (.whd, .wap, .was, .wdr).
+% (.whd, .wap, .was, .wdr, .wds).
 %
 % This function takes the name of a raw AWAC binary file (.wpr), and from
 % that name locates the wave header and processed wave data files (.whd,
@@ -136,8 +136,10 @@ error(nargchk(1,1,nargin));
 
 if ~ischar(filename), error('filename must be a string'); end
 
+waveData = [];
+
 % transform the filename into processed wave data filenames
-[path name ext] = fileparts(filename);
+[path name] = fileparts(filename);
 
 headerFile     = fullfile(path, [name '.whd']);
 waveFile       = fullfile(path, [name '.wap']);
@@ -145,7 +147,13 @@ dirFreqFile    = fullfile(path, [name '.wdr']);
 pwrFreqFile    = fullfile(path, [name '.was']);
 pwrFreqDirFile = fullfile(path, [name '.wds']);
 
-% will throw error if the files do not exist
+% test the files exist
+if ~exist(headerFile, 'file') || ~exist(waveFile, 'file') || ...
+        ~exist(dirFreqFile, 'file') || ~exist(pwrFreqFile, 'file') || ...
+        ~exist(pwrFreqDirFile, 'file')
+    return;
+end
+
 header     = importdata(headerFile);
 wave       = importdata(waveFile);
 dirFreq    = importdata(dirFreqFile);
@@ -167,6 +175,7 @@ waveData.Roll        = header(:,14);
 waveData.MinPressure = header(:,15);
 waveData.MaxPressure = header(:,16);
 waveData.Temperature = header(:,17);
+clear header;
 
 waveData.SignificantHeight      = wave(:,7);
 waveData.MeanZeroCrossingPeriod = wave(:,8);
@@ -176,20 +185,30 @@ waveData.DirectionalSpread      = wave(:,11);
 waveData.MeanDirection          = wave(:,12);
 waveData.MeanPressure           = wave(:,13);
 waveData.UnidirectivityIndex    = wave(:,14);
+clear wave;
 
 % it is assumed that the frequency dimension 
 % is identical for all spectrum data
 waveData.Frequency = dirFreq(1,:)';
 
 waveData.dirSpectrum           = dirFreq(2:end,:);
+clear dirFreq;
 waveData.pwrSpectrum           = pwrFreq(2:end,:);
-waveData.fullSpectrumDirection = (0:4:359)';
+clear pwrFreq;
+
+waveData.fullSpectrumDirection = pwrFreqDir(1,:)';
+
+waveData.fullSpectrum          = pwrFreqDir(2:end,:);
+clear pwrFreqDir;
 
 nFreqs   = length(waveData.Frequency);
 nDirs    = length(waveData.fullSpectrumDirection);
-nSamples = length(pwrFreqDir) / nFreqs;
+nSamples = length(waveData.fullSpectrum) / nFreqs;
 
 % rearrange full power spectrum matrix so dimensions 
 % are ordered: time, frequency, direction
+
+% waveData.fullSpectrum = reshape(waveData.fullSpectrum, nSamples, nFreqs, nDirs);
 waveData.fullSpectrum = ...
-  permute(reshape(pwrFreqDir', nDirs, nFreqs, nSamples), [3 2 1]);
+  permute(reshape(waveData.fullSpectrum', nDirs, nFreqs, nSamples), [3 2 1]);
+clear pwrFreqDir;

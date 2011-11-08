@@ -283,7 +283,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
       
     % failure is not fatal
     catch e
-      cprintf([1, 0.5, 0], '%s\n', ['Warning : skipping ' deps(k).FileName]);
+      fprintf('%s\n', ['Warning : skipping ' deps(k).FileName]);
     end
   end
   

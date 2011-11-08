@@ -36,12 +36,12 @@ N, geospatial_lat_min      	= [ddb Site Sites Latitude]
 N, geospatial_lat_max      	= [ddb Site Sites Latitude]
 N, geospatial_lon_min      	= [ddb Site Sites Longitude]
 N, geospatial_lon_max      	= [ddb Site Sites Longitude]
-N, sensor_height           	= 
-N, target_depth            	= 
-N, nominal_site_depth      	= 
+N, instrument_nominal_height= 
+N, instrument_nominal_depth = 
+N, site_nominal_depth      	= 
 N, site_depth_at_deployment = 
 
-% these fields are automatically populated upon import 
+% if left empty, these fields are automatically populated upon import 
 % when DEPTH variable exist (if not use depthPP pre-processing routine)
 N, geospatial_vertical_min = 
 N, geospatial_vertical_max = 
