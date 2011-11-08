@@ -119,7 +119,7 @@ function [sect off] = readSection(data, idx)
 
   % check sync byte
   if data(idx) ~= 165 % hex a5
-    cprintf([1, 0.5, 0], '%s\n', ['Warning : ' filename ' bad sync (idx '...
+    fprintf('%s\n', ['Warning : ' filename ' bad sync (idx '...
         num2str(idx) ', val ' num2str(data(idx)) ')']);
     return;
   end
@@ -158,7 +158,7 @@ function [sect off] = readSection(data, idx)
   cs = genChecksum(data, idx, len-2);
   
   if cs ~= sect.Checksum
-    cprintf([1, 0.5, 0], '%s\n', ['Warning : ' filename ' bad checksum (idx '...
+    fprintf('%s\n', ['Warning : ' filename ' bad checksum (idx '...
         num2str(idx) ', checksum ' num2str(sect.Checksum) ', calculated '...
         num2str(cs) ')']);
   end
