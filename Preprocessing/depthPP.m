@@ -82,16 +82,16 @@ end
 isSensorHeight = false;
 isSensorTargetDepth = false;
 
-if isfield(sample_data{1}, 'sensor_height')
-    if ~isempty(sample_data{1}.sensor_height)
+if isfield(sample_data{1}, 'instrument_nominal_height')
+    if ~isempty(sample_data{1}.instrument_nominal_height)
         isSensorHeight = true;
     end
 else
     
 end
 
-if isfield(sample_data{1}, 'target_depth')
-    if ~isempty(sample_data{1}.target_depth)
+if isfield(sample_data{1}, 'instrument_nominal_depth')
+    if ~isempty(sample_data{1}.instrument_nominal_depth)
         isSensorTargetDepth = true;
     end
 else
@@ -129,9 +129,9 @@ for k = 1:length(sample_data)
                 if (presCurIdx == 0 && presRelCurIdx == 0), continue; end
                 
                 if isSensorHeight
-                    samSensorZ = sam.sensor_height;
+                    samSensorZ = sam.instrument_nominal_height;
                 else
-                    samSensorZ = sam.target_depth;
+                    samSensorZ = sam.instrument_nominal_depth;
                 end
                 
                 % current sample or samples without vertical nominal 
@@ -185,9 +185,9 @@ for k = 1:length(sample_data)
                 diffWithOthers = nan(m,1);
                 for l = 1:m
                     if isSensorHeight
-                    	diffWithOthers(l) = abs(curSam.sensor_height - otherSam{l}.sensor_height);
+                    	diffWithOthers(l) = abs(curSam.instrument_nominal_height - otherSam{l}.instrument_nominal_height);
                     else
-                        diffWithOthers(l) = abs(curSam.target_depth - otherSam{l}.target_depth);
+                        diffWithOthers(l) = abs(curSam.instrument_nominal_depth - otherSam{l}.instrument_nominal_depth);
                     end
                 end
                 
@@ -236,11 +236,11 @@ for k = 1:length(sample_data)
                 % assuming sensors repartition on a line between the two
                 % nearest pressure sensors
                 if isSensorHeight
-                    distFirstSecond     = samFirst.sensor_height - samSecond.sensor_height;
-                    distFirstCurSensor  = samFirst.sensor_height - curSam.sensor_height;
+                    distFirstSecond     = samFirst.instrument_nominal_height - samSecond.instrument_nominal_height;
+                    distFirstCurSensor  = samFirst.instrument_nominal_height - curSam.instrument_nominal_height;
                 else
-                    distFirstSecond     = samFirst.target_depth - samSecond.target_depth;
-                    distFirstCurSensor  = samFirst.target_depth - curSam.target_depth;
+                    distFirstSecond     = samFirst.instrument_nominal_depth - samSecond.instrument_nominal_depth;
+                    distFirstCurSensor  = samFirst.instrument_nominal_depth - curSam.instrument_nominal_depth;
                 end
                 
                 % theta is the angle between the vertical and line
@@ -344,9 +344,9 @@ for k = 1:length(sample_data)
                 % computedDepth = zOther - distOtherCurSensor
                 %
                 if isSensorHeight
-                    distOtherCurSensor = otherSam.sensor_height - curSam.sensor_height;
+                    distOtherCurSensor = otherSam.instrument_nominal_height - curSam.instrument_nominal_height;
                 else
-                    distOtherCurSensor = otherSam.target_depth - curSam.target_depth;
+                    distOtherCurSensor = otherSam.instrument_nominal_depth - curSam.instrument_nominal_depth;
                 end
                 
                 if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
@@ -400,7 +400,7 @@ for k = 1:length(sample_data)
             end
         else
             fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ...
-                ' please document either sensor_height or target_depth '...
+                ' please document either instrument_nominal_height or instrument_nominal_depth '...
                 'global attributes so that an actual depth can be '...
                 'computed from other pressure sensors in the mooring']);
             continue;
