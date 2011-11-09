@@ -1,0 +1,11 @@
+S, standard_name             = sea_surface_wave_from_direction
+S, long_name                 = sea_surface_wave_from_direction
+S, units                     = Degrees clockwise from true North
+S, axis                      = 
+N, valid_min                 = [mat imosParameters('WAV_DIR', 'valid_min')]
+N, valid_max                 = [mat imosParameters('WAV_DIR', 'valid_max')]
+N, _FillValue                = [mat imosParameters('WAV_DIR', 'fill_value')]
+S, comment                   = 
+N, quality_control_set       = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
+Q, quality_control_indicator = 
+N, uncertainty               =
