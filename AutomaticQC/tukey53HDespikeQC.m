@@ -78,7 +78,7 @@ flags   = [];
 if ~strcmp(type, 'variables'), return; end
 
 k_param = str2double(...
-  readProperty('k', fullfile('AutomaticQC', 'wqmBurstTukey53HDespikeQC.txt')));
+  readProperty('k', fullfile('AutomaticQC', 'tukey53HDespikeQC.txt')));
 
 % we need to modify the data set, so work with a copy
 fdata = data;
