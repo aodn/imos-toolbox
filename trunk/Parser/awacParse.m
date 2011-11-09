@@ -228,6 +228,11 @@ clear analn1 analn2 time depth velocity1 velocity2 velocity3 ...
 %
 % if wave data files are present, read them in
 %
+
+% at this stage the wave data parser is not ready yet and contains a lot 
+% of errors
+return;
+
 filename = fullfile(path, filename);
 
 waveData = readAWACWaveAscii(filename);
@@ -291,7 +296,6 @@ sample_data{2}.dimensions{2 }.data = NaN;
 sample_data{2}.dimensions{3 }.data = NaN;
 sample_data{2}.dimensions{4 }.data = waveData.Frequency;
 sample_data{2}.dimensions{5 }.data = waveData.fullSpectrumDirection;
-sample_data{2}.dimensions{6 }.data = NaN;
 
 sample_data{2}.variables {1 }.data = waveData.Battery;
 sample_data{2}.variables {2 }.data = waveData.Heading;

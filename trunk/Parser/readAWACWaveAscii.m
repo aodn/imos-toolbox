@@ -100,7 +100,8 @@ function waveData = readAWACWaveAscii( filename )
 % Outputs:
 %   waveData - struct containing data read in from the wave data text files.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -151,6 +152,8 @@ pwrFreqDirFile = fullfile(path, [name '.wds']);
 if ~exist(headerFile, 'file') || ~exist(waveFile, 'file') || ...
         ~exist(dirFreqFile, 'file') || ~exist(pwrFreqFile, 'file') || ...
         ~exist(pwrFreqDirFile, 'file')
+    fprintf('%s\n', ['Warning : ' 'To read wave data, '...
+        '.whd, .wap, .wdr, .was, .wds are necessary.']);
     return;
 end
 

@@ -137,15 +137,15 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   config.platform_code = sample_data.platform_code;
   config.file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
   
-  if isempty(sample_data.target_depth)
-      sample_data.target_depth = NaN;
+  if isempty(sample_data.instrument_nominal_depth)
+      sample_data.instrument_nominal_depth = NaN;
   end
   
   % <product_type>
   config.product_type  = [...
     sample_data.meta.site_id '-' ...
     sample_data.meta.instrument_model    '-' ...
-    num2str(sample_data.target_depth)
+    num2str(sample_data.instrument_nominal_depth)
   ];
 
   % remove any spaces/underscores

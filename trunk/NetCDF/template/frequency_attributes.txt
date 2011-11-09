@@ -1,0 +1,11 @@
+S, standard_name             = 
+S, long_name                 = frequency
+S, units                     = Hz
+S, axis                      = 
+N, valid_min                 = [mat imosParameters('FREQUENCY', 'valid_min')]
+N, valid_max                 = [mat imosParameters('FREQUENCY', 'valid_max')]
+N, _FillValue                = [mat imosParameters('FREQUENCY', 'fill_value')]
+S, comment                   = 
+N, quality_control_set       = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
+Q, quality_control_indicator = 
+N, uncertainty               =
