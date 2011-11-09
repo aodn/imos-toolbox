@@ -1,2 +1,0 @@
-imosToolbox.exe 
-pause
