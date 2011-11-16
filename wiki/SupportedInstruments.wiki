@@ -27,7 +27,11 @@ The following variants of the SBE39 exist:
  * SBE39
  * SBE39-IM
 
-The SBE output format is configurable, and there are slight differences in output formats between variants. Additionally, instruments which run an older firmware version use different commands for configuring the output format and downloading data. The toolbox will only parse sample data which is in the following format:
+The SBE output format is configurable, and there are slight differences in output formats between variants. Additionally, instruments which run an older firmware version use different commands for configuring the output format and downloading data. 
+
+=== ASCII file format ===
+
+The toolbox will parse sample data which is in the following ASCII format ('.asc' or '.cnv' files):
 
 {{{
   temperature[, conductivity][, pressure][, salinity], date, time
@@ -35,7 +39,7 @@ The SBE output format is configurable, and there are slight differences in outpu
 where
 
  * `temperature`: floating point, Degrees Celsius ITS-90
- * `conductivity`: floating point, S/m (only on SBE37)
+ * `conductivity`: floating point, S/m, optional (only on SBE37)
  * `pressure`:     floating point, decibars, optional (present on instruments with optional pressure sensor)
  * `salinity`: floating point, PSU, optional (may be present on SBE37 instruments with firmware >= 3.0)
  * `date`: dd mmm yyyy (e.g. 01 Jan 2008)
@@ -59,6 +63,10 @@ OutputTime=Y    (if sensor supports this command)
 }}}
 
 The input file must also contain a header section which contains sensor metadata and calibration information (as obtained via the 'DS' and 'DC' commands) - this is the output format provided by the Windows seaterm program.
+
+=== HEX file format ===
+
+In order to read in CTD data from [http://www.oceanobservatories.org/ OOI], SBE37-IM hex format is also supported. See SBE19+ [#.hex .hex] files below for details on this format.
 
 == Seabird SBE19+ ==
 
@@ -92,7 +100,7 @@ The list of parameters contained in the .cnv file is configurable via the SBE Da
 
 == WET Labs WQM ==
 
-The toolbox is able to parse both raw (.raw) and processed (.data) data retrieved from a Wetlabs WQM CTD/ECO instrument. 
+The toolbox is able to parse both raw (.raw) and processed (.dat) data retrieved from a Wetlabs WQM CTD/ECO instrument. 
 
 === .dat ===
 
@@ -151,9 +159,13 @@ The toolbox is able to import raw (.ctd) files retrieved from an NXIC CTD instru
 
 Currently, the parser only provides conductivity, temperature and pressure data. I am in contact with FSI regarding access to the file format specification, and hope to provide auxillary sensor data in the near future.
 
-== RBR DR-1050 ==
+== RBR ==
 
-The toolbox is able to read in files retrieved from RBR DR-1050 pressure data loggers. The file format for DR-1050 loggers consists of a header section, and a list of pressure samples:
+The toolbox is able to read in files retrieved from RBR DR-1050, XR-420 and XR-620 data loggers.
+
+=== DR-1050 ===
+
+The file format for DR-1050 loggers consists of a header section, and a list of pressure samples:
 
 {{{
 RBR DR-1050  6.30 014552 (Windows: 6.08 - Minimum required: 6.05)
@@ -176,6 +188,29 @@ Memory type: 6 AT45DB642D_LP
  521.5165 
  ...
 }}}
+
+=== XR-420 & XR-620 ===
+
+The toolbox is able to read in XR-420 data files generated using either RBR Windows v6.13 software or Ruskin v1.5.25 software with output in Engineering unit .txt format. For XR-620 data files, only those generated Ruskin v1.5.25 software with output in Engineering unit .txt format are supported.
+
+Supported date format are either 'yy/mm/dd HH:MM:SS.FFF' or 'yyyy/mmm/dd HH:MM:SS.FFF'.
+
+The file format consists of a header section, and a list of data samples of conductivity, temperature, pressure, fluorometry-chlorophyll, etc... when those variables are present.
+
+Supported variable titles in file are as follow :
+
+-Cond
+-Temp
+-Pres
+-FlCa
+-FlC
+-Turb
+-R_D_O2
+-Depth
+-Salin
+-SpecCond
+-SoSUN
+-rdO2C
 
 == YSI 6-Series == 
 
@@ -216,13 +251,13 @@ The conversion from the ADCP velocity values currently assumes that the ADCP is 
 
 == Nortek ADCP ==
 
-The toolbox is able to parse raw binary data from the following Nortek instruments. The binary format for these instruments is specified in the Nortek System Integrator Manual, available for download from the [http://www.nortek-as.com/en/library/rep-room/application-development/system-integrator-manual Nortek website]:
+The toolbox is able to parse raw binary data from the following Nortek instruments. The binary format for these instruments is specified in the Nortek System Integrator Manual, available for download [ftp://dataupload.emii.org.au/pub/Toolbox_documents/system-integrator-manual.pdf here] or on [http://www.nortek-as.com/en/library/rep-room/application-development/system-integrator-manual Nortek website]:
 
  * Aquadopp Profiler (`.prf` files)
  * Continental (`.cpr` files)
  * AWAC (`.wpr` files)
 
-For the Aquadopp Profiler and Continental, only the raw binary file is required. For reading wave data from an AWAC, you must use Nortek software to generate the processed wave data files (`.whd`, `.wap`, `.wdr`, `.was` and `.wds`), as the AWAC binary file only contains raw wave data.
+For the Aquadopp Profiler and Continental, only the raw binary file is required. For reading wave data from an AWAC, you must use QuickWave or Storm Nortek softwares to generate the processed wave data files (`.whd`, `.wap`, `.wdr`, `.was` and `.wds`), as the AWAC binary file only contains raw wave data.
 
 For the Aquadopp Profiler, Continental and AWAC, the following data is extracted:
 
@@ -289,15 +324,31 @@ The toolbox currently assumes that the wave data `.wap` file columns adhere to t
 ||4         ||Hour                           ||0-23    ||
 ||5         ||Minute                         ||0-59    ||
 ||6         ||Second                         ||0-59    ||
-||7         ||Significant height (Hs)        ||m       ||
-||8         ||Mean zerocrossing period (Tm02)||s       ||
-||9         ||Peak period (Tp)               ||s       ||
-||10        ||Peak direction (DirTp)         ||deg     ||
-||11        ||Directional spread (Spr1)      ||deg     ||
-||12        ||Mean direction (Mdir)          ||deg     ||
-||13        ||Mean Pressure                  ||m       ||
-||14        ||Unidirectivity index           ||        ||
-||15        ||Error Code                     ||        ||
+||7   		||Spectrum type                  ||        ||
+||8   		||Significant height (Hm0)       ||(m)     ||
+||9   		||Mean 1/3 height (H3)           ||(m)     ||
+||10  		||Mean 1/10 height (H10)         ||(m)     ||
+||11  		||Maximum height (Hmax)          ||(m)     ||
+||12  		||Mean Height (Hmean)            ||(m)     ||
+||13  		||Mean  period (Tm02)            ||(s)     ||
+||14  		||Peak period (Tp)               ||(s)     ||
+||15  		||Mean zerocrossing period (Tz)  ||(s)     ||
+||16  		||Mean 1/3 Period (T3)           ||(s)     ||
+||17  		||Mean 1/10 Period (T10)         ||(s)     ||
+||18  		||Maximum Period (Tmax)          ||(s)     ||
+||19  		||Peak direction (DirTp)         ||(deg)   ||
+||20  		||Directional spread (SprTp)     ||(deg)   ||
+||21  		||Mean direction (Mdir)          ||(deg)   ||
+||22  		||Unidirectivity index
+||23  		||Mean Pressure                  ||(dbar)  ||
+||24  		||Mean AST distance              ||(m)     ||
+||25  		||Mean AST distance (Ice)        ||(m)     ||
+||26  		||No Detects
+||27  		||Bad Detects
+||28  		||Number of Zero-Crossings
+||29  		||Current speed (wave cell)      ||(m/s)   ||
+||30  		||Current direction (wave cell)  ||(deg)   ||
+||31        ||Error Code                     ||        ||
 
 === `.wdr` file format ===
 
@@ -343,3 +394,7 @@ Limitations:
  * Dates are only supported in the format yyyymmdd
  * Times are only supported in the format HH:MM:SS.ss
  * Timestamps are only supported as a date field followed by a time field yyyymmdd, HH:MM:SS.ss
+ 
+== NetCDF ==
+
+NetCDF file format is read in the toolbox. However, when the file also exists in the original instrument format, is supported by the toolbox and referenced in a deployment database, then it is recommended to use the original instrument file along with the deployment database.
