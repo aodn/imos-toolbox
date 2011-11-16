@@ -200,16 +200,27 @@ The file format consists of a header section, and a list of data samples of cond
 Supported variable titles in file are as follow :
 
 -Cond
+
 -Temp
+
 -Pres
--FlCa
+
+-!FlCa
+
 -FlC
+
 -Turb
+
 -R_D_O2
+
 -Depth
+
 -Salin
--SpecCond
+
+-!SpecCond
+
 -SoSUN
+
 -rdO2C
 
 == YSI 6-Series == 
@@ -218,7 +229,7 @@ The toolbox is able to read in files retrieved from YSI 6-series data loggers (o
 
 == Teledyne/RDI Workhorse ADCP ==
 
-The toolbox is able to parse binary files retrieved from a Teledyne RD Workhorse ADCP instrument. The toolbox is only able to interpret raw files in the PD0 format (as it stands at December 2008). See the Workhorse H-ADCP Operation manual (available from the [http://www.rdinstruments.com/ Teledyne website]) for a description of the output format. As the toolbox works from raw binary files, pre-processing with RDI software is not required.
+The toolbox is able to parse binary files retrieved from a Teledyne RD Workhorse ADCP instrument. The toolbox is only able to interpret raw files in the PD0 format (as it stands at December 2008). See the Workhorse H-ADCP Operation manual (available [ftp://dataupload.emii.org.au/pub/Toolbox_documents/WorkHorse_Commands_and_Output_Data_Format_Nov07.pdf here] or from the [http://www.rdinstruments.com/ Teledyne website]) for a description of the output format. As the toolbox works from raw binary files, pre-processing with RDI software is not required.
 
 Unfortunately, reading in these binary files using Matlab is quite slow (about 30 seconds on test data of ~8000 ensembles/8MB). Re-implementing in C would provide much better performance.
 
@@ -339,13 +350,13 @@ The toolbox currently assumes that the wave data `.wap` file columns adhere to t
 ||19  		||Peak direction (DirTp)         ||(deg)   ||
 ||20  		||Directional spread (SprTp)     ||(deg)   ||
 ||21  		||Mean direction (Mdir)          ||(deg)   ||
-||22  		||Unidirectivity index
+||22  		||Unidirectivity index 			 ||        ||
 ||23  		||Mean Pressure                  ||(dbar)  ||
 ||24  		||Mean AST distance              ||(m)     ||
 ||25  		||Mean AST distance (Ice)        ||(m)     ||
-||26  		||No Detects
-||27  		||Bad Detects
-||28  		||Number of Zero-Crossings
+||26  		||No Detects 					 ||        ||
+||27  		||Bad Detects					 ||        ||
+||28  		||Number of Zero-Crossings 		 ||        ||
 ||29  		||Current speed (wave cell)      ||(m/s)   ||
 ||30  		||Current direction (wave cell)  ||(deg)   ||
 ||31        ||Error Code                     ||        ||
