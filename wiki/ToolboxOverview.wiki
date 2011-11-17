@@ -5,63 +5,53 @@
 
 = IMOS Matlab Toolbox Overview =
 
- * Guillaume Galibert <guillaume dot galibert at utas dot edu dot au> <guillaume dot galibert at gmail dot com>
+ * Guillaume Galibert <guillaume dot galibert at utas dot edu dot au> (from May 2011)
  * Paul !McCarthy <pauld dot mccarthy at gmail dot com> (from March 2009 to February 2010)
  * Lindsay Pender <lindsay dot pender at csiro dot au>
  * Craig Steinberg <c dot steinberg at aims dot gov dot au>
 
 == Overview ==
 
-The IMOS Matlab Toolbox aims to provide an automated, easy to use interface for converting raw instrument data into IMOS compatible files, ready for handover to eMII. The first stage of this project is underway, and is specifically targeting 'delayed mode' data; in other words, data which is manually retrived from long-term mooring sites. 
+The IMOS Matlab Toolbox aims to provide an automated, easy to use interface for converting raw instrument data into IMOS compatible NetCDF files, ready for handover to eMII. The first stage of this project is underway, and is specifically targeting 'delayed mode' data; in other words, data which is manually retrieved from long-term mooring sites. 
 
 Typical usage of the Toolbox would proceed as follows:
 
  # User downloads data set from an instrument supported by the Toolbox (e.g. SBE37).
- # User imports data set into Toolbox.
+ # User imports data set into Toolbox along with a deployment data base containing metadata.
  # Toolbox executes automatic QC procedures over data set, such as in/out of water flagging, spike detection, outlier checks and flatline checks.
  # User performs manual QC over data via interactive display.
- # Toolbox generates eMII/IMOS compatible NetCDF files containing raw and QC'd data sets.
+ # Toolbox generates eMII/IMOS compatible NetCDF files containing metadata and data at raw and QC'd levels.
 
-While the Toolbox will be designed to execute with minimal user intervention (apart from manual quality control), the Matlab source will be available for users who wish to have more fine grained control over the execution flow, or who wish to integrate the Toolbox into an existing Matlab codebase. The Toolbox will be made available to, and will hopefully be useful for, all IMOS facilities.
+While the Toolbox will be designed to execute with minimal user intervention (apart from manual quality control), the Matlab source will be available for users who wish to contribute to the existing code with new features, have more fine grained control over the execution flow, or who wish to integrate the Toolbox into an existing Matlab codebase. The Toolbox will be made available to, and will hopefully be useful for, all IMOS facilities.
 
 == System requirements ==
 
 System requirements for using the Toolbox are as follows:
 
- * Java Runtime Environment 1.5
+ * Java Runtime Environment 1.6
  * (Optional) Local deployment database
- * (Optional) Matlab R 2008 (A self-contained executable version is available)
+ * (Optional) Matlab R 2010b (A self-contained executable version is available)
 
 == Output format ==
 
-The Toolbox generates NetCDF files according to the IMOS NetCDF User Manual, available for download from the [http://imos.org.au/datadocpol.html IMOS website].
+The Toolbox generates NetCDF files according to the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual] and the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention].
 
 == Supported instruments ==
 
 See the SupportedInstruments page for a list of currently supported instruments.
 
-== Automatic quality control procedures ==
+== Quality control procedures ==
 
-The following automatic quality control procedures are available in the Toolbox:
-
- * In/out of water checks
- * Outlier checks
- * Spike detection
- * Flatline detection
- * Time gap detection
-
-== Manual quality control procedures ==
-
-The toolbox allows users to manually flag questionable regions in a data set.
+See the QCProcedures page for a list of currently available quality control procedures.
 
 == Processed data levels ==
 
 The following levels of processed data will be saved as separate NetCDF files:
 
- * Level 0: Raw (unprocessed) data
+ * Level 0: Raw (non QC'd) data
  * Level 1: QC'd data
 
-These levels (and the output files) map directly to the Processed Data levels defined in the IMOS NetCDF User's Manual.
+These levels (and the output files) map directly to the Processed Data levels defined in the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User's Manual].
 
 == Standardisation of instrument formats ==
 
@@ -73,6 +63,6 @@ The project is hosted on Google Code at http://code.google.com/p/imos-toolbox/
 
 == Deployment database ==
 
-The deployment database is a MS Access database which is local to each site, and which conforms to the deployment database schema developed at AIMS. The deployment database is used to store metadata for every deployment of interest to the site. The toolbox may be used without a deployment database, however more work is required by the user in filling out metadata for each data set.
+The deployment database is a MS Access database which is local to each site, and which conforms to the deployment database schema developed at AIMS. The deployment database is used to store metadata for every deployment of interest to the site. The toolbox should always be used with a deployment database. Otherwise more work is required by the user in filling out metadata for each data set and some important pre-processing/quality control procedures won't be available.
 
-The deployment data contains metadata for all aspects of a deployment, including instrument/sensor/platform model and calibration information, and deployment location/depth. This information is used by the Toolbox for the generation of MEST compatible metadata documents, and metadata fields in the NetCDF files.
+The deployment data contains metadata for all aspects of a deployment, including instrument/sensor/platform model and calibration information, and deployment location/depth. This information is used by the Toolbox for the generation of MEST compatible metadata documents, and metadata fields in the NetCDF files. See [ftp://dataupload.emii.org.au/pub/Toolbox_documents/deployment_database_conventions.pdf deployment database conventions] to have an idea on how to document your local deployment database.

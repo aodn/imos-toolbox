@@ -199,29 +199,18 @@ The file format consists of a header section, and a list of data samples of cond
 
 Supported variable titles in file are as follow :
 
--Cond
-
--Temp
-
--Pres
-
--!FlCa
-
--FlC
-
--Turb
-
--R_D_O2
-
--Depth
-
--Salin
-
--!SpecCond
-
--SoSUN
-
--rdO2C
+ * Cond
+ * Temp
+ * Pres
+ * !FlCa
+ * FlC
+ * Turb
+ * R_D_O2
+ * Depth
+ * Salin
+ * !SpecCond
+ * SoSUN
+ * rdO2C
 
 == YSI 6-Series == 
 
