@@ -7,22 +7,48 @@
 
 The following routines are available in the Toolbox:
 
- * [#Data_time_start_redefinition_-_timeStartPP Data time start redefinition    - timeStartPP]
- * [#Data_time_offset_-_timeOffsetPP Data time offset                - timeOffsetPP]
- * [#Metadata_time_offset_-_timeMetaOffsetPP Metadata time offset            - timeMetaOffsetPP]
- * [#Variable_scale/offset_-_variableOffsetPP Variable scale/offset           - variableOffsetPP]
- * [#Relative_pressure_calculation_-_pressureRelPP Relative pressure calculation   - pressureRelPP]
- * [#Depth_calculation_-_depthPP Depth calculation               - depthPP]
- * [#Salinity_calculation_-_salinityPP Salinity calculation            - salinityPP]
- * [#Variable_transformation_-_transformPP Variable transformation         - transformPP]
- 
-The following variable transformation is available in the toolbox:
-
- * [#Voltage_to_concentration_oxygen_data_transformation_-_sbe43OxygenTransform Voltage to concentration oxygen data transformation - sbe43OxygenTransform]
-
 == Data time start redefinition - timeStartPP == 
 
+timeStartPP allows modification of a data set's starting time.
+
+This routine prompts the user to enter a new starting time for the data set. All time values are then offset accordingly. Useful for  data sets which were retrieved from an instrument with an unreliable or unset clock knowing the actual switch on date.
+
 == Data time offset - timeOffsetPP == 
+
+timeOffsetPP prompts the user to provide a time offset value (in hours) in order to apply time correction from local time to UTC time to each of the given data sets.
+
+All IMOS datasets should be provided in UTC time. Collected data may not necessarily have been captured in UTC time, so a correction must be made before the data can be considered to be in an IMOS compatible format. 
+
+The local time zone information associated to the data set is retrieved from the field TimeZone in the table DeploymentData from the deployment database and then converted into an offset in hours via the configuration file timeOffsetPP.txt. See timeOffsetPP.txt  example below :
+
+{{{
+% This file specifies default time offset values as used by the timeOffsetPP
+% function. Each line is of the format:
+%
+%   timezone, offset
+%
+% where timezone is the time zone code, and offset is the value to be used to
+% convert from that time zone to UTC/GMT, in hours.
+
+UTC,      0.0
+GMT,      0.0
+UTC/GMT,  0.0
+
+WST,     -8.0
+AWST,    -8.0
+WDT,     -9.0
+AWDT,    -9.0
+
+CST,     -9.5
+ACST,    -9.5
+CDT,     -10.5
+ACDT,    -10.5
+
+EST,     -10.0
+AEST,    -10.0
+EDT,     -11.0
+AEDT,    -11.0
+}}}
 
 == Metadata time offset - timeMetaOffsetPP == 
 
@@ -35,6 +61,8 @@ The following variable transformation is available in the toolbox:
 == Salinity calculation - salinityPP == 
 
 == Variable transformation - transformPP == 
+
+The following variable transformation is available in the toolbox:
 
 === Voltage to concentration oxygen data transformation - sbe43OxygenTransform === 
 
