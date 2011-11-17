@@ -58,6 +58,8 @@ See the PPRoutines page for a detailed list of currently available pre-processin
 
 See the QCProcedures page for a detailed list of currently available quality control procedures.
 
+IMOS quantitative scale flag follows the IOC scale flag. See description [ProcessLevelsAndQC#Quality_Control here].
+
 == Output format ==
 
 The Toolbox generates NetCDF files according to the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual] and the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention]. 
@@ -71,4 +73,4 @@ The following levels of processed data will be saved as separate NetCDF files:
  * Level 0: Raw (non QC'd) data
  * Level 1: QC'd data
 
-These levels (and the output files) map directly to the Processed Data levels defined in the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User's Manual].
+These [ProcessLevelsAndQC#ProcessLevels levels] (and the output files) map directly to the Processed Data levels defined in the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User's Manual].
