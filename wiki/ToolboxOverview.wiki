@@ -52,11 +52,11 @@ In order for the Toolbox to be useful for a variety of instruments, the input fo
 
 == Pre-processing routines ==
 
-See the PPRoutines page for a detailed list of currently available pre-processing routines.
+See the [PPRoutines] page for a detailed list of currently available pre-processing routines.
 
 == Quality control procedures ==
 
-See the QCProcedures page for a detailed list of currently available quality control procedures.
+See the [QCProcedures] page for a detailed list of currently available quality control procedures.
 
 IMOS quantitative scale flag follows the IOC scale flag. See description [ProcessLevelsAndQC#Quality_Control here].
 
