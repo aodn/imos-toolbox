@@ -5,7 +5,7 @@
 
 = IMOS Matlab Toolbox Overview =
 
- * Guillaume Galibert <guillaume dot galibert at utas dot edu dot au> (from May 2011)
+ * Guillaume Galibert <guillaume dot galibert at utas dot edu dot au> (since May 2011)
  * Paul !McCarthy <pauld dot mccarthy at gmail dot com> (from March 2009 to February 2010)
  * Lindsay Pender <lindsay dot pender at csiro dot au>
  * Craig Steinberg <c dot steinberg at aims dot gov dot au>
@@ -32,17 +32,29 @@ System requirements for using the Toolbox are as follows:
  * (Optional) Local deployment database
  * (Optional) Matlab R 2010b (A self-contained executable version is available)
 
-== Output format ==
+== Deployment database ==
 
-The Toolbox generates NetCDF files according to the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual] and the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention].
+The deployment database is a MS Access database which is local to each site, and which conforms to the deployment database schema developed at AIMS. The deployment database is used to store metadata for every deployment of interest to the site. The toolbox should always be used with a deployment database. Otherwise more work is required by the user in filling out metadata for each data set and some important pre-processing/quality control procedures won't be available.
+
+The deployment data contains metadata for all aspects of a deployment, including instrument/sensor/platform model and calibration information, and deployment location/depth. This information is used by the Toolbox for the generation of MEST compatible metadata documents, and metadata fields in the NetCDF files. See [ftp://dataupload.emii.org.au/pub/Toolbox_documents/deployment_database_conventions.pdf deployment database conventions] to have an idea on how to document your local deployment database.
 
 == Supported instruments ==
 
-See the SupportedInstruments page for a list of currently supported instruments.
+See the SupportedInstruments page for a detailed list of currently supported instruments.
+
+In order for the Toolbox to be useful for a variety of instruments, the input format for a particular instrument must sometimes be provided in a standard format, or a limited set of formats.
+
+== Pre-processing routines ==
+
+See the PPRoutines page for a detailed list of currently available pre-processing routines.
 
 == Quality control procedures ==
 
-See the QCProcedures page for a list of currently available quality control procedures.
+See the QCProcedures page for a detailed list of currently available quality control procedures.
+
+== Output format ==
+
+The Toolbox generates NetCDF files according to the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual] and the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention].
 
 == Processed data levels ==
 
@@ -52,17 +64,3 @@ The following levels of processed data will be saved as separate NetCDF files:
  * Level 1: QC'd data
 
 These levels (and the output files) map directly to the Processed Data levels defined in the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User's Manual].
-
-== Standardisation of instrument formats ==
-
-In order for the Toolbox to be useful for a variety of instruments, the input format for a particular instrument must be provided in a standard format, or a limited set of formats. See the SupportedInstruments page for information on supported data formats.
-
-== Project hosting ==
-
-The project is hosted on Google Code at http://code.google.com/p/imos-toolbox/
-
-== Deployment database ==
-
-The deployment database is a MS Access database which is local to each site, and which conforms to the deployment database schema developed at AIMS. The deployment database is used to store metadata for every deployment of interest to the site. The toolbox should always be used with a deployment database. Otherwise more work is required by the user in filling out metadata for each data set and some important pre-processing/quality control procedures won't be available.
-
-The deployment data contains metadata for all aspects of a deployment, including instrument/sensor/platform model and calibration information, and deployment location/depth. This information is used by the Toolbox for the generation of MEST compatible metadata documents, and metadata fields in the NetCDF files. See [ftp://dataupload.emii.org.au/pub/Toolbox_documents/deployment_database_conventions.pdf deployment database conventions] to have an idea on how to document your local deployment database.
