@@ -18,19 +18,25 @@ Typical usage of the Toolbox would proceed as follows:
 
  # User downloads data set from an instrument supported by the Toolbox (e.g. SBE37).
  # User imports data set into Toolbox along with a deployment data base containing metadata.
- # Toolbox executes automatic QC procedures over data set, such as in/out of water flagging, spike detection, outlier checks and flatline checks.
+ # User performs pre-processing routines over data set, such as depth calculation for each sensor, time offset to UTC time...
+ # User executes semi-automatic QC procedures over data set, such as in/out of water flagging, spike detection, outlier checks, flatline checks...
  # User performs manual QC over data via interactive display.
  # Toolbox generates eMII/IMOS compatible NetCDF files containing metadata and data at raw and QC'd levels.
 
-While the Toolbox will be designed to execute with minimal user intervention (apart from manual quality control), the Matlab source will be available for users who wish to contribute to the existing code with new features, have more fine grained control over the execution flow, or who wish to integrate the Toolbox into an existing Matlab codebase. The Toolbox will be made available to, and will hopefully be useful for, all IMOS facilities.
+While the Toolbox will be designed to execute with minimal user intervention (apart from semi-automatic QC procedures configuration and manual quality control), the Matlab source will be available for users who wish to [ContributeToTheCode contribute] to the existing code with new features, have more fine grained control over the execution flow, or who wish to integrate the Toolbox into an existing Matlab codebase. The Toolbox will be made available to, and will hopefully be useful for, all IMOS facilities.
 
 == System requirements ==
 
 System requirements for using the Toolbox are as follows:
 
+ * Windows operating system (XP from Seven should be supported)
  * Java Runtime Environment 1.6
  * (Optional) Local deployment database
  * (Optional) Matlab R 2010b (A self-contained executable version is available)
+ 
+== Using the toolbox ==
+
+See how to [ToolboxInstallation install], [ToolboxConfiguration configure] and [UsingTheToolboxOverview use] the toolbox in the corresponding pages.
 
 == Deployment database ==
 
@@ -54,7 +60,9 @@ See the QCProcedures page for a detailed list of currently available quality con
 
 == Output format ==
 
-The Toolbox generates NetCDF files according to the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual] and the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention].
+The Toolbox generates NetCDF files according to the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual] and the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention]. 
+
+Global and variables attributes can be automatically documented via [NetCDFTemplates configurable template files].
 
 == Processed data levels ==
 

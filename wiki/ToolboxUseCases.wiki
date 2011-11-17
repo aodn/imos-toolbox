@@ -12,6 +12,7 @@ This document intends to outline a set of 'use cases' for the IMOS Toolbox softw
 This use case describes the likely most common usage scenario of the Toolbox. This is the process followed when a user has a data set for which he/she wishes to generate IMOS compliant NetCDF files for submission to eMII.
 
  # User loads raw data file into Toolbox.
+ # User runs pre-processing routines over data.
  # User runs automatic QC procedures over data.
  # User manually modifies/flags data as needed.
  # User exports data to NetCDF file(s).

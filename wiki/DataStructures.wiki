@@ -24,10 +24,14 @@ The following sections define scalar instances of `sample_data` structs.
      * `instrument_make`: The instrument make, or manufacturer (String)
      * `instrument_model`: The instrument model (String)
      * `instrument_serial_no`: The instrument serial number/code (String)
+	 * `instrument_sample_interval`: The data set computed sample interval (Numeric)
+	 * `instrument_burst_interval`: The data set computed burst interval (Numeric)
+	 * `instrument_burst_duration`: The data set computed burst duration (Numeric)
      * `site_name`: Name of the site where the instrument was deployed (String)
      * `depth`: Nominal deployed instrument depth (Numeric)
      * `timezone`: Local timezone where the instrument was deployed (String)
      * `deployment`: If a deployment database was used to import the data, this is a struct containing the relevant DeploymentData information (struct)
+	 * `site`: If a deployment database was used to import the data, this is a struct containing the relevant Site information (struct)
    * `dimensions`: Cell array of structs:
      * `name`: IMOS compliant dimension name (String)
      * `data`: Vector of dimension data (Numeric)
@@ -37,13 +41,15 @@ The following sections define scalar instances of `sample_data` structs.
      * `dimensions`: Vector of indices into the `dimensions` array (Numeric)
      * `data`: Vector/matrix of data (Numeric)
      * `flags`: Vector/matrix of flags (byte/char - see below)
+   * `other...`: Any global attribute to be exported to NetCDF.
 
 === Notes ===
 
  * It is assumed that time is always the first element of the `dimensions` array, the first element of every `variables.dimensions` vector, and the first dimension of the `variables.data` matrices. This implies that single dimensional data must be stored as column vectors.
  * The `variables.dimensions` array must be in the same order as the `variables.data` matrix indices.
  * Automatic and manual QC procedures should add to the log array when they modify any data.
- * The `meta.deployment` struct is not present for data which were imported directly.
+ * The `meta.deployment` and `meta.site` structs are not present for data which were imported directly.
+ * The `meta.instrument_burst_interval` and `meta.instrument_burst_duration` structs are not present for instrument which collecting mode is not based on bursts.
 
 === Flagged data ===
 
