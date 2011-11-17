@@ -22,6 +22,7 @@
   * [ToolboxConfiguration Configuration]
   * [UsingTheToolboxOverview Use]
   * [SupportedInstruments Supported Instruments]
+  * [PPRoutines Available pre-processing routines]
   * [Troubleshooting]
   * [NetCDFTemplates NetCDF Templates]
   * [ContributeToTheCode Contribute to the code]

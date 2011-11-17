@@ -52,7 +52,7 @@ In order for the Toolbox to be useful for a variety of instruments, the input fo
 
 == Pre-processing routines ==
 
-#See the PPRoutines page for a detailed list of currently available pre-processing routines.
+See the PPRoutines page for a detailed list of currently available pre-processing routines.
 
 == Quality control procedures ==
 
