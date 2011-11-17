@@ -7,18 +7,18 @@
 
 The following routines are available in the Toolbox:
 
- * [#Data_time_start_redefinition_-_timeStartPP Data time start redefinition 	- timeStartPP]
- * [#Data_time_offset_-_timeOffsetPP Data time offset 				- timeOffsetPP]
- * [Metadata time offset 			- timeMetaOffsetPP]
- * [Variable scale/offset 			- variableOffsetPP]
- * [Relative pressure calculation 	- pressureRelPP]
- * [Depth calculation 				- depthPP]
- * [Salinity calculation 			- salinityPP]
- * [Variable transformation 		- transformPP]
+ * [#Data_time_start_redefinition_-_timeStartPP Data time start redefinition    - timeStartPP]
+ * [#Data_time_offset_-_timeOffsetPP Data time offset                - timeOffsetPP]
+ * [#Metadata_time_offset_-_timeMetaOffsetPP Metadata time offset            - timeMetaOffsetPP]
+ * [#Variable_scale/offset_-_variableOffsetPP Variable scale/offset           - variableOffsetPP]
+ * [#Relative_pressure_calculation_-_pressureRelPP Relative pressure calculation   - pressureRelPP]
+ * [#Depth_calculation_-_depthPP Depth calculation               - depthPP]
+ * [#Salinity_calculation_-_salinityPP Salinity calculation            - salinityPP]
+ * [#Variable_transformation_-_transformPP Variable transformation         - transformPP]
  
 The following variable transformation is available in the toolbox:
 
- * Voltage to concentration oxygen data transformation - sbe43OxygenTransform
+ * [#Voltage_to_concentration_oxygen_data_transformation_-_sbe43OxygenTransform Voltage to concentration oxygen data transformation - sbe43OxygenTransform]
 
 == Data time start redefinition - timeStartPP == 
 
@@ -36,5 +36,5 @@ The following variable transformation is available in the toolbox:
 
 == Variable transformation - transformPP == 
 
-=== Voltage to concentration oxygen data transformation === 
+=== Voltage to concentration oxygen data transformation - sbe43OxygenTransform === 
 
