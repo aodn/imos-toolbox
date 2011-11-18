@@ -44,6 +44,8 @@ NRSPHB,     151.25,     -34.08333,  0.2,    0.25,   Nan
 
 }}}
 
+The impossible location test can be performed according to 2 variations.
+
  * distanceKmPlusMinusThreshold is Nan : 
 Longitude and Latitude data are checked against nominal longitude and latitude values +/- longitudePlusMinusThreshold or latitudePlusMinusThreshold. 
 
