@@ -17,10 +17,10 @@ The basis of these tests is described in [ftp://dataupload.emii.org.au/pub/Toolb
 
 morelloImpossibleLocationSetQC tests impossible Latitude and Longitude data values against nominal values for the current mooring site. Useful to detect typos in positions documented in the metadata/deployment database.
 
-||*Variables checked*||*Pass test flag*||*Fail test flag*||
+||*Variables checked*||*Pass test flag*|| *Fail test flag* ||
 ||Longitude, Latitude||1-Good data||3-Bad data that are potentially correctable||
 
-Site name is retrieved from the deployment database in the field !Site of the table !DeploymentData and then IMOS sites information and test parameters are read from IMOS\imosSites.txt. See example of such parameter file below :
+Site name is retrieved from the deployment database in the field *Site* of the table !DeploymentData and then IMOS sites information and test parameters are read from IMOS\imosSites.txt. See example of such parameter file below :
 
 {{{
 % Definitions and descriptions of IMOS moorings/stations sites.
