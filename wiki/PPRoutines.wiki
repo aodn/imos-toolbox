@@ -19,7 +19,9 @@ timeOffsetPP prompts the user to provide a time offset value (in hours) in order
 
 All IMOS datasets should be provided in UTC time. Collected data may not necessarily have been captured in UTC time, so a correction must be made before the data can be considered to be in an IMOS compatible format. 
 
-The local time zone information associated to the data set is retrieved from the field TimeZone in the table DeploymentData from the deployment database and then converted into an offset in hours via the configuration file timeOffsetPP.txt. See timeOffsetPP.txt  example below :
+In addition, do not forget to document the global attribute local_time_zone (= +10 for EST timezone for example) so that user easily know which offset to apply to be back in local time.
+
+The local time zone information associated to the data set is retrieved from the field !TimeZone in the table !DeploymentData from the deployment database and then converted into an offset in hours via the configuration file timeOffsetPP.txt. See configuration file example below :
 
 {{{
 % This file specifies default time offset values as used by the timeOffsetPP
@@ -52,11 +54,112 @@ AEDT,    -11.0
 
 == Metadata time offset - timeMetaOffsetPP == 
 
+timeMetaOffsetPP prompts the user to provide a time offset value (in hours) in order to apply time correction from local time to UTC time to each of the metadata information retrieved for given data sets.
+
+As for time data, all IMOS time metadata should be provided in UTC time. Metadata in deployment database may not necessarily have been documented in UTC time, so a correction must be made before the metadata can be considered to be in an IMOS compatible format.
+
+In addition, do not forget to document the global attribute local_time_zone (= +10 for EST timezone for example) so that user easily know which offset to apply to be back in local time.
+
+Again, the local time zone information associated to the metadata is retrieved from the field !TimeZone in the table !DeploymentData from the deployment database and then converted into an offset in hours via the configuration file timeOffsetPP.txt. See configuration file example [#Data_time_offset_-_timeOffsetPP above].
+
 == Variable scale/offset - variableOffsetPP == 
+
+variableOffsetPP allows the user to apply a linear offset and scale to a variable in the given data sets. The output data in the NetCDF file for this variable will be different from the input data present in the original file.
+
+It displays a dialog which allows the user to apply linear offsets and scales to any variable in the given data sets. The variable data is modified as follows:
+
+{{{
+   data = offset + (scale * data)
+}}}
+
+A variableOffsetPP.txt configuration file allows the user to define default scale/offset values for identified variables. See example below :
+
+{{{
+% Default scale/offset values used by variableOffsetPP for different variable 
+% types. Each entry is of the form:
+%
+%   variable_name = offset_value, scale_value
+%
+% If a variable is not listed in this file, offset/scale values of 0.0/1.0 
+% are used.
+%
+
+CNDC = 0, 0.01
+}}}
 
 == Relative pressure calculation - pressureRelPP == 
 
+pressureRelPP adds a PRES_REL variable to the given data sets, if not already exist and if they contain a PRES variable.
+
+PRES values are taken and an offset is applied to create PRES_REL values. Useful for instruments which pressure sensor is providing absolute pressure information, so that we can also have a relative pressure (usually to the surface) to be consistent with Seabird pressure sensor for example.
+
+A pressureRelPP.txt configuration file allows the user to define default offset values to be applied for identified instrument. See example below :
+
+{{{
+% Default pressure offset value used by pressureRelPP adding it to PRES variable 
+% to create PRES_REL variable.
+%
+% In order to be able to apply different offsets for different sensors, 
+% the considered offsets is the one in front of the matching 'source' 
+% global atribute value. If no relevant 'source', use default.
+%
+% Each line is of the format:
+%
+%   source, offset
+%
+
+default,                                    -10.1325
+RBR,										-10.2
+}}}
+
+Here, the default value -10.1325 is the value applied by Seabird on all their pressure sensor before outputting data in ASCII file format (.cnv).
+
 == Depth calculation - depthPP == 
+
+depthPP adds a DEPTH variable to the given data sets, if not already exist. 
+
+When a data set is loaded without using a deployment database, DEPTH will be calculated from PRES or PRES_REL variables present in the dataset. Without any latitude metadata information, 1 dbar ~= 1 m is assumed. If latitude metadata information is documented then DEPTH will be updated taking this new information into account using the CSIRO Matlab Seawater Library.
+
+When a data set is loaded using a deployment database, DEPTH will be calculated from PRES or PRES_REL variables present in the current instrument dataset or in the ones from the nearest pressure sensor on the mooring (1 or 2 nearest pressure sensors are used when possible). Latitude metadata information si taken into account using the Seawater toolbox. If latitude metadata information is updated then DEPTH will be updated taking this new information into account.
+
+When an instrument data set doesn't contain any pressure/depth information, then the nearest pressure sensor (1 or 2 when possible) data on the mooring is considered and depth for the current instrument is linearly interpolated knowing the geometry/design of the mooring. Indeed, either global attributes instrument_nominal_height or instrument_nominal_depth must be documented for each instrument so that this routine can be performed properly.
+
+A depthPP.txt configuration file allows the user to define which pressure sensor can be taken into account in order to compute the depth of an instrument without any pressure information. See example below :
+
+{{{
+% This file specifies how Depth should be computed when an instrument on a 
+% mooring doesn't have any pressure sensor. It enables the user to restrict 
+% the other instruments in the mooring with pressure information to be
+% considered when calculating Depth for another without pressure information. 
+% It is used by the depthPP.m function. 
+%
+% Each line is of the format:
+%
+%   option,     value
+%
+% where option can be used as follow :
+%
+% -same_family : Values can be yes or no. If value is yes, then only data 
+% sets with strings in their global attribute 'instrument' having something
+% in common will be considered. Ex. : In a mooring equiped with an ADCP, a 
+% WQM, Aqualoggers 520PT and Aqualoggers 520T, the depth of the Aqualoggers
+% 520T will be computed taking into account Aqualoggers 520PT pressure data
+% only.
+%
+% -include : list of space delimited strings to be compared with data sets 
+% global attribute 'instrument'. If it has anything in common, this data 
+% set will be considered in the Depth computation.
+% Ex. : include,        Aqualoggers
+%
+% -exclude : list of space delimited strings to be compared with data sets 
+% global attribute 'instrument'. If it has anything in common, this data 
+% set will not be considered in the Depth computation.
+% Ex. : exclude,        ADCP WQM
+
+same_family,   no
+include,        
+exclude,       ADCP
+}}}
 
 == Salinity calculation - salinityPP == 
 
