@@ -5,7 +5,7 @@
 
 = Pre-processing routines =
 
-The following routines are available in the Toolbox:
+The following routines are available in the Toolbox since version 2.1b :
 
 == Data time start redefinition - timeStartPP == 
 

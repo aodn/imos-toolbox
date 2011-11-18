@@ -23,6 +23,7 @@
   * [UsingTheToolboxOverview Use]
   * [SupportedInstruments Supported Instruments]
   * [PPRoutines Available pre-processing routines]
+  * [QCProcedures Available quality control procedures]
   * [Troubleshooting]
   * [NetCDFTemplates NetCDF Templates]
   * [ContributeToTheCode Contribute to the code]

@@ -1,0 +1,53 @@
+#summary Lists the automatic QC procedures that are currently available.
+#labels Support,Featured
+
+<wiki:toc/>
+
+= Automatic quality control procedures =
+
+The following automatic quality control procedures are available in the Toolbox since version 2.1b :
+
+== Official IMOS standard set of procedures for moored CTD ==
+
+This set of QC procedures has been specifically designed for checking physical variables such as temperature and salinity collected on moorings. These tests should always been performed for data sets collected on moorings. Eventually, it is important to follow the suggested order of tests below.
+
+=== Impossible location test - morelloImpossibleLocationSetQC === 
+
+=== Impossible date test - morelloImpossibleDateQC === 
+
+=== Before deployment date flagging - morelloInWaterQC === 
+
+=== After retrieving date flagging - morelloOutWaterQC === 
+
+=== Spike test - morelloSpikeQC === 
+
+=== Gradient test - morelloGradientQC === 
+
+=== Stationarity test - morelloStationarityQC === 
+
+=== Climatology range test - morelloRangeQC === 
+
+== Official IMOS standard set of procedures for moored ADCP ==
+
+=== Workhorse ADCP tests - teledyneSetQC === 
+
+This quality procedure only works for Workhorse ADCPs manufactured by Teledyne RD Instruments.
+
+== Other non IMOS standard procedures ==
+
+These QC procedures were historically included in previous versions of the toolbox and should only be used with full knowledge.
+
+=== Time gap detection - timeGapQC === 
+
+=== Before deployment date flagging - inWaterQC === 
+
+=== After retrieving date flagging - outWaterQC ===
+
+=== Tukey spike detection - tukey53HDespikeQC === 
+
+=== RC filter spike detection - rcFilterDespikeQC === 
+
+=== Stationarity test - flatlineQC === 
+
+=== Basic range test - rangeQC === 
+
