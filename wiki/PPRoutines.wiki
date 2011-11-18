@@ -91,7 +91,7 @@ CNDC = 0, 0.01
 
 pressureRelPP adds a PRES_REL variable to the given data sets, if not already exist and if they contain a PRES variable.
 
-PRES values are taken and an offset is applied to create PRES_REL values. Useful for instruments which pressure sensor is providing absolute pressure information, so that we can also have a relative pressure (usually to the surface) to be consistent with Seabird pressure sensor for example.
+PRES values are taken and an offset is applied to create PRES_REL values. Useful for instruments which pressure sensor is providing absolute pressure information, so that we can also have a relative pressure (usually to the surface) to be consistent with Seabird pressure sensor for example as they usually provide relative pressure.
 
 A pressureRelPP.txt configuration file allows the user to define default offset values to be applied for identified instrument. See example below :
 
@@ -108,15 +108,15 @@ A pressureRelPP.txt configuration file allows the user to define default offset 
 %   source, offset
 %
 
-default,                                    -10.1325
+default,									-10.1325
 RBR,										-10.2
 }}}
 
-Here, the default value -10.1325 is the value applied by Seabird on all their pressure sensor before outputting data in ASCII file format (.cnv).
+Here, the default value -10.1325 is the actual value applied by Seabird on all their pressure sensor before outputting data in ASCII file format (.cnv).
 
 == Depth calculation - depthPP == 
 
-depthPP adds a DEPTH variable to the given data sets, if not already exist. 
+depthPP adds a DEPTH variable to the given data sets, if not already exist. Useful as during strong current event, an instrument on a mooring is not likely to stay at its nominal depth but may record data at lower depth as the mooring is laying down.
 
 When a data set is loaded without using a deployment database, DEPTH will be calculated from PRES or PRES_REL variables present in the dataset. Without any latitude metadata information, 1 dbar ~= 1 m is assumed. If latitude metadata information is documented then DEPTH will be updated taking this new information into account using the CSIRO Matlab Seawater Library.
 
@@ -163,9 +163,33 @@ exclude,       ADCP
 
 == Salinity calculation - salinityPP == 
 
+salinityPP adds a salinity variable to the given data sets, if they contain conductivity, temperature and pressure variables.
+
+This function uses the CSIRO Matlab Seawater Library to derive salinity data from conductivity, temperature and pressure. It adds the salinity data as a new variable in the data sets. Data sets which do not contain conductivity, temperature and pressure variable or already contain a salinity variable are left unmodified.
+
 == Variable transformation - transformPP == 
+
+transformPP prompts the user to select from a list of transformation functions for the variables in the given data sets.
+
+A transformation function is simply a function which performs some arbitrary transformation on a given data set.
+
+A transformPP.txt configuration file allows the user to define which variable is to be applied which transformation. See example below :
+
+{{{
+% Default transformations for different variables. Each entry is of the form:
+% 
+%   variable_name = transform_name
+%
+% If a variable is not listed, the default is no transformation.
+%
+
+DOXRAW = sbe43OxygenTransform
+}}}
 
 The following variable transformation is available in the toolbox:
 
 === Voltage to concentration oxygen data transformation - sbe43OxygenTransform === 
 
+sbe43OxygenTransform is an implementation of SBE43 oxygen voltage to concentration data transformation, specified in [http://www.seabird.com/application_notes/AN64.htm Seabird Application Note 64]:
+
+In order to derive oxygen, the provided data set must contain TEMP, PRES and PSAL variables.
