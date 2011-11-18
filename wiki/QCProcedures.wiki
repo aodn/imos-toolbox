@@ -45,10 +45,14 @@ NRSPHB,     151.25,     -34.08333,  0.2,    0.25,   Nan
 }}}
 
  * distanceKmPlusMinusThreshold is Nan : 
-Longitude and Latitude data are checked against nominal longitude and latitude values +/- longitudePlusMinusThreshold or latitudePlusMinusThreshold. In conclusion, positions are tested to be in a square centered on the nominal position and which width is 2*longitudePlusMinusThreshold and height is 2*latitudePlusMinusThreshold.
+Longitude and Latitude data are checked against nominal longitude and latitude values +/- longitudePlusMinusThreshold or latitudePlusMinusThreshold. 
+
+In conclusion, positions are tested to be in a square centered on the nominal position and which width is 2*longitudePlusMinusThreshold and height is 2*latitudePlusMinusThreshold.
 
  * distanceKmPlusMinusThreshold is not Nan : 
-Longitude and Latitude data are checked against the distance between the nominal position distanceKmPlusMinusThreshold. In conclusion, positions are tested to be in a circle centered on the nominal position and which radius is distanceKmPlusMinusThreshold.
+Longitude and Latitude data are checked against their distance to the nominal position and distanceKmPlusMinusThreshold. 
+
+In conclusion, positions are tested to be in a circle centered on the nominal position and which radius is distanceKmPlusMinusThreshold.
 
 === Impossible date test - morelloImpossibleDateQC === 
 
