@@ -11,7 +11,7 @@ The following automatic quality control procedures are available in the Toolbox 
 
 This set of QC procedures has been specifically designed for checking physical variables such as temperature and salinity collected on moorings. These tests should always been performed for data sets collected on moorings. Eventually, it is important to follow the suggested order of tests below.
 
-The basis of these tests is described in [ftp://dataupload.emii.org.au/pub/Toolbox_documents/Morello_et_al_2011.pdf Morello et al. 2011 paper].
+The basis of most of these tests is described in [ftp://dataupload.emii.org.au/pub/Toolbox_documents/Morello_et_al_2011.pdf Morello et al. 2011 paper].
 
 === Impossible location test - morelloImpossibleLocationSetQC === 
 
@@ -49,18 +49,49 @@ The impossible location test can be performed according to 2 variations.
  * distanceKmPlusMinusThreshold is Nan : 
 Longitude and Latitude data are checked against nominal longitude and latitude values +/- longitudePlusMinusThreshold or latitudePlusMinusThreshold. 
 
-In conclusion, positions are tested to be in a square centered on the nominal position and which width is 2*longitudePlusMinusThreshold and height is 2*latitudePlusMinusThreshold.
+In this case, positions are tested to be in a square centered on the nominal position and which width is 2*longitudePlusMinusThreshold and height is 2*latitudePlusMinusThreshold.
 
  * distanceKmPlusMinusThreshold is not Nan : 
 Longitude and Latitude data are checked against their distance to the nominal position and distanceKmPlusMinusThreshold. 
 
-In conclusion, positions are tested to be in a circle centered on the nominal position and which radius is distanceKmPlusMinusThreshold.
+In this case, positions are tested to be in a circle centered on the nominal position and which radius is distanceKmPlusMinusThreshold.
 
 === Impossible date test - morelloImpossibleDateQC === 
 
-=== Before deployment date flagging - morelloInWaterQC === 
+morelloImpossibleDateQC flags impossible Time values.
 
-=== After retrieving date flagging - morelloOutWaterQC === 
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||Time||1-Good data||3-Bad data that are potentially correctable||
+
+Only the test `year > default_year_value` will be performed as the date information is stored in datenum format (decimal days since 01/01/0000) before being output. In addition not all the date information in input files are in ASCII format or expressed with day, month and year information, so we cannot do much more than assessing the year information is greater than a minimum value...
+
+A morelloImpossibleDateQC.txt configuration file allows the user to define the minimum default_year_value. See example below :
+
+{{{
+dateMin = 01/01/2007
+
+}}}
+
+=== Before deployment & after retrieving date flagging - morelloInWaterQC & morelloOutWaterQC === 
+
+morelloInWaterQC and morelloOutWaterQC flag temperature and salinity samples which were taken before an `in water` time and after `out water` time. Between these two time, data is deliberately left non QC'd.
+
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||Temperature, Salinity||0-No QC performed||3-Bad data that are potentially correctable||
+
+`in water` time can be one of these date information taken from fields of the table !DeploymentData in the deployment database, in this order of preference :
+
+ # TimeFirstGoodData : Time of first good data.
+ # TimeFirstInPos : Time instrument first in position.
+ # TimeFirstWet : Time instrument first in water.
+ # TimeSwitchOn : Time instrument is switched on.
+ 
+`out water` time can be one of these date information taken from fields of the table !DeploymentData in the deployment database, in this order of preference :
+
+ # TimeLastGoodData : Time of last good data.
+ # TimeLastInPos : Time instrument last in position.
+ # TimeOnDeck : Time instrument on deck.
+ # TimeSwitchOff : Time instrument is switched off.
 
 === Spike test - morelloSpikeQC === 
 
