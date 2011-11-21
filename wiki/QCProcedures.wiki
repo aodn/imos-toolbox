@@ -9,7 +9,16 @@ The following automatic quality control procedures are available in the Toolbox 
 
 == Official IMOS standard set of procedures for moored CTD ==
 
-This set of QC procedures has been specifically designed for checking physical variables such as temperature and salinity collected on moorings. These tests should always been performed for data sets collected on moorings. Eventually, it is important to follow the suggested order of tests below.
+This set of QC procedures has been specifically designed for checking physical variables such as temperature and salinity collected on moorings. These tests should always been performed for data sets collected on moorings. Eventually, it is important to follow the suggested order of tests below :
+
+ # morelloImpossibleLocationSetQC
+ # morelloImpossibleDateQC
+ # morelloInWaterQC
+ # morelloOutWaterQC
+ # morelloSpikeQC
+ # morelloGradientQC
+ # morelloStationarityQC
+ # morelloRangeQC
 
 The basis of most of these tests is described in [ftp://dataupload.emii.org.au/pub/Toolbox_documents/Morello_et_al_2011.pdf Morello et al. 2011 paper].
 
@@ -58,7 +67,7 @@ In this case, positions are tested to be in a circle centered on the nominal pos
 
 === Impossible date test - morelloImpossibleDateQC === 
 
-morelloImpossibleDateQC flags impossible Time values.
+morelloImpossibleDateQC tests impossible Time values.
 
 || *Variables checked* || *Pass test flag* || *Fail test flag* ||
 ||Time||1-Good data||3-Bad data that are potentially correctable||
@@ -74,32 +83,109 @@ dateMin = 01/01/2007
 
 === Before deployment & after retrieving date flagging - morelloInWaterQC & morelloOutWaterQC === 
 
-morelloInWaterQC and morelloOutWaterQC flag temperature and salinity samples which were taken before an `in water` time and after `out water` time. Between these two time, data is deliberately left non QC'd.
+morelloInWaterQC and morelloOutWaterQC flag Temperature and Salinity samples which were taken before an `in water` time and after `out water` time. Between these two time, data is deliberately left non QC'd.
 
 || *Variables checked* || *Pass test flag* || *Fail test flag* ||
 ||Temperature, Salinity||0-No QC performed||3-Bad data that are potentially correctable||
 
 `in water` time can be one of these date information taken from fields of the table !DeploymentData in the deployment database, in this order of preference :
 
- # TimeFirstGoodData : Time of first good data.
- # TimeFirstInPos : Time instrument first in position.
- # TimeFirstWet : Time instrument first in water.
- # TimeSwitchOn : Time instrument is switched on.
+ # !TimeFirstGoodData : Time of first good data.
+ # !TimeFirstInPos : Time instrument first in position.
+ # !TimeFirstWet : Time instrument first in water.
+ # !TimeSwitchOn : Time instrument is switched on.
  
 `out water` time can be one of these date information taken from fields of the table !DeploymentData in the deployment database, in this order of preference :
 
- # TimeLastGoodData : Time of last good data.
- # TimeLastInPos : Time instrument last in position.
- # TimeOnDeck : Time instrument on deck.
- # TimeSwitchOff : Time instrument is switched off.
+ # !TimeLastGoodData : Time of last good data.
+ # !TimeLastInPos : Time instrument last in position.
+ # !TimeOnDeck : Time instrument on deck.
+ # !TimeSwitchOff : Time instrument is switched off.
 
 === Spike test - morelloSpikeQC === 
 
+morelloSpikeQC flags Temperature and Salinity spikes.
+
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||Temperature, Salinity||1-Good data||4-Bad data||
+
+The algorithm used here is the same used by the Australian National Mooring Facility Ocean Gliders ([http://www2.sese.uwa.edu.au/~hollings/anfog/index.php ANFOG]), namely a spike test which detects any data which value Vn fails the following test :
+
+{{{
+|Vn - (Vn+1 + Vn-1)/2| - |(Vn+1 - Vn-1)/2| > threshold
+}}}
+
+A morelloSpikeQC.txt configuration file allows the user to define the threshold value to use. See example below :
+
+{{{
+TEMP = 6
+PSAL = 0.9
+
+}}}
+
+Threshold values proposed by various protocols are as follow :
+
+ * Temperature
+Threshold = 6 when pressure < 500 dbar
+Threshold = 2 when pressure >= 500 dbar
+
+ * Salinity
+Threshold = 0.9 when pressure < 500 dbar
+Threshold = 0.3 when pressure >= 500 dbar
+
 === Gradient test - morelloGradientQC === 
+
+morelloGradientQC flags consecutive Temperature or Salinity values with gradient > threshold.
+
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||Temperature, Salinity||1-Good data||4-Bad data||
+
+Both current and previous points used to calculate gradient are flagged if the test fails.
+
+Like for the spike test, a morelloGradientQC.txt configuration file allows the user to define the threshold value to use. See example below :
+
+{{{
+TEMP = 6
+PSAL = 0.9
+
+}}}
+
+Threshold values proposed by various protocols are as follow :
+
+ * Temperature
+Threshold = 6 when pressure < 500 dbar
+Threshold = 2 when pressure >= 500 dbar
+
+ * Salinity
+Threshold = 0.9 when pressure < 500 dbar
+Threshold = 0.3 when pressure >= 500 dbar
 
 === Stationarity test - morelloStationarityQC === 
 
+morelloStationarityQC flags consecutive Temperature or Salinity equal values in the given data set.
+
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||Temperature, Salinity||1-Good data||4-Bad data||
+
+The algorithm used is based on the stationarity test from IOC which detects any consecutive equal values when number of consecutive points > T = 24*(60/delta_t) with delta_t the sampling interval in minutes.
+
 === Climatology range test - morelloRangeQC === 
+
+morelloRangeQC flags Temperature and Salinity values out of a climatology range.
+
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||Temperature, Salinity||1-Good data||4-Bad data||
+
+It consists in a range test which detects any data which value doesn't fit in the range [min max] = climRange(lon, lat, date, depth, param) +/- a number of standard deviation. The range is location and time dependent and can be obtained using various parameters.
+
+A morelloRangeQC.txt configuration file allows the user to define the latter parameters. See example below :
+
+{{{
+CLIM_STEP = monthly
+DAILY_METHOD = trend_corr
+MAX_TIME_SD = 6
+
+}}}
 
 == Official IMOS standard set of procedures for moored ADCP ==
 
