@@ -176,9 +176,9 @@ morelloRangeQC flags Temperature and Salinity values out of a climatology range.
 || *Variables checked* || *Pass test flag* || *Fail test flag* ||
 ||Temperature, Salinity||1-Good data||4-Bad data||
 
-It consists in a range test which detects any data which value doesn't fit in the range [min max] = climRange(lon, lat, date, depth, param) +/- a number of standard deviation. The range is location and time dependent and can be obtained using various parameters.
+It consists in a range test which detects any data which value doesn't fit in the range [min max] = climRange(lon, lat, date, depth, param) of a climatology. The range (mean +/- k*standard deviation) is location and time dependent and can be obtained using various parameters.
 
-A morelloRangeQC.txt configuration file allows the user to define the latter parameters. See example below :
+A morelloRangeQC.txt configuration file allows the user to define these parameters. See example below :
 
 {{{
 CLIM_STEP = monthly
@@ -187,9 +187,17 @@ MAX_TIME_SD = 6
 
 }}}
 
+CLIM_STEP option values can be 'monthly' or 'daily' to obtain monthly or daily range values from the climatology. 'monthly' should be appropriate in most cases.
+
+DAILY_METHOD option values can be 'trend_corr' or 'loess' in case CLIM_STEP chosen option is 'daily'. 'trend_corr' should be appropriate in most cases.
+
+Eventually, MAX_TIME_SD option is the number of standard deviation from the mean used to define the allowed min/max range. Default value is 6 but you might have to find the best value for each of your site.
+
 == Official IMOS standard set of procedures for moored ADCP ==
 
-This multi tests QC procedure has been specifically designed for checking horizontal and vertical components of the current collected from ADCPs on moorings. These tests should always been performed for data sets collected on moorings.
+This multi tests QC procedure has been specifically designed for checking horizontal and vertical components of the current collected from ADCPs on moorings. These tests should always been performed for data sets collected on moorings :
+
+ # teledyneSetQC
 
 === Workhorse ADCP tests - teledyneSetQC === 
 
