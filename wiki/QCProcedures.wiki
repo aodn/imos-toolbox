@@ -221,7 +221,11 @@ This multi tests QC procedure has been specifically designed for checking horizo
 
 This quality procedure only works for Workhorse ADCPs manufactured by Teledyne RD Instruments.
 
-It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf Crout et al. (2005)].
+It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)]. 
+
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determinatination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and define the default parameters values used in the QC procedure :
+
+http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
 
 == Other procedures ==
 
