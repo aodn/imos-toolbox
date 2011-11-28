@@ -221,11 +221,29 @@ This multi tests QC procedure has been specifically designed for checking horizo
 
 This quality procedure only works for Workhorse ADCPs manufactured by Teledyne RD Instruments.
 
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||U, V and Z components of the current||1-Good data||4-Bad data||
+
 It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)]. 
 
-This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determinatination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and define the default parameters values used in the QC procedure :
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determinatination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
 
 http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+
+The teledyneSetQC.txt configuration file allows the user to change these parameters. See example below :
+
+{{{
+err_vel   = 0.15
+pgood     = 50
+cmag      = 110
+vvel      = 0.2
+hvel      = 2.0
+ea_thresh = 30
+cutoff    = 2
+
+}}}
+
+The additional cutoff parameter is used to clean up the above surface bins. Any bin with its depth value <= cutoff*binSize gets a bad data flag.
 
 == Other procedures ==
 
