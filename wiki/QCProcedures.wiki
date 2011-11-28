@@ -167,7 +167,7 @@ morelloStationarityQC flags consecutive Temperature or Salinity equal values in 
 || *Variables checked* || *Pass test flag* || *Fail test flag* ||
 ||Temperature, Salinity||1-Good data||4-Bad data||
 
-The algorithm used is based on the stationarity test from IOC which detects any consecutive equal values when number of consecutive points > T = 24*(60/delta_t) with delta_t the sampling interval in minutes.
+The algorithm used is based on the stationarity test from IOC which detects any consecutive equal values when `number of consecutive points > T = 24*(60/delta_t)` with delta_t the sampling interval in minutes.
 
 === Climatology range test - morelloRangeQC === 
 
@@ -176,7 +176,14 @@ morelloRangeQC flags Temperature and Salinity values out of a climatology range.
 || *Variables checked* || *Pass test flag* || *Fail test flag* ||
 ||Temperature, Salinity||1-Good data||4-Bad data||
 
-It consists in a range test which detects any data which value doesn't fit in the range [min max] = climRange(lon, lat, date, depth, param) of a climatology. The range (mean +/- k*standard deviation) is location and time dependent and can be obtained using various parameters.
+In order to perform this test, you need a climatology file for each of your mooring site. In your toolboxProperties.txt configuration file, make sure the directory where lie those climatology files is documented :
+
+{{{
+% default directory for climatology data
+importManager.climDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\CLIMATOLOGIES\
+}}}
+
+The cimatology test consists in a range test which detects any data which value doesn't fit in the range [min max] = climRange(lon, lat, date, depth, param) of a climatology. The range (mean +/- k*standard deviation) is location and time dependent and can be obtained using various parameters.
 
 A morelloRangeQC.txt configuration file allows the user to define these parameters. See example below :
 
