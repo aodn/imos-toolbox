@@ -3,9 +3,11 @@
 
 <wiki:toc/>
 
+
 = Automatic quality control procedures =
 
 The following automatic quality control procedures are available in the Toolbox since version 2.1b :
+
 
 == Official IMOS standard set of procedures for moored CTD ==
 
@@ -21,6 +23,7 @@ This set of QC procedures has been specifically designed for checking physical v
  # morelloRangeQC
 
 The basis of most of these tests is described in [ftp://dataupload.emii.org.au/pub/Toolbox_documents/Morello_et_al_2011.pdf Morello et al. 2011 paper].
+
 
 === Impossible location test - morelloImpossibleLocationSetQC === 
 
@@ -65,6 +68,7 @@ Longitude and Latitude data are checked against their distance to the nominal po
 
 In this case, positions are tested to be in a circle centered on the nominal position and which radius is distanceKmPlusMinusThreshold.
 
+
 === Impossible date test - morelloImpossibleDateQC === 
 
 morelloImpossibleDateQC tests impossible Time values.
@@ -80,6 +84,7 @@ A morelloImpossibleDateQC.txt configuration file allows the user to define the m
 dateMin = 01/01/2007
 
 }}}
+
 
 === Before deployment & after retrieving date flagging - morelloInWaterQC & morelloOutWaterQC === 
 
@@ -102,6 +107,7 @@ morelloInWaterQC and morelloOutWaterQC flag Temperature and Salinity samples whi
  # !TimeOnDeck : Time instrument on deck.
  # !TimeSwitchOff : Time instrument is switched off.
 
+ 
 === Spike test - morelloSpikeQC === 
 
 morelloSpikeQC flags Temperature and Salinity spikes.
@@ -133,6 +139,7 @@ Threshold = 2 when pressure >= 500 dbar
 Threshold = 0.9 when pressure < 500 dbar
 Threshold = 0.3 when pressure >= 500 dbar
 
+
 === Gradient test - morelloGradientQC === 
 
 morelloGradientQC flags consecutive Temperature or Salinity values with gradient > threshold.
@@ -160,6 +167,7 @@ Threshold = 2 when pressure >= 500 dbar
 Threshold = 0.9 when pressure < 500 dbar
 Threshold = 0.3 when pressure >= 500 dbar
 
+
 === Stationarity test - morelloStationarityQC === 
 
 morelloStationarityQC flags consecutive Temperature or Salinity equal values in the given data set.
@@ -168,6 +176,7 @@ morelloStationarityQC flags consecutive Temperature or Salinity equal values in 
 ||Temperature, Salinity||1-Good data||4-Bad data||
 
 The algorithm used is based on the stationarity test from IOC which detects any consecutive equal values when `number of consecutive points > T = 24*(60/delta_t)` with delta_t the sampling interval in minutes.
+
 
 === Climatology range test - morelloRangeQC === 
 
@@ -200,15 +209,19 @@ DAILY_METHOD option values can be 'trend_corr' or 'loess' in case CLIM_STEP chos
 
 Eventually, MAX_TIME_SD option is the number of standard deviation from the mean used to define the allowed min/max range. Default value is 6 but you might have to find the best value for each of your site.
 
+
 == Official IMOS standard set of procedures for moored ADCP ==
 
 This multi tests QC procedure has been specifically designed for checking horizontal and vertical components of the current collected from ADCPs on moorings. These tests should always been performed for data sets collected on moorings :
 
  # teledyneSetQC
 
+ 
 === Workhorse ADCP tests - teledyneSetQC === 
 
 This quality procedure only works for Workhorse ADCPs manufactured by Teledyne RD Instruments.
+
+It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [https://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf Crout et al. (2005)].
 
 == Other procedures ==
 
