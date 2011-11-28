@@ -78,7 +78,7 @@ morelloImpossibleDateQC tests impossible Time values.
 
 Only the test `year > default_year_value` will be performed as the date information is stored in datenum format (decimal days since 01/01/0000) before being output. In addition not all the date information in input files are in ASCII format or expressed with day, month and year information, so we cannot do much more than assessing the year information is greater than a minimum value...
 
-A morelloImpossibleDateQC.txt configuration file allows the user to define the minimum default_year_value. See example below :
+A morelloImpossibleDateQC.txt parameter file allows the user to define the minimum default_year_value. See example below :
 
 {{{
 dateMin = 01/01/2007
@@ -121,7 +121,7 @@ The algorithm used here is the same used by the Australian National Mooring Faci
 |Vn - (Vn+1 + Vn-1)/2| - |(Vn+1 - Vn-1)/2| > threshold
 }}}
 
-A morelloSpikeQC.txt configuration file allows the user to define the threshold value to use. See example below :
+A morelloSpikeQC.txt parameter file allows the user to define the threshold value to use. See example below :
 
 {{{
 TEMP = 6
@@ -149,7 +149,7 @@ morelloGradientQC flags consecutive Temperature or Salinity values with gradient
 
 Both current and previous points used to calculate gradient are flagged if the test fails.
 
-Like for the spike test, a morelloGradientQC.txt configuration file allows the user to define the threshold value to use. See example below :
+Like for the spike test, a morelloGradientQC.txt parameter file allows the user to define the threshold value to use. See example below :
 
 {{{
 TEMP = 6
@@ -194,7 +194,7 @@ importManager.climDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_to
 
 The cimatology test consists in a range test which detects any data which value doesn't fit in the range [min max] = climRange(lon, lat, date, depth, param) of a climatology. The range (mean +/- k*standard deviation) is location and time dependent and can be obtained using various parameters.
 
-A morelloRangeQC.txt configuration file allows the user to define these parameters. See example below :
+A morelloRangeQC.txt parameter file allows the user to define these parameters. See example below :
 
 {{{
 CLIM_STEP = monthly
@@ -230,7 +230,7 @@ This same methodology has been applied for the Quality Control of the mooring da
 
 http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
 
-The teledyneSetQC.txt configuration file allows the user to change these parameters. See example below :
+The teledyneSetQC.txt parameter file allows the user to change these parameters (speeds are in m/s). See example below :
 
 {{{
 err_vel   = 0.15
@@ -250,6 +250,20 @@ The additional cutoff parameter is used to clean up the above surface bins. Any 
 These QC procedures were historically included in previous versions of the toolbox and should only be used with full knowledge.
 
 === Time gap detection - timeGapQC === 
+
+timeGapQC flags consecutive samples which have a suspiciously large temporal difference.
+
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||Any variable in the file||1-Good data||4-Bad data||
+
+The timeGapQC function steps through the time dimension searching for gaps which are larger than the specified gapsize. Any detected gap will lead to the flagging of both points involved in the gap time.
+
+The timeGapQC.txt configuration contains this gap size value in decimal days. See example below :
+
+{{{
+gapsize = 0.25
+
+}}}
 
 === Before deployment date flagging - inWaterQC === 
 
