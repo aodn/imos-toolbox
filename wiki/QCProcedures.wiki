@@ -230,7 +230,7 @@ This same methodology has been applied for the Quality Control of the mooring da
 
 http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
 
-The teledyneSetQC.txt parameter file allows the user to change these parameters (speeds are in m/s). See example below :
+The teledyneSetQC.txt parameter file allows the user to change these parameters (speeds are in m/s). By default, chosen parameters are those which have been determined by Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. See example below :
 
 {{{
 err_vel   = 0.15
