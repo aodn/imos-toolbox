@@ -218,7 +218,7 @@ The toolbox is able to read in files retrieved from YSI 6-series data loggers (o
 
 == Teledyne/RDI Workhorse ADCP ==
 
-The toolbox is able to parse binary files retrieved from a Teledyne RD Workhorse ADCP instrument. The toolbox is only able to interpret raw files in the PD0 format (as it stands at December 2008). See the Workhorse H-ADCP Operation manual (available [ftp://dataupload.emii.org.au/pub/Toolbox_documents/WorkHorse_Commands_and_Output_Data_Format_Nov07.pdf here] or from the [http://www.rdinstruments.com/ Teledyne website]) for a description of the output format. As the toolbox works from raw binary files, pre-processing with RDI software is not required.
+The toolbox is able to parse binary files retrieved from a Teledyne RD Workhorse ADCP instrument. The toolbox is only able to interpret raw files in the PD0 format (as it stands at December 2008). See the Workhorse H-ADCP Operation manual (available [http://imos-toolbox.googlecode.com/svn/wiki/documents/Instruments/RDI/Workhorse_Quartermaster_ADCP/WorkHorse_Commands_and_Output_Data_Format_Nov07.pdf here] or from the [http://www.rdinstruments.com/ Teledyne website]) for a description of the output format. As the toolbox works from raw binary files, pre-processing with RDI software is not required.
 
 Unfortunately, reading in these binary files using Matlab is quite slow (about 30 seconds on test data of ~8000 ensembles/8MB). Re-implementing in C would provide much better performance.
 
@@ -251,7 +251,7 @@ The conversion from the ADCP velocity values currently assumes that the ADCP is 
 
 == Nortek ADCP ==
 
-The toolbox is able to parse raw binary data from the following Nortek instruments. The binary format for these instruments is specified in the Nortek System Integrator Manual, available for download [ftp://dataupload.emii.org.au/pub/Toolbox_documents/system-integrator-manual.pdf here] or on [http://www.nortek-as.com/en/library/rep-room/application-development/system-integrator-manual Nortek website]:
+The toolbox is able to parse raw binary data from the following Nortek instruments. The binary format for these instruments is specified in the Nortek System Integrator Manual, available for download [http://imos-toolbox.googlecode.com/svn/wiki/documents/Instruments/Nortek/system-integrator-manual.pdf here] or on [http://www.nortek-as.com/en/library/rep-room/application-development/system-integrator-manual Nortek website]:
 
  * Aquadopp Profiler (`.prf` files)
  * Continental (`.cpr` files)

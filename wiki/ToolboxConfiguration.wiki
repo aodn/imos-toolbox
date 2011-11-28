@@ -12,7 +12,7 @@ This file contains general toolbox configuration settings. Many of the settings 
 
 == `IMOS/imosParameters.txt` ==
 
-This file contains specifications for all of the IMOS parameters (see the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual]). For each parameter (e.g. 'TEMP'), the file contains the IMOS standard name, units of measurement, NetCDF fill value, and valid minumum/maximum values. All of these fields are used to populate the NetCDF metadata. Additionally, the minimum/maximum values are used by the range QC filter to flag outliers.
+This file contains specifications for all of the IMOS parameters (see the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual]). For each parameter (e.g. 'TEMP'), the file contains the IMOS standard name, units of measurement, NetCDF fill value, and valid minumum/maximum values. All of these fields are used to populate the NetCDF metadata. Additionally, the minimum/maximum values are used by the range QC filter to flag outliers.
 
 == `IMOS/imosQCFlag.txt` ==
 

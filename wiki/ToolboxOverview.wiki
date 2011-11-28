@@ -42,7 +42,7 @@ See how to [ToolboxInstallation install], [ToolboxConfiguration configure] and [
 
 The deployment database is a MS Access database which is local to each site, and which conforms to the deployment database schema developed at AIMS. The deployment database is used to store metadata for every deployment of interest to the site. The toolbox should always be used with a deployment database. Otherwise more work is required by the user in filling out metadata for each data set and some important pre-processing/quality control procedures won't be available.
 
-The deployment data contains metadata for all aspects of a deployment, including instrument/sensor/platform model and calibration information, and deployment location/depth. This information is used by the Toolbox for the generation of MEST compatible metadata documents, and metadata fields in the NetCDF files. See [ftp://dataupload.emii.org.au/pub/Toolbox_documents/deployment_database_conventions.pdf deployment database conventions] to have an idea on how to document your local deployment database.
+The deployment data contains metadata for all aspects of a deployment, including instrument/sensor/platform model and calibration information, and deployment location/depth. This information is used by the Toolbox for the generation of MEST compatible metadata documents, and metadata fields in the NetCDF files. See [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf deployment database conventions] to have an idea on how to document your local deployment database.
 
 == Supported instruments ==
 
@@ -62,7 +62,7 @@ IMOS quantitative scale flag follows the IOC scale flag. See description [Proces
 
 == Output format ==
 
-The Toolbox generates NetCDF files according to the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual] and the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention]. 
+The Toolbox generates NetCDF files according to the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual] and the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention]. 
 
 Global and variables attributes can be automatically documented via [NetCDFTemplates configurable template files].
 
@@ -73,4 +73,4 @@ The following levels of processed data will be saved as separate NetCDF files:
  * Level 0: Raw (non QC'd) data
  * Level 1: QC'd data
 
-These [ProcessLevelsAndQC#ProcessLevels levels] (and the output files) map directly to the Processed Data levels defined in the [http://imos.org.au/fileadmin/user_upload/shared/emii/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User's Manual].
+These [ProcessLevelsAndQC#ProcessLevels levels] (and the output files) map directly to the Processed Data levels defined in the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User's Manual].
