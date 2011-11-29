@@ -10,23 +10,23 @@
 %
 % where option can be used as follow :
 %
-% -same_familly : Values can be yes or no. If value is yes, then only data 
+% -same_family : Values can be yes or no. If value is yes, then only data 
 % sets with strings in their global attribute 'instrument' having something
 % in common will be considered. Ex. : In a mooring equiped with an ADCP, a 
 % WQM, Aqualoggers 520PT and Aqualoggers 520T, the depth of the Aqualoggers
 % 520T will be computed taking into account Aqualoggers 520PT pressure data
 % only.
 %
-% -include : list of ';' delimited strings to be compared with data sets 
+% -include : list of space delimited strings to be compared with data sets 
 % global attribute 'instrument'. If it has anything in common, this data 
 % set will be considered in the Depth computation.
 % Ex. : include,        Aqualoggers
 %
-% -exclude : list of ';' delimited strings to be compared with data sets 
+% -exclude : list of space delimited strings to be compared with data sets 
 % global attribute 'instrument'. If it has anything in common, this data 
 % set will not be considered in the Depth computation.
 % Ex. : exclude,        ADCP WQM
 
-same_familly,   no
+same_family,   no
 include,        
-exclude,        ADCP
+exclude,       ADCP

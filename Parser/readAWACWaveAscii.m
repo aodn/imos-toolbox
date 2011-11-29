@@ -49,21 +49,37 @@ function waveData = readAWACWaveAscii( filename )
 %
 % Assumed column layout for processed wave data file (.wap):
 %
-%    1   Month                            (1-12)
-%    2   Day                              (1-31)
-%    3   Year
-%    4   Hour                             (0-23)
-%    5   Minute                           (0-59)
-%    6   Second                           (0-59)
-%    7   Significant height (Hs)          (m)
-%    8   Mean zerocrossing period (Tm02)  (s)
-%    9   Peak period (Tp)                 (s)
-%   10   Peak direction (DirTp)           (deg)
-%   11   Directional spread (Spr1)        (deg)
-%   12   Mean direction (Mdir)            (deg)
-%   13   Mean Pressure                    (m)
-%   14   Unidirectivity index
-%   15   Error Code
+%      1   Month                            (1-12)
+%      2   Day                              (1-31)
+%      3   Year
+%      4   Hour                             (0-23)
+%      5   Minute                           (0-59)
+%      6   Second                           (0-59)
+%      7   Spectrum type                    (0-Pressure, 1-Velocity, 3-AST)
+%      8   Significant height (Hm0)         (m)
+%      9   Mean 1/3 height (H3)             (m)
+%     10   Mean 1/10 height (H10)           (m)
+%     11   Maximum height (Hmax)            (m)
+%     12   Mean Height (Hmean)              (m)
+%     13   Mean  period (Tm02)              (s)
+%     14   Peak period (Tp)                 (s)
+%     15   Mean zerocrossing period (Tz)    (s)
+%     16   Mean 1/3 Period (T3)             (s)
+%     17   Mean 1/10 Period (T10)           (s)
+%     18   Maximum Period (Tmax)            (s)
+%     19   Peak direction (DirTp)           (deg)
+%     20   Directional spread (SprTp)       (deg)
+%     21   Mean direction (Mdir)            (deg)
+%     22   Unidirectivity index
+%     23   Mean Pressure                    (dbar)
+%     24   Mean AST distance                (m)
+%     25   Mean AST distance (Ice)          (m)
+%     26   No Detects
+%     27   Bad Detects
+%     28   Number of Zero-Crossings
+%     29   Current speed (wave cell)        (m/s)
+%     30   Current direction (wave cell)    (degrees)
+%     31   Error Code
 %
 % Assumed file layout for power spectra data file (.was):
 %
@@ -83,8 +99,8 @@ function waveData = readAWACWaveAscii( filename )
 %
 % Assumed file layout for full spectra data file (.wds):
 %
-%  Each row is one frequency 0.02:0.01:1.0 Hz
-%  Each column is dicretized by 4 degrees 0:4:360 degrees
+%  Each row is one frequency 0.02:0.01:[0.49 or 0.99] Hz 
+%  Each column is dicretized by 4 degrees 0:4:356 degrees
 %   Burst 1  [99 rows ]x[90 columns]     (m^2/Hz/deg)
 %   Burst 2  [99 rows ]x[90 columns]     (m^2/Hz/deg)
 %         .
@@ -163,6 +179,12 @@ dirFreq    = importdata(dirFreqFile);
 pwrFreq    = importdata(pwrFreqFile);
 pwrFreqDir = importdata(pwrFreqDirFile);
 
+% Transform local missing value (-9.00) to NaN
+wave(wave == -9.00) = NaN;
+dirFreq(dirFreq == -9.00) = NaN;
+pwrFreq(pwrFreq == -9.000000) = NaN;
+pwrFreqDir(pwrFreqDir == -9.000000) = NaN;
+
 waveData = struct;
 
 % copy data over to struct
@@ -180,19 +202,19 @@ waveData.MaxPressure = header(:,16);
 waveData.Temperature = header(:,17);
 clear header;
 
-waveData.SignificantHeight      = wave(:,7);
-waveData.MeanZeroCrossingPeriod = wave(:,8);
-waveData.PeakPeriod             = wave(:,9);
-waveData.PeakDirection          = wave(:,10);
-waveData.DirectionalSpread      = wave(:,11);
-waveData.MeanDirection          = wave(:,12);
-waveData.MeanPressure           = wave(:,13);
-waveData.UnidirectivityIndex    = wave(:,14);
+waveData.SignificantHeight      = wave(:,8);
+waveData.MeanZeroCrossingPeriod = wave(:,15);
+waveData.PeakPeriod             = wave(:,14);
+waveData.PeakDirection          = wave(:,19);
+waveData.DirectionalSpread      = wave(:,20);
+waveData.MeanDirection          = wave(:,21);
+waveData.MeanPressure           = wave(:,23);
+waveData.UnidirectivityIndex    = wave(:,22);
 clear wave;
 
 % it is assumed that the frequency dimension 
 % is identical for all spectrum data
-waveData.Frequency = dirFreq(1,:)';
+waveData.Frequency = pwrFreq(1,:)';
 
 waveData.dirSpectrum           = dirFreq(2:end,:);
 clear dirFreq;

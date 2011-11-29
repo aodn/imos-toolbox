@@ -4,7 +4,7 @@ function sample_data = salinityPP( sample_data, auto )
 %
 % This function uses the CSIRO Matlab Seawater Library to derive salinity 
 % data from conductivity, temperature and pressure. It adds the salinity 
-% data as a new variable in the data sets.Data sets which do not contain 
+% data as a new variable in the data sets. Data sets which do not contain 
 % conductivity, temperature and pressure variable are left unmodified.
 %
 % Inputs:
@@ -15,8 +15,8 @@ function sample_data = salinityPP( sample_data, auto )
 % Outputs:
 %   sample_data - the same data sets, with salinity variables added.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor: Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %

@@ -1,5 +1,6 @@
 function sample_data = SBE37Parse( filename )
-%SBE37PARSE Parse a raw '.asc' file containing SBE37 data.
+%SBE37PARSE Parse a raw '.asc' file containing SBE37 data, or SBE37-IM hex 
+% format from OOI (USA).
 %
 % This function can read in data that has been downloaded from an SBE37
 % 'Microcat' temperature/conductivity/pressure sensor.

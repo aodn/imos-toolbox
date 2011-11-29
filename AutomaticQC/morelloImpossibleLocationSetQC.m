@@ -1,8 +1,8 @@
 function [sample_data] = morelloImpossibleLocationSetQC( sample_data, auto )
 %MORELLOIMPOSSIBLELOCATIONSET Flags impossible Latitude and Longitude values 
-% using IMOS sites information in imosSites.txt.
+% using IMOS sites information from imosSites.txt.
 %
-% Impossible location test described in Morello et Al. 2011 paper.
+% Impossible location test described in Morello et al. 2011 paper.
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
