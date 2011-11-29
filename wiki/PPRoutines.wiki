@@ -123,7 +123,7 @@ Here, the default value -10.1325 is the actual value applied by Seabird on all t
 
 depthPP adds a DEPTH variable to the given data sets, if not already exist. Useful as during strong current event, an instrument on a mooring is not likely to stay at its nominal depth but may record data at lower depth as the mooring is laying down.
 
-http://imos-toolbox.googlecode.com/svn/wiki/images/Mooring_knocked_down2.png
+http://imos-toolbox.googlecode.com/svn/wiki/images/Mooring_knocked_down3.png
 
 When a data set is loaded without using a deployment database, DEPTH will be calculated from PRES or PRES_REL variables present in the dataset. Without any latitude metadata information, 1 dbar ~= 1 m is assumed. If latitude metadata information is documented then DEPTH will be updated taking this new information into account using the CSIRO Matlab Seawater Library.
 
