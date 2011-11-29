@@ -4,17 +4,8 @@ The development schedule is as follows:
 
 || *Date* || *Task* || *Issue Number* ||
 || March 20^th^ 2009 || Project/source repository set up || ||
-|| March 31^st^ 2009 || System design finalised || issue 1 ||
-||  || GUI mockups designed || issue 2 ||
-||  || Initial set of parsers completed, including support for SBE37, SBE39 and WQM instruments || issue 3 ||
-|| April 30^th^ 2009 || Initial auto-QC functionality completed, including flagging of outliers, spikes, in/out of water. || issue 4 ||
-||  || Initial NetCDF converters completed for generation of IMOS-compliant NetCDF files. || issue 5 ||
-|| May 31^st^ 2009 || Initial visualisation functionality completed, providing ability to view each process level of data, and invoke automatic and manual QC procedures. || issue 6 ||
-|| June 15^th^ 2009 || Initial manual-QC functionality completed, including de-trending, linear calibration correction, and manual flagging of points/regions. || issue 7 ||
 || June 30^th^ 2009 || Toolbox version 1.0 released to community for testing. || issue 8 ||
-|| July 9^th^ 2009 || Prototype system working for demonstration at AMSA workshop. || ||
-|| July 10^th^ 2009 || Trial installation at SARDI || ||
 || September 30^th^ 2009 || Toolbox version 1.5 released to community. || issue 19 ||
-|| September - October 2009 || Rollout of database and toolbox version 1.5 at all ANMN facilities || ||
-|| November 30^th^ 2009 || Possible journal paper written and submitted. || ||
 || November 4^th^ 2010 || Toolbox version 1.5.5 released to community. || ||
+|| August 5^th^ 2011 || [http://code.google.com/p/imos-toolbox/downloads/detail?name=imos-toolbox-2.0.zip&can=3&q= Toolbox version 2.0] released to community. || ||
+|| November 9^th^ 2011 || [http://code.google.com/p/imos-toolbox/downloads/detail?name=imos-tooolbox-2.1b.zip&can=2&q= Toolbox version 2.1b] released to community. || ||
