@@ -192,7 +192,7 @@ In order to perform this test, you need a climatology file for each of your moor
 importManager.climDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\CLIMATOLOGIES\
 }}}
 
-The cimatology test consists in a range test which detects any data which value doesn't fit in the range [min max] = climRange(lon, lat, date, depth, param) of a climatology. The range (mean +/- k*standard deviation) is location and time dependent and can be obtained using various parameters.
+The cimatology test consists in a range test which detects any data which value doesn't fit in the range `[min max] = climRange(lon, lat, date, depth, param)` of a climatology. The range (mean +/- k*standard deviation) is location and time dependent and can be obtained using various parameters.
 
 A morelloRangeQC.txt parameter file allows the user to define these parameters. See example below :
 
