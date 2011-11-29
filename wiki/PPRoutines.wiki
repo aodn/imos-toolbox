@@ -19,8 +19,6 @@ timeOffsetPP prompts the user to provide a time offset value (in hours) in order
 
 All IMOS datasets should be provided in UTC time. Collected data may not necessarily have been captured in UTC time, so a correction must be made before the data can be considered to be in an IMOS compatible format. 
 
-In addition, do not forget to document the global attribute local_time_zone (= +10 for EST timezone for example) so that user easily know which offset to apply to be back in local time.
-
 The local time zone information associated to the data set is retrieved from the field !TimeZone in the table !DeploymentData from the deployment database and then converted into an offset in hours via the configuration file timeOffsetPP.txt. See configuration file example below :
 
 {{{
@@ -52,15 +50,22 @@ EDT,     -11.0
 AEDT,    -11.0
 }}}
 
+In addition, do not forget to document the global attribute local_time_zone (= +10 for EST timezone for example) so that users easily know which offset to apply to be back in local time. Actually if your data is in local time and consistent with the local time where the instrument is deployed, then you can even use the deployment database field !TimeZone in the table !DeploymentData to automatically document this attribute in your global_atributes.txt configuration file :
+
+{{{
+N, local_time_zone     		= [mat (-1)*str2double(readProperty('[ddb TimeZone]', ['Preprocessing' filesep 'timeOffsetPP.txt'], ','))]
+}}}
+
+
 == Metadata time offset - timeMetaOffsetPP == 
 
 timeMetaOffsetPP prompts the user to provide a time offset value (in hours) in order to apply time correction from local time to UTC time to each of the metadata information retrieved for given data sets.
 
 As for time data, all IMOS time metadata should be provided in UTC time. Metadata in deployment database may not necessarily have been documented in UTC time, so a correction must be made before the metadata can be considered to be in an IMOS compatible format.
 
-In addition, do not forget to document the global attribute local_time_zone (= +10 for EST timezone for example) so that user easily know which offset to apply to be back in local time.
-
 Again, the local time zone information associated to the metadata is retrieved from the field !TimeZone in the table !DeploymentData from the deployment database and then converted into an offset in hours via the configuration file timeOffsetPP.txt. See configuration file example [#Data_time_offset_-_timeOffsetPP above].
+
+Eventually, do not forget to document the global attribute local_time_zone so that users easily know which offset to apply to be back in local time.
 
 == Variable scale/offset - variableOffsetPP == 
 
