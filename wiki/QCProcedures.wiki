@@ -138,7 +138,7 @@ Threshold = 2 when pressure >= 500 dbar
  * Salinity
 Threshold = 0.9 when pressure < 500 dbar<br>
 Threshold = 0.3 when pressure >= 500 dbar
-<br>
+
 
 === Gradient test - morelloGradientQC === 
 
@@ -157,14 +157,14 @@ PSAL = 0.9
 
 }}}
 
-Threshold values proposed by various protocols are as follow :
+Again, threshold values proposed by various protocols are as follow :
 
  * Temperature
-Threshold = 6 when pressure < 500 dbar
+Threshold = 6 when pressure < 500 dbar<br>
 Threshold = 2 when pressure >= 500 dbar
 
  * Salinity
-Threshold = 0.9 when pressure < 500 dbar
+Threshold = 0.9 when pressure < 500 dbar<br>
 Threshold = 0.3 when pressure >= 500 dbar
 
 
