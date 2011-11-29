@@ -132,13 +132,13 @@ PSAL = 0.9
 Threshold values proposed by various protocols are as follow :
 
  * Temperature
-Threshold = 6 when pressure < 500 dbar
+Threshold = 6 when pressure < 500 dbar<br>
 Threshold = 2 when pressure >= 500 dbar
 
  * Salinity
-Threshold = 0.9 when pressure < 500 dbar
+Threshold = 0.9 when pressure < 500 dbar<br>
 Threshold = 0.3 when pressure >= 500 dbar
-
+<br>
 
 === Gradient test - morelloGradientQC === 
 
@@ -348,9 +348,9 @@ nsamples = 10
 rangeQC flags data which is out of the variable's valid range.
 
 || *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Any variable (not dimension) in the file||1-Good data||3-Bad data that are potentially correctable||
+||Any variable (not dimension) in the file||1-Good data||4-Bad data||
 
-valid_min and valid_max values can be specified for any variable in the imosParameters.txt configuration file. Any variable having no valid_min/max values or valid_min == valid_max will not be QC'd.
+valid_min and valid_max values can be specified for any variable in the imosParameters.txt configuration file (two last columns). Any variable having no valid_min/max values or valid_min == valid_max will not be QC'd.
 
 See below an example of imosParameters.txt file : 
 
