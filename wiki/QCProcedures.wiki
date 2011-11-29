@@ -293,9 +293,11 @@ inWaterQC and outWaterQC flag data samples which were taken before an `in water`
 tukey53HDespikeQC detects spikes in the given data using the Tukey 53H method. 
 
 || *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Any variable (not dimension) in the file||0-No QC performed||3-Bad data that are potentially correctable||
+||Any variable (not dimension) in the file||1-Good data||3-Bad data that are potentially correctable||
 
 This method is described and tested against others in _[http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/goring_nikora02.pdf Goring DG & Nikora VI 2002 'Despiking Acoustic Doppler Velocimeter Data', Journal of Hydraulic Engineering, January 2002, vol 128, issue 1, pp 117-126.]_ referencing _Otnes RK & Enochson Loren, 1978 'Applied Time Series Analysis Volume 1: Basic Techniques', pgs 96-97, Wiley._
+
+The results say that this algorithm is highly influenced by the choice of the k parameter, so it isn't very reliable from a fully automated point of view.
 
 A tukey53HDespikeQC.txt parameter file enables the user to tune the sensitivity of this spike detection test. See example below :
 
@@ -307,7 +309,72 @@ k = 1.5
 
 === RC filter spike detection - rcFilterDespikeQC === 
 
+rcFilterDespikeQC detects spikes in the given data using the RC filter method. 
+
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||Any variable (not dimension) in the file||1-Good data||3-Bad data that are potentially correctable||
+
+This method is described and tested against others in _[http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/goring_nikora02.pdf Goring DG & Nikora VI 2002 'Despiking Acoustic Doppler Velocimeter Data', Journal of Hydraulic Engineering, January 2002, vol 128, issue 1, pp 117-126.]_ referencing _Otnes RK & Enochson Loren, 1978 'Applied Time Series Analysis Volume 1: Basic Techniques', pgs 96-97, Wiley._
+
+The results say that this algorithm has a tendency to detects far too many spikes and that the choice of the k parameter doesn't influence much on this behaviour.
+
+A rcFilterDespikeQC.txt parameter file enables the user to tune the sensitivity of this spike detection test. See example below :
+
+{{{
+k = 3
+
+}}}
+
+
 === Stationarity test - flatlineQC === 
+
+flatlineQC flags flatline regions in the given data set.
+
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||Any variable (not dimension) in the file||1-Good data||4-Bad data||
+
+A flatline is defined as a consecutive set of samples which have the same value.
+
+A flatlineQC.txt parameter file enables the user to specify the number of consecutive samples to be considered. See example below :
+
+{{{
+nsamples = 10
+
+}}}
+
 
 === Basic range test - rangeQC === 
 
+rangeQC flags data which is out of the variable's valid range.
+
+|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
+||Any variable (not dimension) in the file||1-Good data||3-Bad data that are potentially correctable||
+
+valid_min and valid_max values can be specified for any variable in the imosParameters.txt configuration file. Any variable having no valid_min/max values or valid_min == valid_max will not be QC'd.
+
+See below an example of imosParameters.txt file : 
+
+{{{
+%
+% A list of all IMOS compliant parameter names, standard names, units of 
+% measurement, fill values, and valid min/max values.This list has been copied 
+% verbatim from the IMOS NetCDF User's manual version 1.2, and the IMOS NetCDF 
+% File Naming Convention version 1.3. Entries are in the following format:
+% 
+%   parameter name, is cf parameter, standard/long name, units of measurement, data code, fillValue, validMin, validMax
+%
+% For parameters which are specified as a percentage, use the word 'percent' 
+% in this file - this will be automatically converted into a '%' sign. This is 
+% necessary because Matlab will interpret literal '%' signs as the beginining 
+% of a comment.
+%
+
+ABSI,      0, acoustic_backscatter_intensity,                     Decibels,                                                          A, 999999.0, 0.0,     150.0
+ADCP_CORR, 0, adcp_correlation_magnitude,                         .,                                                                 E, 999999.0, 0.0,     250.0
+ADCP_GOOD, 0, adcp_percentage_good,                               percent,                                                           E, 999999.0, 0.0,     100.0
+AIRT,      1, air_temperature,                                    Celsius,                                                           M, 999999.0, -50.0,   50.0
+ATMP,      1, air_pressure,                                       Pascal,                                                            M, 999999.0, 90000.0, 110000.0
+ATMS,      1, air_pressure_at_sea_level,                          Pascal,                                                            M, 999999.0, 90000.0, 110000.0
+CDIR,      1, direction_of_sea_water_velocity,                    Degrees clockwise from true North in the direction of the current, V, 999999.0, 0.0,     360.0
+CDOM,      0, concentration_of_coloured_dissolved_organic_matter, mg m-3,                                                            K, 999999.0,    ,     
+}}}
