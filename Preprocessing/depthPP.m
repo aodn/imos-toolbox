@@ -59,14 +59,14 @@ if nargin<2, auto=false; end
 
 % read options from parameter file
 depthFile       = ['Preprocessing' filesep 'depthPP.txt'];
-same_familly    = readProperty('same_familly', depthFile, ',');
+same_family    = readProperty('same_family', depthFile, ',');
 include         = readProperty('include', depthFile, ',');
 exclude         = readProperty('exclude', depthFile, ',');
 
-if strcmpi(same_familly, 'yes')
-    same_familly = true;
+if strcmpi(same_family, 'yes')
+    same_family = true;
 else
-    same_familly = false;
+    same_family = false;
 end
 
 if ~isempty(include)
@@ -139,12 +139,12 @@ for k = 1:length(sample_data)
                 if l == k || isempty(samSensorZ), continue; end
                 
                 % only samples that are from the same instrument
-                % familly/brand of the current sample are selected
+                % family/brand of the current sample are selected
                 samSource = textscan(sam.instrument, '%s');
                 samSource = samSource{1};
                 p = 0;
-                % is from the same familly
-                if same_familly
+                % is from the same family
+                if same_family
                     % loop on every words composing the instrument global
                     % attribute of current other data set
                     for n = 1:length(samSource)

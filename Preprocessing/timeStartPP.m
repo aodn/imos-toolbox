@@ -13,8 +13,8 @@ function sample_data = timeStartPP( sample_data, auto )
 % Outputs:
 %   sample_data - same as input, with starting time modified.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor: Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
