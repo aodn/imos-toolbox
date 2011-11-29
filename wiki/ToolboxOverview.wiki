@@ -62,7 +62,7 @@ IMOS quantitative scale flag follows the IOC scale flag. See description [Proces
 
 == Output format ==
 
-The Toolbox generates NetCDF files according to the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User Manual] and the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention]. 
+The Toolbox generates NetCDF files according to the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User's Manual] and the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention]. 
 
 Global and variables attributes can be automatically documented via [NetCDFTemplates configurable template files].
 
