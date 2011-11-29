@@ -80,11 +80,14 @@ goodFlag = imosQCFlag('good',    qcSet, 'flag');
 gapFlag  = imosQCFlag('discont', qcSet, 'flag');
 
 dim  = sample_data.dimensions{1}.data;
-lenData = length(dim);
 
 flags = ones(lenData, 1)*goodFlag;
 
-for k = 2:lenData
-  
-  if (dim(k)-dim(k-1)) >= gapsize, flags([k-1 k]) = gapFlag; end
+iGaps = [false, diff(dim) >= gapsize];
+
+if any(iGaps)
+    % we flag both points involved in a gap time
+    iGaps = iGaps(2:end) | iGaps(1:end-1);
+    flags(iGaps) = gapFlag;
 end
+

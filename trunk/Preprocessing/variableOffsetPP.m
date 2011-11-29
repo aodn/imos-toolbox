@@ -16,8 +16,8 @@ function sample_data = variableOffsetPP( sample_data, auto )
 % Outputs:
 %   sample_data - same as input, potentially with variable data modified.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor: Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %

@@ -50,7 +50,7 @@ function imosToolbox(auto, varargin)
 if nargin == 0, auto = 'manual'; end
 
 % Set current toolbox version
-toolboxVersion = '2.1b';
+toolboxVersion = '2.2 unstable';
 
 % if running as a standalone compiled application, we must 
 % manually add the ddb.jar java library to the classpath

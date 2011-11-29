@@ -72,7 +72,6 @@ function sample_data = readWQMraw( filename )
   
   % Lookup arrays for supported and required fields
   params   = {};
-  required = {};
 
   %
   % this table provides mappings from the WQM field name (the column header 
@@ -96,15 +95,6 @@ function sample_data = readWQMraw( filename )
   params{end+1} = {'backscatterance', {'TURB', ''}};
   % CJ where is PAR?? 
  % params{end+1} = {'PAR',             {'PAR', ''}};
-  
-  %
-  % This array contains the column headers which must be in the input file.
-  %
-  required = {
-    'SN'
-    'MMDDYY'
-    'HHMMSS'
-  };
 
   % open file, get header and use it to generate a 
   % format string which we can pass to textscan

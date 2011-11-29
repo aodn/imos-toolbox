@@ -78,18 +78,21 @@ rangeFlag = imosQCFlag('bound', qcSet, 'flag');
 rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 
-% initialise all flags to good
-lenData = length(data);
-
 max  = sample_data.variables{k}.valid_max;
 min  = sample_data.variables{k}.valid_min;
 
-if max == min
-    flags = ones(lenData, 1)*rawFlag;
-else
-    flags = ones(lenData, 1)*goodFlag;
-    
-    % add flags for out of range values
-    flags(data > max) = rangeFlag;
-    flags(data < min) = rangeFlag;
+lenData = length(data);
+
+% initialise all flags to non QC'd
+flags = ones(lenData, 1)*rawFlag;
+
+if ~isempty(min) && ~isempty(max)
+    if max ~= min
+        % initialise all flags to good
+        flags = ones(lenData, 1)*goodFlag;
+        
+        % add flags for out of range values
+        flags(data > max) = rangeFlag;
+        flags(data < min) = rangeFlag;
+    end
 end
