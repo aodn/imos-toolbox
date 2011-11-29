@@ -295,7 +295,7 @@ tukey53HDespikeQC detects spikes in the given data using the Tukey 53H method.
 || *Variables checked* || *Pass test flag* || *Fail test flag* ||
 ||Any variable (not dimension) in the file||0-No QC performed||3-Bad data that are potentially correctable||
 
-This method is described and tested against others in _[http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/goring_nikora02.pdf Goring DG & Nikora VI 2002] 'Despiking Acoustic Doppler Velocimeter Data', Journal of Hydraulic Engineering, January 2002, vol 128, !issue 1, pp 117-126._ referencing _Otnes RK & Enochson Loren, 1978 'Applied Time Series Analysis Volume 1: Basic Techniques', pgs 96-97, Wiley._
+This method is described and tested against others in _[http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/goring_nikora02.pdf Goring DG & Nikora VI 2002 'Despiking Acoustic Doppler Velocimeter Data', Journal of Hydraulic Engineering, January 2002, vol 128, issue 1, pp 117-126.]_ referencing _Otnes RK & Enochson Loren, 1978 'Applied Time Series Analysis Volume 1: Basic Techniques', pgs 96-97, Wiley._
 
 A tukey53HDespikeQC.txt parameter file enables the user to tune the sensitivity of this spike detection test. See example below :
 
