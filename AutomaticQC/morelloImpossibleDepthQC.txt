@@ -1,0 +1,2 @@
+coefUp = 3
+coefDown = 6

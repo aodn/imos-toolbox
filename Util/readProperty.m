@@ -78,6 +78,11 @@ if isempty(lines), error([file ' is empty']); end
 names = lines{1};
 vals  = lines{2};
 
+if strcmp(prop, '*')
+    value = lines;
+    return;
+end
+
 % find the requested property
 for k = 1:length(names)
   

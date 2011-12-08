@@ -66,7 +66,7 @@ ncells   = user.NBins;
 
 % preallocate memory for all sample data
 time         = zeros(nsamples, 1);
-depth        = zeros(ncells,   1);
+distance        = zeros(ncells,   1);
 analn1       = zeros(nsamples, 1);
 battery      = zeros(nsamples, 1);
 analn2       = zeros(nsamples, 1);
@@ -83,7 +83,7 @@ backscatter2 = zeros(nsamples, ncells);
 backscatter3 = zeros(nsamples, ncells);
 
 %
-% calculate depth values from metadata. See continentalParse.m 
+% calculate distance values from metadata. See continentalParse.m 
 % inline comments for a brief discussion of this process
 %
 % http://www.nortek-as.com/en/knowledge-center/forum/hr-profilers/736804717
@@ -103,11 +103,16 @@ end
 cellLength = (cellLength / 256) * factor * cos(25 * pi / 180);
 cellStart  =  cellStart         * 0.0229 * cos(25 * pi / 180) - cellLength;
 
-% generate depth values
-depth(:) = (cellStart):  ...
+% generate distance values
+distance(:) = (cellStart):  ...
            (cellLength): ...
            (cellStart + (ncells-1) * cellLength);
 
+% Note this is actually the distance between the ADCP's transducers and the
+% middle of each cell
+% See http://www.nortek-bv.nl/en/knowledge-center/forum/current-profilers-and-current-meters/579860330
+distance = distance + cellLength;
+       
 % retrieve sample data
 for k = 1:nsamples
   
@@ -165,6 +170,7 @@ sample_data.meta.instrument_model           = 'Aquadopp Profiler';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+sample_data.meta.beam_angle                 = 25;
 
 sample_data.dimensions{1} .name = 'TIME';
 sample_data.dimensions{2} .name = 'HEIGHT_ABOVE_SENSOR';
@@ -198,7 +204,7 @@ sample_data.variables {11}.dimensions = [1 3 4];
 sample_data.variables {12}.dimensions = [1 3 4];
 
 sample_data.dimensions{1} .data = time;
-sample_data.dimensions{2} .data = depth;
+sample_data.dimensions{2} .data = distance;
 sample_data.dimensions{3} .data = NaN;
 sample_data.dimensions{4} .data = NaN;
 

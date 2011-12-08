@@ -1,1 +1,2 @@
 dateMin = 01/01/2007
+dateMax = 

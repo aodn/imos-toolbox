@@ -27,3 +27,4 @@ RDI,            ADCP - WORKHORSE SENTINEL,                                      
 SEABIRD,        SBE39P - TEMPERATURE & PRESSURE RECORDER,                       SBE39
 SEABIRD,        SBE39IM - TEMPERATURE RECORDER,                                 SBE39
 NORTEK,         ADCP - AQUAPRO,                                                 aquadoppProfiler
+RDI, ADCP-Workhourse, workhorse
