@@ -2,10 +2,10 @@ function [data, flags, log] = morelloImpossibleDateQC( sample_data, data, k, typ
 %MORELLOIMPOSSIBLEDATE Flags impossible TIME values 
 %
 % Impossible date test described in Morello et Al. 2011 paper. Only the
-% test year > 2007 will be performed as date information is stored in
-% datenum format (decimal days since 01/01/0000) before being output in 
-% addition not all the date information in input files are in ASCII format 
-% or expressed with day, month and year information...
+% test year > 2007 and date < current date will be performed as date 
+% information is stored in datenum format (decimal days since 01/01/0000) 
+% before being output in addition not all the date information in input 
+% files are in ASCII format or expressed with day, month and year information...
 %
 % Inputs:
 %   sample_data - struct containing the data set.
@@ -93,10 +93,17 @@ if ~isempty(dataTime)
     
     % read site name from morelloImpossibleDateQC properties file
     dateMin = readProperty('dateMin', fullfile('AutomaticQC', 'morelloImpossibleDateQC.txt'));
+    dateMax = readProperty('dateMax', fullfile('AutomaticQC', 'morelloImpossibleDateQC.txt'));
     
     dateMin = datenum(dateMin, 'dd/mm/yyyy');
+    if isempty(dateMax)
+        dateMax = now_utc;
+    else
+        dateMax = datenum(dateMax, 'dd/mm/yyyy');
+    end
     
     iBadTime = dataTime < dateMin;
+    iBadTime = iBadTime | (dataTime >= dateMax);
     
     if any(iBadTime)
         flags(iBadTime) = failFlag;

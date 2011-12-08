@@ -94,9 +94,9 @@ if lenData > lenTime
     time = repmat(time, lenData/lenTime, 1);
 end
 
-after = time > time_out_water;
+iAfter = time > time_out_water;
 
 % flag the after out-water samples
-if any(after)
-    flags(after) = failFlag;
+if any(iAfter)
+    flags(iAfter) = failFlag;
 end

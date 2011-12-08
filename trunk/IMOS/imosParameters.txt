@@ -25,7 +25,7 @@ SPEC_CNDC, 0, sea_water_specific_electrical_conductivity,         S m-1,        
 CPHL,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
 CHLF,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
 CHLU,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
-CHLR,      0, raw_concentration_of_chlorophyll_in_sea_water,      .,                                                                 K, 999999.0,    ,     
+CHLR,      0, raw_concentration_of_chlorophyll_in_sea_water,      counts,                                                                 K, 999999.0,    ,     
 SSPD,      1, speed_of_sound_in_sea_water,                        m s-1,                                                             V, 999999.0, 0.0,     5.0
 CSPD,      1, sea_water_speed,                                    m s-1,                                                             V, 999999.0, 0.0,     5.0
 DEPTH,     1, depth,                                              m,                                                                 E, 999999.0, 0.0,     12000.0

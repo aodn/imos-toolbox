@@ -10,9 +10,9 @@ function sample_data = workhorseParse( filename )
 %   - temperature (at each time)
 %   - pressure (at each time, if present)
 %   - salinity (at each time, if present)
-%   - water speed (at each time and depth)
-%   - water direction (at each time and depth)
-%   - Acoustic backscatter intensity (at each time and depth, a separate 
+%   - water speed (at each time and distance)
+%   - water direction (at each time and distance)
+%   - Acoustic backscatter intensity (at each time and distance, a separate 
 %     variable for each beam)
 %
 % The conversion from the ADCP velocity values currently assumes that the 
@@ -103,13 +103,14 @@ error(nargchk(1,1,nargin));
   cellLength = fixed.depthCellLength;
   cellStart  = fixed.bin1Distance;
   
-  % we can populate depth data now using cellLength and cellStart
+  % we can populate distance data now using cellLength and cellStart
   % ( / 100.0, as the ADCP gives the values in centimetres)
   cellStart  = cellStart  / 100.0;
   cellLength = cellLength / 100.0;
   
-  % note this is actually distance from the ADCP! 
-  depth =    (cellStart):  ...
+  % note this is actually distance between the ADCP's transducers and the
+  % middle of each cell
+  distance = (cellStart):  ...
              (cellLength): ...
              (cellStart + (numCells-1) * cellLength);
   
@@ -213,6 +214,7 @@ error(nargchk(1,1,nargin));
   sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
   sample_data.meta.instrument_firmware  = ...
     strcat(num2str(fixed.cpuFirmwareVersion), '.', num2str(fixed.cpuFirmwareRevision));
+  sample_data.meta.beam_angle           =  fixed.beamAngle;
                                     
   % add dimensions
   sample_data.dimensions{1}.name       = 'TIME';
@@ -274,7 +276,7 @@ error(nargchk(1,1,nargin));
   
   % copy all the data across
   sample_data.dimensions{1}.data       = time(:);
-  sample_data.dimensions{2}.data       = depth(:);
+  sample_data.dimensions{2}.data       = distance(:);
   sample_data.dimensions{3}.data       = NaN;
   sample_data.dimensions{4}.data       = NaN;
   

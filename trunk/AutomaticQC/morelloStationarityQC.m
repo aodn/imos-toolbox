@@ -1,5 +1,6 @@
 function [data, flags, log] = morelloStationarityQC( sample_data, data, k, type, auto )
-%MORELLOSTATIONARITY Flags consecutive TEMP or PSAL equal values in the given data set.
+%MORELLOSTATIONARITY Flags consecutive PRES, PRES_REL, DEPTH, TEMP or PSAL 
+% equal values in the given data set.
 %
 % Stationarity test from IOC which finds and flags any consecutive equal values
 % when number of consecutive points > T = 24*(60/delta_t) where delta_t is
@@ -71,8 +72,9 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
-        strcmpi(sample_data.(type){k}.name, 'PSAL')
+listVar = {'PRES', 'PRES_REL', 'DEPTH', 'TEMP', 'PSAL'};
+
+if any(strcmpi(sample_data.(type){k}.name, listVar))
     
     qcSet    = str2double(readProperty('toolbox.qc_set'));
     passFlag = imosQCFlag('good', qcSet, 'flag');
