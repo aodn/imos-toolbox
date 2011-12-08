@@ -10,6 +10,10 @@ function [data, flags, log] = morelloSpikeQC( sample_data, data, k, type, auto )
 % Threshold = 0.9 for salinity when pressure < 500 dbar
 % Threshold = 0.3 for salinity when pressure >= 500 dbar
 %
+% Threshold = 1 for pressure
+%
+% by default we assume all IMOS moorings are in shallow water < 500m
+%
 % Inputs:
 %   sample_data - struct containing the data set.
 %
@@ -77,32 +81,22 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
-        strcmpi(sample_data.(type){k}.name, 'PSAL')
+% read all values from morelloSpikeQC properties file
+values = readProperty('*', fullfile('AutomaticQC', 'morelloSpikeQC.txt'));
+param = strtrim(values{1});
+threshold = strtrim(values{2});
+
+iParam = strcmpi(sample_data.(type){k}.name, param);
+
+if any(iParam)
+    lenData = length(data);
+    
+    threshold = threshold(iParam);
+    threshold = ones(lenData, 1) * str2double(threshold);
    
     qcSet    = str2double(readProperty('toolbox.qc_set'));
     passFlag = imosQCFlag('good', qcSet, 'flag');
     failFlag = imosQCFlag('bad',  qcSet, 'flag');
-    
-    lenData = length(data);
-    
-    % define thresholds
-    % Threshold = 6 for temperature when pressure < 500 dbar
-    % Threshold = 2 for temperature when pressure >= 500 dbar
-    %
-    % Threshold = 0.9 for salinity when pressure < 500 dbar
-    % Threshold = 0.3 for salinity when pressure >= 500 dbar
-    
-    % by default we assume all IMOS moorings are in shallow water < 500m
-    if strcmpi(sample_data.(type){k}.name, 'TEMP')
-        % read threshold from morelloSpikeQC properties file
-        threshold = readProperty('TEMP', fullfile('AutomaticQC', 'morelloSpikeQC.txt'));
-        threshold = ones(lenData, 1) * str2double(threshold);
-    elseif strcmpi(sample_data.(type){k}.name, 'PSAL')
-        % read threshold from morelloSpikeQC properties file
-        threshold = readProperty('PSAL', fullfile('AutomaticQC', 'morelloSpikeQC.txt'));
-        threshold = ones(lenData, 1) * str2double(threshold);
-    end
     
     % initially all data is good
     flags = ones(lenData, 1)*passFlag;

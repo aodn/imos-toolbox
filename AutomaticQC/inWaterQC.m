@@ -94,9 +94,9 @@ if lenData > lenTime
     time = repmat(time, lenData/lenTime, 1);
 end
 
-before = time < time_in_water;
+iBefore = time < time_in_water;
 
 % flag the samples that are before the in water time
-if any(before)
-    flags(before) = failFlag;
+if any(iBefore)
+    flags(iBefore) = failFlag;
 end
