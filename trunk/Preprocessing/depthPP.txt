@@ -27,6 +27,6 @@
 % set will not be considered in the Depth computation.
 % Ex. : exclude,        ADCP WQM
 
-same_family,   no
+same_family,   yes
 include,        
-exclude,       ADCP
+exclude,       

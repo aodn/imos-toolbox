@@ -157,9 +157,6 @@ backscatter2 = backscatter2 * 0.45;
 backscatter3 = backscatter3 * 0.45;
 
 sample_data = struct;
-
-[~, filename, ext] = fileparts(filename);
-filename = [filename ext];
     
 sample_data.toolbox_input_file              = filename;
 sample_data.meta.head                       = head;

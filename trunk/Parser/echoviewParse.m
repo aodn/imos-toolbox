@@ -69,9 +69,6 @@ function sample_data = echoviewParse( filename, platform, config )
   filename = filename{1};
 
   [voyage_path, fname, ext] = fileparts(filename);
-  
-  [~, filename, ext] = fileparts(filename);
-  filename = [filename ext];
 
   sample_data.toolbox_input_file                = filename;
   sample_data.meta.instrument_make              = 'Simrad';

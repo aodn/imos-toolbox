@@ -170,9 +170,6 @@ time                   = [];
 read_sal  = 0;
 read_cond = 0;
 read_pres = 0;
-
-[~, filename, ext] = fileparts(filename);
-filename = [filename ext];
     
 sample_data.toolbox_input_file          = filename;
 

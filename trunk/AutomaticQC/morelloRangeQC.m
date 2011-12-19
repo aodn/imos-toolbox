@@ -76,6 +76,8 @@ if strcmpi(dataName, 'TEMP')
     iVar = 1;
 elseif strcmpi(dataName, 'PSAL')
     iVar = 2;
+% elseif strcmpi(dataName, 'DOX2')
+%     iVar = 3;
 end
     
 if iVar > 0

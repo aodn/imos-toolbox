@@ -203,9 +203,6 @@ error(nargchk(1,1,nargin));
   heading      = heading      / 100.0;
   
   % fill in the sample_data struct
-  [~, filename, ext] = fileparts(filename);
-  filename = [filename ext];
-
   sample_data.toolbox_input_file        = filename;
   sample_data.meta.fixedLeader          = fixed;
   sample_data.meta.instrument_make      = 'Teledyne RD';
