@@ -61,7 +61,7 @@ function sample_data = netcdfParse( filename )
   qcVars     = {};
   
   % get global attributes
-  globals = readAtts(ncid, netcdf.getConstant('NC_GLOBAL'));
+  globals = readNetCDFAtts(ncid, netcdf.getConstant('NC_GLOBAL'));
   
   % transform any time attributes into matlab serial dates
   timeAtts = {'date_created', 'time_coverage_start', 'time_coverage_end', ...
@@ -98,7 +98,7 @@ function sample_data = netcdfParse( filename )
       % get id of associated coordinate variable
       varid = netcdf.inqVarID(ncid, name);
       
-      dimensions{end+1} = readVar(ncid, varid);
+      dimensions{end+1} = readNetCDFVar(ncid, varid);
       dimensions{end}   = rmfield(dimensions{end}, 'dimensions');
       
       k = k + 1;
@@ -111,7 +111,7 @@ function sample_data = netcdfParse( filename )
   try
     while 1
       
-      v = readVar(ncid, k);
+      v = readNetCDFVar(ncid, k);
       
       k = k + 1;
       
@@ -191,57 +191,5 @@ function sample_data = netcdfParse( filename )
   
   if isfield(sample_data, 'instrument_sample_interval')
       sample_data.meta.instrument_sample_interval = sample_data.instrument_sample_interval;
-  end
-end
-
-function v = readVar(ncid, varid)
-%READVAR Creates a struct containing data for the given variable id.
-%
-
-  [name xtype dimids natts] = netcdf.inqVar(ncid, varid);
-
-  v            = struct;
-  v.name       = name;
-  v.dimensions = dimids; % this is transformed below
-  v.data       = netcdf.getVar(ncid, varid);
-  
-  % multi-dimensional data must be transformed, as matlab-netcdf api 
-  % reverse dimensions order in variable when reading
-  nDims = length(v.dimensions);
-  if nDims > 1
-      v.dimensions = fliplr(v.dimensions);
-      v.data = permute(v.data, nDims:-1:1); 
-  end
-
-  % get variable attributes
-  atts = readAtts(ncid, varid);
-  attnames = fieldnames(atts);
-  for k = 1:length(attnames), v.(attnames{k}) = atts.(attnames{k}); end
-  
-  % replace any fill values with matlab's nan
-  if isfield(atts, 'FillValue_'), v.data(v.data == atts.FillValue_) = nan; end
-end
-
-function atts = readAtts(ncid, varid)
-%READATTS Gets all of the NetCDF attributes from the given file/variable.
-%
-  atts = struct;
-  k    = 0;
-
-  try 
-    while 1
-      
-      % inqAttName will throw an error when we run out of attributes
-      name = netcdf.inqAttName(ncid, varid, k);
-      sName = name;
-      
-      % no-leading-underscore kludge
-      if sName(1) == '_', sName = [sName(2:end) '_']; end
-      
-      atts.(sName) = netcdf.getAtt(ncid, varid, name);
-      k = k + 1;
-      
-    end
-  catch e 
   end
 end

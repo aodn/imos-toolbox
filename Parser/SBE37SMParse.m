@@ -112,9 +112,6 @@ if strcmpi(ext, '.cnv')
     % and copy all the data in
     sample_data = struct;
     
-    [~, filename, ext] = fileparts(filename);
-    filename = [filename ext];
-    
     sample_data.toolbox_input_file  = filename;
     sample_data.meta.instHeader     = instHeader;
     sample_data.meta.procHeader     = procHeader;

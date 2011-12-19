@@ -93,9 +93,6 @@ function sample_data = NXICBinaryParse( filename )
   % This was what PM got out of the header
   sample_data = struct;
   
-  [~, filename, ext] = fileparts(filename);
-  filename = [filename ext];
-  
   sample_data.toolbox_input_file        = filename;
   sample_data.meta.instrument_make      = header.instrument_make;
   sample_data.meta.instrument_model     = header.instrument_model;

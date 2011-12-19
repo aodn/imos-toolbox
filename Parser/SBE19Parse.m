@@ -105,8 +105,8 @@ function sample_data = SBE19Parse( filename )
   % use the appropriate subfunction to read in the data
   % assume that anything with a suffix not equal to .hex
   % is a .cnv file
-  [~, filename, ext] = fileparts(filename);
-  filename = [filename ext];
+  [~, ~, ext] = fileparts(filename);
+  
   if strcmpi(ext, '.hex')
     [data, comment] = readSBE19hex(dataLines, instHeader);
   else

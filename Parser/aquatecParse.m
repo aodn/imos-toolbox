@@ -125,9 +125,6 @@ model    = strtrim(strrep(model, 'Pressure', ''));
 model    = strtrim(strrep(model, 'Temperature', ''));
 firmware = getValues({'VERSION'},    keys, meta);
 serial   = getValues({'LOGGER'},     keys, meta);
-
-[~, filename, ext] = fileparts(filename);
-filename = [filename ext];
     
 sample_data.toolbox_input_file        = filename;
 sample_data.meta.instrument_make      = 'Aquatec';

@@ -117,9 +117,6 @@ function sample_data = readWQMraw( filename )
   sample_data.dimensions = {};
   sample_data.variables  = {};
 
-  [~, filename, ext] = fileparts(filename);
-  filename = [filename ext];
-
   sample_data.toolbox_input_file        = filename;
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';

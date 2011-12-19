@@ -65,9 +65,6 @@ function sample_data = readXR620( filename )
   
   % copy all of the information over to the sample data struct
   sample_data = struct;
-  
-  [~, filename, ext] = fileparts(filename);
-  filename = [filename ext];
 
   sample_data.toolbox_input_file        = filename;
   sample_data.meta.instrument_make      = header.make;
