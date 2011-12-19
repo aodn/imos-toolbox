@@ -75,9 +75,6 @@ function sample_data = YSI6SeriesParse( filename )
   
   % parse all of the records
   records = readRecords(header, data);
-  
-  [~, filename, ext] = fileparts(filename);
-  filename = [filename ext];
     
   sample_data.toolbox_input_file                = filename;
   sample_data.meta.instrument_make              = 'YSI';

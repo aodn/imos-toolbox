@@ -1,7 +1,7 @@
 %
 % A list of all IMOS compliant parameter names, standard names, units of 
 % measurement, fill values, and valid min/max values.This list has been copied 
-% verbatim from the IMOS NetCDF User's manual version 1.2, and the IMOS NetCDF 
+% verbatim from the IMOS NetCDF User's manual version 1.3, and the IMOS NetCDF 
 % File Naming Convention version 1.3. Entries are in the following format:
 % 
 %   parameter name, is cf parameter, standard/long name, units of measurement, data code, fillValue, validMin, validMax
@@ -25,13 +25,10 @@ SPEC_CNDC, 0, sea_water_specific_electrical_conductivity,         S m-1,        
 CPHL,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
 CHLF,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
 CHLU,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
-CHLR,      0, raw_concentration_of_chlorophyll_in_sea_water,      counts,                                                                 K, 999999.0,    ,     
-SSPD,      1, speed_of_sound_in_sea_water,                        m s-1,                                                             V, 999999.0, 0.0,     5.0
+CHLR,      0, raw_concentration_of_chlorophyll_in_sea_water,      counts,                                                            K, 999999.0,    ,     
 CSPD,      1, sea_water_speed,                                    m s-1,                                                             V, 999999.0, 0.0,     5.0
 DEPTH,     1, depth,                                              m,                                                                 E, 999999.0, 0.0,     12000.0
-HEIGHT_ABOVE_SENSOR, 0, height_above_sensor,                      m,                                                                 E, 999999.0, 0.0,     12000.0
 DEWT,      1, dew_point_temperature,                              Celsius,                                                           M, 999999.0, -50.0,   50.0
-WAV_DIR,   1, sea_surface_wave_from_direction,                    Degrees clockwise from true North,                                 E, 999999.0, 0.0,     360.0
 DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water, umol l-1,                                               O, 999999.0,    ,     
 DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         umol kg-1,                                                         O, 999999.0,    ,     
 DOXS,      1, fractional_saturation_of_oxygen_in_sea_water,		  percent,                                                           O, 999999.0,    ,     
@@ -44,15 +41,16 @@ EWCT,      1, eastward_sea_water_velocity,                        m s-1,        
 FLU2,      0, fluorescence_in_sea_water,                          counts,                                                            B, 999999.0,    ,     
 FREQUENCY, 0, frequency,                                          Hz,                                                                E, 999999.9, 0.0,     999999.0
 HEADING,   0, heading,                                            Degrees,                                                           E, 999999.0, 0.0,     360.0
-HEAT,      0, heat_content,                                       1010 J m-2,                                                        E, 999999.0,    ,     
+HEAT,      0, heat_content,                                       10^10 J m-2,                                                        E, 999999.0,    ,     
 HEAT_NET,  1, upward_heat_flux_in_air,                            W m-2,                                                             F, 999999.0,    ,     
+HEIGHT_ABOVE_SENSOR, 0, height_above_sensor,                      m,                                                                 E, 999999.0, 0.0,     12000.0
 HL,        1, surface_upward_latent_heat_flux,                    W m-2,                                                             F, 999999.0,    ,     
 HS,        1, surface_upward_sensible_heat_flux,                  W m-2,                                                             F, 999999.0,    ,     
 ISO17,     1, isotherm_depth,                                     m,                                                                 E, 999999.0,    ,     
 LATITUDE,  1, latitude,                                           degrees north,                                                     E, 999999.0, -90.0,   90.0
 LONGITUDE, 1, longitude,                                          degrees east,                                                      E, 999999.0, -180.0,  180.0
 LW,        1, surface_downwelling_longwave_flux_in_air,           W m-2,                                                             F, 999999.0,    ,     
-LW_NET,    1, surface_new_upward_longwave_flux,                   W m-2,                                                             F, 999999.0,    ,     
+LW_NET,    1, surface_net_upward_longwave_flux,                   W m-2,                                                             F, 999999.0,    ,     
 MASS_NET,  1, upward_mass_flux_of_air,                            kg m-2 s-1,                                                        F, 999999.0,    ,     
 NSCT,      1, northward_sea_water_velocity,                       m s-1,                                                             V, 999999.0, -5.0,    5.0
 NTRI,      1, mole_concentration_of_nitrate_in_sea_water,         mole m-3,                                                          K, 999999.0,    ,     
@@ -63,13 +61,14 @@ PITCH,     1, platform_pitch_angle,                               Degrees,      
 PRES,      1, sea_water_pressure,                                 dbar,                                                              P, 999999.0, 0.0,     12000.0
 PRES_REL,  0, sea_water_relative_pressure,                        dbar,                                                              P, 999999.0, -10.0,     12000.0
 PSAL,      1, sea_water_salinity,                                 psu,                                                               S, 999999.0, 0.0,     100.0
-Q,         1, specific_humidity,                                  percent,                                                           M, 999999.0, 0.0,     150.0
-RAIN,      1, rainfall_rate,                                      mm s-1,                                                            M, 999999.0,    ,     
-RAIT,      1, thickness_of_rainfall_amount,                       m,                                                                 M, 999999.0,    ,     
+Q,         1, specific_humidity,                                  ,                                                           M, 999999.0, 0.0,     150.0
+RRATE,     1, rainfall_rate,                                      mm s-1,                                                            M, 999999.0,    ,     
+RAIN_AMOUNT, 1, thickness_of_rainfall_amount,                     m,                                                                 M, 999999.0,    ,     
 RELH,      1, relative_humidity,                                  percent,                                                           M, 999999.0, 0.0,     150.0
 ROLL,      1, platform_roll_angle,                                Degrees,                                                           E, 999999.0, -180.0,  180.0
 SLCA,      1, mole_concentration_of_silicate_in_sea_water,        mole m-3,                                                          K, 999999.0,    ,     
 SRAD,      1, isotropic_shortwave_radiance_in_air,                W m-1 sr-1,                                                        F, 999999.0,    ,     
+SSPD,      1, speed_of_sound_in_sea_water,                        m s-1,                                                             V, 999999.0, 1400.0,  1600.0
 SST,       1, sea_surface_skin_temperature,                       Celsius,                                                           T, 999999.0,    ,     
 SSDS,      0, sea_surface_wave_directional_spread,                Degrees clockwise from true North,                                 W, 999999.0, 0.0,     360.0
 SSWD,      0, sea_surface_wave_direction_spectral_density,        Degrees clockwise from true North,                                 W, 999999.0, 0.0,     360.0
@@ -84,13 +83,14 @@ TURB,      0, turbidity,                                          NTU,          
 UCUR,      1, eastward_sea_water_velocity,                        m s-1,                                                             V, 999999.0, -5.0,    5.0
 UWND,      1, eastward_wind,                                      m s-1,                                                             M, 999999.0,    ,     
 VAVH,      1, sea_surface_wave_significant_height,                m,                                                                 W, 999999.0,    ,     
-VBSC,      0, volumetric_backscatter_coefficient,                 m-1 sr-1,                                                          E, 999999.0,    ,     
 VAVT,      1, sea_surface_wave_zero_upcrossing_period,            s,                                                                 W, 999999.0,    ,     
+VBSC,      0, volumetric_backscatter_coefficient,                 m-1 sr-1,                                                          E, 999999.0,    ,     
 VCUR,      1, northward_sea_water_velocity,                       m s-1,                                                             V, 999999.0, -5.0,    5.0
 VDEN,      1, sea_surface_wave_variance_spectral_density,         m2 s,                                                              W, 999999.0,    ,     
 VDIR,      1, sea_surface_wave_from_direction,                    Degree clockwise from true North,                                  W, 999999.0,    ,     
 VOLT,      0, voltage,                                            V,                                                                 E, 999999.0, -100.0,  100.0
 VWND,      1, northward_wind,                                     m s-1,                                                             M, 999999.0,    ,     
-WDIR,      1, wind_to_direction,                                  Degree clockwise from true North,                                  M, 999999.0,    ,     
+WAV_DIR,   1, sea_surface_wave_from_direction,                    Degrees clockwise from true North,                                 E, 999999.0, 0.0,     360.0
+WDIR,      1, wind_to_direction,                                  Degrees clockwise from true North,                                  M, 999999.0,    ,     
 WSPD,      1, wind_speed,                                         m s-1,                                                             M, 999999.0,    ,     
 WCUR,      1, upward_sea_water_velocity,                          m s-1,                                                             V, 999999.0, -5.0,    5.0
