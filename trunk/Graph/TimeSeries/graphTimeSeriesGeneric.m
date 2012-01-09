@@ -55,26 +55,30 @@ time = getVar(sample_data.dimensions, 'TIME');
 time = sample_data.dimensions{time};
 var  = sample_data.variables {var};
 
-h      = line(time.data, var.data, 'Parent', ax);
+h    = line(time.data, var.data, 'Parent', ax);
 set(ax, 'Tag', 'axis1D');
 
 % test for climatology display
 % mWh = findobj('Tag', 'mainWindow');
 % morelloRange = get(mWh, 'UserData');
 % if strcmpi(var.name, 'TEMP') && ~isempty(morelloRange)
-%     hMnT   = line(time.data, morelloRange.meanT, 'Parent', ax);
 %     hRMinT = line(time.data, morelloRange.rangeMinT, 'Parent', ax);
 %     hRMaxT = line(time.data, morelloRange.rangeMaxT, 'Parent', ax);
-%     set(hMnT, 'Color', 'b');
 %     set(hRMinT, 'Color', 'r');
 %     set(hRMaxT, 'Color', 'r');
+%     set(ax, 'YLim', [min(morelloRange.rangeMinT), max(morelloRange.rangeMaxT)]);
 % elseif strcmpi(var.name, 'PSAL') && ~isempty(morelloRange)
-%     hMnS   = line(time.data, morelloRange.meanS, 'Parent', ax);
 %     hRMinS = line(time.data, morelloRange.rangeMinS, 'Parent', ax);
 %     hRMaxS = line(time.data, morelloRange.rangeMaxS, 'Parent', ax);
-%     set(hMnS, 'Color', 'b');
 %     set(hRMinS, 'Color', 'r');
 %     set(hRMaxS, 'Color', 'r');
+%     set(ax, 'YLim', [min(morelloRange.rangeMinS), max(morelloRange.rangeMaxS)]);
+% elseif strcmpi(var.name, 'DOX2') && ~isempty(morelloRange)
+%     hRMinS = line(time.data, morelloRange.rangeMinDO, 'Parent', ax);
+%     hRMaxS = line(time.data, morelloRange.rangeMaxDO, 'Parent', ax);
+%     set(hRMinS, 'Color', 'r');
+%     set(hRMaxS, 'Color', 'r');
+%     set(ax, 'YLim', [min(morelloRange.rangeMinDO), max(morelloRange.rangeMaxDO)]);
 % end
 
 % Set axis position so that 1D data and 2D data vertically matches on X axis
