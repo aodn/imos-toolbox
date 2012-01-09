@@ -145,7 +145,11 @@ if strcmpi(sample_data.(type){k}.name, 'PRES') || ...
     flags = ones(lenData, 1)*passFlag;
     
     iImpossible = data > possibleMax;
-    iImpossible = iImpossible | (data < possibleMin);
+    if (possibleMin < 0) % cannot be out of water and 0 is not allowed
+        iImpossible = iImpossible | (data <= 0);
+    else
+        iImpossible = iImpossible | (data < possibleMin);
+    end
     
     if any(iImpossible)
         flags(iImpossible) = failFlag;

@@ -161,7 +161,7 @@ vFlags = ones(sizeCur)*goodFlag;
 wFlags = ones(sizeCur)*goodFlag;
 
 % test, all bins above the contaminated depth are flagged
-iFail = binDepth <= repmat(cDepth, 1, 25);
+iFail = binDepth <= repmat(cDepth, 1, length(Bins));
 
 %Need to take into account QC from previous algorithms
 allFF = repmat(ff, 1, size(uFlags, 2));

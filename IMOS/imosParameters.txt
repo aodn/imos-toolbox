@@ -41,7 +41,7 @@ EWCT,      1, eastward_sea_water_velocity,                        m s-1,        
 FLU2,      0, fluorescence_in_sea_water,                          counts,                                                            B, 999999.0,    ,     
 FREQUENCY, 0, frequency,                                          Hz,                                                                E, 999999.9, 0.0,     999999.0
 HEADING,   0, heading,                                            Degrees,                                                           E, 999999.0, 0.0,     360.0
-HEAT,      0, heat_content,                                       10^10 J m-2,                                                        E, 999999.0,    ,     
+HEAT,      0, heat_content,                                       10^10 J m-2,                                                       E, 999999.0,    ,     
 HEAT_NET,  1, upward_heat_flux_in_air,                            W m-2,                                                             F, 999999.0,    ,     
 HEIGHT_ABOVE_SENSOR, 0, height_above_sensor,                      m,                                                                 E, 999999.0, 0.0,     12000.0
 HL,        1, surface_upward_latent_heat_flux,                    W m-2,                                                             F, 999999.0,    ,     
@@ -61,7 +61,7 @@ PITCH,     1, platform_pitch_angle,                               Degrees,      
 PRES,      1, sea_water_pressure,                                 dbar,                                                              P, 999999.0, 0.0,     12000.0
 PRES_REL,  0, sea_water_relative_pressure,                        dbar,                                                              P, 999999.0, -10.0,     12000.0
 PSAL,      1, sea_water_salinity,                                 psu,                                                               S, 999999.0, 0.0,     100.0
-Q,         1, specific_humidity,                                  ,                                                           M, 999999.0, 0.0,     150.0
+Q,         1, specific_humidity,                                  ,                                                                  M, 999999.0, 0.0,     150.0
 RRATE,     1, rainfall_rate,                                      mm s-1,                                                            M, 999999.0,    ,     
 RAIN_AMOUNT, 1, thickness_of_rainfall_amount,                     m,                                                                 M, 999999.0,    ,     
 RELH,      1, relative_humidity,                                  percent,                                                           M, 999999.0, 0.0,     150.0
@@ -91,6 +91,6 @@ VDIR,      1, sea_surface_wave_from_direction,                    Degree clockwi
 VOLT,      0, voltage,                                            V,                                                                 E, 999999.0, -100.0,  100.0
 VWND,      1, northward_wind,                                     m s-1,                                                             M, 999999.0,    ,     
 WAV_DIR,   1, sea_surface_wave_from_direction,                    Degrees clockwise from true North,                                 E, 999999.0, 0.0,     360.0
-WDIR,      1, wind_to_direction,                                  Degrees clockwise from true North,                                  M, 999999.0,    ,     
+WDIR,      1, wind_to_direction,                                  Degrees clockwise from true North,                                 M, 999999.0,    ,     
 WSPD,      1, wind_speed,                                         m s-1,                                                             M, 999999.0,    ,     
 WCUR,      1, upward_sea_water_velocity,                          m s-1,                                                             V, 999999.0, -5.0,    5.0
