@@ -1,7 +1,7 @@
 
 function dens = sw_dens0(S,T)
 
-% SW_DENS0   Denisty of sea water at atmospheric pressure
+% SW_DENS0   Density of sea water at atmospheric pressure
 %=========================================================================
 % SW_DENS0  $Id: sw_dens0.m,v 1.1 2003/12/12 04:23:22 pen078 Exp $
 %           Copyright (C) CSIRO, Phil Morgan 1992

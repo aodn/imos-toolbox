@@ -163,7 +163,7 @@ function sample_data = readWQMdat( filename )
   % convert and save the time data
   time = cellstr(samples{2});
   timeFormat = 'mmddyy HHMMSS';
-  time = datenum(time, timeFormat)';
+  time = datenum(time, timeFormat);
   
   % WQM instrumensts (or the .DAT conversion sofware) have a habit of
   % generating erroneous data sometimes, either missing a character , or 
@@ -171,7 +171,7 @@ function sample_data = readWQMdat( filename )
   % This is a simple check to make sure that all of the timestamps appear
   % to be correct; there's only so much we can do though.
   iBadTime = (diff(time) <= 0);
-  iBadTime = [false, iBadTime];
+  iBadTime = [false; iBadTime];
   time(iBadTime) = [];
   
   for k = 1:length(samples)
@@ -180,7 +180,7 @@ function sample_data = readWQMdat( filename )
   end
   
   % Let's find each start of bursts
-  dt = [0; diff(time')];
+  dt = [0; diff(time)];
   iBurst = [1; find(dt>(1/24/60)); length(time)+1];
   
   % let's read data burst by burst
