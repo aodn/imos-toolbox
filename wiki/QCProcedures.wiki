@@ -10,12 +10,12 @@ The following automatic quality control procedures are available in the Toolbox 
 
 At the moment, the flag management policy is as follow :
 
--Every data point in the data set are checked by the QC procedures, procedure by procedure. 
--For each procedure, if a checked point was previously flagged "No QC performed" (which is initialy the case before any test occurs) or "Good" and fails the test then it gains the corresponding fail flag. 
--If it was previously "No QC performed" and passes the test then it gains the corresponding pass flag.
--If it was previously "Good" and passes the test then it keeps its "Good" flag.
--If this checked point was previously flagged with a flag different from "No QC performed" or "Good" then it keeps its flag whatever the result of the test.
-
+-Every data point in the data set are checked by the QC procedures, procedure by procedure.<br>
+-For each procedure, if a checked point was previously flagged "No QC performed" (which is initialy the case before any test occurs) or "Good" and fails the test then it gains the corresponding fail flag.<br>
+-If it was previously "No QC performed" and passes the test then it gains the corresponding pass flag.<br>
+-If it was previously "Good" and passes the test then it keeps its "Good" flag.<br>
+-If this checked point was previously flagged with a flag different from "No QC performed" or "Good" then it keeps its flag whatever the result of the test.<br>
+<br>
 
 So called "official IMOS standard procedures" and their suggested parameters are still under development/validation, any feedback or comments are welcome.
 
