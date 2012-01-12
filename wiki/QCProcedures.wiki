@@ -6,12 +6,24 @@
 
 = Automatic quality control procedures =
 
-The following automatic quality control procedures are available in the Toolbox since version 2.1b :
+The following automatic quality control procedures are available in the Toolbox version 2.1b. 
 
+At the moment, the flag management policy is as follow :
+
+-Every data point in the data set are checked by the QC procedures, procedure by procedure. 
+-For each procedure, if a checked point was previously flagged "No QC performed" (which is initialy the case before any test occurs) or "Good" and fails the test then it gains the corresponding fail flag. 
+-If it was previously "No QC performed" and passes the test then it gains the corresponding pass flag.
+-If it was previously "Good" and passes the test then it keeps its "Good" flag.
+-If this checked point was previously flagged with a flag different from "No QC performed" or "Good" then it keeps its flag whatever the result of the test.
+
+
+So called "official IMOS standard procedures" and their suggested parameters are still under development/validation, any feedback or comments are welcome.
+
+Other unofficial procedures are available for test purpose only. IMOS recommends that processed data files sent to eMII data centre should only be QC'd with official IMOS standard sets of procedures.
 
 == Official IMOS standard set of procedures for moored CTD ==
 
-This set of QC procedures has been specifically designed for checking physical variables such as temperature and salinity collected on moorings. These tests should always been performed for data sets collected on moorings. Eventually, it is important to follow the suggested order of tests below :
+This set of QC procedures has been specifically designed for checking physical variables such as temperature and salinity collected on moorings. These tests should always been performed for data sets collected on moorings. In order to have consistency over processed data files and to make results easier to interpret, we recommend to follow the suggested order of tests below :
 
  # morelloImpossibleLocationSetQC
  # morelloImpossibleDateQC
@@ -247,7 +259,7 @@ The additional cutoff parameter is used to clean up the above surface bins. Any 
 
 == Other procedures ==
 
-These QC procedures were historically included in previous versions of the toolbox and should only be used with full knowledge.
+These QC procedures were historically included in previous versions of the toolbox and should only be used with full knowledge for test purpose. IMOS do not recommend these tests to be performed on data files that will be sent to eMII data centre.
 
 === Time gap detection - timeGapQC === 
 
