@@ -294,7 +294,7 @@ function mainWindow(...
     ax = findobj(mainPanel, 'Type', 'axes');
     
     % save the axes
-    saveGraph(ax);
+    saveGraph(fig, ax);
   
   end
 
