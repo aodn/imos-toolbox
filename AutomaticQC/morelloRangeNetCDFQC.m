@@ -232,7 +232,7 @@ if iVar > 0
             distClimData = abs(repmat(climDepth, lenData, 1) - repmat(dataDepth, 1, lenClimDepth));
             minDistClimData = min(distClimData, [], 2);
             iClimDepth = repmat(minDistClimData, 1, lenClimDepth) == distClimData;
-            clear climDepth dataDepth distClimData;
+            clear dataDepth distClimData;
             
             % let's find data having more than 1 clim depth and filter
             % only the first clim depth (happens when data point
@@ -244,10 +244,13 @@ if iVar > 0
             end
             clear cumSumClimDepth i2ClimDepth;
             
-            iClimDepthValues = repmat((1:1:lenClimDepth), lenData, 1);
             iDepth = nan(lenData, 1);
-            iDepth(any(iClimDepth, 2)) = iClimDepthValues(iClimDepth);
-            clear iClimDepth iClimDepthValues;
+            depths = nan(lenData, 1);
+            for i=1:lenClimDepth
+                iDepth(iClimDepth(:, i)) = i;
+                depths(iClimDepth(:, i)) = climDepth(i);
+            end
+            clear iClimDepth;
 
             % let's find the nearest time bin in climatology
             iClimTimeBounds = 0;
@@ -343,6 +346,7 @@ if iVar > 0
             % for test in display
 %             mWh = findobj('Tag', 'mainWindow');
 %             morelloRange = get(mWh, 'UserData');
+%             morelloRange.rangeDEPTH = depths;
 %             if strcmpi(dataName, 'TEMP')
 %                 morelloRange.rangeMinT = dataRangeMin;
 %                 morelloRange.rangeMaxT = dataRangeMax;
