@@ -81,7 +81,6 @@ elseif strcmpi(dataName, 'DOX2')
 end
     
 if iVar > 0
-    
     % we'll need time and depth information
     idTime  = getVar(sample_data.dimensions, 'TIME');
     ivDepth = getVar(sample_data.variables, 'DEPTH');
@@ -92,6 +91,17 @@ if iVar > 0
     end
     dataTime  = sample_data.dimensions{idTime}.data;
     dataDepth = sample_data.variables{ivDepth}.data;
+    flagDepth = sample_data.variables{ivDepth}.flags;
+    
+    qcSet    = str2double(readProperty('toolbox.qc_set'));
+    rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+    passFlag = imosQCFlag('good', qcSet, 'flag');
+    failFlag = imosQCFlag('bad',  qcSet, 'flag');
+    
+    % as we use depth information to retrieve climatology data, let's set
+    % depth as NaN when depth hasn't been QC'd good.
+    iGoodDepth = flagDepth == passFlag;
+    dataDepth(~iGoodDepth) = NaN;
     
     climDir = readProperty('importManager.climDir');
     
@@ -203,11 +213,6 @@ if iVar > 0
             
             netcdf.close(ncid);
             
-            qcSet    = str2double(readProperty('toolbox.qc_set'));
-            rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
-            passFlag = imosQCFlag('good', qcSet, 'flag');
-            failFlag = imosQCFlag('bad',  qcSet, 'flag');
-            
             lenData = length(data);
             
             flags = ones(lenData, 1)*passFlag;
@@ -217,11 +222,9 @@ if iVar > 0
             
             % let's find the nearest depth in climatology
             iClimDepth = 0;
-            iClimDaysOfYear = 0;
             lenDim = length(clim.dimensions);
             for i=1:lenDim
                 if strcmpi(clim.dimensions{i}.name, 'DEPTH'), iClimDepth = i; end
-                if strcmpi(clim.dimensions{i}.name, 'DAYS_OF_YEAR'), iClimDaysOfYear = i; end
             end
             
             climDepth = clim.dimensions{iClimDepth}.data';
@@ -241,9 +244,10 @@ if iVar > 0
             end
             clear cumSumClimDepth i2ClimDepth;
             
-            iDepth = repmat((1:1:lenClimDepth), lenData, 1);
-            iDepth = iDepth(iClimDepth);
-            clear iClimDepth;
+            iClimDepthValues = repmat((1:1:lenClimDepth), lenData, 1);
+            iDepth = nan(lenData, 1);
+            iDepth(any(iClimDepth, 2)) = iClimDepthValues(iClimDepth);
+            clear iClimDepth iClimDepthValues;
 
             % let's find the nearest time bin in climatology
             iClimTimeBounds = 0;
@@ -265,12 +269,9 @@ if iVar > 0
             daysBins(:, 2) = climatology_bounds(:, 2) - daysSpan;
             lenTimeBins = size(daysBins, 1);
             
-            % convert time data in days of year [0 365[ (ex. : 1 janvier at 12:00pm is 0.5)
-            dateOrigin = repmat('01/01/', lenData, 1);
-            dateOrigin = [dateOrigin datestr(dataTime, 'yyyy')];
-            dateOrigin = mat2cell(dateOrigin, ones(1, lenData), 10);
-            
-            daysOfYear = dataTime - datenum(dateOrigin, 'dd/mm/yyyy');
+            % convert time data in days of year [0 365[ (ex. : January the 1st at 12:00pm is 0.5)
+            [dateOrigin, ~, ~, ~, ~, ~] = datevec(dataTime);
+            daysOfYear = dataTime - datenum(dateOrigin, 1, 1);
             clear dateOrigin dataTime;
             
             % loop style (less memory issues)

@@ -1,0 +1,2 @@
+nblocks = 10
+drifterror = 0.25
