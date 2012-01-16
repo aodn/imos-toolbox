@@ -1,11 +1,13 @@
-function return_types = saveGraph( ax )
+function return_types = saveGraph( fig, ax )
 %SAVEGRAPH Saves the given axis to an image file. Prompts the user to select 
 % the location and file name.
 %
 % Inputs:
-%   ax  - The axis to save.
+%   fig - The main figure handle.
+%   ax  - The axis handle to save.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor: Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -81,12 +83,11 @@ if ~noPrompt
 
     [~, name, ext] = fileparts(fileName);
 
-    % Stupid matlab. The uiputfile function automatically adds an 'All Files' 
+    % The uiputfile function automatically adds an 'All Files' 
     % option to the list of file types. What purpose could this possibly 
-    % serve? It's a fucking save dialog. I hate matlab. Anyway, if the user 
+    % serve? It's a save dialog. Anyway, if the user 
     % selects this option, we need to figure out if the user has provided a 
-    % file extension, and if it is a supported type. I really despise matlab, 
-    % and want it to die.
+    % file extension, and if it is a supported type.
     if imgType > length(fileTypes)
 
       % if user hasn't provided an extension, just use the default
@@ -132,7 +133,12 @@ progress = waitbar(0, 'Saving graph', ...
 % figures. What we are doing, then, is copying the provided axis over to a 
 % new, invisible figure, and saving that figure.
 saveFig = figure('Visible', 'off');
-copyobj(ax, saveFig);
+new_ax = copyobj(ax, saveFig);
+
+% Note that figure properties like the colormap and axes properties are not
+% copied automatically by copyobj.
+col = get(fig, 'Colormap');
+set(saveFig, 'Colormap', col);
 
 % the default renderer under windows is opengl; for some reason, 
 % printing pcolor plots fails when using opengl as the renderer
