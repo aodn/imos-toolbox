@@ -4,6 +4,16 @@ function [data, flags, log] = morelloGradientQC( sample_data, data, k, type, aut
 % Gradient test which finds and flags any consecutive data which gradient
 % is > threshold
 %
+% Threshold = 6 for temperature when pressure < 500 dbar
+% Threshold = 2 for temperature when pressure >= 500 dbar
+%
+% Threshold = 0.9 for salinity when pressure < 500 dbar
+% Threshold = 0.3 for salinity when pressure >= 500 dbar
+%
+% Threshold = 3 for pressure/depth
+%
+% by default we assume all IMOS moorings are in shallow water < 500m
+%
 % Inputs:
 %   sample_data - struct containing the data set.
 %
@@ -70,32 +80,22 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-if strcmpi(sample_data.(type){k}.name, 'TEMP') || ...
-        strcmpi(sample_data.(type){k}.name, 'PSAL')
+% read all values from morelloSpikeQC properties file
+values = readProperty('*', fullfile('AutomaticQC', 'morelloGradientQC.txt'));
+param = strtrim(values{1});
+threshold = strtrim(values{2});
+
+iParam = strcmpi(sample_data.(type){k}.name, param);
     
+if any(iParam)
     qcSet    = str2double(readProperty('toolbox.qc_set'));
     passFlag = imosQCFlag('good', qcSet, 'flag');
     failFlag = imosQCFlag('bad',  qcSet, 'flag');
     
     lenData = length(data);
     
-    % define thresholds
-    % Threshold = 6 for temperature when pressure < 500 dbar
-    % Threshold = 2 for temperature when pressure >= 500 dbar
-    %
-    % Threshold = 0.9 for salinity when pressure < 500 dbar
-    % Threshold = 0.3 for salinity when pressure >= 500 dbar
-    
-    % by default we assume all IMOS moorings are in shallow water < 500m
-    if strcmpi(sample_data.(type){k}.name, 'TEMP')
-        % read threshold from morelloSpikeQC properties file
-        threshold = readProperty('TEMP', fullfile('AutomaticQC', 'morelloGradientQC.txt'));
-        threshold = ones(lenData, 1) * str2double(threshold);
-    elseif strcmpi(sample_data.(type){k}.name, 'PSAL')
-        % read threshold from morelloSpikeQC properties file
-        threshold = readProperty('PSAL', fullfile('AutomaticQC', 'morelloGradientQC.txt'));
-        threshold = ones(lenData, 1) * str2double(threshold);
-    end
+    threshold = threshold(iParam);
+    threshold = ones(lenData, 1) * str2double(threshold);
     
     % initially all data is good
     flags = ones(lenData, 1)*passFlag;

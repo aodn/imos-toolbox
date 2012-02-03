@@ -10,7 +10,7 @@ function [data, flags, log] = morelloSpikeQC( sample_data, data, k, type, auto )
 % Threshold = 0.9 for salinity when pressure < 500 dbar
 % Threshold = 0.3 for salinity when pressure >= 500 dbar
 %
-% Threshold = 1 for pressure
+% Threshold = 3 for pressure/depth
 %
 % by default we assume all IMOS moorings are in shallow water < 500m
 %

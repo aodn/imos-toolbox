@@ -1,2 +1,5 @@
 TEMP = 6
 PSAL = 0.9
+PRES = 3
+PRES_REL = 3
+DEPTH = 3
