@@ -215,7 +215,8 @@ if iVar > 0
             
             lenData = length(data);
             
-            flags = ones(lenData, 1)*passFlag;
+            % at first every point is raw
+            flags = ones(lenData, 1)*rawFlag;
             
             % read step type from morelloRangeNetCDFQC properties file
             maxTimeStdDev = str2double(readProperty('MAX_TIME_SD', fullfile('AutomaticQC', 'morelloRangeNetCDFQC.txt')));
@@ -329,13 +330,17 @@ if iVar > 0
                         iBadData = dataDepthBin < dataRangeMinDepthBin;
                         iBadData = iBadData | dataDepthBin > dataRangeMaxDepthBin;
                         
+                        iGoodData = dataDepthBin >= dataRangeMinDepthBin;
+                        iGoodData = iGoodData & dataDepthBin <= dataRangeMaxDepthBin;
+                        
                         dataRangeMinDepth(iBin(iDataDepth, j)) = dataRangeMinDepthBin;
                         dataRangeMaxDepth(iBin(iDataDepth, j)) = dataRangeMaxDepthBin;
                         dataRangeMin(iDataDepth) = dataRangeMinDepth;
                         dataRangeMax(iDataDepth) = dataRangeMaxDepth;
                         
-                        if any(iBadData)
+                        if any(iBadData) || any(iGoodData)
                             flagDepthBin(iBadData) = failFlag;
+                            flagDepthBin(iGoodData) = passFlag;
                             flagDepth(iBin(iDataDepth, j)) = flagDepthBin;
                             flags(iDataDepth) = flagDepth;
                         end
@@ -344,31 +349,31 @@ if iVar > 0
             end
             
             % for test in display
-%             mWh = findobj('Tag', 'mainWindow');
-%             morelloRange = get(mWh, 'UserData');
-%             morelloRange.rangeDEPTH = depths;
-%             if strcmpi(dataName, 'TEMP')
-%                 morelloRange.rangeMinT = dataRangeMin;
-%                 morelloRange.rangeMaxT = dataRangeMax;
-%             elseif strcmpi(dataName, 'PSAL')
-%                 morelloRange.rangeMinS = dataRangeMin;
-%                 morelloRange.rangeMaxS = dataRangeMax;
-%             elseif strcmpi(dataName, 'DOX2')
-%                 morelloRange.rangeMinDO = dataRangeMin;
-%                 morelloRange.rangeMaxDO = dataRangeMax;
-%             end
-%             set(mWh, 'UserData', morelloRange);
+            mWh = findobj('Tag', 'mainWindow');
+            morelloRange = get(mWh, 'UserData');
+            morelloRange.rangeDEPTH = depths;
+            if strcmpi(dataName, 'TEMP')
+                morelloRange.rangeMinT = dataRangeMin;
+                morelloRange.rangeMaxT = dataRangeMax;
+            elseif strcmpi(dataName, 'PSAL')
+                morelloRange.rangeMinS = dataRangeMin;
+                morelloRange.rangeMaxS = dataRangeMax;
+            elseif strcmpi(dataName, 'DOX2')
+                morelloRange.rangeMinDO = dataRangeMin;
+                morelloRange.rangeMaxDO = dataRangeMax;
+            end
+            set(mWh, 'UserData', morelloRange);
             
             % let's non QC data points too far in depth from
             % climatology depth values
-            distMaxDepth = 10;
+            distMaxDepth = 2*clim.globals.geospatial_vertical_step;
             iClimDepthTooFar = minDistClimData > distMaxDepth;
             if any(iClimDepthTooFar)
                 flags(iClimDepthTooFar) = rawFlag;
                 fprintf('%s\n', ['Warning : ' 'some data points '...
                     'are located further than ' num2str(distMaxDepth)...
-                    'm in depth from the depth values climatology and '...
-                    'won''t be QC''d']);
+                    'm vertically from any of the climatology depth values and '...
+                    'won''t be range QC''d']);
             end
         end
     end

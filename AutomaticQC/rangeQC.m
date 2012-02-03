@@ -88,11 +88,14 @@ flags = ones(lenData, 1)*rawFlag;
 
 if ~isempty(min) && ~isempty(max)
     if max ~= min
-        % initialise all flags to good
-        flags = ones(lenData, 1)*goodFlag;
+        % initialise all flags to bad
+        flags = ones(lenData, 1)*rangeFlag;
         
-        % add flags for out of range values
-        flags(data > max) = rangeFlag;
-        flags(data < min) = rangeFlag;
+        iPassed = data <= max;
+        iPassed = iPassed & data >= min;
+        
+        % add flags for in range values
+        flags(iPassed) = goodFlag;
+        flags(iPassed) = goodFlag;
     end
 end

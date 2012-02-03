@@ -19,7 +19,7 @@ AIRT,      1, air_temperature,                                    Celsius,      
 ATMP,      1, air_pressure,                                       Pascal,                                                            M, 999999.0, 90000.0, 110000.0
 ATMS,      1, air_pressure_at_sea_level,                          Pascal,                                                            M, 999999.0, 90000.0, 110000.0
 CDIR,      1, direction_of_sea_water_velocity,                    Degrees clockwise from true North in the direction of the current, V, 999999.0, 0.0,     360.0
-CDOM,      0, concentration_of_coloured_dissolved_organic_matter, mg m-3,                                                            K, 999999.0,    ,     
+CDOM,      0, concentration_of_coloured_dissolved_organic_matter, ppb,                                                            	 K, 999999.0,    ,     
 CNDC,      1, sea_water_electrical_conductivity,                  S m-1,                                                             C, 999999.0, 0.0,     50000.0
 SPEC_CNDC, 0, sea_water_specific_electrical_conductivity,         S m-1,                                                             C, 999999.0, 0.0,     50000.0
 CPHL,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
@@ -27,7 +27,7 @@ CHLF,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,       
 CHLU,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
 CHLR,      0, raw_concentration_of_chlorophyll_in_sea_water,      counts,                                                            K, 999999.0,    ,     
 CSPD,      1, sea_water_speed,                                    m s-1,                                                             V, 999999.0, 0.0,     5.0
-DEPTH,     1, depth,                                              m,                                                                 E, 999999.0, 0.0,     12000.0
+DEPTH,     1, depth,                                              m,                                                                 E, 999999.0, -5.0,    12000.0
 DEWT,      1, dew_point_temperature,                              Celsius,                                                           M, 999999.0, -50.0,   50.0
 DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water, umol l-1,                                               O, 999999.0,    ,     
 DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         umol kg-1,                                                         O, 999999.0,    ,     
@@ -58,11 +58,11 @@ OPBS,      0, optical_backscattering_coefficient,                 .,            
 PCO2,      1, surface_partial_pressure_of_carbon_dioxide_in_air,  Pascal,                                                            K, 999999.0,    ,     
 PHOS,      1, moles_of_phosphate_per_unit_mass_in_sea_water,      mole kg-1,                                                         K, 999999.0,    ,     
 PITCH,     1, platform_pitch_angle,                               Degrees,                                                           E, 999999.0, -180.0,  180.0
-PRES,      1, sea_water_pressure,                                 dbar,                                                              P, 999999.0, 0.0,     12000.0
-PRES_REL,  0, sea_water_relative_pressure,                        dbar,                                                              P, 999999.0, -10.0,     12000.0
-PSAL,      1, sea_water_salinity,                                 psu,                                                               S, 999999.0, 0.0,     100.0
+PRES,      1, sea_water_pressure,                                 dbar,                                                              P, 999999.0, -5.0,    12000.0
+PRES_REL,  0, sea_water_relative_pressure,                        dbar,                                                              P, 999999.0, -15.0,   12000.0
+PSAL,      1, sea_water_salinity,                                 psu,                                                               S, 999999.0, 2.0,     41.0
 Q,         1, specific_humidity,                                  ,                                                                  M, 999999.0, 0.0,     150.0
-RRATE,     1, rainfall_rate,                                      mm s-1,                                                            M, 999999.0,    ,     
+RAIT,      1, rainfall_rate,                                      mm s-1,                                                            M, 999999.0,    ,     
 RAIN_AMOUNT, 1, thickness_of_rainfall_amount,                     m,                                                                 M, 999999.0,    ,     
 RELH,      1, relative_humidity,                                  percent,                                                           M, 999999.0, 0.0,     150.0
 ROLL,      1, platform_roll_angle,                                Degrees,                                                           E, 999999.0, -180.0,  180.0
@@ -77,7 +77,7 @@ SSWV,      1, sea_surface_wave_directional_variance_spectral_density, m2 s deg-1
 SW,        1, surface_downwelling_shortwave_flux_in_air,          W m-2,                                                             F, 999999.0,    ,     
 SW_NET,    1, surface_net_upward_shortwave_flux,                  W m-2,                                                             F, 999999.0,    ,     
 TAU,       1, magnitude_of_surface_downward_stress,               Pascal,                                                            F, 999999.0,    ,     
-TEMP,      1, sea_water_temperature,                              Celsius,                                                           T, 999999.0, 0.0,     50.0
+TEMP,      1, sea_water_temperature,                              Celsius,                                                           T, 999999.0, -2.5,    40.0
 TIME,      1, time,                                               s,                                                                 E, 999999.0, 0.0,     90000.0
 TURB,      0, turbidity,                                          NTU,                                                               U, 999999.0, 0.0,     1000.0
 UCUR,      1, eastward_sea_water_velocity,                        m s-1,                                                             V, 999999.0, -5.0,    5.0
