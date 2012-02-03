@@ -124,13 +124,16 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
         qcSet     = str2double(readProperty('toolbox.qc_set'));
         goodFlag  = imosQCFlag('good',  qcSet, 'flag');
         
-        % set y limits so that only good data are visible
+        % set x and y limits so that axis are optimised for good data only
         curData = sample_data.variables{k}.data;
+        curTime = sample_data.dimensions{1}.data;
         curFlag = sample_data.variables{k}.flags;
         iGood = curFlag == goodFlag;
         yLimits = [floor(min(curData(iGood))), ceil(max(curData(iGood)))];
+        xLimits = [floor(min(curTime(iGood))), ceil(max(curTime(iGood)))];
         if any(iGood)
             set(graphs(k), 'YLim', yLimits);
+%             set(graphs(1), 'XLim', xLimits); %first one is enough as the others are then defined from it
         end
     end
     

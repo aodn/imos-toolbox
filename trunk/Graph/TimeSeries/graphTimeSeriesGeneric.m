@@ -66,19 +66,25 @@ set(ax, 'Tag', 'axis1D');
 %     hRMaxT = line(time.data, morelloRange.rangeMaxT, 'Parent', ax);
 %     set(hRMinT, 'Color', 'r');
 %     set(hRMaxT, 'Color', 'r');
-%     set(ax, 'YLim', [min(morelloRange.rangeMinT), max(morelloRange.rangeMaxT)]);
+%     set(ax, 'YLim', [min(morelloRange.rangeMinT) - min(morelloRange.rangeMinT)/10, ...
+%         max(morelloRange.rangeMaxT) + max(morelloRange.rangeMaxT)/10]);
 % elseif strcmpi(var.name, 'PSAL') && ~isempty(morelloRange)
 %     hRMinS = line(time.data, morelloRange.rangeMinS, 'Parent', ax);
 %     hRMaxS = line(time.data, morelloRange.rangeMaxS, 'Parent', ax);
 %     set(hRMinS, 'Color', 'r');
 %     set(hRMaxS, 'Color', 'r');
-%     set(ax, 'YLim', [min(morelloRange.rangeMinS), max(morelloRange.rangeMaxS)]);
+%     set(ax, 'YLim', [min(morelloRange.rangeMinS) - min(morelloRange.rangeMinS)/10, ...
+%         max(morelloRange.rangeMaxS) + max(morelloRange.rangeMaxS)/10]);
 % elseif strcmpi(var.name, 'DOX2') && ~isempty(morelloRange)
 %     hRMinS = line(time.data, morelloRange.rangeMinDO, 'Parent', ax);
 %     hRMaxS = line(time.data, morelloRange.rangeMaxDO, 'Parent', ax);
 %     set(hRMinS, 'Color', 'r');
 %     set(hRMaxS, 'Color', 'r');
-%     set(ax, 'YLim', [min(morelloRange.rangeMinDO), max(morelloRange.rangeMaxDO)]);
+%     set(ax, 'YLim', [min(morelloRange.rangeMinDO) - min(morelloRange.rangeMinDO)/10, ...
+%         max(morelloRange.rangeMaxDO + max(morelloRange.rangeMaxDO)/10)]);
+% elseif strcmpi(var.name, 'DEPTH') && ~isempty(morelloRange)
+%     hRDEPTH = line(time.data, morelloRange.rangeDEPTH, 'Parent', ax);
+%     set(hRDEPTH, 'Color', 'r');
 % end
 
 % Set axis position so that 1D data and 2D data vertically matches on X axis
