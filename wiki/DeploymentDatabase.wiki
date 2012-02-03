@@ -51,12 +51,12 @@ The following subsection details these requirements:
 ||Instruments||InstrumentID||Text||Unique ID for instrument||<font color="#FF0000">Mandatory</font>||||
 ||Instruments||Make||Text||Select existing make from list or add new one||<font color="#FF0000">Mandatory</font>||GA.source||
 ||Instruments||Model||Text||Select existing model from list or add new one||<font color="#FF0000">Mandatory</font>||GA.source, GA.keywords||
-||InstrumentSensorConfig||InstrumentID||Text||Unique ID for instrument||<font color="#FF0000">Mandatory</font>||||
-||InstrumentSensorConfig||SensorID||Text||Unique ID for sensor||<font color="#FF0000">Mandatory</font>||||
-||InstrumentSensorConfig||CurrentConfig||Yes/No||Is this the current Instrument/Sensor configuration||<font color="#FF0000">Mandatory</font>||||
+||InstrumentSensorConfig!||InstrumentID||Text||Unique ID for instrument||<font color="#FF0000">Mandatory</font>||||
+||InstrumentSensorConfig!||SensorID||Text||Unique ID for sensor||<font color="#FF0000">Mandatory</font>||||
+||InstrumentSensorConfig!||CurrentConfig!||Yes/No||Is this the current Instrument/Sensor configuration||<font color="#FF0000">Mandatory</font>||||
 ||Sensors||SensorID||Text||Unique ID for sensor||<font color="#FF0000">Mandatory</font>||||
 ||Sensors||Parameter||Text||IMOS parameter codes, comma separated, measured by the sensor||<font color="#FF0000">Mandatory</font>||||
-||Sensors||SerialNumber||Text||Enter serial number for sensor||<font color="#FF0000">Mandatory</font>||VA.sensor_serial_number||
+||Sensors||SerialNumber!||Text||Enter serial number for sensor||<font color="#FF0000">Mandatory</font>||VA.sensor_serial_number||
 ||Sites||Site||Text||Unique Site ID||<font color="#FF0000">Mandatory</font>||||
 ||Sites||!SiteName||Text||Site Name (Not unique)||<font color="#FF0000">Mandatory</font>||||
 ||Sites||Longitude||Number||Longitude in decimal degrees of Deployment||Optional if removed from template, otherwise <font color="#FF0000">mandatory</font>||GA.geospatial_lon_min, GA.geospatial_lon_max||
