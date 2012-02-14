@@ -81,7 +81,6 @@ elseif strcmpi(dataName, 'PSAL')
 end
     
 if iVar > 0
-    
     % we'll need time and depth information
     idTime  = getVar(sample_data.dimensions, 'TIME');
     ivDepth = getVar(sample_data.variables, 'DEPTH');
@@ -92,12 +91,25 @@ if iVar > 0
     end
     dataTime  = sample_data.dimensions{idTime}.data;
     dataDepth = sample_data.variables{ivDepth}.data;
+    flagDepth = sample_data.variables{ivDepth}.flags;
+    
+    qcSet    = str2double(readProperty('toolbox.qc_set'));
+    rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+    passFlag = imosQCFlag('good', qcSet, 'flag');
+    failFlag = imosQCFlag('bad',  qcSet, 'flag');
+    
+    % as we use depth information to retrieve climatology data, let's set
+    % depth as NaN when depth hasn't been QC'd good.
+    iGoodDepth = flagDepth == passFlag;
+    dataDepth(~iGoodDepth) = NaN;
+    clear flagDepth;
     
     climDir = readProperty('importManager.climDir');
     
     % get details from this site
-    site = sample_data.meta.site_name; % source = ddb
-    if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes.txt
+%     site = sample_data.meta.site_name; % source = ddb
+%     if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes.txt
+    site = sample_data.site_code;
     clear sample_data;
     
     site = imosSites(site);
@@ -146,39 +158,37 @@ if iVar > 0
                     end
                 end
                 
-                qcSet    = str2double(readProperty('toolbox.qc_set'));
-                rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
-                passFlag = imosQCFlag('good', qcSet, 'flag');
-                failFlag = imosQCFlag('bad',  qcSet, 'flag');
-                
                 lenData = length(data);
-                
-                flags = ones(lenData, 1)*passFlag;
                 
                 % read step type from morelloRangeQC properties file
                 maxTimeStdDev = str2double(readProperty('MAX_TIME_SD', fullfile('AutomaticQC', 'morelloRangeQC.txt')));
                 
                 % let's find the nearest depth in climatology
-                lenClimDepth = length(clim.depth);
-                climDepth = repmat(clim.depth, lenData, 1);
-                distClimData = abs(climDepth - repmat(dataDepth, 1, lenClimDepth));
-                minDistClimData = min(distClimData, [], 2);
-                iClimDepth = repmat(minDistClimData, 1, lenClimDepth) == distClimData;
-                clear climDepth distClimData;
+                climDepth = clim.dm;
+                lenClimDepth = length(climDepth);
                 
-                % let's find data having more than 1 clim depth and filter
-                % only the first clim depth (happens when data point
-                % located exactly between 2 climatology depth values).
-                cumSumClimDepth = cumsum(iClimDepth, 2);
-                i2ClimDepth = cumSumClimDepth == 2;
-                if any(any(i2ClimDepth))
-                    iClimDepth(i2ClimDepth) = false;
+                distClimData = abs(climDepth(1) - dataDepth);
+                iDepth = ones(lenData, 1);
+                minDistClimData = distClimData;
+                
+                for i=2:lenClimDepth
+                    nextDistClimData = abs(climDepth(i) - dataDepth);
+                    lNextDistClimData = nextDistClimData < distClimData;
+                    iDepth(lNextDistClimData) = i;
+                    minDistClimData(lNextDistClimData) = nextDistClimData(lNextDistClimData);
+                    
+                    distClimData = nextDistClimData;
                 end
-                clear cumSumClimDepth i2ClimDepth;
+                clear dataDepth distClimData nextDistClimData lNextDistClimData;
                 
-                iDepth = repmat((1:1:lenClimDepth), lenData, 1);
-                iDepth = iDepth(iClimDepth);
-                clear iClimDepth;
+                depths = nan(lenData, 1);
+                for i=1:lenClimDepth
+                    lDepth = iDepth == i;
+                    if any(lDepth)
+                        depths(lDepth) = climDepth(i);
+                    end
+                end
+                clear lDepth;
                 
                 % read method type from morelloRangeQC properties file
                 method = readProperty('DAILY_METHOD', fullfile('AutomaticQC', 'morelloRangeQC.txt'));
@@ -191,6 +201,7 @@ if iVar > 0
                     clear meanCor tf_coef;
                     % let's find the nearest month in climatology
                     [~, iMonth, ~, ~, ~, ~] = datevec(dataTime');
+                    clear dataTime;
                     lenMonths = length(clim.monmn(1, 1, :));
                     months = (1:1:lenMonths);
                     iLogMonth = false(lenData, lenMonths);
@@ -199,26 +210,24 @@ if iVar > 0
                     for i=1:lenMonths
                         iLogMonth(:, i) = iMonth == months(i);
                     end
-                    
-                    % vector style => memory overflow caused by repmat months
-%                     months = repmat(months, lenData, 1);
-%                     iMonth = repmat(iMonth, 1, lenMonths);
-%                     iLogMonth = iMonth == months;
-
                     clear iMonth months;
                 
                     mean    = squeeze(clim.monmn(iVar, iDepth, :));
                     mean    = mean(iLogMonth);
+                    mean(~iGoodDepth) = NaN;
+                    
                     
                     stdDev  = squeeze(clim.monsd(iVar, iDepth, :));
                     stdDev  = stdDev(iLogMonth);
-                    clear iDepth iLogMonth;
+                    stdDev(~iGoodDepth) = NaN;
+                    clear iLogMonth;
                     
                 elseif strcmpi(stepType, 'daily')
                     if isMethodSupported
                         % let's compute interpolated daily mean
                         [baseyear, ~, ~, ~, ~, ~] = datevec(dataTime');
                         dtime = dataTime' - datenum(baseyear, 1, 1);
+                        clear dataTime;
                         
                         meanInterp      = nan(lenData, 1);
                         stdDevInterp    = nan(lenData, 1);
@@ -241,7 +250,6 @@ if iVar > 0
                         if strcmpi(method, 'loess')
                             tf_coef = squeeze(clim.tf_coef(iVar, iDepth))';
                         end
-                        clear iDepth;
                         
                         for i=1:lenData
                             meanInterp(i)   = interp1(clim.dm, mean(i, :),   dtime(i));
@@ -257,7 +265,6 @@ if iVar > 0
                             end
                         end
                         clear tf_coef
-                        %                     meanInterp(i) = interp1(clim.dm, mean', dtime');
                         
                         % Apply corrections on interpolated mean
                         if strcmpi(method, 'trend_corr')
@@ -277,7 +284,10 @@ if iVar > 0
                             mean = meanInterp;
                         end
                         
+                        mean(~iGoodDepth) = NaN;
+                        
                         stdDev = stdDevInterp;
+                        stdDev(~iGoodDepth) = NaN;
                     else
                         fprintf('%s\n', ['Warning : ' 'DAILY_METHOD : '...
                             method ' in morelloRangeQC.txt is not supported '...
@@ -287,31 +297,38 @@ if iVar > 0
                     end
                 end
                 
+                
                 % let's compute range values
                 rangeMin = mean - maxTimeStdDev*stdDev;
                 rangeMax = mean + maxTimeStdDev*stdDev;
                 
-                % for test in display
-%                 mWh = findobj('Tag', 'mainWindow');
-%                 morelloRange = get(mWh, 'UserData');
-%                 if strcmpi(dataName, 'TEMP')
-%                     morelloRange.meanT = mean;
-%                     morelloRange.rangeMinT = rangeMin;
-%                     morelloRange.rangeMaxT = rangeMax;
-%                 elseif strcmpi(dataName, 'PSAL')
-%                     morelloRange.meanS = mean;
-%                     morelloRange.rangeMinS = rangeMin;
-%                     morelloRange.rangeMaxS = rangeMax;
-%                 end
-%                 set(mWh, 'UserData', morelloRange);
+                % at first every point is raw
+                flags = ones(lenData, 1)*rawFlag;
                 
                 % range test
                 iBadData = data < rangeMin;
                 iBadData = iBadData | data > rangeMax;
                 
-                if any(iBadData)
+                iGoodData = data >= rangeMin;
+                iGoodData = iBadData & data <= rangeMax;
+                
+                if any(iBadData) || any(iGoodData)
                     flags(iBadData) = failFlag;
+                    flags(iGoodData) = passFlag;
                 end
+                
+                % for test in display
+                mWh = findobj('Tag', 'mainWindow');
+                morelloRange = get(mWh, 'UserData');
+                morelloRange.rangeDEPTH = depths;
+                if strcmpi(dataName, 'TEMP')
+                    morelloRange.rangeMinT = rangeMin;
+                    morelloRange.rangeMaxT = rangeMax;
+                elseif strcmpi(dataName, 'PSAL')
+                    morelloRange.rangeMinS = rangeMin;
+                    morelloRange.rangeMaxS = rangeMax;
+                end
+                set(mWh, 'UserData', morelloRange);
                 
                 % let's non QC data points too far in depth from
                 % climatology depth values

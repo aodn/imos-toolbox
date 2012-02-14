@@ -229,6 +229,16 @@ function mainWindow(...
   set(hZoom, 'ActionPostCallback', @zoomPostCallback);
   set(hPan, 'ActionPostCallback', @zoomPostCallback);
   
+  %set uimenu
+  hToolsMenu = uimenu(fig, 'label', 'Tools');
+  hToolsDepth = uimenu(hToolsMenu, 'label', 'Display mooring''s instruments depths');
+  hHelpMenu = uimenu(fig, 'label', 'Help');
+  hHelpWiki = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
+  
+  %set menu callbacks
+  set(hToolsDepth, 'callBack', @displayMooringDepth);
+  set(hHelpWiki,   'callBack', @openWikiPage);
+  
   %% Widget Callbacks
   
   function selectionChange(event)
@@ -363,6 +373,109 @@ function mainWindow(...
         for i=1:length(graphs)
             datetick(graphs(i), 'x', 'dd-mm-yy HH:MM', 'keepticks');
         end
+    end
+  end
+
+  %% Menu callback
+  function displayMooringDepth(source,ev)
+  %DISPLAYMOORINGDEPTH Opens a new window where all the nominal depths and
+  %actual/computed depths from intruments on the mooring are plotted.
+  %
+    lenSampleData = length(sample_data);
+    %plot depth information
+    monitorRec = get(0,'MonitorPosition');
+    iBigMonitor = monitorRec(:, 3) == max(monitorRec(:, 3));
+    hFigMooringDepth = figure(...
+        'Name', 'Mooring''s instruments depths', ...
+        'NumberTitle','off', ...
+        'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+    hAxMooringDepth = axes('Parent',   hFigMooringDepth, 'YDir', 'reverse');
+    set(get(hAxMooringDepth, 'XLabel'), 'String', 'Time')
+    set(get(hAxMooringDepth, 'YLabel'), 'String', 'Depth')
+    set(get(hAxMooringDepth, 'Title'), 'String', 'Mooring''s instruments depths')
+    hold(hAxMooringDepth, 'on');
+    
+    %sort instruments by nominal depth
+    instrument_nominal_depth = nan(lenSampleData, 1);
+    xMin = nan(lenSampleData, 1);
+    xMax = nan(lenSampleData, 1);
+    for i=1:lenSampleData
+        if isfield(sample_data{i}, 'instrument_nominal_depth')
+            instrument_nominal_depth(i) = sample_data{i}.instrument_nominal_depth;
+            xMin = min(sample_data{i}.dimensions{1}.data);
+            xMax = max(sample_data{i}.dimensions{1}.data);
+        end
+    end
+    [~, iSort] = sort(instrument_nominal_depth);
+    xMin = min(xMin);
+    xMax = max(xMax);
+    set(hAxMooringDepth, 'XTick', (xMin:(xMax-xMin)/4:xMax));
+    set(hAxMooringDepth, 'XLim', [xMin, xMax]);
+    
+    cMap = colormap(jet(lenSampleData));
+    lineStyle = {'-', '--', ':', '-.'};
+    lenLineStyle = length(lineStyle);
+    instrumentDesc = cell(lenSampleData+1, 1);
+    instrumentDesc{1} = 'Nominal depths';
+    hLineDepth = nan(lenSampleData+1, 1);
+    for i=1:lenSampleData
+        instrumentDesc{i+1} = sample_data{iSort(i)}.instrument;
+        if isfield(sample_data{i}, 'instrument_nominal_depth')
+            instrument_nominal_depth = sample_data{iSort(i)}.instrument_nominal_depth;
+            if ~isempty(instrument_nominal_depth)
+                instrumentDesc{i+1} = [instrumentDesc{i+1} ' (' num2str(instrument_nominal_depth) 'm)'];
+                hLineDepth(1) = line([sample_data{iSort(i)}.dimensions{1}.data(1), sample_data{iSort(i)}.dimensions{1}.data(end)], ...
+                    [instrument_nominal_depth, instrument_nominal_depth], ...
+                    'Color', 'black');
+            else
+                fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                    ', global attribute ''instrument_nominal_depth'' is not properly documented.']);
+            end
+        else
+            fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                ', global attribute ''instrument_nominal_depth'' is not documented.']);
+        end
+        
+        %look for the depth variable
+        lenVar = length(sample_data{iSort(i)}.variables);
+        iDepth = 0;
+        for j=1:lenVar
+            if strcmpi(sample_data{iSort(i)}.variables{j}.name, 'DEPTH')
+                iDepth = j;
+                break;
+            end
+        end
+        
+        if iDepth > 0
+            hLineDepth(i+1) = line(sample_data{iSort(i)}.dimensions{1}.data, ...
+                sample_data{iSort(i)}.variables{iDepth}.data, ...
+                'Color', cMap(i, :), 'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+        else
+            fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                ', there is no DEPTH variable.']);
+        end
+    end
+    
+    iNan = isnan(hLineDepth);
+    if any(iNan)
+        hLineDepth(iNan) = [];
+        instrumentDesc(iNan) = [];
+    end
+    
+    datetick(hAxMooringDepth, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
+    legend(hLineDepth, instrumentDesc, 'Location', 'NorthEastOutside');
+  end
+
+  function openWikiPage(source,ev)
+  %OPENWIKIPAGE opens a new tab in your web-browser to access the
+  %IMOS-Toolbox wiki
+  %
+    url = 'http://code.google.com/p/imos-toolbox/wiki/Sidebar';
+    stat = web(url, '-browser');
+    if stat == 1
+        fprintf('%s\n', 'Warning : Browser was not found.');
+    elseif stat == 2
+        fprintf('%s\n', 'Warning : Browser was found but could not be launched.');
     end
   end
 
