@@ -72,8 +72,9 @@ end
 
 if ~isempty(dataLon) && ~isempty(dataLat)
     % get details from this site
-    site = sample_data.meta.site_name; % source = ddb
-    if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes.txt
+%     site = sample_data.meta.site_name; % source = ddb
+%     if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes.txt
+    site = sample_data.site_code;
     
     site = imosSites(site);
     

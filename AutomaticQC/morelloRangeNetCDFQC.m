@@ -106,8 +106,9 @@ if iVar > 0
     climDir = readProperty('importManager.climDir');
     
     % get details from this site
-    site = sample_data.meta.site_name; % source = ddb
-    if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes.txt
+%     site = sample_data.meta.site_name; % source = ddb
+%     if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes.txt
+    site = sample_data.site_code;
     clear sample_data;
     
     site = imosSites(site);
@@ -215,9 +216,6 @@ if iVar > 0
             
             lenData = length(data);
             
-            % at first every point is raw
-            flags = ones(lenData, 1)*rawFlag;
-            
             % read step type from morelloRangeNetCDFQC properties file
             maxTimeStdDev = str2double(readProperty('MAX_TIME_SD', fullfile('AutomaticQC', 'morelloRangeNetCDFQC.txt')));
             
@@ -306,9 +304,12 @@ if iVar > 0
             rangeMin = mean - maxTimeStdDev*stdDev;
             rangeMax = mean + maxTimeStdDev*stdDev;
             
+            % at first every point is raw
+            flags = ones(lenData, 1)*rawFlag;
+            
             % range test
-            dataRangeMin = nan(size(data));
-            dataRangeMax = nan(size(data));
+            dataRangeMin = nan(lenData, 1);
+            dataRangeMax = nan(lenData, 1);
             for i=1:lenClimDepth
                 for j=1:lenTimeBins
                     iDataDepth = i == iDepth;

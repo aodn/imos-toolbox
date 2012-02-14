@@ -85,7 +85,7 @@ function sample_data = NXICBinaryParse( filename )
   
   % the first 220 bytes aer the header 
   % section, the rest sample data
-  header  = parseHeader (data(1:220));
+  header  = parseHeader (data(1:220), filename);
   samples = parseSamples(data(221:end), header);
  
  
@@ -116,7 +116,7 @@ function sample_data = NXICBinaryParse( filename )
   sample_data.variables = {};
   sample_data.variables{1}.name = 'TEMP';
   sample_data.variables{2}.name = 'CNDC';
-  sample_data.variables{3}.name = 'PRES';
+  sample_data.variables{3}.name = 'PRES_REL';
   sample_data.variables{4}.name = 'PSAL';
   sample_data.variables{5}.name = 'SSPD';
   sample_data.variables{6}.name = 'VOLT';
@@ -143,6 +143,7 @@ function sample_data = NXICBinaryParse( filename )
   sample_data.variables{1}.data = samples.temperature;
   sample_data.variables{2}.data = samples.conductivity;
   sample_data.variables{3}.data = samples.pressure;
+  sample_data.variables{3}.applied_offset = -10.1325; % to be confirmed!
   sample_data.variables{4}.data = samples.salinity;
   sample_data.variables{5}.data = samples.soundSpeed;
   sample_data.variables{6}.data = samples.voltage;
@@ -160,11 +161,12 @@ function sample_data = NXICBinaryParse( filename )
   
 end
 
-function header = parseHeader(data)
+function header = parseHeader(data, filename)
 %PARSEHEADER Parses the NXIC header section from the given data vector.
 %
 % Inputs:
-%   data   - vector of bytes containing the header section.
+%   data        - vector of bytes containing the header section.
+%   filename    - name of the current file.
 %
 % Outputs:
 %   header - struct containing the contents of the header.
