@@ -284,6 +284,16 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
     % failure is not fatal
     catch e
       fprintf('%s\n', ['Warning : skipping ' deps(k).FileName]);
+      fprintf('\t%s\n', ['EndFieldTrip = ' deps(k).EndFieldTrip]);
+      fprintf('\t%s\n', ['SiteName = ' sits(k).SiteName]);
+      fprintf('\t%s\n', ['Site = ' deps(k).Site]);
+      fprintf('\t%s\n', ['Station = ' deps(k).Station]);
+      fprintf('\t%s\n', ['DeploymentType = ' deps(k).DeploymentType]);
+      fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
+      fprintf('%s\n', ['Error says : ' e.message]);
+      fprintf('\t%s\n', ['in function ' e.stack(1).name]);
+      fprintf('\t%s\n', ['file ' e.stack(1).file]);
+      fprintf('\t%s\n', ['line ' num2str(e.stack(1).line)]);
     end
   end
   
