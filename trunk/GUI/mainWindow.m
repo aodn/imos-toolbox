@@ -230,14 +230,16 @@ function mainWindow(...
   set(hPan, 'ActionPostCallback', @zoomPostCallback);
   
   %set uimenu
-  hToolsMenu = uimenu(fig, 'label', 'Tools');
-  hToolsDepth = uimenu(hToolsMenu, 'label', 'Display mooring''s instruments depths');
-  hHelpMenu = uimenu(fig, 'label', 'Help');
-  hHelpWiki = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
+  hToolsMenu        = uimenu(fig, 'label', 'Tools');
+  hToolsDepth       = uimenu(hToolsMenu, 'label', 'Display mooring''s depths');
+  hToolsTemp        = uimenu(hToolsMenu, 'label', 'Display mooring''s temperatures');
+  hHelpMenu         = uimenu(fig, 'label', 'Help');
+  hHelpWiki         = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
   
   %set menu callbacks
-  set(hToolsDepth, 'callBack', @displayMooringDepth);
-  set(hHelpWiki,   'callBack', @openWikiPage);
+  set(hToolsDepth,      'callBack', @displayMooringDepth);
+  set(hToolsTemp,       'callBack', @displayMooringTemp);
+  set(hHelpWiki,        'callBack', @openWikiPage);
   
   %% Widget Callbacks
   
@@ -391,7 +393,7 @@ function mainWindow(...
         'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
     hAxMooringDepth = axes('Parent',   hFigMooringDepth, 'YDir', 'reverse');
     set(get(hAxMooringDepth, 'XLabel'), 'String', 'Time')
-    set(get(hAxMooringDepth, 'YLabel'), 'String', 'Depth')
+    set(get(hAxMooringDepth, 'YLabel'), 'String', 'Depth (m)')
     set(get(hAxMooringDepth, 'Title'), 'String', 'Mooring''s instruments depths')
     hold(hAxMooringDepth, 'on');
     
@@ -464,6 +466,92 @@ function mainWindow(...
     
     datetick(hAxMooringDepth, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
     legend(hLineDepth, instrumentDesc, 'Location', 'NorthEastOutside');
+  end
+
+  function displayMooringTemp(source,ev)
+  %DISPLAYMOORINGTEMP Opens a new window where all the temperatures 
+  % collected by intruments on the mooring are plotted.
+  %
+    lenSampleData = length(sample_data);
+    %plot depth information
+    monitorRec = get(0,'MonitorPosition');
+    iBigMonitor = monitorRec(:, 3) == max(monitorRec(:, 3));
+    hFigMooringTemp = figure(...
+        'Name', 'Mooring''s instruments temperatures', ...
+        'NumberTitle','off', ...
+        'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+    hAxMooringTemp = axes('Parent',   hFigMooringTemp, 'YDir', 'reverse');
+    set(get(hAxMooringTemp, 'XLabel'), 'String', 'Time');
+    set(get(hAxMooringTemp, 'YLabel'), 'String', sprintf('%s\n%s', ...
+        'Temperature anomaly (Celsius deg.)', 'plotted on nominal depth (m)'));
+    set(get(hAxMooringTemp, 'Title'), 'String', 'Mooring''s instruments temperatures');
+    hold(hAxMooringTemp, 'on');
+    
+    %sort instruments by nominal depth
+    instrument_nominal_depth = nan(lenSampleData, 1);
+    xMin = nan(lenSampleData, 1);
+    xMax = nan(lenSampleData, 1);
+    for i=1:lenSampleData
+        if isfield(sample_data{i}, 'instrument_nominal_depth')
+            instrument_nominal_depth(i) = sample_data{i}.instrument_nominal_depth;
+            xMin = min(sample_data{i}.dimensions{1}.data);
+            xMax = max(sample_data{i}.dimensions{1}.data);
+        end
+    end
+    [~, iSort] = sort(instrument_nominal_depth);
+    xMin = min(xMin);
+    xMax = max(xMax);
+    set(hAxMooringTemp, 'XTick', (xMin:(xMax-xMin)/4:xMax));
+    set(hAxMooringTemp, 'XLim', [xMin, xMax]);
+    
+    cMap = colormap(jet(lenSampleData));
+    lineStyle = {'-', '--', ':', '-.'};
+    lenLineStyle = length(lineStyle);
+    instrumentDesc = cell(lenSampleData, 1);
+    hLineTemp = nan(lenSampleData, 1);
+    for i=1:lenSampleData
+        instrumentDesc{i} = sample_data{iSort(i)}.instrument;
+        if isfield(sample_data{i}, 'instrument_nominal_depth')
+            instrument_nominal_depth = sample_data{iSort(i)}.instrument_nominal_depth;
+            if ~isempty(instrument_nominal_depth)
+                instrumentDesc{i} = [instrumentDesc{i} ' (' num2str(instrument_nominal_depth) 'm)'];
+                
+                %look for the TEMP variable
+                lenVar = length(sample_data{iSort(i)}.variables);
+                iTemp = 0;
+                for j=1:lenVar
+                    if strcmpi(sample_data{iSort(i)}.variables{j}.name, 'TEMP')
+                        iTemp = j;
+                        break;
+                    end
+                end
+                
+                if iTemp > 0
+                    dataTemp = sample_data{iSort(i)}.variables{iTemp}.data;
+                    dataToBePlot = dataTemp - mean(dataTemp) + instrument_nominal_depth;
+                    hLineTemp(i) = line(sample_data{iSort(i)}.dimensions{1}.data, ...
+                        dataToBePlot, ...
+                        'Color', cMap(i, :), ...
+                        'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+                end
+            else
+                fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                    ', global attribute ''instrument_nominal_depth'' is not properly documented.']);
+            end
+        else
+            fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                ', global attribute ''instrument_nominal_depth'' is not documented.']);
+        end
+    end
+    
+    iNan = isnan(hLineTemp);
+    if any(iNan)
+        hLineTemp(iNan) = [];
+        instrumentDesc(iNan) = [];
+    end
+    
+    datetick(hAxMooringTemp, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
+    legend(hLineTemp, instrumentDesc, 'Location', 'NorthEastOutside');
   end
 
   function openWikiPage(source,ev)

@@ -27,6 +27,7 @@ CHLF,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,       
 CHLU,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0
 CHLR,      0, raw_concentration_of_chlorophyll_in_sea_water,      counts,                                                            K, 999999.0,    ,     
 CSPD,      1, sea_water_speed,                                    m s-1,                                                             V, 999999.0, 0.0,     5.0
+DENS,      1, sea_water_density,                                  kg m-3,                                                            D, 999999.0,    ,    
 DEPTH,     1, depth,                                              m,                                                                 E, 999999.0, -5.0,    12000.0
 DEWT,      1, dew_point_temperature,                              Celsius,                                                           M, 999999.0, -50.0,   50.0
 DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water, umol l-1,                                               O, 999999.0,    ,     

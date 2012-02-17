@@ -179,238 +179,265 @@ for k = 1:length(sample_data)
                 clear sam;
             end
             
-            % re-compute a pressure from nearest pressure sensors
-            if m > 1
-                % find the 2 nearest pressure data
-                diffWithOthers = nan(m,1);
-                for l = 1:m
-                    if isSensorHeight
-                    	diffWithOthers(l) = abs(curSam.instrument_nominal_height - otherSam{l}.instrument_nominal_height);
-                    else
-                        diffWithOthers(l) = abs(curSam.instrument_nominal_depth - otherSam{l}.instrument_nominal_depth);
-                    end
-                end
-                
-                iTwoFirst           = find(diffWithOthers == min(diffWithOthers), 2, 'first');
-                iFirst              = iTwoFirst(1);
-                samFirst            = otherSam{iFirst};
-                presIdxFirst        = getVar(samFirst.variables, 'PRES');
-                presRelIdxFirst     = getVar(samFirst.variables, 'PRES_REL');
-                
-                if length(iTwoFirst) == 2
-                    % in case the second nearest is as close as the first
-                    % one
-                    iSecond         = iTwoFirst(2);
-                else
-                    newDiffWithOthers = diffWithOthers;
-                    newDiffWithOthers(iFirst) = [];
-                    iSecond         = find(diffWithOthers == min(newDiffWithOthers));
-                end
-                samSecond           = otherSam{iSecond};
-                presIdxSecond       = getVar(samSecond.variables, 'PRES');
-                presRelIdxSecond    = getVar(samSecond.variables, 'PRES_REL');
-                clear otherSam;
-                
-                if presIdxFirst ~= 0 && presIdxSecond ~= 0
-                    % update from a relative pressure like SeaBird computes
-                    % it in its processed files, substracting a constant value
-                    % 10.1325 dbar for nominal atmospheric pressure
-                    relPresFirst    = samFirst.variables{presIdxFirst}.data - 10.1325;
-                    relPresSecond   = samSecond.variables{presIdxSecond}.data - 10.1325;
-                    presComment     = ['absolute '...
-                        'pressure measurements to which a nominal '...
-                        'value for atmospheric pressure (10.1325 dbar) '...
-                        'has been substracted'];
-                elseif presIdxFirst ~= 0 && presIdxSecond == 0
-                    relPresFirst    = samFirst.variables{presIdxFirst}.data - 10.1325;
-                    relPresSecond   = samSecond.variables{presRelIdxSecond}.data;
-                    presComment     = ['relative and absolute '...
-                        'pressure measurements to which a nominal '...
-                        'value for atmospheric pressure (10.1325 dbar) '...
-                        'has been substracted'];
-                elseif presIdxFirst == 0 && presIdxSecond ~= 0
-                    relPresFirst    = samFirst.variables{presRelIdxFirst}.data;
-                    relPresSecond   = samSecond.variables{presIdxSecond}.data - 10.1325;
-                    presComment     = ['relative and absolute '...
-                        'pressure measurements to which a nominal '...
-                        'value for atmospheric pressure (10.1325 dbar) '...
-                        'has been substracted'];
-                else
-                    % update from a relative measured pressure
-                    relPresFirst    = samFirst.variables{presRelIdxFirst}.data;
-                    relPresSecond   = samSecond.variables{presRelIdxSecond}.data;
-                    presComment     = ['relative '...
-                        'pressure measurements (calibration offset '...
-                        'usually performed to balance current '...
-                        'atmospheric pressure and acute sensor '...
-                        'precision at a deployed depth)'];
-                end
-                
-                % compute pressure at current sensor using trigonometry and
-                % assuming sensors repartition on a line between the two
-                % nearest pressure sensors
-                if isSensorHeight
-                    distFirstSecond     = samFirst.instrument_nominal_height - samSecond.instrument_nominal_height;
-                    distFirstCurSensor  = samFirst.instrument_nominal_height - curSam.instrument_nominal_height;
-                else
-                    distFirstSecond     = samFirst.instrument_nominal_depth - samSecond.instrument_nominal_depth;
-                    distFirstCurSensor  = samFirst.instrument_nominal_depth - curSam.instrument_nominal_depth;
-                end
-                
-                % theta is the angle between the vertical and line
-                % formed by the sensors
-                %
-                % cos(theta) = depthFirstSecond/distFirstSecond
-                % and
-                % cos(theta) = depthFirstCurSensor/distFirstCurSensor
-                %
-                % computedDepth = (distFirstCurSensor/distFirstSecond) ...
-                %        * (zSecond - zFirst) + zFirst
-                %
-                % pressure = density*gravity*depth
-                %
-                if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
-                    % compute depth with SeaWater toolbox
-                    % depth ~= sw_dpth(pressure, latitude)
-                    if curSam.geospatial_lat_min == curSam.geospatial_lat_max
-                        zFirst = sw_dpth(relPresFirst, curSam.geospatial_lat_min);
-                        zSecond = sw_dpth(relPresSecond, curSam.geospatial_lat_min);
-                        clear relPresFirst relPresSecond;
-                        
-                        computedDepthComment  = ['depthPP: Depth computed from '...
-                            'the 2 nearest pressure sensors available, using the '...
-                            'SeaWater toolbox from latitude and '...
-                            presComment '.'];
-                    else
-                        meanLat = curSam.geospatial_lat_min + ...
-                            (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
-                        
-                        zFirst = sw_dpth(relPresFirst, meanLat);
-                        zSecond = sw_dpth(relPresSecond, meanLat);  
-                        clear relPresFirst relPresSecond;
-                        
-                        computedDepthComment  = ['depthPP: Depth computed from '...
-                            'the 2 nearest pressure sensors available, using the '...
-                            'SeaWater toolbox from mean latitude and '...
-                            presComment '.'];
-                    end
-                else
-                    % without latitude information, we assume 1dbar ~= 1m
-                    zFirst = relPresFirst;
-                    zSecond = relPresSecond;
-                    clear relPresFirst relPresSecond;
-                    
-                    computedDepthComment  = ['depthPP: Depth computed from '...
-                        'the 2 nearest pressure sensors available with '...
-                        presComment ', assuming 1dbar ~= 1m.'];
-                end
-                
-                tFirst = samFirst.dimensions{getVar(samFirst.dimensions, 'TIME')}.data;
-                tSecond = samSecond.dimensions{getVar(samSecond.dimensions, 'TIME')}.data;
-                tCur = curSam.dimensions{getVar(curSam.dimensions, 'TIME')}.data;
-                clear samFirst samSecond;
-                
-                % let's interpolate data so we have consistent period
-                % sample and time sample over the 3 data sets
-                zFirst = interp1(tFirst, zFirst, tCur);
-                zSecond = interp1(tSecond, zSecond, tCur);
-                clear tFirst tSecond tCur;
-                
-                computedDepth = (distFirstCurSensor/distFirstSecond) ...
-                    * (zSecond - zFirst) + zFirst;
-                clear zFirst zSecond;
-            
-            elseif m == 1
-                fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ...
-                    ' computing actual depth from only one pressure sensor '...
-                    'on mooring']);
-                % we found only one sensor
-                otherSam = otherSam{1};
-                presIdxOther = getVar(otherSam.variables, 'PRES');
-                presRelIdxOther = getVar(otherSam.variables, 'PRES_REL');
-                
-                if presRelIdxOther == 0
-                    % update from a relative pressure like SeaBird computes
-                    % it in its processed files, substracting a constant value
-                    % 10.1325 dbar for nominal atmospheric pressure
-                    relPresOther = otherSam.variables{presIdxOther}.data - 10.1325;
-                    presComment = ['absolute '...
-                        'pressure measurements to which a nominal '...
-                        'value for atmospheric pressure (10.1325 dbar) '...
-                        'has been substracted'];
-                else
-                    % update from a relative measured pressure
-                    relPresOther = otherSam.variables{presRelIdxOther}.data;
-                    presComment = ['relative '...
-                        'pressure measurements (calibration offset '...
-                        'usually performed to balance current '...
-                        'atmospheric pressure and acute sensor '...
-                        'precision at a deployed depth)'];
-                end
-                
-                % compute pressure at current sensor assuming sensors
-                % repartition on a vertical line between current sensor
-                % and the nearest. This is the best we can do as we can't
-                % have any idea of the angle of the mooring with one
-                % pressure sensor (could consider the min pressure value
-                % in the future?).
-                %
-                % computedDepth = zOther - distOtherCurSensor
-                %
-                if isSensorHeight
-                    distOtherCurSensor = otherSam.instrument_nominal_height - curSam.instrument_nominal_height;
-                else
-                    distOtherCurSensor = otherSam.instrument_nominal_depth - curSam.instrument_nominal_depth;
-                end
-                
-                if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
-                    % compute depth with SeaWater toolbox
-                    % depth ~= sw_dpth(pressure, latitude)
-                    if curSam.geospatial_lat_min == curSam.geospatial_lat_max
-                        zOther = sw_dpth(relPresOther, curSam.geospatial_lat_min);
-                        clear relPresOther;
-                        
-                        computedDepthComment  = ['depthPP: Depth computed from '...
-                            'the only pressure sensor available, using the '...
-                            'SeaWater toolbox from latitude and '...
-                            presComment '.'];
-                    else
-                        meanLat = curSam.geospatial_lat_min + ...
-                            (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
-                        zOther = sw_dpth(relPresOther, meanLat);
-                        clear relPresOther;
-                        
-                        computedDepthComment  = ['depthPP: Depth computed from '...
-                            'the only pressure sensor available, using the '...
-                            'SeaWater toolbox from mean latitude and '...
-                            presComment '.'];
-                    end
-                else
-                    % without latitude information, we assume 1dbar ~= 1m
-                    zOther = relPresOther;
-                    clear relPresOther;
-                    
-                    computedDepthComment  = ['depthPP: Depth computed from '...
-                        'the only pressure sensor available with '...
-                        presComment ', assuming 1dbar ~= 1m.'];
-                end
-                
-                tOther = otherSam.dimensions{getVar(otherSam.dimensions, 'TIME')}.data;
-                tCur = curSam.dimensions{getVar(curSam.dimensions, 'TIME')}.data;
-                clear otherSam;
-                
-                % let's interpolate the other data set depth values in time
-                % to fit with the current data set time values
-                zOther = interp1(tOther, zOther, tCur);
-                clear tOther tCur;
-                
-                computedDepth = zOther + distOtherCurSensor;
-                clear zOther;
-            else
+            if m == 0
                 fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ...
                     ' there is no pressure sensor on this mooring from '...
                     'which an actual depth can be computed']);
                 continue;
+            else
+                % find the nearests pressure data
+                diffWithOthers = nan(m,1);
+                iFirst  = [];
+                iSecond = [];
+                for l = 1:m
+                    if isSensorHeight
+                        diffWithOthers(l) = curSam.instrument_nominal_height - otherSam{l}.instrument_nominal_height;
+                    else
+                        diffWithOthers(l) = curSam.instrument_nominal_depth - otherSam{l}.instrument_nominal_depth;
+                    end
+                end
+                
+                iAbove = diffWithOthers(diffWithOthers >= 0);
+                iBelow = diffWithOthers(diffWithOthers < 0);
+                
+                if ~isempty(iAbove)
+                    iAbove = find(diffWithOthers == min(iAbove), 1);
+                end
+                
+                if ~isempty(iBelow)
+                    iBelow = find(diffWithOthers == max(iBelow), 1);
+                end
+                
+                if isempty(iAbove) && ~isempty(iBelow)
+                    iFirst = iBelow;
+                    
+                    % let's find the second nearest below
+                    newDiffWithOthers = diffWithOthers;
+                    newDiffWithOthers(iFirst) = NaN;
+                    distance = 0;
+                    
+                    distMin = 10;
+                    while distance < distMin && ~all(isnan(newDiffWithOthers))
+                        iNextBelow = find(diffWithOthers == max(newDiffWithOthers(newDiffWithOthers < 0)), 1);
+                        distance = abs(diffWithOthers(iBelow) - diffWithOthers(iBelow));
+                        if distance >= distMin
+                            iSecond = iNextBelow;
+                            break;
+                        end
+                        newDiffWithOthers(iNextBelow) = NaN;
+                    end
+                elseif isempty(iBelow) && ~isempty(iAbove)
+                    iFirst = iAbove;
+                else
+                    iFirst  = iAbove;
+                    iSecond = iBelow;
+                end
+                
+                if isempty(iSecond)
+                    fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ...
+                        ' computing actual depth from only one pressure sensor '...
+                        'on mooring']);
+                    % we found only one sensor (it is above)
+                    otherSam = otherSam{iFirst};
+                    presIdxOther = getVar(otherSam.variables, 'PRES');
+                    presRelIdxOther = getVar(otherSam.variables, 'PRES_REL');
+                    
+                    if presRelIdxOther == 0
+                        % update from a relative pressure like SeaBird computes
+                        % it in its processed files, substracting a constant value
+                        % 10.1325 dbar for nominal atmospheric pressure
+                        relPresOther = otherSam.variables{presIdxOther}.data - 10.1325;
+                        presComment = ['absolute '...
+                            'pressure measurements to which a nominal '...
+                            'value for atmospheric pressure (10.1325 dbar) '...
+                            'has been substracted'];
+                    else
+                        % update from a relative measured pressure
+                        relPresOther = otherSam.variables{presRelIdxOther}.data;
+                        presComment = ['relative '...
+                            'pressure measurements (calibration offset '...
+                            'usually performed to balance current '...
+                            'atmospheric pressure and acute sensor '...
+                            'precision at a deployed depth)'];
+                    end
+                    
+                    % compute pressure at current sensor assuming sensors
+                    % repartition on a vertical line between current sensor
+                    % and the nearest. This is the best we can do as we can't
+                    % have any idea of the angle of the mooring with one
+                    % pressure sensor (could consider the min pressure value
+                    % in the future?).
+                    %
+                    % computedDepth = zOther - distOtherCurSensor
+                    %
+                    if isSensorHeight
+                        distOtherCurSensor = otherSam.instrument_nominal_height - curSam.instrument_nominal_height;
+                    else
+                        distOtherCurSensor = otherSam.instrument_nominal_depth - curSam.instrument_nominal_depth;
+                    end
+                    
+                    if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
+                        % compute depth with SeaWater toolbox
+                        % depth ~= sw_dpth(pressure, latitude)
+                        if curSam.geospatial_lat_min == curSam.geospatial_lat_max
+                            zOther = sw_dpth(relPresOther, curSam.geospatial_lat_min);
+                            clear relPresOther;
+                            
+                            computedDepthComment  = ['depthPP: Depth computed from '...
+                                'the only pressure sensor available, using the '...
+                                'SeaWater toolbox from latitude and '...
+                                presComment '.'];
+                        else
+                            meanLat = curSam.geospatial_lat_min + ...
+                                (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
+                            zOther = sw_dpth(relPresOther, meanLat);
+                            clear relPresOther;
+                            
+                            computedDepthComment  = ['depthPP: Depth computed from '...
+                                'the only pressure sensor available, using the '...
+                                'SeaWater toolbox from mean latitude and '...
+                                presComment '.'];
+                        end
+                    else
+                        % without latitude information, we assume 1dbar ~= 1m
+                        zOther = relPresOther;
+                        clear relPresOther;
+                        
+                        computedDepthComment  = ['depthPP: Depth computed from '...
+                            'the only pressure sensor available with '...
+                            presComment ', assuming 1dbar ~= 1m.'];
+                    end
+                    
+                    tOther = otherSam.dimensions{getVar(otherSam.dimensions, 'TIME')}.data;
+                    tCur = curSam.dimensions{getVar(curSam.dimensions, 'TIME')}.data;
+                    clear otherSam;
+                    
+                    % let's interpolate the other data set depth values in time
+                    % to fit with the current data set time values
+                    zOther = interp1(tOther, zOther, tCur);
+                    clear tOther tCur;
+                    
+                    computedDepth = zOther + distOtherCurSensor;
+                    clear zOther;
+                else
+                    samFirst            = otherSam{iFirst};
+                    presIdxFirst        = getVar(samFirst.variables, 'PRES');
+                    presRelIdxFirst     = getVar(samFirst.variables, 'PRES_REL');
+                    
+                    samSecond           = otherSam{iSecond};
+                    presIdxSecond       = getVar(samSecond.variables, 'PRES');
+                    presRelIdxSecond    = getVar(samSecond.variables, 'PRES_REL');
+                    clear otherSam;
+                    
+                    if presIdxFirst ~= 0 && presIdxSecond ~= 0
+                        % update from a relative pressure like SeaBird computes
+                        % it in its processed files, substracting a constant value
+                        % 10.1325 dbar for nominal atmospheric pressure
+                        relPresFirst    = samFirst.variables{presIdxFirst}.data - 10.1325;
+                        relPresSecond   = samSecond.variables{presIdxSecond}.data - 10.1325;
+                        presComment     = ['absolute '...
+                            'pressure measurements to which a nominal '...
+                            'value for atmospheric pressure (10.1325 dbar) '...
+                            'has been substracted'];
+                    elseif presIdxFirst ~= 0 && presIdxSecond == 0
+                        relPresFirst    = samFirst.variables{presIdxFirst}.data - 10.1325;
+                        relPresSecond   = samSecond.variables{presRelIdxSecond}.data;
+                        presComment     = ['relative and absolute '...
+                            'pressure measurements to which a nominal '...
+                            'value for atmospheric pressure (10.1325 dbar) '...
+                            'has been substracted'];
+                    elseif presIdxFirst == 0 && presIdxSecond ~= 0
+                        relPresFirst    = samFirst.variables{presRelIdxFirst}.data;
+                        relPresSecond   = samSecond.variables{presIdxSecond}.data - 10.1325;
+                        presComment     = ['relative and absolute '...
+                            'pressure measurements to which a nominal '...
+                            'value for atmospheric pressure (10.1325 dbar) '...
+                            'has been substracted'];
+                    else
+                        % update from a relative measured pressure
+                        relPresFirst    = samFirst.variables{presRelIdxFirst}.data;
+                        relPresSecond   = samSecond.variables{presRelIdxSecond}.data;
+                        presComment     = ['relative '...
+                            'pressure measurements (calibration offset '...
+                            'usually performed to balance current '...
+                            'atmospheric pressure and acute sensor '...
+                            'precision at a deployed depth)'];
+                    end
+                    
+                    % compute pressure at current sensor using trigonometry and
+                    % assuming sensors repartition on a line between the two
+                    % nearest pressure sensors
+                    if isSensorHeight
+                        distFirstSecond     = samFirst.instrument_nominal_height - samSecond.instrument_nominal_height;
+                        distFirstCurSensor  = samFirst.instrument_nominal_height - curSam.instrument_nominal_height;
+                    else
+                        distFirstSecond     = samFirst.instrument_nominal_depth - samSecond.instrument_nominal_depth;
+                        distFirstCurSensor  = samFirst.instrument_nominal_depth - curSam.instrument_nominal_depth;
+                    end
+                    
+                    % theta is the angle between the vertical and line
+                    % formed by the sensors
+                    %
+                    % cos(theta) = depthFirstSecond/distFirstSecond
+                    % and
+                    % cos(theta) = depthFirstCurSensor/distFirstCurSensor
+                    %
+                    % computedDepth = (distFirstCurSensor/distFirstSecond) ...
+                    %        * (zSecond - zFirst) + zFirst
+                    %
+                    % pressure = density*gravity*depth
+                    %
+                    if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
+                        % compute depth with SeaWater toolbox
+                        % depth ~= sw_dpth(pressure, latitude)
+                        if curSam.geospatial_lat_min == curSam.geospatial_lat_max
+                            zFirst = sw_dpth(relPresFirst, curSam.geospatial_lat_min);
+                            zSecond = sw_dpth(relPresSecond, curSam.geospatial_lat_min);
+                            clear relPresFirst relPresSecond;
+                            
+                            computedDepthComment  = ['depthPP: Depth computed from '...
+                                'the 2 nearest pressure sensors available, using the '...
+                                'SeaWater toolbox from latitude and '...
+                                presComment '.'];
+                        else
+                            meanLat = curSam.geospatial_lat_min + ...
+                                (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
+                            
+                            zFirst = sw_dpth(relPresFirst, meanLat);
+                            zSecond = sw_dpth(relPresSecond, meanLat);
+                            clear relPresFirst relPresSecond;
+                            
+                            computedDepthComment  = ['depthPP: Depth computed from '...
+                                'the 2 nearest pressure sensors available, using the '...
+                                'SeaWater toolbox from mean latitude and '...
+                                presComment '.'];
+                        end
+                    else
+                        % without latitude information, we assume 1dbar ~= 1m
+                        zFirst = relPresFirst;
+                        zSecond = relPresSecond;
+                        clear relPresFirst relPresSecond;
+                        
+                        computedDepthComment  = ['depthPP: Depth computed from '...
+                            'the 2 nearest pressure sensors available with '...
+                            presComment ', assuming 1dbar ~= 1m.'];
+                    end
+                    
+                    tFirst = samFirst.dimensions{getVar(samFirst.dimensions, 'TIME')}.data;
+                    tSecond = samSecond.dimensions{getVar(samSecond.dimensions, 'TIME')}.data;
+                    tCur = curSam.dimensions{getVar(curSam.dimensions, 'TIME')}.data;
+                    clear samFirst samSecond;
+                    
+                    % let's interpolate data so we have consistent period
+                    % sample and time sample over the 3 data sets
+                    zFirst = interp1(tFirst, zFirst, tCur);
+                    zSecond = interp1(tSecond, zSecond, tCur);
+                    clear tFirst tSecond tCur;
+                    
+                    computedDepth = (distFirstCurSensor/distFirstSecond) ...
+                        * (zSecond - zFirst) + zFirst;
+                    clear zFirst zSecond;
+                end
             end
         else
             fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ...

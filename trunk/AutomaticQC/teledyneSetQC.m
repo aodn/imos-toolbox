@@ -57,6 +57,7 @@ if nargin<2, auto=false; end
 idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
 idPres = 0;
 idPresRel = 0;
+idDepth = 0;
 idUcur = 0;
 idVcur = 0;
 idWcur = 0;
@@ -73,6 +74,7 @@ lenVar = size(sample_data.variables,2);
 for i=1:lenVar
     if strcmpi(sample_data.variables{i}.name, 'PRES'), idPres = i; end
     if strcmpi(sample_data.variables{i}.name, 'PRES_REL'), idPresRel = i; end
+    if strcmpi(sample_data.variables{i}.name, 'DEPTH'), idDepth = i; end
     if strcmpi(sample_data.variables{i}.name, 'UCUR'), idUcur = i; end
     if strcmpi(sample_data.variables{i}.name, 'VCUR'), idVcur = i; end
     if strcmpi(sample_data.variables{i}.name, 'WCUR'), idWcur = i; end
@@ -90,7 +92,7 @@ idMandatory = idHeight & idUcur & idVcur & idWcur & idEcur;
 for j=1:4
     idMandatory = idMandatory & idADCP_GOOD{j} & idABSI{j} & idADCP_CORR{j};
 end
-if ~idMandatory || (idPres == 0 && idPresRel == 0), return; end
+if ~idMandatory, return; end
 
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
@@ -106,17 +108,17 @@ Bins    = sample_data.dimensions{idHeight}.data';
 %without pressure records. Use mean of nominal water depth minus sensor height.
 
 %Pull out pressure and calculate array of depth bins
-if idPres == 0 && idPresRel == 0
+if idPres == 0 && idPresRel == 0 && idDepth == 0
     lenData = size(sample_data.variables{idUcur}.flags, 1);
     ff = true(lenData, 1);
     
-    if isempty(sample_data.geospatial_vertical_max)
-        error('No pressure data in file => Fill geospatial_vertical_max!');
+    if isempty(sample_data.instrument_nominal_depth)
+        error('No pressure/depth data in file => Fill instrument_nominal_depth!');
     else
-        pressure = ones(lenData, 1).*(sample_data.geospatial_vertical_max);
+        pressure = ones(lenData, 1).*(sample_data.instrument_nominal_depth);
+        disp('Warning : TeledyneSetQC uses nominal depth')
     end
-    disp('TeledyneSetQC using nominal depth')
-else
+elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
         ff = (sample_data.variables{idPres}.flags == rawFlag) | ...
             (sample_data.variables{idPres}.flags == goodFlag);
@@ -129,11 +131,13 @@ else
     end
 end
 
-%BDM (07/04/2010) - Bug fix due to scaling of pressure! Was originally setup to scale for pressure in mm.
-%   bdepth=(pressure/1e6)*ones(1,length(Bins))-ones(length(pressure),1)*Bins;
-
-% assuming 1 dbar = 1 m, computing depth of each bin
-bdepth = pressure*ones(1,length(Bins)) - ones(length(pressure),1)*Bins;
+if idDepth == 0
+    % assuming 1 dbar = 1 m, computing depth of each bin
+    depth = pressure;
+else
+    depth = sample_data.variables{idDepth}.data;
+end
+bdepth = depth*ones(1,length(Bins)) - ones(length(depth),1)*Bins;
 
 %Pull out horizontal velocities
 u = sample_data.variables{idUcur}.data;

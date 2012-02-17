@@ -205,13 +205,17 @@ error(nargchk(1,1,nargin));
   % fill in the sample_data struct
   sample_data.toolbox_input_file        = filename;
   sample_data.meta.fixedLeader          = fixed;
-  sample_data.meta.instrument_make      = 'Teledyne RD';
+  sample_data.meta.instrument_make      = 'Teledyne RDI';
   sample_data.meta.instrument_model     = 'Workhorse ADCP';
   sample_data.meta.instrument_serial_no =  num2str(fixed.instSerialNumber);
   sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
   sample_data.meta.instrument_firmware  = ...
     strcat(num2str(fixed.cpuFirmwareVersion), '.', num2str(fixed.cpuFirmwareRevision));
-  sample_data.meta.beam_angle           =  fixed.beamAngle;
+  if isnan(fixed.beamAngle)
+      sample_data.meta.beam_angle       =  20;  % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
+  else
+      sample_data.meta.beam_angle       =  fixed.beamAngle;
+  end
                                     
   % add dimensions
   sample_data.dimensions{1}.name       = 'TIME';

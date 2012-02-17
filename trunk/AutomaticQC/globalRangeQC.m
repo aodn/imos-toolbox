@@ -1,5 +1,5 @@
-function [data, flags, log] = rangeQC ( sample_data, data, k, type, auto )
-%RANGEQC Flags data which is out of the variable's valid range.
+function [data, flags, log] = globalRangeQC ( sample_data, data, k, type, auto )
+%GLOBALRANGEQC Flags data which is out of the variable's valid range.
 %
 % Iterates through the given data, and returns flags for any samples which
 % do not fall within the valid_min and valid_max fields for the given
@@ -72,30 +72,38 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-% get the flag values with which we flag good and out of range data
-qcSet     = str2double(readProperty('toolbox.qc_set'));
-rangeFlag = imosQCFlag('bound', qcSet, 'flag');
-rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
-goodFlag  = imosQCFlag('good',  qcSet, 'flag');
+% read all values from morelloSpikeQC properties file
+values = readProperty('*', fullfile('AutomaticQC', 'globalRangeQC.txt'));
+param = strtrim(values{1});
 
-max  = sample_data.variables{k}.valid_max;
-min  = sample_data.variables{k}.valid_min;
+iParam = strcmpi(sample_data.(type){k}.name, param);
 
-lenData = length(data);
-
-% initialise all flags to non QC'd
-flags = ones(lenData, 1)*rawFlag;
-
-if ~isempty(min) && ~isempty(max)
-    if max ~= min
-        % initialise all flags to bad
-        flags = ones(lenData, 1)*rangeFlag;
-        
-        iPassed = data <= max;
-        iPassed = iPassed & data >= min;
-        
-        % add flags for in range values
-        flags(iPassed) = goodFlag;
-        flags(iPassed) = goodFlag;
+if any(iParam)
+    % get the flag values with which we flag good and out of range data
+    qcSet     = str2double(readProperty('toolbox.qc_set'));
+    rangeFlag = imosQCFlag('bound', qcSet, 'flag');
+    rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+    goodFlag  = imosQCFlag('good',  qcSet, 'flag');
+    
+    max  = sample_data.variables{k}.valid_max;
+    min  = sample_data.variables{k}.valid_min;
+    
+    lenData = length(data);
+    
+    % initialise all flags to non QC'd
+    flags = ones(lenData, 1)*rawFlag;
+    
+    if ~isempty(min) && ~isempty(max)
+        if max ~= min
+            % initialise all flags to bad
+            flags = ones(lenData, 1)*rangeFlag;
+            
+            iPassed = data <= max;
+            iPassed = iPassed & data >= min;
+            
+            % add flags for in range values
+            flags(iPassed) = goodFlag;
+            flags(iPassed) = goodFlag;
+        end
     end
 end
