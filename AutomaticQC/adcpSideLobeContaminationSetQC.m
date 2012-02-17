@@ -1,10 +1,10 @@
-function [sample_data] = adcpLevelSetQC( sample_data, auto )
-%ADCPLEVELSETQC Quality control procedure for ADCP instrument data.
+function [sample_data] = adcpSideLobeContaminationSetQC( sample_data, auto )
+%ADCPSIDELOBECONTAMINATIONSETQC Quality control procedure for ADCP instrument data.
 %
 % Quality control ADCP instrument data, assessing the side lobe effects on 
 % the cells close to the surface.
 %
-% Following Hrvoje Mihanovic (hrvoje.mihanovic@hhi.hr, WA) recommendations :
+% Following Hrvoje Mihanovic recommendations :
 % The beam emitted from the transducer is not an ideal
 % line, it has a certain 3D structure with the main lobe and side lobes.
 % Some of the side lobes are emitted perpendicularly towards the surface.
@@ -28,6 +28,7 @@ function [sample_data] = adcpLevelSetQC( sample_data, auto )
 %                 data.
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Contributor:  Hrvoje Mihanovic <hrvoje.mihanovic@hhi.hr>
 %
 
 %
@@ -69,6 +70,7 @@ if nargin<2, auto=false; end
 idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
 idPres = 0;
 idPresRel = 0;
+idDepth = 0;
 idUcur = 0;
 idVcur = 0;
 idWcur = 0;
@@ -76,6 +78,7 @@ lenVar = size(sample_data.variables,2);
 for i=1:lenVar
     if strcmpi(sample_data.variables{i}.name, 'PRES'), idPres = i; end
     if strcmpi(sample_data.variables{i}.name, 'PRES_REL'), idPresRel = i; end
+    if strcmpi(sample_data.variables{i}.name, 'DEPTH'), idDepth = i; end
     if strcmpi(sample_data.variables{i}.name, 'UCUR'), idUcur = i; end
     if strcmpi(sample_data.variables{i}.name, 'VCUR'), idVcur = i; end
     if strcmpi(sample_data.variables{i}.name, 'WCUR'), idWcur = i; end
@@ -84,7 +87,7 @@ end
 % check if the data is compatible with the QC algorithm
 idMandatory = idHeight & idUcur & idVcur & idWcur;
 
-if ~idMandatory || (idPres == 0 && idPresRel == 0), return; end
+if ~idMandatory, return; end
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
 badFlag  = imosQCFlag('bad',  qcSet, 'flag');
@@ -99,17 +102,17 @@ Bins    = sample_data.dimensions{idHeight}.data';
 %without pressure records. Use mean of nominal water depth minus sensor height.
 
 %Pull out pressure and calculate array of depth bins
-if idPres == 0 && idPresRel == 0
+if idPres == 0 && idPresRel == 0 && idDepth == 0
     lenData = size(sample_data.variables{idUcur}.flags, 1);
     ff = true(lenData, 1);
     
-    if isempty(sample_data.geospatial_vertical_max)
-        error('No pressure data in file => Fill geospatial_vertical_max!');
+    if isempty(sample_data.instrument_nominal_depth)
+        error('No pressure data in file => Fill instrument_nominal_depth!');
     else
-        pressure = ones(lenData, 1).*(sample_data.geospatial_vertical_max);
+        pressure = ones(lenData, 1).*(sample_data.instrument_nominal_depth);
+        disp('Warning : AdcpLevelSetQC uses nominal depth')
     end
-    disp('AdcpLevelSetQC using nominal depth')
-else
+elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
         ff = (sample_data.variables{idPres}.flags == rawFlag) | ...
             (sample_data.variables{idPres}.flags == goodFlag);
@@ -122,25 +125,11 @@ else
     end
 end
 
-% calculate depth from pressure
-if ~isempty(sample_data.geospatial_lat_min) && ...
-        ~isempty(sample_data.geospatial_lat_max)
-    % compute vertical min/max with SeaWater toolbox
-    if sample_data.geospatial_lat_min == sample_data.geospatial_lat_max
-        computedDepth         = sw_dpth(pressure, ...
-            sample_data.geospatial_lat_min);
-        clear pressure;
-    else
-        meanLat = sample_data.geospatial_lat_min + ...
-            (sample_data.geospatial_lat_max - sample_data.geospatial_lat_min)/2;
-        
-        computedDepth         = sw_dpth(pressure, meanLat);
-        clear pressure;
-    end
+if idDepth == 0
+    % assuming 1 dbar = 1 m, computing depth of each bin
+    depth = pressure;
 else
-    % without latitude information, we assume 1dbar ~= 1m
-    computedDepth         = pressure;
-    clear pressure;
+    depth = sample_data.variables{idDepth}.data;
 end
 
 % calculate contaminated depth
@@ -150,10 +139,10 @@ end
 % substraction of 2*BinSize to the non-contaminated height in order to be
 % conservative and be sure that the first bin below the contaminated depth
 % hasn't been computed from any contaminated signal.
-cDepth = computedDepth - (computedDepth * cos(sample_data.meta.beam_angle*pi/180) - 2*BinSize);
+cDepth = depth - (depth * cos(sample_data.meta.beam_angle*pi/180) - 2*BinSize);
 
 % calculate bins depth
-binDepth = computedDepth*ones(1,length(Bins)) - ones(length(computedDepth),1)*Bins;
+binDepth = depth*ones(1,length(Bins)) - ones(length(depth),1)*Bins;
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
 uFlags = ones(sizeCur)*goodFlag;

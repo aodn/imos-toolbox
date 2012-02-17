@@ -167,7 +167,7 @@ sample_data.meta.instrument_model           = 'Aquadopp Profiler';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
-sample_data.meta.beam_angle                 = 25;
+sample_data.meta.beam_angle                 = 25;   % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
 
 sample_data.dimensions{1} .name = 'TIME';
 sample_data.dimensions{2} .name = 'HEIGHT_ABOVE_SENSOR';
