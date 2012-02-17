@@ -66,16 +66,12 @@ function sample_data = readXR620( filename )
   % copy all of the information over to the sample data struct
   sample_data = struct;
 
-  sample_data.toolbox_input_file        = filename;
-  sample_data.meta.instrument_make      = header.make;
-  sample_data.meta.instrument_model     = header.model;
-  sample_data.meta.instrument_firmware  = header.firmware;
-  sample_data.meta.instrument_serial_no = header.serial;
-  if header.interval > 0
-      sample_data.meta.instrument_sample_interval = header.interval;
-  else
-      sample_data.meta.instrument_sample_interval = median(diff(data.time*24*3600));
-  end
+  sample_data.toolbox_input_file                = filename;
+  sample_data.meta.instrument_make              = header.make;
+  sample_data.meta.instrument_model             = header.model;
+  sample_data.meta.instrument_firmware          = header.firmware;
+  sample_data.meta.instrument_serial_no         = header.serial;
+  sample_data.meta.instrument_sample_interval   = median(diff(data.time*24*3600));
   
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant

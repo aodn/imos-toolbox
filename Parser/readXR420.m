@@ -11,8 +11,8 @@ function sample_data = readXR420( filename )
 % Outputs:
 %   sample_data - Struct containing imported sample data.
 %
-% Contributor : Laurent Besnard <laurent.besnard@utas.edu.au>
-% 				Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author :      Laurent Besnard <laurent.besnard@utas.edu.au>
+% Contributor : Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
 % Copyright (c) 2010, eMarine Information Infrastructure (eMII) and Integrated 
@@ -70,11 +70,7 @@ function sample_data = readXR420( filename )
   sample_data.meta.instrument_model     = header.model;
   sample_data.meta.instrument_firmware  = header.firmware;
   sample_data.meta.instrument_serial_no = header.serial;
-  if header.interval > 0
-      sample_data.meta.instrument_sample_interval = 24*3600*header.interval;
-  else
-      sample_data.meta.instrument_sample_interval = median(diff(data.time*24*3600));
-  end
+  sample_data.meta.instrument_sample_interval = median(diff(data.time*24*3600));
   sample_data.meta.correction           = header.correction;
   
   % dimensions definition must stay in this order : T, Z, Y, X, others;
