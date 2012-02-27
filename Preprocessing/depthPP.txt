@@ -28,5 +28,5 @@
 % Ex. : exclude,        ADCP WQM
 
 same_family,   yes
-include,        
+include,       NXIC SBE
 exclude,       
