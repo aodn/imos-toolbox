@@ -144,7 +144,7 @@ sensor_cal_expr   = '^[\*]\s*(\w+):\s*(.+)\s*$';
 salinity_expr     = '^* output salinity.*$';
 pressure_cal_expr = ['^[\*]\s*pressure\s+S/N\s+(\d+)'... % serial number
                      ',\s*range\s*=\s*(\d+)'         ... % pressure range
-                     '\s+psia:\s*(.+)\s*$'];             % cal date
+                     '\s+psia:?\s*(.+)\s*$'];            % cal date including Seaterm v2 variation format
 
 %
 % textscan is used for parsing sample data - much quicker than regex. 
