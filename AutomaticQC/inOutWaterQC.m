@@ -1,10 +1,9 @@
-function [data flags log] = outWaterQC( sample_data, data, k, type, auto )
-%OUTWATERQC Flags samples which were taken after the instrument was taken
-% out of the water.
+function [data flags log] = inOutWaterQC( sample_data, data, k, type, auto )
+%INOUTWATERQC Flags samples which were taken before and after the instrument was placed
+% in the water.
 %
-% Flags all samples from the data set which have a time that is after the 
-% out water time. Assumes that all of these samples will be at the end of the 
-% data set.
+% Flags all samples from the data set which have a time that is before or after the 
+% in and out water time.
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
@@ -20,13 +19,12 @@ function [data flags log] = outWaterQC( sample_data, data, k, type, auto )
 % Outputs:
 %   data        - Same as input.
 %
-%   flags       - Vector the same size as data, with after out-water samples 
-%                 flagged. Empty if no values were flagged.
+%   flags       - Vector the same size as data, with before in-water samples 
+%                 flagged. 
 %
-%   log         - Empty cell array.
+%   log         - Empty cell array..
 %
-% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -73,19 +71,21 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
+time_in_water = sample_data.time_deployment_start;
 time_out_water = sample_data.time_deployment_end;
 
-if isempty(time_out_water), return; end
+if isempty(time_in_water), return; end
 
 qcSet     = str2double(readProperty('toolbox.qc_set'));
-passFlag  = imosQCFlag('raw',          qcSet, 'flag');
+rawFlag  = imosQCFlag('raw',          qcSet, 'flag');
 failFlag  = imosQCFlag('probablyBad',   qcSet, 'flag');
 
 lenData = length(data);
 
-flags = ones(lenData, 1)*passFlag;
+% initially all data is bad
+flags = ones(lenData, 1)*failFlag;
 
-% find samples which were taken out of water
+% find samples which were taken before in water
 time = sample_data.dimensions{1}.data;
 
 % case data is originaly a matrix
@@ -94,9 +94,9 @@ if lenData > lenTime
     time = repmat(time, lenData/lenTime, 1);
 end
 
-iAfter = time > time_out_water;
+iGood = time >= time_in_water;
+iGood = iGood & time <= time_out_water;
 
-% flag the after out-water samples
-if any(iAfter)
-    flags(iAfter) = failFlag;
+if any(iGood)
+    flags(iGood) = rawFlag;
 end

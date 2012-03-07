@@ -22,9 +22,10 @@ function result = executeDDBQuery( table, field, value)
 %            equivalents of the class definitions in 
 %            Java/src/org/imos/ddb/schema/.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor: Gordon Keith <gordon.keith@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Gordon Keith <gordon.keith@csiro.au>
 %    -now can use the toolbox.ddb.* optional properties if exist
+%               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %

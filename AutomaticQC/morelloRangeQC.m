@@ -99,9 +99,16 @@ if iVar > 0
     failFlag = imosQCFlag('bad',  qcSet, 'flag');
     
     % as we use depth information to retrieve climatology data, let's set
-    % depth as NaN when depth hasn't been QC'd good.
-    iGoodDepth = flagDepth == passFlag;
-    dataDepth(~iGoodDepth) = NaN;
+    % depth as its nominal value when depth hasn't been QC'd good nor raw.
+    iGoodDepth = (flagDepth == passFlag) | (flagDepth == rawFlag);
+    if any(~iGoodDepth)
+        if isempty(sample_data.instrument_nominal_depth)
+            error('Bad depth data in file => Fill instrument_nominal_depth!');
+        else
+            dataDepth(~iGoodDepth) = sample_data.instrument_nominal_depth;
+            disp('Warning : morelloRangeQC uses nominal depth instead of bad depth data in file')
+        end
+    end
     clear flagDepth;
     
     climDir = readProperty('importManager.climDir');
@@ -164,7 +171,7 @@ if iVar > 0
                 maxTimeStdDev = str2double(readProperty('MAX_TIME_SD', fullfile('AutomaticQC', 'morelloRangeQC.txt')));
                 
                 % let's find the nearest depth in climatology
-                climDepth = clim.dm;
+                climDepth = clim.depth;
                 lenClimDepth = length(climDepth);
                 
                 distClimData = abs(climDepth(1) - dataDepth);
@@ -200,33 +207,24 @@ if iVar > 0
                 if strcmpi(stepType, 'monthly')
                     clear meanCor tf_coef;
                     % let's find the nearest month in climatology
-                    [~, iMonth, ~, ~, ~, ~] = datevec(dataTime');
+                    [~, dataMonth, ~, ~, ~, ~] = datevec(dataTime);
                     clear dataTime;
-                    lenMonths = length(clim.monmn(1, 1, :));
-                    months = (1:1:lenMonths);
-                    iLogMonth = false(lenData, lenMonths);
-                    
-                    % loop style (less memory issues)
-                    for i=1:lenMonths
-                        iLogMonth(:, i) = iMonth == months(i);
-                    end
-                    clear iMonth months;
                 
-                    mean    = squeeze(clim.monmn(iVar, iDepth, :));
-                    mean    = mean(iLogMonth);
+                    mean = nan(lenData, 1);
+                    stdDev = nan(lenData, 1);
+                    for i=1:lenData
+                        mean(i)    = clim.monmn(iVar, iDepth(i), dataMonth(i));
+                        stdDev(i)  = clim.monsd(iVar, iDepth(i), dataMonth(i));
+                    end
+                    
                     mean(~iGoodDepth) = NaN;
-                    
-                    
-                    stdDev  = squeeze(clim.monsd(iVar, iDepth, :));
-                    stdDev  = stdDev(iLogMonth);
                     stdDev(~iGoodDepth) = NaN;
-                    clear iLogMonth;
                     
                 elseif strcmpi(stepType, 'daily')
                     if isMethodSupported
                         % let's compute interpolated daily mean
-                        [baseyear, ~, ~, ~, ~, ~] = datevec(dataTime');
-                        dtime = dataTime' - datenum(baseyear, 1, 1);
+                        [baseyear, ~, ~, ~, ~, ~] = datevec(dataTime);
+                        dtime = dataTime - datenum(baseyear, 1, 1);
                         clear dataTime;
                         
                         meanInterp      = nan(lenData, 1);
@@ -310,7 +308,7 @@ if iVar > 0
                 iBadData = iBadData | data > rangeMax;
                 
                 iGoodData = data >= rangeMin;
-                iGoodData = iBadData & data <= rangeMax;
+                iGoodData = iGoodData & data <= rangeMax;
                 
                 if any(iBadData) || any(iGoodData)
                     flags(iBadData) = failFlag;

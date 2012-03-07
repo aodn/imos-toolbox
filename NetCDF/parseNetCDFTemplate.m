@@ -46,7 +46,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %
 % where 
 %
-%   - field         is a field within the DeploymentData table, the value of
+%   - field         is a field within the DeploymentData/CTDData table, the value of
 %                   which is to be used as the attribute value (unless 
 %                   related_table and related_field are specified).
 %
@@ -66,7 +66,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %        local_time_zone = [ddb TimeZone]
 %
 %      the value will be translated into a query to the deployment database of 
-%      the form:
+%      the form (in 'Mooring mode'):
 %
 %        select TimeZone from DeploymentData 
 %        where DeploymentID = dataset_deployment_id
@@ -75,7 +75,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 %
 %        institution = [ddb PersonnelDownload Personnel StaffID Organisation]
 %
-%      the value will be translated into the following query:
+%      the value will be translated into the following query in 'Mooring' mode:
 %
 %        select Organisation from Personnel where StaffID = 
 %        (

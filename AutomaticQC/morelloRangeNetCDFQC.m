@@ -99,9 +99,16 @@ if iVar > 0
     failFlag = imosQCFlag('bad',  qcSet, 'flag');
     
     % as we use depth information to retrieve climatology data, let's set
-    % depth as NaN when depth hasn't been QC'd good.
-    iGoodDepth = flagDepth == passFlag;
-    dataDepth(~iGoodDepth) = NaN;
+    % depth as its nominal value when depth hasn't been QC'd good nor raw.
+    iGoodDepth = (flagDepth == passFlag) | (flagDepth == rawFlag);
+    if any(~iGoodDepth)
+        if isempty(sample_data.instrument_nominal_depth)
+            error('Bad depth data in file => Fill instrument_nominal_depth!');
+        else
+            dataDepth(~iGoodDepth) = sample_data.instrument_nominal_depth;
+            disp('Warning : morelloRangeNetCDFQC uses nominal depth instead of bad depth data in file')
+        end
+    end
     
     climDir = readProperty('importManager.climDir');
     
@@ -217,7 +224,8 @@ if iVar > 0
             lenData = length(data);
             
             % read step type from morelloRangeNetCDFQC properties file
-            maxTimeStdDev = str2double(readProperty('MAX_TIME_SD', fullfile('AutomaticQC', 'morelloRangeNetCDFQC.txt')));
+            rangeMinExpr = readProperty('rangeMin', fullfile('AutomaticQC', 'morelloRangeNetCDFQC.txt'));
+            rangeMaxExpr = readProperty('rangeMax', fullfile('AutomaticQC', 'morelloRangeNetCDFQC.txt'));
             
             % let's find the nearest depth in climatology
             iClimDepth = 0;
@@ -260,6 +268,8 @@ if iVar > 0
                 if strcmpi(clim.variables{i}.name, 'climatology_bounds'), iClimTimeBounds = i; end
                 if strcmpi(clim.variables{i}.name, [dataName '_mean']), iClimDataMean = i; end
                 if strcmpi(clim.variables{i}.name, [dataName '_SD']), iClimDataStd = i; end
+                if strcmpi(clim.variables{i}.name, [dataName '_min']), iClimDataMin = i; end
+                if strcmpi(clim.variables{i}.name, [dataName '_max']), iClimDataMax = i; end
             end
             climatology_bounds = clim.variables{iClimTimeBounds}.data;
             
@@ -299,10 +309,21 @@ if iVar > 0
             
             mean    = clim.variables{iClimDataMean}.data;
             stdDev  = clim.variables{iClimDataStd}.data;
+            mini    = clim.variables{iClimDataMin}.data;
+            maxi    = clim.variables{iClimDataMax}.data;
             
             % let's compute range values
-            rangeMin = mean - maxTimeStdDev*stdDev;
-            rangeMax = mean + maxTimeStdDev*stdDev;
+            try
+                rangeMin = eval(rangeMinExpr);
+            catch
+                error('Invalid rangeMin expression in morelloRangeNetCDFQC.txt');
+            end
+            
+            try
+                rangeMax = eval(rangeMaxExpr);
+            catch
+                error('Invalid rangeMax expression in morelloRangeNetCDFQC.txt');
+            end
             
             % at first every point is raw
             flags = ones(lenData, 1)*rawFlag;

@@ -153,8 +153,17 @@ end
 [~, sourceFolder] = fileparts(dataDir);
 fprintf('%s\n', ['Processing field trip ' fieldTrip ' from folder ' sourceFolder]);
 
+% get the toolbox execution mode. Values can be 'mooring' and 'profile'. 
+% If no value is set then default mode is 'mooring'
+mode = readProperty('toolbox.mode');
+
 % get infos from current field trip
-[~, deps, sits, dataDir] = getDeployments(true);
+switch lower(mode)
+    case 'profile'
+        [~, deps, sits, dataDir] = getCTDs(true);
+    otherwise
+        [~, deps, sits, dataDir] = getDeployments(true);
+end
 
 moorings = {deps.Site}';
 distinctMooring = unique(moorings);

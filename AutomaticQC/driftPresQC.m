@@ -1,11 +1,8 @@
 function [data flags log] = driftPresQC( sample_data, data, k, type, auto )
-%
-% This function calculates the median value for sequential blocks of the 
+%DRIFTPRESQC calculates the median value for sequential blocks of the 
 % data set. The median of the first block is taken as the reference,
 % each subsequent block median is compared with the reference and the data 
 % is flagged if there is an appreciable difference.
-% 
-%
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
