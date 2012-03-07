@@ -83,6 +83,7 @@ flatFlag = imosQCFlag('probablyBad', qcSet, 'flag');
 
 lenData = length(data);
 
+% initially all data is good
 flags = ones(lenData, 1)*goodFlag;
 
 % size of the current flatline region we are stepping through
@@ -102,7 +103,9 @@ for m = 2:lenData
     
     % the number of consecutive points is big 
     % enough to warrent flagging it as a flatline
-    if flatlineSize >= nsamples, flags(m-flatlineSize:m-1) = flatFlag; end
+    if flatlineSize >= nsamples
+        flags(m-flatlineSize:m-1) = flatFlag;
+    end
     
     flatlineSize = 1; 
   end

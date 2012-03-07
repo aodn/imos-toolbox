@@ -88,8 +88,8 @@ failFlag = imosQCFlag('probablyBad',    qcSet, 'flag');
 if ~isempty(dataTime)
     lenData = length(dataTime);
     
-    % initially all data is good
-    flags = ones(1, lenData)*passFlag;
+    % initially all data is bad
+    flags = ones(1, lenData)*failFlag;
     
     % read site name from morelloImpossibleDateQC properties file
     dateMin = readProperty('dateMin', fullfile('AutomaticQC', 'morelloImpossibleDateQC.txt'));
@@ -102,10 +102,10 @@ if ~isempty(dataTime)
         dateMax = datenum(dateMax, 'dd/mm/yyyy');
     end
     
-    iBadTime = dataTime < dateMin;
-    iBadTime = iBadTime | (dataTime >= dateMax);
+    iGoodTime = dataTime >= dateMin;
+    iGoodTime = iGoodTime | (dataTime <= dateMax);
     
-    if any(iBadTime)
-        flags(iBadTime) = failFlag;
+    if any(iGoodTime)
+        flags(iGoodTime) = passFlag;
     end
 end

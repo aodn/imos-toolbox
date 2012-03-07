@@ -120,11 +120,22 @@ function mainWindow(...
     'String', sampleDataDescs,...
     'Value',  1);
   
+  % get the toolbox execution mode. Values can be 'mooring' and 'profile'. 
+  % If no value is set then default mode is 'mooring'
+  mode = readProperty('toolbox.mode');
+  
+  switch lower(mode)
+      case 'profile'
+          graphMenuValue = 2;
+      otherwise
+          graphMenuValue = 1;
+  end
+
   % graph type selection menu
   graphMenu = uicontrol(...
-    'Style', 'popupmenu',...
-    'String', listGraphs(),...
-    'Value', 1);
+    'Style',    'popupmenu',...
+    'String',   listGraphs(),...
+    'Value',    graphMenuValue);
   
   % side panel
   sidePanel = uipanel(...
@@ -352,29 +363,33 @@ function mainWindow(...
     xTicks  = xLimits(1):xStep:xLimits(2);
     set(gca, 'XTick', xTicks);
     
-    % sync all other X axis
-    set(graphs, 'XLim', xLimits);
-    set(graphs, 'XTick', xTicks);
-    
-    % reset other 1D axis yTicks if needed because the X axis sync causes a
-    % change in the Y range
-    if ~isempty(graphs1D)
-        for i=1:length(graphs1D)
-            yLimits = get(graphs1D(i), 'YLim');
-            yStep   = (yLimits(2) - yLimits(1)) / 5;
-            yTicks  = yLimits(1):yStep:yLimits(2);
-            set(graphs1D(i), 'YTick', yTicks);
-        end
-    end
-    
-    % tranformation of datenum xticks in datestr
     graphName = get(graphMenu, 'String');
     graphName = graphName{get(graphMenu, 'Value')};
     if strcmpi(graphName, 'TimeSeries')
+        % sync all other X axis
+        set(graphs, 'XLim', xLimits);
+        set(graphs, 'XTick', xTicks);
+        
+        % reset other 1D axis yTicks if needed because the X axis sync causes a
+        % change in the Y range
+        if ~isempty(graphs1D)
+            for i=1:length(graphs1D)
+                yLimits = get(graphs1D(i), 'YLim');
+                yStep   = (yLimits(2) - yLimits(1)) / 5;
+                yTicks  = yLimits(1):yStep:yLimits(2);
+                set(graphs1D(i), 'YTick', yTicks);
+            end
+        end
+        
+        % tranformation of datenum xticks in datestr
         datetick(gca, 'x', 'dd-mm-yy HH:MM', 'keepticks');
         for i=1:length(graphs)
             datetick(graphs(i), 'x', 'dd-mm-yy HH:MM', 'keepticks');
         end
+    elseif strcmpi(graphName, 'DepthProfile')
+        % sync all other Y axis
+        set(graphs, 'YLim', yLimits);
+        set(graphs, 'YTick', yTicks);
     end
   end
 

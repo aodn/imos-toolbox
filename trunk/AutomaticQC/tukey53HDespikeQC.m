@@ -85,10 +85,11 @@ fdata = data;
 lenData = length(data);
 
 qcSet     = str2double(readProperty('toolbox.qc_set'));
+rawFlag   = imosQCFlag('raw',   qcSet, 'flag');
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
-flags = ones(lenData,1)*goodFlag;
+flags = ones(lenData,1)*rawFlag;
 
 % remove mean, and apply a mild high pass 
 % filter before applying spike detection
@@ -120,7 +121,14 @@ u3(1:lenU2-2) = 0.25 *(u2(1:lenU2-2) + 2*u2(2:lenU2-1) + u2(3:lenU2));
 % search the data for spikes
 mydelta = abs(fdata(4:lenData-5) - u3(1:lenData-8));
 iSpike = mydelta > k_param * stddev;
+iNoSpike = mydelta <= k_param * stddev;
 iSpike = [false; false; false; iSpike; false; false; false; false; false];
+iNoSpike = [false; false; false; iNoSpike; false; false; false; false; false];
+
 if any(iSpike)
     flags(iSpike) = spikeFlag;
+end
+
+if any(iNoSpike)
+    flags(iNoSpike) = goodFlag;
 end

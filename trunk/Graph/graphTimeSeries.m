@@ -123,12 +123,14 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     if sample_data.meta.level == 1 && strcmp(func2str(plotFunc), 'graphTimeSeriesGeneric')
         qcSet     = str2double(readProperty('toolbox.qc_set'));
         goodFlag  = imosQCFlag('good',  qcSet, 'flag');
+        rawFlag   = imosQCFlag('raw',  qcSet, 'flag');
         
-        % set x and y limits so that axis are optimised for good data only
+        % set x and y limits so that axis are optimised for good/raw data only
         curData = sample_data.variables{k}.data;
         curTime = sample_data.dimensions{1}.data;
         curFlag = sample_data.variables{k}.flags;
         iGood = curFlag == goodFlag;
+        iGood = iGood | (curFlag == rawFlag);
         yLimits = [floor(min(curData(iGood))), ceil(max(curData(iGood)))];
         xLimits = [floor(min(curTime(iGood))), ceil(max(curTime(iGood)))];
         if any(iGood)

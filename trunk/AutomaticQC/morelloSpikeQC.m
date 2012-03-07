@@ -84,32 +84,66 @@ if ~strcmp(type, 'variables'), return; end
 % read all values from morelloSpikeQC properties file
 values = readProperty('*', fullfile('AutomaticQC', 'morelloSpikeQC.txt'));
 param = strtrim(values{1});
-threshold = strtrim(values{2});
+thresholdExpr = strtrim(values{2});
 
 iParam = strcmpi(sample_data.(type){k}.name, param);
 
 if any(iParam)
     lenData = length(data);
-    
-    threshold = threshold(iParam);
-    threshold = ones(lenData, 1) * str2double(threshold);
    
     qcSet    = str2double(readProperty('toolbox.qc_set'));
+    rawFlag  = imosQCFlag('raw', qcSet, 'flag');
     passFlag = imosQCFlag('good', qcSet, 'flag');
     failFlag = imosQCFlag('bad',  qcSet, 'flag');
     
-    % initially all data is good
-    flags = ones(lenData, 1)*passFlag;
-    testval = flags*NaN;
+    flags = ones(lenData, 1)*rawFlag;
+    testval = nan(lenData, 1);
+
+    I = true(lenData, 1);
+    I(1) = false;
+    I(end) = false;
     
-    I = (2:lenData-1);
-    Ip1 = I + 1;
-    Im1 = I - 1;
+    Ip1 = [false; I(1:end-1)];
+    Im1 = [I(2:end); false];
     
-    testval(1) = abs(data(2) - data(1));
-    testval(I) = abs(abs(data(I) - (data(Ip1) + data(Im1))/2) ...
-        - abs((data(Ip1) - data(Im1))/2));
-    testval(lenData) = abs(data(lenData) - data(lenData-1));
+    % testval(1) and testval(end) are left to NaN on pupose so that QC is
+    % raw for those two points. Indeed the test cannot be performed.
+    data1 = data(Im1);
+    data2 = data(I);
+    data3 = data(Ip1);
+    
+    testval(I) = abs(abs(data2 - (data3 + data1)/2) ...
+        - abs((data3 - data1)/2));
+    
+    if strcmpi(thresholdExpr{iParam}, 'PABIM')
+        IChl            = true(lenData, 1);
+        IChl(1:2)       = false;
+        IChl(end-1:end) = false;
+    
+        IChlp1 = [false; IChl(1:end-1)];
+        IChlp2 = [false; false; IChl(1:end-2)];
+        IChlm1 = [IChl(2:end); false];
+        IChlm2 = [IChl(3:end); false; false];
+        
+        dataChl0 = data(IChlm2);
+        dataChl1 = data(IChlm1);
+        dataChl2 = data(IChl);
+        dataChl3 = data(IChlp1);
+        dataChl4 = data(IChlp2);
+        
+        threshold = [NaN; NaN; ...
+            abs(median(dataChl0+dataChl1+dataChl2+dataChl3+dataChl4, 2)) + ...
+            abs(std(dataChl0+dataChl1+dataChl2+dataChl3+dataChl4, 0, 2)); ...
+            NaN; NaN];
+    else
+        threshold = eval(thresholdExpr{iParam});
+        threshold = ones(lenData, 1) .* threshold;
+    end
+    
+    iNoSpike = testval <= threshold;
+    if any(iNoSpike)
+        flags(iNoSpike) = passFlag;
+    end
     
     iSpike = testval > threshold;
     if any(iSpike)
