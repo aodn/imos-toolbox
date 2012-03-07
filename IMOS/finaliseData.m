@@ -70,6 +70,11 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
     sam.meta.site_id       = sam.meta.deployment.Site;
     sam.meta.depth         = sam.meta.deployment.InstrumentDepth;
     sam.meta.timezone      = sam.meta.deployment.TimeZone;
+  elseif isfield(sam.meta, 'profile')
+    sam.meta.site_name     = sam.meta.site.SiteName;
+    sam.meta.site_id       = sam.meta.profile.Site;
+    sam.meta.depth         = sam.meta.profile.InstrumentDepth;
+    sam.meta.timezone      = sam.meta.profile.TimeZone;
   else
     if ~isfield(sam.meta, 'site_name'); sam.meta.site_name  = 'UNKNOWN';  end
     if ~isfield(sam.meta, 'site_id');   sam.meta.site_id    = 'UNKNOWN';  end
@@ -123,6 +128,16 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
           sam.time_deployment_end = sam.meta.deployment.TimeOnDeck;
       elseif ~isempty(sam.meta.deployment.TimeSwitchOff)
           sam.time_deployment_end = sam.meta.deployment.TimeSwitchOff;
+      end
+  elseif isfield(sam.meta, 'profile')
+      if ~isempty(sam.meta.profile.DateFirstInPos) && ~isempty(sam.meta.profile.TimeFirstInPos)
+          sam.time_deployment_start = datenum([datestr(sam.meta.profile.DateFirstInPos, 'dd-mm-yyyy') ' ' ...
+              datestr(sam.meta.profile.TimeFirstInPos, 'HH:MM:SS')], 'dd-mm-yyyy HH:MM:SS');
+      end
+      
+      if ~isempty(sam.meta.profile.DateLastInPos) && ~isempty(sam.meta.profile.TimeLastInPos)
+          sam.time_deployment_end = datenum([datestr(sam.meta.profile.DateLastInPos, 'dd-mm-yyyy') ' ' ...
+              datestr(sam.meta.profile.TimeLastInPos, 'HH:MM:SS')], 'dd-mm-yyyy HH:MM:SS');
       end
   end
   

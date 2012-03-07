@@ -76,24 +76,31 @@ gapsize = str2double(...
   readProperty('gapsize', fullfile('AutomaticQC', 'timeGapQC.txt')));
 
 qcSet    = str2double(readProperty('toolbox.qc_set'));
+rawFlag  = imosQCFlag('raw',     qcSet, 'flag');
 goodFlag = imosQCFlag('good',    qcSet, 'flag');
 gapFlag  = imosQCFlag('discont', qcSet, 'flag');
 
-dim  = sample_data.dimensions{1}.data;
+time  = sample_data.dimensions{1}.data;
 
 lenData = length(data);
-flags = ones(lenData, 1)*goodFlag;
+flags = ones(lenData, 1)*rawFlag;
 
-if size(dim, 1) == 1
-    % dim is a row, let's have a column instead
-    dim = dim';
+if size(time, 1) == 1
+    % time is a row, let's have a column instead
+    time = time';
 end
 
-iGaps = [false; (diff(dim) >= gapsize)];
+iGaps = [false; (diff(time) > gapsize)];
+iNoGaps = [false; (diff(time) <= gapsize)];
+
+% we flag both points involved in a gap time
+iGaps = iGaps(2:end) | iGaps(1:end-1);
+iNoGaps = iNoGaps(2:end) | iNoGaps(1:end-1);
 
 if any(iGaps)
-    % we flag both points involved in a gap time
-    iGaps = iGaps(2:end) | iGaps(1:end-1);
     flags(iGaps) = gapFlag;
 end
 
+if any(iNoGaps)
+    flags(iNoGaps) = goodFlag;
+end

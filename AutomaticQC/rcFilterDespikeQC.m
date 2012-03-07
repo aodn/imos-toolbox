@@ -83,10 +83,11 @@ fdata = data;
 lenData = length(data);
 
 qcSet     = str2double(readProperty('toolbox.qc_set'));
+rawFlag   = imosQCFlag('raw',  qcSet, 'flag');
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
 
-flags = ones(lenData, 1)*goodFlag;
+flags = ones(lenData, 1)*rawFlag;
 
 % remove the mean and run a mild high pass filter 
 % over the data before applying spike detection
@@ -108,14 +109,20 @@ lpsq = lowPassFilter(sq, 0.8);
 sqlp = lp .* lp;
 
 variance = lpsq(1:end-1) - sqlp(1:end-1);
-% check that data is good
+
+% check the data
 low_bound  = lp(1:end-1) - (k_param * (variance .^ 0.5));
 high_bound = lp(1:end-1) + (k_param * (variance .^ 0.5));
 
-% if bad, flag it
-iLow = fdata(2:end) <= low_bound;
-iHigh = fdata(2:end) >= high_bound;
-iBad = iLow | iHigh;
-iBad = [false; iBad];
+iLowGood    = fdata(2:end) > low_bound;
+iHighGood   = fdata(2:end) < high_bound;
+iGood       = iLowGood & iHighGood;
+iGood       = [false; iGood];
+
+iLowBad     = fdata(2:end) <= low_bound;
+iHighBad    = fdata(2:end) >= high_bound;
+iBad        = iLowBad | iHighBad;
+iBad        = [false; iBad];
     
-flags(iBad) = spikeFlag;
+flags(iGood)    = goodFlag;
+flags(iBad)     = spikeFlag;

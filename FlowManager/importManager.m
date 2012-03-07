@@ -198,14 +198,22 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   rawFiles    = {};
   allFiles    = {};
   
+  % get the toolbox execution mode. Values can be 'mooring' and 'profile'. 
+  % If no value is set then default mode is 'mooring'
+  mode = readProperty('toolbox.mode');
+  
   while true
-
-    [fieldTrip deps sits dataDir] = getDeployments(auto);
-    
-    if ~isempty(iMooring)
-        deps = deps(iMooring);
-        sits = sits(iMooring);
-    end
+      switch lower(mode)
+          case 'profile'
+              [fieldTrip deps sits dataDir] = getCTDs(auto);
+          otherwise
+              [fieldTrip deps sits dataDir] = getDeployments(auto);
+      end
+      
+      if ~isempty(iMooring)
+          deps = deps(iMooring);
+          sits = sits(iMooring);
+      end
 
     if isempty(deps), return; end
 
@@ -213,7 +221,13 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
     allFiles = cell(size(deps));
     for k = 1:length(deps)
 
-      id   = deps(k).DeploymentId;
+        switch lower(mode)
+            case 'profile'
+                id   = deps(k).FieldTrip;
+            otherwise
+                id   = deps(k).DeploymentId;
+        end
+        
       rawFile = deps(k).FileName;
 
       hits = fsearch(rawFile, dataDir);
@@ -268,13 +282,25 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
       if iscell(sample_data{end})
         
         for m = 1:length(sample_data{end})
-          sample_data{end}{m}.meta.deployment = deps(k);
-          sample_data{end}{m}.meta.site = sits(k);
+            switch lower(mode)
+                case 'profile'
+                    sample_data{end}{m}.meta.profile = deps(k);
+                otherwise
+                    sample_data{end}{m}.meta.deployment = deps(k);
+            end
+          
+            sample_data{end}{m}.meta.site = sits(k);
         end
         
       else
-        sample_data{end}.meta.deployment = deps(k);
-        sample_data{end}.meta.site = sits(k);
+          switch lower(mode)
+              case 'profile'
+                  sample_data{end}.meta.profile = deps(k);
+              otherwise
+                  sample_data{end}.meta.deployment = deps(k);
+          end
+        
+          sample_data{end}.meta.site = sits(k);
       end
     
       if auto
@@ -283,17 +309,31 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
       
     % failure is not fatal
     catch e
-      fprintf('%s\n', ['Warning : skipping ' deps(k).FileName]);
-      fprintf('\t%s\n', ['EndFieldTrip = ' deps(k).EndFieldTrip]);
-      fprintf('\t%s\n', ['SiteName = ' sits(k).SiteName]);
-      fprintf('\t%s\n', ['Site = ' deps(k).Site]);
-      fprintf('\t%s\n', ['Station = ' deps(k).Station]);
-      fprintf('\t%s\n', ['DeploymentType = ' deps(k).DeploymentType]);
-      fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
-      fprintf('%s\n', ['Error says : ' e.message]);
-      fprintf('\t%s\n', ['in function ' e.stack(1).name]);
-      fprintf('\t%s\n', ['file ' e.stack(1).file]);
-      fprintf('\t%s\n', ['line ' num2str(e.stack(1).line)]);
+        switch lower(mode)
+            case 'profile'
+                fprintf('%s\n',   ['Warning : skipping ' deps(k).FileName]);
+                fprintf('\t%s\n', ['FieldTrip = ' deps(k).FieldTrip]);
+                fprintf('\t%s\n', ['SiteName = ' sits(k).SiteName]);
+                fprintf('\t%s\n', ['Site = ' deps(k).Site]);
+                fprintf('\t%s\n', ['Station = ' deps(k).Station]);
+                fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
+                fprintf('%s\n',   ['Error says : ' e.message]);
+                fprintf('\t%s\n', ['in function ' e.stack(1).name]);
+                fprintf('\t%s\n', ['file ' e.stack(1).file]);
+                fprintf('\t%s\n', ['line ' num2str(e.stack(1).line)]);
+            otherwise
+                fprintf('%s\n',   ['Warning : skipping ' deps(k).FileName]);
+                fprintf('\t%s\n', ['EndFieldTrip = ' deps(k).EndFieldTrip]);
+                fprintf('\t%s\n', ['SiteName = ' sits(k).SiteName]);
+                fprintf('\t%s\n', ['Site = ' deps(k).Site]);
+                fprintf('\t%s\n', ['Station = ' deps(k).Station]);
+                fprintf('\t%s\n', ['DeploymentType = ' deps(k).DeploymentType]);
+                fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
+                fprintf('%s\n',   ['Error says : ' e.message]);
+                fprintf('\t%s\n', ['in function ' e.stack(1).name]);
+                fprintf('\t%s\n', ['file ' e.stack(1).file]);
+                fprintf('\t%s\n', ['line ' num2str(e.stack(1).line)]);
+        end
     end
   end
   

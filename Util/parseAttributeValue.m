@@ -160,8 +160,12 @@ function value = parseDDBToken(token, sample_data, k)
   ddb = readProperty('toolbox.ddb');
   if isempty(ddb), return; end
 
-  % get the relevant deployment
-  deployment = sample_data.meta.deployment;
+  % get the relevant deployment/CTD cast
+  if isfield(sample_data.meta, 'profile')    
+      deployment = sample_data.meta.profile;
+  else
+      deployment = sample_data.meta.deployment;
+  end
 
   % split the token up into its individual elements
   tkns = regexp(token, '\s+', 'split');
@@ -187,7 +191,7 @@ function value = parseDDBToken(token, sample_data, k)
       return;
   end
 
-  % simple query - just a field in the DeploymentData table
+  % simple query - just a field in the DeploymentData/CTDData table
   if simple_query, value = deployment.(field); return; end
 
   % complex query - join with another table, get the field from that table
@@ -197,7 +201,7 @@ function value = parseDDBToken(token, sample_data, k)
   % a foreign key, so our only choice is to give up
   if isempty(field_value), return; end
   
-  result = executeDDBQuery(related_table, related_pkey, deployment.(field));
+  result = executeDDBQuery(related_table, related_pkey, field_value);
   if length(result) ~= 1, return; end
 
   value = result.(related_field);

@@ -83,6 +83,7 @@ if strcmpi(sample_data.(type){k}.name, 'PRES') || ...
         strcmpi(sample_data.(type){k}.name, 'DEPTH')
    
     qcSet    = str2double(readProperty('toolbox.qc_set'));
+    rawFlag  = imosQCFlag('raw', qcSet, 'flag');
     passFlag = imosQCFlag('good', qcSet, 'flag');
     failFlag = imosQCFlag('probablyBad',  qcSet, 'flag');
     
@@ -141,17 +142,17 @@ if strcmpi(sample_data.(type){k}.name, 'PRES') || ...
         % Nothing to do!
     end
     
-    % initially all data is good
-    flags = ones(lenData, 1)*passFlag;
+    % initially all data is bad
+    flags = ones(lenData, 1)*failFlag;
     
-    iImpossible = data > possibleMax;
-    if (possibleMin < 0) % cannot be out of water and 0 is not allowed
-        iImpossible = iImpossible | (data <= 0);
+    iPossible = data <= possibleMax;
+    if (possibleMin < 0) % cannot be out of water
+        iPossible = iPossible & (data >= 0);
     else
-        iImpossible = iImpossible | (data < possibleMin);
+        iPossible = iPossible & (data >= possibleMin);
     end
     
-    if any(iImpossible)
-        flags(iImpossible) = failFlag;
+    if any(iPossible)
+        flags(iPossible) = passFlag;
     end
 end

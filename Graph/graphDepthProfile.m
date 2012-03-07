@@ -152,31 +152,60 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     yLabel = [labels{2} uom];
     if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
     set(get(graphs(k), 'YLabel'), 'String', yLabel);
-
+    
+    if sample_data.meta.level == 1 && strcmp(func2str(plotFunc), 'graphDepthProfileGeneric')
+        qcSet     = str2double(readProperty('toolbox.qc_set'));
+        goodFlag  = imosQCFlag('good',  qcSet, 'flag');
+        rawFlag   = imosQCFlag('raw',  qcSet, 'flag');
+        
+        % set x and y limits so that axis are optimised for good data only
+        curData = sample_data.variables{vars(k)}.data;
+        curDepth = depth.data;
+        curFlag = sample_data.variables{vars(k)}.flags;
+        iGood = curFlag == goodFlag;
+        iGood = iGood | (curFlag == rawFlag);
+        yLimits = [floor(min(curDepth(iGood))), ceil(max(curDepth(iGood)))];
+        xLimits = [floor(min(curData(iGood))), ceil(max(curData(iGood)))];
+        if any(iGood)
+            set(graphs(k), 'YLim', yLimits);
+            set(graphs(k), 'XLim', xLimits);
+        end
+    end
+    
+    yLimits = get(graphs(k), 'YLim');
+    yStep   = (yLimits(2) - yLimits(1)) / 5;
+    yTicks  = yLimits(1):yStep:yLimits(2);
+    set(graphs(k), 'YTick', yTicks);
+    
   end
   
-  % compile variable names for the legend 
-  names = {};
-  for k = 1:length(vars)
-    
-    names{k} = sample_data.variables{vars(k)}.name;
-  end
-  
-  % link axes for panning/zooming, and add a legend - matlab has a habit of
-  % throwing 'Invalid handle object' errors for no apparent reason (i think 
-  % when the user changes selections too quickly, matlab is too slow, and 
-  % ends up confusing itself), so absorb any errors which are thrown
-  try
-    linkaxes(graphs, 'y');
-    
-    % When adding a single legend for multiple subplots, by default the legend 
-    % is added to the axis which corresponds to the first handle in the vector 
-    % that is passed in ('lines' in this case). This is a problem in our case, 
-    % because it means that the legend will be added to the left most axis, 
-    % whereas we want it to be added to the right-most axis. To get around 
-    % this, I'm reversing the order of the line handles (and names) before 
-    % passing them to the legend function.
-    legend(flipud(lines(:,1)), fliplr(names));
-  catch e
-  end
+    % GLT : Eventually I prefered not displaying the QC legend as it
+    % influences too badly the quality of the plots. I didn't manage to have
+    % a satisfying result with a ghost axis hosting the legend... So for now
+    % I added the possiblity to the user to right-click on a QC'd data point
+    % and it displays the description of the color flag.
+    % compile variable names for the legend
+%   names = {};
+%   for k = 1:length(vars)
+%     
+%     names{k} = sample_data.variables{vars(k)}.name;
+%   end
+%   
+%   % link axes for panning/zooming, and add a legend - matlab has a habit of
+%   % throwing 'Invalid handle object' errors for no apparent reason (i think 
+%   % when the user changes selections too quickly, matlab is too slow, and 
+%   % ends up confusing itself), so absorb any errors which are thrown
+%   try
+%     linkaxes(graphs, 'y');
+%     
+%     % When adding a single legend for multiple subplots, by default the legend 
+%     % is added to the axis which corresponds to the first handle in the vector 
+%     % that is passed in ('lines' in this case). This is a problem in our case, 
+%     % because it means that the legend will be added to the left most axis, 
+%     % whereas we want it to be added to the right-most axis. To get around 
+%     % this, I'm reversing the order of the line handles (and names) before 
+%     % passing them to the legend function.
+%     legend(flipud(lines(:,1)), fliplr(names));
+%   catch e
+%   end
 end

@@ -169,6 +169,9 @@ function sample_data = makeNetCDFCompliant( sample_data )
     if isfield(sample_data.meta, 'deployment')
         sample_data.variables{k}.sensor_serial_number = ...
             getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.deployment.InstrumentID);
+    elseif isfield(sample_data.meta, 'profile')
+        sample_data.variables{k}.sensor_serial_number = ...
+            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.profile.InstrumentID);
     end
   end
 end

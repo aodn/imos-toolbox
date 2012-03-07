@@ -85,30 +85,30 @@ if ~isempty(dataLon) && ~isempty(dataLat)
     else
         lenData = length(dataLon);
         
-        % initially all data is good
-        flagLon = ones(lenData, 1)*passFlag;
+        % initially all data is bad
+        flagLon = ones(lenData, 1)*failFlag;
         flagLat = flagLon;
         
         %test location
             if isnan(site.distanceKmPlusMinusThreshold)
                 % test each independent coordinate on a rectangular area
-                iBadLon = dataLon < site.longitude - site.longitudePlusMinusThreshold || ...
-                    dataLon > site.longitude + site.longitudePlusMinusThreshold;
-                iBadLat = dataLat < site.latitude - site.latitudePlusMinusThreshold || ...
-                    dataLat > site.latitude + site.latitudePlusMinusThreshold;
+                iGoodLon = dataLon >= site.longitude - site.longitudePlusMinusThreshold && ...
+                    dataLon <= site.longitude + site.longitudePlusMinusThreshold;
+                iGoodLat = dataLat >= site.latitude - site.latitudePlusMinusThreshold && ...
+                    dataLat <= site.latitude + site.latitudePlusMinusThreshold;
             else
                 % test each couple of coordinate on a circle area
                 obsDist = WGS84dist(site.latitude, site.longitude, dataLat, dataLon);
-                iBadLon = obsDist/1000 > site.distanceKmPlusMinusThreshold;
-                iBadLat = iBadLon;
+                iGoodLon = obsDist/1000 <= site.distanceKmPlusMinusThreshold;
+                iGoodLat = iGoodLon;
             end
             
-            if any(iBadLon)
-                flagLon(iBadLon) = failFlag;
-                
+            if any(iGoodLon)
+                flagLon(iGoodLon) = passFlag; 
             end
-            if any(iBadLat)
-                flagLat(iBadLat) = failFlag;
+            
+            if any(iGoodLat)
+                flagLat(iGoodLat) = passFlag;
             end
             
             sample_data.dimensions{idLon}.flags = flagLon;

@@ -110,7 +110,7 @@ if idPres == 0 && idPresRel == 0 && idDepth == 0
         error('No pressure data in file => Fill instrument_nominal_depth!');
     else
         pressure = ones(lenData, 1).*(sample_data.instrument_nominal_depth);
-        disp('Warning : AdcpLevelSetQC uses nominal depth')
+        disp('Warning : adcpSideLobeContaminationSetQC uses nominal depth because no pressure data in file')
     end
 elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
@@ -129,7 +129,19 @@ if idDepth == 0
     % assuming 1 dbar = 1 m, computing depth of each bin
     depth = pressure;
 else
+    ff = (sample_data.variables{idDepth}.flags == rawFlag) | ...
+            (sample_data.variables{idDepth}.flags == goodFlag);
     depth = sample_data.variables{idDepth}.data;
+end
+
+% let's take into account QC information
+if any(~ff)
+    if isempty(sample_data.instrument_nominal_depth)
+        error('Bad pressure/depth data in file => Fill instrument_nominal_depth!');
+    else
+        depth(~ff) = sample_data.instrument_nominal_depth;
+        disp('Warning : adcpSideLobeContaminationSetQC uses nominal depth instead of bad pressure/depth data in file')
+    end
 end
 
 % calculate contaminated depth
@@ -145,23 +157,23 @@ cDepth = depth - (depth * cos(sample_data.meta.beam_angle*pi/180) - 2*BinSize);
 binDepth = depth*ones(1,length(Bins)) - ones(length(depth),1)*Bins;
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
-uFlags = ones(sizeCur)*goodFlag;
-vFlags = ones(sizeCur)*goodFlag;
-wFlags = ones(sizeCur)*goodFlag;
+
+% same flags are given to any U, V or W variable
+flags = ones(sizeCur)*rawFlag;
 
 % test, all bins above the contaminated depth are flagged
 iFail = binDepth <= repmat(cDepth, 1, length(Bins));
+iPass = binDepth > repmat(cDepth, 1, length(Bins));
 
 %Need to take into account QC from previous algorithms
-allFF = repmat(ff, 1, size(uFlags, 2));
+allFF = repmat(ff, 1, size(flags, 2));
 iFail = allFF & iFail;
 
-uFlags(iFail) = badFlag;
-vFlags(iFail) = badFlag;
-wFlags(iFail) = badFlag;
+flags(iPass) = goodFlag;
+flags(iFail) = badFlag;
 
-sample_data.variables{idUcur}.flags = uFlags;
-sample_data.variables{idVcur}.flags = vFlags;
-sample_data.variables{idWcur}.flags = wFlags;
+sample_data.variables{idUcur}.flags = flags;
+sample_data.variables{idVcur}.flags = flags;
+sample_data.variables{idWcur}.flags = flags;
 
 end

@@ -1,4 +1,4 @@
-function [sample_data] = teledyneSetQC( sample_data, auto )
+function [sample_data] = TeledyneSetQC( sample_data, auto )
 %TELEDYNESETQC Quality control procedure for Teledyne Workhorse (and similar)
 % ADCP instrument data.
 %
@@ -116,7 +116,7 @@ if idPres == 0 && idPresRel == 0 && idDepth == 0
         error('No pressure/depth data in file => Fill instrument_nominal_depth!');
     else
         pressure = ones(lenData, 1).*(sample_data.instrument_nominal_depth);
-        disp('Warning : TeledyneSetQC uses nominal depth')
+        disp('Warning : teledyneSetQC uses nominal depth because no pressure/depth data in file')
     end
 elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
@@ -135,8 +135,21 @@ if idDepth == 0
     % assuming 1 dbar = 1 m, computing depth of each bin
     depth = pressure;
 else
+    ff = (sample_data.variables{idDepth}.flags == rawFlag) | ...
+            (sample_data.variables{idDepth}.flags == goodFlag);
     depth = sample_data.variables{idDepth}.data;
 end
+
+% let's take into account QC information
+if any(~ff)
+    if isempty(sample_data.instrument_nominal_depth)
+        error('Bad pressure/depth data in file => Fill instrument_nominal_depth!');
+    else
+        depth(~ff) = sample_data.instrument_nominal_depth;
+        disp('Warning : teledyneSetQC uses nominal depth instead of bad pressure/depth data in file')
+    end
+end
+
 bdepth = depth*ones(1,length(Bins)) - ones(length(depth),1)*Bins;
 
 %Pull out horizontal velocities
@@ -173,38 +186,31 @@ qcthresh.ea_thresh = str2double(readProperty('ea_thresh', propFile));
 sCutOff            = str2double(readProperty('cutoff',    propFile));
 
 %Run QC
-[ifail] = adcpqctest(qcthresh,qc,u,w,erv);
-
-%Clean up above-surface bins
-%Edited to correct above surface bin cutoff, it is a function of bin size, i.e. sCutOff=2*BinSize;
-%BDM (08/04/2010)
-jjr = (bdepth <= sCutOff*BinSize);
-if any(jjr)
-    ifail(jjr) = true;
-end
+[iPass] = adcpqctest(qcthresh,qc,u,w,erv);
+iFail = ~iPass;
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
-uFlags = ones(sizeCur)*goodFlag;
-vFlags = ones(sizeCur)*goodFlag;
-wFlags = ones(sizeCur)*goodFlag;
 
-%Run QC filter (ifail) on velocity data
+% same flags are given to any U, V or W variable
+flags = ones(sizeCur)*rawFlag;
+
+%Run QC filter (iFail) on velocity data
 %Need to take into account QC from previous algorithms
-allFF = repmat(ff, 1, size(uFlags, 2));
-ifail = allFF & ifail;
+allFF = repmat(ff, 1, size(flags, 2));
+iFail = allFF & iFail;
 
-uFlags(ifail) = badFlag;
-vFlags(ifail) = badFlag;
-wFlags(ifail) = badFlag;
+flags(iFail) = badFlag;
 
-sample_data.variables{idUcur}.flags = uFlags;
-sample_data.variables{idVcur}.flags = vFlags;
-sample_data.variables{idWcur}.flags = wFlags;
+flags(~iFail) = goodFlag;
+
+sample_data.variables{idUcur}.flags = flags;
+sample_data.variables{idVcur}.flags = flags;
+sample_data.variables{idWcur}.flags = flags;
 
 end
 
-function [ifail] = adcpqctest(qcthresh,qc,u,w,erv)
-%[ifail] = adcpqctest(qcthresh,qc,u,w,erv)
+function [iPass] = adcpqctest(qcthresh,qc,u,w,erv)
+%[iPass] = adcpqctest(qcthresh,qc,u,w,erv)
 % Inputs: a structure of thresholds for each of the following:
 %   qcthresh.errvel  :  error velocity
 %   qcthresh.pgood   :  percent good from 4-beam solutions
@@ -219,58 +225,59 @@ cmag      = qcthresh.cmag;      %test 3
 vvel      = qcthresh.vvel;      %test 4
 hvel      = qcthresh.hvel;      %test 5
 ea_thresh = qcthresh.ea_thresh; %test 6
-clear ib* isub* ifb ifail*
+clear ib* isub* ifb iFail*
 
 %test 1, Error Velocity test
 % measurement of disagreement of measurement estimates of opposite beams.
 % Derived from 2 idpt beams and therefore is 2 indp measures of vertical
 % velocity
-ib1 = abs(erv) >= err_vel;
+ib1 = abs(erv) < err_vel;
 
 %test 2, Percent Good test for Long ranger, use only
 %good for 4 beam solutions (ie pg(4))
 %use 4 as it is the percentage of measurements that have 4 beam solutions
-ib2 = qc(4).pg < pgood;
+ib2 = qc(4).pg >= pgood;
 
 % Test 3, correlation magnitude test
-isub1 = (qc(1).cr<=cmag);
-isub2 = (qc(2).cr<=cmag);
-isub3 = (qc(3).cr<=cmag);
-isub4 = (qc(4).cr<=cmag);
+isub1 = (qc(1).cr > cmag);
+isub2 = (qc(2).cr > cmag);
+isub3 = (qc(3).cr > cmag);
+isub4 = (qc(4).cr > cmag);
 % test nbins bins
 isub_all = isub1+isub2+isub3+isub4;
 
-% assign pass(0) or fail(1) values
-% Where 3 or more beams fail, then the cmag test is failed
-ib3 = isub_all >= 3;
+% assign pass(1) or fail(0) values
+% Where 2 or more beams pass, then the cmag test is passed
+ib3 = isub_all >= 2;
+clear isub1 isub2 isub3 isub4 isub_all;
 
 % Test 4, Vertical velocity test
-ib4 = abs(w) >= vvel;
+ib4 = abs(w) < vvel;
 
 % Test 5, Horizontal velocity test
-ib5 = abs(u) >= hvel;
+ib5 = abs(u) < hvel;
 
 %Test 6, Echo Amplitude test
-% this test looks at the difference between consecutive bin values of ea and
+% this test looks at the difference between consecutive vertical bin values of ea and
 % if the value exceeds the threshold, then the bin fails, and all bins
 % above this are also considered to have failed.
 % This test is only applied from the middle bin to the end bin, since it is
 % a test designed to get rid of surface bins
-[ii,jj] = size(u);
-ib6 = zeros(ii,jj);
-ik = round(jj/2);
+[lenTime, lenBin] = size(u);
+halfLenBin = round(lenBin/2);
 
-ib = (diff(qc(1).ea(:,ik:jj),1,2) > ea_thresh) | ...
-     (diff(qc(2).ea(:,ik:jj),1,2) > ea_thresh) | ...
-     (diff(qc(3).ea(:,ik:jj),1,2) > ea_thresh) | ...
-     (diff(qc(4).ea(:,ik:jj),1,2) > ea_thresh);
+% if the following test is successfull, the bin gets good
+ib = (abs(diff(qc(1).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh) & ...
+     (abs(diff(qc(2).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh) & ...
+     (abs(diff(qc(3).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh) & ...
+     (abs(diff(qc(4).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh);
  
-ib = [false(ii, ik), ib];
- 
-jkf = (1:1:jj);
-jkf = repmat(jkf, ii, 1);
+ib = [true(lenTime, lenBin-halfLenBin+1), ib]; % +1 because ib is based on a diff
 
-iii = double(ib).*jkf;
+% however, any good bin over a bad one should have stayed bad
+jkf = repmat((1:1:lenBin), lenTime, 1);
+
+iii = double(~ib).*jkf;
 clear ib;
 iii(iii == 0) = NaN;
 iif = min(iii, [], 2);
@@ -278,14 +285,17 @@ clear iii;
 iifNotNan = ~isnan(iif);
 
 if any(iifNotNan)
-    ib6(jkf >= repmat(iif, 1, jj)) = 1;
+    ib6 = true(lenTime, lenBin);
+    % all bins above the first bad one is reset to bad
+    ib6(jkf >= repmat(iif, 1, lenBin)) = false;
 end
 
 %Find the number that fail the first five tests
 ib7 = ib1 + ib2 + ib3 + ib4 + ib5;
-ifail1 = ib7 >= 2;
+iPass1 = ib7 >= 4;
 
-ifail2 = ifail1 + ib6;
-ifail = ifail2 >= 1;
+iPass2 = iPass1 + ib6;
+
+iPass = iPass2 >= 2;
 
 end

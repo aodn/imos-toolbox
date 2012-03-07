@@ -83,29 +83,39 @@ if ~strcmp(type, 'variables'), return; end
 % read all values from morelloSpikeQC properties file
 values = readProperty('*', fullfile('AutomaticQC', 'morelloGradientQC.txt'));
 param = strtrim(values{1});
-threshold = strtrim(values{2});
+thresholdExpr = strtrim(values{2});
 
 iParam = strcmpi(sample_data.(type){k}.name, param);
     
 if any(iParam)
     qcSet    = str2double(readProperty('toolbox.qc_set'));
+    rawFlag = imosQCFlag('raw', qcSet, 'flag');
     passFlag = imosQCFlag('good', qcSet, 'flag');
     failFlag = imosQCFlag('bad',  qcSet, 'flag');
     
     lenData = length(data);
     
-    threshold = threshold(iParam);
-    threshold = ones(lenData, 1) * str2double(threshold);
+    % initially all data is raw
+    flags = ones(lenData, 1)*rawFlag;
     
-    % initially all data is good
-    flags = ones(lenData, 1)*passFlag;
+    gradient = abs(data(2:end) - data(1:end-1));
     
-    gradient = [0; data(2:end) - data(1:end-1)];
+    threshold = eval(thresholdExpr{iParam});
+    threshold = ones(lenData-1, 1) .* threshold;
     
-    iGrad = abs(gradient) >= threshold;
+    iGoodGrad = gradient < threshold;
+    iGoodGrad = [iGoodGrad; false]; % we don't know about the last point
     
-    if any(iGrad)
-        iGrad = iGrad(2:end) | iGrad(1:end-1);
-        flags(iGrad) = failFlag;
+    iBadGrad = gradient >= threshold;
+    % when current point is flagged bad then also the next one
+    iBadGrad(2:end) = iBadGrad(1:end-1) | iBadGrad(2:end);
+    iBadGrad = [iBadGrad; false]; % we don't know about the last point
+    
+    if any(iGoodGrad)
+        flags(iGoodGrad) = passFlag;
+    end
+    
+    if any(iBadGrad)
+        flags(iBadGrad) = failFlag;
     end
 end
