@@ -180,8 +180,10 @@ function mainWindow(...
   set(graphMenu,        'Units', 'normalized');
   set(stateButtons,     'Units', 'normalized');
   
-  % set window and widget positions
+  % set window position
   set(fig,        'Position', [0.1,  0.15, 0.8,  0.7 ]);
+  
+  % set widget positions
   set(sidePanel,  'Position', [0.0,  0.0,  0.15, 0.95]);
   set(mainPanel,  'Position', [0.15, 0.0,  0.85, 0.95]);
   set(sampleMenu, 'Position', [0.0,  0.95, 0.75, 0.05]);
@@ -244,13 +246,13 @@ function mainWindow(...
   %set uimenu
   hToolsMenu        = uimenu(fig, 'label', 'Tools');
   hToolsDepth       = uimenu(hToolsMenu, 'label', 'Display mooring''s depths');
-  hToolsTemp        = uimenu(hToolsMenu, 'label', 'Display mooring''s temperatures');
+  hToolsTemp        = uimenu(hToolsMenu, 'label', 'Display mooring''s variables');
   hHelpMenu         = uimenu(fig, 'label', 'Help');
   hHelpWiki         = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
   
   %set menu callbacks
   set(hToolsDepth,      'callBack', @displayMooringDepth);
-  set(hToolsTemp,       'callBack', @displayMooringTemp);
+  set(hToolsTemp,       'callBack', @displayMooringVar);
   set(hHelpWiki,        'callBack', @openWikiPage);
   
   %% Widget Callbacks
@@ -430,7 +432,10 @@ function mainWindow(...
     set(hAxMooringDepth, 'XTick', (xMin:(xMax-xMin)/4:xMax));
     set(hAxMooringDepth, 'XLim', [xMin, xMax]);
     
+    % reverse the colorbar as we want surface in red and bottom in blue
     cMap = colormap(jet(lenSampleData));
+    cMap = flipud(cMap);
+    
     lineStyle = {'-', '--', ':', '-.'};
     lenLineStyle = length(lineStyle);
     instrumentDesc = cell(lenSampleData+1, 1);
@@ -484,91 +489,141 @@ function mainWindow(...
     legend(hLineDepth, instrumentDesc, 'Location', 'NorthEastOutside');
   end
 
-  function displayMooringTemp(source,ev)
-  %DISPLAYMOORINGTEMP Opens a new window where all the temperatures 
-  % collected by intruments on the mooring are plotted.
-  %
-    lenSampleData = length(sample_data);
-    %plot depth information
-    monitorRec = get(0,'MonitorPosition');
-    iBigMonitor = monitorRec(:, 3) == max(monitorRec(:, 3));
-    hFigMooringTemp = figure(...
-        'Name', 'Mooring''s instruments temperatures', ...
-        'NumberTitle','off', ...
-        'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
-    hAxMooringTemp = axes('Parent',   hFigMooringTemp, 'YDir', 'reverse');
-    set(get(hAxMooringTemp, 'XLabel'), 'String', 'Time');
-    set(get(hAxMooringTemp, 'YLabel'), 'String', sprintf('%s\n%s', ...
-        'Temperature anomaly (Celsius deg.)', 'plotted on nominal depth (m)'));
-    set(get(hAxMooringTemp, 'Title'), 'String', 'Mooring''s instruments temperatures');
-    hold(hAxMooringTemp, 'on');
-    
-    %sort instruments by nominal depth
-    instrument_nominal_depth = nan(lenSampleData, 1);
-    xMin = nan(lenSampleData, 1);
-    xMax = nan(lenSampleData, 1);
-    for i=1:lenSampleData
-        if isfield(sample_data{i}, 'instrument_nominal_depth')
-            instrument_nominal_depth(i) = sample_data{i}.instrument_nominal_depth;
-            xMin = min(sample_data{i}.dimensions{1}.data);
-            xMax = max(sample_data{i}.dimensions{1}.data);
-        end
-    end
-    [~, iSort] = sort(instrument_nominal_depth);
-    xMin = min(xMin);
-    xMax = max(xMax);
-    set(hAxMooringTemp, 'XTick', (xMin:(xMax-xMin)/4:xMax));
-    set(hAxMooringTemp, 'XLim', [xMin, xMax]);
-    
-    cMap = colormap(jet(lenSampleData));
-    lineStyle = {'-', '--', ':', '-.'};
-    lenLineStyle = length(lineStyle);
-    instrumentDesc = cell(lenSampleData, 1);
-    hLineTemp = nan(lenSampleData, 1);
-    for i=1:lenSampleData
-        instrumentDesc{i} = sample_data{iSort(i)}.instrument;
-        if isfield(sample_data{i}, 'instrument_nominal_depth')
-            instrument_nominal_depth = sample_data{iSort(i)}.instrument_nominal_depth;
-            if ~isempty(instrument_nominal_depth)
-                instrumentDesc{i} = [instrumentDesc{i} ' (' num2str(instrument_nominal_depth) 'm)'];
-                
-                %look for the TEMP variable
-                lenVar = length(sample_data{iSort(i)}.variables);
-                iTemp = 0;
-                for j=1:lenVar
-                    if strcmpi(sample_data{iSort(i)}.variables{j}.name, 'TEMP')
-                        iTemp = j;
-                        break;
+    function displayMooringVar(source,ev)
+    %DISPLAYMOORINGVAR Opens a new window where all the previously selected
+    % variables collected by intruments on the mooring are plotted.
+    %
+        % get all params that are in common in at least two datasets
+        lenSampleData = length(sample_data);
+        paramsName = {};
+        paramsCount = [];
+        for i=1:lenSampleData
+            lenParamsSample = length(sample_data{i}.variables);
+            for j=1:lenParamsSample
+                if i==1 && j==1
+                    paramsName{1} = sample_data{1}.variables{1}.name;
+                    paramsCount(1) = 1;
+                else
+                    sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+                    if ~any(sameParam)
+                        paramsName{end+1} = sample_data{i}.variables{j}.name;
+                        paramsCount(end+1) = 1;
+                    else
+                        paramsCount(sameParam) = paramsCount(sameParam)+1;
                     end
                 end
-                
-                if iTemp > 0
-                    dataTemp = sample_data{iSort(i)}.variables{iTemp}.data;
-                    dataToBePlot = dataTemp - mean(dataTemp) + instrument_nominal_depth;
-                    hLineTemp(i) = line(sample_data{iSort(i)}.dimensions{1}.data, ...
-                        dataToBePlot, ...
-                        'Color', cMap(i, :), ...
-                        'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+            end
+        end
+        
+        iParamsToGetRid = (paramsCount == 1);
+        paramsName(iParamsToGetRid) = [];
+        
+        % we get rid of DEPTH parameter, if necessary user should use the
+        % Depth specific plot
+        iDEPTH = strcmpi(paramsName, 'DEPTH');
+        paramsName(iDEPTH) = [];
+        
+        % by default TEMP is selected
+        iTEMP = find(strcmpi(paramsName, 'TEMP'));
+        
+        [iSelection, ok] = listdlg(...
+            'ListString', paramsName, ...
+            'SelectionMode', 'single', ...
+            'ListSize', [150 150], ...
+            'InitialValue', iTEMP, ...
+            'Name', 'Plot a variable accross all instruments in the mooring', ...
+            'PromptString', 'Select a variable :');
+        
+        if ok==0
+            return;
+        else
+            varName = paramsName{iSelection};
+        end
+        
+        varTitle = strrep(imosParameters(varName, 'long_name'), '_', ' ');
+        varUnit = imosParameters(varName, 'uom');
+        
+        %plot depth information
+        monitorRec = get(0,'MonitorPosition');
+        iBigMonitor = monitorRec(:, 3) == max(monitorRec(:, 3));
+        hFigMooringTemp = figure(...
+            'Name', ['Mooring''s instruments ' varTitle], ...
+            'NumberTitle','off', ...
+            'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+        hAxMooringTemp = axes('Parent',   hFigMooringTemp);
+        set(get(hAxMooringTemp, 'XLabel'), 'String', 'Time');
+        set(get(hAxMooringTemp, 'YLabel'), 'String', [varName ' (' varUnit ')']);
+        set(get(hAxMooringTemp, 'Title'), 'String', ['Mooring''s instruments ' varTitle]);
+        hold(hAxMooringTemp, 'on');
+        
+        %sort instruments by nominal depth
+        instrument_nominal_depth = nan(lenSampleData, 1);
+        xMin = nan(lenSampleData, 1);
+        xMax = nan(lenSampleData, 1);
+        for i=1:lenSampleData
+            if isfield(sample_data{i}, 'instrument_nominal_depth')
+                instrument_nominal_depth(i) = sample_data{i}.instrument_nominal_depth;
+                xMin = min(sample_data{i}.dimensions{1}.data);
+                xMax = max(sample_data{i}.dimensions{1}.data);
+            end
+        end
+        [~, iSort] = sort(instrument_nominal_depth);
+        xMin = min(xMin);
+        xMax = max(xMax);
+        set(hAxMooringTemp, 'XTick', (xMin:(xMax-xMin)/4:xMax));
+        set(hAxMooringTemp, 'XLim', [xMin, xMax]);
+        
+        % reverse the colorbar as we want surface in red and bottom in blue
+        cMap = colormap(jet(lenSampleData));
+        cMap = flipud(cMap);
+    
+        lineStyle = {'-', '--', ':', '-.'};
+        lenLineStyle = length(lineStyle);
+        instrumentDesc = cell(lenSampleData, 1);
+        hLineVar = nan(lenSampleData, 1);
+        for i=1:lenSampleData
+            instrumentDesc{i} = sample_data{iSort(i)}.instrument;
+            if isfield(sample_data{i}, 'instrument_nominal_depth')
+                instrument_nominal_depth = sample_data{iSort(i)}.instrument_nominal_depth;
+                if ~isempty(instrument_nominal_depth)
+                    instrumentDesc{i} = [instrumentDesc{i} ' (' num2str(instrument_nominal_depth) 'm)'];
+                    
+                    %look for the variable
+                    lenVar = length(sample_data{iSort(i)}.variables);
+                    iVar = 0;
+                    for j=1:lenVar
+                        if strcmpi(sample_data{iSort(i)}.variables{j}.name, varName)
+                            iVar = j;
+                            break;
+                        end
+                    end
+                    
+                    if iVar > 0
+                        dataVar = sample_data{iSort(i)}.variables{iVar}.data;
+                        hLineVar(i) = line(sample_data{iSort(i)}.dimensions{1}.data, ...
+                            dataVar, ...
+                            'Color', cMap(i, :), ...
+                            'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+                    end
+                else
+                    fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                        ', global attribute ''instrument_nominal_depth'' is not properly documented.']);
                 end
             else
                 fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                    ', global attribute ''instrument_nominal_depth'' is not properly documented.']);
+                    ', global attribute ''instrument_nominal_depth'' is not documented.']);
             end
-        else
-            fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                ', global attribute ''instrument_nominal_depth'' is not documented.']);
         end
+        
+        iNan = isnan(hLineVar);
+        if any(iNan)
+            hLineVar(iNan) = [];
+            instrumentDesc(iNan) = [];
+        end
+        
+        datetick(hAxMooringTemp, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
+        legend(hLineVar, instrumentDesc, 'Location', 'NorthEastOutside');
     end
-    
-    iNan = isnan(hLineTemp);
-    if any(iNan)
-        hLineTemp(iNan) = [];
-        instrumentDesc(iNan) = [];
-    end
-    
-    datetick(hAxMooringTemp, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
-    legend(hLineTemp, instrumentDesc, 'Location', 'NorthEastOutside');
-  end
 
   function openWikiPage(source,ev)
   %OPENWIKIPAGE opens a new tab in your web-browser to access the
