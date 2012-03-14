@@ -60,30 +60,38 @@ set(ax, 'Tag', 'axis1D');
 
 % test for climatology display
 mWh = findobj('Tag', 'mainWindow');
+sMh = findobj('Tag', 'samplePopUpMenu');
+iSample = get(sMh, 'Value');
 morelloRange = get(mWh, 'UserData');
 if strcmpi(var.name, 'TEMP') && ~isempty(morelloRange)
-    hRMinT = line(time.data, morelloRange.rangeMinT, 'Parent', ax);
-    hRMaxT = line(time.data, morelloRange.rangeMaxT, 'Parent', ax);
-    set(hRMinT, 'Color', 'r');
-    set(hRMaxT, 'Color', 'r');
-    set(ax, 'YLim', [min(morelloRange.rangeMinT) - min(morelloRange.rangeMinT)/10, ...
-        max(morelloRange.rangeMaxT) + max(morelloRange.rangeMaxT)/10]);
+    if isfield(morelloRange, 'rangeMinT') && isfield(morelloRange, 'rangeMaxT')
+        hRMinT = line(time.data, morelloRange(iSample).rangeMinT, 'Parent', ax);
+        hRMaxT = line(time.data, morelloRange(iSample).rangeMaxT, 'Parent', ax);
+        set(hRMinT, 'Color', 'r');
+        set(hRMaxT, 'Color', 'r');
+        set(ax, 'YLim', [min(morelloRange(iSample).rangeMinT) - min(morelloRange(iSample).rangeMinT)/10, ...
+            max(morelloRange(iSample).rangeMaxT) + max(morelloRange(iSample).rangeMaxT)/10]);
+    end
 elseif strcmpi(var.name, 'PSAL') && ~isempty(morelloRange)
-    hRMinS = line(time.data, morelloRange.rangeMinS, 'Parent', ax);
-    hRMaxS = line(time.data, morelloRange.rangeMaxS, 'Parent', ax);
-    set(hRMinS, 'Color', 'r');
-    set(hRMaxS, 'Color', 'r');
-    set(ax, 'YLim', [min(morelloRange.rangeMinS) - min(morelloRange.rangeMinS)/10, ...
-        max(morelloRange.rangeMaxS) + max(morelloRange.rangeMaxS)/10]);
+    if isfield(morelloRange, 'rangeMinS') && isfield(morelloRange, 'rangeMaxS')
+        hRMinS = line(time.data, morelloRange(iSample).rangeMinS, 'Parent', ax);
+        hRMaxS = line(time.data, morelloRange(iSample).rangeMaxS, 'Parent', ax);
+        set(hRMinS, 'Color', 'r');
+        set(hRMaxS, 'Color', 'r');
+        set(ax, 'YLim', [min(morelloRange(iSample).rangeMinS) - min(morelloRange(iSample).rangeMinS)/10, ...
+            max(morelloRange(iSample).rangeMaxS) + max(morelloRange(iSample).rangeMaxS)/10]);
+    end
 elseif strcmpi(var.name, 'DOX2') && ~isempty(morelloRange)
-    hRMinS = line(time.data, morelloRange.rangeMinDO, 'Parent', ax);
-    hRMaxS = line(time.data, morelloRange.rangeMaxDO, 'Parent', ax);
-    set(hRMinS, 'Color', 'r');
-    set(hRMaxS, 'Color', 'r');
-    set(ax, 'YLim', [min(morelloRange.rangeMinDO) - min(morelloRange.rangeMinDO)/10, ...
-        max(morelloRange.rangeMaxDO + max(morelloRange.rangeMaxDO)/10)]);
+    if isfield(morelloRange, 'rangeMinDO') && isfield(morelloRange, 'rangeMaxDO')
+        hRMinS = line(time.data, morelloRange(iSample).rangeMinDO, 'Parent', ax);
+        hRMaxS = line(time.data, morelloRange(iSample).rangeMaxDO, 'Parent', ax);
+        set(hRMinS, 'Color', 'r');
+        set(hRMaxS, 'Color', 'r');
+        set(ax, 'YLim', [min(morelloRange(iSample).rangeMinDO) - min(morelloRange(iSample).rangeMinDO)/10, ...
+            max(morelloRange(iSample).rangeMaxDO + max(morelloRange(iSample).rangeMaxDO)/10)]);
+    end
 elseif strcmpi(var.name, 'DEPTH') && ~isempty(morelloRange)
-    hRDEPTH = line(time.data, morelloRange.rangeDEPTH, 'Parent', ax);
+    hRDEPTH = line(time.data, morelloRange(iSample).rangeDEPTH, 'Parent', ax);
     set(hRDEPTH, 'Color', 'r');
 end
 
