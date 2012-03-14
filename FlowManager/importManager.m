@@ -211,6 +211,8 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
               [fieldTrip deps sits dataDir] = getDeployments(auto);
       end
       
+      if isempty(fieldTrip), return; end
+      
       if ~isempty(iMooring)
           deps = deps(iMooring);
           sits = sits(iMooring);
