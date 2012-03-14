@@ -78,7 +78,8 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   sample_data = {};
   rawFiles    = {};
   
-  if ~isempty(ddb), [structs rawFiles] = ddbImport(auto, iMooring);
+  if ~isempty(ddb)
+      [structs rawFiles] = ddbImport(auto, iMooring);
   else
     if auto, error('manual import cannot be automated without deployment database'); end
     [structs rawFiles] = manualImport();
@@ -215,7 +216,10 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
           sits = sits(iMooring);
       end
 
-    if isempty(deps), return; end
+    if isempty(deps)
+        fprintf('%s\n', ['Warning : ' 'No entry found in ' lower(mode) ' table.']);
+        return;
+    end
 
     % find physical files for each deployment
     allFiles = cell(size(deps));

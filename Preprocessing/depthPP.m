@@ -4,7 +4,11 @@ function sample_data = depthPP( sample_data, auto )
 %
 % This function uses the CSIRO Matlab Seawater Library to derive depth data
 % from pressure. It adds the depth data as a new variable in the data sets.
-% Data sets which do not contain a pressure variable are left unmodified.
+% Data sets which do not contain a pressure variable are left unmodified 
+% when loaded alone. Data sets which do not contain a pressure variable
+% loaded along with data sets which contain a pressure variable on the same
+% mooring, will have a depth variable calculated from the other pressure 
+% information knowing distances between each others.
 %
 % This function uses the latitude from metadata. Without any latitude information,
 % 1 dbar ~= 1 m.
@@ -504,40 +508,57 @@ for k = 1:length(sample_data)
         end
     end
     
-    computedMedianDepth   = round(median(computedDepth)*100)/100;
+% This is a test not to add computed depth from bad pressure data in ADCPs    
+%     computedMedianDepth   = round(median(computedDepth)*100)/100;
+%     
+%     idHeight = getVar(curSam.dimensions, 'HEIGHT_ABOVE_SENSOR');
+%     if idHeight > 0
+%         % ADCP
+%         % Let's compare this computed depth from pressure
+%         % with the maximum distance the ADCP can measure. Sometimes,
+%         % PRES from ADCP pressure sensor is just wrong
+%         maxDistance = round(max(curSam.dimensions{idHeight}.data)*100)/100;
+%         diffPresDist = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
+%         
+%         if diffPresDist < 30/100
+%             % Depth from PRES Ok if diff < 30%
+%             % add depth data as new variable in data set
+%             sample_data{k} = addVar(...
+%                 curSam, ...
+%                 'DEPTH', ...
+%                 computedDepth, ...
+%                 dimensions, ...
+%                 computedDepthComment);
+%             clear computedDepth;
+%         else
+%             fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ' computed '...
+%                 'depth won''t be added to dataset as it is too far from the '...
+%                 'instrument nominal depth value']);
+%         end
+%     else
+%         % add depth data as new variable in data set
+%         sample_data{k} = addVar(...
+%             curSam, ...
+%             'DEPTH', ...
+%             computedDepth, ...
+%             dimensions, ...
+%             computedDepthComment);
+%         clear computedDepth;
+%         
+%         % update vertical min/max from new computed DEPTH
+%         sample_data{k} = populateMetadata(sample_data{k});
+%     end
+
+    % add depth data as new variable in data set
+    sample_data{k} = addVar(...
+        curSam, ...
+        'DEPTH', ...
+        computedDepth, ...
+        dimensions, ...
+        computedDepthComment);
+    clear computedDepth;
     
-    idHeight = getVar(curSam.dimensions, 'HEIGHT_ABOVE_SENSOR');
-    if idHeight > 0
-        % ADCP
-        % Let's compare this computed depth from pressure
-        % with the maximum distance the ADCP can measure. Sometimes,
-        % PRES from ADCP pressure sensor is just wrong
-        maxDistance = round(max(curSam.dimensions{idHeight}.data)*100)/100;
-        diffPresDist = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
-        
-        if diffPresDist < 30/100
-            % Depth from PRES Ok if diff < 30%
-            % add depth data as new variable in data set
-            sample_data{k} = addVar(...
-                curSam, ...
-                'DEPTH', ...
-                computedDepth, ...
-                dimensions, ...
-                computedDepthComment);
-            clear computedDepth;
-        end
-    else
-        % add depth data as new variable in data set
-        sample_data{k} = addVar(...
-            curSam, ...
-            'DEPTH', ...
-            computedDepth, ...
-            dimensions, ...
-            computedDepthComment);
-        clear computedDepth;
-        
-        % update vertical min/max from new computed DEPTH
-        sample_data{k} = populateMetadata(sample_data{k});
-    end
+    % update vertical min/max from new computed DEPTH
+    sample_data{k} = populateMetadata(sample_data{k});
     clear curSam;
 end

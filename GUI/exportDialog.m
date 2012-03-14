@@ -125,6 +125,9 @@ function [exportDir sets] = exportDialog( ...
   cancelButton  = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
   confirmButton = uicontrol('Style', 'pushbutton', 'String', 'Ok');
   
+  % replicate button for output format
+  repButton = uicontrol('Style', 'pushbutton', 'String', 'Replicate');
+  
   % use normalized units for positioning
   set(f,             'Units', 'normalized');
   set(tabPanel,      'Units', 'normalized');
@@ -133,6 +136,7 @@ function [exportDir sets] = exportDialog( ...
   set(dirButton,     'Units', 'normalized');
   set(cancelButton,  'Units', 'normalized');
   set(confirmButton, 'Units', 'normalized');
+  set(repButton,     'Units', 'normalized');
   
   % position widgets
   set(f,             'Position', [0.25, 0.35, 0.5,  0.3]);
@@ -142,6 +146,7 @@ function [exportDir sets] = exportDialog( ...
   set(dirText,       'Position', [0.15, 0.1,  0.8,  0.1]);
   set(dirButton,     'Position', [0.85, 0.1,  0.15, 0.1]);
   set(tabPanel,      'Position', [0.0,  0.2,  1.0,  0.8]);
+  set(repButton,     'Position', [0.85, 0.2,  0.15, 0.1]);
   
   % reset back to pixel units
   set(f,             'Units', 'pixels');
@@ -151,6 +156,7 @@ function [exportDir sets] = exportDialog( ...
   set(dirButton,     'Units', 'pixels');
   set(cancelButton,  'Units', 'pixels');
   set(confirmButton, 'Units', 'pixels');
+  set(repButton,     'Units', 'pixels');
 
   % create a panel for each data set
   setPanels = [];
@@ -183,6 +189,7 @@ function [exportDir sets] = exportDialog( ...
         'Style',    'checkbox',...
         'String',   levelNames{m},...
         'Value',    1,...
+        'Tag',      ['levelCheckboxes' num2str(m)],...
         'UserData', m ...
       );
     end
@@ -281,6 +288,7 @@ function [exportDir sets] = exportDialog( ...
    set(dirButton,       'Callback',          @dirButtonCallback);
    set(cancelButton,    'Callback',          @cancelButtonCallback);
    set(confirmButton,   'Callback',          @confirmButtonCallback);
+   set(repButton,       'Callback',          @repButtonCallback);
   
   % display and wait
   set(f, 'Visible', 'on');
@@ -398,4 +406,35 @@ function [exportDir sets] = exportDialog( ...
     
     selectedLevels(setIdx, lvlIdx) = get(source, 'Value');
   end
+
+    function repButtonCallback(source,ev)
+    %REPBUTTONCALLBACK Replicates the selected output levels from the
+    %current data set to all the others.
+    %
+        [nDataSet, nlevel] = size(selectedLevels);
+    
+        % get level definition from current data set
+        curTab = get(tabPanel, 'Children');
+        curPop = findobj(curTab, 'Tag', 'exportPopUpMenu');
+        curK = get(curPop, 'Value');
+        curLevel = selectedLevels(curK, :);
+        
+        allPan = get(curTab, 'Children');
+        allPan(allPan == curPop) = [];
+        
+        for i=1:nDataSet
+            for j=1:nlevel
+                % replicate to all data sets
+                selectedLevels(i, j) = curLevel(j);
+                
+                % update the relevant uipanels
+                hCurCheck = findobj(allPan(i), 'Tag',      ['levelCheckboxes' num2str(j)]);
+                if curLevel(j) == 1
+                    set(hCurCheck, 'Value', get(hCurCheck,'Max'));
+                else
+                    set(hCurCheck, 'Value', get(hCurCheck,'Min'));
+                end
+            end
+        end
+    end
 end
