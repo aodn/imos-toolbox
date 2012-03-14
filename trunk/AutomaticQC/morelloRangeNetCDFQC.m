@@ -71,6 +71,7 @@ flags   = [];
 if ~strcmp(type, 'variables'), return; end
 
 dataName  = sample_data.(type){k}.name;
+sampleFile = sample_data.toolbox_input_file;
 iVar = 0;
 if strcmpi(dataName, 'TEMP')
     iVar = 1;
@@ -106,7 +107,7 @@ if iVar > 0
             error('Bad depth data in file => Fill instrument_nominal_depth!');
         else
             dataDepth(~iGoodDepth) = sample_data.instrument_nominal_depth;
-            disp('Warning : morelloRangeNetCDFQC uses nominal depth instead of bad depth data in file')
+            disp('Warning : morelloRangeNetCDFQC uses nominal depth instead of depth data flagged as ''bad'' in file')
         end
     end
     
@@ -373,16 +374,31 @@ if iVar > 0
             % for test in display
             mWh = findobj('Tag', 'mainWindow');
             morelloRange = get(mWh, 'UserData');
-            morelloRange.rangeDEPTH = depths;
+            l = 0;
+            if isempty(morelloRange)
+                l = 1;
+            else
+                for i=1:length(morelloRange)
+                    if strcmp(morelloRange(i).dataSet, sampleFile)
+                        l=i;
+                        break;
+                    end
+                end
+                if l == 0
+                    l = length(morelloRange) + 1;
+                end
+            end
+            morelloRange(l).dataSet = sampleFile;
+            morelloRange(l).rangeDEPTH = depths;
             if strcmpi(dataName, 'TEMP')
-                morelloRange.rangeMinT = dataRangeMin;
-                morelloRange.rangeMaxT = dataRangeMax;
+                morelloRange(l).rangeMinT = dataRangeMin;
+                morelloRange(l).rangeMaxT = dataRangeMax;
             elseif strcmpi(dataName, 'PSAL')
-                morelloRange.rangeMinS = dataRangeMin;
-                morelloRange.rangeMaxS = dataRangeMax;
+                morelloRange(l).rangeMinS = dataRangeMin;
+                morelloRange(l).rangeMaxS = dataRangeMax;
             elseif strcmpi(dataName, 'DOX2')
-                morelloRange.rangeMinDO = dataRangeMin;
-                morelloRange.rangeMaxDO = dataRangeMax;
+                morelloRange(l).rangeMinDO = dataRangeMin;
+                morelloRange(l).rangeMaxDO = dataRangeMax;
             end
             set(mWh, 'UserData', morelloRange);
             

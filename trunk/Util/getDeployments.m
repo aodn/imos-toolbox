@@ -58,7 +58,7 @@ if ~auto
     [fieldTrip dataDir] = startDialog();
     % if automatic, just get the defaults from toolboxProperties.txt
 else
-    dataDir   =            readProperty('startDialog.dataDir');
+    dataDir   = readProperty('startDialog.dataDir');
     fieldTrip = readProperty('startDialog.fieldTrip');
     
     if isempty(dataDir), error('startDialog.dataDir is not set');   end

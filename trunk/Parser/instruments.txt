@@ -29,3 +29,4 @@ SEABIRD, 		SBE39IM - TEMPERATURE RECORDER, 								SBE39
 NORTEK, 		ADCP - AQUAPRO, 												aquadoppProfiler
 RDI, 			ADCP-Workhorse, 												workhorse
 AQUATEC, 		AQUALOGGER, 													aquatec
+SEABIRD, 		CTD - SBE19Plus, 												SBE19

@@ -146,7 +146,7 @@ if any(~ff)
         error('Bad pressure/depth data in file => Fill instrument_nominal_depth!');
     else
         depth(~ff) = sample_data.instrument_nominal_depth;
-        disp('Warning : teledyneSetQC uses nominal depth instead of bad pressure/depth data in file')
+        disp('Warning : teledyneSetQC uses nominal depth instead of pressure/depth data flagged ''bad'' in file')
     end
 end
 
