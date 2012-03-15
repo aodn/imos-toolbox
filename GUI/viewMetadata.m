@@ -24,7 +24,8 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
 %
 %                      function repCallback(location, names, values)
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -65,14 +66,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
   if ~isa(repCallback,       'function_handle')
                              error('repCallback must be a function');    end
   
-  tables   = [];
-  panels   = [];
-  globdata = {};
-  varData  = {};
-  dimData  = {};
-  
   %% create data sets
-  
   dateFmt = readProperty('toolbox.timeFormat');
   
   globs = orderfields(sample_data);
@@ -81,12 +75,14 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
   globs = rmfield(globs, 'dimensions');
   
   dims = sample_data.dimensions;
-  for k = 1:length(dims)
+  lenDims = length(dims);
+  for k = 1:lenDims
     dims{k} = orderfields(rmfield(dims{k}, {'data', 'flags'})); 
   end
   
   vars = sample_data.variables;
-  for k = 1:length(vars)
+  lenVars = length(vars);
+  for k = 1:lenVars
     vars{k} = orderfields(rmfield(vars{k}, {'data', 'dimensions', 'flags'})); 
   end
   
@@ -95,43 +91,47 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
   
   % create cell array containing dimension 
   % attribute data (one per dimension)
-  for k = 1:length(dims), 
+  dimData  = cell(lenDims, 1);
+  for k = 1:lenDims, 
     dimData{k} = [fieldnames(dims{k}) struct2cell(dims{k})];
   end
   
   % create cell array containing variable 
   % attribute data (one per variable)
-  for k = 1:length(vars)
-    
+  varData  = cell(lenVars, 1);
+  for k = 1:lenVars
     varData{k} = [fieldnames(vars{k}) struct2cell(vars{k})];
   end
   
   %% create uitables
-  
   % create a uitable for each data set
+  tables = nan(lenVars+lenDims+1, 1);
+  panels = nan(lenVars+lenDims+1, 1);
   [tables(1) panels(1)] = createTable(globData, '', 'global', dateFmt);
   
-  for k = 1:length(dims)
-    [tables(end+1) panels(end+1)] = createTable(...
+  for k = 1:lenDims
+    [tables(k+1) panels(k+1)] = createTable(...
       dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt);
   end
   
-  for k = 1:length(vars)
-    [tables(end+1) panels(end+1)] = createTable(...
+  for k = 1:lenVars
+    [tables(k+lenDims+1) panels(k+lenDims+1)] = createTable(...
       varData{k}, ['variables{'  num2str(k) '}'], 'variable', dateFmt);
   end
   
-  tableNames = {'Global attributes'};
-  for k = 1:length(dims)
-    tableNames{end+1} = [dims{k}.name ' dimension attributes']; 
+  tableNames =  cell(lenVars+lenDims+1, 1);
+  tableNames{1} = 'Global attributes';
+  for k = 1:lenDims
+    tableNames{k+1} = [dims{k}.name ' dimension attributes']; 
   end
-  for k = 1:length(vars)
-    tableNames{end+1} = [vars{k}.name ' variable attributes'];
+  for k = 1:lenVars
+    tableNames{k+lenDims+1} = [vars{k}.name ' variable attributes'];
   end
   
   % create a tabbedPane which displays each table in a separate tab.
   % for low table numbers use buttons, otherwise use a drop down list
-  if length(tables) <= 4
+  lenTables = length(tables);
+  if lenTables <= 4
     tabPanel = tabbedPane(parent, panels, tableNames, true);
   else 
     tabPanel = tabbedPane(parent, panels, tableNames, false);
@@ -140,8 +140,8 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
   % matlab is a piece of shit; column widths must be specified 
   % in pixels, so we have to get the table position in pixels 
   % to calculate the desired column width
-  for k = 1:length(tables)
-    
+  for k = 1:lenTables
+    set(tables(k), 'Units', 'pixels');
     pos = get(tables(k), 'Position');
     colWidth    = zeros(1,2);
     colWidth(1) = (pos(3) / 3);
@@ -149,6 +149,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
     % -20 in case a vertical scrollbar is added
     colWidth(2) = (2*pos(3) / 3)-20; 
     set(tables(k), 'ColumnWidth', num2cell(colWidth));
+    set(tables(k), 'Units', 'normalized');
   end
 
   function [table panel] = createTable(data, prefix, tempType, dateFmt)
@@ -157,25 +158,25 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
     % format data - they're all made into strings, and cast 
     % back when edited. also we want date fields to be 
     % displayed nicely, not to show up as a numeric value
-    for k = 1:length(data)
+    for i = 1:length(data)
       
       % get the type of the attribute
-      t = templateType(data{k,1}, tempType);
+      t = templateType(data{i,1}, tempType);
       
       switch t
         
         % format dates
         case 'D',  
-          data{k,2} = datestr(data{k,2}, dateFmt);
+          data{i,2} = datestr(data{i,2}, dateFmt);
         
         % make sure numeric values are not rounded (too much)
         case 'N',
-          data{k,2} = sprintf('%.10g', data{k,2});
+          data{i,2} = sprintf('%.10g', data{i,2});
         
         % make everything else a string - i'm assuming that when 
         % num2str is passed a string, it will return that string 
         % unchanged; this assumption holds for at least r2008, r2009
-        otherwise, data{k,2} = num2str(data{k,2});
+        otherwise, data{i,2} = num2str(data{i,2});
       end
     end
     
@@ -217,12 +218,14 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
     set(table,     'Units', 'normalized');
     set(repButton, 'Units', 'normalized');
     
-    set(table,     'Position', [0.0, 0.0, 0.9, 1.0]);
-    set(repButton, 'Position', [0.9, 0.8, 0.1, 0.2]);
+%     set(table,     'Position', [0.0, 0.0, 0.9, 1.0]);
+    set(table,     'Position', posUi2(panel, 1, 10, 1, 1:9, 0));
+%     set(repButton, 'Position', [0.9, 0.8, 0.1, 0.2]);
+    set(repButton, 'Position', posUi2(panel, 10, 10, 1:2, 10, 0));
     
-    set(table,     'Units', 'pixels');
-    set(repButton, 'Units', 'pixels');
-    set(panel,     'Units', 'pixels');
+%     set(table,     'Units', 'pixels');
+%     set(repButton, 'Units', 'pixels');
+%     set(panel,     'Units', 'pixels');
     
     selectedCells = [];
     
@@ -234,8 +237,11 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
       % get the selected field names - the values are retrieved 
       % from the sample_data struct rather than the table data, 
       % as the table data is all strings
-      names  = {data{unique(selectedCells(:,1)),1}};
-      values = {};
+      if isempty(selectedCells)
+          return;
+      else
+          names  = data(unique(selectedCells(:,1)),1);
+      end
       
       structName = 'sample_data';
       if ~isempty(prefix), structName = [structName '.' prefix]; end
@@ -258,8 +264,10 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
       end
       
       % get the field values from the sample data struct
-      for k = 1:length(names)
-        values{k} = eval([structName '.' names{k}]);
+      lenNames = length(names);
+      values = cell(lenNames, 1);
+      for j = 1:lenNames
+        values{j} = eval([structName '.' names{j}]);
       end
       
       % call repCallback
@@ -348,7 +356,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
 
         % numbers are just numbers
         case 'N'
-          temp = str2num(fieldValue);
+          temp = str2double(fieldValue);
 
           % reject anything that is not a number
           if isempty(temp)
@@ -366,7 +374,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
           switch qcType
 
             case 'byte'
-              temp = uint8(str2num(fieldValue));
+              temp = uint8(str2double(fieldValue));
               if isempty(temp), error([fieldName ' must be a byte']); end
 
             case 'char'
