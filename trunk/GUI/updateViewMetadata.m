@@ -49,9 +49,6 @@ function updateViewMetadata(parent, sample_data)
   if ~ishandle(parent),      error('parent must be a handle');           end
   if ~isstruct(sample_data), error('sample_data must be a struct');      end
   
-  varData  = {};
-  dimData  = {};
-  
   %% create data sets
   
   dateFmt = readProperty('toolbox.timeFormat');
@@ -62,12 +59,14 @@ function updateViewMetadata(parent, sample_data)
   globs = rmfield(globs, 'dimensions');
   
   dims = sample_data.dimensions;
-  for k = 1:length(dims)
+  lenDims = length(dims);
+  for k = 1:lenDims
     dims{k} = orderfields(rmfield(dims{k}, {'data', 'flags'})); 
   end
   
   vars = sample_data.variables;
-  for k = 1:length(vars)
+  lenVars = length(vars);
+  for k = 1:lenVars
     vars{k} = orderfields(rmfield(vars{k}, {'data', 'dimensions', 'flags'})); 
   end
   
@@ -76,14 +75,15 @@ function updateViewMetadata(parent, sample_data)
   
   % create cell array containing dimension 
   % attribute data (one per dimension)
-  for k = 1:length(dims), 
+  dimData  = cell(lenDims, 1);
+  for k = 1:lenDims 
     dimData{k} = [fieldnames(dims{k}) struct2cell(dims{k})];
   end
   
   % create cell array containing variable 
   % attribute data (one per variable)
-  for k = 1:length(vars)
-    
+  varData  = cell(lenVars, 1);
+  for k = 1:lenVars
     varData{k} = [fieldnames(vars{k}) struct2cell(vars{k})];
   end
   
@@ -108,25 +108,25 @@ function updateViewMetadata(parent, sample_data)
     % format data - they're all made into strings, and cast 
     % back when edited. also we want date fields to be 
     % displayed nicely, not to show up as a numeric value
-    for k = 1:length(data)
+    for i = 1:length(data)
       
       % get the type of the attribute
-      t = templateType(data{k,1}, tempType);
+      t = templateType(data{i,1}, tempType);
       
       switch t
         
         % format dates
         case 'D',  
-          data{k,2} = datestr(data{k,2}, dateFmt);
+          data{i,2} = datestr(data{i,2}, dateFmt);
         
         % make sure numeric values are not rounded (too much)
         case 'N',
-          data{k,2} = sprintf('%.10f', data{k,2});
+          data{i,2} = sprintf('%.10f', data{i,2});
         
         % make everything else a string - i'm assuming that when 
         % num2str is passed a string, it will return that string 
         % unchanged; this assumption holds for at least r2008, r2009
-        otherwise, data{k,2} = num2str(data{k,2});
+        otherwise, data{i,2} = num2str(data{i,2});
       end
     end
     
