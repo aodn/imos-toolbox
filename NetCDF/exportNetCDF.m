@@ -102,25 +102,66 @@ function filename = exportNetCDF( sample_data, dest )
       qcDimId = netcdf.defDim(fid, 'qcStrLen', 1);
     end
 
+    % 
+    % define string lengths
+    % dimensions and variables of cell type contain strings
+    % define stringNN dimensions when NN is a power of 2 to hold strings
+    %
+    dims = sample_data.dimensions;
+    vars = sample_data.variables;
+    str(1) = 0;
+    for m = 1:length(dims)
+        stringlen = 0;
+        if iscell(dims{m}.data)
+            stringlen = ceil(log2(max(cellfun('length', dims{m}.data))));
+            str(stringlen) = 1; %#ok<AGROW>
+        end
+        sample_data.dimensions{m}.stringlen = stringlen;
+    end
+    for m = 1:length(vars)
+        stringlen = 0;
+        if iscell(vars{m}.data)
+            stringlen = ceil(log2(max(cellfun('length', vars{m}.data))));
+            str(stringlen) = 1; %#ok<AGROW>
+        end
+        sample_data.variables{m}.stringlen = stringlen;
+    end
+    
+    stringd = zeros(length(str));
+    for m = 1:length(str)
+        if str(m)
+            len = 2 ^ m;
+            stringd(m) = netcdf.defDim(fid, [ 'string' int2str(len) ], len);
+        end
+    end
+    
     %
     % dimension and coordinate variable definitions
     %
     dims = sample_data.dimensions;
     for m = 1:length(dims)
           
+      dims{m}.name = upper(dims{m}.name);
+      
       dimAtts = dims{m};
       dimAtts = rmfield(dimAtts, 'data');
       dimAtts = rmfield(dimAtts, 'flags');
+      dimAtts = rmfield(dimAtts, 'stringlen');
       
       % add the QC variable (defined below) 
       % to the ancillary variables attribute
       dimAtts.ancillary_variables = [dims{m}.name '_quality_control'];
 
       % create dimension
-      did = netcdf.defDim(fid, upper(dims{m}.name), length(dims{m}.data));
+      did = netcdf.defDim(fid, dims{m}.name, length(dims{m}.data));
 
       % create coordinate variable and attributes
-      vid = netcdf.defVar(fid, upper(dims{m}.name), 'double', did);
+      if iscell(dims{m}.data)
+          vid = netcdf.defVar(fid, dims{m}.name, 'char', ...
+              [ stringd(dims{m}.stringlen) did ]);
+      else
+          vid = netcdf.defVar(fid, dims{m}.name, 'double', did);
+      end
       putAtts(fid, vid, dimAtts, lower(dims{m}.name), dateFmt);
       
       % create the ancillary QC variable
@@ -156,12 +197,17 @@ function filename = exportNetCDF( sample_data, dest )
       dids = fliplr(dids);
       
       % create the variable
-      vid = netcdf.defVar(fid, varname, 'double', dids);
-
+      if iscell(vars{m}.data)
+          vid = netcdf.defVar(fid, varname, 'char', ...
+              [ stringd(vars{m}.stringlen) did ]);
+      else
+          vid = netcdf.defVar(fid, varname, 'double', dids);
+      end
       varAtts = vars{m};
       varAtts = rmfield(varAtts, 'data');
       varAtts = rmfield(varAtts, 'dimensions');
       varAtts = rmfield(varAtts, 'flags');
+      varAtts = rmfield(varAtts, 'stringlen');
       
       % add the QC variable (defined below) 
       % to the ancillary variables attribute
@@ -199,11 +245,16 @@ function filename = exportNetCDF( sample_data, dest )
       vid     = dims{m}.vid;
       qcvid   = dims{m}.qcvid;
       data    = dims{m}.data;
-
-      % replace NaN's with fill value
-      data(isnan(data)) = dims{m}.FillValue_;
+      stringlen = dims{m}.stringlen;
       
-      netcdf.putVar(fid, vid, data);
+      % replace NaN's with fill value
+      if isnumeric(data)
+        data(isnan(data)) = dims{m}.FillValue_;
+        netcdf.putVar(fid, vid, data);
+      elseif iscell(data)
+          data = char(data);
+          netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
+      end
       
       % ancillary QC variable data
       data    = dims{m}.flags;
@@ -221,17 +272,23 @@ function filename = exportNetCDF( sample_data, dest )
       data    = vars{m}.data;
       vid     = vars{m}.vid;
       qcvid   = vars{m}.qcvid;
+      stringlen = vars{m}.stringlen;
       
-      % replace NaN's with fill value
-      data(isnan(data)) = vars{m}.FillValue_;
-
       % transpose required for multi-dimensional data, as matlab 
       % requires the fastest changing dimension to be first. 
       % of more than two dimensions.
       nDims = length(vars{m}.dimensions);
       if nDims > 1, data = permute(data, nDims:-1:1); end
       
-      netcdf.putVar(fid, vid, data);
+      if isnumeric(data)
+        % replace NaN's with fill value
+        data(isnan(data)) = vars{m}.FillValue_;
+        netcdf.putVar(fid, vid, data);
+      elseif iscell(data)
+          data = char(data);
+          netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
+      end
+      
       
       % ancillary QC variable data
       data = vars{m}.flags;

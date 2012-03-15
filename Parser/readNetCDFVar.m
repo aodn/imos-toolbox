@@ -45,7 +45,7 @@ function v = readNetCDFVar(ncid, varid)
 %
   error(nargchk(2,2,nargin));
 
-  [name, ~, dimids, ~] = netcdf.inqVar(ncid, varid);
+  [name, xtype, dimids, natts] = netcdf.inqVar(ncid, varid);
 
   v            = struct;
   v.name       = name;
@@ -60,6 +60,11 @@ function v = readNetCDFVar(ncid, varid)
       v.data = permute(v.data, nDims:-1:1); 
   end
 
+  if xtype == netcdf.getConstant('NC_CHAR') && length(dimids) > 1
+      v.data = cellstr(v.data);
+      v.dimensions(end) = [];
+  end
+  
   % get variable attributes
   atts = readNetCDFAtts(ncid, varid);
   attnames = fieldnames(atts);
