@@ -1,5 +1,5 @@
-function [data, flags, log] = morelloRangeNetCDFQC( sample_data, data, k, type, auto )
-%MORELLORANGE Flags value out of a climatology range.
+function [data, flags, log] = imosRegionalRangeQC( sample_data, data, k, type, auto )
+%IMOSREGIONALRANGEQC Flags value out of a climatology range.
 %
 % Range test which finds and flags any data which value doesn't fit in the
 % range [min max] = climRange(lon, lat, date, depth, param)
@@ -224,9 +224,9 @@ if iVar > 0
             
             lenData = length(data);
             
-            % read step type from morelloRangeNetCDFQC properties file
-            rangeMinExpr = readProperty('rangeMin', fullfile('AutomaticQC', 'morelloRangeNetCDFQC.txt'));
-            rangeMaxExpr = readProperty('rangeMax', fullfile('AutomaticQC', 'morelloRangeNetCDFQC.txt'));
+            % read step type from imosRegionalRangeQC properties file
+            rangeMinExpr = readProperty('rangeMin', fullfile('AutomaticQC', 'imosRegionalRangeQC.txt'));
+            rangeMaxExpr = readProperty('rangeMax', fullfile('AutomaticQC', 'imosRegionalRangeQC.txt'));
             
             % let's find the nearest depth in climatology
             iClimDepth = 0;
@@ -317,13 +317,13 @@ if iVar > 0
             try
                 rangeMin = eval(rangeMinExpr);
             catch
-                error('Invalid rangeMin expression in morelloRangeNetCDFQC.txt');
+                error('Invalid rangeMin expression in imosRegionalRangeQC.txt');
             end
             
             try
                 rangeMax = eval(rangeMaxExpr);
             catch
-                error('Invalid rangeMax expression in morelloRangeNetCDFQC.txt');
+                error('Invalid rangeMax expression in imosRegionalRangeQC.txt');
             end
             
             % at first every point is raw

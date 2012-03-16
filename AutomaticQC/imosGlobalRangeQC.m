@@ -1,18 +1,16 @@
-function [data, flags, log] = morelloImpossibleDateQC( sample_data, data, k, type, auto )
-%MORELLOIMPOSSIBLEDATE Flags impossible TIME values 
+function [data, flags, log] = imosGlobalRangeQC ( sample_data, data, k, type, auto )
+%IMOSGLOBALRANGEQC Flags data which is out of the variable's valid range.
 %
-% Impossible date test described in Morello et Al. 2011 paper. Only the
-% test year > 2007 and date < current date will be performed as date 
-% information is stored in datenum format (decimal days since 01/01/0000) 
-% before being output in addition not all the date information in input 
-% files are in ASCII format or expressed with day, month and year information...
+% Iterates through the given data, and returns flags for any samples which
+% do not fall within the valid_min and valid_max fields for the given
+% variable.
 %
 % Inputs:
-%   sample_data - struct containing the data set.
+%   sample_data - struct containing the entire data set and dimension data.
 %
 %   data        - the vector of data to check.
 %
-%   k           - Index into the sample_data dimensions/variables vector.
+%   k           - Index into the sample_data.variables vector.
 %
 %   type        - dimensions/variables type to check in sample_data.
 %
@@ -21,12 +19,13 @@ function [data, flags, log] = morelloImpossibleDateQC( sample_data, data, k, typ
 % Outputs:
 %   data        - same as input.
 %
-%   flags       - Vector the same length as data, with flags for flatline 
-%                 regions.
+%   flags       - Vector the same length as data, with flags for corresponding
+%                 data which is out of range.
 %
 %   log         - Empty cell array.
 %
-% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -69,43 +68,42 @@ if ~ischar(type),                 error('type must be a string');        end
 if nargin<5, auto=false; end
 
 log   = {};
+flags   = [];
 
-dataTime = [];
-flags    = [];
+if ~strcmp(type, 'variables'), return; end
 
-if ~strcmp(type, 'dimensions'), return; end
+% read all values from imosGlobalRangeQC properties file
+values = readProperty('*', fullfile('AutomaticQC', 'imosGlobalRangeQC.txt'));
+param = strtrim(values{1});
 
-if strcmpi(sample_data.(type){k}.name, 'TIME')
-    dataTime = sample_data.(type){k}.data;
-else
-    return;
-end
+iParam = strcmpi(sample_data.(type){k}.name, param);
 
-qcSet    = str2double(readProperty('toolbox.qc_set'));
-passFlag = imosQCFlag('good',           qcSet, 'flag');
-failFlag = imosQCFlag('probablyBad',    qcSet, 'flag');
-
-if ~isempty(dataTime)
-    lenData = length(dataTime);
+if any(iParam)
+    % get the flag values with which we flag good and out of range data
+    qcSet     = str2double(readProperty('toolbox.qc_set'));
+    rangeFlag = imosQCFlag('bound', qcSet, 'flag');
+    rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+    goodFlag  = imosQCFlag('good',  qcSet, 'flag');
     
-    % initially all data is bad
-    flags = ones(1, lenData)*failFlag;
+    max  = sample_data.variables{k}.valid_max;
+    min  = sample_data.variables{k}.valid_min;
     
-    % read site name from morelloImpossibleDateQC properties file
-    dateMin = readProperty('dateMin', fullfile('AutomaticQC', 'morelloImpossibleDateQC.txt'));
-    dateMax = readProperty('dateMax', fullfile('AutomaticQC', 'morelloImpossibleDateQC.txt'));
+    lenData = length(data);
     
-    dateMin = datenum(dateMin, 'dd/mm/yyyy');
-    if isempty(dateMax)
-        dateMax = now_utc;
-    else
-        dateMax = datenum(dateMax, 'dd/mm/yyyy');
-    end
+    % initialise all flags to non QC'd
+    flags = ones(lenData, 1)*rawFlag;
     
-    iGoodTime = dataTime >= dateMin;
-    iGoodTime = iGoodTime | (dataTime <= dateMax);
-    
-    if any(iGoodTime)
-        flags(iGoodTime) = passFlag;
+    if ~isempty(min) && ~isempty(max)
+        if max ~= min
+            % initialise all flags to bad
+            flags = ones(lenData, 1)*rangeFlag;
+            
+            iPassed = data <= max;
+            iPassed = iPassed & data >= min;
+            
+            % add flags for in range values
+            flags(iPassed) = goodFlag;
+            flags(iPassed) = goodFlag;
+        end
     end
 end

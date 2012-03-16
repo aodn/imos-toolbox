@@ -1,3 +1,0 @@
-CLIM_STEP = monthly
-DAILY_METHOD = trend_corr
-MAX_TIME_SD = 6

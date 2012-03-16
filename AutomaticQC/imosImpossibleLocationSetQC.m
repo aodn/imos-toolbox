@@ -1,5 +1,5 @@
-function [sample_data] = morelloImpossibleLocationSetQC( sample_data, auto )
-%MORELLOIMPOSSIBLELOCATIONSET Flags impossible Latitude and Longitude values 
+function [sample_data] = imosImpossibleLocationSetQC( sample_data, auto )
+%IMOSIMPOSSIBLELOCATIONSETQC Flags impossible Latitude and Longitude values 
 % using IMOS sites information from imosSites.txt.
 %
 % Impossible location test described in Morello et al. 2011 paper.
