@@ -1,28 +1,37 @@
-function [data flags log] = inOutWaterQC( sample_data, data, k, type, auto )
-%INOUTWATERQC Flags samples which were taken before and after the instrument was placed
-% in the water.
+function [data, flags, log] = imosGradientQC( sample_data, data, k, type, auto )
+%IMOSGRADIENTQC Flags consecutive TEMP or PSAL values with gradient > threshold.
 %
-% Flags all samples from the data set which have a time that is before or after the 
-% in and out water time.
+% Gradient test which finds and flags any consecutive data which gradient
+% is > threshold
+%
+% Threshold = 6 for temperature when pressure < 500 dbar
+% Threshold = 2 for temperature when pressure >= 500 dbar
+%
+% Threshold = 0.9 for salinity when pressure < 500 dbar
+% Threshold = 0.3 for salinity when pressure >= 500 dbar
+%
+% Threshold = 3 for pressure/depth
+%
+% by default we assume all IMOS moorings are in shallow water < 500m
 %
 % Inputs:
-%   sample_data - struct containing the entire data set and dimension data.
+%   sample_data - struct containing the data set.
 %
 %   data        - the vector of data to check.
 %
-%   k           - Index into the sample_data.variables vector.
+%   k           - Index into the sample_data variable vector.
 %
 %   type        - dimensions/variables type to check in sample_data.
 %
 %   auto        - logical, run QC in batch mode
 %
 % Outputs:
-%   data        - Same as input.
+%   data        - same as input.
 %
-%   flags       - Vector the same size as data, with before in-water samples 
-%                 flagged. 
+%   flags       - Vector the same length as data, with flags for flatline 
+%                 regions.
 %
-%   log         - Empty cell array..
+%   log         - Empty cell array.
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -71,32 +80,42 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-time_in_water = sample_data.time_deployment_start;
-time_out_water = sample_data.time_deployment_end;
+% read all values from imosGradientQC properties file
+values = readProperty('*', fullfile('AutomaticQC', 'imosGradientQC.txt'));
+param = strtrim(values{1});
+thresholdExpr = strtrim(values{2});
 
-if isempty(time_in_water), return; end
-
-qcSet     = str2double(readProperty('toolbox.qc_set'));
-rawFlag  = imosQCFlag('raw',          qcSet, 'flag');
-failFlag  = imosQCFlag('probablyBad',   qcSet, 'flag');
-
-lenData = length(data);
-
-% initially all data is bad
-flags = ones(lenData, 1)*failFlag;
-
-% find samples which were taken before in water
-time = sample_data.dimensions{1}.data;
-
-% case data is originaly a matrix
-lenTime = length(time);
-if lenData > lenTime
-    time = repmat(time, lenData/lenTime, 1);
-end
-
-iGood = time >= time_in_water;
-iGood = iGood & time <= time_out_water;
-
-if any(iGood)
-    flags(iGood) = rawFlag;
+iParam = strcmpi(sample_data.(type){k}.name, param);
+    
+if any(iParam)
+    qcSet    = str2double(readProperty('toolbox.qc_set'));
+    rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+    passFlag = imosQCFlag('good', qcSet, 'flag');
+    failFlag = imosQCFlag('bad',  qcSet, 'flag');
+    
+    lenData = length(data);
+    
+    % initially all data is raw
+    flags = ones(lenData, 1)*rawFlag;
+    
+    gradient = abs(data(2:end) - data(1:end-1));
+    
+    threshold = eval(thresholdExpr{iParam});
+    threshold = ones(lenData-1, 1) .* threshold;
+    
+    iGoodGrad = gradient < threshold;
+    iGoodGrad = [iGoodGrad; false]; % we don't know about the last point
+    
+    iBadGrad = gradient >= threshold;
+    % when current point is flagged bad then also the next one
+    iBadGrad(2:end) = iBadGrad(1:end-1) | iBadGrad(2:end);
+    iBadGrad = [iBadGrad; false]; % we don't know about the last point
+    
+    if any(iGoodGrad)
+        flags(iGoodGrad) = passFlag;
+    end
+    
+    if any(iBadGrad)
+        flags(iBadGrad) = failFlag;
+    end
 end

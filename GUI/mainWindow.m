@@ -413,7 +413,8 @@ function mainWindow(...
     lenSampleData = length(sample_data);
     %plot depth information
     monitorRec = get(0,'MonitorPosition');
-    iBigMonitor = monitorRec(:, 3) == max(monitorRec(:, 3));
+    xResolution = monitorRec(:, 3)-monitorRec(:, 1);
+    iBigMonitor = xResolution == max(xResolution);
     hFigMooringDepth = figure(...
         'Name', 'Mooring''s instruments depths', ...
         'NumberTitle','off', ...
@@ -424,18 +425,16 @@ function mainWindow(...
     set(get(hAxMooringDepth, 'Title'), 'String', 'Mooring''s instruments depths')
     hold(hAxMooringDepth, 'on');
     
-    %sort instruments by nominal depth
-    instrument_nominal_depth = nan(lenSampleData, 1);
+    %sort instruments by meta.depth
+    metaDepth = nan(lenSampleData, 1);
     xMin = nan(lenSampleData, 1);
     xMax = nan(lenSampleData, 1);
     for i=1:lenSampleData
-        if isfield(sample_data{i}, 'instrument_nominal_depth')
-            instrument_nominal_depth(i) = sample_data{i}.instrument_nominal_depth;
-            xMin = min(sample_data{i}.dimensions{1}.data);
-            xMax = max(sample_data{i}.dimensions{1}.data);
-        end
+        metaDepth(i) = sample_data{i}.meta.depth;
+        xMin = min(sample_data{i}.dimensions{1}.data);
+        xMax = max(sample_data{i}.dimensions{1}.data);
     end
-    [~, iSort] = sort(instrument_nominal_depth);
+    [~, iSort] = sort(metaDepth);
     xMin = min(xMin);
     xMax = max(xMax);
     set(hAxMooringDepth, 'XTick', (xMin:(xMax-xMin)/4:xMax));
@@ -452,20 +451,15 @@ function mainWindow(...
     hLineDepth = nan(lenSampleData+1, 1);
     for i=1:lenSampleData
         instrumentDesc{i+1} = sample_data{iSort(i)}.instrument;
-        if isfield(sample_data{i}, 'instrument_nominal_depth')
-            instrument_nominal_depth = sample_data{iSort(i)}.instrument_nominal_depth;
-            if ~isempty(instrument_nominal_depth)
-                instrumentDesc{i+1} = [instrumentDesc{i+1} ' (' num2str(instrument_nominal_depth) 'm)'];
-                hLineDepth(1) = line([sample_data{iSort(i)}.dimensions{1}.data(1), sample_data{iSort(i)}.dimensions{1}.data(end)], ...
-                    [instrument_nominal_depth, instrument_nominal_depth], ...
-                    'Color', 'black');
-            else
-                fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                    ', global attribute ''instrument_nominal_depth'' is not properly documented.']);
-            end
+        if ~isnan(sample_data{i}.meta.depth)
+            metaDepth = sample_data{iSort(i)}.meta.depth;
+            instrumentDesc{i+1} = [instrumentDesc{i+1} ' (' num2str(metaDepth) 'm)'];
+            hLineDepth(1) = line([sample_data{iSort(i)}.dimensions{1}.data(1), sample_data{iSort(i)}.dimensions{1}.data(end)], ...
+                [metaDepth, metaDepth], ...
+                'Color', 'black');
         else
             fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                ', global attribute ''instrument_nominal_depth'' is not documented.']);
+                ', the ''sample_data.meta.depth'' attribute is not documented.']);
         end
         
         %look for the depth variable
@@ -554,7 +548,8 @@ function mainWindow(...
         
         %plot depth information
         monitorRec = get(0,'MonitorPosition');
-        iBigMonitor = monitorRec(:, 3) == max(monitorRec(:, 3));
+        xResolution = monitorRec(:, 3)-monitorRec(:, 1);
+        iBigMonitor = xResolution == max(xResolution);
         hFigMooringTemp = figure(...
             'Name', ['Mooring''s instruments ' varTitle], ...
             'NumberTitle','off', ...
@@ -565,18 +560,16 @@ function mainWindow(...
         set(get(hAxMooringTemp, 'Title'), 'String', ['Mooring''s instruments ' varTitle]);
         hold(hAxMooringTemp, 'on');
         
-        %sort instruments by nominal depth
-        instrument_nominal_depth = nan(lenSampleData, 1);
+        %sort instruments by meta.depth
+        metaDepth = nan(lenSampleData, 1);
         xMin = nan(lenSampleData, 1);
         xMax = nan(lenSampleData, 1);
         for i=1:lenSampleData
-            if isfield(sample_data{i}, 'instrument_nominal_depth')
-                instrument_nominal_depth(i) = sample_data{i}.instrument_nominal_depth;
-                xMin = min(sample_data{i}.dimensions{1}.data);
-                xMax = max(sample_data{i}.dimensions{1}.data);
-            end
+            metaDepth(i) = sample_data{i}.meta.depth;
+            xMin = min(sample_data{i}.dimensions{1}.data);
+            xMax = max(sample_data{i}.dimensions{1}.data);
         end
-        [~, iSort] = sort(instrument_nominal_depth);
+        [~, iSort] = sort(metaDepth);
         xMin = min(xMin);
         xMax = max(xMax);
         set(hAxMooringTemp, 'XTick', (xMin:(xMax-xMin)/4:xMax));
@@ -592,35 +585,30 @@ function mainWindow(...
         hLineVar = nan(lenSampleData, 1);
         for i=1:lenSampleData
             instrumentDesc{i} = sample_data{iSort(i)}.instrument;
-            if isfield(sample_data{i}, 'instrument_nominal_depth')
-                instrument_nominal_depth = sample_data{iSort(i)}.instrument_nominal_depth;
-                if ~isempty(instrument_nominal_depth)
-                    instrumentDesc{i} = [instrumentDesc{i} ' (' num2str(instrument_nominal_depth) 'm)'];
-                    
-                    %look for the variable
-                    lenVar = length(sample_data{iSort(i)}.variables);
-                    iVar = 0;
-                    for j=1:lenVar
-                        if strcmpi(sample_data{iSort(i)}.variables{j}.name, varName)
-                            iVar = j;
-                            break;
-                        end
+            if ~isnan(sample_data{i}.meta.depth)
+                metaDepth = sample_data{iSort(i)}.meta.depth;
+                instrumentDesc{i} = [instrumentDesc{i} ' (' num2str(metaDepth) 'm)'];
+                
+                %look for the variable
+                lenVar = length(sample_data{iSort(i)}.variables);
+                iVar = 0;
+                for j=1:lenVar
+                    if strcmpi(sample_data{iSort(i)}.variables{j}.name, varName)
+                        iVar = j;
+                        break;
                     end
-                    
-                    if iVar > 0
-                        dataVar = sample_data{iSort(i)}.variables{iVar}.data;
-                        hLineVar(i) = line(sample_data{iSort(i)}.dimensions{1}.data, ...
-                            dataVar, ...
-                            'Color', cMap(i, :), ...
-                            'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
-                    end
-                else
-                    fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                        ', global attribute ''instrument_nominal_depth'' is not properly documented.']);
+                end
+                
+                if iVar > 0
+                    dataVar = sample_data{iSort(i)}.variables{iVar}.data;
+                    hLineVar(i) = line(sample_data{iSort(i)}.dimensions{1}.data, ...
+                        dataVar, ...
+                        'Color', cMap(i, :), ...
+                        'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
                 end
             else
                 fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                    ', global attribute ''instrument_nominal_depth'' is not documented.']);
+                    ', the ''sample_data.meta.depth'' attribute is not documented.']);
             end
         end
         

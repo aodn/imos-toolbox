@@ -1,5 +1,5 @@
-function [sample_data] = adcpSideLobeContaminationSetQC( sample_data, auto )
-%ADCPSIDELOBECONTAMINATIONSETQC Quality control procedure for ADCP instrument data.
+function [sample_data] = imosSideLobeContSetQC( sample_data, auto )
+%IMOSSIDELOBECONTSETQC Quality control procedure for ADCP instrument data.
 %
 % Quality control ADCP instrument data, assessing the side lobe effects on 
 % the cells close to the surface.
@@ -110,7 +110,7 @@ if idPres == 0 && idPresRel == 0 && idDepth == 0
         error('No pressure data in file => Fill instrument_nominal_depth!');
     else
         pressure = ones(lenData, 1).*(sample_data.instrument_nominal_depth);
-        disp('Warning : adcpSideLobeContaminationSetQC uses nominal depth because no pressure data in file')
+        disp('Warning : imosSideLobeContSetQC uses nominal depth because no pressure data in file')
     end
 elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
@@ -140,7 +140,7 @@ if any(~ff)
         error('Bad pressure/depth data in file => Fill instrument_nominal_depth!');
     else
         depth(~ff) = sample_data.instrument_nominal_depth;
-        disp('Warning : adcpSideLobeContaminationSetQC uses nominal depth instead of pressure/depth data flagged as ''bad'' in file')
+        disp('Warning : imosSideLobeContSetQC uses nominal depth instead of pressure/depth data flagged as ''bad'' in file')
     end
 end
 

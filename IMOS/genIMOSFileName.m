@@ -105,9 +105,12 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   config = struct;
   
   % <facility_code>
-  %BDM 24/02/2010
-  config.facility_code = sample_data.institution;
-    
+  if isfield(sample_data.meta, 'facility_code')
+      config.facility_code = sample_data.meta.facility_code;
+  else
+      config.facility_code = sample_data.institution;
+  end
+  
   % <data_code>
   config.data_code = '';
   
@@ -137,15 +140,11 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   config.platform_code = sample_data.platform_code;
   config.file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
   
-  if isempty(sample_data.instrument_nominal_depth)
-      sample_data.instrument_nominal_depth = NaN;
-  end
-  
   % <product_type>
   config.product_type  = [...
     sample_data.meta.site_id '-' ...
     sample_data.meta.instrument_model    '-' ...
-    num2str(sample_data.instrument_nominal_depth)
+    num2str(sample_data.meta.depth)
   ];
 
   % remove any spaces/underscores

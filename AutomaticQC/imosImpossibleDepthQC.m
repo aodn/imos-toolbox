@@ -1,5 +1,5 @@
-function [data, flags, log] = morelloImpossibleDepthQC( sample_data, data, k, type, auto )
-%MORELLOIMPOSSIBLEDEPTH Flags PRES, PRES_REL and DEPTH impossible values in
+function [data, flags, log] = imosImpossibleDepthQC( sample_data, data, k, type, auto )
+%IMOSIMPOSSIBLEDEPTHQC Flags PRES, PRES_REL and DEPTH impossible values in
 % the given data set.
 %
 % Impossible depth test compares the actual depth of the instruments to its
@@ -122,10 +122,10 @@ if strcmpi(sample_data.(type){k}.name, 'PRES') || ...
         return;
     end
     
-    % read coefficients from morelloImpossibleDepthQC properties file
-    coefUp      = readProperty('coefUp',    fullfile('AutomaticQC', 'morelloImpossibleDepthQC.txt'));
+    % read coefficients from imosImpossibleDepthQC properties file
+    coefUp      = readProperty('coefUp',    fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
     coefUp      = str2double(coefUp);
-    coefDown    = readProperty('coefDown',  fullfile('AutomaticQC', 'morelloImpossibleDepthQC.txt'));
+    coefDown    = readProperty('coefDown',  fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
     coefDown    = str2double(coefDown);
     
     % get possible min/max values
