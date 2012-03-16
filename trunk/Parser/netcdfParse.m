@@ -51,8 +51,12 @@ function sample_data = netcdfParse( filename )
   filename = filename{1};
   
   % get date format for netcdf time attributes
-  dateFmt = readProperty('exportNetCDF.dateFormat');
-
+  try 
+      dateFmt = readProperty('exportNetCDF.dateFormat');
+  catch e
+      dateFmt = 'yyyy-mm-ddTHH:MM:SSZ';
+  end
+  
   ncid = netcdf.open(filename, 'NC_NOWRITE');
   
   globals    = [];
@@ -95,12 +99,15 @@ function sample_data = netcdfParse( filename )
       
       [name len] = netcdf.inqDim(ncid, k);
       
-      % get id of associated coordinate variable
-      varid = netcdf.inqVarID(ncid, name);
+      try
+      	% get id of associated coordinate variable
+      	varid = netcdf.inqVarID(ncid, name);
       
-      dimensions{end+1} = readNetCDFVar(ncid, varid);
-      dimensions{end}   = rmfield(dimensions{end}, 'dimensions');
+      	dimensions{end+1} = readNetCDFVar(ncid, varid);
+      	dimensions{end}   = rmfield(dimensions{end}, 'dimensions');
       
+      catch e
+      end
       k = k + 1;
     end
   catch e
@@ -172,10 +179,10 @@ function sample_data = netcdfParse( filename )
       sample_data.meta.level = imosFileVersion(sample_data.file_version, 'index');
   end
   
-  sample_data.meta.instrument_make              = '';
-  sample_data.meta.instrument_model             = '';
-  sample_data.meta.instrument_serial_no         = '';
-  sample_data.meta.instrument_sample_interval   = NaN;
+  sample_data.meta.instrument_make            = '';
+  sample_data.meta.instrument_model           = '';
+  sample_data.meta.instrument_serial_no       = '';
+  sample_data.meta.instrument_sample_interval = NaN;
   
   if isfield(sample_data, 'instrument_make')
       sample_data.meta.instrument_make = sample_data.instrument_make;

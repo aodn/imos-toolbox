@@ -1,18 +1,10 @@
-function [data, flags, log] = morelloSpikeQC( sample_data, data, k, type, auto )
-%MORELLOSPIKE Flags TEMP and PSAL spikes in the given data set.
+function [data, flags, log] = imosStationarityQC( sample_data, data, k, type, auto )
+%IMOSSTATIONARITYQC Flags consecutive PRES, PRES_REL, DEPTH, TEMP or PSAL 
+% equal values in the given data set.
 %
-% Spike test from ANFOG which finds and flags any data which value Vn passes
-% the test |Vn-(Vn+1 + Vn-1)/2| - |(Vn+1 - Vn-1)/2| > threshold
-%
-% Threshold = 6 for temperature when pressure < 500 dbar
-% Threshold = 2 for temperature when pressure >= 500 dbar
-%
-% Threshold = 0.9 for salinity when pressure < 500 dbar
-% Threshold = 0.3 for salinity when pressure >= 500 dbar
-%
-% Threshold = 3 for pressure/depth
-%
-% by default we assume all IMOS moorings are in shallow water < 500m
+% Stationarity test from IOC which finds and flags any consecutive equal values
+% when number of consecutive points > T = 24*(60/delta_t) where delta_t is
+% the sampling interval in minutes.
 %
 % Inputs:
 %   sample_data - struct containing the data set.
@@ -33,8 +25,7 @@ function [data, flags, log] = morelloSpikeQC( sample_data, data, k, type, auto )
 %
 %   log         - Empty cell array.
 %
-% Author:       Dirk Slawinski <dirk.slawinski@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -81,72 +72,75 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-% read all values from morelloSpikeQC properties file
-values = readProperty('*', fullfile('AutomaticQC', 'morelloSpikeQC.txt'));
-param = strtrim(values{1});
-thresholdExpr = strtrim(values{2});
+listVar = {'PRES', 'PRES_REL', 'DEPTH', 'TEMP', 'PSAL'};
 
-iParam = strcmpi(sample_data.(type){k}.name, param);
-
-if any(iParam)
-    lenData = length(data);
-   
+if any(strcmpi(sample_data.(type){k}.name, listVar))
+    
     qcSet    = str2double(readProperty('toolbox.qc_set'));
-    rawFlag  = imosQCFlag('raw', qcSet, 'flag');
     passFlag = imosQCFlag('good', qcSet, 'flag');
     failFlag = imosQCFlag('bad',  qcSet, 'flag');
     
-    flags = ones(lenData, 1)*rawFlag;
-    testval = nan(lenData, 1);
-
-    I = true(lenData, 1);
-    I(1) = false;
-    I(end) = false;
+    lenData = length(data);
     
-    Ip1 = [false; I(1:end-1)];
-    Im1 = [I(2:end); false];
+    % initially all data is good
+    flags = ones(lenData, 1)*passFlag;
     
-    % testval(1) and testval(end) are left to NaN on pupose so that QC is
-    % raw for those two points. Indeed the test cannot be performed.
-    data1 = data(Im1);
-    data2 = data(I);
-    data3 = data(Ip1);
+    % calc the max allowed number of consecutive values
+    delta_t = sample_data.meta.instrument_sample_interval/60;
+    nt = floor(24 * (60 / delta_t));
     
-    testval(I) = abs(abs(data2 - (data3 + data1)/2) ...
-        - abs((data3 - data1)/2));
+    equVal  = (diff(data) == 0);
     
-    if strcmpi(thresholdExpr{iParam}, 'PABIM')
-        IChl            = true(lenData, 1);
-        IChl(1:2)       = false;
-        IChl(end-1:end) = false;
+    % special case when not one consecutive couple of same value
+    if all(~equVal)
+        return;
+    end
     
-        IChlp1 = [false; IChl(1:end-1)];
-        IChlp2 = [false; false; IChl(1:end-2)];
-        IChlm1 = [IChl(2:end); false];
-        IChlm2 = [IChl(3:end); false; false];
-        
-        dataChl0 = data(IChlm2);
-        dataChl1 = data(IChlm1);
-        dataChl2 = data(IChl);
-        dataChl3 = data(IChlp1);
-        dataChl4 = data(IChlp2);
-        
-        threshold = [NaN; NaN; ...
-            abs(median(dataChl0+dataChl1+dataChl2+dataChl3+dataChl4, 2)) + ...
-            abs(std(dataChl0+dataChl1+dataChl2+dataChl3+dataChl4, 0, 2)); ...
-            NaN; NaN];
+    if equVal(1)
+        equVal = [true; equVal];
     else
-        threshold = eval(thresholdExpr{iParam});
-        threshold = ones(lenData, 1) .* threshold;
+        equVal = [false; equVal];
+    end
+    diffVal = ~equVal;
+    
+    lastEqVal   = (equVal(1:end-1) - equVal(2:end)) == 1;
+    lastDiffVal = (diffVal(1:end-1) - diffVal(2:end)) == 1;
+    
+    if equVal(end)
+        lastEqVal(end+1)   = true;
+        lastDiffVal(end+1) = false;
+    else
+        lastEqVal(end+1)   = false;
+        lastDiffVal(end+1) = true;
     end
     
-    iNoSpike = testval <= threshold;
-    if any(iNoSpike)
-        flags(iNoSpike) = passFlag;
+    pos = (1:1:lenData)';
+    
+    posLastEqVal    = pos(lastEqVal);
+    posLastDiffVal  = pos(lastDiffVal);
+    
+    if equVal(1) && equVal(end)
+        % starts and finish with a same value portion
+        numLastEqVal = [posLastEqVal(1); posLastEqVal(2:end) - (posLastDiffVal-1)];
+    elseif equVal(1) && ~equVal(end)
+        % starts with a same value portion and finish with distincts values
+        numLastEqVal = [posLastEqVal(1); posLastEqVal(2:end) - (posLastDiffVal(1:end-1)-1)];
+    elseif ~equVal(1) && equVal(end)
+        % starts with distinct values and finish with a same value portion
+        numLastEqVal = posLastEqVal - (posLastDiffVal-1);
+    else
+        % starts and finish with a distinct value portion
+        numLastEqVal = posLastEqVal - (posLastDiffVal(1:end-1)-1);
     end
     
-    iSpike = testval > threshold;
-    if any(iSpike)
-        flags(iSpike) = failFlag;
+    lastEqValNum = double(lastEqVal);
+    lastEqValNum(lastEqVal) = numLastEqVal;
+    
+    iFlatline = find(lastEqValNum >= nt);
+    if ~isempty(iFlatline)
+        nFlatline = length(iFlatline);
+        for i=1:nFlatline
+            flags(iFlatline(i)-lastEqValNum(iFlatline(i))+1:iFlatline(i)) = failFlag;
+        end
     end
 end

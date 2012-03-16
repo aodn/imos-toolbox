@@ -65,13 +65,11 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   sam.meta.log           = {};
   sam.meta.raw_data_file = [rawFiles{:}];
   
+  sam.meta.site_name     = sam.meta.site.SiteName;
   if isfield(sam.meta, 'deployment')
-    sam.meta.site_name     = sam.meta.site.SiteName;
     sam.meta.site_id       = sam.meta.deployment.Site;
-    sam.meta.depth         = sam.meta.deployment.InstrumentDepth;
     sam.meta.timezone      = sam.meta.deployment.TimeZone;
   elseif isfield(sam.meta, 'profile')
-    sam.meta.site_name     = sam.meta.site.SiteName;
     sam.meta.site_id       = sam.meta.profile.Site;
     sam.meta.depth         = sam.meta.profile.InstrumentDepth;
     sam.meta.timezone      = sam.meta.profile.TimeZone;
@@ -104,6 +102,9 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   
   % add IMOS parameters
   sam = makeNetCDFCompliant(sam);
+  if isfield(sam, 'instrument_nominal_depth')
+      sam.meta.depth = sam.instrument_nominal_depth;
+  end
   
   % populate NetCDF metadata from existing metadata/data if empty
   sam = populateMetadata(sam);

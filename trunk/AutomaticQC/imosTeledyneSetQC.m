@@ -1,5 +1,5 @@
-function [sample_data] = TeledyneSetQC( sample_data, auto )
-%TELEDYNESETQC Quality control procedure for Teledyne Workhorse (and similar)
+function [sample_data] = imosTeledyneSetQC( sample_data, auto )
+%IMOSTELEDYNESETQC Quality control procedure for Teledyne Workhorse (and similar)
 % ADCP instrument data.
 %
 % Quality control procedure for Teledyne Workhorse (and similar) ADCP
@@ -116,7 +116,7 @@ if idPres == 0 && idPresRel == 0 && idDepth == 0
         error('No pressure/depth data in file => Fill instrument_nominal_depth!');
     else
         pressure = ones(lenData, 1).*(sample_data.instrument_nominal_depth);
-        disp('Warning : teledyneSetQC uses nominal depth because no pressure/depth data in file')
+        disp('Warning : imosTeledyneSetQC uses nominal depth because no pressure/depth data in file')
     end
 elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
@@ -146,7 +146,7 @@ if any(~ff)
         error('Bad pressure/depth data in file => Fill instrument_nominal_depth!');
     else
         depth(~ff) = sample_data.instrument_nominal_depth;
-        disp('Warning : teledyneSetQC uses nominal depth instead of pressure/depth data flagged ''bad'' in file')
+        disp('Warning : imosTeledyneSetQC uses nominal depth instead of pressure/depth data flagged ''bad'' in file')
     end
 end
 
@@ -176,7 +176,7 @@ for j=1:4;
 end
 
 % read in filter parameters
-propFile = fullfile('AutomaticQC', 'teledyneSetQC.txt');
+propFile = fullfile('AutomaticQC', 'imosTeledyneSetQC.txt');
 qcthresh.err_vel   = str2double(readProperty('err_vel',   propFile));
 qcthresh.pgood     = str2double(readProperty('pgood',     propFile));
 qcthresh.cmag      = str2double(readProperty('cmag',      propFile));
