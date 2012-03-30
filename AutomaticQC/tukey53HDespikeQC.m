@@ -80,25 +80,33 @@ if ~strcmp(type, 'variables'), return; end
 k_param = str2double(...
   readProperty('k', fullfile('AutomaticQC', 'tukey53HDespikeQC.txt')));
 
-% we need to modify the data set, so work with a copy
-fdata = data;
-lenData = length(data);
-
 qcSet     = str2double(readProperty('toolbox.qc_set'));
 rawFlag   = imosQCFlag('raw',   qcSet, 'flag');
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
+badFlag   = imosQCFlag('bad',   qcSet, 'flag');
+
+% we don't consider already bad data in the current test
+iBadData = sample_data.variables{k}.flags == badFlag;
+dataTested = data(~iBadData);
+
+lenData = length(data);
+lenDataTested = length(dataTested);
+
+% we need to modify the data set, so work with a copy
+fdata = dataTested;
 
 flags = ones(lenData,1)*rawFlag;
+flagsTested = ones(lenDataTested,1)*rawFlag;
 
 % remove mean, and apply a mild high pass 
 % filter before applying spike detection
 fdata = highPassFilter(fdata, 0.99);
-fdata = data - mean(fdata);
+fdata = dataTested - mean(fdata);
 
 stddev = std(fdata);
 
-lenU1 = lenData-4;
+lenU1 = lenDataTested-4;
 lenU2 = lenU1-2;
 lenU3 = lenU2-1;
 
@@ -107,9 +115,9 @@ u2 = zeros(lenU2, 1);
 u3 = zeros(lenU3, 1);
 
 % calculate x', x'' and x'''
-m = (3:lenData-2)';
+m = (3:lenDataTested-2)';
 mMinus2ToPlus2 = [m-2 m-1 m m+1 m+2];
-u1(1:lenData-4) = median(fdata(mMinus2ToPlus2), 2);
+u1(1:lenDataTested-4) = median(fdata(mMinus2ToPlus2), 2);
 clear mMinus2ToPlus2;
 
 m = (2:lenU1-1)';
@@ -119,16 +127,20 @@ clear mMinus1ToPlus1;
 u3(1:lenU2-2) = 0.25 *(u2(1:lenU2-2) + 2*u2(2:lenU2-1) + u2(3:lenU2));
 
 % search the data for spikes
-mydelta = abs(fdata(4:lenData-5) - u3(1:lenData-8));
+mydelta = abs(fdata(4:lenDataTested-5) - u3(1:lenDataTested-8));
 iSpike = mydelta > k_param * stddev;
 iNoSpike = mydelta <= k_param * stddev;
 iSpike = [false; false; false; iSpike; false; false; false; false; false];
 iNoSpike = [false; false; false; iNoSpike; false; false; false; false; false];
 
 if any(iSpike)
-    flags(iSpike) = spikeFlag;
+    flagsTested(iSpike) = spikeFlag;
 end
 
 if any(iNoSpike)
-    flags(iNoSpike) = goodFlag;
+    flagsTested(iNoSpike) = goodFlag;
+end
+
+if any(iSpike | iNoSpike)
+    flags(~iBadData) = flagsTested;
 end

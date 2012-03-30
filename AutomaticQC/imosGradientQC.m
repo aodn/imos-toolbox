@@ -91,31 +91,42 @@ if any(iParam)
     qcSet    = str2double(readProperty('toolbox.qc_set'));
     rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
     passFlag = imosQCFlag('good', qcSet, 'flag');
-    failFlag = imosQCFlag('bad',  qcSet, 'flag');
+    failFlag = imosQCFlag('probablyBad',  qcSet, 'flag');
+    badFlag  = imosQCFlag('bad',  qcSet, 'flag');
+    
+    % we don't consider already bad data in the current test
+    iBadData = sample_data.variables{k}.flags == badFlag;
+    dataTested = data(~iBadData);
     
     lenData = length(data);
+    lenDataTested = length(dataTested);
     
-    % initially all data is raw
     flags = ones(lenData, 1)*rawFlag;
+    flagsTested = ones(lenDataTested, 1)*rawFlag;
     
-    gradient = abs(data(2:end) - data(1:end-1));
+    gradient = [abs(dataTested(2:end) - dataTested(1:end-1)); NaN]; % we don't know about the last point
     
     threshold = eval(thresholdExpr{iParam});
-    threshold = ones(lenData-1, 1) .* threshold;
+    threshold = ones(lenDataTested, 1) .* threshold;
+    
+    iGoodGrad = false(lenDataTested, 1);
+    iBadGrad = false(lenDataTested, 1);
     
     iGoodGrad = gradient < threshold;
-    iGoodGrad = [iGoodGrad; false]; % we don't know about the last point
     
     iBadGrad = gradient >= threshold;
-    % when current point is flagged bad then also the next one
+    % when current point fails then also the next one
     iBadGrad(2:end) = iBadGrad(1:end-1) | iBadGrad(2:end);
-    iBadGrad = [iBadGrad; false]; % we don't know about the last point
     
     if any(iGoodGrad)
-        flags(iGoodGrad) = passFlag;
+        flagsTested(iGoodGrad) = passFlag;
     end
     
     if any(iBadGrad)
-        flags(iBadGrad) = failFlag;
+        flagsTested(iBadGrad) = failFlag;
+    end
+    
+    if any(iGoodGrad | iBadGrad)
+        flags(~iBadData) = flagsTested;
     end
 end
