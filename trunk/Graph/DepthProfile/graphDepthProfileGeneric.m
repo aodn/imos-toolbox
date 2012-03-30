@@ -70,28 +70,28 @@ set(ax, 'Tag', 'axis1D');
 
 % test for climatology display
 mWh = findobj('Tag', 'mainWindow');
-morelloRange = get(mWh, 'UserData');
-if strcmpi(var.name, 'TEMP') && ~isempty(morelloRange)
-    hRMinT = line(morelloRange.rangeMinT, depth.data, 'Parent', ax);
-    hRMaxT = line(morelloRange.rangeMaxT, depth.data, 'Parent', ax);
+regionalRange = get(mWh, 'UserData');
+if strcmpi(var.name, 'TEMP') && ~isempty(regionalRange)
+    hRMinT = line(regionalRange.rangeMinT, depth.data, 'Parent', ax);
+    hRMaxT = line(regionalRange.rangeMaxT, depth.data, 'Parent', ax);
     set(hRMinT, 'Color', 'r');
     set(hRMaxT, 'Color', 'r');
-    set(ax, 'XLim', [min(morelloRange.rangeMinT) - min(morelloRange.rangeMinT)/10, ...
-        max(morelloRange.rangeMaxT) + max(morelloRange.rangeMaxT)/10]);
-elseif strcmpi(var.name, 'PSAL') && ~isempty(morelloRange)
-    hRMinS = line(morelloRange.rangeMinS, depth.data, 'Parent', ax);
-    hRMaxS = line(morelloRange.rangeMaxS, depth.data, 'Parent', ax);
+    set(ax, 'XLim', [min(regionalRange.rangeMinT) - min(regionalRange.rangeMinT)/10, ...
+        max(regionalRange.rangeMaxT) + max(regionalRange.rangeMaxT)/10]);
+elseif strcmpi(var.name, 'PSAL') && ~isempty(regionalRange)
+    hRMinS = line(regionalRange.rangeMinS, depth.data, 'Parent', ax);
+    hRMaxS = line(regionalRange.rangeMaxS, depth.data, 'Parent', ax);
     set(hRMinS, 'Color', 'r');
     set(hRMaxS, 'Color', 'r');
-    set(ax, 'XLim', [min(morelloRange.rangeMinS) - min(morelloRange.rangeMinS)/10, ...
-        max(morelloRange.rangeMaxS) + max(morelloRange.rangeMaxS)/10]);
-elseif strcmpi(var.name, 'DOX2') && ~isempty(morelloRange)
-    hRMinS = line(morelloRange.rangeMinDO, depth.data, 'Parent', ax);
-    hRMaxS = line(morelloRange.rangeMaxDO, depth.data, 'Parent', ax);
+    set(ax, 'XLim', [min(regionalRange.rangeMinS) - min(regionalRange.rangeMinS)/10, ...
+        max(regionalRange.rangeMaxS) + max(regionalRange.rangeMaxS)/10]);
+elseif strcmpi(var.name, 'DOX2') && ~isempty(regionalRange)
+    hRMinS = line(regionalRange.rangeMinDO, depth.data, 'Parent', ax);
+    hRMaxS = line(regionalRange.rangeMaxDO, depth.data, 'Parent', ax);
     set(hRMinS, 'Color', 'r');
     set(hRMaxS, 'Color', 'r');
-    set(ax, 'XLim', [min(morelloRange.rangeMinDO) - min(morelloRange.rangeMinDO)/10, ...
-        max(morelloRange.rangeMaxDO + max(morelloRange.rangeMaxDO)/10)]);
+    set(ax, 'XLim', [min(regionalRange.rangeMinDO) - min(regionalRange.rangeMinDO)/10, ...
+        max(regionalRange.rangeMaxDO + max(regionalRange.rangeMaxDO)/10)]);
 end
 
 labels = {var.name, 'DEPTH'};

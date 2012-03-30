@@ -54,10 +54,10 @@ LW,        1, surface_downwelling_longwave_flux_in_air,           W m-2,        
 LW_NET,    1, surface_net_upward_longwave_flux,                   W m-2,                                                             F, 999999.0,    ,     
 MASS_NET,  1, upward_mass_flux_of_air,                            kg m-2 s-1,                                                        F, 999999.0,    ,     
 NSCT,      1, northward_sea_water_velocity,                       m s-1,                                                             V, 999999.0, -5.0,    5.0
-NTRI,      1, mole_concentration_of_nitrate_in_sea_water,         mole m-3,                                                          K, 999999.0,    ,     
+NTRA,      1, mole_concentration_of_nitrate_in_sea_water,         umole l-1,                                                         K, 999999.0,    ,     
 OPBS,      0, optical_backscattering_coefficient,                 .,                                                                 C, 999999.0,    ,     
 PCO2,      1, surface_partial_pressure_of_carbon_dioxide_in_air,  Pascal,                                                            K, 999999.0,    ,     
-PHOS,      1, moles_of_phosphate_per_unit_mass_in_sea_water,      mole kg-1,                                                         K, 999999.0,    ,     
+PHOS,      1, moles_of_phosphate_per_unit_mass_in_sea_water,      umole kg-1,                                                        K, 999999.0,    ,     
 PITCH,     1, platform_pitch_angle,                               Degrees,                                                           E, 999999.0, -180.0,  180.0
 PRES,      1, sea_water_pressure,                                 dbar,                                                              P, 999999.0, -5.0,    12000.0
 PRES_REL,  0, sea_water_relative_pressure,                        dbar,                                                              P, 999999.0, -15.0,   12000.0
@@ -67,7 +67,7 @@ RRATE,     1, rainfall_rate,                                      mm s-1,       
 RAIN_AMOUNT, 1, thickness_of_rainfall_amount,                     m,                                                                 M, 999999.0,    ,     
 RELH,      1, relative_humidity,                                  percent,                                                           M, 999999.0, 0.0,     150.0
 ROLL,      1, platform_roll_angle,                                Degrees,                                                           E, 999999.0, -180.0,  180.0
-SLCA,      1, mole_concentration_of_silicate_in_sea_water,        mole m-3,                                                          K, 999999.0,    ,     
+SLCA,      1, mole_concentration_of_silicate_in_sea_water,        umole l-1,                                                         K, 999999.0,    ,     
 SRAD,      1, isotropic_shortwave_radiance_in_air,                W m-1 sr-1,                                                        F, 999999.0,    ,     
 SSPD,      1, speed_of_sound_in_sea_water,                        m s-1,                                                             V, 999999.0, 1400.0,  1600.0
 SST,       1, sea_surface_skin_temperature,                       Celsius,                                                           T, 999999.0,    ,     

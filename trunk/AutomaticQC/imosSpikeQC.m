@@ -89,17 +89,25 @@ thresholdExpr = strtrim(values{2});
 iParam = strcmpi(sample_data.(type){k}.name, param);
 
 if any(iParam)
-    lenData = length(data);
-   
     qcSet    = str2double(readProperty('toolbox.qc_set'));
     rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
     passFlag = imosQCFlag('good', qcSet, 'flag');
     failFlag = imosQCFlag('bad',  qcSet, 'flag');
+    badFlag  = imosQCFlag('bad',  qcSet, 'flag');
+    
+    % we don't consider already bad data in the current test
+    iBadData = sample_data.variables{k}.flags == badFlag;
+    dataTested = data(~iBadData);
+    
+    lenData = length(data);
+    lenDataTested = length(dataTested);
     
     flags = ones(lenData, 1)*rawFlag;
-    testval = nan(lenData, 1);
+    flagsTested = ones(lenDataTested, 1)*rawFlag;
+    
+    testval = nan(lenDataTested, 1);
 
-    I = true(lenData, 1);
+    I = true(lenDataTested, 1);
     I(1) = false;
     I(end) = false;
     
@@ -108,15 +116,15 @@ if any(iParam)
     
     % testval(1) and testval(end) are left to NaN on pupose so that QC is
     % raw for those two points. Indeed the test cannot be performed.
-    data1 = data(Im1);
-    data2 = data(I);
-    data3 = data(Ip1);
+    data1 = dataTested(Im1);
+    data2 = dataTested(I);
+    data3 = dataTested(Ip1);
     
     testval(I) = abs(abs(data2 - (data3 + data1)/2) ...
         - abs((data3 - data1)/2));
     
     if strcmpi(thresholdExpr{iParam}, 'PABIM')
-        IChl            = true(lenData, 1);
+        IChl            = true(lenDataTested, 1);
         IChl(1:2)       = false;
         IChl(end-1:end) = false;
     
@@ -125,11 +133,11 @@ if any(iParam)
         IChlm1 = [IChl(2:end); false];
         IChlm2 = [IChl(3:end); false; false];
         
-        dataChl0 = data(IChlm2);
-        dataChl1 = data(IChlm1);
-        dataChl2 = data(IChl);
-        dataChl3 = data(IChlp1);
-        dataChl4 = data(IChlp2);
+        dataChl0 = dataTested(IChlm2);
+        dataChl1 = dataTested(IChlm1);
+        dataChl2 = dataTested(IChl);
+        dataChl3 = dataTested(IChlp1);
+        dataChl4 = dataTested(IChlp2);
         
         threshold = [NaN; NaN; ...
             abs(median(dataChl0+dataChl1+dataChl2+dataChl3+dataChl4, 2)) + ...
@@ -137,16 +145,20 @@ if any(iParam)
             NaN; NaN];
     else
         threshold = eval(thresholdExpr{iParam});
-        threshold = ones(lenData, 1) .* threshold;
+        threshold = ones(lenDataTested, 1) .* threshold;
     end
     
     iNoSpike = testval <= threshold;
     if any(iNoSpike)
-        flags(iNoSpike) = passFlag;
+        flagsTested(iNoSpike) = passFlag;
     end
     
     iSpike = testval > threshold;
     if any(iSpike)
-        flags(iSpike) = failFlag;
+        flagsTested(iSpike) = failFlag;
+    end
+    
+    if any(iSpike | iNoSpike)
+        flags(~iBadData) = flagsTested;
     end
 end

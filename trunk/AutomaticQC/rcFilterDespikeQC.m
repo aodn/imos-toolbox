@@ -78,16 +78,24 @@ if ~strcmp(type, 'variables'), return; end
 k_param = str2double(...
   readProperty('k', fullfile('AutomaticQC', 'rcFilterDespikeQC.txt')));
 
-% we need to modify the data set, so work with a copy
-fdata = data;
-lenData = length(data);
-
 qcSet     = str2double(readProperty('toolbox.qc_set'));
-rawFlag   = imosQCFlag('raw',  qcSet, 'flag');
+rawFlag   = imosQCFlag('raw',   qcSet, 'flag');
 goodFlag  = imosQCFlag('good',  qcSet, 'flag');
 spikeFlag = imosQCFlag('spike', qcSet, 'flag');
+badFlag   = imosQCFlag('bad',   qcSet, 'flag');
 
-flags = ones(lenData, 1)*rawFlag;
+% we don't consider already bad data in the current test
+iBadData = sample_data.variables{k}.flags == badFlag;
+dataTested = data(~iBadData);
+
+lenData = length(data);
+lenDataTested = length(dataTested);
+
+% we need to modify the data set, so work with a copy
+fdata = dataTested;
+
+flags = ones(lenData,1)*rawFlag;
+flagsTested = ones(lenDataTested,1)*rawFlag;
 
 % remove the mean and run a mild high pass filter 
 % over the data before applying spike detection
@@ -124,5 +132,13 @@ iHighBad    = fdata(2:end) >= high_bound;
 iBad        = iLowBad | iHighBad;
 iBad        = [false; iBad];
     
-flags(iGood)    = goodFlag;
-flags(iBad)     = spikeFlag;
+if any(iGood)
+    flagsTested(iGood) = goodFlag;
+end
+if any(iBad)
+    flagsTested(iBad)  = spikeFlag;
+end
+
+if any(iGood | iBad)
+    flags(~iBadData) = flagsTested;
+end

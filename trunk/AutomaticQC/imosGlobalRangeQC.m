@@ -82,7 +82,7 @@ if any(iParam)
     % get the flag values with which we flag good and out of range data
     qcSet     = str2double(readProperty('toolbox.qc_set'));
     rangeFlag = imosQCFlag('bound', qcSet, 'flag');
-    rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+    rawFlag   = imosQCFlag('raw',   qcSet, 'flag');
     goodFlag  = imosQCFlag('good',  qcSet, 'flag');
     
     max  = sample_data.variables{k}.valid_max;

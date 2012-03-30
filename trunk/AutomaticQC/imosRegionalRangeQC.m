@@ -82,6 +82,11 @@ elseif strcmpi(dataName, 'DOX2')
 end
     
 if iVar > 0
+    qcSet    = str2double(readProperty('toolbox.qc_set'));
+    rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+    passFlag = imosQCFlag('good', qcSet, 'flag');
+    failFlag = imosQCFlag('bad',  qcSet, 'flag');
+    
     % we'll need time and depth information
     idTime  = getVar(sample_data.dimensions, 'TIME');
     ivDepth = getVar(sample_data.variables, 'DEPTH');
@@ -94,11 +99,6 @@ if iVar > 0
     dataDepth = sample_data.variables{ivDepth}.data;
     flagDepth = sample_data.variables{ivDepth}.flags;
     
-    qcSet    = str2double(readProperty('toolbox.qc_set'));
-    rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
-    passFlag = imosQCFlag('good', qcSet, 'flag');
-    failFlag = imosQCFlag('bad',  qcSet, 'flag');
-    
     % as we use depth information to retrieve climatology data, let's set
     % depth as its nominal value when depth hasn't been QC'd good nor raw.
     iGoodDepth = (flagDepth == passFlag) | (flagDepth == rawFlag);
@@ -107,7 +107,7 @@ if iVar > 0
             error('Bad depth data in file => Fill instrument_nominal_depth!');
         else
             dataDepth(~iGoodDepth) = sample_data.instrument_nominal_depth;
-            disp('Warning : morelloRangeNetCDFQC uses nominal depth instead of depth data flagged as ''bad'' in file')
+            disp('Warning : imosRegionalRangeQC uses nominal depth instead of depth data flagged as not ''good'' in file')
         end
     end
     
@@ -373,34 +373,34 @@ if iVar > 0
             
             % for test in display
             mWh = findobj('Tag', 'mainWindow');
-            morelloRange = get(mWh, 'UserData');
+            regionalRange = get(mWh, 'UserData');
             l = 0;
-            if isempty(morelloRange)
+            if isempty(regionalRange)
                 l = 1;
             else
-                for i=1:length(morelloRange)
-                    if strcmp(morelloRange(i).dataSet, sampleFile)
+                for i=1:length(regionalRange)
+                    if strcmp(regionalRange(i).dataSet, sampleFile)
                         l=i;
                         break;
                     end
                 end
                 if l == 0
-                    l = length(morelloRange) + 1;
+                    l = length(regionalRange) + 1;
                 end
             end
-            morelloRange(l).dataSet = sampleFile;
-            morelloRange(l).rangeDEPTH = depths;
+            regionalRange(l).dataSet = sampleFile;
+            regionalRange(l).rangeDEPTH = depths;
             if strcmpi(dataName, 'TEMP')
-                morelloRange(l).rangeMinT = dataRangeMin;
-                morelloRange(l).rangeMaxT = dataRangeMax;
+                regionalRange(l).rangeMinT = dataRangeMin;
+                regionalRange(l).rangeMaxT = dataRangeMax;
             elseif strcmpi(dataName, 'PSAL')
-                morelloRange(l).rangeMinS = dataRangeMin;
-                morelloRange(l).rangeMaxS = dataRangeMax;
+                regionalRange(l).rangeMinS = dataRangeMin;
+                regionalRange(l).rangeMaxS = dataRangeMax;
             elseif strcmpi(dataName, 'DOX2')
-                morelloRange(l).rangeMinDO = dataRangeMin;
-                morelloRange(l).rangeMaxDO = dataRangeMax;
+                regionalRange(l).rangeMinDO = dataRangeMin;
+                regionalRange(l).rangeMaxDO = dataRangeMax;
             end
-            set(mWh, 'UserData', morelloRange);
+            set(mWh, 'UserData', regionalRange);
             
             % let's non QC data points too far in depth from
             % climatology depth values

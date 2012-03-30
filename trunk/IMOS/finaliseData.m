@@ -65,7 +65,10 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   sam.meta.log           = {};
   sam.meta.raw_data_file = [rawFiles{:}];
   
-  sam.meta.site_name     = sam.meta.site.SiteName;
+  if isfield(sam.meta, 'site')
+      sam.meta.site_name     = sam.meta.site.SiteName;
+  end
+  
   if isfield(sam.meta, 'deployment')
     sam.meta.site_id       = sam.meta.deployment.Site;
     sam.meta.timezone      = sam.meta.deployment.TimeZone;
