@@ -79,17 +79,24 @@ if any(strcmpi(sample_data.(type){k}.name, listVar))
     qcSet    = str2double(readProperty('toolbox.qc_set'));
     passFlag = imosQCFlag('good', qcSet, 'flag');
     failFlag = imosQCFlag('bad',  qcSet, 'flag');
+    badFlag  = imosQCFlag('bad',  qcSet, 'flag');
+    
+    % we don't consider already bad data in the current test
+    iBadData = sample_data.variables{k}.flags == badFlag;
+    dataTested = data(~iBadData);
     
     lenData = length(data);
+    lenDataTested = length(dataTested);
     
     % initially all data is good
     flags = ones(lenData, 1)*passFlag;
+    flagsTested = ones(lenDataTested, 1)*passFlag;
     
     % calc the max allowed number of consecutive values
     delta_t = sample_data.meta.instrument_sample_interval/60;
     nt = floor(24 * (60 / delta_t));
     
-    equVal  = (diff(data) == 0);
+    equVal  = (diff(dataTested) == 0);
     
     % special case when not one consecutive couple of same value
     if all(~equVal)
@@ -114,7 +121,7 @@ if any(strcmpi(sample_data.(type){k}.name, listVar))
         lastDiffVal(end+1) = true;
     end
     
-    pos = (1:1:lenData)';
+    pos = (1:1:lenDataTested)';
     
     posLastEqVal    = pos(lastEqVal);
     posLastDiffVal  = pos(lastDiffVal);
@@ -140,7 +147,8 @@ if any(strcmpi(sample_data.(type){k}.name, listVar))
     if ~isempty(iFlatline)
         nFlatline = length(iFlatline);
         for i=1:nFlatline
-            flags(iFlatline(i)-lastEqValNum(iFlatline(i))+1:iFlatline(i)) = failFlag;
+            flagsTested(iFlatline(i)-lastEqValNum(iFlatline(i))+1:iFlatline(i)) = failFlag;
         end
+        flags(~iBadData) = flagsTested;
     end
 end

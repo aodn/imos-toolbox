@@ -80,19 +80,26 @@ if nsamples < 2, nsamples = 2; end
 qcSet    = str2double(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good',        qcSet, 'flag');
 flatFlag = imosQCFlag('probablyBad', qcSet, 'flag');
+badFlag  = imosQCFlag('bad',  qcSet, 'flag');
+    
+% we don't consider already bad data in the current test
+iBadData = sample_data.variables{k}.flags == badFlag;
+dataTested = data(~iBadData);
 
 lenData = length(data);
+lenDataTested = length(dataTested);
 
 % initially all data is good
 flags = ones(lenData, 1)*goodFlag;
+flagsTested = ones(lenDataTested, 1)*goodFlag;
 
 % size of the current flatline region we are stepping through
 flatlineSize = 1;
 
-for m = 2:lenData
+for m = 2:lenDataTested
   
   % this data point is the same as the last one
-  if data(m-1) == data(m);
+  if dataTested(m-1) == dataTested(m);
 
     % increase current number of consecutive points
     flatlineSize = flatlineSize + 1;
@@ -104,10 +111,12 @@ for m = 2:lenData
     % the number of consecutive points is big 
     % enough to warrent flagging it as a flatline
     if flatlineSize >= nsamples
-        flags(m-flatlineSize:m-1) = flatFlag;
+        flagsTested(m-flatlineSize:m-1) = flatFlag;
     end
     
-    flatlineSize = 1; 
+    flatlineSize = 1;
   end
 
 end
+
+flags(~iBadData) = flagsTested;

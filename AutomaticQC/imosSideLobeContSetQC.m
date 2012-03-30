@@ -140,7 +140,7 @@ if any(~ff)
         error('Bad pressure/depth data in file => Fill instrument_nominal_depth!');
     else
         depth(~ff) = sample_data.instrument_nominal_depth;
-        disp('Warning : imosSideLobeContSetQC uses nominal depth instead of pressure/depth data flagged as ''bad'' in file')
+        disp('Warning : imosSideLobeContSetQC uses nominal depth instead of pressure/depth data flagged as not ''good'' in file')
     end
 end
 

@@ -62,36 +62,36 @@ set(ax, 'Tag', 'axis1D');
 mWh = findobj('Tag', 'mainWindow');
 sMh = findobj('Tag', 'samplePopUpMenu');
 iSample = get(sMh, 'Value');
-morelloRange = get(mWh, 'UserData');
-if strcmpi(var.name, 'TEMP') && ~isempty(morelloRange)
-    if isfield(morelloRange, 'rangeMinT') && isfield(morelloRange, 'rangeMaxT')
-        hRMinT = line(time.data, morelloRange(iSample).rangeMinT, 'Parent', ax);
-        hRMaxT = line(time.data, morelloRange(iSample).rangeMaxT, 'Parent', ax);
+regionalRange = get(mWh, 'UserData');
+if strcmpi(var.name, 'TEMP') && ~isempty(regionalRange)
+    if isfield(regionalRange, 'rangeMinT') && isfield(regionalRange, 'rangeMaxT')
+        hRMinT = line(time.data, regionalRange(iSample).rangeMinT, 'Parent', ax);
+        hRMaxT = line(time.data, regionalRange(iSample).rangeMaxT, 'Parent', ax);
         set(hRMinT, 'Color', 'r');
         set(hRMaxT, 'Color', 'r');
-        set(ax, 'YLim', [min(morelloRange(iSample).rangeMinT) - min(morelloRange(iSample).rangeMinT)/10, ...
-            max(morelloRange(iSample).rangeMaxT) + max(morelloRange(iSample).rangeMaxT)/10]);
+        set(ax, 'YLim', [min(regionalRange(iSample).rangeMinT) - min(regionalRange(iSample).rangeMinT)/10, ...
+            max(regionalRange(iSample).rangeMaxT) + max(regionalRange(iSample).rangeMaxT)/10]);
     end
-elseif strcmpi(var.name, 'PSAL') && ~isempty(morelloRange)
-    if isfield(morelloRange, 'rangeMinS') && isfield(morelloRange, 'rangeMaxS')
-        hRMinS = line(time.data, morelloRange(iSample).rangeMinS, 'Parent', ax);
-        hRMaxS = line(time.data, morelloRange(iSample).rangeMaxS, 'Parent', ax);
+elseif strcmpi(var.name, 'PSAL') && ~isempty(regionalRange)
+    if isfield(regionalRange, 'rangeMinS') && isfield(regionalRange, 'rangeMaxS')
+        hRMinS = line(time.data, regionalRange(iSample).rangeMinS, 'Parent', ax);
+        hRMaxS = line(time.data, regionalRange(iSample).rangeMaxS, 'Parent', ax);
         set(hRMinS, 'Color', 'r');
         set(hRMaxS, 'Color', 'r');
-        set(ax, 'YLim', [min(morelloRange(iSample).rangeMinS) - min(morelloRange(iSample).rangeMinS)/10, ...
-            max(morelloRange(iSample).rangeMaxS) + max(morelloRange(iSample).rangeMaxS)/10]);
+        set(ax, 'YLim', [min(regionalRange(iSample).rangeMinS) - min(regionalRange(iSample).rangeMinS)/10, ...
+            max(regionalRange(iSample).rangeMaxS) + max(regionalRange(iSample).rangeMaxS)/10]);
     end
-elseif strcmpi(var.name, 'DOX2') && ~isempty(morelloRange)
-    if isfield(morelloRange, 'rangeMinDO') && isfield(morelloRange, 'rangeMaxDO')
-        hRMinS = line(time.data, morelloRange(iSample).rangeMinDO, 'Parent', ax);
-        hRMaxS = line(time.data, morelloRange(iSample).rangeMaxDO, 'Parent', ax);
+elseif strcmpi(var.name, 'DOX2') && ~isempty(regionalRange)
+    if isfield(regionalRange, 'rangeMinDO') && isfield(regionalRange, 'rangeMaxDO')
+        hRMinS = line(time.data, regionalRange(iSample).rangeMinDO, 'Parent', ax);
+        hRMaxS = line(time.data, regionalRange(iSample).rangeMaxDO, 'Parent', ax);
         set(hRMinS, 'Color', 'r');
         set(hRMaxS, 'Color', 'r');
-        set(ax, 'YLim', [min(morelloRange(iSample).rangeMinDO) - min(morelloRange(iSample).rangeMinDO)/10, ...
-            max(morelloRange(iSample).rangeMaxDO + max(morelloRange(iSample).rangeMaxDO)/10)]);
+        set(ax, 'YLim', [min(regionalRange(iSample).rangeMinDO) - min(regionalRange(iSample).rangeMinDO)/10, ...
+            max(regionalRange(iSample).rangeMaxDO + max(regionalRange(iSample).rangeMaxDO)/10)]);
     end
-elseif strcmpi(var.name, 'DEPTH') && ~isempty(morelloRange)
-    hRDEPTH = line(time.data, morelloRange(iSample).rangeDEPTH, 'Parent', ax);
+elseif strcmpi(var.name, 'DEPTH') && ~isempty(regionalRange)
+    hRDEPTH = line(time.data, regionalRange(iSample).rangeDEPTH, 'Parent', ax);
     set(hRDEPTH, 'Color', 'r');
 end
 
