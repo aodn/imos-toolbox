@@ -16,6 +16,7 @@ N, quality_control_set          = [mat readProperty('toolbox.qc_set', 'toolboxPr
 S, site_code                    = [ddb Site Sites SiteName]
 S, platform_code                = [ddb Site Sites SiteName]
 S, deployment_code              = [ddb Site]
+S, featureType 					= timeSeriesProfile
 S, naming_authority             = IMOS
 S, metadata                     = 
 S, sensorML                     = 
@@ -45,6 +46,7 @@ N, site_depth_at_deployment =
 % when DEPTH variable exist (if not use depthPP pre-processing routine)
 N, geospatial_vertical_min = 
 N, geospatial_vertical_max = 
+S, geospatial_vertical_positive = down
 
 % when
 N, local_time_zone     		= 

@@ -13,6 +13,8 @@ function [data, flags, log] = imosSpikeQC( sample_data, data, k, type, auto )
 % Threshold = 0.9 for salinity when pressure < 500 dbar
 % Threshold = 0.3 for salinity when pressure >= 500 dbar
 %
+% These threshold values are dealt for each IMOS parameter in
+% imosSpikeQC.txt
 %
 % Inputs:
 %   sample_data - struct containing the data set.
@@ -123,7 +125,28 @@ if any(iParam)
     testval(I) = abs(abs(data2 - (data3 + data1)/2) ...
         - abs((data3 - data1)/2));
     
+    % let's consider time in seconds
+    time  = sample_data.dimensions{1}.data * 24 * 3600;
+    time(iBadData) = [];
+
+    if size(time, 1) == 1
+        % if time is a row, let's have a column instead
+        time = time';
+    end
+    
+    % if the time period between a point and its previous is greater than 1h, then the
+    % test is cancelled leaving the test value to NaN so that QC will be set to Raw for
+    % current and previous points.
+    diffTime = diff(time);
+    iGreater = diffTime > 3600;
+    iGreater = [iGreater; false] | [false; iGreater];
+    testval(iGreater) = nan;
+    
     if strcmpi(thresholdExpr{iParam}, 'PABIM')
+        % we execute the suggested PABIM white book v1.3 threshold value
+        % for 'Flurorescence like' data (p.44):
+        % 
+        % Threshold_Value = |median(V0,V1,V2,V3,V4)| + |?(V0,V1,V2,V3,V4)|
         IChl            = true(lenDataTested, 1);
         IChl(1:2)       = false;
         IChl(end-1:end) = false;
