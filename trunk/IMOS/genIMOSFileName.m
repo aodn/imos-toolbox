@@ -114,8 +114,8 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   % <data_code>
   config.data_code = '';
   
-  % code for raw data should contain 'R' for raw
-  if sample_data.meta.level == 0, config.data_code = 'R'; end
+%   % code for raw data should contain 'R' for raw      % This is not relevant anymore
+%   if sample_data.meta.level == 0, config.data_code = 'R'; end
   for k = 1:length(sample_data.variables)
 
     % get the data code for this parameter; don't add 
@@ -130,6 +130,8 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
       continue;
     end
   end
+  % let's sort the resulting data code alphabetically
+  config.data_code = sort(config.data_code);
   
   % <start_date>, <platform_code>, <file_version>
   if isempty(sample_data.time_deployment_start)

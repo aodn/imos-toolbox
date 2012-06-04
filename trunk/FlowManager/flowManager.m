@@ -158,12 +158,12 @@ function flowManager(toolboxVersion)
 %       % -dimensions.data      these fields can be updated by metadata
       % -dimensions.flags
 
-      updatedTarget.file_version                    = target.file_version;
-      updatedTarget.file_version_quality_control    = target.file_version_quality_control;
-
+      updatedTarget.file_version                   = target.file_version;
+      updatedTarget.file_version_quality_control   = target.file_version_quality_control;
+      
       % meta
-      updatedTarget.meta.level       = target.meta.level;
-      updatedTarget.meta.log         = target.meta.log;
+      updatedTarget.meta.level                          = target.meta.level;
+      updatedTarget.meta.log                            = target.meta.log;
       
       % variables
       nVar = length(target.variables);

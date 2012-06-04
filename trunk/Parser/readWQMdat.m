@@ -39,7 +39,7 @@ function sample_data = readWQMdat( filename )
 %                   Salinity          ('PSAL'): 1e^(-3) (PSS)
 %                   Dissolved Oxygen  ('DOXY'): kg/m^3
 %                   Dissolved Oxygen  ('DOX1'): mmol/m^3
-%                   Dissolved Oxygen  ('DOX2'): mol/kg
+%                   Dissolved Oxygen  ('DOX2'): umol/kg
 %                   Chlorophyll       ('CPHL'): mg/m^3
 %                   Chlorophyll       ('CHLU'): mg/m^3   (user coefficient)
 %                   Chlorophyll       ('CHLF'): mg/m^3   (factory coefficient)
