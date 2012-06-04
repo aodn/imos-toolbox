@@ -56,7 +56,6 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
       sam.meta.level = 0; 
       sam.file_version                 = imosFileVersion(sam.meta.level, 'name');
       sam.file_version_quality_control = imosFileVersion(sam.meta.level, 'desc');
-      sam.date_created = now_utc;
   end
 
   % turn raw data files a into semicolon separated string

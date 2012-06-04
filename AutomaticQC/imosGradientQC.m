@@ -12,7 +12,8 @@ function [data, flags, log] = imosGradientQC( sample_data, data, k, type, auto )
 %
 % Threshold = 3 for pressure/depth
 %
-% by default we assume all IMOS moorings are in shallow water < 500m
+% These threshold values are dealt for each IMOS parameter in
+% imosGradientQC.txt
 %
 % Inputs:
 %   sample_data - struct containing the data set.
@@ -104,7 +105,7 @@ if any(iParam)
     flags = ones(lenData, 1)*rawFlag;
     flagsTested = ones(lenDataTested, 1)*rawFlag;
     
-    gradient = [abs(dataTested(2:end) - dataTested(1:end-1)); NaN]; % we don't know about the last point
+    gradient = [NaN; abs(diff(dataTested))]; % we don't know about the first point
     
     threshold = eval(thresholdExpr{iParam});
     threshold = ones(lenDataTested, 1) .* threshold;
@@ -115,8 +116,25 @@ if any(iParam)
     iGoodGrad = gradient < threshold;
     
     iBadGrad = gradient >= threshold;
-    % when current point fails then also the next one
-    iBadGrad(2:end) = iBadGrad(1:end-1) | iBadGrad(2:end);
+    % when current point fails then also the previous one
+    iBadGrad(1:end-1) = iBadGrad(1:end-1) | iBadGrad(2:end);
+    
+    % let's consider time in seconds
+    time  = sample_data.dimensions{1}.data * 24 * 3600;
+    time(iBadData) = [];
+
+    if size(time, 1) == 1
+        % time is a row, let's have a column instead
+        time = time';
+    end
+    
+    % if the time period between a point and its previous is greater than 1h, then the
+    % test is cancelled and QC is set to Raw for current and previous points.
+    diffTime = diff(time);
+    iGreater = diffTime > 3600;
+    iGreater = [iGreater; false] | [false; iGreater];
+    iGoodGrad(iGreater) = false;
+    iBadGrad(iGreater)  = false;
     
     if any(iGoodGrad)
         flagsTested(iGoodGrad) = passFlag;

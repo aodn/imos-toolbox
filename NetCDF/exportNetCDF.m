@@ -68,7 +68,7 @@ function filename = exportNetCDF( sample_data, dest )
   qcType  = imosQCFlag('', qcSet, 'type');
   qcDimId = [];
   
-  try
+  try  
     %
     % the file is created in the following order
     %
@@ -85,8 +85,9 @@ function filename = exportNetCDF( sample_data, dest )
     globAtts = sample_data;
     globAtts = rmfield(globAtts, 'meta');
     globAtts = rmfield(globAtts, 'variables');
-    globAtts = rmfield(globAtts, 'dimensions');
+    globAtts = rmfield(globAtts, 'dimensions');    
     
+    % let's add history information from log
     if ~isempty(sample_data.meta.log)
       globAtts.history = cellfun(@(x)(sprintf('%s\n', x)), ...
         sample_data.meta.log, 'UniformOutput', false);
