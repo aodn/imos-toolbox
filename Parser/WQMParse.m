@@ -1,9 +1,10 @@
-function sample_data = WQMParse( filename )
+function sample_data = WQMParse( filename, mode )
 %WQMParse parses a .RAW or .DAT file retrieved from a Wetlabs WQM instrument.
 %
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
@@ -45,7 +46,7 @@ function sample_data = WQMParse( filename )
 %
   % ensure that there is exactly one argument, 
   % and that it is a cell array of strings
-  error(nargchk(1, 1, nargin));
+  error(nargchk(1, 2, nargin));
   if ~iscell(filename), error('filename must be a cell array'); end
 
   filename = filename{1};

@@ -1,9 +1,9 @@
 S, standard_name             = [mat imosParameters(sample_data.variables{k}.name, 'standard_name')]
 S, long_name                 = [mat imosParameters(sample_data.variables{k}.name, 'long_name')]
 S, units                     = [mat imosParameters(sample_data.variables{k}.name, 'uom')]
-N, _FillValue                = [mat imosParameters(sample_data.variables{k}.name, 'fill_value')]
 N, valid_min                 = [mat imosParameters(sample_data.variables{k}.name, 'valid_min')]
 N, valid_max                 = [mat imosParameters(sample_data.variables{k}.name, 'valid_max')]
+N, _FillValue                = [mat imosParameters(sample_data.variables{k}.name, 'fill_value')]
 N, add_offset                = 
 N, scale_factor              = 
 N, applied_offset            = 
@@ -20,7 +20,6 @@ N, accuracy                  =
 N, precision                 = 
 N, resolution                = 
 S, cell_methods              = 
-S, reference_datum           = 
 N, quality_control_set       = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
 
 % this field is automatically populated upon NetCDF export

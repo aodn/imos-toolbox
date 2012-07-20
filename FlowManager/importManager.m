@@ -128,6 +128,10 @@ function [sample_data rawFile]= manualImport()
   manualDir = readProperty('importManager.manualDir');
   if isempty(manualDir), manualDir = pwd; end
   
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
   while true
 
     % prompt the user to select a data file
@@ -155,7 +159,7 @@ function [sample_data rawFile]= manualImport()
     % import the data
     try 
       rawFile     = [path rawFile];
-      sample_data = {parser({rawFile})};
+      sample_data = {parser({rawFile}, mode)};
       rawFile     = {{rawFile}};
       close(progress);
       
@@ -199,12 +203,12 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   rawFiles    = {};
   allFiles    = {};
   
-  % get the toolbox execution mode. Values can be 'mooring' and 'profile'. 
-  % If no value is set then default mode is 'mooring'
-  mode = readProperty('toolbox.mode');
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
   
   while true
-      switch lower(mode)
+      switch mode
           case 'profile'
               [fieldTrip deps sits dataDir] = getCTDs(auto);
           otherwise
@@ -219,7 +223,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
       end
 
     if isempty(deps)
-        fprintf('%s\n', ['Warning : ' 'No entry found in ' lower(mode) ' table.']);
+        fprintf('%s\n', ['Warning : ' 'No entry found in ' mode ' table.']);
         return;
     end
 
@@ -227,7 +231,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
     allFiles = cell(size(deps));
     for k = 1:length(deps)
 
-        switch lower(mode)
+        switch mode
             case 'profile'
                 id   = deps(k).FieldTrip;
             otherwise
@@ -282,13 +286,13 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
       end
       
       % import data
-      sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt);
+      sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt, mode);
       rawFiles{   end+1} = allFiles{k};
       
       if iscell(sample_data{end})
         
         for m = 1:length(sample_data{end})
-            switch lower(mode)
+            switch mode
                 case 'profile'
                     sample_data{end}{m}.meta.profile = deps(k);
                 otherwise
@@ -299,7 +303,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
         end
         
       else
-          switch lower(mode)
+          switch mode
               case 'profile'
                   sample_data{end}.meta.profile = deps(k);
               otherwise
@@ -315,7 +319,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
       
     % failure is not fatal
     catch e
-        switch lower(mode)
+        switch mode
             case 'profile'
                 fprintf('%s\n',   ['Warning : skipping ' deps(k).FileName]);
                 fprintf('\t%s\n', ['FieldTrip = ' deps(k).FieldTrip]);
@@ -324,9 +328,10 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
                 fprintf('\t%s\n', ['Station = ' deps(k).Station]);
                 fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
                 fprintf('%s\n',   ['Error says : ' e.message]);
-                fprintf('\t%s\n', ['in function ' e.stack(1).name]);
-                fprintf('\t%s\n', ['file ' e.stack(1).file]);
-                fprintf('\t%s\n', ['line ' num2str(e.stack(1).line)]);
+                s = e.stack;
+                for l=1:length(s)
+                    fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
+                end
             otherwise
                 fprintf('%s\n',   ['Warning : skipping ' deps(k).FileName]);
                 fprintf('\t%s\n', ['EndFieldTrip = ' deps(k).EndFieldTrip]);
@@ -336,9 +341,10 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
                 fprintf('\t%s\n', ['DeploymentType = ' deps(k).DeploymentType]);
                 fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
                 fprintf('%s\n',   ['Error says : ' e.message]);
-                fprintf('\t%s\n', ['in function ' e.stack(1).name]);
-                fprintf('\t%s\n', ['file ' e.stack(1).file]);
-                fprintf('\t%s\n', ['line ' num2str(e.stack(1).line)]);
+                s = e.stack;
+                for l=1:length(s)
+                    fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
+                end
         end
     end
   end
@@ -346,7 +352,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   % close progress dialog
   if ~auto, close(progress); end
 
-  function sam = parse(deployment, files, parsers, noParserPrompt)
+  function sam = parse(deployment, files, parsers, noParserPrompt, mode)
   %PARSE Parses a raw data file, returns a sample_data struct.
   %
   % Inputs:
@@ -354,6 +360,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   %   files          - Cell array containing file names.
   %   parsers        - Cell array of strings containing all available parsers.
   %   noParserPrompt - Whether to prompt the user if a parser cannot be found.
+  %   mode           - Toolbox data type mode ('profile' or 'timeSeries').
   %
   % Outputs:
   %   sam        - Struct containing sample data.
@@ -365,8 +372,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
     end
 
     % parse the data; let errors propagate
-    sam = parser(files);
-
+    sam = parser(files, mode);
   end
 
   function parser = getParserFunc(deployment, parsers, noParserPrompt)

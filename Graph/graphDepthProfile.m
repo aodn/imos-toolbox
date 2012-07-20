@@ -71,7 +71,6 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
   depth = getVar(sample_data.variables, 'DEPTH');
     
   if depth ~= 0
-    
     % we don't want to plot depth against itself, so if depth has been
     % passed in as one of the variables to plot, remove it from the list
     iDepth = vars == depth;
@@ -110,9 +109,20 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     depth = sample_data.dimensions{depth};
   end
   
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
+  switch mode
+      case 'profile'
+          p = 4; % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE
+      otherwise
+          p = 0;
+  end
+  
   for k = 1:length(vars)
     
-    name = sample_data.variables{vars(k)}.name;
+    name = sample_data.variables{vars(k)+p}.name;
     
     % create the axes; the subplots are laid out horizontally
     graphs(k) = subplot(1, length(vars), k);
@@ -125,11 +135,11 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     % make sure line colour alternate; because we are creating 
     % multiple axes, this is not done automatically for us
     col = get(graphs(k), 'ColorOrder');
-    col = col(mod(k,length(col))+1,:);
+    col = col(mod(k, length(col))+1, :);
     
     % plot the variable
     plotFunc            = getGraphFunc('DepthProfile', 'graph', name);
-    [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, vars(k));
+    [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, vars(k)+p);
     
     % set the line colour - wrap in a try block, 
     % as surface plot colour cannot be set

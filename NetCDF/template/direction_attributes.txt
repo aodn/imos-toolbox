@@ -1,0 +1,2 @@
+S, long_name                 = Direction of the profiles
+S, conventions               = A: Ascending profile, D: descending profile

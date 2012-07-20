@@ -1,4 +1,4 @@
- function sample_data = continentalParse( filename )
+ function sample_data = continentalParse( filename, mode )
 %CONTINENTALPARSE Parses ADCP data from a raw Nortek Continental binary
 % (.cpr) file.
 %
@@ -7,6 +7,7 @@
 % Inputs:
 %   filename    - Cell array containing the name of the raw continental file 
 %                 to parse.
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 % 
 % Outputs:
 %   sample_data - Struct containing sample data.
@@ -44,7 +45,7 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+error(nargchk(1,2,nargin));
 
 if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 

@@ -120,16 +120,22 @@ function exportManager(dataSets, levelNames, output, auto)
       end
       
     catch e
-      
       errors = [errors [setNames{ceil(k / numLevels)} ': ' e.message]];
-      disp(errors{end});
+      
+      % display the full error message
+      fullError = sprintf('%s\r\n', e.message);
+      s = e.stack;
+      for i=1:length(s)
+          fullError = [fullError, sprintf('\t%s\t(%s: %i)\r\n', s(i).name, s(i).file, s(i).line)];
+      end
+      disp(fullError);
     end
   end
   
   if ~auto
     close(progress);
   
-    % display message to user
+    % display short message to user
     msg = '';
     icon = 'none';
     if isempty(errors)

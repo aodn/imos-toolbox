@@ -114,7 +114,7 @@ function filename = exportNetCDF( sample_data, dest )
     for m = 1:length(dims)
         stringlen = 0;
         if iscell(dims{m}.data)
-            stringlen = ceil(log2(max(cellfun('length', dims{m}.data))));
+            stringlen = ceil(log2(max(cellfun('length', dims{m}.data)))) + 1; %+1 because we need to take into account the case 2^0 = 1
             str(stringlen) = 1; %#ok<AGROW>
         end
         sample_data.dimensions{m}.stringlen = stringlen;
@@ -122,7 +122,7 @@ function filename = exportNetCDF( sample_data, dest )
     for m = 1:length(vars)
         stringlen = 0;
         if iscell(vars{m}.data)
-            stringlen = ceil(log2(max(cellfun('length', vars{m}.data))));
+            stringlen = ceil(log2(max(cellfun('length', vars{m}.data)))) + 1; %+1 because we need to take into account the case 2^0 = 1
             str(stringlen) = 1; %#ok<AGROW>
         end
         sample_data.variables{m}.stringlen = stringlen;
@@ -131,8 +131,8 @@ function filename = exportNetCDF( sample_data, dest )
     stringd = zeros(length(str));
     for m = 1:length(str)
         if str(m)
-            len = 2 ^ m;
-            stringd(m) = netcdf.defDim(fid, [ 'string' int2str(len) ], len);
+            len = 2 ^ m-1; %-1 because we need to take into account the case 2^0 = 1
+            stringd(m) = netcdf.defDim(fid, [ 'STRING' int2str(len) ], len);
         end
     end
     
@@ -146,12 +146,14 @@ function filename = exportNetCDF( sample_data, dest )
       
       dimAtts = dims{m};
       dimAtts = rmfield(dimAtts, 'data');
-      dimAtts = rmfield(dimAtts, 'flags');
+      if isfield(dimAtts, 'flags'), dimAtts = rmfield(dimAtts, 'flags'); end
       dimAtts = rmfield(dimAtts, 'stringlen');
       
-      % add the QC variable (defined below) 
-      % to the ancillary variables attribute
-      dimAtts.ancillary_variables = [dims{m}.name '_quality_control'];
+      if isfield(dims{m}, 'flags')
+          % add the QC variable (defined below)
+          % to the ancillary variables attribute
+          dimAtts.ancillary_variables = [dims{m}.name '_quality_control'];
+      end
 
       % create dimension
       did = netcdf.defDim(fid, dims{m}.name, length(dims{m}.data));
@@ -165,15 +167,17 @@ function filename = exportNetCDF( sample_data, dest )
       end
       putAtts(fid, vid, dimAtts, lower(dims{m}.name), dateFmt);
       
-      % create the ancillary QC variable
-      qcvid = addQCVar(...
-        fid, sample_data, m, [qcDimId did], 'dim', qcType, dateFmt);
-      
       % save the netcdf dimension and variable IDs 
       % in the dimension struct for later reference
       sample_data.dimensions{m}.did   = did;
       sample_data.dimensions{m}.vid   = vid;
-      sample_data.dimensions{m}.qcvid = qcvid;
+      
+      if isfield(dims{m}, 'flags')
+          % create the ancillary QC variable
+          qcvid = addQCVar(...
+              fid, sample_data, m, [qcDimId did], 'dim', qcType, dateFmt);
+          sample_data.dimensions{m}.qcvid = qcvid;
+      end
     end
     
     
@@ -187,9 +191,10 @@ function filename = exportNetCDF( sample_data, dest )
       varname = vars{m}.name;
       
       % get the dimensions for this variable
-      dids = [];
       dimIdxs = vars{m}.dimensions;
-      for n = 1:length(dimIdxs), dids(n) = dims{dimIdxs(n)}.did; end
+      lenDimIdxs = length(dimIdxs);
+      dids = nan(1, lenDimIdxs);
+      for n = 1:lenDimIdxs, dids(n) = dims{dimIdxs(n)}.did; end
       
       % reverse dimension order - matlab netcdf.defvar requires 
       % dimensions in order of fastest changing to slowest changing. 
@@ -233,34 +238,41 @@ function filename = exportNetCDF( sample_data, dest )
     % coordinate variable (and ancillary variable) data
     %
     dims = sample_data.dimensions;
-    
-    % translate time from matlab serial time (days since 0000-00-00 00:00:00Z)
-    % to IMOS mandated time (days since 1950-01-01T00:00:00Z)
-    if strcmpi(dims{1}.name, 'TIME')
-      dims{1}.data = dims{1}.data - datenum('1950-01-01 00:00:00');
-    end
-    
     for m = 1:length(dims)
       
-      % variable data
+      % dimension data
       vid     = dims{m}.vid;
-      qcvid   = dims{m}.qcvid;
       data    = dims{m}.data;
       stringlen = dims{m}.stringlen;
       
-      % replace NaN's with fill value
+      % translate time from matlab serial time (days since 0000-00-00 00:00:00Z)
+      % to IMOS mandated time (days since 1950-01-01T00:00:00Z)
+      if strcmpi(dims{m}.name, 'TIME')
+          dims{m}.data = dims{m}.data - datenum('1950-01-01 00:00:00');
+      end
+      
+      if isnumeric(data) && isfield(dims{m}, 'FillValue_')
+          % replace NaN's with fill value
+          data(isnan(data)) = dims{m}.FillValue_;
+      end
+      
       if isnumeric(data)
-        data(isnan(data)) = dims{m}.FillValue_;
-        netcdf.putVar(fid, vid, data);
+          netcdf.putVar(fid, vid, data);
       elseif iscell(data)
           data = char(data);
           netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
       end
       
-      % ancillary QC variable data
-      data    = dims{m}.flags;
-      
-      netcdf.putVar(fid, qcvid, data);
+      if isfield(dims{m}, 'flags')
+          % ancillary QC variable data
+          flags   = dims{m}.flags;
+          qcvid   = dims{m}.qcvid;
+          if strcmp(qcType, 'byte')
+              flags = int8(flags);
+          end
+          
+          netcdf.putVar(fid, qcvid, flags);
+      end
     end
 
     %
@@ -271,9 +283,16 @@ function filename = exportNetCDF( sample_data, dest )
 
       % variable data
       data    = vars{m}.data;
+      flags   = vars{m}.flags;
       vid     = vars{m}.vid;
       qcvid   = vars{m}.qcvid;
       stringlen = vars{m}.stringlen;
+      
+      % translate time from matlab serial time (days since 0000-00-00 00:00:00Z)
+      % to IMOS mandated time (days since 1950-01-01T00:00:00Z)
+      if strcmpi(vars{m}.name, 'TIME')
+          data = data - datenum('1950-01-01 00:00:00');
+      end
       
       % transpose required for multi-dimensional data, as matlab 
       % requires the fastest changing dimension to be first. 
@@ -281,10 +300,13 @@ function filename = exportNetCDF( sample_data, dest )
       nDims = length(vars{m}.dimensions);
       if nDims > 1, data = permute(data, nDims:-1:1); end
       
+      if isnumeric(data) && isfield(vars{m}, 'FillValue_')
+          % replace NaN's with fill value
+          data(isnan(data)) = vars{m}.FillValue_;
+      end
+      
       if isnumeric(data)
-        % replace NaN's with fill value
-        data(isnan(data)) = vars{m}.FillValue_;
-        netcdf.putVar(fid, vid, data);
+          netcdf.putVar(fid, vid, data);
       elseif iscell(data)
           data = char(data);
           netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
@@ -292,10 +314,12 @@ function filename = exportNetCDF( sample_data, dest )
       
       
       % ancillary QC variable data
-      data = vars{m}.flags;
-      if nDims > 1, data = permute(data, nDims:-1:1); end
+      if strcmp(qcType, 'byte')
+          flags = int8(flags);
+      end
+      if nDims > 1, flags = permute(flags, nDims:-1:1); end
       
-      netcdf.putVar(fid, qcvid, data);
+      netcdf.putVar(fid, qcvid, flags);
     end
 
     %
@@ -367,13 +391,16 @@ function vid = addQCVar(...
   maxFlag = max(var.flags(:));
   if minFlag == maxFlag
     if strcmp(outputType, 'char'), minFlag = char(minFlag); end
+    if strcmp(outputType, 'byte'), minFlag = int8(minFlag); end
     qcAtts.quality_control_indicator = minFlag; 
   end
   
-  % force fill value to correct type
+  % force to correct type
   if strcmp(outputType, 'byte')
-    qcAtts.FillValue_  = uint8(qcAtts.FillValue_);
-    qcFlags            = uint8(qcFlags);
+    qcFlags            = int8(qcFlags);
+    if isfield(qcAtts, 'FillValue_')
+        qcAtts.FillValue_  = int8(qcAtts.FillValue_);
+    end
   end
   
   % if the flag values are characters, turn the flag values 

@@ -122,11 +122,11 @@ function mainWindow(...
     'Value',  1,...
     'Tag', 'samplePopUpMenu');
   
-  % get the toolbox execution mode. Values can be 'mooring' and 'profile'. 
-  % If no value is set then default mode is 'mooring'
-  mode = readProperty('toolbox.mode');
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
   
-  switch lower(mode)
+  switch mode
       case 'profile'
           graphMenuValue = 2;
       otherwise
@@ -705,18 +705,24 @@ function mainWindow(...
     checkboxes = get(varPanel, 'Children');
     for m = 1:length(checkboxes), delete(checkboxes(m)); end
     
+    switch mode
+        case 'profile'
+            p = 4; % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE
+        otherwise
+            p = 0;
+    end
+    
     % create checkboxes for new data set. The order in which the checkboxes
     % are created is the same as the order of the variables - this is
     % important, as the getSelectedParams function assumes that the indices 
     % line up.
     checkboxes(:) = [];
     n = length(sam.variables);
-    for m = 1:n
-      
+    for m = 1+p:n
       % enable at most 3 variables initially, 
       % otherwise the graph will be cluttered
       val = 1;
-      if m > 3, val = 0; end
+      if m-p > 3, val = 0; end
       
 %       checkboxes(m) = uicontrol(...
 %         'Parent',   varPanel,...
@@ -726,14 +732,14 @@ function mainWindow(...
 %         'Callback', @varPanelCallback,...
 %         'Units',    'normalized',...
 %         'Position', [0.0, (n-m)/n, 1.0, 1/n]);
-        checkboxes(m) = uicontrol(...
+        checkboxes(m-p) = uicontrol(...
         'Parent',   varPanel,...
         'Style',    'checkbox',...
         'String',   sam.variables{m}.name,...
         'Value',    val,...
         'Callback', @varPanelCallback,...
         'Units',    'normalized',...
-        'Position', posUi2(varPanel, n, 1, m, 1, 0));
+        'Position', posUi2(varPanel, n-p, 1, m-p, 1, 0));
     end
 %     set(checkboxes, 'Units', 'pixels');
     

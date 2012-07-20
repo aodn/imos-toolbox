@@ -1,4 +1,4 @@
-function sample_data = SBE3x( filename )
+function sample_data = SBE3x( filename, mode )
 %SBE37PARSE Parse a raw '.asc' file containing SBE37/SBE39 data.
 %
 % This function can read in data that has been downloaded from an SBE37
@@ -61,6 +61,7 @@ function sample_data = SBE3x( filename )
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
@@ -121,7 +122,7 @@ function sample_data = SBE3x( filename )
 %
 
 %% Check input, set up data structures
-error(nargchk(1, 1, nargin));
+error(nargchk(1, 2, nargin));
 
 % save file size and open file; this will throw an error if file doesn't exist
 filesize = dir(filename);

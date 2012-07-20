@@ -1,4 +1,4 @@
-function sample_data = workhorseParse( filename )
+function sample_data = workhorseParse( filename, mode )
 %WORKHORSEPARSE Parses a raw (binary) data file from a Teledyne RD Workhorse 
 % ADCP.
 %
@@ -21,6 +21,7 @@ function sample_data = workhorseParse( filename )
 % 
 % Inputs:
 %   filename    - raw binary data file retrieved from a Workhorse.
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - sample_data struct containing the data retrieved from the
@@ -62,7 +63,7 @@ function sample_data = workhorseParse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+error(nargchk(1,2,nargin));
 
   filename = filename{1};
 

@@ -1,4 +1,4 @@
-function sample_data = SBE37Parse( filename )
+function sample_data = SBE37Parse( filename, mode )
 %SBE37PARSE Parse a raw '.asc' file containing SBE37 data, or SBE37-IM hex 
 % format from OOI (USA).
 %
@@ -11,6 +11,7 @@ function sample_data = SBE37Parse( filename )
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - struct containing the sample data
@@ -53,7 +54,7 @@ function sample_data = SBE37Parse( filename )
 
 % ensure that there is exactly one argument, 
 % and that it is a cell array of strings
-error(nargchk(1,1,nargin));
+error(nargchk(1,2,nargin));
 
 if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 
@@ -198,7 +199,7 @@ if strcmpi(ext, '.DAT') && strcmp(line, '//Status Information')
     end
 else
     % use the classic SBE3x ASCII format suggested for IMOS
-    sample_data = SBE3x(filename);
+    sample_data = SBE3x(filename, mode);
 end
 end
 

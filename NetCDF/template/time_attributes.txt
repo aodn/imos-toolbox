@@ -1,15 +1,28 @@
 S, standard_name             = time
 S, long_name                 = time
 S, units                     = days since 1950-01-01 00:00:00 UTC
+S, calendar                  = gregorian
 S, axis                      = T
 N, valid_min                 = [mat imosParameters('TIME', 'valid_min')]
 N, valid_max                 = [mat imosParameters('TIME', 'valid_max')]
 N, _FillValue                = [mat imosParameters('TIME', 'fill_value')]
-S, calendar                  = gregorian
+N, add_offset                = 
+N, scale_factor              = 
+N, applied_offset            = 
+S, original_units            = 
+S, original_name             = 
+S, sensor_serial_number      = 
 S, comment                   = 
+S, history                   = 
+S, references                = 
+S, ancillary_variables       = 
+S, observation_type          = 
+N, uncertainty               = 
+N, accuracy                  = 
+N, precision                 = 
+N, resolution                = 
+S, cell_methods              = 
 N, quality_control_set       = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
-N, uncertainty               =
-N, local_time_zone           = 
 
 % this field is automatically populated upon NetCDF export
 Q, quality_control_indicator = 
