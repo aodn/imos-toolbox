@@ -276,7 +276,8 @@ function value = castAtt(value, t, qcType, dateFmt)
           if ~isempty(value)
             val = datenum(value, dateFmt);
           end
-      catch e, val = str2double(value);
+      catch
+          val = str2double(value);
       end
       value = val;
       
@@ -285,7 +286,7 @@ function value = castAtt(value, t, qcType, dateFmt)
     case 'Q'
       
       switch (qcType)
-        case 'byte', value = uint8(str2num(value));
+        case 'byte', value = int8(str2double(value));
         case 'char', value = value;
       end
   end

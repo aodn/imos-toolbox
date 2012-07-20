@@ -1,4 +1,4 @@
-function sample_data = SBE19Parse( filename )
+function sample_data = SBE19Parse( filename, mode )
 %SBE19PARSE Parses a .cnv or .hex data file from a Seabird SBE19plus V2 
 % CTD recorder.
 %
@@ -19,6 +19,7 @@ function sample_data = SBE19Parse( filename )
 %
 % Inputs:
 %   filename    - cell array of files to import (only one supported).
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - Struct containing sample data.
@@ -57,7 +58,7 @@ function sample_data = SBE19Parse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
 
   if ~iscellstr(filename)
     error('filename must be a cell array of strings'); 
@@ -151,35 +152,161 @@ function sample_data = SBE19Parse( filename )
   sample_data.dimensions = {};  
   sample_data.variables  = {};
   
-  % dimensions creation
-  sample_data.dimensions{1}.name = 'TIME';
-  % generate time data from header information
-  sample_data.dimensions{1}.data = time;
-  sample_data.dimensions{2}.name = 'LATITUDE';
-  sample_data.dimensions{2}.data = NaN;
-  sample_data.dimensions{3}.name = 'LONGITUDE';
-  sample_data.dimensions{3}.data = NaN;
+  switch mode
+      case 'profile'
+          % dimensions creation
+          sample_data.dimensions{1}.name = 'MAXZ';
+          
+          iVarPRES = NaN;
+          iVarDEPTH = NaN;
+          isZ = false;
+          vars = fieldnames(data);
+          nVars = length(vars);
+          for k = 1:nVars
+              if strcmpi('DEPTH', vars{k})
+                  iVarDEPTH = k;
+                  isZ = true;
+                  break;
+              end
+              if strncmp('PRES', vars{k}, 4)
+                  iVarPRES = k;
+                  isZ = true;
+              end
+              if ~isnan(iVarDEPTH) && ~isnan(iVarPRES), break; end
+          end
+          
+          if ~isZ
+              error('There is no pressure or depth information in this file to use it in profile mode');
+          end
+          
+          if ~isnan(iVarDEPTH)
+              iVarZ = iVarDEPTH;
+          else
+              iVarZ = iVarPRES;
+          end
+          
+          % let's distinguish descending/ascending parts of the profile
+          nData = length(data.(vars{iVarZ}));
+          zMax = max(data.(vars{iVarZ}));
+          posZMax = find(data.(vars{iVarZ}) == zMax);
+          iD = [true(posZMax, 1); false(nData-posZMax, 1)];
+          
+          nD = sum(iD);
+          nA = sum(~iD);
+          MAXZ = max(nD, nA);
+          sample_data.dimensions{1}.data = (1:1:MAXZ);
+          
+          dNaN = nan(MAXZ-nD, 1);
+          aNaN = nan(MAXZ-nA, 1);
+          
+          sample_data.dimensions{2}.name = 'INSTANCE';
+          if nA == 0
+              sample_data.dimensions{2}.data = 1;
+          else
+              sample_data.dimensions{2}.data = [1, 2];
+          end
+          
+          % Add TIME, DIRECTION and POSITION infos
+          descendingTime = time(iD);
+          descendingTime = descendingTime(1);
+          
+          if nA == 0
+              ascendingTime = [];
+          else
+              ascendingTime = time(~iD);
+              ascendingTime = ascendingTime(1);
+          end
+          
+          sample_data.variables{1}.dimensions   = 2;
+          sample_data.variables{1}.name         = 'TIME';
+          sample_data.variables{1}.data         = [descendingTime, ascendingTime];
+          sample_data.variables{1}.comment      = 'First value over profile measurement';
+          
+          sample_data.variables{2}.dimensions   = 2;
+          sample_data.variables{2}.name         = 'DIRECTION';
+          if nA == 0
+              sample_data.variables{2}.data     = {'D'};
+          else
+              sample_data.variables{2}.data     = {'D', 'A'};
+          end
+          
+          sample_data.variables{3}.dimensions   = 2;
+          sample_data.variables{3}.name         = 'LATITUDE';
+          if nA == 0
+              sample_data.variables{3}.data     = NaN;
+          else
+              sample_data.variables{3}.data     = [NaN, NaN];
+          end
+          
+          sample_data.variables{4}.dimensions   = 2;
+          sample_data.variables{4}.name         = 'LONGITUDE';
+          if nA == 0
+              sample_data.variables{4}.data     = NaN;
+          else
+              sample_data.variables{4}.data     = [NaN, NaN];
+          end
+          
+          % scan through the list of parameters that were read
+          % from the file, and create a variable for each
+          for k = 1:nVars
+              % we skip TIME
+              if strcmpi('TIME', vars{k}), continue; end
+
+              sample_data.variables{end+1}.dimensions = [1 2];
+              
+              sample_data.variables{end  }.name       = vars{k};
+              if nA == 0
+                  sample_data.variables{end  }.data   = data.(vars{k})(iD);
+              else
+                  % we need to padd data with NaNs so that we fill MAXZ
+                  % dimension
+                  sample_data.variables{end  }.data   = [[data.(vars{k})(iD); dNaN], [data.(vars{k})(~iD); aNaN]];
+              end
+              sample_data.variables{end  }.comment    = comment.(vars{k});
+              
+              if all(~strcmpi({'TIME', vars{iVarZ}, 'LATITUDE', 'LONGITUDE', 'DIRECTION'}, vars{k}))
+                  sample_data.variables{end  }.coordinates = ['TIME ' vars{iVarZ} ' LATITUDE LONGITUDE'];
+              end
+              
+              if strcmpi('PRES_REL', vars{k})
+                  % let's document the constant pressure atmosphere offset previously
+                  % applied by SeaBird software on the absolute presure measurement
+                  sample_data.variables{end  }.applied_offset = -14.7*0.689476;
+              end
+          end
+          
+      otherwise
+          % dimensions creation
+          sample_data.dimensions{1}.name = 'TIME';
+          % generate time data from header information
+          sample_data.dimensions{1}.data = time;
+          sample_data.dimensions{2}.name = 'LATITUDE';
+          sample_data.dimensions{2}.data = NaN;
+          sample_data.dimensions{3}.name = 'LONGITUDE';
+          sample_data.dimensions{3}.data = NaN;
+          
+          % scan through the list of parameters that were read
+          % from the file, and create a variable for each
+          vars = fieldnames(data);
+          for k = 1:length(vars)
+              
+              if strncmp('TIME', vars{k}, 4), continue; end
+              
+              % dimensions definition must stay in this order : T, Z, Y, X, others;
+              % to be CF compliant
+              sample_data.variables{end+1}.dimensions = [1 2 3];
+              
+              sample_data.variables{end  }.name       = vars{k};
+              sample_data.variables{end  }.data       = data.(vars{k});
+              sample_data.variables{end  }.comment    = comment.(vars{k});
+              
+              if strncmp('PRES_REL', vars{k}, 8)
+                  % let's document the constant pressure atmosphere offset previously
+                  % applied by SeaBird software on the absolute presure measurement
+                  sample_data.variables{end  }.applied_offset = -14.7*0.689476;
+              end
+          end
   
-  % scan through the list of parameters that were read 
-  % from the file, and create a variable for each
-  vars = fieldnames(data);
-  for k = 1:length(vars)
-    
-    if strncmp('TIME', vars{k}, 4), continue; end
-    
-    % dimensions definition must stay in this order : T, Z, Y, X, others;
-    % to be CF compliant
-    sample_data.variables{end+1}.dimensions = [1 2 3];
-    
-    sample_data.variables{end  }.name       = vars{k};
-    sample_data.variables{end  }.data       = data.(vars{k});
-    sample_data.variables{end  }.comment    = comment.(vars{k});
-    
-    if strncmp('PRES_REL', vars{k}, 8)
-        % let's document the constant pressure atmosphere offset previously 
-        % applied by SeaBird software on the absolute presure measurement
-        sample_data.variables{end  }.applied_offset = -14.7*0.689476;
-    end
   end
 end
 

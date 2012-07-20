@@ -1,10 +1,11 @@
-function sample_data = netcdfParse( filename )
+function sample_data = netcdfParse( filename, mode )
 %NETCDFPARSE Parses an IMOS NetCDF file.
 %
 % This function is able to import an IMOS compliant NetCDF file.
 %
 % Inputs:
 %   filename    - cell array of file names (only one supported).
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - struct containing the imported data set.
@@ -42,7 +43,7 @@ function sample_data = netcdfParse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
 
   if ~iscellstr(filename), error('filename must be a cell array of strings'); 
   end

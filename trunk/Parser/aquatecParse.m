@@ -1,4 +1,4 @@
-function sample_data = aquatecParse( filename )
+function sample_data = aquatecParse( filename, mode )
 %AQUATECPARSE Parses a raw data file retrieved from an Aquatec AQUAlogger.
 %
 % Parses a raw data file retrieved from an Aquatec AQUAlogger 520. The
@@ -25,6 +25,7 @@ function sample_data = aquatecParse( filename )
 %
 % Inputs:
 %   filename - cell array of filename names (Only supports one currently).
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - struct containing sample data.
@@ -63,7 +64,7 @@ function sample_data = aquatecParse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+error(nargchk(1,2,nargin));
 
 if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 

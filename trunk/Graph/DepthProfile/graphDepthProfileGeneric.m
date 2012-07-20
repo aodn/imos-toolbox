@@ -50,49 +50,45 @@ if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 
-% look for a depth dimension or variable
-depth = getVar(sample_data.dimensions, 'DEPTH');
-if depth ~= 0 
-  
-  depth = sample_data.dimensions{depth}; 
-else
-  
-  depth = getVar(sample_data.variables, 'DEPTH');
-  
-  if depth == 0, error('dataset contains no depth data'); end
-  depth = sample_data.variables{depth}; 
+% look for a depth variable
+depth = getVar(sample_data.variables, 'DEPTH');
+
+if depth == 0, error('dataset contains no depth data'); end
+depth = sample_data.variables{depth};
+
+var  = sample_data.variables{var};
+
+h        = line(var.data(:, 1), depth.data(:, 1), 'Parent', ax, 'LineStyle', '-'); % downcast
+if size(var.data, 2) > 1
+h(end+1) = line(var.data(:, 2), depth.data(:, 2), 'Parent', ax, 'LineStyle', '--'); %upcast
 end
-
-var  = sample_data.variables {var};
-
-h      = line(var.data, depth.data, 'Parent', ax);
 set(ax, 'Tag', 'axis1D');
 
 % test for climatology display
-mWh = findobj('Tag', 'mainWindow');
-regionalRange = get(mWh, 'UserData');
-if strcmpi(var.name, 'TEMP') && ~isempty(regionalRange)
-    hRMinT = line(regionalRange.rangeMinT, depth.data, 'Parent', ax);
-    hRMaxT = line(regionalRange.rangeMaxT, depth.data, 'Parent', ax);
-    set(hRMinT, 'Color', 'r');
-    set(hRMaxT, 'Color', 'r');
-    set(ax, 'XLim', [min(regionalRange.rangeMinT) - min(regionalRange.rangeMinT)/10, ...
-        max(regionalRange.rangeMaxT) + max(regionalRange.rangeMaxT)/10]);
-elseif strcmpi(var.name, 'PSAL') && ~isempty(regionalRange)
-    hRMinS = line(regionalRange.rangeMinS, depth.data, 'Parent', ax);
-    hRMaxS = line(regionalRange.rangeMaxS, depth.data, 'Parent', ax);
-    set(hRMinS, 'Color', 'r');
-    set(hRMaxS, 'Color', 'r');
-    set(ax, 'XLim', [min(regionalRange.rangeMinS) - min(regionalRange.rangeMinS)/10, ...
-        max(regionalRange.rangeMaxS) + max(regionalRange.rangeMaxS)/10]);
-elseif strcmpi(var.name, 'DOX2') && ~isempty(regionalRange)
-    hRMinS = line(regionalRange.rangeMinDO, depth.data, 'Parent', ax);
-    hRMaxS = line(regionalRange.rangeMaxDO, depth.data, 'Parent', ax);
-    set(hRMinS, 'Color', 'r');
-    set(hRMaxS, 'Color', 'r');
-    set(ax, 'XLim', [min(regionalRange.rangeMinDO) - min(regionalRange.rangeMinDO)/10, ...
-        max(regionalRange.rangeMaxDO + max(regionalRange.rangeMaxDO)/10)]);
-end
+% mWh = findobj('Tag', 'mainWindow');
+% regionalRange = get(mWh, 'UserData');
+% if strcmpi(var.name, 'TEMP') && ~isempty(regionalRange)
+%     hRMinT = line(regionalRange.rangeMinT, depth.data, 'Parent', ax);
+%     hRMaxT = line(regionalRange.rangeMaxT, depth.data, 'Parent', ax);
+%     set(hRMinT, 'Color', 'r');
+%     set(hRMaxT, 'Color', 'r');
+%     set(ax, 'XLim', [min(regionalRange.rangeMinT) - min(regionalRange.rangeMinT)/10, ...
+%         max(regionalRange.rangeMaxT) + max(regionalRange.rangeMaxT)/10]);
+% elseif strcmpi(var.name, 'PSAL') && ~isempty(regionalRange)
+%     hRMinS = line(regionalRange.rangeMinS, depth.data, 'Parent', ax);
+%     hRMaxS = line(regionalRange.rangeMaxS, depth.data, 'Parent', ax);
+%     set(hRMinS, 'Color', 'r');
+%     set(hRMaxS, 'Color', 'r');
+%     set(ax, 'XLim', [min(regionalRange.rangeMinS) - min(regionalRange.rangeMinS)/10, ...
+%         max(regionalRange.rangeMaxS) + max(regionalRange.rangeMaxS)/10]);
+% elseif strcmpi(var.name, 'DOX2') && ~isempty(regionalRange)
+%     hRMinS = line(regionalRange.rangeMinDO, depth.data, 'Parent', ax);
+%     hRMaxS = line(regionalRange.rangeMaxDO, depth.data, 'Parent', ax);
+%     set(hRMinS, 'Color', 'r');
+%     set(hRMaxS, 'Color', 'r');
+%     set(ax, 'XLim', [min(regionalRange.rangeMinDO) - min(regionalRange.rangeMinDO)/10, ...
+%         max(regionalRange.rangeMaxDO + max(regionalRange.rangeMaxDO)/10)]);
+% end
 
 labels = {var.name, 'DEPTH'};
 

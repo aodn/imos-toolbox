@@ -58,20 +58,37 @@ function filename = genIMOSFileName( sample_data, suffix )
   %
   dateFmt = readProperty('exportNetCDF.fileDateFormat');
 
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = readProperty('toolbox.mode');
+  
   % get default config, and file config
-  defCfg  = genDefaultFileNameConfig(sample_data, dateFmt);
+  defCfg  = genDefaultFileNameConfig(sample_data, dateFmt, mode);
   fileCfg = readFileNameConfig(      sample_data, dateFmt);
   
-  % build the file name
-  filename = 'IMOS_';
-  filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
-  filename = [filename        getVal(fileCfg, defCfg, 'data_code')     '_'];
-  filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];
-  filename = [filename        getVal(fileCfg, defCfg, 'platform_code') '_'];
-  filename = [filename        getVal(fileCfg, defCfg, 'file_version')  '_'];
-  filename = [filename        getVal(fileCfg, defCfg, 'product_type')  '_'];
-  filename = [filename 'END-' getVal(fileCfg, defCfg, 'end_date')      '_'];
-  filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
+  switch lower(mode)
+      case 'profile'
+          % build the file name
+          filename = 'IMOS_';
+          filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
+          filename = [filename        getVal(fileCfg, defCfg, 'data_code')     '_'];
+          filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];
+          filename = [filename        getVal(fileCfg, defCfg, 'platform_code') '_'];
+          filename = [filename        getVal(fileCfg, defCfg, 'file_version')  '_'];
+          filename = [filename        getVal(fileCfg, defCfg, 'product_type')  '_'];
+          filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
+      otherwise
+          % build the file name
+          filename = 'IMOS_';
+          filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
+          filename = [filename        getVal(fileCfg, defCfg, 'data_code')     '_'];
+          filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];
+          filename = [filename        getVal(fileCfg, defCfg, 'platform_code') '_'];
+          filename = [filename        getVal(fileCfg, defCfg, 'file_version')  '_'];
+          filename = [filename        getVal(fileCfg, defCfg, 'product_type')  '_'];
+          filename = [filename 'END-' getVal(fileCfg, defCfg, 'end_date')      '_'];
+          filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
+  end
   
   % sanity check - ensure that file name contains 
   % only alpha numeric, hyphens, underscores and dots
@@ -97,7 +114,7 @@ function val = getVal(fileCfg, defCfg, fieldName)
   end
 end
 
-function config = genDefaultFileNameConfig(sample_data, dateFmt)
+function config = genDefaultFileNameConfig(sample_data, dateFmt, mode)
 %GENDEFAULTFILENAMECONFIG Generates a default file name configuration, the
 %values from which will be used if a value has not been specified in the
 % imosFileName.txt configuration file.
@@ -143,11 +160,19 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt)
   config.file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
   
   % <product_type>
-  config.product_type  = [...
-    sample_data.meta.site_id '-' ...
-    sample_data.meta.instrument_model    '-' ...
-    num2str(sample_data.meta.depth)
-  ];
+  switch lower(mode)
+      case 'profile'
+          config.product_type  = [...
+              sample_data.meta.site_id '-' ...
+              sample_data.meta.instrument_model    '-' ...
+              num2str(sample_data.geospatial_vertical_max)];
+          
+      otherwise
+          config.product_type  = [...
+              sample_data.meta.site_id '-' ...
+              sample_data.meta.instrument_model    '-' ...
+              num2str(sample_data.meta.depth)];
+  end
 
   % remove any spaces/underscores
   config.product_type(config.product_type == ' ') = '-';

@@ -1,4 +1,4 @@
-function sample_data = YSI6SeriesParse( filename )
+function sample_data = YSI6SeriesParse( filename, mode )
 %YSI6SERIESPARSE Parser for YSI 6 series MultiParameter data logger files.
 %
 % This function is able to parse .DAT files retrieved from YSI 6 series 
@@ -10,6 +10,7 @@ function sample_data = YSI6SeriesParse( filename )
 % Inputs:
 %   filename    - Cell array of input files; all but the first entry are
 %                 ignored.
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 
 % Outputs:
 %   sample_data - Struct containing sample data.
@@ -47,7 +48,7 @@ function sample_data = YSI6SeriesParse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
 
   if ~iscellstr(filename)
     error('filename must be a cell array of strings'); 

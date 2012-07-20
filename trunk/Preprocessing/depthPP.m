@@ -558,6 +558,27 @@ for k = 1:length(sample_data)
         computedDepthComment);
     clear computedDepth;
     
+    % update the keywords with variable DEPTH
+    sample_data{k}.keywords = [sample_data{k}.keywords, ', DEPTH'];
+    
+    % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
+    % If no value is set then default mode is 'timeSeries'
+    mode = lower(readProperty('toolbox.mode'));
+    
+    switch mode
+        case 'profile'
+            %let's redefine the coordinates for each variables
+            nVars = length(sample_data{k}.variables);
+            for i=1:nVars
+                if all(~strcmpi({'TIME', 'DEPTH', 'LATITUDE', 'LONGITUDE', 'DIRECTION'}, sample_data{k}.variables{i}.name))
+                  sample_data{k}.variables{i}.coordinates = 'TIME DEPTH LATITUDE LONGITUDE';
+                end
+            end
+            
+        otherwise
+            
+    end
+    
     % update vertical min/max from new computed DEPTH
     sample_data{k} = populateMetadata(sample_data{k});
     clear curSam;

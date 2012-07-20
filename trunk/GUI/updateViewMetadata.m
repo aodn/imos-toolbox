@@ -1,4 +1,4 @@
-function updateViewMetadata(parent, sample_data)
+function updateViewMetadata(parent, sample_data, mode)
 %UPDATEVIEWMETADATA Updates the display of metadata for the given data set in the given parent
 % figure/uipanel.
 %
@@ -11,6 +11,7 @@ function updateViewMetadata(parent, sample_data)
 %   parent         - handle to the figure/uipanel in which the metadata should
 %                    be displayed.
 %   sample_data    - struct containing sample data.
+%   mode           - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Author: Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -44,7 +45,7 @@ function updateViewMetadata(parent, sample_data)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2, 2, nargin));
+  error(nargchk(3, 3, nargin));
 
   if ~ishandle(parent),      error('parent must be a handle');           end
   if ~isstruct(sample_data), error('sample_data must be a struct');      end
@@ -61,7 +62,10 @@ function updateViewMetadata(parent, sample_data)
   dims = sample_data.dimensions;
   lenDims = length(dims);
   for k = 1:lenDims
-    dims{k} = orderfields(rmfield(dims{k}, {'data', 'flags'})); 
+      if isfield(dims{k}, 'flags')
+          dims{k} = rmfield(dims{k}, {'data', 'flags'});
+          dims{k} = orderfields(dims{k});
+      end
   end
   
   vars = sample_data.variables;
@@ -73,11 +77,13 @@ function updateViewMetadata(parent, sample_data)
   % create a cell array containing global attribute data
   globData = [fieldnames(globs) struct2cell(globs)];
   
-  % create cell array containing dimension 
-  % attribute data (one per dimension)
-  dimData  = cell(lenDims, 1);
-  for k = 1:lenDims 
-    dimData{k} = [fieldnames(dims{k}) struct2cell(dims{k})];
+  if strcmpi(mode, 'timeSeries')
+      % create cell array containing dimension
+      % attribute data (one per dimension)
+      dimData  = cell(lenDims, 1);
+      for k = 1:lenDims
+          dimData{k} = [fieldnames(dims{k}) struct2cell(dims{k})];
+      end
   end
   
   % create cell array containing variable 
@@ -92,9 +98,11 @@ function updateViewMetadata(parent, sample_data)
   % update a uitable for each data set
   updateTable(globData, '', 'global', dateFmt);
   
-  for k = 1:length(dims)
-    updateTable(...
-      dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt);
+  if strcmpi(mode, 'timeSeries')
+      for k = 1:length(dims)
+          updateTable(...
+              dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt);
+      end
   end
   
   for k = 1:length(vars)

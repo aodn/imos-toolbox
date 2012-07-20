@@ -198,10 +198,10 @@ function [name, data, comment] = convertData(name, data, instHeader)
       name = 'FLU2';
       comment = '';
       
-    % fluorescence (counts)
+    % artificial chlorophyll from fluorescence (mg/m3)
     case 'flECO0x2DAFL'
-      name = 'FLU2';
-      comment = '';
+      name = 'CHLF';
+      comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements using factory calibration coefficient.';
       
     % oxygen (mg/l)
     % mg/l => umol/l
@@ -209,6 +209,13 @@ function [name, data, comment] = convertData(name, data, instHeader)
       name = 'DOX1';
       data = data .* 44.660/1.429; % O2 density = 1.429kg/m3
       comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
+      
+    % oxygen (ml/l)
+    % ml/l => umol/l
+    case 'sbeox0ML0x2FL'
+      name = 'DOX1';
+      data = data .* 44.660;
+      comment = 'Originally expressed in ml/l, 1ml/l = 44.660umol/l was assumed.';
     
     % oxygen (umol/Kg)
     % umol/Kg
@@ -229,6 +236,11 @@ function [name, data, comment] = convertData(name, data, instHeader)
     % turbidity (NTU)
     case 'upoly0'
       name = 'TURB';
+      comment = '';
+      
+    % density (kg/m3)
+    case 'density00'
+      name = 'DENS';
       comment = '';
     
     % depth (m)

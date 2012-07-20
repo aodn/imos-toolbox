@@ -53,6 +53,4 @@ function value = bytecast(bytes, endianness, dataType)
   % Not a problem at the moment though (for x86)
   else                            value = typecast(bytes(end:-1:1), dataType);
   end
-  
-  value = double(value);
 end
