@@ -1,0 +1,74 @@
+% what
+S, project                      = Integrated Marine Observing System (IMOS)
+S, Conventions                  = CF-1.6,IMOS-1.3
+S, standard_name_vocabulary     = CF-1.6
+S, title                        = 
+S, institution                  = 
+D, date_created                 = [mat now_utc]
+D, date_modified                = 
+S, abstract                     = 
+S, comment                      = [ddb Comment]
+S, source                       = [ddb DeploymentType]
+S, instrument                   = [ddb InstrumentID Instruments Make] [ddb InstrumentID Instruments Model]
+S, keywords                     = [ddb InstrumentID Instruments Model], [mat cellStructCons(sample_data.variables, 'name', ', ')]
+S, references                   = http://www.imos.org.au
+S, netcdf_version               = 3.6
+N, quality_control_set          = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
+S, site_code                    = [ddb Site Sites SiteName]
+S, platform_code                = [ddb Site Sites SiteName]
+S, deployment_code              = [ddb Site]
+S, featureType 					= timeSeries
+S, naming_authority             = IMOS
+S, metadata                     = 
+S, sensorML                     = 
+S, instrument_serial_number     = [mat updateIfEmpty('[ddb InstrumentID Instruments SerialNumber]', sample_data.meta.instrument_serial_no)]
+N, instrument_sample_interval   = [mat sample_data.meta.instrument_sample_interval]
+N, instrument_burst_interval    = [mat sample_data.meta.instrument_burst_interval]
+N, instrument_burst_duration    = [mat sample_data.meta.instrument_burst_duration]
+S, institution_address          = 
+S, institution_postal_address   = 
+
+% these fields are automatically populated upon creation/export
+S, file_version                 = 
+S, file_version_quality_control = 
+S, history                      = 
+
+% where
+N, geospatial_lat_min      	= [ddb Site Sites Latitude]
+N, geospatial_lat_max      	= [ddb Site Sites Latitude]
+N, geospatial_lon_min      	= [ddb Site Sites Longitude]
+N, geospatial_lon_max      	= [ddb Site Sites Longitude]
+N, instrument_nominal_height= 
+N, instrument_nominal_depth = 
+N, site_nominal_depth      	= 
+N, site_depth_at_deployment = 
+
+% if left empty, these fields are automatically populated upon import 
+% when DEPTH variable exist (if not use depthPP pre-processing routine)
+N, geospatial_vertical_min = 
+N, geospatial_vertical_max = 
+S, geospatial_vertical_positive = down
+
+% when
+N, local_time_zone     		= 
+
+% these fields are automatically populated upon import
+D, time_deployment_start 	= 
+D, time_deployment_end 		= 
+D, time_coverage_start 		= 
+D, time_coverage_end   		= 
+
+% who
+S, data_centre                  = eMarine Information Infrastructure (eMII)
+S, data_centre_email            = info@emii.org.au
+S, author_email                 = 
+S, author                       = 
+S, principal_investigator       = 
+S, principal_investigator_email = 
+S, institution_references       = http://www.imos.org.au/emii.html
+
+% how
+S, citation                = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-url], accessed [date-of-access]"
+S, acknowledgement         = Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - an initiative of the Australian Government being conducted as part of the National Collaborative Research Infrastructure Strategy and and the Super Science Initiative."
+S, distribution_statement  = Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
+S, project_acknowledgement = The collection of this data was funded by IMOS
