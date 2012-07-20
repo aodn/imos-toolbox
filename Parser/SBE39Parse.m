@@ -1,4 +1,4 @@
-function sample_data = SBE39Parse( filename )
+function sample_data = SBE39Parse( filename, mode )
 %SBE39PARSE Parse a raw '.asc' file containing SBE39 data.
 %
 % This function can read in data that has been downloaded from an SBE39
@@ -10,6 +10,7 @@ function sample_data = SBE39Parse( filename )
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - struct containing the sample data
@@ -48,7 +49,7 @@ function sample_data = SBE39Parse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+error(nargchk(1,2,nargin));
 
 if ~iscellstr(filename)
     error('filename must be a cell array of strings');
@@ -57,4 +58,4 @@ end
 % only one file supported currently
 filename = filename{1};
 
-sample_data = SBE3x(filename);
+sample_data = SBE3x(filename, mode);

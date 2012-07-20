@@ -209,10 +209,10 @@ switch name
         name = 'FLU2';
         comment = '';
         
-        % fluorescence (counts)
+        % artificial chlorophyll from fluorescence (mg/m3)
     case 'flECO0x2DAFL'
-        name = 'FLU2';
-        comment = '';
+        name = 'CHLF';
+        comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements using factory calibration coefficient.';
         
         % oxygen (mg/l)
         % mg/l => umol/l

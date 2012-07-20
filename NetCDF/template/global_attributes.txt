@@ -1,6 +1,7 @@
 % what
 S, project                      = Integrated Marine Observing System (IMOS)
-S, Conventions                  = CF-1.5,IMOS-1.3
+S, Conventions                  = CF-1.6,IMOS-1.3
+S, standard_name_vocabulary     = CF-1.6
 S, title                        = 
 S, institution                  = 
 D, date_created                 = [mat now_utc]
@@ -16,7 +17,7 @@ N, quality_control_set          = [mat readProperty('toolbox.qc_set', 'toolboxPr
 S, site_code                    = [ddb Site Sites SiteName]
 S, platform_code                = [ddb Site Sites SiteName]
 S, deployment_code              = [ddb Site]
-S, featureType 					= timeSeriesProfile
+S, featureType 					= 
 S, naming_authority             = IMOS
 S, metadata                     = 
 S, sensorML                     = 

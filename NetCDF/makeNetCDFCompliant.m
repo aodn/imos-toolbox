@@ -62,8 +62,20 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % global attributes
   %
 
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
+  % get infos from current field trip
+  switch mode
+      case 'profile'
+          globalAttributeFile = 'global_attributes_profile.txt';
+      otherwise
+          globalAttributeFile = 'global_attributes_timeSeries.txt';
+  end
+
   globAtts = parseNetCDFTemplate(...
-    fullfile(path, 'global_attributes.txt'), sample_data);
+    fullfile(path, globalAttributeFile), sample_data);
 
   % merge global atts into sample_data
   sample_data = mergeAtts(sample_data, globAtts);
@@ -144,12 +156,6 @@ function sample_data = makeNetCDFCompliant( sample_data )
     
     
     var = sample_data.variables{k};
-    temp = fullfile(path, 'variable_attributes.txt');
-
-    varAtts = parseNetCDFTemplate(temp, sample_data, k);
-
-    % merge variable atts back into variable struct
-    sample_data.variables{k} = mergeAtts(var, varAtts);
     
     % check for specificly defined variables
     temp = fullfile(path, [lower(var.name) '_attributes.txt']);
@@ -162,7 +168,14 @@ function sample_data = makeNetCDFCompliant( sample_data )
                 varAtts = rmfield(varAtts, 'axis');
             end
         end
-        sample_data.variables{k} = mergeAtts(sample_data.variables{k}, varAtts);
+        sample_data.variables{k} = mergeAtts(var, varAtts);
+    else
+        temp = fullfile(path, 'variable_attributes.txt');
+
+        varAtts = parseNetCDFTemplate(temp, sample_data, k);
+    
+        % merge variable atts back into variable struct
+        sample_data.variables{k} = mergeAtts(var, varAtts);
     end
     
     % look for sensor serial numbers if exist

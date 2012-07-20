@@ -1,4 +1,4 @@
-function sample_data = awacParse( filename )
+function sample_data = awacParse( filename, mode )
 %AWACPARSE Parses ADCP data from a raw Nortek AWAC binary (.wpr) file. If
 % processed wave data files (.whd and .wap) are present, these are also 
 % parsed.
@@ -17,6 +17,7 @@ function sample_data = awacParse( filename )
 % Inputs:
 %   filename    - Cell array containing the name of the raw AWAC file 
 %                 to parse.
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 % 
 % Outputs:
 %   sample_data - Struct containing sample data; If wave data is present, 
@@ -55,7 +56,7 @@ function sample_data = awacParse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+error(nargchk(1,2,nargin));
 
 if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 

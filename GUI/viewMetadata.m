@@ -77,7 +77,10 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
   dims = sample_data.dimensions;
   lenDims = length(dims);
   for k = 1:lenDims
-    dims{k} = orderfields(rmfield(dims{k}, {'data', 'flags'})); 
+    dims{k} = orderfields(rmfield(dims{k}, 'data'));
+    if isfield(dims{k}, 'flags')
+        dims{k} = orderfields(rmfield(dims{k}, 'flags'));
+    end
   end
   
   vars = sample_data.variables;
@@ -374,7 +377,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
           switch qcType
 
             case 'byte'
-              temp = uint8(str2double(fieldValue));
+              temp = int8(str2double(fieldValue));
               if isempty(temp), error([fieldName ' must be a byte']); end
 
             case 'char'

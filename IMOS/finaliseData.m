@@ -96,6 +96,7 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   for k = 1:length(sam.dimensions)
     
     if isfield(sam.dimensions{k}, 'flags'), continue; end
+    if any(strcmpi(sam.dimensions{k}.name, {'INSTANCE', 'MAXZ'})), continue; end
     
     sam.dimensions{k}.flags(1:numel(sam.dimensions{k}.data)) = flagVal;
     sam.dimensions{k}.flags = reshape(...
@@ -147,18 +148,40 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   if isempty(sam.time_deployment_start), sam.time_deployment_start = []; end
   if isempty(sam.time_deployment_end),   sam.time_deployment_end   = []; end
   
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
   % set the time coverage period from the data
-  time = getVar(sam.dimensions, 'TIME');
-  if time ~= 0
-      if isempty(sam.time_coverage_start),
-          sam.time_coverage_start = sam.dimensions{time}.data(1);
-      end
-      if isempty(sam.time_coverage_end),
-          sam.time_coverage_end   = sam.dimensions{time}.data(end);
-      end
-  else
-      if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
-      if isempty(sam.time_coverage_end),   sam.time_coverage_end   = []; end
+  switch mode
+      case 'profile'
+          time = getVar(sam.variables, 'TIME');
+          if time ~= 0
+              if isempty(sam.time_coverage_start),
+                  sam.time_coverage_start = sam.variables{time}.data(1);
+              end
+              if isempty(sam.time_coverage_end),
+                  sam.time_coverage_end   = sam.variables{time}.data(end);
+              end
+          else
+              if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
+              if isempty(sam.time_coverage_end),   sam.time_coverage_end   = []; end
+          end
+          
+      otherwise
+          time = getVar(sam.dimensions, 'TIME');
+          if time ~= 0
+              if isempty(sam.time_coverage_start),
+                  sam.time_coverage_start = sam.dimensions{time}.data(1);
+              end
+              if isempty(sam.time_coverage_end),
+                  sam.time_coverage_end   = sam.dimensions{time}.data(end);
+              end
+          else
+              if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
+              if isempty(sam.time_coverage_end),   sam.time_coverage_end   = []; end
+          end
+  
   end
   
 end

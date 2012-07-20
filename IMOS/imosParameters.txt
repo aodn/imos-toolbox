@@ -35,12 +35,12 @@ DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         umol kg-1,    
 DOXS,      1, fractional_saturation_of_oxygen_in_sea_water,		  percent,                                                           O, 999999.0,    ,     
 DOXY,      1, mass_concentration_of_oxygen_in_sea_water,          kg m-3,                                                            O, 999999.0,    ,     
 DOXY_TEMP, 1, temperature_of_sensor_for_oxygen_in_sea_water,      Celsius,                                                           T, 999999.0, 0.0,     50.0
-DRYT,      1, dry_bulb_temperature,                               Celsius,                                                           M, 999999.0,    ,     
+DRYT,      0, dry_bulb_temperature,                               Celsius,                                                           M, 999999.0,    ,     
 DYNHT,     1, dynamic_height,                                     m,                                                                 E, 999999.0,    ,     
 ECUR,      0, error_sea_water_velocity,                           m s-1,                                                             V, 999999.0, -5.0,    5.0
 EWCT,      1, eastward_sea_water_velocity,                        m s-1,                                                             V, 999999.0, -5.0,    5.0
 FLU2,      0, fluorescence_in_sea_water,                          counts,                                                            B, 999999.0,    ,     
-FREQUENCY, 0, frequency,                                          Hz,                                                                E, 999999.9, 0.0,     999999.0
+FREQUENCY, 0, frequency,                                          Hz,                                                                E, 999999.0, 0.0,     900000.0
 HEADING,   0, heading,                                            Degrees,                                                           E, 999999.0, 0.0,     360.0
 HEAT,      0, heat_content,                                       10^10 J m-2,                                                       E, 999999.0,    ,     
 HEAT_NET,  1, upward_heat_flux_in_air,                            W m-2,                                                             F, 999999.0,    ,     
@@ -76,7 +76,7 @@ SSPD,      1, speed_of_sound_in_sea_water,                        m s-1,        
 SST,       1, sea_surface_skin_temperature,                       Celsius,                                                           T, 999999.0,    ,     
 SSDS,      0, sea_surface_wave_directional_spread,                Degrees clockwise from true North,                                 W, 999999.0, 0.0,     360.0
 SSWD,      0, sea_surface_wave_direction_spectral_density,        Degrees clockwise from true North,                                 W, 999999.0, 0.0,     360.0
-SSWP,      1, sea_surface_swell_wave_period,                      Second,                                                            W, 999999.0, 0.0,     999999.0
+SSWP,      1, sea_surface_swell_wave_period,                      Second,                                                            W, 999999.0, 0.0,     900000.0
 SSWV,      1, sea_surface_wave_directional_variance_spectral_density, m2 s deg-1,                                                    W, 999999.0,    ,     
 SW,        1, surface_downwelling_shortwave_flux_in_air,          W m-2,                                                             F, 999999.0,    ,     
 SW_NET,    1, surface_net_upward_shortwave_flux,                  W m-2,                                                             F, 999999.0,    ,     

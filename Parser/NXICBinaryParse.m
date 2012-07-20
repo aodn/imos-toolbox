@@ -1,4 +1,4 @@
-function sample_data = NXICBinaryParse( filename )
+function sample_data = NXICBinaryParse( filename, mode )
 %NXICBINARYPARSE Parses a binary file retrieved from a Falmouth Scientific
 % Instruments (FSI) NXIC CTD recorder.
 %
@@ -11,6 +11,7 @@ function sample_data = NXICBinaryParse( filename )
 % Inputs:
 %   filename    - cell array of strings, names of the files to import. Only 
 %                 one file is supported.
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - struct containing sample data.
@@ -59,7 +60,7 @@ function sample_data = NXICBinaryParse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
 
   if ~iscellstr(filename)
     error('filename must be a cell array of strings'); 
@@ -298,7 +299,7 @@ function header = parseHeader(data, filename)
 
   header = struct;
   % data bytes 1-2
-  header.instrument_serial_no = num2str(bytecast(data(3:4), 'L', 'uint16'));
+  header.instrument_serial_no = num2str(double(double(bytecast(data(3:4), 'L', 'uint16'))));
   
   % first Citadel we bought was Mark's 2276 for IS2
   if (header.instrument_serial_no<2276)
@@ -354,7 +355,7 @@ function header = parseHeader(data, filename)
   % skip bytes 7-9 (baud rate, channels, mem card)
   
   % Sample frequency in Hz
-  header.sampleRate = bytecast(data(10:11),'L','uint16');
+  header.sampleRate = double(bytecast(data(10:11),'L','uint16'));
   % skip A/D sample rate bytes 12-13
   % and AdrH and AdrL 14-15
   % and spike filter 16-17
@@ -398,49 +399,49 @@ function header = parseHeader(data, filename)
   end
   % Calibration Constants;
   % Conductivity
-  Calibration.Conductivity.A1 = bytecast(data(35:38),'L','single');
-  Calibration.Conductivity.B1 = bytecast(data(39:42),'L','single');
-  Calibration.Conductivity.C1 = bytecast(data(43:46),'L','single');
-  Calibration.Conductivity.D1 = bytecast(data(47:50),'L','single');
+  Calibration.Conductivity.A1 = double(bytecast(data(35:38),'L','single'));
+  Calibration.Conductivity.B1 = double(bytecast(data(39:42),'L','single'));
+  Calibration.Conductivity.C1 = double(bytecast(data(43:46),'L','single'));
+  Calibration.Conductivity.D1 = double(bytecast(data(47:50),'L','single'));
   
   % no idea
-  Calibration.Cell.Kfactor = bytecast(data(51:54),'L','single');
+  Calibration.Cell.Kfactor = double(bytecast(data(51:54),'L','single'));
   
   % Temperature
-  Calibration.Temperature.A2 = bytecast(data(55:58),'L','single');
-  Calibration.Temperature.B2 = bytecast(data(59:62),'L','single');  
-  Calibration.Temperature.C2 = bytecast(data(63:66),'L','single');
-  Calibration.Temperature.D2 = bytecast(data(67:70),'L','single');  
+  Calibration.Temperature.A2 = double(bytecast(data(55:58),'L','single'));
+  Calibration.Temperature.B2 = double(bytecast(data(59:62),'L','single'));  
+  Calibration.Temperature.C2 = double(bytecast(data(63:66),'L','single'));
+  Calibration.Temperature.D2 = double(bytecast(data(67:70),'L','single'));  
   
   % Calibration coeffients for analog/digital channels
   % quite often appear to be wrong!
-  Calibration.Analog.A1A = bytecast(data(71:74),'L','single');
-  Calibration.Analog.A1B = bytecast(data(75:78),'L','single');  
-  Calibration.Analog.A2A = bytecast(data(79:82),'L','single');
-  Calibration.Analog.A2B = bytecast(data(83:86),'L','single');
-  Calibration.Analog.A3A = bytecast(data(87:90),'L','single');  
-  Calibration.Analog.A3B = bytecast(data(91:94),'L','single');  
-  Calibration.Analog.A4A = bytecast(data(95:98),'L','single');
-  Calibration.Analog.A4B = bytecast(data(99:102),'L','single');  
+  Calibration.Analog.A1A = double(bytecast(data(71:74),'L','single'));
+  Calibration.Analog.A1B = double(bytecast(data(75:78),'L','single'));  
+  Calibration.Analog.A2A = double(bytecast(data(79:82),'L','single'));
+  Calibration.Analog.A2B = double(bytecast(data(83:86),'L','single'));
+  Calibration.Analog.A3A = double(bytecast(data(87:90),'L','single'));  
+  Calibration.Analog.A3B = double(bytecast(data(91:94),'L','single'));  
+  Calibration.Analog.A4A = double(bytecast(data(95:98),'L','single'));
+  Calibration.Analog.A4B = double(bytecast(data(99:102),'L','single'));  
   
   % Pressure
-  Calibration.Pressure.A03 = bytecast(data(103:106),'L','single');
-  Calibration.Pressure.B03 = bytecast(data(107:110),'L','single');
-  Calibration.Pressure.C03 = bytecast(data(111:114),'L','single');
+  Calibration.Pressure.A03 = double(bytecast(data(103:106),'L','single'));
+  Calibration.Pressure.B03 = double(bytecast(data(107:110),'L','single'));
+  Calibration.Pressure.C03 = double(bytecast(data(111:114),'L','single'));
   
-  Calibration.Pressure.A503 = bytecast(data(115:118),'L','single');
-  Calibration.Pressure.B503 = bytecast(data(119:122),'L','single');
-  Calibration.Pressure.C503 = bytecast(data(123:126),'L','single');
+  Calibration.Pressure.A503 = double(bytecast(data(115:118),'L','single'));
+  Calibration.Pressure.B503 = double(bytecast(data(119:122),'L','single'));
+  Calibration.Pressure.C503 = double(bytecast(data(123:126),'L','single'));
   
-  Calibration.Pressure.A1003 = bytecast(data(127:130),'L','single');    
-  Calibration.Pressure.B1003 = bytecast(data(131:134),'L','single');
-  Calibration.Pressure.C1003 = bytecast(data(135:138),'L','single');
+  Calibration.Pressure.A1003 = double(bytecast(data(127:130),'L','single'));    
+  Calibration.Pressure.B1003 = double(bytecast(data(131:134),'L','single'));
+  Calibration.Pressure.C1003 = double(bytecast(data(135:138),'L','single'));
     
-  Calibration.Pressure.A3 = bytecast(data(139:142),'L','single');
+  Calibration.Pressure.A3 = double(bytecast(data(139:142),'L','single'));
   
-  Calibration.Pressure.PS0      = bytecast(data(143:146),'L','single');
-  Calibration.Pressure.PS50     = bytecast(data(147:150),'L','single');
-  Calibration.Pressure.PS100    = bytecast(data(151:154),'L','single');
+  Calibration.Pressure.PS0      = double(bytecast(data(143:146),'L','single'));
+  Calibration.Pressure.PS50     = double(bytecast(data(147:150),'L','single'));
+  Calibration.Pressure.PS100    = double(bytecast(data(151:154),'L','single'));
 
   header.Calibration = Calibration;
  
@@ -520,15 +521,13 @@ function sample = parseSamples(data, header)
 % Up to 6 blocks of floating point (32 Bits) data stored little endian
 % usually Cond, Temp, Press, Salinity, Sound Speed, Voltage
 % Ext. Sensors stored at end
- 
- itimes = 1:len:length(data);
   
  % contains the start index of samples within data
  % assume uncorrupted record to start
- isample = itimes;
+ isample = (1:len:length(data));
 
  % compute time at isample intervals
- times1 = index2time(data,isample);
+ times1 = index2time(data, isample);
  
  dt = diff(times1);
  % sample before the last time was found in the right place
@@ -550,6 +549,7 @@ function sample = parseSamples(data, header)
          D = reshape(data, len, length(data)./len);
      end
  end
+ clear dt;
  
  if isempty(D);
      while ~isempty(lastgood);
@@ -566,14 +566,13 @@ function sample = parseSamples(data, header)
          clear ntimes;
          
          dt = times2 - times1(lastgood + 1);
-         
          % this should be the offset to the next good sample time
          if header.interval > 0
              goodind = find((dt > 0) & (fix(dt) < header.interval), 1) - 1;
          else
              goodind = find((dt > 0), 1) - 1;
          end
-         
+         clear dt;
          
          if isempty(goodind)
              % there are no other good samples so skip the rest of the data
@@ -592,6 +591,7 @@ function sample = parseSamples(data, header)
              else
                  lastgood = find((dt<0), 1) - 1;
              end
+             clear dt;
          end
      end
  
@@ -604,46 +604,46 @@ function sample = parseSamples(data, header)
  end
 
 time1 = D(1:4,:);
-t1 = bytecast(time1(:), 'L', 'uint32');
+t1 = double(bytecast(time1(:), 'L', 'uint32'));
 t2 = double(D(5,:))/100;
 sample.time = mlstart + (t1(:) + t2(:))/86400;
 
 cond = D(6:9,:);
-sample.conductivity = bytecast(cond(:), 'L', 'single');
+sample.conductivity = double(bytecast(cond(:), 'L', 'single'));
 % in units of mmho/cm IMOS needs S/m
 sample.conductivity = sample.conductivity./10;
 
 temp = D(10:13,:);
-sample.temperature = bytecast(temp(:), 'L', 'single');
+sample.temperature = double(bytecast(temp(:), 'L', 'single'));
 
 pres = D(14:17,:);
-sample.pressure = bytecast(pres(:), 'L', 'single');
+sample.pressure = double(bytecast(pres(:), 'L', 'single'));
 
 sal = D(18:21,:);
-sample.salinity = bytecast(sal(:), 'L', 'single');
+sample.salinity = double(bytecast(sal(:), 'L', 'single'));
 
 sspd = D(22:25,:);
-sample.soundSpeed = bytecast(sspd(:), 'L', 'single');
+sample.soundSpeed = double(bytecast(sspd(:), 'L', 'single'));
 
 volt = D(26:29,:);
-sample.voltage = bytecast(volt(:), 'L', 'single');
+sample.voltage = double(bytecast(volt(:), 'L', 'single'));
 
 a1 = D(30:31,:);  % turbidity if fitted with FLNTU
-sample.analog1 = bytecast(a1(:), 'L', Options.analogUnit).*Options.analogScale;
+sample.analog1 = double(bytecast(a1(:), 'L', Options.analogUnit)).*Options.analogScale;
 
 a2 = D(32:33,:);  % fluorescence if fitted with FLNTU
-sample.analog2 = bytecast(a2(:), 'L', Options.analogUnit).*Options.analogScale;
+sample.analog2 = double(bytecast(a2(:), 'L', Options.analogUnit)).*Options.analogScale;
 
-a3 = D(34:35,:); % PAR if fitted wit Biospherical par sensor
-sample.analog3 = bytecast(a3(:), 'L', Options.analogUnit).*Options.analogScale;
+a3 = D(34:35,:); % PAR if fitted with Biospherical par sensor
+sample.analog3 = double(bytecast(a3(:), 'L', Options.analogUnit)).*Options.analogScale;
 
 ch4 = D(36:37,:); % 
-sample.analog4 = bytecast(ch4(:), 'L', Options.analogUnit).*Options.analogScale;
+sample.analog4 = double(bytecast(ch4(:), 'L', Options.analogUnit)).*Options.analogScale;
 
 if len==41
     % if digital channel exists
     dig = D(38:41,:); % may be used by Aanderra Optode
-    sample.digital = bytecast(dig(:), 'L', 'single');
+    sample.digital = double(bytecast(dig(:), 'L', 'single'));
 end
 
 end
@@ -656,6 +656,11 @@ switch ctype
     case 'PCWIN'
         a = memory;
         % create a chunklength well within the memory limits 
+
+%        % need at least 2*4*4 bytes + time bytes! 
+%        % so divide by 2 times 2*4*4 bytes to be sure)
+%        chunklength = a.MaxPossibleArrayBytes/(2*2*4*4);
+
         % (need at least 2*16*4 bytes so divide by 2*16*5 bytes to be sure)
         chunklength = a.MaxPossibleArrayBytes/(2*16*5);
     case 'GLNXA64'
@@ -667,6 +672,7 @@ switch ctype
 end
 
 % 5 bytes required, but only first 4 needed to generate time in seconds since Jan 1 1970
+%tbytes = uint32([0 1 2 3]);
 tbytes = [0 1 2 3];
 
 for i=1:chunklength:length(index)
@@ -680,14 +686,16 @@ for i=1:chunklength:length(index)
     index_sub   = index(i:iend);
     
     [IT TB] = meshgrid(index_sub, tbytes);
-    % these matrices (IT and TB) are double precision by default and
-    % will require  2*4*(chunklength)*16bytes memory storage each
+    % these matrices (IT and TB) are double precision and
+    % will require 4*(chunklength)*16bytes memory storage each
     IT = IT + TB;
     clear TB;
     
     IT = IT(:);
     
     % 5th byte at index_sub+4 is simply 100ths of a second
-    times(i:iend) = bytecast(data(IT), 'L', 'uint32') + double(data(index_sub+4))/100;
+%    times(i:iend) = bytecast(data(IT), 'L', 'uint32') + uint32(data(index_sub + 4))/100;
+    times(i:iend) = double(bytecast(data(IT), 'L', 'uint32')) + double(data(index_sub+4))/100;
+    clear IT index_sub;
 end
 end

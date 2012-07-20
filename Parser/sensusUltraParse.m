@@ -1,9 +1,10 @@
-function sample_data = sensusUltraParse( filename )
+function sample_data = sensusUltraParse( filename, mode )
 %sensusUltra Parses a data file retrieved from a ReefNet Sensus Ultra logger.
 %
 %
 % Inputs:
 %   filename    - Cell array containing the name of the file to parse.
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - Struct containing imported sample data.
@@ -42,7 +43,7 @@ function sample_data = sensusUltraParse( filename )
   
 % ensure that there is exactly one argument, 
 % and that it is a cell array of strings
-error(nargchk(1,1,nargin));
+error(nargchk(1,2,nargin));
 
 if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 

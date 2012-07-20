@@ -115,7 +115,7 @@ if iVar > 0
     
     % get details from this site
 %     site = sample_data.meta.site_name; % source = ddb
-%     if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes.txt
+%     if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes file
     site = sample_data.site_code;
     clear sample_data;
     

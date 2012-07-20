@@ -1,4 +1,4 @@
-function sample_data = DR1050Parse( filename )
+function sample_data = DR1050Parse( filename, mode )
 %DR1050PARSE Parses a data file retrieved from an RBR DR1050 depth logger.
 %
 % This function is able to read in a single file retrieved from an RBR
@@ -7,6 +7,7 @@ function sample_data = DR1050Parse( filename )
 %
 % Inputs:
 %   filename    - Cell array containing the name of the file to parse.
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - Struct containing imported sample data.
@@ -45,7 +46,7 @@ function sample_data = DR1050Parse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
   
   if ~iscellstr(filename)   
     error('filename must be a cell array of strings'); 

@@ -1,4 +1,4 @@
-function sample_data = SBE37SMParse( filename )
+function sample_data = SBE37SMParse( filename, mode )
 %SBE37SMPARSE Parses a .cnv or .asc data file from a Seabird SBE37SM
 % CTD recorder.
 %
@@ -21,6 +21,7 @@ function sample_data = SBE37SMParse( filename )
 %
 % Inputs:
 %   filename    - cell array of files to import (only one supported).
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - Struct containing sample data.
@@ -57,7 +58,7 @@ function sample_data = SBE37SMParse( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+error(nargchk(1,2,nargin));
 
 if ~iscellstr(filename)
     error('filename must be a cell array of strings');
