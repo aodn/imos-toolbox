@@ -707,7 +707,7 @@ function mainWindow(...
     
     switch mode
         case 'profile'
-            p = 4; % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE
+            p = 5; % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
         otherwise
             p = 0;
     end

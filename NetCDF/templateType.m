@@ -1,4 +1,4 @@
-function t = templateType( name, temp )
+function t = templateType( name, temp, mode )
 %TEMPLATETYPE Returns the type of the given NetCDF attribute, as specified
 % in the associated template file.
 %
@@ -14,6 +14,7 @@ function t = templateType( name, temp )
 %   name - the attribute name
 %   temp - what kind of attribute - 'global', 'time', 'depth', 'latitude', 
 %          'longitude', 'variable', 'qc' or 'qc_coord'
+%   mode - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   t    - the type of the attribute, one of 'S', 'N', 'D', or 'Q', or
@@ -51,7 +52,7 @@ function t = templateType( name, temp )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(2,2,nargin));
+error(nargchk(2,3,nargin));
 
 if ~ischar(name), error('name must be a string'); end
 if ~ischar(temp), error('temp must be a string'); end
@@ -61,7 +62,15 @@ if name(end) == '_', name = ['_', name(1:end-1)]; end
 
 t = '';
 
-temp = [temp '_attributes.txt'];
+if strcmpi(temp, 'global')
+    if strcmpi(mode, 'profile')
+        temp = [temp '_attributes_profile.txt'];
+    else
+        temp = [temp '_attributes_timeSeries.txt'];
+    end
+else
+    temp = [temp '_attributes.txt'];
+end
 
 filepath = readProperty('toolbox.templateDir');
 if isempty(filepath) || ~exist(filepath, 'dir')
@@ -98,7 +107,7 @@ tkns = regexp(lines, '^\s*(.*\S)\s*,\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
 for k = 1:length(tkns)
   
   % will be empty on lines that didn't match the regex
-  if isempty(tkns{k}) continue; end
+  if isempty(tkns{k}), continue; end
   
   type  = tkns{k}{1}{1};
   att   = tkns{k}{1}{2};

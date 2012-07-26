@@ -14,4 +14,3 @@ S, quality_control_conventions = [mat imosQCFlag('', str2double(readProperty('to
 % these fields are automatically populated upon NetCDF export
 Q, flag_values                 = 
 S, flag_meanings               = 
-Q, quality_control_indicator   = 

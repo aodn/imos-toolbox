@@ -104,10 +104,10 @@ if iVar > 0
     iGoodDepth = (flagDepth == passFlag) | (flagDepth == rawFlag);
     if any(~iGoodDepth)
         if isempty(sample_data.instrument_nominal_depth)
-            error('Bad depth data in file => Fill instrument_nominal_depth!');
+            error(['Bad depth data in file ' sample_data.toolbox_input_file ' => Fill instrument_nominal_depth!']);
         else
             dataDepth(~iGoodDepth) = sample_data.instrument_nominal_depth;
-            disp('Warning : imosRegionalRangeQC uses nominal depth instead of depth data flagged as not ''good'' in file')
+            disp(['Warning : imosRegionalRangeQC uses nominal depth instead of depth data flagged as not ''good'' in file ' sample_data.toolbox_input_file]);
         end
     end
     

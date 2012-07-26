@@ -51,10 +51,18 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 
 % look for a depth variable
-depth = getVar(sample_data.variables, 'DEPTH');
-
-if depth == 0, error('dataset contains no depth data'); end
-depth = sample_data.variables{depth};
+iDepthVar = getVar(sample_data.variables, 'DEPTH');
+if iDepthVar ~= 0
+    depth = sample_data.variables{iDepthVar};
+else
+    % look for a depth dimension
+    iDepthDim = getVar(sample_data.dimensions, 'DEPTH');
+    if iDepthDim ~= 0
+        depth = sample_data.dimensions{iDepthDim};
+    else
+        error('dataset contains no depth data');
+    end
+end
 
 var  = sample_data.variables{var};
 
