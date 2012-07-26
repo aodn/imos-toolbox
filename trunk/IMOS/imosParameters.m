@@ -1,6 +1,6 @@
 function value = imosParameters( short_name, field )
 %IMOSPARAMETERS Returns IMOS compliant standard name, units of measurement, 
-% data code, fill value or valid min/max value given the short parameter name.
+% data code, fill value, valid min/max value or type given the short parameter name.
 %
 % The list of all IMOS parameters is stored in a file 'imosParameters.txt'
 % which is in the same directory as this m-file.
@@ -8,7 +8,7 @@ function value = imosParameters( short_name, field )
 % The file imosParameters.txt contains a list of all parameters for which an
 % IMOS compliant identifier (the short_name) exists. This function looks up the 
 % given short_name and returns the corresponding standard name, long name, 
-% units of measurement, data code, fill value or valid min/max value. If the 
+% units of measurement, data code, fill value, valid min/max value or type. If the 
 % given short_name is not in the list of IMOS parameters, a default value is 
 % returned.
 %
@@ -19,13 +19,14 @@ function value = imosParameters( short_name, field )
 % Inputs:
 %   short_name  the IMOS parameter name
 %   field      - either 'standard_name', 'long_name', 'uom', 'data_code',
-%                'fill_value', 'valid_min' or 'valid_max',
+%                'fill_value', 'valid_min', 'valid_max' or 'type',
 %
 % Outputs:
 %   value      - the IMOS standard name, unit of measurement, data code, 
-%                fill value or valid min/max value, whichever was requested.
+%                fill value, valid min/max value or type, whichever was requested.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:           Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:      Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -79,7 +80,7 @@ try
   fid = fopen([path filesep 'imosParameters.txt'], 'rt');
   if fid == -1, return; end
   
-  params = textscan(fid, '%s%d%s%s%s%f%f%f', ...
+  params = textscan(fid, '%s%d%s%s%s%f%f%f%s', ...
     'delimiter', ',', 'commentStyle', '%');
   fclose(fid);
 catch e
@@ -95,40 +96,39 @@ data_codes     = params{5};
 fillValues     = params{6};
 validMins      = params{7};
 validMaxs      = params{8};
+varType        = params{9};
 
-% search the list for a match
-for k = 1:length(names)
-
-  if strcmp(short_name, names{k})
-
+iMatchName = strcmpi(short_name, names);
+if any(iMatchName)
     switch field
-      case 'standard_name', 
-        if ~cfCompliance(k), value = '';
-        else                 value = standard_names{k};
-        end
-      case 'long_name',      value = standard_names{k};
-      case 'uom'
-        value = uoms{k};
-        if strcmp(value, 'percent'), value = '%'; end
-      case 'data_code',      value = data_codes    {k};
-      case 'fill_value',     value = fillValues    (k);
-      case 'valid_min',      value = validMins     (k);
-      case 'valid_max',      value = validMaxs     (k);
+        case 'standard_name',
+            if ~cfCompliance(iMatchName),
+                value = '';
+            else
+                value = standard_names{iMatchName};
+            end
+        case 'long_name',   value = standard_names{iMatchName};
+        case 'uom'
+            value = uoms{iMatchName};
+            if strcmpi(value, 'percent'), value = '%'; end
+        case 'data_code',   value = data_codes    {iMatchName};
+        case 'fill_value',  value = fillValues    (iMatchName);
+        case 'valid_min',   value = validMins     (iMatchName);
+        case 'valid_max',   value = validMaxs     (iMatchName);
+        case 'type',        value = varType       {iMatchName};
     end
-    break;
-  end
 end
 
 % provide default values for unrecognised parameters
-if isnan(value)
-  
-  switch field
-    case 'standard_name',  value = '';
-    case 'long_name',      value = short_name;
-    case 'uom',            value = '?';
-    case 'data_code',      value = '';
-    case 'fill_value',     value = 999999.0;
-    case 'valid_min',      value = [];
-    case 'valid_max',      value = [];
-  end
+if isnan(value)    
+    switch field
+        case 'standard_name',  value = '';
+        case 'long_name',      value = short_name;
+        case 'uom',            value = '?';
+        case 'data_code',      value = '';
+        case 'fill_value',     value = 999999.0;
+        case 'valid_min',      value = [];
+        case 'valid_max',      value = [];
+        case 'type',           value = 'double';
+    end
 end

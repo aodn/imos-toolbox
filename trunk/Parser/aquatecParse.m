@@ -103,7 +103,7 @@ try
     
     % we reached end of filename before any
     % DATA or BURSTSTART lines were read
-    if ~ischar(line), error('no data in filename'); end
+    if ~ischar(line), error(['no data in ' filename]); end
     
     % read the rest of the filename into 'data'
     % - we've already got the first line

@@ -1,4 +1,4 @@
-function viewMetadata(parent, sample_data, updateCallback, repCallback)
+function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 %VIEWMETADATA Displays metadata for the given data set in the given parent
 % figure/uipanel.
 %
@@ -15,6 +15,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
 %   updateCallback - Function handle to a function which is called when
 %                    any metadata is modified. The function must be of the
 %                    form:
+%   mode           - Toolbox data type mode ('profile' or 'timeSeries').
 %                    
 %                      function updateCallback(sample_data)
 %
@@ -57,7 +58,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(4, 4, nargin));
+  error(nargchk(5, 5, nargin));
 
   if ~ishandle(parent),      error('parent must be a handle');           end
   if ~isstruct(sample_data), error('sample_data must be a struct');      end
@@ -110,16 +111,16 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
   % create a uitable for each data set
   tables = nan(lenVars+lenDims+1, 1);
   panels = nan(lenVars+lenDims+1, 1);
-  [tables(1) panels(1)] = createTable(globData, '', 'global', dateFmt);
+  [tables(1) panels(1)] = createTable(globData, '', 'global', dateFmt, mode);
   
   for k = 1:lenDims
     [tables(k+1) panels(k+1)] = createTable(...
-      dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt);
+      dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt, mode);
   end
   
   for k = 1:lenVars
     [tables(k+lenDims+1) panels(k+lenDims+1)] = createTable(...
-      varData{k}, ['variables{'  num2str(k) '}'], 'variable', dateFmt);
+      varData{k}, ['variables{'  num2str(k) '}'], 'variable', dateFmt, mode);
   end
   
   tableNames =  cell(lenVars+lenDims+1, 1);
@@ -155,7 +156,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
     set(tables(k), 'Units', 'normalized');
   end
 
-  function [table panel] = createTable(data, prefix, tempType, dateFmt)
+  function [table panel] = createTable(data, prefix, tempType, dateFmt, mode)
   % Creates a uitable which contains the given data. 
   
     % format data - they're all made into strings, and cast 
@@ -164,7 +165,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback)
     for i = 1:length(data)
       
       % get the type of the attribute
-      t = templateType(data{i,1}, tempType);
+      t = templateType(data{i,1}, tempType, mode);
       
       switch t
         

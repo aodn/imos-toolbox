@@ -181,10 +181,15 @@ function displayManager(windowTitle, sample_data, callbacks)
     %METADATACALLBACK Displays a metadata viewer/editor for the selected 
     % data set.
     %
+    
+      % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
+      % If no value is set then default mode is 'timeSeries'
+      mode = lower(readProperty('toolbox.mode'));
+    
       % display metadata viewer, allowing user to modify metadata
       viewMetadata(panel, sample_data{setIdx}, ...
         @metadataUpdateWrapperCallback,...
-        @metadataRepWrapperCallback);
+        @metadataRepWrapperCallback, mode);
 
       function metadataUpdateWrapperCallback(sam)
       %METADATAUPDATEWRAPPERCALLBACK Called by the viewMetadata display when

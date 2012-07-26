@@ -1,4 +1,4 @@
-function filename = exportNetCDF( sample_data, dest )
+function filename = exportNetCDF( sample_data, dest, mode )
 %EXPORTNETCDF Export the given sample data to a NetCDF file.
 %
 % Export the given sample and calibration data to a NetCDF file. The file is 
@@ -7,13 +7,14 @@ function filename = exportNetCDF( sample_data, dest )
 %
 % Inputs:
 %   sample_data - a struct containing sample data for one process level.
-%
 %   dest        - Destination directory to save the file.
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   filename    - String containing the absolute path of the saved NetCDF file.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -45,7 +46,7 @@ function filename = exportNetCDF( sample_data, dest )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2, 2, nargin));
+  error(nargchk(3, 3, nargin));
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
   if ~ischar(dest),          error('dest must be a string');        end
@@ -95,7 +96,7 @@ function filename = exportNetCDF( sample_data, dest )
       globAtts.history = globAtts.history(1:end-1);
     end
     
-    putAtts(fid, globConst, globAtts, 'global', dateFmt);
+    putAtts(fid, globConst, [], globAtts, 'global', 'double', dateFmt, mode);
     
     % if the QC flag values are characters, we must define 
     % a dimension to force the maximum value length to 1
@@ -132,7 +133,9 @@ function filename = exportNetCDF( sample_data, dest )
     for m = 1:length(str)
         if str(m)
             len = 2 ^ m-1; %-1 because we need to take into account the case 2^0 = 1
-            stringd(m) = netcdf.defDim(fid, [ 'STRING' int2str(len) ], len);
+            if len > 1
+                stringd(m) = netcdf.defDim(fid, [ 'STRING' int2str(len) ], len);
+            end
         end
     end
     
@@ -140,7 +143,9 @@ function filename = exportNetCDF( sample_data, dest )
     % dimension and coordinate variable definitions
     %
     dims = sample_data.dimensions;
-    for m = 1:length(dims)
+    nDims = length(dims);
+    dimNetcdfType = cell(nDims, 1);
+    for m = 1:nDims
           
       dims{m}.name = upper(dims{m}.name);
       
@@ -160,12 +165,14 @@ function filename = exportNetCDF( sample_data, dest )
 
       % create coordinate variable and attributes
       if iscell(dims{m}.data)
-          vid = netcdf.defVar(fid, dims{m}.name, 'char', ...
+          dimNetcdfType{m} = 'char';
+          vid = netcdf.defVar(fid, dims{m}.name, dimNetcdfType{m}, ...
               [ stringd(dims{m}.stringlen) did ]);
       else
-          vid = netcdf.defVar(fid, dims{m}.name, 'double', did);
+          dimNetcdfType{m} = imosParameters(dims{m}.name, 'type');
+          vid = netcdf.defVar(fid, dims{m}.name, dimNetcdfType{m}, did);
       end
-      putAtts(fid, vid, dimAtts, lower(dims{m}.name), dateFmt);
+      putAtts(fid, vid, dims{m}, dimAtts, lower(dims{m}.name), dimNetcdfType{m}, dateFmt, mode);
       
       % save the netcdf dimension and variable IDs 
       % in the dimension struct for later reference
@@ -186,7 +193,9 @@ function filename = exportNetCDF( sample_data, dest )
     %
     dims = sample_data.dimensions;
     vars = sample_data.variables;
-    for m = 1:length(vars)
+    nVars = length(vars);
+    varNetcdfType = cell(nVars, 1);
+    for m = 1:nVars
 
       varname = vars{m}.name;
       
@@ -204,10 +213,16 @@ function filename = exportNetCDF( sample_data, dest )
       
       % create the variable
       if iscell(vars{m}.data)
-          vid = netcdf.defVar(fid, varname, 'char', ...
-              [ stringd(vars{m}.stringlen) did ]);
+          varNetcdfType{m} = 'char';
+          if vars{m}.stringlen > 1
+              vid = netcdf.defVar(fid, varname, varNetcdfType{m}, ...
+                  [ stringd(vars{m}.stringlen) did ]);
+          else
+              vid = netcdf.defVar(fid, varname, varNetcdfType{m}, did);
+          end
       else
-          vid = netcdf.defVar(fid, varname, 'double', dids);
+          varNetcdfType{m} = imosParameters(varname, 'type');
+          vid = netcdf.defVar(fid, varname, varNetcdfType{m}, dids);
       end
       varAtts = vars{m};
       varAtts = rmfield(varAtts, 'data');
@@ -220,7 +235,7 @@ function filename = exportNetCDF( sample_data, dest )
       varAtts.ancillary_variables = [varname '_quality_control'];
 
       % add the attributes
-      putAtts(fid, vid, varAtts, 'variable', dateFmt);
+      putAtts(fid, vid, vars{m}, varAtts, 'variable', varNetcdfType{m}, dateFmt, mode);
       
       % create the ancillary QC variable
       qcvid = addQCVar(...
@@ -244,11 +259,12 @@ function filename = exportNetCDF( sample_data, dest )
       vid     = dims{m}.vid;
       data    = dims{m}.data;
       stringlen = dims{m}.stringlen;
+      typeCastFunction = str2func(netcdf3ToMatlabType(dimNetcdfType{m}));
       
       % translate time from matlab serial time (days since 0000-00-00 00:00:00Z)
       % to IMOS mandated time (days since 1950-01-01T00:00:00Z)
       if strcmpi(dims{m}.name, 'TIME')
-          dims{m}.data = dims{m}.data - datenum('1950-01-01 00:00:00');
+          data = data - datenum('1950-01-01 00:00:00');
       end
       
       if isnumeric(data) && isfield(dims{m}, 'FillValue_')
@@ -256,21 +272,23 @@ function filename = exportNetCDF( sample_data, dest )
           data(isnan(data)) = dims{m}.FillValue_;
       end
       
+      data = typeCastFunction(data);
       if isnumeric(data)
           netcdf.putVar(fid, vid, data);
       elseif iscell(data)
-          data = char(data);
-          netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
+          if stringlen > 1
+              netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
+          else
+              netcdf.putVar(fid, vid, data);
+          end
       end
       
       if isfield(dims{m}, 'flags')
           % ancillary QC variable data
           flags   = dims{m}.flags;
           qcvid   = dims{m}.qcvid;
-          if strcmp(qcType, 'byte')
-              flags = int8(flags);
-          end
-          
+          typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
+          flags = typeCastFunction(flags);
           netcdf.putVar(fid, qcvid, flags);
       end
     end
@@ -287,6 +305,7 @@ function filename = exportNetCDF( sample_data, dest )
       vid     = vars{m}.vid;
       qcvid   = vars{m}.qcvid;
       stringlen = vars{m}.stringlen;
+      typeCastFunction = str2func(netcdf3ToMatlabType(varNetcdfType{m}));
       
       % translate time from matlab serial time (days since 0000-00-00 00:00:00Z)
       % to IMOS mandated time (days since 1950-01-01T00:00:00Z)
@@ -305,18 +324,21 @@ function filename = exportNetCDF( sample_data, dest )
           data(isnan(data)) = vars{m}.FillValue_;
       end
       
+      data = typeCastFunction(data);
       if isnumeric(data)
           netcdf.putVar(fid, vid, data);
       elseif iscell(data)
-          data = char(data);
-          netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
+          if stringlen > 1
+              netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
+          else
+              netcdf.putVar(fid, vid, data);
+          end
       end
-      
       
       % ancillary QC variable data
-      if strcmp(qcType, 'byte')
-          flags = int8(flags);
-      end
+      typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
+      flags = typeCastFunction(flags);
+      
       if nDims > 1, flags = permute(flags, nDims:-1:1); end
       
       netcdf.putVar(fid, qcvid, flags);
@@ -336,7 +358,7 @@ function filename = exportNetCDF( sample_data, dest )
 end
 
 function vid = addQCVar(...
-  fid, sample_data, varIdx, dims, type, outputType, dateFmt)
+  fid, sample_data, varIdx, dims, type, netcdfType, dateFmt)
 %ADDQCVAR Adds an ancillary variable for the variable with the given index.
 %
 % Inputs:
@@ -347,7 +369,7 @@ function vid = addQCVar(...
 %   dims        - Vector of NetCDF dimension identifiers.
 %   type        - either 'dim' or 'var', to differentiate between
 %                 coordinate variables and data variables.
-%   outputType  - The matlab type in which the flags should be output.
+%   netcdfType  - The netCDF type in which the flags should be output.
 %   dateFmt     - Date format in which date attributes should be output.
 %
 % Outputs:
@@ -384,28 +406,10 @@ function vid = addQCVar(...
     qcDescs{k} = ...
       imosQCFlag(qcFlags(k), sample_data.quality_control_set, 'desc');
   end
- 
-  % if all flag values are equal, add the 
-  % quality_control_indicator attribute 
-  minFlag = min(var.flags(:));
-  maxFlag = max(var.flags(:));
-  if minFlag == maxFlag
-    if strcmp(outputType, 'char'), minFlag = char(minFlag); end
-    if strcmp(outputType, 'byte'), minFlag = int8(minFlag); end
-    qcAtts.quality_control_indicator = minFlag; 
-  end
-  
-  % force to correct type
-  if strcmp(outputType, 'byte')
-    qcFlags            = int8(qcFlags);
-    if isfield(qcAtts, 'FillValue_')
-        qcAtts.FillValue_  = int8(qcAtts.FillValue_);
-    end
-  end
   
   % if the flag values are characters, turn the flag values 
   % attribute into a string of comma separated characters
-  if strcmp(outputType, 'char')
+  if strcmp(netcdfType, 'char')
     qcFlags(2,:) = ',';
     qcFlags = reshape(qcFlags, 1, numel(qcFlags));
     qcFlags = qcFlags(1:end-1);
@@ -417,11 +421,11 @@ function vid = addQCVar(...
   qcDescs = cellfun(@(x)(sprintf('%s ', x)), qcDescs, 'UniformOutput', false);
   qcAtts.flag_meanings = [qcDescs{:}];
   
-  vid = netcdf.defVar(fid, varname, outputType, dims);
-  putAtts(fid, vid, qcAtts, template, dateFmt);
+  vid = netcdf.defVar(fid, varname, netcdfType, dims);
+  putAtts(fid, vid, var, qcAtts, template, netcdfType, dateFmt, '');
 end
 
-function putAtts(fid, vid, template, templateFile, dateFmt)
+function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mode)
 %PUTATTS Puts all the attributes from the given template into the given NetCDF
 % variable.
 %
@@ -433,11 +437,21 @@ function putAtts(fid, vid, template, templateFile, dateFmt)
 % Inputs:
 %   fid          - NetCDF file identifier
 %   vid          - NetCDF variable identifier
+%   var          - NetCDF variable/dimension
 %   template     - Struct containing attribute names/values.
 %   templateFile - name of the template file from where the attributes
 %                  originated.
+%   netcdfType   - type to use for casting valid_min/valid_max/_FillValue attributes.
 %   dateFmt      - format to use for writing date attributes.
+%   mode         - Toolbox data type mode ('profile' or 'timeSeries').
 %  
+
+  % we convert the NetCDF required data type into a casting function towards the
+  % appropriate Matlab data type
+  qcSet   = str2double(readProperty('toolbox.qc_set'));
+  qcType  = imosQCFlag('', qcSet, 'type');
+  typeCastFunction = str2func(netcdf3ToMatlabType(netcdfType));
+  qcTypeCastFunction = str2func(netcdf3ToMatlabType(qcType));
 
   % each att is a struct field
   atts = fieldnames(template);
@@ -449,7 +463,7 @@ function putAtts(fid, vid, template, templateFile, dateFmt)
     if isempty(val), continue; end;
     
     type = 'S';
-    try, type = templateType(name, templateFile);
+    try, type = templateType(name, templateFile, mode);
     catch e, end
     
     switch type
@@ -458,6 +472,21 @@ function putAtts(fid, vid, template, templateFile, dateFmt)
     
     % matlab-no-support-leading-underscore kludge
     if name(end) == '_', name = ['_' name(1:end-1)]; end
+    
+    if any(strcmpi(name, {'valid_min', 'valid_max', '_FillValue', 'flag_values'}))
+        val = typeCastFunction(val);
+    end
+    
+    if strcmpi(name, 'quality_control_indicator') && isfield(var, 'flags')
+        % if all flag values are equal, add the 
+        % quality_control_indicator attribute
+        minFlag = min(var.flags(:));
+        maxFlag = max(var.flags(:));
+        if minFlag == maxFlag
+            val = minFlag;
+        end
+        val = qcTypeCastFunction(val);
+    end
     
     % add the attribute
     %disp(['  ' name ': ' val]);

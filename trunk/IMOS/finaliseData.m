@@ -58,6 +58,10 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
       sam.file_version_quality_control = imosFileVersion(sam.meta.level, 'desc');
   end
 
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
   % turn raw data files a into semicolon separated string
   rawFiles = cellfun(@(x)([x ';']), rawFiles, 'UniformOutput', false);
   
@@ -69,17 +73,27 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   end
   
   if isfield(sam.meta, 'deployment')
-    sam.meta.site_id       = sam.meta.deployment.Site;
-    sam.meta.timezone      = sam.meta.deployment.TimeZone;
+      sam.meta.site_id       = sam.meta.deployment.Site;
+      sam.meta.timezone      = sam.meta.deployment.TimeZone;
   elseif isfield(sam.meta, 'profile')
-    sam.meta.site_id       = sam.meta.profile.Site;
-    sam.meta.depth         = sam.meta.profile.InstrumentDepth;
-    sam.meta.timezone      = sam.meta.profile.TimeZone;
+      sam.meta.survey        = sam.meta.profile.FieldTrip;
+      sam.meta.site_id       = sam.meta.profile.Site;
+      sam.meta.station       = sam.meta.profile.Station;
+      sam.meta.depth         = sam.meta.profile.InstrumentDepth;
+      sam.meta.timezone      = sam.meta.profile.TimeZone;
   else
-    if ~isfield(sam.meta, 'site_name'); sam.meta.site_name  = 'UNKNOWN';  end
-    if ~isfield(sam.meta, 'site_id');   sam.meta.site_id    = 'UNKNOWN';  end
-    if ~isfield(sam.meta, 'depth');     sam.meta.depth      = NaN;        end
-    if ~isfield(sam.meta, 'timezone');  sam.meta.timezone   = 'UTC';      end
+      
+      if ~isfield(sam.meta, 'site_name'); sam.meta.site_name  = 'UNKNOWN';  end
+      if ~isfield(sam.meta, 'site_id');   sam.meta.site_id    = 'UNKNOWN';  end
+      if ~isfield(sam.meta, 'timezone');  sam.meta.timezone   = 'UTC';      end
+      
+      switch mode
+          case 'profile'
+              if ~isfield(sam.meta, 'survey');    sam.meta.survey     = 'UNKNOWN';  end
+              if ~isfield(sam.meta, 'station');   sam.meta.station    = NaN;        end
+              if ~isfield(sam.meta, 'depth');     sam.meta.depth      = NaN;        end
+              
+      end
   end
   
   % add empty QC flags for all variables
@@ -147,10 +161,6 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   
   if isempty(sam.time_deployment_start), sam.time_deployment_start = []; end
   if isempty(sam.time_deployment_end),   sam.time_deployment_end   = []; end
-  
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
   
   % set the time coverage period from the data
   switch mode
