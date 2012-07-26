@@ -184,10 +184,10 @@ for i=1:lenMooring
 
     exportManager({sample_data}, {'raw'}, 'netcdf', true);
     clear sample_data; % important, otherwise memory leak leads to crash
-    if ~isempty(qc_data)
+    if qc_data{1}.meta.level == 1
         exportManager({qc_data}, {'QC'}, 'netcdf', true);
         clear qc_data; % important, otherwise memory leak leads to crash
     end
     fprintf('%s\n', 'done.')
 end
-disp('');
+disp(' ');

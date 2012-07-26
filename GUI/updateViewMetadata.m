@@ -96,21 +96,21 @@ function updateViewMetadata(parent, sample_data, mode)
   %% update uitables
   
   % update a uitable for each data set
-  updateTable(globData, '', 'global', dateFmt);
+  updateTable(globData, '', 'global', dateFmt, mode);
   
   if strcmpi(mode, 'timeSeries')
       for k = 1:length(dims)
           updateTable(...
-              dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt);
+              dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt, mode);
       end
   end
   
   for k = 1:length(vars)
     updateTable(...
-      varData{k}, ['variables{'  num2str(k) '}'], 'variable', dateFmt);
+      varData{k}, ['variables{'  num2str(k) '}'], 'variable', dateFmt, mode);
   end
 
-  function updateTable(data, prefix, tempType, dateFmt)
+  function updateTable(data, prefix, tempType, dateFmt, mode)
   % Updates a uitable which contains the given data. 
   
     % format data - they're all made into strings, and cast 
@@ -119,7 +119,7 @@ function updateViewMetadata(parent, sample_data, mode)
     for i = 1:length(data)
       
       % get the type of the attribute
-      t = templateType(data{i,1}, tempType);
+      t = templateType(data{i,1}, tempType, mode);
       
       switch t
         

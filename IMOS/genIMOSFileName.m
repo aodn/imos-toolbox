@@ -156,14 +156,23 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt, mode)
   else
       config.start_date    = datestr(sample_data.time_deployment_start, dateFmt);
   end
-  config.platform_code = sample_data.platform_code;
+  
+  switch lower(mode)
+      case 'profile'
+          config.platform_code = sample_data.site_code;
+          
+      otherwise
+          config.platform_code = sample_data.platform_code;
+  end
+  
   config.file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
   
   % <product_type>
   switch lower(mode)
       case 'profile'
           config.product_type  = [...
-              sample_data.meta.site_id '-' ...
+              sample_data.meta.survey '-' ...
+              sample_data.meta.station '-' ...
               sample_data.meta.instrument_model    '-' ...
               num2str(sample_data.geospatial_vertical_max)];
           

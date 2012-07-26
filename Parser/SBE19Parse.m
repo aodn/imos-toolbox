@@ -111,7 +111,7 @@ function sample_data = SBE19Parse( filename, mode )
   if strcmpi(ext, '.hex')
     [data, comment] = readSBE19hex(dataLines, instHeader);
   else
-    [data, comment] = readSBE19cnv(dataLines, instHeader, procHeader);
+    [data, comment] = readSBE19cnv(dataLines, instHeader, procHeader, mode);
   end
   
   % create sample data struct, 
@@ -155,9 +155,7 @@ function sample_data = SBE19Parse( filename, mode )
   switch mode
       case 'profile'
           % dimensions creation
-          sample_data.dimensions{1}.name = 'MAXZ';
-          
-          iVarPRES = NaN;
+          iVarPRES_REL = NaN;
           iVarDEPTH = NaN;
           isZ = false;
           vars = fieldnames(data);
@@ -168,21 +166,31 @@ function sample_data = SBE19Parse( filename, mode )
                   isZ = true;
                   break;
               end
-              if strncmp('PRES', vars{k}, 4)
-                  iVarPRES = k;
+              if strcmpi('PRES_REL', vars{k})
+                  iVarPRES_REL = k;
                   isZ = true;
               end
-              if ~isnan(iVarDEPTH) && ~isnan(iVarPRES), break; end
+              if ~isnan(iVarDEPTH) && ~isnan(iVarPRES_REL), break; end
           end
           
           if ~isZ
               error('There is no pressure or depth information in this file to use it in profile mode');
           end
           
+          depthComment = '';
           if ~isnan(iVarDEPTH)
               iVarZ = iVarDEPTH;
+              depthData = data.(vars{iVarDEPTH});
           else
-              iVarZ = iVarPRES;
+              iVarZ = iVarPRES_REL;
+              depthData = data.(vars{iVarPRES_REL});
+              presComment = ['relative '...
+                  'pressure measurements (calibration offset '...
+                  'usually performed to balance current '...
+                  'atmospheric pressure and acute sensor '...
+                  'precision at a deployed depth)'];
+              depthComment  = ['Depth computed from '...
+                  presComment ', assuming 1dbar ~= 1m.'];
           end
           
           % let's distinguish descending/ascending parts of the profile
@@ -194,15 +202,21 @@ function sample_data = SBE19Parse( filename, mode )
           nD = sum(iD);
           nA = sum(~iD);
           MAXZ = max(nD, nA);
-          sample_data.dimensions{1}.data = (1:1:MAXZ);
           
           dNaN = nan(MAXZ-nD, 1);
           aNaN = nan(MAXZ-nA, 1);
           
           sample_data.dimensions{2}.name = 'INSTANCE';
           if nA == 0
+              sample_data.dimensions{1}.name = 'DEPTH';
+              sample_data.dimensions{1}.data = depthData;
+              sample_data.dimensions{1}.comment = depthComment;
+              
               sample_data.dimensions{2}.data = 1;
           else
+              sample_data.dimensions{1}.name = 'MAXZ';
+              sample_data.dimensions{1}.data = (1:1:MAXZ);
+              
               sample_data.dimensions{2}.data = [1, 2];
           end
           
@@ -246,11 +260,34 @@ function sample_data = SBE19Parse( filename, mode )
               sample_data.variables{4}.data     = [NaN, NaN];
           end
           
+          sample_data.variables{5}.dimensions   = 2;
+          sample_data.variables{5}.name         = 'BOT_DEPTH';
+          if nA == 0
+              sample_data.variables{5}.data     = NaN;
+          else
+              sample_data.variables{5}.data     = [NaN, NaN];
+          end
+          
+          % Manually add variable DEPTH if multiprofile and doesn't exit
+          % yet
+          if isnan(iVarDEPTH) && (nA ~= 0)
+              sample_data.variables{end+1}.dimensions = [1 2];
+              
+              sample_data.variables{end  }.name       = 'DEPTH';
+
+              % we need to padd data with NaNs so that we fill MAXZ
+              % dimension
+              sample_data.variables{end  }.data       = [[depthData(iD); dNaN], [depthData(~iD); aNaN]];
+
+              sample_data.variables{end  }.comment    = depthComment;
+          end
+          
           % scan through the list of parameters that were read
           % from the file, and create a variable for each
           for k = 1:nVars
-              % we skip TIME
+              % we skip TIME and DEPTH
               if strcmpi('TIME', vars{k}), continue; end
+              if strcmpi('DEPTH', vars{k}) && (nA == 0), continue; end
 
               sample_data.variables{end+1}.dimensions = [1 2];
               
@@ -264,8 +301,8 @@ function sample_data = SBE19Parse( filename, mode )
               end
               sample_data.variables{end  }.comment    = comment.(vars{k});
               
-              if all(~strcmpi({'TIME', vars{iVarZ}, 'LATITUDE', 'LONGITUDE', 'DIRECTION'}, vars{k}))
-                  sample_data.variables{end  }.coordinates = ['TIME ' vars{iVarZ} ' LATITUDE LONGITUDE'];
+              if all(~strcmpi({'TIME', 'DEPTH'}, vars{k}))
+                  sample_data.variables{end  }.coordinates = 'TIME DEPTH LATITUDE LONGITUDE';
               end
               
               if strcmpi('PRES_REL', vars{k})
@@ -504,6 +541,9 @@ function header = parseProcessedHeader(headerLines)
   badExpr  = 'bad_flag = (.*)$';
   %BDM (18/02/2011) - added to get start time
   startExpr = 'start_time = (\w+ \d+ \d+ \d+:\d+:\d+)';
+  volt0Expr = 'sensor \d+ = Extrnl Volt  0  (.+)';
+  volt1Expr = 'sensor \d+ = Extrnl Volt  1  (.+)';
+  volt2Expr = 'sensor \d+ = Extrnl Volt  2  (.+)';
   
   for k = 1:length(headerLines)
     
@@ -533,6 +573,23 @@ function header = parseProcessedHeader(headerLines)
     tkns = regexp(headerLines{k}, startExpr, 'tokens');
     if ~isempty(tkns)
       header.startTime = datenum(tkns{1}{1}, 'mmm dd yyyy HH:MM:SS');
+      continue;
+    end
+    
+    % then try volt exprs
+    tkns = regexp(headerLines{k}, volt0Expr, 'tokens');
+    if ~isempty(tkns)
+      header.volt0Expr = tkns{1}{1};
+      continue;
+    end
+    tkns = regexp(headerLines{k}, volt1Expr, 'tokens');
+    if ~isempty(tkns)
+      header.volt1Expr = tkns{1}{1};
+      continue;
+    end
+    tkns = regexp(headerLines{k}, volt2Expr, 'tokens');
+    if ~isempty(tkns)
+      header.volt2Expr = tkns{1}{1};
       continue;
     end
   end

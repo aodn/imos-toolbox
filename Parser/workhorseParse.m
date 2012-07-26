@@ -69,7 +69,7 @@ error(nargchk(1,2,nargin));
 
   ensembles = readWorkhorseEnsembles( filename );
   
-  if isempty(ensembles), error('no ensembles found in file'); end
+  if isempty(ensembles), error(['no ensembles found in file ' filename]); end
   
   %
   % retrieve metadata and data from struct

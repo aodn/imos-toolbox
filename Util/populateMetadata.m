@@ -76,6 +76,7 @@ function sample_data = populateMetadata( sample_data )
   ivPresRel = 0;
   ivLat = 0;
   ivLon = 0;
+  ivBotDepth = 0;
   for i=1:length(sample_data.variables)
       if strcmpi(sample_data.variables{i}.name, 'DEPTH')
           ivDepth = i;
@@ -91,6 +92,9 @@ function sample_data = populateMetadata( sample_data )
       end
       if strcmpi(sample_data.variables{i}.name, 'PRES_REL')
           ivPresRel = i;
+      end
+      if strcmpi(sample_data.variables{i}.name, 'BOT_DEPTH')
+          ivBotDepth = i;
       end
   end
   
@@ -347,6 +351,25 @@ function sample_data = populateMetadata( sample_data )
                   end
                   
           end
+      end
+  end
+  
+  % BOT_DEPTH (so far only supported for CTD profiles)
+  if ivBotDepth > 0
+      switch mode
+          case 'profile'
+              if ~isempty(sample_data.site_depth_at_station)
+                  sample_data.variables{ivBotDepth}.data = ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_station;
+              elseif ~isempty(sample_data.site_nominal_depth)
+                  sample_data.variables{ivBotDepth}.data = ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_station;
+              end
+              
+          otherwise
+              if ~isempty(sample_data.site_depth_at_deployment)
+                  sample_data.variables{ivBotDepth}.data = ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_deployment;
+              elseif ~isempty(sample_data.site_nominal_depth)
+                  sample_data.variables{ivBotDepth}.data = ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_station;
+              end
       end
   end
   

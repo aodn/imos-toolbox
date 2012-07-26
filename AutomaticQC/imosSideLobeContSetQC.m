@@ -107,10 +107,10 @@ if idPres == 0 && idPresRel == 0 && idDepth == 0
     ff = true(lenData, 1);
     
     if isempty(sample_data.instrument_nominal_depth)
-        error('No pressure data in file => Fill instrument_nominal_depth!');
+        error(['No pressure data in file ' sample_data.toolbox_input_file ' => Fill instrument_nominal_depth!']);
     else
         pressure = ones(lenData, 1).*(sample_data.instrument_nominal_depth);
-        disp('Warning : imosSideLobeContSetQC uses nominal depth because no pressure data in file')
+        disp(['Warning : imosSideLobeContSetQC uses nominal depth because no pressure data in file ' sample_data.toolbox_input_file]);
     end
 elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
@@ -137,10 +137,10 @@ end
 % let's take into account QC information
 if any(~ff)
     if isempty(sample_data.instrument_nominal_depth)
-        error('Bad pressure/depth data in file => Fill instrument_nominal_depth!');
+        error(['Bad pressure/depth data in file ' sample_data.toolbox_input_file ' => Fill instrument_nominal_depth!']);
     else
         depth(~ff) = sample_data.instrument_nominal_depth;
-        disp('Warning : imosSideLobeContSetQC uses nominal depth instead of pressure/depth data flagged as not ''good'' in file')
+        disp(['Warning : imosSideLobeContSetQC uses nominal depth instead of pressure/depth data flagged as not ''good'' in file ' sample_data.toolbox_input_file]);
     end
 end
 

@@ -1,4 +1,4 @@
-function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader )
+function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader, mode )
 %READSBE19CNV Processes data from a Seabird .cnv file.
 %
 % This function is able to process data retrievbd from a converted (.cnv) 
@@ -9,6 +9,7 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader )
 %   dataLines  - Cell array of strings, the data lines in the original file.
 %   instHeader - Struct containing instrument header.
 %   procHeader - Struct containing processed header.
+%   mode       - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   data       - Struct containing variable data.
@@ -47,7 +48,7 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,3,nargin));
+  error(nargchk(4,4,nargin));
   
   data = struct;
   comment = struct;
@@ -65,20 +66,28 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader )
     d = dataLines{k};
     d(d == procHeader.badFlag) = nan;
     
-    [n, d, c] = convertData(genvarname(columns{k}), d, instHeader);
+    [n, d, c] = convertData(genvarname(columns{k}), d, instHeader, procHeader);
     
     if isempty(n) || isempty(d), continue; end
     
-    % if the same parameter appears multiple times, 
-    % don't overwrite it in the data struct - append
-    % a number to the end of the variable name, as 
-    % per the IMOS convention
     count = 0;
     nn = n;
-    while isfield(data, nn)
-      
-      count = count + 1;
-      nn = [n '_' num2str(count)];
+    switch mode
+        case 'profile'
+            % if the same parameter appears multiple times, 
+            % we deliberately overwrite it assuming the last version is the
+            % most relevant
+            
+        otherwise
+            % if the same parameter appears multiple times, 
+            % don't overwrite it in the data struct - append
+            % a number to the end of the variable name, as
+            % per the IMOS convention
+            while isfield(data, nn)
+                count = count + 1;
+                nn = [n '_' num2str(count)];
+            end
+            
     end
     
     data.(nn) = d; 
@@ -126,7 +135,7 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader )
   end
 end
 
-function [name, data, comment] = convertData(name, data, instHeader) 
+function [name, data, comment] = convertData(name, data, instHeader, procHeader) 
 %CONVERTDATA The .cnv file provides data in a bunch of different units of
 % measurement. This function is just a big switch statement which takes
 % SBE19 data as input, and attempts to convert it to IMOS compliant name and 
@@ -238,6 +247,11 @@ function [name, data, comment] = convertData(name, data, instHeader)
       name = 'TURB';
       comment = '';
       
+    % descent rate m/s
+    case 'dz0x2FdtM'
+      name = 'DESC';
+      comment = '';
+          
     % density (kg/m3)
     case 'density00'
       name = 'DENS';
@@ -248,9 +262,30 @@ function [name, data, comment] = convertData(name, data, instHeader)
       name = 'DEPTH';
       comment = '';
     
+    % volts
+    case {'v0', 'v1', 'v2'}
+      origName = name;
+      name = ['VOLT_' origName(end)];
+      comment = getVoltageComment(origName, procHeader);
+        
     otherwise 
       name = '';
       data = [];
       comment = '';
   end
+end
+
+function comment = getVoltageComment(name, header)
+
+comment = '';
+switch name
+    case 'v0'
+        if isfield(header, 'volt0Expr'), comment = header.volt0Expr; end
+    case 'v1'
+        if isfield(header, 'volt1Expr'), comment = header.volt1Expr; end
+    case 'v2'
+        if isfield(header, 'volt2Expr'), comment = header.volt2Expr; end
+        
+end
+
 end

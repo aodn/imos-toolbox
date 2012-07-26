@@ -75,6 +75,10 @@ function exportManager(dataSets, levelNames, output, auto)
     otherwise,     error(['unknown output type: ' output]);
   end
     
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
   % prompt user for export directory, and data sets to export
   if ~auto
     
@@ -110,7 +114,7 @@ function exportManager(dataSets, levelNames, output, auto)
     try
       switch (output)
         case 'netcdf'
-          filenames{end+1} = exportNetCDF(dataSets{k}, exportDir);
+          filenames{end+1} = exportNetCDF(dataSets{k}, exportDir, mode);
         case 'raw'
           exportRawData(dataSets{k}, exportDir, setNames{k});
           filenames{end+1} = setNames{k};
