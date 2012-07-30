@@ -18,7 +18,7 @@ ADCP_GOOD, 0, adcp_percentage_good,                               percent,      
 AIRT,      1, air_temperature,                                    Celsius,                                                           M, 999999.0, -50.0,   50.0,     float
 ATMP,      1, air_pressure,                                       Pascal,                                                            M, 999999.0, 90000.0, 110000.0, float
 ATMS,      1, air_pressure_at_sea_level,                          Pascal,                                                            M, 999999.0, 90000.0, 110000.0, float
-BOT_DEPTH, 1, sea_floor_depth_below_sea_surface,                  m,                                                                 E, 999999.0, -8900.0, 12000.0,  float
+BOT_DEPTH, 1, sea_floor_depth_below_sea_surface,                  m,                                                                 E, 999999.0, 0.0,     12000.0,  float
 CDIR,      1, direction_of_sea_water_velocity,                    Degrees clockwise from true North in the direction of the current, V, 999999.0, 0.0,     360.0,    float
 CDOM,      0, concentration_of_coloured_dissolved_organic_matter, ppb,                                                            	 K, 999999.0,    ,        ,      float
 CNDC,      1, sea_water_electrical_conductivity,                  S m-1,                                                             C, 999999.0, 0.0,     50000.0,  float
