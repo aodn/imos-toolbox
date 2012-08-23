@@ -1,5 +1,5 @@
 S, standard_name             = 
-S, long_name                 = Maximum number of samples in vertical profile
+S, long_name                 = maximum_number_of_samples_in_vertical_profile
 S, units                     = 
 S, calendar                  = 
 S, axis                      = 

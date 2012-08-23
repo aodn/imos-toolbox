@@ -88,7 +88,20 @@ values = readProperty('*', fullfile('AutomaticQC', 'imosSpikeQC.txt'));
 param = strtrim(values{1});
 thresholdExpr = strtrim(values{2});
 
-iParam = strcmpi(sample_data.(type){k}.name, param);
+% let's handle the case we have multiple same param distinguished by "_1",
+% "_2", etc...
+paramName = sample_data.(type){k}.name;
+iLastUnderscore = strfind(paramName, '_');
+if iLastUnderscore > 0
+    iLastUnderscore = iLastUnderscore(end);
+    if length(paramName) > iLastUnderscore
+        if ~isnan(str2double(paramName(iLastUnderscore+1:end)))
+            paramName = paramName(1:iLastUnderscore-1);
+        end
+    end
+end
+
+iParam = strcmpi(paramName, param);
 
 if any(iParam)
     qcSet    = str2double(readProperty('toolbox.qc_set'));

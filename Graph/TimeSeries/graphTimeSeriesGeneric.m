@@ -62,37 +62,19 @@ set(ax, 'Tag', 'axis1D');
 mWh = findobj('Tag', 'mainWindow');
 sMh = findobj('Tag', 'samplePopUpMenu');
 iSample = get(sMh, 'Value');
-regionalRange = get(mWh, 'UserData');
-if strcmpi(var.name, 'TEMP') && ~isempty(regionalRange)
-    if isfield(regionalRange, 'rangeMinT') && isfield(regionalRange, 'rangeMaxT')
-        hRMinT = line(time.data, regionalRange(iSample).rangeMinT, 'Parent', ax);
-        hRMaxT = line(time.data, regionalRange(iSample).rangeMaxT, 'Parent', ax);
-        set(hRMinT, 'Color', 'r');
-        set(hRMaxT, 'Color', 'r');
-        set(ax, 'YLim', [min(regionalRange(iSample).rangeMinT) - min(regionalRange(iSample).rangeMinT)/10, ...
-            max(regionalRange(iSample).rangeMaxT) + max(regionalRange(iSample).rangeMaxT)/10]);
+climatologyRange = get(mWh, 'UserData');
+if ~isempty(climatologyRange)
+    if isfield(climatologyRange, ['rangeMin' var.name])
+        hRMin = line(time.data, climatologyRange(iSample).(['rangeMin' var.name]), 'Parent', ax);
+        hRMax = line(time.data, climatologyRange(iSample).(['rangeMax' var.name]), 'Parent', ax);
+        set(hRMin, 'Color', 'r');
+        set(hRMax, 'Color', 'r');
+        set(ax, 'YLim', [min(climatologyRange(iSample).(['rangeMin' var.name])) - min(climatologyRange(iSample).(['rangeMin' var.name]))/10, ...
+            max(climatologyRange(iSample).(['rangeMax' var.name])) + max(climatologyRange(iSample).(['rangeMax' var.name]))/10]);
+    elseif isfield(climatologyRange, ['range' var.name])
+        hR = line(time.data, climatologyRange(iSample).(['range' var.name]), 'Parent', ax);
+        set(hR, 'Color', 'r');
     end
-elseif strcmpi(var.name, 'PSAL') && ~isempty(regionalRange)
-    if isfield(regionalRange, 'rangeMinS') && isfield(regionalRange, 'rangeMaxS')
-        hRMinS = line(time.data, regionalRange(iSample).rangeMinS, 'Parent', ax);
-        hRMaxS = line(time.data, regionalRange(iSample).rangeMaxS, 'Parent', ax);
-        set(hRMinS, 'Color', 'r');
-        set(hRMaxS, 'Color', 'r');
-        set(ax, 'YLim', [min(regionalRange(iSample).rangeMinS) - min(regionalRange(iSample).rangeMinS)/10, ...
-            max(regionalRange(iSample).rangeMaxS) + max(regionalRange(iSample).rangeMaxS)/10]);
-    end
-elseif strcmpi(var.name, 'DOX2') && ~isempty(regionalRange)
-    if isfield(regionalRange, 'rangeMinDO') && isfield(regionalRange, 'rangeMaxDO')
-        hRMinS = line(time.data, regionalRange(iSample).rangeMinDO, 'Parent', ax);
-        hRMaxS = line(time.data, regionalRange(iSample).rangeMaxDO, 'Parent', ax);
-        set(hRMinS, 'Color', 'r');
-        set(hRMaxS, 'Color', 'r');
-        set(ax, 'YLim', [min(regionalRange(iSample).rangeMinDO) - min(regionalRange(iSample).rangeMinDO)/10, ...
-            max(regionalRange(iSample).rangeMaxDO + max(regionalRange(iSample).rangeMaxDO)/10)]);
-    end
-elseif strcmpi(var.name, 'DEPTH') && ~isempty(regionalRange)
-    hRDEPTH = line(time.data, regionalRange(iSample).rangeDEPTH, 'Parent', ax);
-    set(hRDEPTH, 'Color', 'r');
 end
 
 % Set axis position so that 1D data and 2D data vertically matches on X axis

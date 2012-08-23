@@ -1,0 +1,10 @@
+TEMP = 2*stdDev
+PSAL = 2*stdDev
+PRES = 2*stdDev
+PRES_REL = 2*stdDev
+DEPTH = 2*stdDev
+CPHL = 2*stdDev
+CHLU = 2*stdDev
+CHLF = 2*stdDev
+DOX1 = 2*stdDev
+DOX2 = 2*stdDev

@@ -275,7 +275,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       data = typeCastFunction(data);
       if isnumeric(data)
           netcdf.putVar(fid, vid, data);
-      elseif iscell(data)
+      elseif ischar(data)
           if stringlen > 1
               netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
           else
@@ -327,7 +327,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       data = typeCastFunction(data);
       if isnumeric(data)
           netcdf.putVar(fid, vid, data);
-      elseif iscell(data)
+      elseif ischar(data)
           if stringlen > 1
               netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
           else

@@ -415,6 +415,7 @@ function mainWindow(...
     monitorRec = get(0,'MonitorPosition');
     xResolution = monitorRec(:, 3)-monitorRec(:, 1);
     iBigMonitor = xResolution == max(xResolution);
+    if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
     hFigMooringDepth = figure(...
         'Name', 'Mooring''s instruments depths', ...
         'NumberTitle','off', ...
@@ -550,6 +551,7 @@ function mainWindow(...
         monitorRec = get(0,'MonitorPosition');
         xResolution = monitorRec(:, 3)-monitorRec(:, 1);
         iBigMonitor = xResolution == max(xResolution);
+        if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
         hFigMooringTemp = figure(...
             'Name', ['Mooring''s instruments ' varTitle], ...
             'NumberTitle','off', ...
@@ -707,7 +709,14 @@ function mainWindow(...
     
     switch mode
         case 'profile'
-            p = 5; % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
+            % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
+            p = 5;
+            
+            % we don't to plot DEPTH if it's a variable
+            depth = getVar(sam.variables, 'DEPTH');
+            if depth ~= 0
+                sam.variables(depth) = [];
+            end
         otherwise
             p = 0;
     end

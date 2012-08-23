@@ -104,22 +104,22 @@ function sample_data = preprocessManager( sample_data,auto)
           deblank([ppChainStr{:}]));
   end
   
+  allPpChain = '';
   for k = 1:length(ppChain)    
     
     ppFunc = str2func(ppChain{k});
-    
-    %BDM - 17/08/2010 - Added disp to let user know what is going on in
-    %batch mode
-    if auto 
-        if k == 1
-            fprintf('%s', ['Preprocessing using : ' ppChain{k}]);
-        elseif k == length(ppChain) 
-            fprintf('%s\n', [' ' ppChain{k}]);
-        else
-            fprintf('%s', [' ' ppChain{k}]); 
-        end
+     
+    if k == 1
+        allPpChain = ppChain{k};
+    else
+        allPpChain = [allPpChain ' ' ppChain{k}];
     end
     sample_data = ppFunc(sample_data, auto);
+  end
+  %BDM - 17/08/2010 - Added disp to let user know what is going on in
+  %batch mode
+  if auto
+      fprintf('%s\n', ['Preprocessing using : ' allPpChain]);
   end
 
 end

@@ -1,19 +1,24 @@
-function [data, flags, log] = imosGradientQC( sample_data, data, k, type, auto )
-%IMOSGRADIENTQC Flags consecutive TEMP or PSAL values with gradient > threshold.
+function [data, flags, log] = imosRateOfChangeQC( sample_data, data, k, type, auto )
+%IMOSRATEOFCHANGEQC Flags consecutive PARAMETER values with gradient > threshold.
 %
-% Gradient test which finds and flags any consecutive data which gradient
-% is > threshold
+% The aim of the check is to verify the rate of the
+% change in time. It is based on the difference
+% between the current value with the previous and
+% next ones. Failure of a rate of the change test is
+% ascribed to the current data point of the set.
+% 
+% Action: PARAMETER values are flagged if
+% |Vi – Vi-1| + |Vi – Vi+1| > 2×(threshold)
+% where Vi is the current value of the parameter, Vi–1
+% is the previous and Vi+1 the next one. If
+% the one parameter is missing, the relative part of
+% the formula is omitted and the comparison term
+% reduces to 1*(threshold).
 %
-% Threshold = 6 for temperature when pressure < 500 dbar
-% Threshold = 2 for temperature when pressure >= 500 dbar
-%
-% Threshold = 0.9 for salinity when pressure < 500 dbar
-% Threshold = 0.3 for salinity when pressure >= 500 dbar
-%
-% Threshold = 3 for pressure/depth
-%
-% These threshold values are dealt for each IMOS parameter in
-% imosGradientQC.txt
+% These threshold values are handled for each IMOS parameter in
+% imosRateOfChangeQC.txt. Standard deviation can be
+% used from the first month of significant data
+% of the time series as a threshold, stdDev in imosRateOfChangeQC.txt.
 %
 % Inputs:
 %   sample_data - struct containing the data set.
@@ -81,18 +86,34 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-% read all values from imosGradientQC properties file
-values = readProperty('*', fullfile('AutomaticQC', 'imosGradientQC.txt'));
+% read all values from imosRateOfChangeQC properties file
+values = readProperty('*', fullfile('AutomaticQC', 'imosRateOfChangeQC.txt'));
 param = strtrim(values{1});
 thresholdExpr = strtrim(values{2});
 
-iParam = strcmpi(sample_data.(type){k}.name, param);
+% let's handle the case we have multiple same param distinguished by "_1",
+% "_2", etc...
+paramName = sample_data.(type){k}.name;
+iLastUnderscore = strfind(paramName, '_');
+if iLastUnderscore > 0
+    iLastUnderscore = iLastUnderscore(end);
+    if length(paramName) > iLastUnderscore
+        if ~isnan(str2double(paramName(iLastUnderscore+1:end)))
+            paramName = paramName(1:iLastUnderscore-1);
+        end
+    end
+end
+
+iParam = strcmpi(paramName, param);
     
 if any(iParam)
     qcSet    = str2double(readProperty('toolbox.qc_set'));
     rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
     passFlag = imosQCFlag('good', qcSet, 'flag');
+    goodFlag = imosQCFlag('good', qcSet, 'flag');
+    pGoodFlag= imosQCFlag('probablyGood', qcSet, 'flag');
     failFlag = imosQCFlag('probablyBad',  qcSet, 'flag');
+    pBadFlag = imosQCFlag('probablyBad',  qcSet, 'flag');
     badFlag  = imosQCFlag('bad',  qcSet, 'flag');
     
     % we don't consider already bad data in the current test
@@ -105,34 +126,56 @@ if any(iParam)
     flags = ones(lenData, 1)*rawFlag;
     flagsTested = ones(lenDataTested, 1)*rawFlag;
     
-    gradient = [NaN; abs(diff(dataTested))]; % we don't know about the first point
-    
-    threshold = eval(thresholdExpr{iParam});
-    threshold = ones(lenDataTested, 1) .* threshold;
-    
-    iGoodGrad = false(lenDataTested, 1);
-    iBadGrad = false(lenDataTested, 1);
-    
-    iGoodGrad = gradient < threshold;
-    
-    iBadGrad = gradient >= threshold;
-    % when current point fails then also the previous one
-    iBadGrad(1:end-1) = iBadGrad(1:end-1) | iBadGrad(2:end);
-    
     % let's consider time in seconds
     time  = sample_data.dimensions{1}.data * 24 * 3600;
-    time(iBadData) = [];
-
     if size(time, 1) == 1
         % time is a row, let's have a column instead
         time = time';
     end
     
+    % We compute the standard deviation on relevant data for the first month of
+    % the time serie
+    iGoodData = (sample_data.variables{k}.flags == goodFlag | sample_data.variables{k}.flags == pGoodFlag | sample_data.variables{k}.flags == rawFlag);
+    dataRelevant = data(iGoodData);
+    timeRelevant = time(iGoodData);
+    iFirstNotBad = find(iGoodData, 1, 'first');
+    iRelevantTimePeriod = (timeRelevant >= time(iFirstNotBad) & timeRelevant <= time(iFirstNotBad)+30*24*2600);
+    stdDev = std(dataRelevant(iRelevantTimePeriod));
+    
+    previousGradient    = [0; abs(dataTested(2:end) - dataTested(1:end-1))]; % we don't know about the first point
+    nextGradient        = [abs(dataTested(1:end-1) - dataTested(2:end)); 0]; % we don't know about the last point
+    doubleGradient      = previousGradient + nextGradient;
+    
+    % let's compute threshold values
+    try
+        threshold = eval(thresholdExpr{iParam});
+        threshold = ones(lenDataTested, 1) .* threshold;
+        % we handle the cases when the doubleGradient is based on the sum 
+        % of 1 or 2 gradients
+        threshold(2:end-1) = 2*threshold(2:end-1);
+    catch
+        error(['Invalid threshold expression in imosRateOfChangeQC.txt for ' param]);
+    end
+    
+    iGoodGrad = false(lenDataTested, 1);
+    iBadGrad = false(lenDataTested, 1);
+    
+    iGoodGrad = doubleGradient <= threshold;
+    iBadGrad = doubleGradient > threshold;
+    
     % if the time period between a point and its previous is greater than 1h, then the
-    % test is cancelled and QC is set to Raw for current and previous points.
-    diffTime = diff(time);
+    % test is cancelled and QC is set to Raw for current points.
+    time(iBadData) = [];
+    diffTime = time(2:end) - time(1:end-1);
     iGreater = diffTime > 3600;
-    iGreater = [iGreater; false] | [false; iGreater];
+    iGreater = [false; iGreater];
+    iGoodGrad(iGreater) = false;
+    iBadGrad(iGreater)  = false;
+    
+    % we do the same with the second gradient
+    diffTime = abs(time(1:end-1) - time(2:end));
+    iGreater = diffTime > 3600;
+    iGreater = [iGreater; false];
     iGoodGrad(iGreater) = false;
     iBadGrad(iGreater)  = false;
     

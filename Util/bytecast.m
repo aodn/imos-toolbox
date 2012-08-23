@@ -14,8 +14,9 @@ function value = bytecast(bytes, endianness, dataType)
 %   value      - the given bytes cast to the given value.
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
+%         Charles James 2012 added call to swapbytes for opposite endianess
+%         computers 
 %
-
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
 % Marine Observing System (IMOS).
@@ -46,13 +47,12 @@ function value = bytecast(bytes, endianness, dataType)
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-  [m,c,cpuEndianness] = computer;
-  if cpuEndianness == endianness, value = typecast(bytes, dataType);
-    
-  % WILL NOT WORK IF MULTIPLE VALUES ARE PASSED IN. 
-  % Not a problem at the moment though (for x86)
-  else                            value = typecast(bytes(end:-1:1), dataType);
-  end
+[~, ~, cpuEndianness] = computer;
+if cpuEndianness == endianness, 
+    value = typecast(bytes, dataType);
+else
+    value = typecast(swapbytes(bytes), dataType);
+end
   
-  value = double(value);
+value = double(value);
 end

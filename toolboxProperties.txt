@@ -1,12 +1,5 @@
 % filename or ODBC DSN of MS-ACCESS deployment database
-% imos-ddb_prigby
-% imos-ddb_prigby-secu
-% imos-ddb_bmorris
-% imos-ddb_dmoore
-% imos-ddb_lwu
-% imos-ddb_idarby
-% imos-ddb_bdando
-toolbox.ddb = imos-ddb_bmorris
+toolbox.ddb = 
 
 % or full connection details to other kind of deployment database :
 % class name of JDBC database driver
@@ -41,14 +34,14 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
-autoQCManager.autoQCChain = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSpikeQC imosGradientQC imosStationarityQC imosRegionalRangeQC imosTeledyneSetQC imosSideLobeContSetQC
+autoQCManager.autoQCChain = 
 
 % prompt for preprocessing (if false, 
 % preprocessing routines are not executed)
 preprocessManager.preprocessPrompt = true
 
 % default set of preprocessing routines
-preprocessManager.preprocessChain = timeMetaOffsetPP timeOffsetPP depthPP
+preprocessManager.preprocessChain = depthPP
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
@@ -58,19 +51,19 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % default values for start dialog
-startDialog.dataDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\NSW
-startDialog.fieldTrip = SYD100_021
-startDialog.lowDate = 712224
-startDialog.highDate = 735234
+startDialog.dataDir = 
+startDialog.fieldTrip = 
+startDialog.lowDate = 
+startDialog.highDate = 
 
 % default directory for manual data import
-importManager.manualDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\TAS\Bug_split_file_ADCP\
+importManager.manualDir = C:\
 
 % default directory for climatology data
-importManager.climDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\CLIMATOLOGIES\
+importManager.climDir = 
 
 % default directory for file export
-exportDialog.defaultDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\temp\Processed_PH100-1106
+exportDialog.defaultDir = 
 
 % prompt user to select parser if an appropriate one 
 % cannot be found (if false, the data is not imported)
@@ -78,6 +71,6 @@ importManager.noParserPrompt = true
 
 % default directory for saving graphs as images
 saveGraph.noPrompt  = false
-saveGraph.exportDir = E:\Documents and Settings\ggalibert\Desktop\
+saveGraph.exportDir = C:\
 saveGraph.imgType   = png
 
