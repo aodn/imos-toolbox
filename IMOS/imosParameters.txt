@@ -23,17 +23,18 @@ CDIR,      1, direction_of_sea_water_velocity,                    Degrees clockw
 CDOM,      0, concentration_of_coloured_dissolved_organic_matter, ppb,                                                            	 K, 999999.0,    ,        ,      float
 CNDC,      1, sea_water_electrical_conductivity,                  S m-1,                                                             C, 999999.0, 0.0,     50000.0,  float
 SPEC_CNDC, 0, sea_water_specific_electrical_conductivity,         S m-1,                                                             C, 999999.0, 0.0,     50000.0,  float
-CPHL,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0,     float
-CHLF,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0,     float
-CHLU,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     20.0,     float
+CPHL,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     100.0,    float
+CHLF,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     100.0,    float
+CHLU,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     100.0,    float
 CHLR,      0, raw_concentration_of_chlorophyll_in_sea_water,      counts,                                                            K, 999999.0,    ,        ,      float
 CSPD,      1, sea_water_speed,                                    m s-1,                                                             V, 999999.0, 0.0,     5.0,      float
 DENS,      1, sea_water_density,                                  kg m-3,                                                            D, 999999.0,    ,        ,      float
 DEPTH,     1, depth,                                              m,                                                                 E, 999999.0, -5.0,    12000.0,  float
 DESC,      0, profiling_descent_rate_of_instrument,               m s-1,                                                             E, 999999.0, 0.0,     5.0,      float
 DEWT,      1, dew_point_temperature,                              Celsius,                                                           M, 999999.0, -50.0,   50.0,     float
-DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water, umol l-1,                                               O, 999999.0,    ,        ,      float
-DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         umol kg-1,                                                         O, 999999.0,    ,        ,      float
+DIRECTION, 0, direction_of_the_profile,                           ,                                                                   ,         ,    ,        ,      char
+DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water, umol l-1,                                               O, 999999.0, 0.0,     900000.0, float
+DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         umol kg-1,                                                         O, 999999.0, 0.0,     900000.0, float
 DOXS,      1, fractional_saturation_of_oxygen_in_sea_water,		  percent,                                                           O, 999999.0,    ,        ,      float
 DOXY,      1, mass_concentration_of_oxygen_in_sea_water,          kg m-3,                                                            O, 999999.0,    ,        ,      float
 DOXY_TEMP, 1, temperature_of_sensor_for_oxygen_in_sea_water,      Celsius,                                                           T, 999999.0, 0.0,     50.0,     float
@@ -49,12 +50,14 @@ HEAT_NET,  1, upward_heat_flux_in_air,                            W m-2,        
 HEIGHT_ABOVE_SENSOR, 0, height_above_sensor,                      m,                                                                 E, 999999.0, 0.0,     12000.0,  float
 HL,        1, surface_upward_latent_heat_flux,                    W m-2,                                                             F, 999999.0,    ,        ,      float
 HS,        1, surface_upward_sensible_heat_flux,                  W m-2,                                                             F, 999999.0,    ,        ,      float
+INSTANCE,  0, instance_of_vertical_profiles_in_data_file,         ,                                                                   ,         ,    ,        ,      int
 ISO17,     1, isotherm_depth,                                     m,                                                                 E, 999999.0,    ,        ,      float
 LATITUDE,  1, latitude,                                           degrees north,                                                     E, 999999.0, -90.0,   90.0,     double
 LONGITUDE, 1, longitude,                                          degrees east,                                                      E, 999999.0, -180.0,  180.0,    double
 LW,        1, surface_downwelling_longwave_flux_in_air,           W m-2,                                                             F, 999999.0,    ,        ,      float
 LW_NET,    1, surface_net_upward_longwave_flux,                   W m-2,                                                             F, 999999.0,    ,        ,      float
 MASS_NET,  1, upward_mass_flux_of_air,                            kg m-2 s-1,                                                        F, 999999.0,    ,        ,      float
+MAXZ,      0, maximum_number_of_samples_in_vertical_profile,      ,                                                                   ,         ,    ,        ,      int
 NSCT,      1, northward_sea_water_velocity,                       m s-1,                                                             V, 999999.0, -5.0,    5.0,      float
 NTRA,      1, mole_concentration_of_nitrate_in_sea_water,         umole l-1,                                                         K, 999999.0,    ,        ,      float
 NTR2,      1, mole_of_nitrate_per_unit_mass_in_sea_water,         umole kg-1,                                                        K, 999999.0,    ,        ,      float

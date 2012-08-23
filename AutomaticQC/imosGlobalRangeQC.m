@@ -76,12 +76,25 @@ if ~strcmp(type, 'variables'), return; end
 values = readProperty('*', fullfile('AutomaticQC', 'imosGlobalRangeQC.txt'));
 param = strtrim(values{1});
 
-iParam = strcmpi(sample_data.(type){k}.name, param);
+% let's handle the case we have multiple same param distinguished by "_1",
+% "_2", etc...
+paramName = sample_data.(type){k}.name;
+iLastUnderscore = strfind(paramName, '_');
+if iLastUnderscore > 0
+    iLastUnderscore = iLastUnderscore(end);
+    if length(paramName) > iLastUnderscore
+        if ~isnan(str2double(paramName(iLastUnderscore+1:end)))
+            paramName = paramName(1:iLastUnderscore-1);
+        end
+    end
+end
+
+iParam = strcmpi(paramName, param);
 
 if any(iParam)
     % get the flag values with which we flag good and out of range data
     qcSet     = str2double(readProperty('toolbox.qc_set'));
-    rangeFlag = imosQCFlag('bound', qcSet, 'flag');
+    rangeFlag = imosQCFlag('bad', qcSet, 'flag');
     rawFlag   = imosQCFlag('raw',   qcSet, 'flag');
     goodFlag  = imosQCFlag('good',  qcSet, 'flag');
     

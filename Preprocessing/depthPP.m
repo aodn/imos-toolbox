@@ -247,8 +247,8 @@ for k = 1:length(sample_data)
                     presRelIdxOther = getVar(otherSam.variables, 'PRES_REL');
                     
                     if presRelIdxOther == 0
-                        % update from a relative pressure like SeaBird computes
-                        % it in its processed files, substracting a constant value
+                        % update from an absolute pressure like SeaBird computes
+                        % a relative pressure in its processed files, substracting a constant value
                         % 10.1325 dbar for nominal atmospheric pressure
                         relPresOther = otherSam.variables{presIdxOther}.data - 10.1325;
                         presComment = ['absolute '...
@@ -256,7 +256,7 @@ for k = 1:length(sample_data)
                             'value for atmospheric pressure (10.1325 dbar) '...
                             'has been substracted'];
                     else
-                        % update from a relative measured pressure
+                        % update from a relative pressure measurement
                         relPresOther = otherSam.variables{presRelIdxOther}.data;
                         presComment = ['relative '...
                             'pressure measurements (calibration offset '...
@@ -272,12 +272,16 @@ for k = 1:length(sample_data)
                     % pressure sensor (could consider the min pressure value
                     % in the future?).
                     %
-                    % computedDepth = zOther - distOtherCurSensor
+                    % computedDepth  = depthOther  + distOtherCurSensor 
+                    % computedHeight = heightOther - distOtherCurSensor 
+                    %
+                    % vertical axis is positive down when talking about
+                    % depth
                     %
                     if isSensorHeight
                         distOtherCurSensor = otherSam.instrument_nominal_height - curSam.instrument_nominal_height;
                     else
-                        distOtherCurSensor = otherSam.instrument_nominal_depth - curSam.instrument_nominal_depth;
+                        distOtherCurSensor = curSam.instrument_nominal_depth - otherSam.instrument_nominal_depth;
                     end
                     
                     if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
@@ -334,8 +338,8 @@ for k = 1:length(sample_data)
                     clear otherSam;
                     
                     if presIdxFirst ~= 0 && presIdxSecond ~= 0
-                        % update from a relative pressure like SeaBird computes
-                        % it in its processed files, substracting a constant value
+                        % update from an absolute pressure like SeaBird computes
+                        % a relative pressure in its processed files, substracting a constant value
                         % 10.1325 dbar for nominal atmospheric pressure
                         relPresFirst    = samFirst.variables{presIdxFirst}.data - 10.1325;
                         relPresSecond   = samSecond.variables{presIdxSecond}.data - 10.1325;

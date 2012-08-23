@@ -76,18 +76,21 @@ function sample_data = NXICBinaryParse( filename, mode )
   fid = -1;
   data = [];
   try
-    fid = fopen(filename, 'rb');
-    data = fread(fid, inf, '*uint8');
-    fclose(fid);
+  % predefine some memmapfile objects to help organize headers and data
+    Mheader = memmapfile(filename, 'format', 'uint8', 'repeat', 220);
+    M.b0    = memmapfile(filename, 'format', 'uint8', 'offset', 220);
+    M.b1    = memmapfile(filename, 'format', 'uint8', 'offset', 221);
+    M.b2    = memmapfile(filename, 'format', 'uint8', 'offset', 222);
+    M.b3    = memmapfile(filename, 'format', 'uint8', 'offset', 223);
+    M.b4    = memmapfile(filename, 'format', 'uint8', 'offset', 224);
   catch e
-    if fid ~= -1, fclose(fid); end
     rethrow(e);
   end
   
   % the first 220 bytes aer the header 
   % section, the rest sample data
-  header  = parseHeader (data(1:220), filename);
-  samples = parseSamples(data(221:end), header);
+  header  = parseHeader(Mheader);
+  samples = parseSamples(M, header);
  
  
   % create the sample_data struct
@@ -162,12 +165,11 @@ function sample_data = NXICBinaryParse( filename, mode )
   
 end
 
-function header = parseHeader(data, filename)
+function header = parseHeader(mheader)
 %PARSEHEADER Parses the NXIC header section from the given data vector.
 %
 % Inputs:
-%   data        - vector of bytes containing the header section.
-%   filename    - name of the current file.
+%   mheaders   - memory map of header part of file.
 %
 % Outputs:
 %   header - struct containing the contents of the header.
@@ -299,7 +301,7 @@ function header = parseHeader(data, filename)
 
   header = struct;
   % data bytes 1-2
-  header.instrument_serial_no = num2str(bytecast(data(3:4), 'L', 'uint16'));
+  header.instrument_serial_no = num2str(bytecast(mheader.Data(3:4), 'L', 'uint16'));
   
   % first Citadel we bought was Mark's 2276 for IS2
   if (header.instrument_serial_no<2276)
@@ -311,7 +313,7 @@ function header = parseHeader(data, filename)
   end
   
   % Parse Options in byte 5
-  option1 = dec2bin(data(5),8);
+  option1 = dec2bin(mheader.Data(5),8);
   % start with bit 7
   Options.externalSensors   = strcmp(option1(1),bit);	% has sensors
   Options.enableRS232       = strcmp(option1(2),bit);	% use rs232
@@ -323,7 +325,7 @@ function header = parseHeader(data, filename)
   Options.continuousOn      = strcmp(option1(8),bit);	% continuous on power up
   
   % Parse Options in byte 6
-  option2 = dec2bin(data(6),8);
+  option2 = dec2bin(mheader.Data(6),8);
   % start with bit 7
   Options.autoIntervalLogging   = strcmp(option2(1),bit);   % auto interval logging
   Options.delayedDateSet        = strcmp(option2(2),bit);	% delayed date setting
@@ -355,7 +357,7 @@ function header = parseHeader(data, filename)
   % skip bytes 7-9 (baud rate, channels, mem card)
   
   % Sample frequency in Hz
-  header.sampleRate = bytecast(data(10:11),'L','uint16');
+  header.sampleRate = bytecast(mheader.Data(10:11),'L','uint16');
   % skip A/D sample rate bytes 12-13
   % and AdrH and AdrL 14-15
   % and spike filter 16-17
@@ -365,12 +367,12 @@ function header = parseHeader(data, filename)
   % time this function was used and not necessairly the stat date of this
   % deployment!
   if Options.delayedStart
-      second = double(data(18));
-      minute = double(data(19));
-      hour   = double(data(20));
-      day    = double(data(21));
-      month  = double(data(22));
-      year   = double(data(23)) + 2000;
+      second = double(mheader.Data(18));
+      minute = double(mheader.Data(19));
+      hour   = double(mheader.Data(20));
+      day    = double(mheader.Data(21));
+      month  = double(mheader.Data(22));
+      year   = double(mheader.Data(23)) + 2000;
       
       header.delayedStartDate = datenum(year, month, day, hour, minute, second);
   else
@@ -378,20 +380,20 @@ function header = parseHeader(data, filename)
   end
   
   % averaging interval hours and minutes
-  minute = double(data(27));
-  second = double(data(28));
+  minute = double(mheader.Data(27));
+  second = double(mheader.Data(28));
   header.average = minute * 60 + second;
   
   if Options.intervalOperation
       % interval and record times are stored in seconds
-      hour   = double(data(29));
-      minute = double(data(30));
-      second = double(data(31));
+      hour   = double(mheader.Data(29));
+      minute = double(mheader.Data(30));
+      second = double(mheader.Data(31));
       header.interval = hour * 3600 + minute * 60 + second;
       
-      hour   = double(data(32));
-      minute = double(data(33));
-      second = double(data(34));
+      hour   = double(mheader.Data(32));
+      minute = double(mheader.Data(33));
+      second = double(mheader.Data(34));
       header.record = hour * 3600 + minute * 60 + second;
   else
       header.interval = 0;
@@ -399,54 +401,54 @@ function header = parseHeader(data, filename)
   end
   % Calibration Constants;
   % Conductivity
-  Calibration.Conductivity.A1 = bytecast(data(35:38),'L','single');
-  Calibration.Conductivity.B1 = bytecast(data(39:42),'L','single');
-  Calibration.Conductivity.C1 = bytecast(data(43:46),'L','single');
-  Calibration.Conductivity.D1 = bytecast(data(47:50),'L','single');
+  Calibration.Conductivity.A1 = bytecast(mheader.Data(35:38),'L','single');
+  Calibration.Conductivity.B1 = bytecast(mheader.Data(39:42),'L','single');
+  Calibration.Conductivity.C1 = bytecast(mheader.Data(43:46),'L','single');
+  Calibration.Conductivity.D1 = bytecast(mheader.Data(47:50),'L','single');
   
   % no idea
-  Calibration.Cell.Kfactor = bytecast(data(51:54),'L','single');
+  Calibration.Cell.Kfactor = bytecast(mheader.Data(51:54),'L','single');
   
   % Temperature
-  Calibration.Temperature.A2 = bytecast(data(55:58),'L','single');
-  Calibration.Temperature.B2 = bytecast(data(59:62),'L','single');  
-  Calibration.Temperature.C2 = bytecast(data(63:66),'L','single');
-  Calibration.Temperature.D2 = bytecast(data(67:70),'L','single');  
+  Calibration.Temperature.A2 = bytecast(mheader.Data(55:58),'L','single');
+  Calibration.Temperature.B2 = bytecast(mheader.Data(59:62),'L','single');  
+  Calibration.Temperature.C2 = bytecast(mheader.Data(63:66),'L','single');
+  Calibration.Temperature.D2 = bytecast(mheader.Data(67:70),'L','single');  
   
   % Calibration coeffients for analog/digital channels
   % quite often appear to be wrong!
-  Calibration.Analog.A1A = bytecast(data(71:74),'L','single');
-  Calibration.Analog.A1B = bytecast(data(75:78),'L','single');  
-  Calibration.Analog.A2A = bytecast(data(79:82),'L','single');
-  Calibration.Analog.A2B = bytecast(data(83:86),'L','single');
-  Calibration.Analog.A3A = bytecast(data(87:90),'L','single');  
-  Calibration.Analog.A3B = bytecast(data(91:94),'L','single');  
-  Calibration.Analog.A4A = bytecast(data(95:98),'L','single');
-  Calibration.Analog.A4B = bytecast(data(99:102),'L','single');  
+  Calibration.Analog.A1A = bytecast(mheader.Data(71:74),'L','single');
+  Calibration.Analog.A1B = bytecast(mheader.Data(75:78),'L','single');  
+  Calibration.Analog.A2A = bytecast(mheader.Data(79:82),'L','single');
+  Calibration.Analog.A2B = bytecast(mheader.Data(83:86),'L','single');
+  Calibration.Analog.A3A = bytecast(mheader.Data(87:90),'L','single');  
+  Calibration.Analog.A3B = bytecast(mheader.Data(91:94),'L','single');  
+  Calibration.Analog.A4A = bytecast(mheader.Data(95:98),'L','single');
+  Calibration.Analog.A4B = bytecast(mheader.Data(99:102),'L','single');  
   
   % Pressure
-  Calibration.Pressure.A03 = bytecast(data(103:106),'L','single');
-  Calibration.Pressure.B03 = bytecast(data(107:110),'L','single');
-  Calibration.Pressure.C03 = bytecast(data(111:114),'L','single');
+  Calibration.Pressure.A03 = bytecast(mheader.Data(103:106),'L','single');
+  Calibration.Pressure.B03 = bytecast(mheader.Data(107:110),'L','single');
+  Calibration.Pressure.C03 = bytecast(mheader.Data(111:114),'L','single');
   
-  Calibration.Pressure.A503 = bytecast(data(115:118),'L','single');
-  Calibration.Pressure.B503 = bytecast(data(119:122),'L','single');
-  Calibration.Pressure.C503 = bytecast(data(123:126),'L','single');
+  Calibration.Pressure.A503 = bytecast(mheader.Data(115:118),'L','single');
+  Calibration.Pressure.B503 = bytecast(mheader.Data(119:122),'L','single');
+  Calibration.Pressure.C503 = bytecast(mheader.Data(123:126),'L','single');
   
-  Calibration.Pressure.A1003 = bytecast(data(127:130),'L','single');    
-  Calibration.Pressure.B1003 = bytecast(data(131:134),'L','single');
-  Calibration.Pressure.C1003 = bytecast(data(135:138),'L','single');
+  Calibration.Pressure.A1003 = bytecast(mheader.Data(127:130),'L','single');    
+  Calibration.Pressure.B1003 = bytecast(mheader.Data(131:134),'L','single');
+  Calibration.Pressure.C1003 = bytecast(mheader.Data(135:138),'L','single');
     
-  Calibration.Pressure.A3 = bytecast(data(139:142),'L','single');
+  Calibration.Pressure.A3 = bytecast(mheader.Data(139:142),'L','single');
   
-  Calibration.Pressure.PS0      = bytecast(data(143:146),'L','single');
-  Calibration.Pressure.PS50     = bytecast(data(147:150),'L','single');
-  Calibration.Pressure.PS100    = bytecast(data(151:154),'L','single');
+  Calibration.Pressure.PS0      = bytecast(mheader.Data(143:146),'L','single');
+  Calibration.Pressure.PS50     = bytecast(mheader.Data(147:150),'L','single');
+  Calibration.Pressure.PS100    = bytecast(mheader.Data(151:154),'L','single');
 
   header.Calibration = Calibration;
  
  % test checksum (don't know what to do if fails, warn I suppose)
-  isgood = bitand(sum(data(1:154)),255) == data(155);
+  isgood = bitand(sum(mheader.Data(1:154)),255) == mheader.Data(155);
   if ~isgood
       fprintf('%s\n', ['Warning : ' filename ' header checksum failed']);
       header.checksum = false;
@@ -454,13 +456,13 @@ function header = parseHeader(data, filename)
       header.checksum = true;
   end
  
-  header.Calibration.Date = char(data(156:163)');
+  header.Calibration.Date = char(mheader.Data(156:163)');
   
   % ignore bytes 164-177 ClkA, ClkB, ClkC, current, format
   
   % Range and Gain values
   % stored in separate parts of byte
-  option3 = dec2bin(data(178),8);
+  option3 = dec2bin(mheader.Data(178),8);
   % first check range from first 2 bits
   switch option3(7:8)
       case '00'
@@ -490,119 +492,174 @@ function header = parseHeader(data, filename)
   Options.GAIN1_0 = strcmp(option3(4),bit);
   Options.GAIN1_1 = strcmp(option3(3),bit);
   
-  header.sampleLength = double(data(200));
+  header.sampleLength = double(mheader.Data(200));
   
   header.Options = Options;
   
-  header.binaryData = data;
+  header.binaryData = mheader.Data;
   
 end
 
-function sample = parseSamples(data, header)
+function sample = parseSamples(M, header)
 %PARSESAMPLES Parses all of the NXIC samples contained in the given data
 % vector.
 %
 % Inputs:
-%   data    - Vector of bytes containing samples.
-%   header  - Struct containing the contents of the file header.
+%   M -        Struct of memmapfile objects of data samples
+%   header   - Struct containing the contents of the file header.
 %
 % Outputs:
 %   samples - struct containing sample data.
 %
-  len = header.sampleLength;
-  Options = header.Options;
-  mlstart = datenum('01-01-1970');
-  
-  % try to vectorize based on time stamp
-  
+len = header.sampleLength;
+Options = header.Options;
+mlstart = datenum('01-01-1970');
+msamples = M.b0;
+
+% try to vectorize based on time stamp
+
 % Data Pattern for all FSI CTDs I've seen
 % Bytes 1-4 Datenumber (uint32)
 % Byte  5 100/s of seconds (uint8)
 % Up to 6 blocks of floating point (32 Bits) data stored little endian
 % usually Cond, Temp, Press, Salinity, Sound Speed, Voltage
 % Ext. Sensors stored at end
-  
- % contains the start index of samples within data
- % assume uncorrupted record to start
- isample = (1:len:length(data));
 
- % compute time at isample intervals
- times1 = index2time(data, isample);
- 
- dt = diff(times1);
- % sample before the last time was found in the right place
- % is the only one we know is good as the time is at the start of sample
- if header.interval > 0
-     lastgood = find((dt<0) | (fix(dt)>header.interval), 1) - 1;
- else
-     lastgood = find((dt<0), 1) - 1;
- end
 
- % count any data errors as they occur
- ierr = 0;
- D = uint8([]);
- if mod(length(data), len) == 0;
-     % could be a flawless record?
-     % if so, only allow a few short gaps in times1
-     ngaps = sum(fix(dt) > header.interval);
-     if (ngaps/length(times1)) < 1e-3
-         D = reshape(data, len, length(data)./len);
-     end
- end
- clear dt;
- 
- if isempty(D);
-     while ~isempty(lastgood);
-         ierr = ierr+1;
-         % try to find new valid sample time in remaining data
-         ntimes = isample(lastgood+1):length(data)-5;
-         if ierr==1
-             % this is a big calculation so we'll only do it once
-             times2 = index2time(data, ntimes);
-         else
-             % just adjust the existing times
-             times2 = times2(end-length(ntimes)+1:end);
-         end
-         clear ntimes;
-         
-         dt = times2 - times1(lastgood + 1);
-         % this should be the offset to the next good sample time
-         if header.interval > 0
-             goodind = find((dt > 0) & (fix(dt) < header.interval), 1) - 1;
-         else
-             goodind = find((dt > 0), 1) - 1;
-         end
-         clear dt;
-         
-         if isempty(goodind)
-             % there are no other good samples so skip the rest of the data
-             isample(lastgood+1:end) = [];
-             lastgood = [];
-         else
-             % adjust isample indicies to apply new offset;
-             isample(lastgood+1:end) = isample(lastgood+1:end) + goodind;
-             isample(isample > length(data) - 4) = [];
-             
-             % any other faults?
-             times1 = index2time(data, isample);
-             dt = diff(times1);
-             if header.interval > 0
-                 lastgood = find((dt<0) | (fix(dt)>header.interval), 1) - 1;
-             else
-                 lastgood = find((dt<0), 1) - 1;
-             end
-             clear dt;
-         end
-     end
- 
-     % map data to uniform grid each row contains data channel, each column is a
-     % observation.
-     
-     for i=1:len;
-         D(i,:) = data(isample+i-1);
-     end
- end
+rdatlen=length(msamples.Data);
+% for very long records break up the processing into blocks
+% this number can be modified
+blocklength = 5000*len;
+% overlap a few record lengths to ensure all samples are read
+blockoverlap = 2*len;
 
+% create logical index with true values at predicted start of each sample
+% false everywhere else
+time_logic=false(size(msamples.Data));
+time_logic(1:len:end)=true;
+% compute time (UNIX based) at isample intervals
+
+times=index2time(M,time_logic);
+
+%calculate sample intervals to look for misaligned data
+dt=diff(times);
+
+% double check header.interval (it has been wrong on an instrument)
+sampleinterval=getSampleIntervalInfo(times);
+if sampleinterval>0;
+    interval=sampleinterval;
+else
+    % only other option - just hope it's right!
+    interval=header.interval;
+end
+
+% look for misalingments
+% timebase errors are big jumps (dt>interval*2)
+tberror=(abs(dt)>interval*2);
+ierr=0;
+D=uint8([]);
+
+% if times and size are ok we may only need to reshape data
+if (mod(rdatlen,len)==0)&&~any(tberror);
+    % Can only do this if it is a flawless record
+    % i.e. sampleinterval not -1
+    if sampleinterval>0
+        D=reshape(msamples.Data,len,rdatlen./len);
+    end
+end
+
+% if there are any errors we must attempt to realign the data
+% so far we have seen:
+% repeated sections following a glitch
+% extended burstsamples (60min or longer instead of 30s)
+
+
+
+% while errors in the timebase exist try and fix
+while any(tberror);
+    % track number of alignment errors
+    ierr=ierr+1;
+    % the index of the last sample starting with correct time - this is
+    % probably the sample that glitched
+    ibad=find(tberror,1);
+    tbad=times(ibad);
+    
+    % start first block at first error
+    blockstart=ibad;
+    % try to find new valid sample time in block
+    % 5 data bytes required for conversion to time
+    
+    % need to track redumbs that cross multiple blocks
+    foundstart=false;
+    
+    endofblock=false;
+    while ~endofblock;
+        blockend=blockstart+blocklength+blockoverlap;
+        
+        % check for end of block
+        if blockend>rdatlen
+            blockend=rdatlen-4;
+            endofblock=true;
+        end
+        
+        % set index sequence for this block
+        blockindex=blockstart:blockend;
+        
+        % form vector of all possible times starting with the first bad
+        % point - just do this once and save result for later
+        reftimes=index2time(M,blockindex);
+        
+        % build index of bad time stamps
+        istart=find(reftimes==tbad);
+        
+        if ~isempty(istart);
+            if length(istart)>1
+                % assume we have found at least one redump of the data in
+                % this block
+                % clear old time_logic indicies
+                time_logic(blockstart+min(istart):end)=false;
+                % tag new start in time_logic index
+                time_logic(blockstart+max(istart)-1:len:end-4)=true;
+            elseif length(istart)==1
+                time_logic(blockstart+istart:end)=false;
+                if foundstart
+                    time_logic(blockstart+istart-1:len:end-4)=true;
+                else
+                    foundstart=true;
+                end
+            end
+        end
+            
+        if ~endofblock
+            % reset next blockstart to last end - overlap
+            blockstart=blockend-blockoverlap;
+        end
+    end
+    % check the new proposed times stamps
+    times=index2time(M,time_logic);
+    
+    % check for any more errors and repeat routine if necessary to align
+    dt=diff(times);
+    tberror=(abs(dt)>interval*2);
+end
+
+isample=find(time_logic);
+
+% re-sort for occasional time step reversals (only small ones)
+% change sample order for monotonically increasing time
+[reftimes isort]=sort(times);
+isample=isample(isort);
+
+% remove duplicate times
+[reftimes usort]=unique(reftimes,'last');
+isample=isample(usort);
+
+
+% map data to uniform grid each row contains data channel, each column is a
+% observation.
+for i=1:len;
+    D(i,:)=msamples.Data(isample+i-1);
+end
 time1 = D(1:4,:);
 t1 = bytecast(time1(:), 'L', 'uint32');
 t2 = double(D(5,:))/100;
@@ -648,46 +705,54 @@ end
 
 end
 
-function times = index2time(data, index)
-% function to extract FSI times given the index of the start of the sample
-% check for memory limitation
-ctype = computer;
-switch ctype
-    case 'PCWIN'
-        a = memory;
-        % create a chunklength well within the memory limits 
-        % (need at least 2*16*4 bytes so divide by 2*16*5 bytes to be sure)
-        chunklength = a.MaxPossibleArrayBytes/(2*16*5);
-    case 'GLNXA64'
-        % assume 4 Gig limit
-        chunklength = 4e9/16;
-    otherwise
-        % try it all
-        chunklength = length(index);
-end
-
-% 5 bytes required, but only first 4 needed to generate time in seconds since Jan 1 1970
-tbytes = [0 1 2 3];
-
-for i=uint32(1:chunklength:length(index))
-    if (i+chunklength-1 > length(index))
-        iend = length(index);
+function times = index2time(M, index)
+% function to extract times in 5 byte FSI format from data file at index
+% points.
+       
+    % 5 byte format first 4 bytes give datenumber to minutes 5th byte contains
+    % 100ths of seconds - need double precicison to preserve seconds.
+    
+    if islogical(index);
+        N = sum(index)*4;
     else
-        iend = i+chunklength-1;
+        N = length(index)*4;
     end
-    iend        = uint32(iend);
-    index_sub   = index(i:iend);
     
-    [IT TB] = meshgrid(index_sub, tbytes);
-    % these matrices (IT and TB) are double precision and
-    % will require 4*(chunklength)*16bytes memory storage each
-    IT = IT + TB;
-    clear TB;
-    
-    IT = IT(:);
-    
-    % 5th byte at index_sub+4 is simply 100ths of a second
-    times(i:iend) = bytecast(data(IT), 'L', 'uint32') + double(data(index_sub+4))/100;
-    clear IT index_sub;
+    % This now forms the times from the 5 consecutive bytes formed from the
+    % offset memmapfile objects
+        times =...
+            bytecast(reshape(...
+            [M.b0.Data(index) M.b1.Data(index) ...
+            M.b2.Data(index) M.b3.Data(index)]'...
+            , N, 1), 'L', 'uint32') + ...
+            double(M.b4.Data(index))/100;
+
 end
+
+function [sampleinterval burstinterval nburst] = getSampleIntervalInfo(t)
+% determines sampling parameters from the actual time data
+
+dt = diff(t);
+
+% if averaging time is less than record time there will be multiple dt
+% how many time differences are there?
+dt = dt(:)';
+dts = sort(dt);
+dts = [dts(diff(dts) > 0) dts(end)];
+
+if length(dts) > 200;
+    % data is probably not aligned yet so we can't calculate this
+    burstinterval = -1;
+    nburst = -1;
+    sampleinterval = -1;
+else
+    % find a mid point between bursts and records
+    mid = mean(dts);
+    
+    burstinterval = median(dt(dt < mid));
+    recinterval = median(dt(dt > mid));
+    nburst = median(diff(find(dt > mid)));
+    sampleinterval = recinterval + burstinterval*(nburst-1);
+end
+
 end

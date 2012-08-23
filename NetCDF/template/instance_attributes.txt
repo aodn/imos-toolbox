@@ -1,5 +1,5 @@
 S, standard_name             = 
-S, long_name                 = Instance of vertical profiles in data file
+S, long_name                 = instance_of_vertical_profiles_in_data_file
 S, units                     = 
 S, calendar                  = 
 S, axis                      = 

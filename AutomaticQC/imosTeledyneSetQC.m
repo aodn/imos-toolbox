@@ -146,7 +146,7 @@ if any(~ff)
         error(['Bad pressure/depth data in file ' sample_data.toolbox_input_file ' => Fill instrument_nominal_depth!']);
     else
         depth(~ff) = sample_data.instrument_nominal_depth;
-        disp(['Warning : imosTeledyneSetQC uses nominal depth instead of pressure/depth data flagged ''bad'' in file ' sample_data.toolbox_input_file]);
+        disp(['Warning : imosTeledyneSetQC uses nominal depth instead of pressure/depth data flagged as not ''good'' in file ' sample_data.toolbox_input_file]);
     end
 end
 
