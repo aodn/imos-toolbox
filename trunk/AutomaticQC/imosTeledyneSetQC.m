@@ -272,7 +272,7 @@ ib = (abs(diff(qc(1).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh) & ...
      (abs(diff(qc(3).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh) & ...
      (abs(diff(qc(4).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh);
  
-ib = [true(lenTime, lenBin-halfLenBin+1), ib]; % +1 because ib is based on a diff
+ib = [true(lenTime, lenBin-size(ib, 2)), ib];
 
 % however, any good bin over a bad one should have stayed bad
 jkf = repmat((1:1:lenBin), lenTime, 1);
