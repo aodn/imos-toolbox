@@ -165,6 +165,11 @@ switch mode
         [~, deps, sits, dataDir] = getDeployments(true);
 end
 
+if isempty(deps)
+    fprintf('%s\n', ['Warning : ' 'No entry found in ' mode ' table.']);
+    return;
+end
+
 moorings = {deps.Site}';
 distinctMooring = unique(moorings);
 lenMooring = length(distinctMooring);

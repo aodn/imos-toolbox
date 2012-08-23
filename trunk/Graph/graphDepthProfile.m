@@ -72,7 +72,8 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
   
   switch mode
       case 'profile'
-          p = 5; % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
+          % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH and DEPTH when it's a variable
+          p = 5;
       otherwise
           p = 0;
   end
@@ -85,12 +86,16 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
   if depth ~= 0
     % we don't want to plot depth against itself, so if depth has been
     % passed in as one of the variables to plot, remove it from the list
-    iDepth = vars == depth;
-    if any(iDepth)
-      vars(iDepth) = []; 
-      if isempty(vars)
-        warning('no variables to graph');
-        return; 
+    iAfterDepth = vars >= depth;
+    if any(iAfterDepth)
+      vars(iAfterDepth) = vars(iAfterDepth)+1;
+      iOutnumber = vars > length(sample_data.variables);
+      if any(iOutnumber)
+          vars(iOutnumber) = [];
+          if isempty(vars)
+              warning('no variables to graph');
+              return;
+          end
       end
     end
     
@@ -154,7 +159,7 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     catch e, uom = '';
     end
     xLabel = [labels{1} uom];
-    set(get(graphs(k), 'XLabel'), 'String', xLabel);
+    set(get(graphs(k), 'XLabel'), 'String', strrep(xLabel, '_', ' '));
 
     % set y label
     try      uom = [' (' imosParameters(labels{2}, 'uom') ')'];
@@ -162,7 +167,7 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     end
     yLabel = [labels{2} uom];
     if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
-    set(get(graphs(k), 'YLabel'), 'String', yLabel);
+    set(get(graphs(k), 'YLabel'), 'String', strrep(yLabel, '_', ' '));
     
     if sample_data.meta.level == 1 && strcmp(func2str(plotFunc), 'graphDepthProfileGeneric')
         qcSet     = str2double(readProperty('toolbox.qc_set'));
