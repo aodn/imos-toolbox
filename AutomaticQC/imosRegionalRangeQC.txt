@@ -1,0 +1,19 @@
+% Definitions and descriptions of IMOS moorings/stations sites regional ranges.
+%
+% These information are used in the regional range QC test.
+% These thresholds values were taken from an histogram distribution
+% analysis either from historical water samples or in-situ sensor data
+%
+% Format:
+%
+%   siteName, IMOSParameter, regionalRangeMin, regionalRangeMax
+%
+NRSPHB,     TEMP,     10,  28
+NRSPHB,     PSAL,     31,  37
+NRSPHB,     DOX2,     50,  400
+NRSMAI,     TEMP,     8,   21
+NRSMAI,     PSAL,     33,  37
+NRSMAI,     DOX2,     100, 400
+PH100,      TEMP,     10,  28
+PH100,      PSAL,     31,  37
+PH100,      DOX2,     50,  400
