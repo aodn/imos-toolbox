@@ -1,9 +1,9 @@
-function [data, flags, log] = imosGlobalRangeQC ( sample_data, data, k, type, auto )
-%IMOSGLOBALRANGEQC Flags data which is out of the variable's valid global range.
+function [data, flags, log] = imosRegionalRangeQC ( sample_data, data, k, type, auto )
+%IMOSREGIONALRANGEQC Flags data which is out of the variable's valid regional range.
 %
 % Iterates through the given data, and returns flags for any samples which
-% do not fall within the valid_min and valid_max fields for the given
-% variable.
+% do not fall within the regionalRangeMin and regionalRangeMax fields for the given
+% mooring site and variable in imosRegionalRangeQC.txt.
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
@@ -24,8 +24,7 @@ function [data, flags, log] = imosGlobalRangeQC ( sample_data, data, k, type, au
 %
 %   log         - Empty cell array.
 %
-% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -72,10 +71,6 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-% read all values from imosGlobalRangeQC properties file
-values = readProperty('*', fullfile('AutomaticQC', 'imosGlobalRangeQC.txt'));
-param = strtrim(values{1});
-
 % let's handle the case we have multiple same param distinguished by "_1",
 % "_2", etc...
 paramName = sample_data.(type){k}.name;
@@ -89,34 +84,49 @@ if iLastUnderscore > 0
     end
 end
 
-iParam = strcmpi(paramName, param);
+% get details from this site
+%     site = sample_data.meta.site_name; % source = ddb
+%     if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes file
+site = sample_data.site_code;
+site = imosSites(site);
 
-if any(iParam)
-    % get the flag values with which we flag good and out of range data
-    qcSet     = str2double(readProperty('toolbox.qc_set'));
-    rangeFlag = imosQCFlag('bad', qcSet, 'flag');
-    rawFlag   = imosQCFlag('raw',   qcSet, 'flag');
-    goodFlag  = imosQCFlag('good',  qcSet, 'flag');
+% test if site information exists
+if isempty(site)
+    fprintf('%s\n', ['Warning : ' 'No site information found to '...
+        'perform regional range QC test']);
+else
+    % read values from imosRegionalRangeQC properties file
+    [regionalMin, regionalMax, isSite] = getImosRegionalRange(site.name, paramName);
     
-    max  = sample_data.variables{k}.valid_max;
-    min  = sample_data.variables{k}.valid_min;
-    
-    lenData = length(data);
-    
-    % initialise all flags to non QC'd
-    flags = ones(lenData, 1)*rawFlag;
-    
-    if ~isempty(min) && ~isempty(max)
-        if max ~= min
-            % initialise all flags to bad
-            flags = ones(lenData, 1)*rangeFlag;
+    if ~isSite
+        fprintf('%s\n', ['Warning : ' 'File imosRegionalRangeQC.txt is not documented '...
+        'for site ' site.name]);
+    else
+        if ~isnan(regionalMin)
+            % get the flag values with which we flag good and out of range data
+            qcSet     = str2double(readProperty('toolbox.qc_set'));
+            rangeFlag = imosQCFlag('bad', qcSet, 'flag');
+            rawFlag   = imosQCFlag('raw',   qcSet, 'flag');
+            goodFlag  = imosQCFlag('good',  qcSet, 'flag');
             
-            iPassed = data <= max;
-            iPassed = iPassed & data >= min;
+            lenData = length(data);
             
-            % add flags for in range values
-            flags(iPassed) = goodFlag;
-            flags(iPassed) = goodFlag;
+            % initialise all flags to non QC'd
+            flags = ones(lenData, 1)*rawFlag;
+            
+            if regionalMax ~= regionalMin
+                % initialise all flags to bad
+                flags = ones(lenData, 1)*rangeFlag;
+                
+                iPassed = data <= regionalMax;
+                iPassed = iPassed & data >= regionalMin;
+                
+                % add flags for in range values
+                flags(iPassed) = goodFlag;
+                flags(iPassed) = goodFlag;
+            end
         end
     end
+end
+
 end
