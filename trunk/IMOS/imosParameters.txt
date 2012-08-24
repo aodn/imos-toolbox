@@ -33,8 +33,8 @@ DEPTH,     1, depth,                                              m,            
 DESC,      0, profiling_descent_rate_of_instrument,               m s-1,                                                             E, 999999.0, 0.0,     5.0,      float
 DEWT,      1, dew_point_temperature,                              Celsius,                                                           M, 999999.0, -50.0,   50.0,     float
 DIRECTION, 0, direction_of_the_profile,                           ,                                                                   ,         ,    ,        ,      char
-DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water, umol l-1,                                               O, 999999.0, 0.0,     900000.0, float
-DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         umol kg-1,                                                         O, 999999.0, 0.0,     900000.0, float
+DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water, umol l-1,                                               O, 999999.0, 0.0,     900.0,    float
+DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         umol kg-1,                                                         O, 999999.0, 0.0,     900.0,    float
 DOXS,      1, fractional_saturation_of_oxygen_in_sea_water,		  percent,                                                           O, 999999.0,    ,        ,      float
 DOXY,      1, mass_concentration_of_oxygen_in_sea_water,          kg m-3,                                                            O, 999999.0,    ,        ,      float
 DOXY_TEMP, 1, temperature_of_sensor_for_oxygen_in_sea_water,      Celsius,                                                           T, 999999.0, 0.0,     50.0,     float
