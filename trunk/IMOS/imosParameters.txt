@@ -22,19 +22,18 @@ BOT_DEPTH, 1, sea_floor_depth_below_sea_surface,                  m,            
 CDIR,      1, direction_of_sea_water_velocity,                    Degrees clockwise from true North in the direction of the current, V, 999999.0, 0.0,     360.0,    float
 CDOM,      0, concentration_of_coloured_dissolved_organic_matter, ppb,                                                            	 K, 999999.0,    ,        ,      float
 CNDC,      1, sea_water_electrical_conductivity,                  S m-1,                                                             C, 999999.0, 0.0,     50000.0,  float
-SPEC_CNDC, 0, sea_water_specific_electrical_conductivity,         S m-1,                                                             C, 999999.0, 0.0,     50000.0,  float
 CPHL,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     100.0,    float
 CHLF,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     100.0,    float
 CHLU,      1, mass_concentration_of_chlorophyll_in_sea_water,     mg m-3,                                                            K, 999999.0, 0.0,     100.0,    float
 CHLR,      0, raw_concentration_of_chlorophyll_in_sea_water,      counts,                                                            K, 999999.0,    ,        ,      float
-CSPD,      1, sea_water_speed,                                    m s-1,                                                             V, 999999.0, 0.0,     5.0,      float
+CSPD,      1, sea_water_speed,                                    m s-1,                                                             V, 999999.0, 0.0,     10.0,     float
 DENS,      1, sea_water_density,                                  kg m-3,                                                            D, 999999.0,    ,        ,      float
 DEPTH,     1, depth,                                              m,                                                                 E, 999999.0, -5.0,    12000.0,  float
 DESC,      0, profiling_descent_rate_of_instrument,               m s-1,                                                             E, 999999.0, 0.0,     5.0,      float
 DEWT,      1, dew_point_temperature,                              Celsius,                                                           M, 999999.0, -50.0,   50.0,     float
 DIRECTION, 0, direction_of_the_profile,                           ,                                                                   ,         ,    ,        ,      char
-DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water, umol l-1,                                               O, 999999.0, 0.0,     900.0,    float
-DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         umol kg-1,                                                         O, 999999.0, 0.0,     900.0,    float
+DOX1,      1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water, umol l-1,                                               O, 999999.0, 0.0,  900000.0,    float
+DOX2,      1, moles_of_oxygen_per_unit_mass_in_sea_water,         umol kg-1,                                                         O, 999999.0, 0.0,  880000.0,    float
 DOXS,      1, fractional_saturation_of_oxygen_in_sea_water,		  percent,                                                           O, 999999.0,    ,        ,      float
 DOXY,      1, mass_concentration_of_oxygen_in_sea_water,          kg m-3,                                                            O, 999999.0,    ,        ,      float
 DOXY_TEMP, 1, temperature_of_sensor_for_oxygen_in_sea_water,      Celsius,                                                           T, 999999.0, 0.0,     50.0,     float
@@ -76,6 +75,7 @@ RELH,      1, relative_humidity,                                  percent,      
 ROLL,      1, platform_roll_angle,                                Degrees,                                                           E, 999999.0, -180.0,  180.0,    float
 SLCA,      1, mole_concentration_of_silicate_in_sea_water,        umole l-1,                                                         K, 999999.0,    ,        ,      float
 SLC2,      1, mole_of_silicate_per_unit_mass_in_sea_water,        umole kg-1,                                                        K, 999999.0,    ,        ,      float
+SPEC_CNDC, 0, sea_water_specific_electrical_conductivity,         S m-1,                                                             C, 999999.0, 0.0,     50000.0,  float
 SRAD,      1, isotropic_shortwave_radiance_in_air,                W m-1 sr-1,                                                        F, 999999.0,    ,        ,      float
 SSPD,      1, speed_of_sound_in_sea_water,                        m s-1,                                                             V, 999999.0, 1400.0,  1600.0,   float
 SST,       1, sea_surface_skin_temperature,                       Celsius,                                                           T, 999999.0,    ,        ,      float
@@ -86,15 +86,15 @@ SSWV,      1, sea_surface_wave_directional_variance_spectral_density, m2 s deg-1
 SW,        1, surface_downwelling_shortwave_flux_in_air,          W m-2,                                                             F, 999999.0,    ,        ,      float
 SW_NET,    1, surface_net_upward_shortwave_flux,                  W m-2,                                                             F, 999999.0,    ,        ,      float
 TAU,       1, magnitude_of_surface_downward_stress,               Pascal,                                                            F, 999999.0,    ,        ,      float
-TEMP,      1, sea_water_temperature,                              Celsius,                                                           T, 999999.0, -2.5,    40.0,     float
+TEMP,      1, sea_water_temperature,                              Celsius,                                                           T, 999999.0, -2.5,    45.0,     float
 TIME,      1, time,                                               s,                                                                 E, 999999.0, 0.0,     90000.0,  double
 TURB,      0, turbidity,                                          NTU,                                                               U, 999999.0, 0.0,     1000.0,   float
-UCUR,      1, eastward_sea_water_velocity,                        m s-1,                                                             V, 999999.0, -5.0,    5.0,      float
+UCUR,      1, eastward_sea_water_velocity,                        m s-1,                                                             V, 999999.0, -10.0,   10.0,     float
 UWND,      1, eastward_wind,                                      m s-1,                                                             M, 999999.0,    ,        ,      float
 VAVH,      1, sea_surface_wave_significant_height,                m,                                                                 W, 999999.0,    ,        ,      float
 VAVT,      1, sea_surface_wave_zero_upcrossing_period,            s,                                                                 W, 999999.0,    ,        ,      float
 VBSC,      0, volumetric_backscatter_coefficient,                 m-1 sr-1,                                                          E, 999999.0,    ,        ,      float
-VCUR,      1, northward_sea_water_velocity,                       m s-1,                                                             V, 999999.0, -5.0,    5.0,      float
+VCUR,      1, northward_sea_water_velocity,                       m s-1,                                                             V, 999999.0, -10.0,   10.0,     float
 VDEN,      1, sea_surface_wave_variance_spectral_density,         m2 s,                                                              W, 999999.0,    ,        ,      float
 VDIR,      1, sea_surface_wave_from_direction,                    Degree clockwise from true North,                                  W, 999999.0,    ,        ,      float
 VOLT,      0, voltage,                                            V,                                                                 E, 999999.0, -100.0,  100.0,    float

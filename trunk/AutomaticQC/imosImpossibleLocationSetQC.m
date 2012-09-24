@@ -113,5 +113,9 @@ if ~isempty(dataLon) && ~isempty(dataLat)
             
             sample_data.dimensions{idLon}.flags = flagLon;
             sample_data.dimensions{idLat}.flags = flagLat;
+            
+            if any(~iGoodLon) || any(~iGoodLat)
+                error('Impossible location QC test failed => Check deployment database values for latitude/longitude or thresholds in imosSites.txt!');
+            end
     end
 end

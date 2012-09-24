@@ -65,22 +65,40 @@ iSample = get(sMh, 'Value');
 climatologyRange = get(mWh, 'UserData');
 if ~isempty(climatologyRange)
     if isfield(climatologyRange, ['rangeMin' var.name])
-        hRMin = line(time.data, climatologyRange(iSample).(['rangeMin' var.name]), 'Parent', ax);
-        hRMax = line(time.data, climatologyRange(iSample).(['rangeMax' var.name]), 'Parent', ax);
-        set(hRMin, 'Color', 'r');
-        set(hRMax, 'Color', 'r');
+        hRMin = line(time.data, climatologyRange(iSample).(['rangeMin' var.name]), 'Parent', ax, 'Color', 'r', 'LineStyle', '-');
+        hRMax = line(time.data, climatologyRange(iSample).(['rangeMax' var.name]), 'Parent', ax, 'Color', 'r', 'LineStyle', '-');
         set(ax, 'YLim', [min(climatologyRange(iSample).(['rangeMin' var.name])) - min(climatologyRange(iSample).(['rangeMin' var.name]))/10, ...
             max(climatologyRange(iSample).(['rangeMax' var.name])) + max(climatologyRange(iSample).(['rangeMax' var.name]))/10]);
-    elseif isfield(climatologyRange, ['range' var.name])
-        hR = line(time.data, climatologyRange(iSample).(['range' var.name]), 'Parent', ax);
-        set(hR, 'Color', 'r');
+    end
+    if isfield(climatologyRange, ['range' var.name])
+        hR = line(time.data, climatologyRange(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k', 'LineStyle', '--');
     end
 end
 
 % Set axis position so that 1D data and 2D data vertically matches on X axis
-cb = colorbar();
-pos_with_colorbar = get(ax, 'Position');
-colorbar(cb, 'off');
+mainPanel = findobj('Tag', 'mainPanel');
+last_pos_with_colorbar = get(mainPanel, 'UserData');
+if isempty(last_pos_with_colorbar) % this is to avoid too many calls to colorbar()
+    cb = colorbar();
+    set(get(cb, 'YLabel'), 'String', 'TEST');
+    pos_with_colorbar = get(ax, 'Position');
+    last_pos_with_colorbar = pos_with_colorbar;
+    colorbar(cb, 'off');
+    set(mainPanel, 'UserData', last_pos_with_colorbar);
+else
+    pos_with_colorbar = get(ax, 'Position');
+    
+    if pos_with_colorbar(1) == last_pos_with_colorbar(1)
+        pos_with_colorbar(3) = last_pos_with_colorbar(3);
+    else
+        cb = colorbar();
+        set(get(cb, 'YLabel'), 'String', 'TEST');
+        pos_with_colorbar = get(ax, 'Position');
+        last_pos_with_colorbar = pos_with_colorbar;
+        colorbar(cb, 'off');
+        set(mainPanel, 'UserData', last_pos_with_colorbar);
+    end
+end
 set(ax, 'Position', pos_with_colorbar);
 
 if strncmp(var.name, 'DEPTH', 4)
