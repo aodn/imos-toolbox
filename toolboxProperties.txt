@@ -34,14 +34,14 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
-autoQCManager.autoQCChain = 
+autoQCManager.autoQCChain = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosRegionalRangeQC imosImpossibleDepthQC imosSpikeQC imosRateOfChangeQC imosStationarityQC imosTeledyneSetQC imosSideLobeContSetQC
 
 % prompt for preprocessing (if false, 
 % preprocessing routines are not executed)
 preprocessManager.preprocessPrompt = true
 
 % default set of preprocessing routines
-preprocessManager.preprocessChain = depthPP
+preprocessManager.preprocessChain = salinityPP depthPP
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 

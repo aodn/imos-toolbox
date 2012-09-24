@@ -1,4 +1,4 @@
-function sample_data = readXR620( filename )
+function sample_data = readXR620( filename, mode )
 %readXR620 Parses a data file retrieved from an RBR XR620 or XR420 depth 
 % logger.
 %
@@ -44,7 +44,7 @@ function sample_data = readXR620( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
   
   if ~ischar(filename)  
     error('filename must be a string'); 
@@ -73,207 +73,571 @@ function sample_data = readXR620( filename )
   sample_data.meta.instrument_serial_no         = header.serial;
   sample_data.meta.instrument_sample_interval   = median(diff(data.time*24*3600));
   
-  % dimensions definition must stay in this order : T, Z, Y, X, others;
-  % to be CF compliant
-  sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.data = data.time;
-  sample_data.dimensions{2}.name = 'LATITUDE';
-  sample_data.dimensions{2}.data = NaN;
-  sample_data.dimensions{3}.name = 'LONGITUDE';
-  sample_data.dimensions{3}.data = NaN;
-  
-  % copy variable data over
-  data = rmfield(data, 'time');
-  fields = fieldnames(data);
-  
-  l = 1;
-  for k = 1:length(fields)
-    
-      name = '';
-      comment = '';
-      switch fields{k}
+  switch mode
+      case 'profile'
+          % dimensions creation
+          iVarPRES = NaN;
+          iVarDEPTH = NaN;
+          isZ = false;
+          vars = fieldnames(data);
+          nVars = length(vars);
+          for k = 1:nVars
+              if strcmpi('DEPTH', vars{k})
+                  iVarDEPTH = k;
+                  isZ = true;
+                  break;
+              end
+              if strcmpi('PRES', vars{k})
+                  iVarPRES = k;
+                  isZ = true;
+              end
+              if ~isnan(iVarDEPTH) && ~isnan(iVarPRES), break; end
+          end
           
-          %Conductivity (mS/cm) = 10-1*(S/m)
-          case 'Cond'
-              name = 'CNDC';
-              data.(fields{k}) = data.(fields{k})/10;
-              
-          %Temperature (Celsius degree)
-          case 'Temp', name = 'TEMP';
-              
-          %Pressure (dBar)
-          case 'Pres', name = 'PRES';
+          if ~isZ
+              error('There is no pressure or depth information in this file to use it in profile mode');
+          end
           
-          %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
-          case 'FlC'
-              name = 'CPHL';
-              comment = ['Artificial chlorophyll data '...
-            'computed from bio-optical sensor raw counts fluorometry. '...
-            'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'];
+          depthComment = '';
+          if ~isnan(iVarDEPTH)
+              iVarZ = iVarDEPTH;
+              depthData = data.(vars{iVarDEPTH});
+          else
+              iVarZ = iVarPRES;
+              depthData = data.(vars{iVarPRES} - 10.1325);
+              presComment = ['abolute '...
+                  'pressure measurements to which a nominal '...
+                  'value for atmospheric pressure (10.1325 dbar) '...
+                  'has been substracted'];
+              depthComment  = ['Depth computed from '...
+                  presComment ', assuming 1dbar ~= 1m.'];
+          end
+          
+          % let's distinguish descending/ascending parts of the profile
+          nData = length(data.(vars{iVarZ}));
+          zMax = max(data.(vars{iVarZ}));
+          posZMax = find(data.(vars{iVarZ}) == zMax);
+          iD = [true(posZMax, 1); false(nData-posZMax, 1)];
+          
+          nD = sum(iD);
+          nA = sum(~iD);
+          MAXZ = max(nD, nA);
+          
+          dNaN = nan(MAXZ-nD, 1);
+          aNaN = nan(MAXZ-nA, 1);
+          
+          sample_data.dimensions{2}.name = 'INSTANCE';
+          if nA == 0
+              sample_data.dimensions{1}.name = 'DEPTH';
+              sample_data.dimensions{1}.data = depthData;
+              sample_data.dimensions{1}.comment = depthComment;
               
-          %Turbidity (NTU)
-          case 'Turb', name = 'TURB'; 
+              sample_data.dimensions{2}.data = 1;
+          else
+              sample_data.dimensions{1}.name = 'MAXZ';
+              sample_data.dimensions{1}.data = (1:1:MAXZ);
               
-          %Rinko temperature (Celsius degree)    
-          case 'R_Temp'
+              sample_data.dimensions{2}.data = [1, 2];
+              disp(['Warning : ' sample_data.toolbox_input_file ...
+                  ' is not IMOS CTD profile compliant. See ' ...
+                  'http://imos.org.au/fileadmin/user_upload/shared/' ...
+                  'IMOS%20General/documents/Facility_manuals/' ...
+                  'NRS_sampling_Manual_Data_Processing_Guide_Draftv1_5b_IngletonMorris.pdf']);
+          end
+          
+          % Add TIME, DIRECTION and POSITION infos
+          descendingTime = data.time(iD);
+          descendingTime = descendingTime(1);
+          
+          if nA == 0
+              ascendingTime = [];
+          else
+              ascendingTime = data.time(~iD);
+              ascendingTime = ascendingTime(1);
+          end
+          
+          sample_data.variables{1}.dimensions   = 2;
+          sample_data.variables{1}.name         = 'TIME';
+          sample_data.variables{1}.data         = [descendingTime, ascendingTime];
+          sample_data.variables{1}.comment      = 'First value over profile measurement';
+          
+          sample_data.variables{2}.dimensions   = 2;
+          sample_data.variables{2}.name         = 'DIRECTION';
+          if nA == 0
+              sample_data.variables{2}.data     = {'D'};
+          else
+              sample_data.variables{2}.data     = {'D', 'A'};
+          end
+          
+          sample_data.variables{3}.dimensions   = 2;
+          sample_data.variables{3}.name         = 'LATITUDE';
+          if nA == 0
+              sample_data.variables{3}.data     = NaN;
+          else
+              sample_data.variables{3}.data     = [NaN, NaN];
+          end
+          
+          sample_data.variables{4}.dimensions   = 2;
+          sample_data.variables{4}.name         = 'LONGITUDE';
+          if nA == 0
+              sample_data.variables{4}.data     = NaN;
+          else
+              sample_data.variables{4}.data     = [NaN, NaN];
+          end
+          
+          sample_data.variables{5}.dimensions   = 2;
+          sample_data.variables{5}.name         = 'BOT_DEPTH';
+          if nA == 0
+              sample_data.variables{5}.data     = NaN;
+          else
+              sample_data.variables{5}.data     = [NaN, NaN];
+          end
+          
+          % Manually add variable DEPTH if multiprofile and doesn't exit
+          % yet
+          if isnan(iVarDEPTH) && (nA ~= 0)
+              sample_data.variables{end+1}.dimensions = [1 2];
+              
+              sample_data.variables{end  }.name       = 'DEPTH';
+              
+              % we need to padd data with NaNs so that we fill MAXZ
+              % dimension
+              sample_data.variables{end  }.data       = [[depthData(iD); dNaN], [depthData(~iD); aNaN]];
+              
+              sample_data.variables{end  }.comment    = depthComment;
+          end
+          
+          % scan through the list of parameters that were read
+          % from the file, and create a variable for each
+          for k = 1:nVars
+              % we skip TIME and DEPTH
+              if strcmpi('TIME', vars{k}), continue; end
+              if strcmpi('DEPTH', vars{k}) && (nA == 0), continue; end
+              
               name = '';
-              comment = 'Corrected temperature.';
+              comment.(vars{k}) = '';
+              switch vars{k}
+                  
+                  %Conductivity (mS/cm) = 10-1*(S/m)
+                  case 'Cond'
+                      name = 'CNDC';
+                      data.(vars{k}) = data.(vars{k})/10;
+                      
+                      %Temperature (Celsius degree)
+                  case 'Temp', name = 'TEMP';
+                      
+                      %Pressure (dBar)
+                  case 'Pres', name = 'PRES';
+                      
+                      %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
+                  case 'FlC'
+                      name = 'CPHL';
+                      comment.(vars{k}) = ['Artificial chlorophyll data computed from ' ...
+                          'fluorometry sensor raw counts measurements. Originally ' ...
+                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
+                      
+                      %Turbidity (NTU)
+                  case 'Turb', name = 'TURB';
+                      
+                      %Rinko temperature (Celsius degree)
+                  case 'R_Temp'
+                      name = '';
+                      comment.(vars{k}) = 'Corrected temperature for DO sensor.';
+                      
+                      %Rinko dissolved O2 (%)
+                  case 'R_D_O2', name = 'DOXS';
+                      
+                      %Depth (m)
+                  case 'Depth', name = 'DEPTH';
+                      
+                      %Salinity (PSU)
+                  case 'Salin', name = 'PSAL';
+                      
+                      %Specific conductivity (uS/cm) = 10-4 * (S/m)
+                  case 'SpecCond'
+                      name = 'SPEC_CNDC';
+                      data.(vars{k}) = data.(vars{k})/10000;
+                      
+                      %Density anomaly (n/a)
+                  case 'DensAnom', name = '';
+                      
+                      %Speed of sound (m/s)
+                  case 'SoSUN', name = 'SSPD';
+                      
+                      %Rinko dissolved O2 concentration (mg/l) => (umol/l)
+                  case 'rdO2C'
+                      name = 'DOX1';
+                      comment.(vars{k}) = ['Originally expressed in mg/l, ' ...
+                          'O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.'];
+                      data.(vars{k}) = data.(vars{k}) * 44.660/1.429; % O2 density = 1.429 kg/m3
+              end
+              
+              if ~isempty(name)
+                  sample_data.variables{end+1}.dimensions = [1 2];
+                  
+                  sample_data.variables{end}.name       = name;
+                  if nA == 0
+                      sample_data.variables{end  }.data   = data.(vars{k})(iD);
+                  else
+                      % we need to padd data with NaNs so that we fill MAXZ
+                      % dimension
+                      sample_data.variables{end  }.data   = [[data.(vars{k})(iD); dNaN], [data.(vars{k})(~iD); aNaN]];
+                  end
+                  sample_data.variables{end}.comment    = comment.(vars{k});
+                  
+                  if all(~strcmpi({'TIME', 'DEPTH'}, vars{k}))
+                      sample_data.variables{end  }.coordinates = 'TIME DEPTH LATITUDE LONGITUDE';
+                  end
+              end   
+          end
           
-          %Rinko dissolved O2 (%)
-          case 'R_D_O2', name = 'DOXS';
-              
-          %Depth (m)    
-          case 'Depth', name = 'DEPTH';
-              
-          %Salinity (PSU)
-          case 'Salin', name = 'PSAL';
-              
-          %Specific conductivity (uS/cm) = 10-4 * (S/m)
-          case 'SpecCond'
-              name = 'SPEC_CNDC';
-              data.(fields{k}) = data.(fields{k})/10000;
-              
-          %Density anomaly (n/a)
-          case 'DensAnom', name = '';
-              
-          %Speed of sound (m/s)
-          case 'SoSUN', name = 'SSPD';
-              
-          %Rinko dissolved O2 concentration (mg/l) => (umol/l)
-          case 'rdO2C'
+          % Let's add DOX1/DOX2 if PSAL/CNDC, TEMP and DOXS are present and DOX1 not
+          % already present
+          doxs = getVar(sample_data.variables, 'DOXS');
+          dox1 = getVar(sample_data.variables, 'DOX1');
+          if doxs ~= 0 && dox1 == 0
+              doxs = sample_data.variables{doxs};
               name = 'DOX1';
-              comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
-              data.(fields{k}) = data.(fields{k}) * 44.660/1.429; % O2 density = 1.429 kg/m3
-      end
-    
-      if ~isempty(name)
-          sample_data.variables{l}.name       = name;
-          sample_data.variables{l}.data       = data.(fields{k});
-          sample_data.variables{l}.dimensions = [1 2 3];
-          sample_data.variables{l}.comment    = comment;
-          l = l+1;
-      end
-  end
-  
-  % Let's add DOX1/DOX2 if PSAL/CNDC, TEMP and DOXS are present and DOX1 not
-  % already present
-  doxs = getVar(sample_data.variables, 'DOXS');
-  dox1 = getVar(sample_data.variables, 'DOX1');
-  if doxs ~= 0 && dox1 == 0
-      doxs = sample_data.variables{doxs};
-      name = 'DOX1';
-      
-      % to perform this conversion, we need temperature,
-      % and salinity/conductivity+pressure data to be present
-      temp = getVar(sample_data.variables, 'TEMP');
-      psal = getVar(sample_data.variables, 'PSAL');
-      cndc = getVar(sample_data.variables, 'CNDC');
-      pres = getVar(sample_data.variables, 'PRES');
-      
-      % if any of this data isn't present,
-      % we can't perform the conversion
-      if temp ~= 0 && (psal ~= 0 || (cndc ~= 0 && pres ~= 0))
-          temp = sample_data.variables{temp};
-          if psal ~= 0
-              psal = sample_data.variables{psal};
-          else
-              cndc = sample_data.variables{cndc};
-              pres = sample_data.variables{pres};
-              % conductivity is in S/m and sw_c3515 in mS/cm
-              crat = 10*cndc.data ./ sw_c3515;
               
-              psal.data = sw_salt(crat, temp.data, pres.data);
+              % to perform this conversion, we need temperature,
+              % and salinity/conductivity+pressure data to be present
+              temp = getVar(sample_data.variables, 'TEMP');
+              psal = getVar(sample_data.variables, 'PSAL');
+              cndc = getVar(sample_data.variables, 'CNDC');
+              pres = getVar(sample_data.variables, 'PRES');
+              
+              % if any of this data isn't present,
+              % we can't perform the conversion
+              if temp ~= 0 && (psal ~= 0 || (cndc ~= 0 && pres ~= 0))
+                  temp = sample_data.variables{temp};
+                  if psal ~= 0
+                      psal = sample_data.variables{psal};
+                  else
+                      cndc = sample_data.variables{cndc};
+                      pres = sample_data.variables{pres};
+                      % conductivity is in S/m and sw_c3515 in mS/cm
+                      crat = 10*cndc.data ./ sw_c3515;
+                      
+                      psal.data = sw_salt(crat, temp.data, pres.data);
+                  end
+                  
+                  % O2 solubility (Garcia and Gordon, 1992-1993)
+                  %
+                  solubility = O2sol(psal.data, temp.data, 'ml/l');
+                  
+                  % O2 saturation to O2 concentration measured
+                  % O2 saturation (per cent) = 100* [O2/O2sol]
+                  %
+                  % that is to say : O2 = O2sol * O2sat / 100
+                  data = solubility .* doxs.data / 100;
+                  
+                  % conversion from ml/l to umol/l
+                  data = data * 44.660;
+                  comment = ['Originally expressed in % of saturation, using Garcia '...
+                      'and Gordon equations (1992-1993) and ml/l coefficients, assuming 1ml/l = 44.660umol/l.'];
+                  
+                  sample_data.variables{end+1}.dimensions           = [1 2];
+                  sample_data.variables{end}.comment                = comment;
+                  sample_data.variables{end}.name                   = name;
+                  if nA == 0
+                      sample_data.variables{end}.data   = data(iD);
+                  else
+                      % we need to padd data with NaNs so that we fill MAXZ
+                      % dimension
+                      sample_data.variables{end}.data   = [[data(iD); dNaN], [data(~iD); aNaN]];
+                  end
+                  sample_data.variables{end}.coordinates = 'TIME DEPTH LATITUDE LONGITUDE';
+                  
+                  % Let's add DOX2
+                  name = 'DOX2';
+                  
+                  % O2 solubility (Garcia and Gordon, 1992-1993)
+                  %
+                  solubility = O2sol(psal.data, temp.data, 'umol/kg');
+                  
+                  % O2 saturation to O2 concentration measured
+                  % O2 saturation (per cent) = 100* [O2/O2sol]
+                  %
+                  % that is to say : O2 = O2sol * O2sat / 100
+                  data = solubility .* doxs.data / 100;
+                  comment = ['Originally expressed in % of saturation, using Garcia '...
+                      'and Gordon equations (1992-1993) and umol/kg coefficients.'];
+                  
+                  sample_data.variables{end+1}.dimensions           = [1 2];
+                  sample_data.variables{end}.comment                = comment;
+                  sample_data.variables{end}.name                   = name;
+                  if nA == 0
+                      sample_data.variables{end}.data   = data(iD);
+                  else
+                      % we need to padd data with NaNs so that we fill MAXZ
+                      % dimension
+                      sample_data.variables{end}.data   = [[data(iD); dNaN], [data(~iD); aNaN]];
+                  end
+                  sample_data.variables{end}.coordinates = 'TIME DEPTH LATITUDE LONGITUDE';
+              end
           end
           
-          % O2 solubility (Garcia and Gordon, 1992-1993)
-          %
-          solubility = O2sol(psal.data, temp.data, 'ml/l');
-          
-          % O2 saturation to O2 concentration measured
-          % O2 saturation (per cent) = 100* [O2/O2sol]
-          %
-          % that is to say : O2 = O2sol * O2sat / 100
-          data = solubility .* doxs.data / 100;
-          
-          % conversion from ml/l to umol/l
-          data = data * 44.660;
-          comment = ['Originally expressed in % of saturation, using Garcia '...
-              'and Gordon equations (1992-1993) and ml/l coefficients, assuming 1ml/l = 44.660umol/l.'];
-          
-          sample_data.variables{end+1}.dimensions           = [1 2 3];
-          sample_data.variables{end}.comment                = comment;
-          sample_data.variables{end}.name                   = name;
-          sample_data.variables{end}.data                   = data;
-          
-          % Let's add DOX2
-          name = 'DOX2';
-          
-          % O2 solubility (Garcia and Gordon, 1992-1993)
-          %
-          solubility = O2sol(psal.data, temp.data, 'umol/kg');
-          
-          % O2 saturation to O2 concentration measured
-          % O2 saturation (per cent) = 100* [O2/O2sol]
-          %
-          % that is to say : O2 = O2sol * O2sat / 100
-          data = solubility .* doxs.data / 100;
-          comment = ['Originally expressed in % of saturation, using Garcia '...
-              'and Gordon equations (1992-1993) and umol/kg coefficients.'];
-          
-          sample_data.variables{end+1}.dimensions           = [1 2 3];
-          sample_data.variables{end}.comment                = comment;
-          sample_data.variables{end}.name                   = name;
-          sample_data.variables{end}.data                   = data;
-      end
-  end
-  
-  % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are
-  % present and DOX2 not already present
-  dox1 = getVar(sample_data.variables, 'DOX1');
-  dox2 = getVar(sample_data.variables, 'DOX2');
-  if dox1 ~= 0 && dox2 == 0
-      dox1 = sample_data.variables{dox1};
-      name = 'DOX2';
-      
-      % umol/l -> umol/kg
-      %
-      % to perform this conversion, we need to calculate the
-      % density of sea water; for this, we need temperature,
-      % salinity, and pressure data to be present
-      temp = getVar(sample_data.variables, 'TEMP');
-      pres = getVar(sample_data.variables, 'PRES');
-      psal = getVar(sample_data.variables, 'PSAL');
-      cndc = getVar(sample_data.variables, 'CNDC');
-      
-      % if any of this data isn't present,
-      % we can't perform the conversion to umol/kg
-      if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
-          temp = sample_data.variables{temp};
-          pres = sample_data.variables{pres};
-          if psal ~= 0
-              psal = sample_data.variables{psal};
-          else
-              cndc = sample_data.variables{cndc};
-              % conductivity is in S/m and sw_c3515 in mS/cm
-              crat = 10*cndc.data ./ sw_c3515;
+          % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are
+          % present and DOX2 not already present
+          dox1 = getVar(sample_data.variables, 'DOX1');
+          dox2 = getVar(sample_data.variables, 'DOX2');
+          if dox1 ~= 0 && dox2 == 0
+              dox1 = sample_data.variables{dox1};
+              name = 'DOX2';
               
-              psal.data = sw_salt(crat, temp.data, pres.data);
+              % umol/l -> umol/kg
+              %
+              % to perform this conversion, we need to calculate the
+              % density of sea water; for this, we need temperature,
+              % salinity, and pressure data to be present
+              temp = getVar(sample_data.variables, 'TEMP');
+              pres = getVar(sample_data.variables, 'PRES');
+              psal = getVar(sample_data.variables, 'PSAL');
+              cndc = getVar(sample_data.variables, 'CNDC');
+              
+              % if any of this data isn't present,
+              % we can't perform the conversion to umol/kg
+              if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
+                  temp = sample_data.variables{temp};
+                  pres = sample_data.variables{pres};
+                  if psal ~= 0
+                      psal = sample_data.variables{psal};
+                  else
+                      cndc = sample_data.variables{cndc};
+                      % conductivity is in S/m and sw_c3515 in mS/cm
+                      crat = 10*cndc.data ./ sw_c3515;
+                      
+                      psal.data = sw_salt(crat, temp.data, pres.data);
+                  end
+                  
+                  % calculate density from salinity, temperature and pressure
+                  dens = sw_dens(psal.data, temp.data, pres.data);
+                  
+                  % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
+                  data = dox1.data .* 1000.0 ./ dens;
+                  comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
+                      'and using density computed from Temperature, Salinity and Pressure '...
+                      'with the Seawater toolbox.'];
+                  
+                  sample_data.variables{end+1}.dimensions           = [1 2];
+                  sample_data.variables{end}.comment                = comment;
+                  sample_data.variables{end}.name                   = name;
+                  if nA == 0
+                      sample_data.variables{end}.data   = data(iD);
+                  else
+                      % we need to padd data with NaNs so that we fill MAXZ
+                      % dimension
+                      sample_data.variables{end}.data   = [[data(iD); dNaN], [data(~iD); aNaN]];
+                  end
+                  sample_data.variables{end}.coordinates = 'TIME DEPTH LATITUDE LONGITUDE';
+              end
           end
           
-          % calculate density from salinity, temperature and pressure
-          dens = sw_dens(psal.data, temp.data, pres.data);
+      otherwise
           
-          % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
-          data = dox1.data .* 1000.0 ./ dens;
-          comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
-              'and using density computed from Temperature, Salinity and Pressure '...
-              'with the Seawater toolbox.'];
+          % dimensions definition must stay in this order : T, Z, Y, X, others;
+          % to be CF compliant
+          sample_data.dimensions{1}.name = 'TIME';
+          sample_data.dimensions{1}.data = data.time;
+          sample_data.dimensions{2}.name = 'LATITUDE';
+          sample_data.dimensions{2}.data = NaN;
+          sample_data.dimensions{3}.name = 'LONGITUDE';
+          sample_data.dimensions{3}.data = NaN;
           
-          sample_data.variables{end+1}.dimensions           = [1 2 3];
-          sample_data.variables{end}.comment                = comment;
-          sample_data.variables{end}.name                   = name;
-          sample_data.variables{end}.data                   = data;
-      end
+          % copy variable data over
+          data = rmfield(data, 'time');
+          fields = fieldnames(data);
+          
+          l = 1;
+          for k = 1:length(fields)
+              
+              name = '';
+              comment.(fields{k}) = '';
+              switch fields{k}
+                  
+                  %Conductivity (mS/cm) = 10-1*(S/m)
+                  case 'Cond'
+                      name = 'CNDC';
+                      data.(fields{k}) = data.(fields{k})/10;
+                      
+                      %Temperature (Celsius degree)
+                  case 'Temp', name = 'TEMP';
+                      
+                      %Pressure (dBar)
+                  case 'Pres', name = 'PRES';
+                      
+                      %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
+                  case 'FlC'
+                      name = 'CPHL';
+                      comment.(fields{k}) = ['Artificial chlorophyll data computed from ' ...
+                          'fluorometry sensor raw counts measurements. Originally ' ...
+                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
+                      
+                      %Turbidity (NTU)
+                  case 'Turb', name = 'TURB';
+                      
+                      %Rinko temperature (Celsius degree)
+                  case 'R_Temp'
+                      name = '';
+                      comment.(fields{k}) = 'Corrected temperature.';
+                      
+                      %Rinko dissolved O2 (%)
+                  case 'R_D_O2', name = 'DOXS';
+                      
+                      %Depth (m)
+                  case 'Depth', name = 'DEPTH';
+                      
+                      %Salinity (PSU)
+                  case 'Salin', name = 'PSAL';
+                      
+                      %Specific conductivity (uS/cm) = 10-4 * (S/m)
+                  case 'SpecCond'
+                      name = 'SPEC_CNDC';
+                      data.(fields{k}) = data.(fields{k})/10000;
+                      
+                      %Density anomaly (n/a)
+                  case 'DensAnom', name = '';
+                      
+                      %Speed of sound (m/s)
+                  case 'SoSUN', name = 'SSPD';
+                      
+                      %Rinko dissolved O2 concentration (mg/l) => (umol/l)
+                  case 'rdO2C'
+                      name = 'DOX1';
+                      comment.(fields{k}) = ['Originally expressed in mg/l, ' ...
+                          'O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.'];
+                      data.(fields{k}) = data.(fields{k}) * 44.660/1.429; % O2 density = 1.429 kg/m3
+              end
+              
+              if ~isempty(name)
+                  sample_data.variables{l}.name       = name;
+                  sample_data.variables{l}.data       = data.(fields{k});
+                  sample_data.variables{l}.dimensions = [1 2 3];
+                  sample_data.variables{l}.comment    = comment.(fields{k});
+                  l = l+1;
+              end
+          end
+          
+          % Let's add DOX1/DOX2 if PSAL/CNDC, TEMP and DOXS are present and DOX1 not
+          % already present
+          doxs = getVar(sample_data.variables, 'DOXS');
+          dox1 = getVar(sample_data.variables, 'DOX1');
+          if doxs ~= 0 && dox1 == 0
+              doxs = sample_data.variables{doxs};
+              name = 'DOX1';
+              
+              % to perform this conversion, we need temperature,
+              % and salinity/conductivity+pressure data to be present
+              temp = getVar(sample_data.variables, 'TEMP');
+              psal = getVar(sample_data.variables, 'PSAL');
+              cndc = getVar(sample_data.variables, 'CNDC');
+              pres = getVar(sample_data.variables, 'PRES');
+              
+              % if any of this data isn't present,
+              % we can't perform the conversion
+              if temp ~= 0 && (psal ~= 0 || (cndc ~= 0 && pres ~= 0))
+                  temp = sample_data.variables{temp};
+                  if psal ~= 0
+                      psal = sample_data.variables{psal};
+                  else
+                      cndc = sample_data.variables{cndc};
+                      pres = sample_data.variables{pres};
+                      % conductivity is in S/m and sw_c3515 in mS/cm
+                      crat = 10*cndc.data ./ sw_c3515;
+                      
+                      psal.data = sw_salt(crat, temp.data, pres.data);
+                  end
+                  
+                  % O2 solubility (Garcia and Gordon, 1992-1993)
+                  %
+                  solubility = O2sol(psal.data, temp.data, 'ml/l');
+                  
+                  % O2 saturation to O2 concentration measured
+                  % O2 saturation (per cent) = 100* [O2/O2sol]
+                  %
+                  % that is to say : O2 = O2sol * O2sat / 100
+                  data = solubility .* doxs.data / 100;
+                  
+                  % conversion from ml/l to umol/l
+                  data = data * 44.660;
+                  comment = ['Originally expressed in % of saturation, using Garcia '...
+                      'and Gordon equations (1992-1993) and ml/l coefficients, assuming 1ml/l = 44.660umol/l.'];
+                  
+                  sample_data.variables{end+1}.dimensions           = [1 2 3];
+                  sample_data.variables{end}.comment                = comment;
+                  sample_data.variables{end}.name                   = name;
+                  sample_data.variables{end}.data                   = data;
+                  
+                  % Let's add DOX2
+                  name = 'DOX2';
+                  
+                  % O2 solubility (Garcia and Gordon, 1992-1993)
+                  %
+                  solubility = O2sol(psal.data, temp.data, 'umol/kg');
+                  
+                  % O2 saturation to O2 concentration measured
+                  % O2 saturation (per cent) = 100* [O2/O2sol]
+                  %
+                  % that is to say : O2 = O2sol * O2sat / 100
+                  data = solubility .* doxs.data / 100;
+                  comment = ['Originally expressed in % of saturation, using Garcia '...
+                      'and Gordon equations (1992-1993) and umol/kg coefficients.'];
+                  
+                  sample_data.variables{end+1}.dimensions           = [1 2 3];
+                  sample_data.variables{end}.comment                = comment;
+                  sample_data.variables{end}.name                   = name;
+                  sample_data.variables{end}.data                   = data;
+              end
+          end
+          
+          % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are
+          % present and DOX2 not already present
+          dox1 = getVar(sample_data.variables, 'DOX1');
+          dox2 = getVar(sample_data.variables, 'DOX2');
+          if dox1 ~= 0 && dox2 == 0
+              dox1 = sample_data.variables{dox1};
+              name = 'DOX2';
+              
+              % umol/l -> umol/kg
+              %
+              % to perform this conversion, we need to calculate the
+              % density of sea water; for this, we need temperature,
+              % salinity, and pressure data to be present
+              temp = getVar(sample_data.variables, 'TEMP');
+              pres = getVar(sample_data.variables, 'PRES');
+              psal = getVar(sample_data.variables, 'PSAL');
+              cndc = getVar(sample_data.variables, 'CNDC');
+              
+              % if any of this data isn't present,
+              % we can't perform the conversion to umol/kg
+              if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
+                  temp = sample_data.variables{temp};
+                  pres = sample_data.variables{pres};
+                  if psal ~= 0
+                      psal = sample_data.variables{psal};
+                  else
+                      cndc = sample_data.variables{cndc};
+                      % conductivity is in S/m and sw_c3515 in mS/cm
+                      crat = 10*cndc.data ./ sw_c3515;
+                      
+                      psal.data = sw_salt(crat, temp.data, pres.data);
+                  end
+                  
+                  % calculate density from salinity, temperature and pressure
+                  dens = sw_dens(psal.data, temp.data, pres.data);
+                  
+                  % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
+                  data = dox1.data .* 1000.0 ./ dens;
+                  comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
+                      'and using density computed from Temperature, Salinity and Pressure '...
+                      'with the Seawater toolbox.'];
+                  
+                  sample_data.variables{end+1}.dimensions           = [1 2 3];
+                  sample_data.variables{end}.comment                = comment;
+                  sample_data.variables{end}.name                   = name;
+                  sample_data.variables{end}.data                   = data;
+              end
+          end
   end
 end
   

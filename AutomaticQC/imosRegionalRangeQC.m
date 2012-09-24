@@ -8,7 +8,7 @@ function [data, flags, log] = imosRegionalRangeQC ( sample_data, data, k, type, 
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
 %
-%   data        - the vector of data to check.
+%   data        - the vector/matrix of data to check.
 %
 %   k           - Index into the sample_data.variables vector.
 %
@@ -58,10 +58,10 @@ function [data, flags, log] = imosRegionalRangeQC ( sample_data, data, k, type, 
 %
 
 error(nargchk(4, 5, nargin));
-if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isvector(data),               error('data must be a vector');        end
-if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
-if ~ischar(type),                 error('type must be a string');        end
+if ~isstruct(sample_data),              error('sample_data must be a struct');      end
+if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
+if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
+if ~ischar(type),                       error('type must be a string');             end
 
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
@@ -95,6 +95,36 @@ if isempty(site)
     fprintf('%s\n', ['Warning : ' 'No site information found to '...
         'perform regional range QC test']);
 else
+    % for test in display
+    sampleFile = sample_data.toolbox_input_file;
+    % we need TIME to initialise climatologyRange values with NaN
+    idTime  = getVar(sample_data.dimensions, 'TIME');
+    dataTime  = sample_data.dimensions{idTime}.data;
+    nTime = length(dataTime);
+    
+    mWh = findobj('Tag', 'mainWindow');
+    climatologyRange = get(mWh, 'UserData');
+    p = 0;
+    if isempty(climatologyRange)
+        p = 1;
+        climatologyRange(p).dataSet = sampleFile;
+        climatologyRange(p).(['rangeMin' paramName]) = nan(nTime, 1);
+        climatologyRange(p).(['rangeMax' paramName]) = nan(nTime, 1);
+    else
+        for i=1:length(climatologyRange)
+            if strcmp(climatologyRange(i).dataSet, sampleFile)
+                p=i;
+                break;
+            end
+        end
+        if p == 0
+            p = length(climatologyRange) + 1;
+            climatologyRange(p).dataSet = sampleFile;
+            climatologyRange(p).(['rangeMin' paramName]) = nan(nTime, 1);
+            climatologyRange(p).(['rangeMax' paramName]) = nan(nTime, 1);
+        end
+    end
+    
     % read values from imosRegionalRangeQC properties file
     [regionalMin, regionalMax, isSite] = getImosRegionalRange(site.name, paramName);
     
@@ -109,6 +139,14 @@ else
             rawFlag   = imosQCFlag('raw',   qcSet, 'flag');
             goodFlag  = imosQCFlag('good',  qcSet, 'flag');
             
+            % matrix case, we unfold the matrix in one vector for timeserie study
+            % purpose
+            isMatrix = ismatrix(data);
+            if isMatrix
+                len1 = size(data, 1);
+                len2 = size(data, 2);
+                data = data(:);
+            end
             lenData = length(data);
             
             % initialise all flags to non QC'd
@@ -125,6 +163,17 @@ else
                 flags(iPassed) = goodFlag;
                 flags(iPassed) = goodFlag;
             end
+            
+            if isMatrix
+                % we fold the vector back into a matrix
+                data = reshape(data, len1, len2);
+                flags = reshape(flags, len1, len2);
+            end
+            
+            % update climatologyRange info for display
+            climatologyRange(p).(['rangeMin' paramName]) = ones(nTime, 1)*regionalMin;
+            climatologyRange(p).(['rangeMax' paramName]) = ones(nTime, 1)*regionalMax;
+            set(mWh, 'UserData', climatologyRange);
         end
     end
 end

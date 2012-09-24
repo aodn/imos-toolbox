@@ -23,7 +23,7 @@ function [data, flags, log] = imosRateOfChangeQC( sample_data, data, k, type, au
 % Inputs:
 %   sample_data - struct containing the data set.
 %
-%   data        - the vector of data to check.
+%   data        - the vector/matrix of data to check.
 %
 %   k           - Index into the sample_data variable vector.
 %
@@ -73,10 +73,10 @@ function [data, flags, log] = imosRateOfChangeQC( sample_data, data, k, type, au
 %
 
 error(nargchk(4, 5, nargin));
-if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isvector(data),               error('data must be a vector');        end
-if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
-if ~ischar(type),                 error('type must be a string');        end
+if ~isstruct(sample_data),              error('sample_data must be a struct');      end
+if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
+if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
+if ~ischar(type),                       error('type must be a string');             end
 
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
@@ -113,81 +113,92 @@ if any(iParam)
     goodFlag = imosQCFlag('good', qcSet, 'flag');
     pGoodFlag= imosQCFlag('probablyGood', qcSet, 'flag');
     failFlag = imosQCFlag('probablyBad',  qcSet, 'flag');
-    pBadFlag = imosQCFlag('probablyBad',  qcSet, 'flag');
     badFlag  = imosQCFlag('bad',  qcSet, 'flag');
+           
+    % matrix case, we process line by line for timeserie study
+    % purpose
+    len1 = size(data, 1);
+    len2 = size(data, 2);
+    flags = ones(len1, len2)*rawFlag;
+    for i=1:len2
+        lineData = data(:,i);
+        
+        % we don't consider already bad data in the current test
+        iBadData = sample_data.variables{k}.flags(:,i) == badFlag;
+        dataTested = lineData(~iBadData);
+        
+        lenLineData = length(lineData);
+        lenDataTested = length(dataTested);
+        
+        lineFlags = ones(lenLineData, 1)*rawFlag;
+        flagsTested = ones(lenDataTested, 1)*rawFlag;
+        
+        % let's consider time in seconds
+        time  = sample_data.dimensions{1}.data * 24 * 3600;
+        if size(time, 1) == 1
+            % time is a row, let's have a column instead
+            time = time';
+        end
     
-    % we don't consider already bad data in the current test
-    iBadData = sample_data.variables{k}.flags == badFlag;
-    dataTested = data(~iBadData);
-    
-    lenData = length(data);
-    lenDataTested = length(dataTested);
-    
-    flags = ones(lenData, 1)*rawFlag;
-    flagsTested = ones(lenDataTested, 1)*rawFlag;
-    
-    % let's consider time in seconds
-    time  = sample_data.dimensions{1}.data * 24 * 3600;
-    if size(time, 1) == 1
-        % time is a row, let's have a column instead
-        time = time';
-    end
-    
-    % We compute the standard deviation on relevant data for the first month of
-    % the time serie
-    iGoodData = (sample_data.variables{k}.flags == goodFlag | sample_data.variables{k}.flags == pGoodFlag | sample_data.variables{k}.flags == rawFlag);
-    dataRelevant = data(iGoodData);
-    timeRelevant = time(iGoodData);
-    iFirstNotBad = find(iGoodData, 1, 'first');
-    iRelevantTimePeriod = (timeRelevant >= time(iFirstNotBad) & timeRelevant <= time(iFirstNotBad)+30*24*2600);
-    stdDev = std(dataRelevant(iRelevantTimePeriod));
-    
-    previousGradient    = [0; abs(dataTested(2:end) - dataTested(1:end-1))]; % we don't know about the first point
-    nextGradient        = [abs(dataTested(1:end-1) - dataTested(2:end)); 0]; % we don't know about the last point
-    doubleGradient      = previousGradient + nextGradient;
-    
-    % let's compute threshold values
-    try
-        threshold = eval(thresholdExpr{iParam});
-        threshold = ones(lenDataTested, 1) .* threshold;
-        % we handle the cases when the doubleGradient is based on the sum 
-        % of 1 or 2 gradients
-        threshold(2:end-1) = 2*threshold(2:end-1);
-    catch
-        error(['Invalid threshold expression in imosRateOfChangeQC.txt for ' param]);
-    end
-    
-    iGoodGrad = false(lenDataTested, 1);
-    iBadGrad = false(lenDataTested, 1);
-    
-    iGoodGrad = doubleGradient <= threshold;
-    iBadGrad = doubleGradient > threshold;
-    
-    % if the time period between a point and its previous is greater than 1h, then the
-    % test is cancelled and QC is set to Raw for current points.
-    time(iBadData) = [];
-    diffTime = time(2:end) - time(1:end-1);
-    iGreater = diffTime > 3600;
-    iGreater = [false; iGreater];
-    iGoodGrad(iGreater) = false;
-    iBadGrad(iGreater)  = false;
-    
-    % we do the same with the second gradient
-    diffTime = abs(time(1:end-1) - time(2:end));
-    iGreater = diffTime > 3600;
-    iGreater = [iGreater; false];
-    iGoodGrad(iGreater) = false;
-    iBadGrad(iGreater)  = false;
-    
-    if any(iGoodGrad)
-        flagsTested(iGoodGrad) = passFlag;
-    end
-    
-    if any(iBadGrad)
-        flagsTested(iBadGrad) = failFlag;
-    end
-    
-    if any(iGoodGrad | iBadGrad)
-        flags(~iBadData) = flagsTested;
+        % We compute the standard deviation on relevant data for the first month of
+        % the time serie
+        iGoodData = (sample_data.variables{k}.flags(:,i) == goodFlag | ...
+            sample_data.variables{k}.flags(:,i) == pGoodFlag | ...
+            sample_data.variables{k}.flags(:,i) == rawFlag);
+        dataRelevant = lineData(iGoodData);
+        timeRelevant = time(iGoodData);
+        iFirstNotBad = find(iGoodData, 1, 'first');
+        iRelevantTimePeriod = (timeRelevant >= time(iFirstNotBad) & timeRelevant <= time(iFirstNotBad)+30*24*2600);
+        stdDev = std(dataRelevant(iRelevantTimePeriod));
+        
+        previousGradient    = [0; abs(dataTested(2:end) - dataTested(1:end-1))]; % we don't know about the first point
+        nextGradient        = [abs(dataTested(1:end-1) - dataTested(2:end)); 0]; % we don't know about the last point
+        doubleGradient      = previousGradient + nextGradient;
+        
+        % let's compute threshold values
+        try
+            threshold = eval(thresholdExpr{iParam});
+            threshold = ones(lenDataTested, 1) .* threshold;
+            % we handle the cases when the doubleGradient is based on the sum
+            % of 1 or 2 gradients
+            threshold(2:end-1) = 2*threshold(2:end-1);
+        catch
+            error(['Invalid threshold expression in imosRateOfChangeQC.txt for ' param]);
+        end
+        
+        iGoodGrad = false(lenDataTested, 1);
+        iBadGrad = false(lenDataTested, 1);
+        
+        iGoodGrad = doubleGradient <= threshold;
+        iBadGrad = doubleGradient > threshold;
+        
+        % if the time period between a point and its previous is greater than 1h, then the
+        % test is cancelled and QC is set to Raw for current points.
+        time(iBadData) = [];
+        diffTime = time(2:end) - time(1:end-1);
+        iGreater = diffTime > 3600;
+        iGreater = [false; iGreater];
+        iGoodGrad(iGreater) = false;
+        iBadGrad(iGreater)  = false;
+        
+        % we do the same with the second gradient
+        diffTime = abs(time(1:end-1) - time(2:end));
+        iGreater = diffTime > 3600;
+        iGreater = [iGreater; false];
+        iGoodGrad(iGreater) = false;
+        iBadGrad(iGreater)  = false;
+        
+        if any(iGoodGrad)
+            flagsTested(iGoodGrad) = passFlag;
+        end
+        
+        if any(iBadGrad)
+            flagsTested(iBadGrad) = failFlag;
+        end
+        
+        if any(iGoodGrad | iBadGrad)
+            lineFlags(~iBadData) = flagsTested;
+            flags(:,i) = lineFlags;
+        end
     end
 end

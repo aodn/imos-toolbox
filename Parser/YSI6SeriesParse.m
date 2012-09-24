@@ -145,7 +145,7 @@ function sample_data = YSI6SeriesParse( filename, mode )
           sample_data.variables{k}.data / 1.45037738;
         
       case 'battery'
-        sample_data.variables{k}.name = 'VOLT';   % non IMOS
+        sample_data.variables{k}.name = 'BATT';    % non IMOS
       
       % ug/L == mg/m^3
       case 'chlorophyll'

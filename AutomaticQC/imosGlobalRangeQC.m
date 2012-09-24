@@ -8,7 +8,7 @@ function [data, flags, log] = imosGlobalRangeQC ( sample_data, data, k, type, au
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
 %
-%   data        - the vector of data to check.
+%   data        - the vector/matrix of data to check.
 %
 %   k           - Index into the sample_data.variables vector.
 %
@@ -59,10 +59,10 @@ function [data, flags, log] = imosGlobalRangeQC ( sample_data, data, k, type, au
 %
 
 error(nargchk(4, 5, nargin));
-if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isvector(data),               error('data must be a vector');        end
-if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
-if ~ischar(type),                 error('type must be a string');        end
+if ~isstruct(sample_data),              error('sample_data must be a struct');      end
+if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
+if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
+if ~ischar(type),                       error('type must be a string');             end
 
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
@@ -101,6 +101,14 @@ if any(iParam)
     max  = sample_data.variables{k}.valid_max;
     min  = sample_data.variables{k}.valid_min;
     
+    % matrix case, we unfold the matrix in one vector for timeserie study
+    % purpose
+    isMatrix = ismatrix(data);
+    if isMatrix
+        len1 = size(data, 1);
+        len2 = size(data, 2);
+        data = data(:);
+    end
     lenData = length(data);
     
     % initialise all flags to non QC'd
@@ -118,5 +126,11 @@ if any(iParam)
             flags(iPassed) = goodFlag;
             flags(iPassed) = goodFlag;
         end
+    end
+    
+    if isMatrix
+        % we fold the vector back into a matrix
+        data = reshape(data, len1, len2);
+        flags = reshape(flags, len1, len2);
     end
 end

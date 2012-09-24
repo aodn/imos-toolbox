@@ -1,15 +1,15 @@
 function [data, flags, log] = imosStationarityQC( sample_data, data, k, type, auto )
-%IMOSSTATIONARITYQC Flags consecutive PRES, PRES_REL, DEPTH, TEMP or PSAL 
-% equal values in the given data set.
+%IMOSSTATIONARITYQC Flags consecutive PARAMETERS listed in
+%imosGlobalRangeQC.txt equal values in the given data set.
 %
 % Stationarity test from IOC which finds and flags any consecutive equal values
-% when number of consecutive points > T = 24*(60/delta_t) where delta_t is
-% the sampling interval in minutes.
+% when number of consecutive points of equal values > T = 24*(60/delta_t) 
+% with delta_t the sampling interval in minutes.
 %
 % Inputs:
 %   sample_data - struct containing the data set.
 %
-%   data        - the vector of data to check.
+%   data        - the vector/matrix of data to check.
 %
 %   k           - Index into the sample_data variable vector.
 %
@@ -59,10 +59,10 @@ function [data, flags, log] = imosStationarityQC( sample_data, data, k, type, au
 %
 
 error(nargchk(4, 5, nargin));
-if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isvector(data),               error('data must be a vector');        end
-if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
-if ~ischar(type),                 error('type must be a string');        end
+if ~isstruct(sample_data),              error('sample_data must be a struct');      end
+if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
+if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
+if ~ischar(type),                       error('type must be a string');             end
 
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
@@ -72,9 +72,26 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-listVar = {'PRES', 'PRES_REL', 'DEPTH', 'TEMP', 'PSAL'};
+% read all values from imosGlobalRangeQC properties file
+values = readProperty('*', fullfile('AutomaticQC', 'imosGlobalRangeQC.txt'));
+param = strtrim(values{1});
 
-if any(strcmpi(sample_data.(type){k}.name, listVar))
+% let's handle the case we have multiple same param distinguished by "_1",
+% "_2", etc...
+paramName = sample_data.(type){k}.name;
+iLastUnderscore = strfind(paramName, '_');
+if iLastUnderscore > 0
+    iLastUnderscore = iLastUnderscore(end);
+    if length(paramName) > iLastUnderscore
+        if ~isnan(str2double(paramName(iLastUnderscore+1:end)))
+            paramName = paramName(1:iLastUnderscore-1);
+        end
+    end
+end
+
+iParam = strcmpi(paramName, param);
+
+if any(iParam)
     
     qcSet    = str2double(readProperty('toolbox.qc_set'));
     passFlag = imosQCFlag('good', qcSet, 'flag');
@@ -85,6 +102,14 @@ if any(strcmpi(sample_data.(type){k}.name, listVar))
     iBadData = sample_data.variables{k}.flags == badFlag;
     dataTested = data(~iBadData);
     
+    % matrix case, we unfold the matrix in one vector for timeserie study
+    % purpose
+    isMatrix = ismatrix(data);
+    if isMatrix
+        len1 = size(data, 1);
+        len2 = size(data, 2);
+        data = data(:);
+    end
     lenData = length(data);
     lenDataTested = length(dataTested);
     
@@ -143,12 +168,18 @@ if any(strcmpi(sample_data.(type){k}.name, listVar))
     lastEqValNum = double(lastEqVal);
     lastEqValNum(lastEqVal) = numLastEqVal;
     
-    iFlatline = find(lastEqValNum >= nt);
+    iFlatline = find(lastEqValNum > nt);
     if ~isempty(iFlatline)
         nFlatline = length(iFlatline);
         for i=1:nFlatline
             flagsTested(iFlatline(i)-lastEqValNum(iFlatline(i))+1:iFlatline(i)) = failFlag;
         end
         flags(~iBadData) = flagsTested;
+    end
+    
+    if isMatrix
+        % we fold the vector back into a matrix
+        data = reshape(data, len1, len2);
+        flags = reshape(flags, len1, len2);
     end
 end

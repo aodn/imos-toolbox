@@ -58,10 +58,10 @@ function [data flags log] = imosInOutWaterQC( sample_data, data, k, type, auto )
 %
 
 error(nargchk(4, 5, nargin));
-if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isvector(data),               error('data must be a vector');        end
-if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
-if ~ischar(type),                 error('type must be a string');        end
+if ~isstruct(sample_data),              error('sample_data must be a struct');      end
+if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
+if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
+if ~ischar(type),                       error('type must be a string');             end
 
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
@@ -77,8 +77,17 @@ time_out_water = sample_data.time_deployment_end;
 if isempty(time_in_water), return; end
 
 qcSet     = str2double(readProperty('toolbox.qc_set'));
-rawFlag   = imosQCFlag('raw',          qcSet, 'flag');
-failFlag  = imosQCFlag('probablyBad',  qcSet, 'flag');
+rawFlag   = imosQCFlag('raw', qcSet, 'flag');
+failFlag  = imosQCFlag('bad', qcSet, 'flag');
+
+% matrix case, we unfold the matrix in one vector for timeserie study
+% purpose
+isMatrix = ismatrix(data);
+if isMatrix
+    len1 = size(data, 1);
+    len2 = size(data, 2);
+    data = data(:);
+end
 
 lenData = length(data);
 
@@ -99,4 +108,10 @@ iGood = iGood & time <= time_out_water;
 
 if any(iGood)
     flags(iGood) = rawFlag;
+end
+
+if isMatrix
+    % we fold the vector back into a matrix
+    data = reshape(data, len1, len2);
+    flags = reshape(flags, len1, len2);
 end

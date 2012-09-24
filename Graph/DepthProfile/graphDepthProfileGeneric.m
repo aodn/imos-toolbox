@@ -77,12 +77,13 @@ set(ax, 'Tag', 'axis1D');
 % climatologyRange = get(mWh, 'UserData');
 % if ~isempty(climatologyRange)
 %     if isfield(climatologyRange, ['rangeMin' var.name])
-%         hRMin = line(time.data, climatologyRange(iSample).(['rangeMin' var.name]), 'Parent', ax);
-%         hRMax = line(time.data, climatologyRange(iSample).(['rangeMax' var.name]), 'Parent', ax);
-%         set(hRMin, 'Color', 'r');
-%         set(hRMax, 'Color', 'r');
+%         hRMin = line(time.data, climatologyRange(iSample).(['rangeMin' var.name]), 'Parent', ax, 'Color', 'r');
+%         hRMax = line(time.data, climatologyRange(iSample).(['rangeMax' var.name]), 'Parent', ax, 'Color', 'r');
 %         set(ax, 'XLim', [min(climatologyRange(iSample).(['rangeMin' var.name])) - min(climatologyRange(iSample).(['rangeMin' var.name]))/10, ...
 %             max(climatologyRange(iSample).(['rangeMax' var.name])) + max(climatologyRange(iSample).(['rangeMax' var.name]))/10]);
+%     end
+%     if isfield(climatologyRange, ['range' var.name])
+%         hR = line(time.data, climatologyRange(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k', 'LineStyle', '--');
 %     end
 % end
 
