@@ -5,21 +5,13 @@ function [data, flags, log] = imosSpikeQC( sample_data, data, k, type, auto )
 % Spike test from ARGO which finds and flags any data which value Vn passes
 % the test |Vn-(Vn+1 + Vn-1)/2| - |(Vn+1 - Vn-1)/2| > threshold
 %
-% ARGO suggests the following thresholds for Temperature and Salinity :
-%
-% Threshold = 6 for temperature when pressure < 500 dbar
-% Threshold = 2 for temperature when pressure >= 500 dbar
-%
-% Threshold = 0.9 for salinity when pressure < 500 dbar
-% Threshold = 0.3 for salinity when pressure >= 500 dbar
-%
-% These threshold values are dealt for each IMOS parameter in
+% These threshold values are handled for each IMOS parameter in
 % imosSpikeQC.txt
 %
 % Inputs:
 %   sample_data - struct containing the data set.
 %
-%   data        - the vector of data to check.
+%   data        - the vector/matrix of data to check.
 %
 %   k           - Index into the sample_data variable vector.
 %
@@ -70,10 +62,10 @@ function [data, flags, log] = imosSpikeQC( sample_data, data, k, type, auto )
 %
 
 error(nargchk(4, 5, nargin));
-if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isvector(data),               error('data must be a vector');        end
-if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
-if ~ischar(type),                 error('type must be a string');        end
+if ~isstruct(sample_data),              error('sample_data must be a struct');      end
+if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
+if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
+if ~ischar(type),                       error('type must be a string');             end
 
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
@@ -107,8 +99,17 @@ if any(iParam)
     qcSet    = str2double(readProperty('toolbox.qc_set'));
     rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
     passFlag = imosQCFlag('good', qcSet, 'flag');
-    failFlag = imosQCFlag('bad',  qcSet, 'flag');
+    failFlag = imosQCFlag('probablyBad',  qcSet, 'flag');
     badFlag  = imosQCFlag('bad',  qcSet, 'flag');
+    
+    % matrix case, we unfold the matrix in one vector for timeserie study
+    % purpose
+    isMatrix = ismatrix(data);
+    if isMatrix
+        len1 = size(data, 1);
+        len2 = size(data, 2);
+        data = data(:);
+    end
     
     % we don't consider already bad data in the current test
     iBadData = sample_data.variables{k}.flags == badFlag;
@@ -140,8 +141,17 @@ if any(iParam)
     
     % let's consider time in seconds
     time  = sample_data.dimensions{1}.data * 24 * 3600;
+    if size(time, 1) == 1
+        % if time is a row, let's have a column instead
+        time = time';
+    end
+    
+    size2 = size(iBadData, 2);
+    if size2 > 1
+        time = repmat(time, 1, size2);
+    end
+    
     time(iBadData) = [];
-
     if size(time, 1) == 1
         % if time is a row, let's have a column instead
         time = time';
@@ -196,5 +206,11 @@ if any(iParam)
     
     if any(iSpike | iNoSpike)
         flags(~iBadData) = flagsTested;
+    end
+    
+    if isMatrix
+        % we fold the vector back into a matrix
+        data = reshape(data, len1, len2);
+        flags = reshape(flags, len1, len2);
     end
 end

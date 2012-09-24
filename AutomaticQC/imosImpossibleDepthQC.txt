@@ -1,2 +1,2 @@
-coefUp = 3
+coefUp = 2
 coefDown = 7

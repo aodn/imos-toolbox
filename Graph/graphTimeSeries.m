@@ -107,10 +107,15 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     xLimits = get(graphs(1), 'XLim');
     xStep   = (xLimits(2) - xLimits(1)) / 5;
     xTicks  = xLimits(1):xStep:xLimits(2);
-    set(graphs(k), 'XTick', xTicks);
+    set(graphs(k), 'XLim', xLimits, 'XTick', xTicks);
     
     % tranformation of datenum xticks in datestr
-    datetick('x', 'dd-mm-yy HH:MM', 'keepticks');
+    if k == 1 % this is to avoid too many calls to datetick()
+        datetick('x', 'dd-mm-yy HH:MM', 'keepticks');
+    else
+        xTickLabel = get(graphs(1), 'XTickLabel');
+        set(graphs(k), 'XTickLabel', xTickLabel);
+    end
 
     % set y label and ticks
     try      uom = [' (' imosParameters(labels{2}, 'uom') ')'];

@@ -61,7 +61,7 @@ function [data, flags, log] = imosImpossibleDateQC( sample_data, data, k, type, 
 
 error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isvector(data),               error('data must be a vector');        end
+% if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
 if ~ischar(type),                 error('type must be a string');        end
 
@@ -89,7 +89,7 @@ if ~isempty(dataTime)
     lenData = length(dataTime);
     
     % initially all data is bad
-    flags = ones(1, lenData)*failFlag;
+    flags = ones(lenData, 1)*failFlag;
     
     % read site name from imosImpossibleDateQC properties file
     dateMin = readProperty('dateMin', fullfile('AutomaticQC', 'imosImpossibleDateQC.txt'));
@@ -107,5 +107,9 @@ if ~isempty(dataTime)
     
     if any(iGoodTime)
         flags(iGoodTime) = passFlag;
+    end
+    
+    if any(~iGoodTime)
+        disp(['Warning : ' num2str(sum(~iGoodTime)) ' points failed Impossible date QC test in file ' sample_data.toolbox_input_file]);
     end
 end

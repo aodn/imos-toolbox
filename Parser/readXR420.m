@@ -1,4 +1,4 @@
-function sample_data = readXR420( filename )
+function sample_data = readXR420( filename, mode )
 %readXR420 Parses a data file retrieved from an RBR XR420 depth logger.
 %
 % This function is able to read in a single file retrieved from an RBR
@@ -43,7 +43,7 @@ function sample_data = readXR420( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(1,2,nargin));
   
   if ~ischar(filename)  
     error('filename must be a string'); 
@@ -73,48 +73,228 @@ function sample_data = readXR420( filename )
   sample_data.meta.instrument_sample_interval = median(diff(data.time*24*3600));
   sample_data.meta.correction           = header.correction;
   
-  % dimensions definition must stay in this order : T, Z, Y, X, others;
-  % to be CF compliant
-  sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.data = data.time;
-  sample_data.dimensions{2}.name = 'LATITUDE';
-  sample_data.dimensions{2}.data = NaN;
-  sample_data.dimensions{3}.name = 'LONGITUDE';
-  sample_data.dimensions{3}.data = NaN;
-  
-  % copy variable data over
-  data = rmfield(data, 'time');
-  fields = fieldnames(data);
-  
-  for k = 1:length(fields)
-    
-      comment = '';
-      
-      switch fields{k}
+  switch mode
+      case 'profile'
+          % dimensions creation
+          iVarPRES = NaN;
+          iVarDEPTH = NaN;
+          isZ = false;
+          vars = fieldnames(data);
+          nVars = length(vars);
+          for k = 1:nVars
+              if strcmpi('DEPTH', vars{k})
+                  iVarDEPTH = k;
+                  isZ = true;
+                  break;
+              end
+              if strcmpi('PRES', vars{k})
+                  iVarPRES = k;
+                  isZ = true;
+              end
+              if ~isnan(iVarDEPTH) && ~isnan(iVarPRES), break; end
+          end
           
-          %Conductivity (mS/cm) = 10-1*(S/m)
-          case 'Cond'
-              name = 'CNDC';
-              data.(fields{k}) = data.(fields{k})/10;
+          if ~isZ
+              error('There is no pressure or depth information in this file to use it in profile mode');
+          end
+          
+          depthComment = '';
+          if ~isnan(iVarDEPTH)
+              iVarZ = iVarDEPTH;
+              depthData = data.(vars{iVarDEPTH});
+          else
+              iVarZ = iVarPRES;
+              depthData = data.(vars{iVarPRES} - 10.1325);
+              presComment = ['abolute '...
+                  'pressure measurements to which a nominal '...
+                  'value for atmospheric pressure (10.1325 dbar) '...
+                  'has been substracted'];
+              depthComment  = ['Depth computed from '...
+                  presComment ', assuming 1dbar ~= 1m.'];
+          end
+          
+          % let's distinguish descending/ascending parts of the profile
+          nData = length(data.(vars{iVarZ}));
+          zMax = max(data.(vars{iVarZ}));
+          posZMax = find(data.(vars{iVarZ}) == zMax);
+          iD = [true(posZMax, 1); false(nData-posZMax, 1)];
+          
+          nD = sum(iD);
+          nA = sum(~iD);
+          MAXZ = max(nD, nA);
+          
+          dNaN = nan(MAXZ-nD, 1);
+          aNaN = nan(MAXZ-nA, 1);
+          
+          sample_data.dimensions{2}.name = 'INSTANCE';
+          if nA == 0
+              sample_data.dimensions{1}.name = 'DEPTH';
+              sample_data.dimensions{1}.data = depthData;
+              sample_data.dimensions{1}.comment = depthComment;
               
-          %Temperature (Celsius degree)
-          case 'Temp', name = 'TEMP';
+              sample_data.dimensions{2}.data = 1;
+          else
+              sample_data.dimensions{1}.name = 'MAXZ';
+              sample_data.dimensions{1}.data = (1:1:MAXZ);
               
-          %Pressure (dBar)
-          case 'Pres', name = 'PRES';
+              sample_data.dimensions{2}.data = [1, 2];
+              disp(['Warning : ' sample_data.toolbox_input_file ...
+                  ' is not IMOS CTD profile compliant. See ' ...
+                  'http://imos.org.au/fileadmin/user_upload/shared/' ...
+                  'IMOS%20General/documents/Facility_manuals/' ...
+                  'NRS_sampling_Manual_Data_Processing_Guide_Draftv1_5b_IngletonMorris.pdf']);
+          end
+          
+          % Add TIME, DIRECTION and POSITION infos
+          descendingTime = data.time(iD);
+          descendingTime = descendingTime(1);
+          
+          if nA == 0
+              ascendingTime = [];
+          else
+              ascendingTime = data.time(~iD);
+              ascendingTime = ascendingTime(1);
+          end
+          
+          sample_data.variables{1}.dimensions   = 2;
+          sample_data.variables{1}.name         = 'TIME';
+          sample_data.variables{1}.data         = [descendingTime, ascendingTime];
+          sample_data.variables{1}.comment      = 'First value over profile measurement';
+          
+          sample_data.variables{2}.dimensions   = 2;
+          sample_data.variables{2}.name         = 'DIRECTION';
+          if nA == 0
+              sample_data.variables{2}.data     = {'D'};
+          else
+              sample_data.variables{2}.data     = {'D', 'A'};
+          end
+          
+          sample_data.variables{3}.dimensions   = 2;
+          sample_data.variables{3}.name         = 'LATITUDE';
+          if nA == 0
+              sample_data.variables{3}.data     = NaN;
+          else
+              sample_data.variables{3}.data     = [NaN, NaN];
+          end
+          
+          sample_data.variables{4}.dimensions   = 2;
+          sample_data.variables{4}.name         = 'LONGITUDE';
+          if nA == 0
+              sample_data.variables{4}.data     = NaN;
+          else
+              sample_data.variables{4}.data     = [NaN, NaN];
+          end
+          
+          sample_data.variables{5}.dimensions   = 2;
+          sample_data.variables{5}.name         = 'BOT_DEPTH';
+          if nA == 0
+              sample_data.variables{5}.data     = NaN;
+          else
+              sample_data.variables{5}.data     = [NaN, NaN];
+          end
+          
+          % Manually add variable DEPTH if multiprofile and doesn't exit
+          % yet
+          if isnan(iVarDEPTH) && (nA ~= 0)
+              sample_data.variables{end+1}.dimensions = [1 2];
               
-          %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
-          case 'FlCa'
-              name = 'CPHL';
-              comment = ['Artificial chlorophyll data '...
-            'computed from bio-optical sensor raw counts fluorometry. '...
-            'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'];
-      end
-    
-      sample_data.variables{k}.name       = name;
-      sample_data.variables{k}.data       = data.(fields{k});
-      sample_data.variables{k}.dimensions = [1 2 3];
-      sample_data.variables{k}.comment    = comment;
+              sample_data.variables{end  }.name       = 'DEPTH';
+              
+              % we need to padd data with NaNs so that we fill MAXZ
+              % dimension
+              sample_data.variables{end  }.data       = [[depthData(iD); dNaN], [depthData(~iD); aNaN]];
+              
+              sample_data.variables{end  }.comment    = depthComment;
+          end
+          
+          % scan through the list of parameters that were read
+          % from the file, and create a variable for each
+          for k = 1:nVars
+              % we skip TIME and DEPTH
+              if strcmpi('TIME', vars{k}), continue; end
+              if strcmpi('DEPTH', vars{k}) && (nA == 0), continue; end
+              
+              sample_data.variables{end+1}.dimensions = [1 2];
+              
+              comment.(vars{k}) = '';
+              switch vars{k}
+                  
+                  %Conductivity (mS/cm) = 10-1*(S/m)
+                  case 'Cond'
+                      name = 'CNDC';
+                      data.(vars{k}) = data.(vars{k})/10;
+                      
+                      %Temperature (Celsius degree)
+                  case 'Temp', name = 'TEMP';
+                      
+                      %Pressure (dBar)
+                  case 'Pres', name = 'PRES';
+                      
+                      %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
+                  case 'FlCa'
+                      name = 'CPHL';
+                      comment.(vars{k}) = ['Artificial chlorophyll data computed from ' ...
+                          'fluorometry sensor raw counts measurements. Originally ' ...
+                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
+              end
+              
+              sample_data.variables{end  }.name       = name;
+              if nA == 0
+                  sample_data.variables{end  }.data   = data.(vars{k})(iD);
+              else
+                  % we need to padd data with NaNs so that we fill MAXZ
+                  % dimension
+                  sample_data.variables{end  }.data   = [[data.(vars{k})(iD); dNaN], [data.(vars{k})(~iD); aNaN]];
+              end
+              sample_data.variables{end  }.comment    = comment.(vars{k});
+              
+              if all(~strcmpi({'TIME', 'DEPTH'}, vars{k}))
+                  sample_data.variables{end  }.coordinates = 'TIME DEPTH LATITUDE LONGITUDE';
+              end
+          end
+          
+      otherwise
+          % dimensions definition must stay in this order : T, Z, Y, X, others;
+          % to be CF compliant
+          sample_data.dimensions{1}.name = 'TIME';
+          sample_data.dimensions{1}.data = data.time;
+          sample_data.dimensions{2}.name = 'LATITUDE';
+          sample_data.dimensions{2}.data = NaN;
+          sample_data.dimensions{3}.name = 'LONGITUDE';
+          sample_data.dimensions{3}.data = NaN;
+          
+          % copy variable data over
+          data = rmfield(data, 'time');
+          fields = fieldnames(data);
+          
+          for k = 1:length(fields)
+              comment.(fields{k}) = '';
+              switch fields{k}
+                  
+                  %Conductivity (mS/cm) = 10-1*(S/m)
+                  case 'Cond'
+                      name = 'CNDC';
+                      data.(fields{k}) = data.(fields{k})/10;
+                      
+                      %Temperature (Celsius degree)
+                  case 'Temp', name = 'TEMP';
+                      
+                      %Pressure (dBar)
+                  case 'Pres', name = 'PRES';
+                      
+                      %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
+                  case 'FlCa'
+                      name = 'CPHL';
+                      comment.(fields{k}) = ['Artificial chlorophyll data computed from ' ...
+                          'fluorometry sensor raw counts measurements. Originally ' ...
+                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
+              end
+              
+              sample_data.variables{k}.name       = name;
+              sample_data.variables{k}.data       = data.(fields{k});
+              sample_data.variables{k}.dimensions = [1 2 3];
+              sample_data.variables{k}.comment    = comment.(fields{k});
+          end
   end
 end
   

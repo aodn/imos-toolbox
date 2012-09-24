@@ -15,7 +15,7 @@ function [data, flags, log] = imosImpossibleDepthQC( sample_data, data, k, type,
 % Inputs:
 %   sample_data - struct containing the data set.
 %
-%   data        - the vector of data to check.
+%   data        - the vector/matrix of data to check.
 %
 %   k           - Index into the sample_data variable vector.
 %
@@ -65,10 +65,10 @@ function [data, flags, log] = imosImpossibleDepthQC( sample_data, data, k, type,
 %
 
 error(nargchk(4, 5, nargin));
-if ~isstruct(sample_data),        error('sample_data must be a struct'); end
-if ~isvector(data),               error('data must be a vector');        end
-if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end
-if ~ischar(type),                 error('type must be a string');        end
+if ~isstruct(sample_data),              error('sample_data must be a struct');      end
+if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
+if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
+if ~ischar(type),                       error('type must be a string');             end
 
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
@@ -78,15 +78,69 @@ flags   = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-if strcmpi(sample_data.(type){k}.name, 'PRES') || ...
-        strcmpi(sample_data.(type){k}.name, 'PRES_REL')|| ...
-        strcmpi(sample_data.(type){k}.name, 'DEPTH')
+% let's handle the case we have multiple same param distinguished by "_1",
+% "_2", etc...
+paramName = sample_data.(type){k}.name;
+iLastUnderscore = strfind(paramName, '_');
+if iLastUnderscore > 0
+    iLastUnderscore = iLastUnderscore(end);
+    if length(paramName) > iLastUnderscore
+        if ~isnan(str2double(paramName(iLastUnderscore+1:end)))
+            paramName = paramName(1:iLastUnderscore-1);
+        end
+    end
+end
+
+if strcmpi(paramName, 'PRES') || ...
+        strcmpi(paramName, 'PRES_REL')|| ...
+        strcmpi(paramName, 'DEPTH')
    
+    sampleFile = sample_data.toolbox_input_file;
+    
+    % we need TIME to initialise climatologyRange values with NaN
+    idTime  = getVar(sample_data.dimensions, 'TIME');
+    dataTime  = sample_data.dimensions{idTime}.data;
+    nTime = length(dataTime);
+
+    % for test in display
+    mWh = findobj('Tag', 'mainWindow');
+    climatologyRange = get(mWh, 'UserData');
+    p = 0;
+    if isempty(climatologyRange)
+        p = 1;
+        climatologyRange(p).dataSet = sampleFile;
+        climatologyRange(p).(['range' paramName]) = nan(nTime, 1);
+        climatologyRange(p).(['rangeMin' paramName]) = nan(nTime, 1);
+        climatologyRange(p).(['rangeMax' paramName]) = nan(nTime, 1);
+    else
+        for i=1:length(climatologyRange)
+            if strcmp(climatologyRange(i).dataSet, sampleFile)
+                p=i;
+                break;
+            end
+        end
+        if p == 0
+            p = length(climatologyRange) + 1;
+            climatologyRange(p).dataSet = sampleFile;
+            climatologyRange(p).(['range' paramName]) = nan(nTime, 1);
+            climatologyRange(p).(['rangeMin' paramName]) = nan(nTime, 1);
+            climatologyRange(p).(['rangeMax' paramName]) = nan(nTime, 1);
+        end
+    end
+    
     qcSet    = str2double(readProperty('toolbox.qc_set'));
     rawFlag  = imosQCFlag('raw', qcSet, 'flag');
     passFlag = imosQCFlag('good', qcSet, 'flag');
-    failFlag = imosQCFlag('probablyBad',  qcSet, 'flag');
+    failFlag = imosQCFlag('bad',  qcSet, 'flag');
     
+    % matrix case, we unfold the matrix in one vector for timeserie study
+    % purpose
+    isMatrix = ismatrix(data);
+    if isMatrix
+        len1 = size(data, 1);
+        len2 = size(data, 2);
+        data = data(:);
+    end
     lenData = length(data);
     
     % get nominal depth and nominal offset information
@@ -132,12 +186,19 @@ if strcmpi(sample_data.(type){k}.name, 'PRES') || ...
     possibleMax = nominalData + coefDown*nominalOffset;
     possibleMin = nominalData - coefUp*nominalOffset;
     
-    if strcmpi(sample_data.(type){k}.name, 'PRES')
+    % possibleMin shouldn't be higher than the surface but this is handled by
+    % the global range test anyway.
+    % possibleMax cannot be lower than the site depth
+    siteDepth = nominalOffset*nominalData;
+    possibleMax = max(possibleMax, siteDepth + 10*siteDepth/100); % we allow +10% to the site Depth
+    
+    if strcmpi(paramName, 'PRES')
         % convert depth into absolute pressure assuming 1 dbar ~= 1 m and
         % nominal atmospheric pressure ~= 10.1325 dBar
         possibleMin = possibleMin + 10.1325;
         possibleMax = possibleMax + 10.1325;
-    elseif strcmpi(sample_data.(type){k}.name, 'PRES_REL')
+        nominalData = nominalData + 10.1325;
+    elseif strcmpi(paramName, 'PRES_REL')
         % convert depth into relative pressure assuming 1 dbar ~= 1 m
         % Nothing to do!
     end
@@ -155,4 +216,16 @@ if strcmpi(sample_data.(type){k}.name, 'PRES') || ...
     if any(iPossible)
         flags(iPossible) = passFlag;
     end
+    
+    if isMatrix
+        % we fold the vector back into a matrix
+        data = reshape(data, len1, len2);
+        flags = reshape(flags, len1, len2);
+    end
+    
+    % update climatologyRange info for display
+    climatologyRange(p).(['range' paramName]) = nominalData;
+    climatologyRange(p).(['rangeMin' paramName]) = possibleMin;
+    climatologyRange(p).(['rangeMax' paramName]) = possibleMax;
+    set(mWh, 'UserData', climatologyRange);
 end

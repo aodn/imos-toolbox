@@ -73,8 +73,8 @@ end
 
 if strcmpi(ext, '.dat') && strcmp(line(1:3), 'RBR')
     % use the classic XR420 parser for RBR Windows v 6.13 file format
-    sample_data = readXR420(filename);
+    sample_data = readXR420(filename, mode);
 else
     % use the new XR620 and XR420 parser for Ruskin file format
-    sample_data = readXR620(filename);
+    sample_data = readXR620(filename, mode);
 end
