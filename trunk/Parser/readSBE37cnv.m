@@ -149,10 +149,16 @@ end
 
 switch name
     
-    % elapsed time (seconds since start)
+        % elapsed time (seconds since start)
     case 'timeS'
         name = 'TIME';
         data = data / 86400 + castDate;
+        comment = '';
+        
+        % elapsed time (seconds since 01-Jan-2000)
+    case 'timeK'
+        name = 'TIME';
+        data = data / 86400 + datenum(2000,1,1);
         comment = '';
         
         % elapsed time (minutes since start)
@@ -176,30 +182,30 @@ switch name
         
         % strain gauge pressure (dbar)
         %case 'prdM'
-    case 'prM'
+    case {'pr', 'prM', 'prdM'}
         name = 'PRES_REL';
         comment = '';
         
         % temperature (deg C)
         %case 'tv290C'
-    case 't090C'
+    case {'t090C', 'tv290C', 't090'}
         name = 'TEMP';
         comment = '';
         
         % conductivity (S/m)
-    case 'c0S0x2Fm'
+    case {'c0S0x2Fm', 'cond0S0x2Fm'}
         name = 'CNDC';
         comment = '';
         
         % conductivity (mS/cm)
         % mS/cm -> S/m
-    case 'c0ms0x2Fcm'
+    case {'c0ms0x2Fcm', 'cond0ms0x2Fcm'}
         name = 'CNDC';
         data = data ./ 10;
         comment = '';
         
         % conductivity (uS/cm)
-    case 'c0us0x2Fcm'
+    case {'c0us0x2Fcm', 'cond0us0x2Fcm'}
         name = 'CNDC';
         data = data ./ 10000;
         comment = '';
