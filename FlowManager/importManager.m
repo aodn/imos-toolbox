@@ -167,6 +167,12 @@ function [sample_data rawFile]= manualImport()
       
       close(progress);
       
+      fprintf('%s\n',   ['Error says : ' e.message]);
+      s = e.stack;
+      for l=1:length(s)
+          fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
+      end
+      
       % make sure sprintf doesn't interpret windows 
       % file separators as escape characters
       rawFile = strrep(rawFile, '\', '\\');

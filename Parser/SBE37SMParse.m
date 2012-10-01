@@ -136,7 +136,7 @@ if strcmpi(ext, '.cnv')
         sample_data.meta.instrument_serial_no = '';
     end
     
-    time = genTimestamps(instHeader, data);
+    time = genTimestamps(instHeader, procHeader, data);
     
     if isfield(instHeader, 'sampleInterval')
         sample_data.meta.instrument_sample_interval = instHeader.sampleInterval;
@@ -352,6 +352,7 @@ function header = parseProcessedHeader(headerLines)
   nameExpr = 'name \d+ = (.+):';
   nvalExpr = 'nvalues = (\d+)';
   badExpr  = 'bad_flag = (.*)$';
+  intervalExpr = 'interval = (.*): ([\d\.\+)$';
   %BDM (18/02/2011) - added to get start time
   startExpr = 'start_time = (.+)';
   
@@ -378,6 +379,14 @@ function header = parseProcessedHeader(headerLines)
       continue;
     end
     
+    % then try interval expr
+    tkns = regexp(headerLines{k}, intervalExpr, 'tokens');
+    if ~isempty(tkns)
+      header.resolution = tkns{1}{1};
+      header.interval   = str2double(tkns{1}{2});
+      continue;
+    end
+    
     %BDM (18/02/2011) - added to get start time
     % then try startTime expr
     tkns = regexp(headerLines{k}, startExpr, 'tokens');
@@ -388,56 +397,72 @@ function header = parseProcessedHeader(headerLines)
   end
 end
 
-function time = genTimestamps(instHeader, data)
-%GENTIMESTAMPS Generates timestamps for the data. Horribly ugly. I shouldn't 
-% have to have a function like this, but the .cnv files do not necessarily 
+function time = genTimestamps(instHeader, procHeader, data)
+%GENTIMESTAMPS Generates timestamps for the data. Horribly ugly. I shouldn't
+% have to have a function like this, but the .cnv files do not necessarily
 % provide timestamps for each sample.
 %
 
-  % time may have been present in the sample 
-  % data - if so, we don't have to do any work
-  if isfield(data, 'TIME'), time = data.TIME; return; end
+% time may have been present in the sample
+% data - if so, we don't have to do any work
+if isfield(data, 'TIME'), time = data.TIME; return; end
 
-  time = [];
-  
-  % To generate timestamps for the CTD data, we need to know:
-  %   - start time
-  %   - sample interval
-  %   - number of samples
-  %
-  % The SBE19 header information does not necessarily provide all, or any
-  % of this information. .
-  %
-  start    = 0;
-  interval = 0.25;
-  nSamples = 0;
-    
-  % figure out number of samples by peeking at the 
-  % number of values in the first column of 'data'
-  f = fieldnames(data);
-  nSamples = length(data.(f{1}));
-  
-  % try and find a start date - use castDate if present
-  if isfield(instHeader, 'castDate')
+time = [];
+
+% To generate timestamps for the CTD data, we need to know:
+%   - start time
+%   - sample interval
+%   - number of samples
+%
+% The SBE19 header information does not necessarily provide all, or any
+% of this information. .
+%
+start    = 0;
+interval = 0.25;
+nSamples = 0;
+
+% figure out number of samples by peeking at the
+% number of values in the first column of 'data'
+f = fieldnames(data);
+nSamples = length(data.(f{1}));
+
+% try and find a start date - use castDate if present
+if isfield(instHeader, 'castDate')
     start = instHeader.castDate;
-  end
-  
-  % if scanAvg field is present, use it to determine the interval
-  if isfield(instHeader, 'scanAvg')
-    
+else
+    if isfield(procHeader, 'startTime')
+        start = procHeader.startTime;
+    end
+end
+
+% if scanAvg field is present, use it to determine the interval
+if isfield(instHeader, 'scanAvg')
     interval = (0.25 * instHeader.scanAvg) / 86400;
-  end
-  
-  % if one of the columns is 'Scan Count', use the 
-  % scan count number as the basis for the timestamps 
-  if isfield(data, 'ScanCount')
+else
+    if isfield(procHeader, 'interval')
+        switch procHeader.resolution
+            case 'seconds'
+                interval = procHeader.interval;
+            case 'minutes'
+                interval = procHeader.interval*60;
+            case 'hours'
+                interval = procHeader.interval*3600;
+            case 'days'
+                interval = procHeader.interval*3600*24;
+        end
+    end
+end
+
+% if one of the columns is 'Scan Count', use the
+% scan count number as the basis for the timestamps
+if isfield(data, 'ScanCount')
     
     time = ((data.ScanCount - 1) ./ 345600) + cStart;
-  
-  % if scan count is not present, calculate the 
-  % timestamps from start, end and interval
-  else
+    
+    % if scan count is not present, calculate the
+    % timestamps from start, end and interval
+else
     
     time = (start:interval:start + (nSamples - 1) * interval)';
-  end
+end
 end

@@ -299,13 +299,18 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
       try applyUpdate(prefix, fieldName, newValue, tempType);
       
       catch e
-        
-        % display an error
-        errordlg(e.message, 'Error');
-        
-        % revert uitable dataset
-        set(table, 'Data', data);
-        return;
+          fprintf('%s\n',   ['Error says : ' e.message]);
+          s = e.stack;
+          for l=1:length(s)
+              fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
+          end
+          
+          % display an error
+          errordlg(e.message, 'Error');
+          
+          % revert uitable dataset
+          set(table, 'Data', data);
+          return;
       end
       
       % notify GUI of change to data
@@ -338,7 +343,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
     if ~isempty(fieldValue)
       
       % get the type of the attribute
-      t = templateType(fieldName, tempType);
+      t = templateType(fieldName, tempType, mode);
       switch t
 
         % dates are matlab serial numeric values
