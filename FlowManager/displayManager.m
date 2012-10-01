@@ -239,11 +239,10 @@ function displayManager(windowTitle, sample_data, callbacks)
         graphFunc = getGraphFunc(graphType, 'graph', '');
         graphFunc(panel, sample_data{setIdx}, vars);
       catch e
-        
+        fprintf('%s\n',   ['Error says : ' e.message]);
         s = e.stack;
-        disp(e.message);
-        for k = 1:length(s)
-          disp(['  ' s(k).name ' (' s(k).file ': ' num2str(s(k).line) ')']); 
+        for l=1:length(s)
+            fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
         end
         
         errordlg(...
@@ -291,11 +290,10 @@ function displayManager(windowTitle, sample_data, callbacks)
         end
         
       catch e
-        
+        fprintf('%s\n',   ['Error says : ' e.message]);
         s = e.stack;
-        disp(e.message);
-        for k = 1:length(s)
-          disp(['  ' s(k).name ' (' s(k).file ': ' num2str(s(k).line) ')']); 
+        for l=1:length(s)
+            fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
         end
         
         errordlg(...

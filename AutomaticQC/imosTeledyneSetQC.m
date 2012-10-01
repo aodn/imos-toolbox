@@ -55,9 +55,6 @@ if nargin<2, auto=false; end
 
 % get all necessary dimensions and variables id in sample_data struct
 idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
-idPres = 0;
-idPresRel = 0;
-idDepth = 0;
 idUcur = 0;
 idVcur = 0;
 idWcur = 0;
@@ -72,9 +69,6 @@ for j=1:4
 end
 lenVar = size(sample_data.variables,2);
 for i=1:lenVar
-    if strcmpi(sample_data.variables{i}.name, 'PRES'), idPres = i; end
-    if strcmpi(sample_data.variables{i}.name, 'PRES_REL'), idPresRel = i; end
-    if strcmpi(sample_data.variables{i}.name, 'DEPTH'), idDepth = i; end
     if strcmpi(sample_data.variables{i}.name, 'UCUR'), idUcur = i; end
     if strcmpi(sample_data.variables{i}.name, 'VCUR'), idVcur = i; end
     if strcmpi(sample_data.variables{i}.name, 'WCUR'), idWcur = i; end
@@ -99,58 +93,6 @@ qcSet = str2double(readProperty('toolbox.qc_set'));
 badFlag  = imosQCFlag('bad',  qcSet, 'flag');
 goodFlag = imosQCFlag('good', qcSet, 'flag');
 rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
-
-%Pull out ADCP bin details
-BinSize = sample_data.meta.fixedLeader.depthCellLength/100;
-Bins    = sample_data.dimensions{idHeight}.data';
-
-%BDM - 16/08/2010 - Added if statement below to take into account ADCPs
-%without pressure records. Use mean of nominal water depth minus sensor height.
-
-%Pull out pressure and calculate array of depth bins
-if idPres == 0 && idPresRel == 0 && idDepth == 0
-    lenData = size(sample_data.variables{idUcur}.flags, 1);
-    ff = true(lenData, 1);
-    
-    if isempty(sample_data.instrument_nominal_depth)
-        error(['No pressure/depth data in file ' sample_data.toolbox_input_file ' => Fill instrument_nominal_depth!']);
-    else
-        pressure = ones(lenData, 1).*(sample_data.instrument_nominal_depth);
-        disp(['Info : imosTeledyneSetQC uses nominal depth because no pressure/depth data in file ' sample_data.toolbox_input_file]);
-    end
-elseif idPres ~= 0 || idPresRel ~= 0
-    if idPresRel == 0
-        ff = (sample_data.variables{idPres}.flags == rawFlag) | ...
-            (sample_data.variables{idPres}.flags == goodFlag);
-        % relative pressure is used to compute depth
-        pressure = sample_data.variables{idPres}.data - 10.1325;
-    else
-        ff = (sample_data.variables{idPresRel}.flags == rawFlag) | ...
-            (sample_data.variables{idPresRel}.flags == goodFlag);
-        pressure = sample_data.variables{idPresRel}.data;
-    end
-end
-
-if idDepth == 0
-    % assuming 1 dbar = 1 m, computing depth of each bin
-    depth = pressure;
-else
-    ff = (sample_data.variables{idDepth}.flags == rawFlag) | ...
-            (sample_data.variables{idDepth}.flags == goodFlag);
-    depth = sample_data.variables{idDepth}.data;
-end
-
-% let's take into account QC information
-if any(~ff)
-    if isempty(sample_data.instrument_nominal_depth)
-        error(['Bad pressure/depth data in file ' sample_data.toolbox_input_file ' => Fill instrument_nominal_depth!']);
-    else
-        depth(~ff) = sample_data.instrument_nominal_depth;
-        disp(['Info : imosTeledyneSetQC uses nominal depth instead of pressure/depth data flagged as not ''good'' in file ' sample_data.toolbox_input_file]);
-    end
-end
-
-bdepth = depth*ones(1,length(Bins)) - ones(length(depth),1)*Bins;
 
 %Pull out horizontal velocities
 u = sample_data.variables{idUcur}.data;
@@ -183,7 +125,6 @@ qcthresh.cmag      = str2double(readProperty('cmag',      propFile));
 qcthresh.vvel      = str2double(readProperty('vvel',      propFile));
 qcthresh.hvel      = str2double(readProperty('hvel',      propFile));
 qcthresh.ea_thresh = str2double(readProperty('ea_thresh', propFile));
-sCutOff            = str2double(readProperty('cutoff',    propFile));
 
 %Run QC
 [iPass] = adcpqctest(qcthresh,qc,u,w,erv);
@@ -195,12 +136,7 @@ sizeCur = size(sample_data.variables{idUcur}.flags);
 flags = ones(sizeCur)*rawFlag;
 
 %Run QC filter (iFail) on velocity data
-%Need to take into account QC from previous algorithms
-allFF = repmat(ff, 1, size(flags, 2));
-iFail = allFF & iFail;
-
 flags(iFail) = badFlag;
-
 flags(~iFail) = goodFlag;
 
 sample_data.variables{idUcur}.flags = flags;
