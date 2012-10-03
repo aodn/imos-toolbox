@@ -98,6 +98,9 @@ VCUR,      1, northward_sea_water_velocity,                       m s-1,        
 VDEN,      1, sea_surface_wave_variance_spectral_density,         m2 s,                                                              W, 999999.0,    ,        ,      float
 VDIR,      1, sea_surface_wave_from_direction,                    Degree clockwise from true North,                                  W, 999999.0,    ,        ,      float
 VOLT,      0, voltage,                                            V,                                                                 E, 999999.0, -100.0,  100.0,    float
+VSF470,    0, volume_scattering_function_for_wavelength_470nm,    m-1 sr-1,                                                          E, 999999.0,    ,        ,      float
+VSF532,    0, volume_scattering_function_for_wavelength_532nm,    m-1 sr-1,                                                          E, 999999.0,    ,        ,      float
+VSF650,    0, volume_scattering_function_for_wavelength_650nm,    m-1 sr-1,                                                          E, 999999.0,    ,        ,      float
 VWND,      1, northward_wind,                                     m s-1,                                                             M, 999999.0,    ,        ,      float
 WAV_DIR,   1, sea_surface_wave_from_direction,                    Degrees clockwise from true North,                                 E, 999999.0, 0.0,     360.0,    float
 WDIR,      1, wind_to_direction,                                  Degrees clockwise from true North,                                 M, 999999.0,    ,        ,      float
