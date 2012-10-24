@@ -1,4 +1,4 @@
-function [data, flags, log] = imosRateOfChangeQC( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = imosRateOfChangeQC( sample_data, data, k, type, auto )
 %IMOSRATEOFCHANGEQC Flags consecutive PARAMETER values with gradient > threshold.
 %
 % The aim of the check is to verify the rate of the
@@ -37,7 +37,7 @@ function [data, flags, log] = imosRateOfChangeQC( sample_data, data, k, type, au
 %   flags       - Vector the same length as data, with flags for flatline 
 %                 regions.
 %
-%   log         - Empty cell array.
+%   paramsLog   - string containing details about params' procedure to include in QC log
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -81,8 +81,8 @@ if ~ischar(type),                       error('type must be a string');         
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
 
-log   = {};
-flags   = [];
+paramsLog = [];
+flags     = [];
 
 if ~strcmp(type, 'variables'), return; end
 
@@ -114,7 +114,9 @@ if any(iParam)
     pGoodFlag= imosQCFlag('probablyGood', qcSet, 'flag');
     failFlag = imosQCFlag('probablyBad',  qcSet, 'flag');
     badFlag  = imosQCFlag('bad',  qcSet, 'flag');
-           
+    
+    paramsLog = ['threshold=' thresholdExpr{iParam}];
+    
     % matrix case, we process line by line for timeserie study
     % purpose
     len1 = size(data, 1);

@@ -52,7 +52,10 @@ if ~isstruct(deviceInfo), error('deviceInfo must contain a struct'); end
 
 nColumns = length(deviceInfo.columns);
 % we assume the two first columns are always DATE and TIME
-format = ['%s%s' repmat('%f', 1, nColumns-2)];
+% we first read everything as strings with the expected number of columns
+% but ignoring as many columns as it takes (100 extra columns should be
+% enough)
+format = ['%s%s' repmat('%s', 1, nColumns-2) repmat('%*s', 1, 100)];
 
 % open file, get header and data in columns
 fid     = -1;
@@ -69,12 +72,124 @@ catch e
     rethrow(e);
 end
 
-% get rid of the last line if doesn't contain data
-if strcmpi(samples{1}{end}, 'etx') || strcmpi(samples{2}{end}, '')
+% we read everything a second time only looking for a potential extra column as a diagnostic for errors
+formatDiag = ['%*s%*s' repmat('%*s', 1, nColumns-2) '%s' repmat('%*s', 1, 100)];
+
+% open file, get header and data in columns
+fid     = -1;
+samplesDiag = {};
+try
+    fid = fopen(filename, 'rt');
+    if fid == -1, error(['couldn''t open ' filename 'for reading']); end
+    
+    % read in the data
+    samplesDiag = textscan(fid, formatDiag, 'HeaderLines', 1, 'Delimiter', '\t');
+    fclose(fid);
+catch e
+    if fid ~= -1, fclose(fid); end
+    rethrow(e);
+end
+
+% get rid of any line which non expected extra column contains data
+iExtraColumn = ~strcmpi(samplesDiag{1}, '');
+if any(iExtraColumn)
     for i=1:nColumns
-        samples{i}(end) = [];
+        samples{i}(iExtraColumn) = [];
     end
 end
+clear samplesDiag;
+
+% get rid of any line which expected last column doesn't contain data
+iNoLastColumn = strcmpi(samples{nColumns}, '');
+if any(iNoLastColumn)
+    for i=1:nColumns
+        samples{i}(iNoLastColumn) = [];
+    end
+end
+
+% get rid of any line which date is not in the format mm/dd/yy
+control = regexp(samples{1}, '[0-1]\d/[0-3]\d/\d\d', 'match');
+iDateNoGood1 = cellfun('isempty', control);
+if any(iDateNoGood1)
+    for i=1:nColumns
+        samples{i}(iDateNoGood1) = [];
+    end
+end
+clear control iDateNoGood1;
+
+[~, M, D] = datevec(samples{1}, 'mm/dd/yy');
+iMonthNoGood = (M <= 0) & (M > 12);
+iDayNoGood = (D <= 0) & (D > 31);
+iDateNoGood2 = iMonthNoGood | iDayNoGood;
+clear iMonthNoGood iDayNoGood;
+if any(iDateNoGood2)
+    for i=1:nColumns
+        samples{i}(iDateNoGood2) = [];
+    end
+end
+clear iDateNoGood2;
+
+control = cellstr(datestr(datenum(samples{1}, 'mm/dd/yy'), 'mm/dd/yy'));
+iDateNoGood3 = ~strcmpi(samples{1}, control);
+if any(iDateNoGood3)
+    for i=1:nColumns
+        samples{i}(iDateNoGood3) = [];
+    end
+end
+clear iDateNoGood3;
+
+% get rid of any line which time is not in the format HH:MM:SS
+control = regexp(samples{2}, '[0-2]\d:[0-6]\d:[0-6]\d', 'match');
+iTimeNoGood1 = cellfun('isempty', control);
+if any(iTimeNoGood1)
+    for i=1:nColumns
+        samples{i}(iTimeNoGood1) = [];
+    end
+end
+clear control iTimeNoGood1;
+
+[~, ~, ~, H, MN, S] = datevec(samples{2}, 'HH:MM:SS');
+iHourNoGood = (H < 0) & (H > 24);
+iMinuteNoGood = (MN < 0) & (MN > 60);
+iSecondNoGood = (S < 0) & (S > 60);
+iTimeNoGood2 = iHourNoGood | iMinuteNoGood | iSecondNoGood;
+clear iHourNoGood iMinuteNoGood iSecondNoGood;
+if any(iTimeNoGood2)
+    for i=1:nColumns
+        samples{i}(iTimeNoGood2) = [];
+    end
+end
+clear iTimeNoGood2;
+
+% get rid of any line which column other than date or time is not a number
+% (we are being highly conservative)
+iNaN = false(length(samples{1}), nColumns-2);
+for i=3:nColumns
+    iNaN(:, i-2) = isnan(str2double(samples{i}));
+end
+iNaN = any(iNaN, 2);
+for i=1:nColumns
+    samples{i}(iNaN) = [];
+end
+clear iNaN;
+
+% finally we can convert into numbers what is left
+for i=3:nColumns
+    samples{i} = str2double(samples{i});
+end
+
+% get rid of samples with count value 4130 and over which looks like to be the maximum
+% possible count value the instrument can deliver
+maxCount = 4130;
+iMaxCount = false(length(samples{1}), nColumns-2);
+for i=3:nColumns
+    iMaxCount(:, i-2) = samples{i} >= maxCount;
+end
+iMaxCount = any(iMaxCount, 2);
+for i=1:nColumns
+    samples{i}(iMaxCount) = [];
+end
+clear iMaxCount;
 
 %fill in sample and cal data
 sample_data            = struct;
@@ -88,7 +203,7 @@ sample_data.meta.instrument_model     = 'ECO Triplet';
 sample_data.meta.instrument_serial_no = deviceInfo.plotHeader;
 
 % convert and save the time data
-time = datenum(samples{1}, 'dd/mm/yy') + ...
+time = datenum(samples{1}, 'mm/dd/yy') + ...
     (datenum(samples{2}, 'HH:MM:SS') - datenum(datestr(now, 'yyyy0101'), 'yyyymmdd'));
 
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));

@@ -91,6 +91,13 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     % make sure line colour alternate; because we are creating 
     % multiple axes, this is not done automatically for us
     col = get(graphs(k), 'ColorOrder');
+    
+    % we get rid of the red color
+    iRed = (col == repmat([1 0 0], size(col, 1), 1));
+    iRed = sum(iRed, 2);
+    iRed = iRed == 3;
+    col(iRed, :) = [];
+    
     col = col(mod(vars(k),length(col))+1,:);
     
     % set the line colour - wrap in a try block, 

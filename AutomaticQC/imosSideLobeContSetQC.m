@@ -1,4 +1,4 @@
-function [sample_data] = imosSideLobeContSetQC( sample_data, auto )
+function [sample_data, varChecked, paramsLog] = imosSideLobeContSetQC( sample_data, auto )
 %IMOSSIDELOBECONTSETQC Quality control procedure for ADCP instrument data.
 %
 % Quality control ADCP instrument data, assessing the side lobe effects on 
@@ -26,6 +26,8 @@ function [sample_data] = imosSideLobeContSetQC( sample_data, auto )
 % Outputs:
 %   sample_data - same as input, with QC flags added for variable/dimension
 %                 data.
+%   varChecked  - cell array of variables' name which have been checked
+%   paramsLog   - string containing details about params' procedure to include in QC log
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 % Contributor:  Hrvoje Mihanovic <hrvoje.mihanovic@hhi.hr>
@@ -65,6 +67,9 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
 % auto logical in input to enable running under batch processing
 if nargin<2, auto=false; end
+
+varChecked = {};
+paramsLog  = [];
 
 % get all necessary dimensions and variables id in sample_data struct
 idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
@@ -175,5 +180,7 @@ flags(iFail) = badFlag;
 sample_data.variables{idUcur}.flags = flags;
 sample_data.variables{idVcur}.flags = flags;
 sample_data.variables{idWcur}.flags = flags;
+
+varChecked = {'UCUR', 'VCUR', 'WCUR'};
 
 end

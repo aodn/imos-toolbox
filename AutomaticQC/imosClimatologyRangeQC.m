@@ -1,4 +1,4 @@
-function [data, flags, log] = imosClimatologyRangeQC( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = imosClimatologyRangeQC( sample_data, data, k, type, auto )
 %IMOSCLIMATOLOGYRANGEQC Flags value out of a climatology range.
 %
 % Range test which finds and flags any data which value doesn't fit in the
@@ -21,7 +21,7 @@ function [data, flags, log] = imosClimatologyRangeQC( sample_data, data, k, type
 %   flags       - Vector the same length as data, with flags for flatline 
 %                 regions.
 %
-%   log         - Empty cell array.
+%   paramsLog   - string containing details about params' procedure to include in QC log
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -65,8 +65,8 @@ if ~ischar(type),                       error('type must be a string');         
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
 
-log   = {};
-flags   = [];
+paramsLog = [];
+flags     = [];
 
 if ~strcmp(type, 'variables'), return; end
 

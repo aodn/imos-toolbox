@@ -396,9 +396,11 @@ function mainWindow(...
         
         % tranformation of datenum xticks in datestr
         datetick(gca, 'x', 'dd-mm-yy HH:MM', 'keepticks');
+        xTickLabel = get(gca, 'XTickLabel');
         for i=1:length(graphs)
-            datetick(graphs(i), 'x', 'dd-mm-yy HH:MM', 'keepticks');
+            set(graphs(i), 'XTickLabel', xTickLabel); % this is to avoid too many calls to datetick()
         end
+        
     elseif strcmpi(graphName, 'DepthProfile')
         % sync all other Y axis
         set(graphs, 'YLim', yLimits);

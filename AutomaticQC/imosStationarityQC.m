@@ -1,4 +1,4 @@
-function [data, flags, log] = imosStationarityQC( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = imosStationarityQC( sample_data, data, k, type, auto )
 %IMOSSTATIONARITYQC Flags consecutive PARAMETERS listed in
 %imosGlobalRangeQC.txt equal values in the given data set.
 %
@@ -23,7 +23,7 @@ function [data, flags, log] = imosStationarityQC( sample_data, data, k, type, au
 %   flags       - Vector the same length as data, with flags for flatline 
 %                 regions.
 %
-%   log         - Empty cell array.
+%   paramsLog   - string containing details about params' procedure to include in QC log
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -67,8 +67,8 @@ if ~ischar(type),                       error('type must be a string');         
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
 
-log   = {};
-flags   = [];
+paramsLog = [];
+flags     = [];
 
 if ~strcmp(type, 'variables'), return; end
 
