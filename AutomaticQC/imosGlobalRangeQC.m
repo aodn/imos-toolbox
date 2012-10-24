@@ -1,4 +1,4 @@
-function [data, flags, log] = imosGlobalRangeQC ( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = imosGlobalRangeQC ( sample_data, data, k, type, auto )
 %IMOSGLOBALRANGEQC Flags data which is out of the variable's valid global range.
 %
 % Iterates through the given data, and returns flags for any samples which
@@ -22,7 +22,7 @@ function [data, flags, log] = imosGlobalRangeQC ( sample_data, data, k, type, au
 %   flags       - Vector the same length as data, with flags for corresponding
 %                 data which is out of range.
 %
-%   log         - Empty cell array.
+%   paramsLog   - string containing details about params' procedure to include in QC log
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
@@ -67,8 +67,8 @@ if ~ischar(type),                       error('type must be a string');         
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
 
-log   = {};
-flags   = [];
+paramsLog = [];
+flags     = [];
 
 if ~strcmp(type, 'variables'), return; end
 
@@ -92,6 +92,32 @@ end
 iParam = strcmpi(paramName, param);
 
 if any(iParam)
+    % for test in display
+    sampleFile = sample_data.toolbox_input_file;
+    
+    mWh = findobj('Tag', 'mainWindow');
+    climatologyRange = get(mWh, 'UserData');
+    p = 0;
+    if isempty(climatologyRange)
+        p = 1;
+        climatologyRange(p).dataSet = sampleFile;
+        climatologyRange(p).(['rangeMin' paramName]) = nan(2, 1);
+        climatologyRange(p).(['rangeMax' paramName]) = nan(2, 1);
+    else
+        for i=1:length(climatologyRange)
+            if strcmp(climatologyRange(i).dataSet, sampleFile)
+                p=i;
+                break;
+            end
+        end
+        if p == 0
+            p = length(climatologyRange) + 1;
+            climatologyRange(p).dataSet = sampleFile;
+            climatologyRange(p).(['rangeMin' paramName]) = nan(2, 1);
+            climatologyRange(p).(['rangeMax' paramName]) = nan(2, 1);
+        end
+    end
+    
     % get the flag values with which we flag good and out of range data
     qcSet     = str2double(readProperty('toolbox.qc_set'));
     rangeFlag = imosQCFlag('bad', qcSet, 'flag');
@@ -116,6 +142,8 @@ if any(iParam)
     
     if ~isempty(min) && ~isempty(max)
         if max ~= min
+            paramsLog = ['min=' num2str(min) ', max=' num2str(max)];
+            
             % initialise all flags to bad
             flags = ones(lenData, 1)*rangeFlag;
             
@@ -125,6 +153,11 @@ if any(iParam)
             % add flags for in range values
             flags(iPassed) = goodFlag;
             flags(iPassed) = goodFlag;
+            
+            % update climatologyRange info for display
+            climatologyRange(p).(['rangeMin' paramName]) = ones(2, 1)*min;
+            climatologyRange(p).(['rangeMax' paramName]) = ones(2, 1)*max;
+            set(mWh, 'UserData', climatologyRange);
         end
     end
     

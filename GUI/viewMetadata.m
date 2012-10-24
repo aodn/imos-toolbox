@@ -162,10 +162,11 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
     % format data - they're all made into strings, and cast 
     % back when edited. also we want date fields to be 
     % displayed nicely, not to show up as a numeric value
+    templateDir = readProperty('toolbox.templateDir');
     for i = 1:length(data)
       
       % get the type of the attribute
-      t = templateType(data{i,1}, tempType, mode);
+      t = templateType(templateDir, data{i,1}, tempType, mode);
       
       switch t
         
@@ -296,7 +297,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
       newValue  = ev.NewData;
       
       % apply the update
-      try applyUpdate(prefix, fieldName, newValue, tempType);
+      try applyUpdate(prefix, templateDir, fieldName, newValue, tempType);
       
       catch e
           fprintf('%s\n',   ['Error says : ' e.message]);
@@ -321,7 +322,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
     end
   end
 
-  function applyUpdate(prefix, fieldName, fieldValue, tempType)
+  function applyUpdate(prefix, templateDir, fieldName, fieldValue, tempType)
   %APPLYUPDATE Applies the given field update to the sample_data struct.
   %
   % Inputs:
@@ -343,7 +344,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
     if ~isempty(fieldValue)
       
       % get the type of the attribute
-      t = templateType(fieldName, tempType, mode);
+      t = templateType(templateDir, fieldName, tempType, mode);
       switch t
 
         % dates are matlab serial numeric values

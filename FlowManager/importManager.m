@@ -246,10 +246,11 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
         
       rawFile = deps(k).FileName;
 
-      hits = fsearch(rawFile, dataDir);
+      hits = fsearch(rawFile, dataDir, 'files');
+
       allFiles{k} = hits;
     end
-
+    
     % display status dialog to highlight any discrepancies (file not found
     % for a deployment, more than one file found for a deployment)
     if ~auto
