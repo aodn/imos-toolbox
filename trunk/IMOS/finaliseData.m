@@ -66,6 +66,7 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   rawFiles = cellfun(@(x)([x ';']), rawFiles, 'UniformOutput', false);
   
   sam.meta.log           = {};
+  sam.meta.QCres         = {};
   sam.meta.raw_data_file = [rawFiles{:}];
   
   if isfield(sam.meta, 'site')

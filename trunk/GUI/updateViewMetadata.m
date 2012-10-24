@@ -116,10 +116,11 @@ function updateViewMetadata(parent, sample_data, mode)
     % format data - they're all made into strings, and cast 
     % back when edited. also we want date fields to be 
     % displayed nicely, not to show up as a numeric value
+    templateDir = readProperty('toolbox.templateDir');
     for i = 1:length(data)
       
       % get the type of the attribute
-      t = templateType(data{i,1}, tempType, mode);
+      t = templateType(templateDir, data{i,1}, tempType, mode);
       
       switch t
         

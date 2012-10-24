@@ -59,21 +59,32 @@ h    = line(time.data, var.data, 'Parent', ax);
 set(ax, 'Tag', 'axis1D');
 
 % test for climatology display
-mWh = findobj('Tag', 'mainWindow');
-sMh = findobj('Tag', 'samplePopUpMenu');
-iSample = get(sMh, 'Value');
-climatologyRange = get(mWh, 'UserData');
-if ~isempty(climatologyRange)
-    if isfield(climatologyRange, ['rangeMin' var.name])
-        hRMin = line(time.data, climatologyRange(iSample).(['rangeMin' var.name]), 'Parent', ax, 'Color', 'r', 'LineStyle', '-');
-        hRMax = line(time.data, climatologyRange(iSample).(['rangeMax' var.name]), 'Parent', ax, 'Color', 'r', 'LineStyle', '-');
-        set(ax, 'YLim', [min(climatologyRange(iSample).(['rangeMin' var.name])) - min(climatologyRange(iSample).(['rangeMin' var.name]))/10, ...
-            max(climatologyRange(iSample).(['rangeMax' var.name])) + max(climatologyRange(iSample).(['rangeMax' var.name]))/10]);
-    end
-    if isfield(climatologyRange, ['range' var.name])
-        hR = line(time.data, climatologyRange(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k', 'LineStyle', '--');
-    end
-end
+% mWh = findobj('Tag', 'mainWindow');
+% sMh = findobj('Tag', 'samplePopUpMenu');
+% iSample = get(sMh, 'Value');
+% climatologyRange = get(mWh, 'UserData');
+% if ~isempty(climatologyRange)
+%     if isfield(climatologyRange, ['rangeMin' var.name])
+%         hold(ax, 'on');
+%         if (length(climatologyRange(iSample).(['rangeMin' var.name])) == 2)
+%             timeToPlot = [time.data(1); time.data(end)];
+%         else
+%             timeToPlot = time.data;
+%         end
+%         hRMin = line(timeToPlot, climatologyRange(iSample).(['rangeMin' var.name]), 'Parent', ax, 'Color', 'r');
+%         hRMax = line(timeToPlot, climatologyRange(iSample).(['rangeMax' var.name]), 'Parent', ax, 'Color', 'r');
+%         set(ax, 'YLim', [min(climatologyRange(iSample).(['rangeMin' var.name])) - min(climatologyRange(iSample).(['rangeMin' var.name]))/10, ...
+%             max(climatologyRange(iSample).(['rangeMax' var.name])) + max(climatologyRange(iSample).(['rangeMax' var.name]))/10]);
+%     end
+%     if isfield(climatologyRange, ['range' var.name])
+%         if (length(climatologyRange(iSample).(['range' var.name])) == 2)
+%             timeToPlot = [time.data(1); time.data(end)];
+%         else
+%             timeToPlot = time.data;
+%         end
+%         hR = line(timeToPlot, climatologyRange(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k');
+%     end
+% end
 
 % Set axis position so that 1D data and 2D data vertically matches on X axis
 mainPanel = findobj('Tag', 'mainPanel');

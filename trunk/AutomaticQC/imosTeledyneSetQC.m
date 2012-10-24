@@ -1,4 +1,4 @@
-function [sample_data] = imosTeledyneSetQC( sample_data, auto )
+function [sample_data, varChecked, paramsLog] = imosTeledyneSetQC( sample_data, auto )
 %IMOSTELEDYNESETQC Quality control procedure for Teledyne Workhorse (and similar)
 % ADCP instrument data.
 %
@@ -12,9 +12,11 @@ function [sample_data] = imosTeledyneSetQC( sample_data, auto )
 % Outputs:
 %   sample_data - same as input, with QC flags added for variable/dimension
 %                 data.
+%   varChecked  - cell array of variables' name which have been checked
+%   paramsLog   - string containing details about params' procedure to include in QC log
 %
-% Author:       Brad Morris   <b.morris@unsw.edu.au>   (Implementation)
-%               Paul McCarthy <paul.mccarthy@csiro.au> (Integration into toolbox)
+% Author:       Brad Morris   <b.morris@unsw.edu.au>
+%               Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
@@ -52,6 +54,9 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
 % auto logical in input to enable running under batch processing
 if nargin<2, auto=false; end
+
+varChecked = {};
+paramsLog  = [];
 
 % get all necessary dimensions and variables id in sample_data struct
 idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
@@ -126,6 +131,10 @@ qcthresh.vvel      = str2double(readProperty('vvel',      propFile));
 qcthresh.hvel      = str2double(readProperty('hvel',      propFile));
 qcthresh.ea_thresh = str2double(readProperty('ea_thresh', propFile));
 
+paramsLog = ['err_vel=' num2str(qcthresh.err_vel) ', pgood=' num2str(qcthresh.pgood) ...
+    ', cmag=' num2str(qcthresh.cmag) ', vvel=' num2str(qcthresh.vvel) ...
+    ', hvel=' num2str(qcthresh.hvel) ', ea_thresh=' num2str(qcthresh.ea_thresh)];
+
 %Run QC
 [iPass] = adcpqctest(qcthresh,qc,u,w,erv);
 iFail = ~iPass;
@@ -142,6 +151,8 @@ flags(~iFail) = goodFlag;
 sample_data.variables{idUcur}.flags = flags;
 sample_data.variables{idVcur}.flags = flags;
 sample_data.variables{idWcur}.flags = flags;
+
+varChecked = {'UCUR', 'VCUR', 'WCUR'};
 
 end
 

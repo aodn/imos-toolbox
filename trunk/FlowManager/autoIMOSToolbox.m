@@ -132,7 +132,16 @@ if nargin > 4
     else
         qcChainStr = '';
     end
-    writeProperty('autoQCManager.autoQCChain', qcChainStr);
+    
+    % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+    % If no value is set then default mode is 'timeSeries'
+    mode = lower(readProperty('toolbox.mode'));
+    switch mode
+        case 'profile'
+            writeProperty('autoQCManager.autoQCChain.profile', qcChainStr);
+        otherwise
+            writeProperty('autoQCManager.autoQCChain.timeSeries', qcChainStr);
+    end
 end
 
 % validate and save export dir

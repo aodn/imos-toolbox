@@ -64,6 +64,10 @@ function filename = exportNetCDF( sample_data, dest, mode )
   fid = netcdf.create(filename, 'NC_NOCLOBBER');
   if fid == -1, error(['could not create ' filename]); end
   
+  % we don't want the API to automatically pre-fill with FillValue, we're
+  % taking care of it ourselves and avoid 2 times writting on disk
+  netcdf.setFill(fid, 'NC_NOFILL');
+  
   dateFmt = readProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readProperty('toolbox.qc_set'));
   qcType  = imosQCFlag('', qcSet, 'type');
@@ -452,6 +456,8 @@ function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mod
   qcType  = imosQCFlag('', qcSet, 'type');
   typeCastFunction = str2func(netcdf3ToMatlabType(netcdfType));
   qcTypeCastFunction = str2func(netcdf3ToMatlabType(qcType));
+  
+  templateDir = readProperty('toolbox.templateDir');
 
   % each att is a struct field
   atts = fieldnames(template);
@@ -463,7 +469,7 @@ function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mod
     if isempty(val), continue; end;
     
     type = 'S';
-    try, type = templateType(name, templateFile, mode);
+    try, type = templateType(templateDir, name, templateFile, mode);
     catch e, end
     
     switch type

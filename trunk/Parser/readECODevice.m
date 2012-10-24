@@ -77,7 +77,7 @@ nLines = length(lines);
 nColumns = [];
 startColDesc = NaN;
 for i=2:nLines
-    nColumns = regexp(lines{i}, 'Columns=[0-9]+', 'Match');
+    nColumns = regexp(lines{i}, '(?i)columns(?-i)=[0-9]+', 'Match');
     if ~isempty(nColumns)
         startColDesc = i+1;
         break;
@@ -107,27 +107,6 @@ for i=1:nColumns
     switch upper(type)
         case 'N/U'
             % do nothing
-            
-%         case {'DATE', 'TIME', 'IENGR', 'PAR'}
-%             deviceInfo.columns{i}.type = upper(type);
-%             
-%         % measurements with scale and offset infos
-%         case {'CHL', 'PHYCOERYTHRIN', 'PHYCOCYANIN', 'URANINE', 'RHODAMINE', 'CDOM', 'NTU'}
-%             deviceInfo.columns{i}.type = upper(type);
-%             format = '%*s\t%f\t%f';
-%             output = textscan(columnDesc, format, 'Delimiter', '\t', 'MultipleDelimsAsOne', true);
-%             deviceInfo.columns{i}.scale = output{1};
-%             deviceInfo.columns{i}.offset = output{2};
-%             
-%         % measurements with scale, offset and wavelengths infos
-%         case 'LAMBDA'
-%             deviceInfo.columns{i}.type = upper(type);
-%             format = '%*s\t%f\t%f\t%f\t%f';
-%             output = textscan(columnDesc, format, 'Delimiter', '\t', 'MultipleDelimsAsOne', true);
-%             deviceInfo.columns{i}.scale = output{1};
-%             deviceInfo.columns{i}.offset = output{2};
-%             deviceInfo.columns{i}.measWaveLength = output{3};
-%             deviceInfo.columns{i}.dispWaveLength = output{4};
             
         % measurements with possible scale, offset and wavelengths infos
         otherwise

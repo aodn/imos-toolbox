@@ -22,7 +22,8 @@ function hits = fsearch(pattern, root, restriction)
 %   hits    - Cell array of strings containing the files/directories that
 %             have a name which contains the pattern.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -55,7 +56,7 @@ function hits = fsearch(pattern, root, restriction)
 % POSSIBILITY OF SUCH DAMAGE.
 %
   error(nargchk(2, 3, nargin));
-
+  
   if nargin == 2, restriction = 'both'; end
 
   hits = {};
@@ -65,32 +66,41 @@ function hits = fsearch(pattern, root, restriction)
   
   entries = dir(root);
   
-  for k = 1:length(entries)
+  for k = 3:length(entries) % we ignore . and ..
     
     d = entries(k);
-    
-    % ignore current/prev entries
-    if strcmp(d.name, '.') || strcmp(d.name, '..'), continue; end
     
     % compare file and directory names against pattern. doing 
     % string comparisons here is inefficient; better way would 
     % be to convert to a number and do numerical comparison; 
     % this would also require fsearch to accept the restriction 
     % input as a numerical (because of the recursive call below)
-    if strcmp(restriction, 'both')               || ...
-      (strcmp(restriction, 'files') && ~d.isdir) ||...
-      (strcmp(restriction, 'dirs')  &&  d.isdir)
-       
-      if ~isempty(regexpi(d.name, pattern))
-        hits{end+1} = [root filesep d.name];
-      end
-    end
-    
-    % recursively search subdirectories
-    if d.isdir, 
-      
-      subhits = fsearch(pattern, [root filesep d.name], restriction);
-      hits = [hits subhits];
+    switch lower(restriction)
+        case 'dirs'
+            if ~d.isdir, continue; end
+            if ~isempty(strfind(lower(d.name), lower(pattern)))
+                hits{end+1} = [root filesep d.name];
+            end
+        case 'files'
+            if d.isdir
+                % recursively search subdirectories
+                subhits = fsearch(pattern, [root filesep d.name], restriction);
+                hits = [hits subhits];
+            else
+                if ~isempty(strfind(lower(d.name), lower(pattern)))
+                    hits{end+1} = [root filesep d.name];
+                end
+            end
+        otherwise % both
+            if ~isempty(strfind(lower(d.name), lower(pattern)))
+                hits{end+1} = [root filesep d.name];
+            end
+            
+            if d.isdir
+                % recursively search subdirectories
+                subhits = fsearch(pattern, [root filesep d.name], restriction);
+                hits = [hits subhits];
+            end
     end
   end
 end

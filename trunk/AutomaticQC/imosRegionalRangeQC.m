@@ -1,4 +1,4 @@
-function [data, flags, log] = imosRegionalRangeQC ( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = imosRegionalRangeQC ( sample_data, data, k, type, auto )
 %IMOSREGIONALRANGEQC Flags data which is out of the variable's valid regional range.
 %
 % Iterates through the given data, and returns flags for any samples which
@@ -22,7 +22,7 @@ function [data, flags, log] = imosRegionalRangeQC ( sample_data, data, k, type, 
 %   flags       - Vector the same length as data, with flags for corresponding
 %                 data which is out of range.
 %
-%   log         - Empty cell array.
+%   paramsLog   - string containing details about params' procedure to include in QC log
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -66,8 +66,8 @@ if ~ischar(type),                       error('type must be a string');         
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
 
-log   = {};
-flags   = [];
+paramsLog = [];
+flags     = [];
 
 if ~strcmp(type, 'variables'), return; end
 
@@ -97,10 +97,6 @@ if isempty(site)
 else
     % for test in display
     sampleFile = sample_data.toolbox_input_file;
-    % we need TIME to initialise climatologyRange values with NaN
-    idTime  = getVar(sample_data.dimensions, 'TIME');
-    dataTime  = sample_data.dimensions{idTime}.data;
-    nTime = length(dataTime);
     
     mWh = findobj('Tag', 'mainWindow');
     climatologyRange = get(mWh, 'UserData');
@@ -108,8 +104,8 @@ else
     if isempty(climatologyRange)
         p = 1;
         climatologyRange(p).dataSet = sampleFile;
-        climatologyRange(p).(['rangeMin' paramName]) = nan(nTime, 1);
-        climatologyRange(p).(['rangeMax' paramName]) = nan(nTime, 1);
+        climatologyRange(p).(['rangeMin' paramName]) = nan(2, 1);
+        climatologyRange(p).(['rangeMax' paramName]) = nan(2, 1);
     else
         for i=1:length(climatologyRange)
             if strcmp(climatologyRange(i).dataSet, sampleFile)
@@ -120,8 +116,8 @@ else
         if p == 0
             p = length(climatologyRange) + 1;
             climatologyRange(p).dataSet = sampleFile;
-            climatologyRange(p).(['rangeMin' paramName]) = nan(nTime, 1);
-            climatologyRange(p).(['rangeMax' paramName]) = nan(nTime, 1);
+            climatologyRange(p).(['rangeMin' paramName]) = nan(2, 1);
+            climatologyRange(p).(['rangeMax' paramName]) = nan(2, 1);
         end
     end
     
@@ -152,7 +148,9 @@ else
             % initialise all flags to non QC'd
             flags = ones(lenData, 1)*rawFlag;
             
-            if regionalMax ~= regionalMin
+            if regionalMax ~= regionalMin % otherwise test is ignored
+                paramsLog = ['min=' num2str(regionalMin) ', max=' num2str(regionalMax)];
+                
                 % initialise all flags to bad
                 flags = ones(lenData, 1)*rangeFlag;
                 
@@ -171,8 +169,8 @@ else
             end
             
             % update climatologyRange info for display
-            climatologyRange(p).(['rangeMin' paramName]) = ones(nTime, 1)*regionalMin;
-            climatologyRange(p).(['rangeMax' paramName]) = ones(nTime, 1)*regionalMax;
+            climatologyRange(p).(['rangeMin' paramName]) = ones(2, 1)*regionalMin;
+            climatologyRange(p).(['rangeMax' paramName]) = ones(2, 1)*regionalMax;
             set(mWh, 'UserData', climatologyRange);
         end
     end

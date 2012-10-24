@@ -87,7 +87,6 @@ function result = executeDDBQuery( table, field, value)
 
   % convert java objects to a vector of matlab structs
   result = java2struct(result);
-
 end
 
 function strs = java2struct(list)
@@ -102,7 +101,7 @@ function strs = java2struct(list)
 %   strs - A vector of matlab structs which are equivalent to the java
 %          objects.
 %
-  strs = [];
+  strs = struct([]);
   
   if list.size() == 0, return; end;
   

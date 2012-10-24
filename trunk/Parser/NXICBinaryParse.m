@@ -87,7 +87,7 @@ function sample_data = NXICBinaryParse( filename, mode )
     rethrow(e);
   end
   
-  % the first 220 bytes aer the header 
+  % the first 220 bytes are the header 
   % section, the rest sample data
   header  = parseHeader(Mheader);
   samples = parseSamples(M, header);
@@ -127,10 +127,10 @@ function sample_data = NXICBinaryParse( filename, mode )
   % these are the analog and digital channels for the external sensors
   % calibration coefficients in header file are unreliable so will need
   % processing into standard units.
-  %sample_data.vairables{7}.name = '';
-  %sample_data.vairables{8}.name = '';
-  %sample_data.vairables{9}.name = '';
-  %sample_data.vairables{10}.name = '';
+  %sample_data.variables{7}.name = '';
+  %sample_data.variables{8}.name = '';
+  %sample_data.variables{9}.name = '';
+  %sample_data.variables{10}.name = '';
   
   
   sample_data.variables{1}.dimensions = [1 2 3];

@@ -75,8 +75,16 @@ function qc_data = autoQCManager( sample_data, auto )
 
   % get default filter chain if there is one
   try
-    qcChain = textscan(readProperty('autoQCManager.autoQCChain'), '%s');
-    qcChain = qcChain{1};
+      % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+      % If no value is set then default mode is 'timeSeries'
+      mode = lower(readProperty('toolbox.mode'));
+      switch mode
+          case 'profile'
+              qcChain = textscan(readProperty('autoQCManager.autoQCChain.profile'), '%s');
+          otherwise
+              qcChain = textscan(readProperty('autoQCManager.autoQCChain.timeSeries'), '%s');
+      end
+      qcChain = qcChain{1};
   catch e
   end
   
@@ -93,10 +101,20 @@ function qc_data = autoQCManager( sample_data, auto )
     % cell array into a space-separated string of the names
     if ~isempty(qcChain)
         qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
-        writeProperty('autoQCManager.autoQCChain', deblank([qcChainStr{:}]));
+        switch mode
+            case 'profile'
+                writeProperty('autoQCManager.autoQCChain.profile', deblank([qcChainStr{:}]));
+            otherwise
+                writeProperty('autoQCManager.autoQCChain.timeSeries', deblank([qcChainStr{:}]));
+        end
     else
         if ~qcCancel
-            writeProperty('autoQCManager.autoQCChain', '');
+            switch mode
+                case 'profile'
+                    writeProperty('autoQCManager.autoQCChain.profile', '');
+                otherwise
+                    writeProperty('autoQCManager.autoQCChain.timeSeries', '');
+            end
         end
     end
     
@@ -208,7 +226,8 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
   % if this filter is a Set QC filter, we pass the entire data set
   if ~isempty(regexp(filterName, 'SetQC$', 'start'))
     
-    fsam = filter(sam, auto);
+    [fsam, fvar, flog] = filter(sam, auto);
+    if isempty(fvar), return; end
     
     % Currently only flags are copied across; other changes to the data set
     % are discarded. Flags are overwritten - if a later routine flags 
@@ -218,6 +237,10 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
     type{2} = 'variables';
     for m = 1:length(type)
         for k = 1:length(sam.(type{m}))
+            
+            if all(~strcmpi(sam.(type{m}){k}.name, fvar)), continue; end
+            
+            initFlags = sam.(type{m}){k}.flags;
             
             % Set current flag areas
             canBeFlagGoodIdx      = sam.(type{m}){k}.flags == rawFlag;
@@ -257,8 +280,14 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
             uFlags(uFlags == rawFlag) = [];
             uFlags(uFlags == goodFlag) = [];
             
+            sam.meta.QCres{end+1}.procName = filterName;
+            sam.meta.QCres{end+1}.procDetails = flog;
+            sam.meta.QCres{end+1}.paramName = sam.(type{m}){k}.name;
+            sam.meta.QCres{end+1}.nFlag = 0;
+            sam.meta.QCres{end+1}.typeFlag = '';
+                
             if isempty(uFlags)
-                sam.meta.log{end+1} = [filterName ...
+                sam.meta.log{end+1} = [filterName '(' flog ')' ...
                         ' didn''t fail on any ' ...
                         sam.(type{m}){k}.name ' sample'];
             else
@@ -266,14 +295,25 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
                     flagString = ['"' imosQCFlag(uFlags(i),  qcSet, 'desc') '"'];
                     
                     flagIdxI = fsam.(type{m}){k}.flags == uFlags(i);
-                    canBeFlagIdx = sam.(type{m}){k}.flags < uFlags(i);
+                    canBeFlagIdx = initFlags < uFlags(i);
                     flagIdxI = canBeFlagIdx & flagIdxI;
                     nFlag = sum(sum(flagIdxI));
-                    sam.meta.log{end+1} = [filterName ...
-                        ' flagged ' num2str(nFlag) ' ' ...
-                        sam.(type{m}){k}.name ' samples with flag ' flagString];
+                    
+                    sam.meta.QCres{end}.nFlag = nFlag;
+                    sam.meta.QCres{end}.typeFlag = flagString;
+                
+                    if nFlag == 0
+                        sam.meta.log{end+1} = [filterName '(' flog ')' ...
+                            ' didn''t fail on any ' ...
+                            sam.(type{m}){k}.name ' sample'];
+                    else
+                        sam.meta.log{end+1} = [filterName '(' flog ')' ...
+                            ' flagged ' num2str(nFlag) ' ' ...
+                            sam.(type{m}){k}.name ' samples with flag ' flagString];
+                    end
                 end
             end
+%             disp(sam.meta.log{end});
         end
     end
   
@@ -287,6 +327,7 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
             
             data  = sam.(type{m}){k}.data;
             flags = sam.(type{m}){k}.flags;
+            initFlags = flags;
             
             % user cancelled
             if ~isnan(cancel) && getappdata(cancel, 'cancel'), return; end
@@ -337,26 +378,43 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
             uFlags(uFlags-1 == rawFlag) = [];
             uFlags(uFlags-1 == goodFlag) = [];
             
+            sam.meta.QCres{end+1}.procName = filterName;
+            sam.meta.QCres{end+1}.procDetails = l;
+            sam.meta.QCres{end+1}.paramName = sam.(type{m}){k}.name;
+            sam.meta.QCres{end+1}.nFlag = 0;
+            sam.meta.QCres{end+1}.typeFlag = '';
+            
             if isempty(uFlags)
-                sam.meta.log{end+1} = [filterName ...
+                sam.meta.log{end+1} = [filterName '(' l ')' ...
                         ' didn''t fail on any ' ...
                         sam.(type{m}){k}.name ' sample'];
             else
                 for i=1:length(uFlags)
+                    flagString = ['"' imosQCFlag(uFlags(i)-1,  qcSet, 'desc') '"'];
                     uFlagIdx = f == uFlags(i)-1;
-                    canBeFlagIdx = flags < uFlags(i)-1;
+                    canBeFlagIdx = initFlags < uFlags(i)-1;
                     uFlagIdx = canBeFlagIdx & uFlagIdx;
                     if ismatrix(data)
                         nFlag = sum(sum(uFlagIdx));
                     else
                         nFlag = sum(uFlagIdx);
                     end
-                    flagString = ['"' imosQCFlag(uFlags(i)-1,  qcSet, 'desc') '"'];
-                    sam.meta.log{end+1} = [filterName ...
-                        ' flagged ' num2str(nFlag) ' ' ...
-                        sam.(type{m}){k}.name ' samples with flag ' flagString];
+                    
+                    sam.meta.QCres{end}.nFlag = nFlag;
+                    sam.meta.QCres{end}.typeFlag = flagString;
+                    
+                    if nFlag == 0
+                        sam.meta.log{end+1} = [filterName '(' l ')' ...
+                            ' didn''t fail on any ' ...
+                            sam.(type{m}){k}.name ' sample'];
+                    else
+                        sam.meta.log{end+1} = [filterName '(' l ')' ...
+                            ' flagged ' num2str(nFlag) ' ' ...
+                            sam.(type{m}){k}.name ' samples with flag ' flagString];
+                    end
                 end
             end
+%             disp(sam.meta.log{end});
         end
     end
   end

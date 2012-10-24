@@ -1,4 +1,4 @@
-function t = templateType( name, temp, mode )
+function t = templateType( templateDir, name, temp, mode )
 %TEMPLATETYPE Returns the type of the given NetCDF attribute, as specified
 % in the associated template file.
 %
@@ -11,6 +11,8 @@ function t = templateType( name, temp, mode )
 %   Q - Quality control (either byte or char, depending on the QC set in use)
 %
 % Inputs:
+%   templateDir - the path to the directory which contains all the
+%   templates file.
 %   name - the attribute name
 %   temp - what kind of attribute - 'global', 'time', 'depth', 'latitude', 
 %          'longitude', 'variable', 'qc' or 'qc_coord'
@@ -52,8 +54,9 @@ function t = templateType( name, temp, mode )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(2,3,nargin));
+error(nargchk(3,4,nargin));
 
+if ~ischar(templateDir), error('templateDir must be a string'); end
 if ~ischar(name), error('name must be a string'); end
 if ~ischar(temp), error('temp must be a string'); end
 
@@ -72,7 +75,7 @@ else
     temp = [temp '_attributes.txt'];
 end
 
-filepath = readProperty('toolbox.templateDir');
+filepath = templateDir;
 if isempty(filepath) || ~exist(filepath, 'dir')
   filepath = fullfile(pwd, 'NetCDF', 'template');
 end
@@ -80,21 +83,15 @@ end
 filepath = fullfile(filepath, temp);
 
 lines = {};
-
-% read all the lines in
 fid = -1;
 try
   fid = fopen(filepath, 'rt');
   
   if fid == -1, error(['could not open file ' filepath]); end
   
-  line = fgetl(fid);
+  lines = textscan(fid, '%s', 'Delimiter', '', 'CommentStyle', '%', 'BufSize', 12000);
+  lines = lines{1};
   
-  while ischar(line)
-    
-    lines{end+1} = line;
-    line         = fgetl(fid);
-  end
   fclose(fid);
 catch e
   if fid ~= -1, fclose(fid); end
@@ -102,19 +99,10 @@ catch e
 end
 
 % pull out the type, attribute name and value
-tkns = regexp(lines, '^\s*(.*\S)\s*,\s*(.*\S)\s*=\s*(.*\S)?\s*$', 'tokens');
-
-for k = 1:length(tkns)
-  
-  % will be empty on lines that didn't match the regex
-  if isempty(tkns{k}), continue; end
-  
-  type  = tkns{k}{1}{1};
-  att   = tkns{k}{1}{2};
-  
-  if ~strcmp(name, att), continue; end
-  
-  % found a match, return the type
-  t = type;
-  return;
+[~, type] = regexp(lines, ['^\s*(.*\S)\s*,\s*(.*' name ')\s*=\s*(.*\S)?\s*$'], 'match', 'tokens');
+type(cellfun('isempty', type)) = [];
+if ~isempty(type)
+    t = type{1}{1}{1};
 end
+
+return;

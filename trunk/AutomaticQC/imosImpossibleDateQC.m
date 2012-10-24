@@ -1,4 +1,4 @@
-function [data, flags, log] = imosImpossibleDateQC( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = imosImpossibleDateQC( sample_data, data, k, type, auto )
 %IMOSIMPOSSIBLEDATEQC Flags impossible TIME values 
 %
 % Impossible date test described in Morello et Al. 2011 paper. Only the
@@ -21,10 +21,9 @@ function [data, flags, log] = imosImpossibleDateQC( sample_data, data, k, type, 
 % Outputs:
 %   data        - same as input.
 %
-%   flags       - Vector the same length as data, with flags for flatline 
-%                 regions.
+%   flags       - Vector the same length as data, with flags.
 %
-%   log         - Empty cell array.
+%   paramsLog   - string containing details about params' procedure to include in QC log
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -68,10 +67,9 @@ if ~ischar(type),                 error('type must be a string');        end
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
 
-log   = {};
-
-dataTime = [];
-flags    = [];
+paramsLog = [];
+flags     = [];
+dataTime  = [];
 
 if ~strcmp(type, 'dimensions'), return; end
 
@@ -101,6 +99,9 @@ if ~isempty(dataTime)
     else
         dateMax = datenum(dateMax, 'dd/mm/yyyy');
     end
+    
+    paramsLog = ['dateMin=' datestr(dateMin, 'dd/mm/yyyy') ...
+        ', dateMax=' datestr(dateMax, 'dd/mm/yyyy')];
     
     iGoodTime = dataTime >= dateMin;
     iGoodTime = iGoodTime | (dataTime <= dateMax);

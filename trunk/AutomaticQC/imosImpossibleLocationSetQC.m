@@ -1,4 +1,4 @@
-function [sample_data] = imosImpossibleLocationSetQC( sample_data, auto )
+function [sample_data, varChecked, paramsLog] = imosImpossibleLocationSetQC( sample_data, auto )
 %IMOSIMPOSSIBLELOCATIONSETQC Flags impossible Latitude and Longitude values 
 % using IMOS sites information from imosSites.txt.
 %
@@ -6,11 +6,13 @@ function [sample_data] = imosImpossibleLocationSetQC( sample_data, auto )
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
-%   auto - logical, run QC in batch mode
+%   auto        - logical, run QC in batch mode
 %
 % Outputs:
 %   sample_data - same as input, with QC flags added for variable/dimension
 %                 data.
+%   varChecked  - cell array of variables' name which have been checked
+%   paramsLog   - string containing details about params' procedure to include in QC log
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -51,10 +53,12 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 % auto logical in input to enable running under batch processing
 if nargin<2, auto=false; end
 
-dataLon = [];
-dataLat = [];
-flagLon = [];
-flagLat = [];
+dataLon    = [];
+dataLat    = [];
+varChecked = {};
+paramsLog  = [];
+flagLon    = [];
+flagLat    = [];
 
 qcSet    = str2double(readProperty('toolbox.qc_set'));
 passFlag = imosQCFlag('good',           qcSet, 'flag');
@@ -90,32 +94,39 @@ if ~isempty(dataLon) && ~isempty(dataLat)
         flagLat = flagLon;
         
         %test location
-            if isnan(site.distanceKmPlusMinusThreshold)
-                % test each independent coordinate on a rectangular area
-                iGoodLon = dataLon >= site.longitude - site.longitudePlusMinusThreshold && ...
-                    dataLon <= site.longitude + site.longitudePlusMinusThreshold;
-                iGoodLat = dataLat >= site.latitude - site.latitudePlusMinusThreshold && ...
-                    dataLat <= site.latitude + site.latitudePlusMinusThreshold;
-            else
-                % test each couple of coordinate on a circle area
-                obsDist = WGS84dist(site.latitude, site.longitude, dataLat, dataLon);
-                iGoodLon = obsDist/1000 <= site.distanceKmPlusMinusThreshold;
-                iGoodLat = iGoodLon;
-            end
+        if isnan(site.distanceKmPlusMinusThreshold)
+            paramsLog = ['longitudePlusMinusThreshold=' num2str(site.longitudePlusMinusThreshold) ...
+                ', latitudePlusMinusThreshold=' num2str(site.latitudePlusMinusThreshold)];
             
-            if any(iGoodLon)
-                flagLon(iGoodLon) = passFlag; 
-            end
+            % test each independent coordinate on a rectangular area
+            iGoodLon = dataLon >= site.longitude - site.longitudePlusMinusThreshold && ...
+                dataLon <= site.longitude + site.longitudePlusMinusThreshold;
+            iGoodLat = dataLat >= site.latitude - site.latitudePlusMinusThreshold && ...
+                dataLat <= site.latitude + site.latitudePlusMinusThreshold;
+        else
+            paramsLog = ['distanceKmPlusMinusThreshold=' num2str(site.distanceKmPlusMinusThreshold)];
             
-            if any(iGoodLat)
-                flagLat(iGoodLat) = passFlag;
-            end
-            
-            sample_data.dimensions{idLon}.flags = flagLon;
-            sample_data.dimensions{idLat}.flags = flagLat;
-            
-            if any(~iGoodLon) || any(~iGoodLat)
-                error('Impossible location QC test failed => Check deployment database values for latitude/longitude or thresholds in imosSites.txt!');
-            end
+            % test each couple of coordinate on a circle area
+            obsDist = WGS84dist(site.latitude, site.longitude, dataLat, dataLon);
+            iGoodLon = obsDist/1000 <= site.distanceKmPlusMinusThreshold;
+            iGoodLat = iGoodLon;
+        end
+        
+        if any(iGoodLon)
+            flagLon(iGoodLon) = passFlag;
+        end
+        
+        if any(iGoodLat)
+            flagLat(iGoodLat) = passFlag;
+        end
+        
+        sample_data.dimensions{idLon}.flags = flagLon;
+        sample_data.dimensions{idLat}.flags = flagLat;
+        
+        varChecked = {'LATITUDE', 'LONGITUDE'};
+        
+        if any(~iGoodLon) || any(~iGoodLat)
+            error('Impossible location QC test failed => Check deployment database values for latitude/longitude or thresholds in imosSites.txt!');
+        end
     end
 end

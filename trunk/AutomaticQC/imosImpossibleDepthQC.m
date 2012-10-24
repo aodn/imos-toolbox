@@ -1,4 +1,4 @@
-function [data, flags, log] = imosImpossibleDepthQC( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = imosImpossibleDepthQC( sample_data, data, k, type, auto )
 %IMOSIMPOSSIBLEDEPTHQC Flags PRES, PRES_REL and DEPTH impossible values in
 % the given data set.
 %
@@ -29,7 +29,7 @@ function [data, flags, log] = imosImpossibleDepthQC( sample_data, data, k, type,
 %   flags       - Vector the same length as data, with flags for flatline 
 %                 regions.
 %
-%   log         - Empty cell array.
+%   paramsLog   - string containing details about params' procedure to include in QC log
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -73,8 +73,8 @@ if ~ischar(type),                       error('type must be a string');         
 % auto logical in input to enable running under batch processing
 if nargin<5, auto=false; end
 
-log   = {};
-flags   = [];
+paramsLog = [];
+flags     = [];
 
 if ~strcmp(type, 'variables'), return; end
 
@@ -96,11 +96,6 @@ if strcmpi(paramName, 'PRES') || ...
         strcmpi(paramName, 'DEPTH')
    
     sampleFile = sample_data.toolbox_input_file;
-    
-    % we need TIME to initialise climatologyRange values with NaN
-    idTime  = getVar(sample_data.dimensions, 'TIME');
-    dataTime  = sample_data.dimensions{idTime}.data;
-    nTime = length(dataTime);
 
     % for test in display
     mWh = findobj('Tag', 'mainWindow');
@@ -109,9 +104,9 @@ if strcmpi(paramName, 'PRES') || ...
     if isempty(climatologyRange)
         p = 1;
         climatologyRange(p).dataSet = sampleFile;
-        climatologyRange(p).(['range' paramName]) = nan(nTime, 1);
-        climatologyRange(p).(['rangeMin' paramName]) = nan(nTime, 1);
-        climatologyRange(p).(['rangeMax' paramName]) = nan(nTime, 1);
+        climatologyRange(p).(['range' paramName]) = nan(2, 1);
+        climatologyRange(p).(['rangeMin' paramName]) = nan(2, 1);
+        climatologyRange(p).(['rangeMax' paramName]) = nan(2, 1);
     else
         for i=1:length(climatologyRange)
             if strcmp(climatologyRange(i).dataSet, sampleFile)
@@ -122,9 +117,9 @@ if strcmpi(paramName, 'PRES') || ...
         if p == 0
             p = length(climatologyRange) + 1;
             climatologyRange(p).dataSet = sampleFile;
-            climatologyRange(p).(['range' paramName]) = nan(nTime, 1);
-            climatologyRange(p).(['rangeMin' paramName]) = nan(nTime, 1);
-            climatologyRange(p).(['rangeMax' paramName]) = nan(nTime, 1);
+            climatologyRange(p).(['range' paramName]) = nan(2, 1);
+            climatologyRange(p).(['rangeMin' paramName]) = nan(2, 1);
+            climatologyRange(p).(['rangeMax' paramName]) = nan(2, 1);
         end
     end
     
@@ -178,8 +173,11 @@ if strcmpi(paramName, 'PRES') || ...
     
     % read coefficients from imosImpossibleDepthQC properties file
     coefUp      = readProperty('coefUp',    fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
-    coefUp      = str2double(coefUp);
     coefDown    = readProperty('coefDown',  fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
+    
+    paramsLog = ['coefUp=' coefUp ', coefDown=' coefDown];
+    
+    coefUp      = str2double(coefUp);
     coefDown    = str2double(coefDown);
     
     % get possible min/max values
@@ -202,6 +200,8 @@ if strcmpi(paramName, 'PRES') || ...
         % convert depth into relative pressure assuming 1 dbar ~= 1 m
         % Nothing to do!
     end
+    
+    paramsLog = [paramsLog ' => min=' num2str(possibleMin) ', max=' num2str(possibleMax)];
     
     % initially all data is bad
     flags = ones(lenData, 1)*failFlag;
