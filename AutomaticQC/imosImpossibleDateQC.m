@@ -104,7 +104,7 @@ if ~isempty(dataTime)
         ', dateMax=' datestr(dateMax, 'dd/mm/yyyy')];
     
     iGoodTime = dataTime >= dateMin;
-    iGoodTime = iGoodTime | (dataTime <= dateMax);
+    iGoodTime = iGoodTime & (dataTime <= dateMax);
     
     if any(iGoodTime)
         flags(iGoodTime) = passFlag;
