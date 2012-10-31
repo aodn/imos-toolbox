@@ -3,7 +3,7 @@ function hits = fsearch(pattern, root, restriction)
 %
 % Performs a recursive search starting at the given root directory; returns
 % the names of all files and directories below the root which have a name
-% matching the given regular expression pattern. The name comparison is case 
+% matching the given string pattern using strfind(). The name comparison is case 
 % insensitive for alphabetical characters.
 %
 % Inputs:

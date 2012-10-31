@@ -224,8 +224,8 @@ if strcmpi(paramName, 'PRES') || ...
     end
     
     % update climatologyRange info for display
-    climatologyRange(p).(['range' paramName]) = nominalData;
-    climatologyRange(p).(['rangeMin' paramName]) = possibleMin;
-    climatologyRange(p).(['rangeMax' paramName]) = possibleMax;
+    climatologyRange(p).(['range' paramName]) = [nominalData; nominalData];
+    climatologyRange(p).(['rangeMin' paramName]) = [possibleMin; possibleMin];
+    climatologyRange(p).(['rangeMax' paramName]) = [possibleMax; possibleMax];
     set(mWh, 'UserData', climatologyRange);
 end

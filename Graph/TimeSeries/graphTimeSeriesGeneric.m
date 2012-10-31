@@ -1,4 +1,4 @@
-function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var )
+function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var, color, xTickProp )
 %GRAPHTIMESERIESGENERIC Plots the given variable as normal, single dimensional, 
 % time series data. If the data are multi-dimensional, multiple lines will be
 % plotted and returned.
@@ -7,6 +7,8 @@ function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var )
 %   ax          - Parent axis.
 %   sample_data - The data set.
 %   var         - The variable to plot.
+%   color       - The color to be used to plot the variable.
+%   xTickProp   - Not used here.
 %
 % Outputs:
 %   h           - Handle(s) to the line(s)  which was/were plotted.
@@ -45,46 +47,44 @@ function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,3,nargin));
+error(nargchk(5,5,nargin));
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
+if ~isvector(color),       error('color must be a vector');       end
 
 time = getVar(sample_data.dimensions, 'TIME');
 time = sample_data.dimensions{time};
 var  = sample_data.variables {var};
 
-h    = line(time.data, var.data, 'Parent', ax);
+h    = line(time.data, var.data, 'Parent', ax, 'Color', color);
 set(ax, 'Tag', 'axis1D');
 
-% test for climatology display
-% mWh = findobj('Tag', 'mainWindow');
-% sMh = findobj('Tag', 'samplePopUpMenu');
-% iSample = get(sMh, 'Value');
-% climatologyRange = get(mWh, 'UserData');
-% if ~isempty(climatologyRange)
-%     if isfield(climatologyRange, ['rangeMin' var.name])
-%         hold(ax, 'on');
-%         if (length(climatologyRange(iSample).(['rangeMin' var.name])) == 2)
-%             timeToPlot = [time.data(1); time.data(end)];
-%         else
-%             timeToPlot = time.data;
-%         end
-%         hRMin = line(timeToPlot, climatologyRange(iSample).(['rangeMin' var.name]), 'Parent', ax, 'Color', 'r');
-%         hRMax = line(timeToPlot, climatologyRange(iSample).(['rangeMax' var.name]), 'Parent', ax, 'Color', 'r');
+% for global/regional range display
+mWh = findobj('Tag', 'mainWindow');
+sMh = findobj('Tag', 'samplePopUpMenu');
+iSample = get(sMh, 'Value');
+climatologyRange = get(mWh, 'UserData');
+if ~isempty(climatologyRange)
+    if isfield(climatologyRange, ['rangeMin' var.name])
+        hold(ax, 'on');
+        if (length(climatologyRange(iSample).(['rangeMin' var.name])) == 2)
+            timeToPlot = [time.data(1); time.data(end)];
+        else
+            timeToPlot = time.data;
+        end
+        
+        if isfield(climatologyRange, ['range' var.name])
+            hNominal = line(timeToPlot, climatologyRange(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k');
+        end
+        hRegMinMax = line([timeToPlot; NaN; timeToPlot], ...
+            [climatologyRange(iSample).(['rangeMin' var.name]); NaN; climatologyRange(iSample).(['rangeMax' var.name])], ...
+            'Parent', ax, 'Color', 'r');
 %         set(ax, 'YLim', [min(climatologyRange(iSample).(['rangeMin' var.name])) - min(climatologyRange(iSample).(['rangeMin' var.name]))/10, ...
 %             max(climatologyRange(iSample).(['rangeMax' var.name])) + max(climatologyRange(iSample).(['rangeMax' var.name]))/10]);
-%     end
-%     if isfield(climatologyRange, ['range' var.name])
-%         if (length(climatologyRange(iSample).(['range' var.name])) == 2)
-%             timeToPlot = [time.data(1); time.data(end)];
-%         else
-%             timeToPlot = time.data;
-%         end
-%         hR = line(timeToPlot, climatologyRange(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k');
-%     end
-% end
+    end
+end
 
 % Set axis position so that 1D data and 2D data vertically matches on X axis
 mainPanel = findobj('Tag', 'mainPanel');

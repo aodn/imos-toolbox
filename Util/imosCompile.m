@@ -83,9 +83,9 @@ if ~mkdir(stagingRoot), error('could not create staging area'); end
 
 % find all .m, .txt and .jar files - these are to be 
 % included as resources in the standalone application 
-resourceFiles =                fsearch('.m$',   toolboxRoot, 'files');
-resourceFiles = [resourceFiles fsearch('.txt$', toolboxRoot, 'files')];
-resourceFiles = [resourceFiles fsearch('.jar$', toolboxRoot, 'files')];
+matlabFiles   =                fsearchRegexp('.m$',   toolboxRoot, 'files');
+resourceFiles = [matlabFiles   fsearchRegexp('.txt$', toolboxRoot, 'files')];
+resourceFiles = [resourceFiles fsearchRegexp('.jar$', toolboxRoot, 'files')];
 
 % copy the resource files to the packaging area
 for k = 1:length(resourceFiles)
@@ -108,22 +108,19 @@ for k = 1:length(resourceFiles)
   if ~stat, error(['could not copy resource to packaging area: ' f]); end
 end
 
-% Get a list of all the matlab files to be included - we explicitly 
-% add them all because the dependency analyser will not pick up e.g. 
-% parser routines, and we leave out imosToolbox because, as the main 
-% function, it must be listed first. Doing the imosToolbox check
-% here is massively inefficient, i know, but it's one less line of 
-% code :P
-matlabFiles = fsearch('(?<!imosToolbox).m$', toolboxRoot, 'files');
+% we leave out imosToolbox.m because, as the main 
+% function, it must be listed first.
+iMainFile = strcmpi(matlabFiles, fullfile(toolboxRoot, 'imosToolbox.m'));
+matlabFiles(iMainFile) = [];
 
 % compile the compiler options
-cflags{1}     =  '-m';  % generate a standalone application
-cflags{end+1} =  '-o ''imosToolbox''';  % specify output name
+cflags{1}     =  '-m';                      % generate a standalone application
+cflags{end+1} =  '-o ''imosToolbox''';      % specify output name
 cflags{end+1} = ['-d ''' stagingRoot '''']; % specified directory for output
-cflags{end+1} =  '-v';  % verbose
-cflags{end+1} =  '-N';  % clear path
-cflags{end+1} =  '-w enable';   % enable complete warning display
-%cflags{end+1} =  '-e';  % disable MS-Dos command window outputs
+cflags{end+1} =  '-v';                      % verbose
+cflags{end+1} =  '-N';                      % clear path
+cflags{end+1} =  '-w enable';               % enable complete warning display
+% cflags{end+1} =  '-e';                      % disable MS-Dos command window outputs
 
 % add matlab files to the compiler args
 cflags{end+1} = ['''' toolboxRoot filesep 'imosToolbox.m'''];

@@ -1,4 +1,4 @@
-function [h labels] = graphTimeSeriesTimeDepth( ax, sample_data, var )
+function [h labels] = graphTimeSeriesTimeDepth( ax, sample_data, var, color, xTickProp )
 %GRAPHTIMESERIESTimeDepth Plots the given data using pcolor.
 %
 % This function is used for plotting time/depth data. The pcolor function is 
@@ -9,6 +9,8 @@ function [h labels] = graphTimeSeriesTimeDepth( ax, sample_data, var )
 %   ax          - Parent axis.
 %   sample_data - The data set.
 %   var         - The variable to plot.
+%   color       - Not used here.
+%   xTickProp   - XTick and XTickLabel properties.
 %
 % Outputs:
 %   h           - Handle to the surface which was plotted.
@@ -47,7 +49,7 @@ function [h labels] = graphTimeSeriesTimeDepth( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,3,nargin));
+error(nargchk(5,5,nargin));
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
@@ -75,40 +77,19 @@ end
 h = pcolor(ax, time.data, depth.data, var.data');
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
 cb = colorbar();
-% Default colormap and CLim for ADCP data (the only existing time/depth
-% data so far).
-colormap(r_b);
-cbCLimRange('', '', 'full, 0 centred', var.data);
-
-% Define a context menu
-hMenu = uicontextmenu;
-
-% Define callbacks for context menu items that change linestyle
-hcb11 = 'colormap(r_b)';
-hcb12 = 'colormap(jet)';
-hcb13 = 'colormapeditor';
-
-% Define the context menu items and install their callbacks
-mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
-uimenu(mainItem1, 'Label', 'r_b (default)', 'Callback', hcb11);
-uimenu(mainItem1, 'Label', 'jet',           'Callback', hcb12);
-uimenu(mainItem1, 'Label', 'other',         'Callback', hcb13);
-
-mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-uimenu(mainItem2, 'Label', 'full, 0 centred (default)', 'Callback', {@cbCLimRange, 'full, 0 centred', var.data});
-uimenu(mainItem2, 'Label', 'full',                      'Callback', {@cbCLimRange, 'full', var.data});
-uimenu(mainItem2, 'Label', 'auto (+/-2*stdDev)',        'Callback', {@cbCLimRange, 'auto', var.data});
-uimenu(mainItem2, 'Label', 'manual',                    'Callback', {@cbCLimRange, 'manual', var.data});
 
 % Attach the context menu to colorbar
-set(cb,'uicontextmenu',hMenu);
+hMenu = setTimeSerieColorbarContextMenu(var);
+set(cb, 'uicontextmenu', hMenu);
 
-% Let's redefine grid lines after pcolor to make sure grid lines appear
-% above color data
-set(ax, 'XGrid',  'on',...
-    'YGrid',  'on',...
-    'Layer', 'top',...
-    'Tag', 'axis2D');
+% Let's redefine properties after pcolor to make sure grid lines appear
+% above color data and XTick and XTickLabel haven't changed
+set(ax, 'XTick',        xTickProp.ticks, ...
+        'XTickLabel',   xTickProp.labels, ...
+        'XGrid',        'on', ...
+        'YGrid',        'on', ...
+        'Layer',        'top', ...
+        'Tag',          'axis2D');
 
 cbLabel = imosParameters(var.name, 'uom');
 cbLabel = [strrep(var.name, '_', ' ') ' (' cbLabel ')'];
@@ -116,47 +97,5 @@ if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel);
 
 labels = {'TIME', zTitle};
-
-end
-
-% Callback function for CLim range
-function cbCLimRange(src,eventdata, cLimMode, data)
-
-CLim = [min(min(data)), max(max(data))];
-
-switch cLimMode
-    case 'full, 0 centred'
-        maxVal = max(abs(CLim));
-        CLim = [-maxVal, maxVal];
-    case 'auto'
-        iNan = isnan(data);
-%         med = median(data(~iNan));
-%         stdDev = sqrt(mean((data(~iNan) - med).^2));
-%         CLim = [med-2*stdDev, med+2*stdDev];
-
-        % let's compute a pseudo standard deviation around 0 as we are
-        % displaying current values symetrically around 0
-        stdDev = sqrt(mean((data(~iNan) - 0).^2));
-        CLim = [-2*stdDev, 2*stdDev];
-    case 'manual'
-        CLimCurr = get(gca, 'CLim');
-        prompt = {['{\bf', sprintf('Colorbar range :}\n\nmin value :')],...
-            'max value :'};
-        def                 = {num2str(CLimCurr(1)), num2str(CLimCurr(2))};
-        dlg_title           = 'Set the colorbar range';
-        
-        options.Resize      = 'on';
-        options.WindowStyle = 'modal';
-        options.Interpreter = 'tex';
-        
-        answ = inputdlg( prompt, dlg_title, 1, def, options );
-        if ~isempty(answ)
-            CLim = [str2double(answ{1}), str2double(answ{2})];
-        else
-            CLim = CLimCurr;
-        end
-end
-
-set(gca, 'CLim', CLim);
 
 end
