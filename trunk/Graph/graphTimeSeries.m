@@ -58,7 +58,6 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   if ~isnumeric(vars),         error('vars must be a numeric');       end
     
   if isempty(vars)
-    warning('no variables to graph');
     return; 
   end
   
@@ -70,25 +69,69 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   lines = nan(lenVar, 1);
   distinctFlagsValue = [];
   
+  iTimeDim = getVar(sample_data.dimensions, 'TIME');
+  xLimits = [min(sample_data.dimensions{iTimeDim}.data), max(sample_data.dimensions{iTimeDim}.data)];
+  xStep   = (xLimits(2) - xLimits(1)) / 5;
+  xTicks  = xLimits(1):xStep:xLimits(2);
+  xTickLabels = datestr(xTicks, 'dd-mm-yy HH:MM');
+  xTickProp.ticks = xTicks;
+  xTickProp.labels = xTickLabels;
+    
   for k = 1:lenVar
     
     name = sample_data.variables{k}.name;
     distinctFlagsValue = union(distinctFlagsValue, unique(sample_data.variables{k}.flags));
     
+    plotFunc = getGraphFunc('TimeSeries', 'graph', name);
+    switch func2str(plotFunc)
+        case 'graphTimeSeriesGeneric'
+            yLimits = [floor(min(sample_data.variables{k}.data)*10)/10, ...
+                ceil(max(sample_data.variables{k}.data)*10)/10];
+            
+            if sample_data.meta.level == 1
+                qcSet     = str2double(readProperty('toolbox.qc_set'));
+                goodFlag  = imosQCFlag('good',  qcSet, 'flag');
+                rawFlag   = imosQCFlag('raw',  qcSet, 'flag');
+                
+                % set x and y limits so that axis are optimised for good/raw data only
+                iGood = sample_data.variables{k}.flags == goodFlag;
+                iGood = iGood | (sample_data.variables{k}.flags == rawFlag);
+                if any(iGood)
+                    yLimits = [floor(min(sample_data.variables{k}.data(iGood))*10)/10, ...
+                        ceil(max(sample_data.variables{k}.data(iGood))*10)/10];
+                end
+            end
+        case 'graphTimeSeriesTimeDepth'
+            iZDim = getVar(sample_data.dimensions, 'DEPTH');
+            if iZDim == 0
+                iZDim = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
+            end
+            yLimits = [floor(min(sample_data.dimensions{iZDim}.data)*10)/10, ...
+                ceil(max(sample_data.dimensions{iZDim}.data)*10)/10];
+            
+        case 'graphTimeSeriesTimeFrequency'
+            iFDim = getVar(sample_data.dimensions, 'FREQUENCY');
+            yLimits = [floor(min(sample_data.dimensions{iFDim}.data)*10)/10, ...
+                ceil(max(sample_data.dimensions{iFDim}.data)*10)/10];
+            
+    end
+    yStep   = (yLimits(2) - yLimits(1)) / 5;
+    yTicks  = yLimits(1):yStep:yLimits(2);
+    
     % create the axes
-    graphs(k) = subplot(lenVar, 1, k);
-    
-    set(graphs(k), 'Parent', parent,...
-                   'XGrid',  'on',...
-                   'Color', 'none',...
-                   'YGrid',  'on',...
-                   'Layer', 'top');
-    
-    % plot the variable
-    plotFunc            = getGraphFunc('TimeSeries', 'graph', name);
-    [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, k);
-    
-    % make sure line colour alternate; because we are creating 
+    graphs(k) = subplot(lenVar, 1, k, ...
+                        'Parent', parent, ...
+                        'XGrid',  'on', ...
+                        'Color',  'none', ...
+                        'YGrid',  'on', ...
+                        'Layer',  'top', ...
+                        'XLim',   xLimits, ...
+                        'XTick',  xTicks, ...
+                        'XTickLabel', xTickLabels, ...
+                        'YLim',   yLimits, ...
+                        'YTick',  yTicks);
+                    
+	% make sure line colour alternate; because we are creating 
     % multiple axes, this is not done automatically for us
     col = get(graphs(k), 'ColorOrder');
     
@@ -99,119 +142,20 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     col(iRed, :) = [];
     
     col = col(mod(vars(k),length(col))+1,:);
-    
-    % set the line colour - wrap in a try block, 
-    % as surface plot colour cannot be set
-    try 
-        set(lines(k,:), 'Color', col);
-    catch e
-    end
+               
+    % plot the variable
+    [lines(k,:) labels] = plotFunc(graphs(k), sample_data, k, col, xTickProp);
     
     % set x labels and ticks
-    set(get(graphs(k), 'XLabel'), 'String', labels{1});
-
-    % align xticks on first plot's xticks
-    xLimits = get(graphs(1), 'XLim');
-    xStep   = (xLimits(2) - xLimits(1)) / 5;
-    xTicks  = xLimits(1):xStep:xLimits(2);
-    set(graphs(k), 'XLim', xLimits, 'XTick', xTicks);
-    
-    % tranformation of datenum xticks in datestr
-    if k == 1 % this is to avoid too many calls to datetick()
-        datetick('x', 'dd-mm-yy HH:MM', 'keepticks');
-    else
-        xTickLabel = get(graphs(1), 'XTickLabel');
-        set(graphs(k), 'XTickLabel', xTickLabel);
-    end
+    xlabel(graphs(k), labels{1});
 
     % set y label and ticks
     try      uom = [' (' imosParameters(labels{2}, 'uom') ')'];
     catch e, uom = '';
     end
-    yLabel = [labels{2} uom];
+    yLabel = strrep([labels{2} uom], '_', ' ');
     if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
-    set(get(graphs(k), 'YLabel'), 'String', strrep(yLabel, '_', ' '));
-    
-    if sample_data.meta.level == 1 && strcmp(func2str(plotFunc), 'graphTimeSeriesGeneric')
-        qcSet     = str2double(readProperty('toolbox.qc_set'));
-        goodFlag  = imosQCFlag('good',  qcSet, 'flag');
-        rawFlag   = imosQCFlag('raw',  qcSet, 'flag');
-        
-        % set x and y limits so that axis are optimised for good/raw data only
-        curData = sample_data.variables{k}.data;
-        curTime = sample_data.dimensions{1}.data;
-        curFlag = sample_data.variables{k}.flags;
-        iGood = curFlag == goodFlag;
-        iGood = iGood | (curFlag == rawFlag);
-        yLimits = [floor(min(curData(iGood))), ceil(max(curData(iGood)))];
-        xLimits = [floor(min(curTime(iGood))), ceil(max(curTime(iGood)))];
-        if any(iGood)
-            set(graphs(k), 'YLim', yLimits);
-%             set(graphs(1), 'XLim', xLimits); %first one is enough as the others are then defined from it
-        end
-    end
-    
-    yLimits = get(graphs(k), 'YLim');
-    yStep   = (yLimits(2) - yLimits(1)) / 5;
-    yTicks  = yLimits(1):yStep:yLimits(2);
-    set(graphs(k), 'YTick', yTicks);
+    ylabel(graphs(k), yLabel);
   end
   
-  % GLT : Eventually I prefered not displaying the QC legend as it
-  % influences too badly the quality of the plots. I didn't manage to have
-  % a satisfying result with a ghost axis hosting the legend... So for now
-  % I added the possiblity to the user to right-click on a QC'd data point
-  % and it displays the description of the color flag.
-%   if sample_data.meta.level == 1
-%       % Let's add a QC legend
-%       qcSet     = str2double(readProperty('toolbox.qc_set'));
-%       rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
-%       distinctFlagsValue(distinctFlagsValue == rawFlag) = [];
-%       lenFlagsValue = length(distinctFlagsValue);
-%       distinctFlagName = cell(lenFlagsValue, 1);
-%       distinctFlag = nan(lenFlagsValue, 1);
-%       for i=1:length(distinctFlagsValue)
-%           distinctFlagName{i} = strrep(imosQCFlag(distinctFlagsValue(i),  qcSet, 'desc'), '_', ' ');
-%           distinctFlagColor = imosQCFlag(distinctFlagsValue(i),  qcSet, 'color');
-%           distinctFlag(i) = line(0, 0,...
-%               'Parent', graphs(1),...
-%               'LineStyle', 'none',...
-%               'Marker', 'o',...
-%               'MarkerFaceColor', distinctFlagColor,...
-%               'MarkerEdgeColor', 'none',...
-%               'Visible', 'off');
-%       end
-%       
-%       % link axes for panning/zooming, and add a legend - matlab has a habit of
-%       % throwing 'Invalid handle object' errors for no apparent reason (i think
-%       % when the user changes selections too quickly, matlab is too slow, and
-%       % ends up confusing itself), so absorb any errors which are thrown
-%       try
-%           linkaxes(graphs, 'x');
-%           for k = 2:lenVar
-%               % Let's make different X axes match with the first one
-%               xLimits = get(graphs(1), 'XLim');
-%               set(graphs(k), 'XLim', xLimits);
-%           end
-%       catch e
-%       end
-%   end
-  
-  % GLT : I prefer not adding a legend for variables as it overlaps the figure
-  % and in addition the different axis and plots labels are already detailed enough.
-%   % compile variable names for the legend
-%   names = {};
-%   for k = 1:lenVar
-%     names{k} = strrep(sample_data.variables{k}.name, '_', ' ');
-%   end
-%   
-%   % link axes for panning/zooming, and add a legend - matlab has a habit of
-%   % throwing 'Invalid handle object' errors for no apparent reason (i think 
-%   % when the user changes selections too quickly, matlab is too slow, and 
-%   % ends up confusing itself), so absorb any errors which are thrown
-%   try 
-%     linkaxes(graphs, 'x');
-%     legend(lines(:,1), names);
-%   catch e
-%   end
 end

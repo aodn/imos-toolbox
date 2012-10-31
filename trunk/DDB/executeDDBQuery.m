@@ -63,6 +63,32 @@ function result = executeDDBQuery( table, field, value)
   if ~isempty(field) ...
   && ~ischar(field), error('field must be a string'); end
 
+  % in order to reduce the number of queries to the ddb (slow, we store 
+  % each result in a global structure so that we don't perform twice the 
+  % same query.
+  global ddbStruct;
+  if isempty(ddbStruct)
+      ddbStruct = struct;
+      ddbStruct.table = {};
+      ddbStruct.field = {};
+      ddbStruct.value = {};
+      ddbStruct.result = {};
+  else
+      iTable = strcmpi(table, ddbStruct.table);
+      if any(iTable)
+          iField = strcmpi(field, ddbStruct.field);
+          iField = iField & iTable;
+          if any(iField)
+              iValue = strcmpi(ddbStruct.value, num2str(value));
+              iValue = iValue & iField;
+              if any(iValue)
+                  result = ddbStruct.result{iValue};
+                  return;
+              end
+          end
+      end
+  end
+  
   % execute the query - the java method returns 
   % an ArrayList of org.imos.ddb.schema.* objects.
   connection = '';
@@ -87,6 +113,12 @@ function result = executeDDBQuery( table, field, value)
 
   % convert java objects to a vector of matlab structs
   result = java2struct(result);
+  
+  % save result in structure
+  ddbStruct.table{end+1} = table;
+  ddbStruct.field{end+1} = field;
+  ddbStruct.value{end+1} = num2str(value);
+  ddbStruct.result{end+1} = result;
 end
 
 function strs = java2struct(list)

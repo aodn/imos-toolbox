@@ -278,7 +278,7 @@ function mainWindow(...
     
     % clear main panel
     children = get(mainPanel, 'Children');
-    for m = 1:length(children), delete(children(m)); end
+    delete(children);
     
     % delete any mouse listeners that may have been added
     zoom off;

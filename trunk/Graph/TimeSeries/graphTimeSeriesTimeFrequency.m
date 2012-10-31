@@ -1,4 +1,4 @@
-function [h labels] = graphTimeSeriesTimeFrequency( ax, sample_data, var )
+function [h labels] = graphTimeSeriesTimeFrequency( ax, sample_data, var, color, xTickProp )
 %GRAPHTIMESERIESTIMEFREQUENCY Plots the given data using pcolor.
 %
 % This function is used for plotting time/frequency data. The pcolor function 
@@ -9,12 +9,15 @@ function [h labels] = graphTimeSeriesTimeFrequency( ax, sample_data, var )
 %   ax          - Parent axis.
 %   sample_data - The data set.
 %   var         - The variable to plot.
+%   color       - Not used here.
+%   xTickProp   - XTick and XTickLabel properties.
 %
 % Outputs:
 %   h           - Handle to the surface which was plotted.
 %   labels      - Cell array containing x/y labels to use.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -46,7 +49,7 @@ function [h labels] = graphTimeSeriesTimeFrequency( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,3,nargin));
+error(nargchk(5,5,nargin));
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
@@ -62,6 +65,35 @@ var  = sample_data.variables {var};
 h = pcolor(ax, time.data, freq.data, var.data');
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
 cb = colorbar();
+
+% Define a context menu
+hMenu = uicontextmenu;
+
+% Define callbacks for context menu items that change linestyle
+hcb11 = 'colormap(jet)';
+hcb12 = 'colormapeditor';
+
+% Define the context menu items and install their callbacks
+mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
+uimenu(mainItem1, 'Label', 'jet',           'Callback', hcb11);
+uimenu(mainItem1, 'Label', 'other',         'Callback', hcb12);
+
+mainItem2 = uimenu(hMenu, 'Label', 'Color range');
+uimenu(mainItem2, 'Label', 'full',                      'Callback', {@cbCLimRange, 'full', var.data});
+uimenu(mainItem2, 'Label', 'auto (+/-2*stdDev)',        'Callback', {@cbCLimRange, 'auto', var.data});
+uimenu(mainItem2, 'Label', 'manual',                    'Callback', {@cbCLimRange, 'manual', var.data});
+
+% Attach the context menu to colorbar
+set(cb,'uicontextmenu',hMenu);
+
+% Let's redefine properties after pcolor to make sure grid lines appear
+% above color data and XTick and XTickLabel haven't changed
+set(ax, 'XTick',        xTickProp.ticks, ...
+        'XTickLabel',   xTickProp.labels, ...
+        'XGrid',        'on', ...
+        'YGrid',        'on', ...
+        'Layer',        'top', ...
+        'Tag',          'axis2D');
 
 cbLabel = imosParameters(var.name, 'uom');
 cbLabel = [var.name ' (' cbLabel ')'];
