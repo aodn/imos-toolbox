@@ -22,7 +22,8 @@ function t = templateType( templateDir, name, temp, mode )
 %   t    - the type of the attribute, one of 'S', 'N', 'D', or 'Q', or
 %          empty if there was no such attribute.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
