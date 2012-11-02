@@ -204,12 +204,12 @@ function mainWindow(...
 %     set(stateButtons(k), 'Position', ...
 %       [0.0, 0.5+(n+1-k)*(0.5/(n+1)), 1.0, 0.5/(n+1)]);
     set(stateButtons(k), 'Position', ...
-      posUi2(sidePanel, 2*(n+1), 1, k, 1, 0));
+      posUi2(sidePanel, 2*(n+1)+1, 1, k, 1, 0));
   end
   
   % graph button is tacked on right below state buttons
 %   set(graphButton, 'Position', [0.0, 0.5, 1.0, 0.5/(n+1)]);
-  set(graphButton, 'Position', posUi2(sidePanel, 2*(n+1), 1, n+1, 1, 0));
+  set(graphButton, 'Position', posUi2(sidePanel, 2*(n+1)+1, 1, n+1, 1, 0));
   
   % reset back to pixels
 %   set(fig,          'Units', 'pixels');

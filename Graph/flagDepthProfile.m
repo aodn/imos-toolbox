@@ -12,7 +12,8 @@ function flags = flagDepthProfile( parent, graphs, sample_data, vars )
 % Outputs:
 %   flag        - handles to line objects that make up the flag overlays.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -56,8 +57,8 @@ flags = [];
 
 if isempty(vars), return; end
 
-depth = getVar(sample_data.variables, 'DEPTH');
-if depth == 0, error('data set contains no depth data'); end
+depth = getVar(sample_data.dimensions, 'DEPTH');
+if depth == 0, error('data set contains no depth dimension'); end
 
 vars(vars == depth) = [];
 if isempty(vars), return; end

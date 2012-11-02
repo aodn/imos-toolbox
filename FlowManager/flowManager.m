@@ -304,7 +304,8 @@ function flowManager(toolboxVersion)
       end
     
     % otherwise if no new data sets, return the existing auto QC data
-    elseif ~any(setIdx > length(autoQCData)), return;
+    elseif ~any(setIdx > length(autoQCData))
+        return;
     end
     
     % save data set selection

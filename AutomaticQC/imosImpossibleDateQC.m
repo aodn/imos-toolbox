@@ -71,8 +71,6 @@ paramsLog = [];
 flags     = [];
 dataTime  = [];
 
-if ~strcmp(type, 'dimensions'), return; end
-
 if strcmpi(sample_data.(type){k}.name, 'TIME')
     dataTime = sample_data.(type){k}.data;
 else

@@ -115,11 +115,11 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
             uFlags(uFlags == rawFlag) = [];
             uFlags(uFlags == goodFlag) = [];
             
-            sam.meta.QCres{end+1}.procName = filterName;
-            sam.meta.QCres{end+1}.procDetails = flog;
-            sam.meta.QCres{end+1}.paramName = sam.(type{m}){k}.name;
-            sam.meta.QCres{end+1}.nFlag = 0;
-            sam.meta.QCres{end+1}.typeFlag = '';
+            sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).procDetails = flog;
+            sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).nFlag = 0;
+            sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).codeFlag = [];
+            sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).stringFlag = [];
+            sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).HEXcolor = reshape(dec2hex(round(255*imosQCFlag(imosQCFlag('good',  qcSet, 'flag'),  qcSet, 'color')))', 1, 6);
                 
             if isempty(uFlags)
                 sam.meta.log{end+1} = [filterName '(' flog ')' ...
@@ -133,9 +133,6 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
                     canBeFlagIdx = initFlags < uFlags(i);
                     flagIdxI = canBeFlagIdx & flagIdxI;
                     nFlag = sum(sum(flagIdxI));
-                    
-                    sam.meta.QCres{end}.nFlag = nFlag;
-                    sam.meta.QCres{end}.typeFlag = flagString;
                 
                     if nFlag == 0
                         sam.meta.log{end+1} = [filterName '(' flog ')' ...
@@ -145,6 +142,11 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
                         sam.meta.log{end+1} = [filterName '(' flog ')' ...
                             ' flagged ' num2str(nFlag) ' ' ...
                             sam.(type{m}){k}.name ' samples with flag ' flagString];
+                        
+                        sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).nFlag = nFlag;
+                        sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).codeFlag = uFlags(i);
+                        sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).stringFlag = flagString;
+                        sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).HEXcolor = reshape(dec2hex(round(255*imosQCFlag(uFlags(i),  qcSet, 'color')))', 1, 6);
                     end
                 end
             end
@@ -161,6 +163,7 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
         for k = 1:length(sam.(type{m}))
             
             data  = sam.(type{m}){k}.data;
+            if ~isfield(sam.(type{m}){k}, 'flags'), continue; end
             flags = sam.(type{m}){k}.flags;
             initFlags = flags;
             
@@ -213,11 +216,11 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
             uFlags(uFlags-1 == rawFlag) = [];
             uFlags(uFlags-1 == goodFlag) = [];
             
-            sam.meta.QCres{end+1}.procName = filterName;
-            sam.meta.QCres{end+1}.procDetails = l;
-            sam.meta.QCres{end+1}.paramName = sam.(type{m}){k}.name;
-            sam.meta.QCres{end+1}.nFlag = 0;
-            sam.meta.QCres{end+1}.typeFlag = '';
+            sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).procDetails = l;
+            sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).nFlag = 0;
+            sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).codeFlag = [];
+            sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).stringFlag = [];
+            sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).HEXcolor = reshape(dec2hex(round(255*imosQCFlag(imosQCFlag('good',  qcSet, 'flag'),  qcSet, 'color')))', 1, 6);
             
             if isempty(uFlags)
                 sam.meta.log{end+1} = [filterName '(' l ')' ...
@@ -235,9 +238,6 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
                         nFlag = sum(uFlagIdx);
                     end
                     
-                    sam.meta.QCres{end}.nFlag = nFlag;
-                    sam.meta.QCres{end}.typeFlag = flagString;
-                    
                     if nFlag == 0
                         sam.meta.log{end+1} = [filterName '(' l ')' ...
                             ' didn''t fail on any ' ...
@@ -246,6 +246,11 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
                         sam.meta.log{end+1} = [filterName '(' l ')' ...
                             ' flagged ' num2str(nFlag) ' ' ...
                             sam.(type{m}){k}.name ' samples with flag ' flagString];
+                        
+                        sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).nFlag = nFlag;
+                        sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).codeFlag = uFlags(i)-1;
+                        sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).stringFlag = flagString;
+                        sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).HEXcolor = reshape(dec2hex(round(255*imosQCFlag(uFlags(i)-1,  qcSet, 'color')))', 1, 6);
                     end
                 end
             end
