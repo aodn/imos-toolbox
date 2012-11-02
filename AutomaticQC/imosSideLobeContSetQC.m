@@ -79,6 +79,8 @@ idDepth = 0;
 idUcur = 0;
 idVcur = 0;
 idWcur = 0;
+idCspd = 0;
+idCdir = 0;
 lenVar = size(sample_data.variables,2);
 for i=1:lenVar
     if strcmpi(sample_data.variables{i}.name, 'PRES'), idPres = i; end
@@ -87,10 +89,12 @@ for i=1:lenVar
     if strcmpi(sample_data.variables{i}.name, 'UCUR'), idUcur = i; end
     if strcmpi(sample_data.variables{i}.name, 'VCUR'), idVcur = i; end
     if strcmpi(sample_data.variables{i}.name, 'WCUR'), idWcur = i; end
+    if strcmpi(sample_data.variables{i}.name, 'CSPD'), idCspd = i; end
+    if strcmpi(sample_data.variables{i}.name, 'CDIR'), idCdir = i; end
 end
 
 % check if the data is compatible with the QC algorithm
-idMandatory = idHeight & idUcur & idVcur & idWcur;
+idMandatory = idHeight & (idUcur | idVcur | idWcur | idCspd | idCdir);
 
 if ~idMandatory, return; end
 
@@ -163,7 +167,7 @@ binDepth = depth*ones(1,length(Bins)) - ones(length(depth),1)*Bins;
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
 
-% same flags are given to any U, V or W variable
+% same flags are given to any variable
 flags = ones(sizeCur)*rawFlag;
 
 % test, all bins above the contaminated depth are flagged
@@ -177,10 +181,25 @@ iFail = allFF & iFail;
 flags(iPass) = goodFlag;
 flags(iFail) = badFlag;
 
-sample_data.variables{idUcur}.flags = flags;
-sample_data.variables{idVcur}.flags = flags;
-sample_data.variables{idWcur}.flags = flags;
-
-varChecked = {'UCUR', 'VCUR', 'WCUR'};
+if any(idUcur)
+    sample_data.variables{idUcur}.flags = flags;
+    varChecked = [varChecked, {'UCUR'}];
+end
+if any(idVcur)
+    sample_data.variables{idVcur}.flags = flags;
+    varChecked = [varChecked, {'VCUR'}];
+end
+if any(idWcur)
+    sample_data.variables{idWcur}.flags = flags;
+    varChecked = [varChecked, {'WCUR'}];
+end
+if any(idCspd)
+    sample_data.variables{idCspd}.flags = flags;
+    varChecked = [varChecked, {'CSPD'}];
+end
+if any(idCdir)
+    sample_data.variables{idCdir}.flags = flags;
+    varChecked = [varChecked, {'CDIR'}];
+end
 
 end

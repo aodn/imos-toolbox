@@ -15,7 +15,6 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 %   updateCallback - Function handle to a function which is called when
 %                    any metadata is modified. The function must be of the
 %                    form:
-%   mode           - Toolbox data type mode ('profile' or 'timeSeries').
 %                    
 %                      function updateCallback(sample_data)
 %
@@ -24,6 +23,8 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 %                    function must be of the form:
 %
 %                      function repCallback(location, names, values)
+%
+%   mode           - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>

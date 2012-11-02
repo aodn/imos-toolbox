@@ -117,7 +117,7 @@ function displayManager(windowTitle, sample_data, callbacks)
   rawFlag    = imosQCFlag('raw', qcSet, 'flag');
   
   % define the user options, and create the main window
-  states = {'Import', 'Metadata', 'Raw data', 'Quality Control', ...
+  states = {'Import', 'Metadata', 'Raw data', 'QC data', 'QC stats' ...
             'Export NetCDF', 'Export Raw'};
 
   mainWindow(windowTitle, sample_data, states, 3, @stateSelectCallback);
@@ -147,7 +147,8 @@ function displayManager(windowTitle, sample_data, callbacks)
       case 'Import',          importCallback();
       case 'Metadata',        metadataCallback();
       case 'Raw data',        rawDataCallback();
-      case 'Quality Control', qcCallback();
+      case 'QC data',         qcDataCallback();
+      case 'QC stats',        qcStatsCallback();
       case 'Export NetCDF',   exportNetCDFCallback();
       case 'Export Raw',      exportRawCallback();
     end
@@ -164,7 +165,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       switch (lastState)
         case 'Raw data'
           sample_data = callbacks.rawDataRequestCallback();
-        case 'Quality Control'
+        case {'QC data', 'QC stats'}
           sample_data = callbacks.autoQCRequestCallback(0, true);
         otherwise
           sample_data = callbacks.rawDataRequestCallback();
@@ -252,7 +253,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       end
     end
 
-    function qcCallback()
+    function qcDataCallback()
     %QCCALLBACK Displays QC'd data for the current data set, using the
     % current graph type. If the state has changed, the autoQCRequestCallback
     % function is called, which may trigger auto-QC routines to be
@@ -391,6 +392,29 @@ function displayManager(windowTitle, sample_data, callbacks)
         delete(highlight); 
         highlight = [];
       end
+    end
+    
+    function qcStatsCallback()
+    %QCSTATSCALLBACK Displays a QC statistic viewer for the selected 
+    % data set.
+    %
+    
+      % update qc data on state change
+      if strcmp(event, 'state')
+        
+        sample_data = ...
+            callbacks.autoQCRequestCallback(setIdx, ~strcmp(lastState,state));
+      end
+      
+      % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
+      % If no value is set then default mode is 'timeSeries'
+      mode = lower(readProperty('toolbox.mode'));
+    
+      % display QC stats viewer
+      viewQCstats(panel, sample_data{setIdx}, mode);
+%       viewMetadata(panel, sample_data{setIdx}, ...
+%         @metadataUpdateWrapperCallback,...
+%         @metadataRepWrapperCallback, mode);
     end
     
     function exportNetCDFCallback()

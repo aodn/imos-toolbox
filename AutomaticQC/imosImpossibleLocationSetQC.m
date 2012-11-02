@@ -64,14 +64,20 @@ qcSet    = str2double(readProperty('toolbox.qc_set'));
 passFlag = imosQCFlag('good',           qcSet, 'flag');
 failFlag = imosQCFlag('probablyBad',    qcSet, 'flag');
 
-idLon = getVar(sample_data.dimensions, 'LONGITUDE');
-if idLon > 0
-    dataLon = sample_data.dimensions{idLon}.data;
-end
-
-idLat = getVar(sample_data.dimensions, 'LATITUDE');
-if idLat > 0
-    dataLat = sample_data.dimensions{idLat}.data;
+types = {'dimensions', 'variables'};
+type = [];
+for i=1:2
+    idLon = getVar(sample_data.(types{i}), 'LONGITUDE');
+    if any(idLon)
+        dataLon = sample_data.(types{i}){idLon}.data;
+        type = types{i};
+    end
+    idLat = getVar(sample_data.(types{i}), 'LATITUDE');
+    if any(idLat)
+        dataLat = sample_data.(types{i}){idLat}.data;
+        type = types{i};
+    end
+    if ~isempty(type), break; end
 end
 
 if ~isempty(dataLon) && ~isempty(dataLat)
@@ -120,8 +126,8 @@ if ~isempty(dataLon) && ~isempty(dataLat)
             flagLat(iGoodLat) = passFlag;
         end
         
-        sample_data.dimensions{idLon}.flags = flagLon;
-        sample_data.dimensions{idLat}.flags = flagLat;
+        sample_data.(type){idLon}.flags = flagLon;
+        sample_data.(type){idLat}.flags = flagLat;
         
         varChecked = {'LATITUDE', 'LONGITUDE'};
         
