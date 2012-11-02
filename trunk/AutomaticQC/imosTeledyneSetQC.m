@@ -64,6 +64,8 @@ idUcur = 0;
 idVcur = 0;
 idWcur = 0;
 idEcur = 0;
+idCspd = 0;
+idCdir = 0;
 idADCP_GOOD = cell(4, 1);
 idABSI      = cell(4, 1);
 idADCP_CORR = cell(4, 1);
@@ -78,6 +80,8 @@ for i=1:lenVar
     if strcmpi(sample_data.variables{i}.name, 'VCUR'), idVcur = i; end
     if strcmpi(sample_data.variables{i}.name, 'WCUR'), idWcur = i; end
     if strcmpi(sample_data.variables{i}.name, 'ECUR'), idEcur = i; end
+    if strcmpi(sample_data.variables{i}.name, 'CSPD'), idCspd = i; end
+    if strcmpi(sample_data.variables{i}.name, 'CDIR'), idCdir = i; end
     for j=1:4
         cc = int2str(j);
         if strcmpi(sample_data.variables{i}.name, ['ADCP_GOOD_' cc]),   idADCP_GOOD{j}  = i; end
@@ -141,7 +145,7 @@ iFail = ~iPass;
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
 
-% same flags are given to any U, V or W variable
+% same flags are given to any variable
 flags = ones(sizeCur)*rawFlag;
 
 %Run QC filter (iFail) on velocity data
@@ -153,6 +157,16 @@ sample_data.variables{idVcur}.flags = flags;
 sample_data.variables{idWcur}.flags = flags;
 
 varChecked = {'UCUR', 'VCUR', 'WCUR'};
+
+if any(idCspd)
+    sample_data.variables{idCspd}.flags = flags;
+    varChecked = [varChecked, {'CSPD'}];
+end
+
+if any(idCdir)
+    sample_data.variables{idCdir}.flags = flags;
+    varChecked = [varChecked, {'CDIR'}];
+end
 
 end
 

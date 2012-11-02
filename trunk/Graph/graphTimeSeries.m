@@ -56,10 +56,6 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   if ~ishandle( parent),       error('parent must be a handle');      end
   if ~isstruct( sample_data),  error('sample_data must be a struct'); end
   if ~isnumeric(vars),         error('vars must be a numeric');       end
-    
-  if isempty(vars)
-    return; 
-  end
   
   % get rid of variables that we should ignore
   sample_data.variables = sample_data.variables(vars);
@@ -67,6 +63,11 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   
   graphs = nan(lenVar, 1);
   lines = nan(lenVar, 1);
+  
+  if isempty(vars)
+    return; 
+  end
+  
   distinctFlagsValue = [];
   
   iTimeDim = getVar(sample_data.dimensions, 'TIME');

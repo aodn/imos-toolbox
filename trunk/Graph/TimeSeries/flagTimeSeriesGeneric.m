@@ -101,14 +101,9 @@ for m = 1:lenFlag
     % Create a UICONTEXTMENU, and assign a UIMENU to it
     hContext = uicontextmenu;
     hMenu = uimenu('parent',hContext);
+    set(hMenu, 'label', fn);
     
     % Set the UICONTEXTMENU to the line object
     set(flags(m),'uicontextmenu',hContext);
-    
-    % Create a WindowButtonDownFcn callback that will update
-    % the label on the UICONTEXTMENU's UIMENU
-%     set(gcf,'WindowButtondownFcn', ...
-%         'set(hMenu, ''label'', fn)');
-    set(hMenu, 'label', fn);
     
 end
