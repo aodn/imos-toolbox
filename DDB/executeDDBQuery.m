@@ -148,6 +148,7 @@ function strs = java2struct(list)
     
     % for each field in the java object
     fields = fieldnames(obj);
+    
     for m = 1:length(fields)
       
       field = fields{m};

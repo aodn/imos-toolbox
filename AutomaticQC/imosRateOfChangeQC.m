@@ -129,6 +129,8 @@ if any(iParam)
         iBadData = sample_data.variables{k}.flags(:,i) == badFlag;
         dataTested = lineData(~iBadData);
         
+        if isempty(dataTested), return; end
+        
         lenLineData = length(lineData);
         lenDataTested = length(dataTested);
         
@@ -136,7 +138,10 @@ if any(iParam)
         flagsTested = ones(lenDataTested, 1)*rawFlag;
         
         % let's consider time in seconds
-        time  = sample_data.dimensions{1}.data * 24 * 3600;
+        tTime = 'dimensions';
+        iTime = getVar(sample_data.(tTime), 'TIME');
+        if iTime == 0, return; end
+        time = sample_data.(tTime){iTime}.data * 24 * 3600;
         if size(time, 1) == 1
             % time is a row, let's have a column instead
             time = time';
