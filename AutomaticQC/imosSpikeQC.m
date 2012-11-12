@@ -116,6 +116,8 @@ if any(iParam)
     iBadData = sample_data.variables{k}.flags == badFlag;
     dataTested = data(~iBadData);
     
+    if isempty(dataTested), return; end
+    
     lenData = length(data);
     lenDataTested = length(dataTested);
     
@@ -141,7 +143,14 @@ if any(iParam)
         - abs((data3 - data1)/2));
     
     % let's consider time in seconds
-    time  = sample_data.dimensions{1}.data * 24 * 3600;
+    tTime = 'dimensions';
+    iTime = getVar(sample_data.(tTime), 'TIME');
+    if iTime == 0
+        tTime = 'variables';
+        iTime = getVar(sample_data.(tTime), 'TIME');
+        if iTime == 0, return; end
+    end
+    time = sample_data.(tTime){iTime}.data * 24 * 3600;
     if size(time, 1) == 1
         % if time is a row, let's have a column instead
         time = time';
