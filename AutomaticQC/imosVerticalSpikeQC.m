@@ -1,12 +1,12 @@
-function [data, flags, paramsLog] = imosSpikeQC( sample_data, data, k, type, auto )
-%IMOSSPIKEQC Flags any variable present in imosSpikeQC.txt according to the 
+function [data, flags, paramsLog] = imosVerticalSpikeQC( sample_data, data, k, type, auto )
+%IMOSSPIKEQC Flags any variable present in imosVerticalSpikeQC.txt according to the 
 % associated threshold in the given data set.
 %
-% Spike test from ARGO which finds and flags any data which value Vn passes
+% Spike test on profiles data from ARGO which finds and flags any data which value Vn passes
 % the test |Vn-(Vn+1 + Vn-1)/2| - |(Vn+1 - Vn-1)/2| > threshold
 %
 % These threshold values are handled for each IMOS parameter in
-% imosSpikeQC.txt
+% imosVerticalSpikeQC.txt
 %
 % Inputs:
 %   sample_data - struct containing the data set.
@@ -75,7 +75,7 @@ flags     = [];
 if ~strcmp(type, 'variables'), return; end
 
 % read all values from imosSpikeQC properties file
-values = readProperty('*', fullfile('AutomaticQC', 'imosSpikeQC.txt'));
+values = readProperty('*', fullfile('AutomaticQC', 'imosVerticalSpikeQC.txt'));
 param = strtrim(values{1});
 thresholdExpr = strtrim(values{2});
 
