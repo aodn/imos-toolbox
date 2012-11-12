@@ -75,6 +75,18 @@ time_in_water = sample_data.time_deployment_start;
 time_out_water = sample_data.time_deployment_end;
 
 if isempty(time_in_water), return; end
+if isempty(time_out_water), return; end
+
+% time = sample_data.dimensions{1}.data;
+
+tTime = 'dimensions';
+iTime = getVar(sample_data.(tTime), 'TIME');
+if iTime == 0
+    tTime = 'variables';
+    iTime = getVar(sample_data.(tTime), 'TIME');
+    if iTime == 0, return; end
+end
+time = sample_data.(tTime){iTime}.data;
 
 qcSet     = str2double(readProperty('toolbox.qc_set'));
 rawFlag   = imosQCFlag('raw', qcSet, 'flag');
@@ -97,15 +109,13 @@ lenData = length(data);
 % initially all data is bad
 flags = ones(lenData, 1)*failFlag;
 
-% find samples which were taken before in water
-time = sample_data.dimensions{1}.data;
-
 % case data is originaly a matrix
 lenTime = length(time);
 if lenData > lenTime
     time = repmat(time, lenData/lenTime, 1);
 end
 
+% find samples which were taken before in water
 iGood = time >= time_in_water;
 iGood = iGood & time <= time_out_water;
 

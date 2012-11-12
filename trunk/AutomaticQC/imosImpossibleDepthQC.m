@@ -188,7 +188,7 @@ if strcmpi(paramName, 'PRES') || ...
     % the global range test anyway.
     % possibleMax cannot be lower than the site depth
     siteDepth = nominalOffset*nominalData;
-    possibleMax = max(possibleMax, siteDepth + 10*siteDepth/100); % we allow +10% to the site Depth
+    possibleMax = min(possibleMax, siteDepth + 10*siteDepth/100); % we allow +10% to the site Depth
     
     if strcmpi(paramName, 'PRES')
         % convert depth into absolute pressure assuming 1 dbar ~= 1 m and

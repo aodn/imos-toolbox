@@ -102,6 +102,8 @@ if any(iParam)
     iBadData = sample_data.variables{k}.flags == badFlag;
     dataTested = data(~iBadData);
     
+    if isempty(dataTested), return; end
+    
     % matrix case, we unfold the matrix in one vector for timeserie study
     % purpose
     isMatrix = ismatrix(data);
