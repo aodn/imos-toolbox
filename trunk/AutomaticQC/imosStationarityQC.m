@@ -70,8 +70,6 @@ if nargin<5, auto=false; end
 paramsLog = [];
 flags     = [];
 
-if ~strcmp(type, 'variables'), return; end
-
 % read all values from imosGlobalRangeQC properties file
 values = readProperty('*', fullfile('AutomaticQC', 'imosGlobalRangeQC.txt'));
 param = strtrim(values{1});

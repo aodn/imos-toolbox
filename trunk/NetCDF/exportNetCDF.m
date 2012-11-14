@@ -61,7 +61,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
   filename = genIMOSFileName(sample_data, 'nc');
   filename = [dest filesep filename];
   
-  fid = netcdf.create(filename, 'NC_NOCLOBBER');
+  fid = netcdf.create(filename, 'NC_CLOBBER');
   if fid == -1, error(['could not create ' filename]); end
   
   % we don't want the API to automatically pre-fill with FillValue, we're
@@ -186,7 +186,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       if isfield(dims{m}, 'flags')
           % create the ancillary QC variable
           qcvid = addQCVar(...
-              fid, sample_data, m, [qcDimId did], 'dim', qcType, dateFmt);
+              fid, sample_data, m, [qcDimId did], 'dimensions', qcType, dateFmt, mode);
           sample_data.dimensions{m}.qcvid = qcvid;
       end
     end
@@ -243,7 +243,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       
       % create the ancillary QC variable
       qcvid = addQCVar(...
-        fid, sample_data, m, [qcDimId dids], 'var', qcType, dateFmt);
+        fid, sample_data, m, [qcDimId dids], 'variables', qcType, dateFmt, mode);
       
       % save variable IDs for later reference
       sample_data.variables{m}.vid   = vid;
@@ -362,7 +362,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
 end
 
 function vid = addQCVar(...
-  fid, sample_data, varIdx, dims, type, netcdfType, dateFmt)
+  fid, sample_data, varIdx, dims, type, netcdfType, dateFmt, mode)
 %ADDQCVAR Adds an ancillary variable for the variable with the given index.
 %
 % Inputs:
@@ -371,20 +371,21 @@ function vid = addQCVar(...
 %   varIdx      - Index into sample_data.variables, specifying the
 %                 variable.
 %   dims        - Vector of NetCDF dimension identifiers.
-%   type        - either 'dim' or 'var', to differentiate between
+%   type        - either 'dimensions' or 'variables', to differentiate between
 %                 coordinate variables and data variables.
 %   netcdfType  - The netCDF type in which the flags should be output.
 %   dateFmt     - Date format in which date attributes should be output.
+%   mode        - Toolbox processing mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   vid         - NetCDF variable identifier of the QC variable that was 
 %                 created.
 %
   switch(type)
-    case 'dim'
+    case 'dimensions'
       var = sample_data.dimensions{varIdx};
       template = 'qc_coord';
-    case 'var'
+    case 'variables'
       var = sample_data.variables{varIdx};
       template = 'qc';
     otherwise
@@ -403,10 +404,11 @@ function vid = addQCVar(...
   
   % get qc flag values
   qcFlags = imosQCFlag('', sample_data.quality_control_set, 'values');
-  qcDescs = {};
+  nQcFlags = length(qcFlags);
+  qcDescs = cell(nQcFlags);
   
   % get flag descriptions
-  for k = 1:length(qcFlags)
+  for k = 1:nQcFlags
     qcDescs{k} = ...
       imosQCFlag(qcFlags(k), sample_data.quality_control_set, 'desc');
   end
@@ -424,6 +426,80 @@ function vid = addQCVar(...
   % turn descriptions into space separated string
   qcDescs = cellfun(@(x)(sprintf('%s ', x)), qcDescs, 'UniformOutput', false);
   qcAtts.flag_meanings = [qcDescs{:}];
+  
+  % let's compute percentage of good data over in water data, following 
+  % Argo reference table 2a conventions from 
+  % http://www.argodatamgt.org/content/download/12096/80327/file/argo-dm-user-manual.pdf
+  goodFlags = [imosQCFlag('good', sample_data.quality_control_set, 'flag'), ...
+      imosQCFlag('probablyGood', sample_data.quality_control_set, 'flag'), ...
+      imosQCFlag('changed', sample_data.quality_control_set, 'flag')];
+  notUsedFlags = imosQCFlag('missing', sample_data.quality_control_set, 'flag');
+  rawFlags = imosQCFlag('raw', sample_data.quality_control_set, 'flag');
+  
+  % we only want to consider flags when data has been collected in position
+  switch mode
+      case 'profile'
+          iInWater = true(size(sample_data.(type){varIdx}.data));
+          
+      otherwise
+          % inOutWater test don't apply on dimensions for timeseries data
+          if ~strcmp(type, 'variables')
+              iInWater = true(size(sample_data.(type){varIdx}.data));
+          else
+              tTime = 'dimensions';
+              iTime = getVar(sample_data.(tTime), 'TIME');
+              noTime = false;
+              if iTime == 0
+                  tTime = 'variables';
+                  iTime = getVar(sample_data.(tTime), 'TIME');
+                  if iTime == 0
+                      noTime = true;
+                  end
+              end
+              
+              if noTime
+                  iInWater = true(size(sample_data.(type){varIdx}.data));
+              else
+                  iInWater = sample_data.(tTime){iTime}.data >= sample_data.time_deployment_start & ...
+                      sample_data.(tTime){iTime}.data <= sample_data.time_deployment_end;
+                  if size(sample_data.(type){varIdx}.data, 1) > 1 && size(sample_data.(type){varIdx}.data, 2) > 1
+                      iInWater = repmat(iInWater, 1, size(sample_data.(type){varIdx}.data, 2));
+                  end
+              end
+          end
+  end
+
+  % we don't consider missing value flags
+  iMissing = sample_data.(type){varIdx}.flags == notUsedFlags;
+  
+  flags = sample_data.(type){varIdx}.flags(iInWater & ~iMissing);
+  
+  % check if no QC
+  iRaw = flags == rawFlags;
+  if all(iRaw)
+      qcAtts.quality_control_global = ' ';
+  else
+      nData = numel(flags);
+      iGood = false(size(flags));
+      for i=1:length(goodFlags)
+          iGood = iGood | flags == goodFlags(i);
+      end
+      
+      N = numel(flags(iGood))/nData * 100;
+      if N == 100
+          qcAtts.quality_control_global = 'A';
+      elseif N >= 75 && N < 100
+          qcAtts.quality_control_global = 'B';
+      elseif N >= 50 && N < 75
+          qcAtts.quality_control_global = 'C';
+      elseif N >= 25 && N < 50
+          qcAtts.quality_control_global = 'D';
+      elseif N > 0 && N < 25
+          qcAtts.quality_control_global = 'E';
+      elseif N == 0
+          qcAtts.quality_control_global = 'F';
+      end
+  end
   
   vid = netcdf.defVar(fid, varname, netcdfType, dims);
   putAtts(fid, vid, var, qcAtts, template, netcdfType, dateFmt, '');
@@ -447,7 +523,7 @@ function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mod
 %                  originated.
 %   netcdfType   - type to use for casting valid_min/valid_max/_FillValue attributes.
 %   dateFmt      - format to use for writing date attributes.
-%   mode         - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode         - Toolbox processing mode ('profile' or 'timeSeries').
 %  
 
   % we convert the NetCDF required data type into a casting function towards the

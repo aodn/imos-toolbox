@@ -73,6 +73,11 @@ b5 = -0.0144;
 k  =  0.0162;
 
 Rtx   = sqrt(Rt);
+
+% let's cope with the case Rt is negative!
+iRtNeg = Rt < 0;
+Rtx(iRtNeg) = NaN;
+
 del_S = (del_T68 ./ (1+k*del_T68) ) .* ...
         ( b0 + (b1 + (b2+ (b3 + (b4 + b5.*Rtx).*Rtx).*Rtx).*Rtx).*Rtx);
 
