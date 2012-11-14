@@ -352,7 +352,7 @@ function header = parseProcessedHeader(headerLines)
   nameExpr = 'name \d+ = (.+):';
   nvalExpr = 'nvalues = (\d+)';
   badExpr  = 'bad_flag = (.*)$';
-  intervalExpr = 'interval = (.*): ([\d\.\+)$';
+  intervalExpr = 'interval = (.+): ([\d]+)$';
   %BDM (18/02/2011) - added to get start time
   startExpr = 'start_time = (.+)';
   
@@ -442,13 +442,13 @@ else
     if isfield(procHeader, 'interval')
         switch procHeader.resolution
             case 'seconds'
-                interval = procHeader.interval;
+                interval = procHeader.interval / (60*60*24);
             case 'minutes'
-                interval = procHeader.interval*60;
+                interval = procHeader.interval / (60*24);
             case 'hours'
-                interval = procHeader.interval*3600;
+                interval = procHeader.interval / 24;
             case 'days'
-                interval = procHeader.interval*3600*24;
+                interval = procHeader.interval;
         end
     end
 end

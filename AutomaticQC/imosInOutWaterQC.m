@@ -69,15 +69,21 @@ if nargin<5, auto=false; end
 paramsLog = [];
 flags     = [];
 
-if ~strcmp(type, 'variables'), return; end
+% this test don't apply on dimensions for timeseries data
+if isfield(sample_data, 'featureType')
+    if strcmpi(sample_data.featureType, 'timeSeries')
+        if ~strcmp(type, 'variables'), return; end
+    end
+else
+    % if doubt we don't allow test on any dimension
+    if ~strcmp(type, 'variables'), return; end
+end
 
 time_in_water = sample_data.time_deployment_start;
 time_out_water = sample_data.time_deployment_end;
 
 if isempty(time_in_water), return; end
 if isempty(time_out_water), return; end
-
-% time = sample_data.dimensions{1}.data;
 
 tTime = 'dimensions';
 iTime = getVar(sample_data.(tTime), 'TIME');

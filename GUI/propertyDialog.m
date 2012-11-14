@@ -58,6 +58,8 @@ function propertyDialog( filename, delim )
   % get property names and values
   [names values] = listProperties(filename, delim);
   
+  if all(strcmpi(values, '')), return; end
+  
   % create dialog and widgets
   f = figure(...
     'Name',        filename, ...
@@ -67,30 +69,29 @@ function propertyDialog( filename, delim )
     'WindowStyle', 'Modal',...
     'NumberTitle', 'off'...
   );
-  
-  confirmButton = uicontrol('Style', 'pushbutton', 'String', 'Ok');
-  cancelButton  = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
+
+  confirmButton = uicontrol('Parent', f, 'Style', 'pushbutton', 'String', 'Ok');
+  cancelButton  = uicontrol('Parent', f, 'Style', 'pushbutton', 'String', 'Cancel');
   
   % create property name labels and value fields
+  % with alternate background colour for each row
   nameLabels  = [];
   valueFields = [];
   
   for k = 1:length(names)
     
     nameLabels(k)  = uicontrol(...
+      'Parent', f, ...
       'Style', 'text', ...
       'String', names{k},...
       'HorizontalAlignment', 'left');
     valueFields(k) = uicontrol(...
+      'Parent', f, ...
       'Style', 'edit', ...
       'String', values{k}, ...
       'UserData', k,...
       'HorizontalAlignment', 'left');
-  end
   
-  % alternate background colour for each row
-  for k = 1:length(names)
-      
     if mod(k, 2) ~= 0
       
       color = get(nameLabels(k), 'BackgroundColor');
@@ -116,7 +117,6 @@ function propertyDialog( filename, delim )
   rlen = 0.9 / k;
   
   for k = 1:length(names)
-    
     set(nameLabels(k),  'Position', [0.0, 1.0 - rlen * k, 0.5, rlen]);
     set(valueFields(k), 'Position', [0.5, 1.0 - rlen * k, 0.5, rlen]);
   end

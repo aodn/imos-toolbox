@@ -3,10 +3,10 @@ S, project                      = Integrated Marine Observing System (IMOS)
 S, Conventions                  = CF-1.6,IMOS-1.3
 S, standard_name_vocabulary     = CF-1.6
 S, title                        = 
-S, institution                  = 
+S, institution                  = ANMN-[mat updateIfEmpty(strfind('[ddb Site Sites Description]', 'NRS'), 'NSW', 'NRS')]
 D, date_created                 = [mat now_utc]
 D, date_modified                = 
-S, abstract                     = 
+S, abstract                     = [ddb Site Sites Description]
 S, comment                      = [ddb Comment]
 S, source                       = CTD profile
 S, instrument                   = [ddb InstrumentID Instruments Make] [ddb InstrumentID Instruments Model]
@@ -16,9 +16,9 @@ S, netcdf_version               = 3.6
 N, quality_control_set          = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
 S, cruise		              	= [ddb FieldTrip]
 S, station		              	= [ddb Station]
-S, site_code                    = 
+S, site_code                    = [ddb Site Sites SiteName]
 S, platform_code                = 
-S, deployment_code              = 
+S, deployment_code              = [ddb Site]
 S, featureType 					= profile
 S, naming_authority             = IMOS
 S, metadata                     = 
@@ -39,8 +39,8 @@ N, geospatial_lon_min      	= [ddb Longitude]
 N, geospatial_lon_max      	= [ddb Longitude]
 N, instrument_nominal_height= 
 N, instrument_nominal_depth = 
-N, site_nominal_depth      	= 
-N, site_depth_at_station	= 
+N, site_nominal_depth      	= [ddb Site Sites Depth]
+N, site_depth_at_station	= [ddb SiteDepth]
 
 % if left empty, these fields are automatically populated upon import 
 % when DEPTH variable exist (if not use depthPP pre-processing routine)
@@ -49,7 +49,7 @@ N, geospatial_vertical_max =
 S, geospatial_vertical_positive = down
 
 % when
-N, local_time_zone     		= 
+N, local_time_zone     		= +10
 
 % these fields are automatically populated upon import
 D, time_deployment_start 	= 
@@ -60,15 +60,15 @@ D, time_coverage_end   		=
 % who
 S, data_centre                  = eMarine Information Infrastructure (eMII)
 S, data_centre_email            = info@emii.org.au
-S, author_email                 = 
-S, author                       = 
-S, principal_investigator       = 
-S, principal_investigator_email = 
+S, author_email                 = t.austin@unsw.edu.au
+S, author                       = Austin, Timothy
+S, principal_investigator       = Roughan, Moninya
+S, principal_investigator_email = mroughan@unsw.edu.au
 S, institution_references       = http://www.imos.org.au/emii.html
 
 % how
 S, lineage				   = Data were processed according to standard ANMN-NRS procedures before conversion to NetCDF. See link for details : http://imos.org.au/fileadmin/user_upload/shared/IMOS%20General/documents/Facility_manuals/NRS_sampling_Manual_Data_Processing_Guide_Draftv1_5b_IngletonMorris.pdf
 S, citation                = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-url], accessed [date-of-access]"
-S, acknowledgement         = Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - an initiative of the Australian Government being conducted as part of the National Collaborative Research Infrastructure Strategy and and the Super Science Initiative."
-S, distribution_statement  = Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
+S, acknowledgement         = [mat updateIfEmpty(strfind('[ddb Site Sites SiteName]', 'ORS'), 'Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - an initiative of the Australian Government being conducted as part of the National Collaborative Research Infrastructure Strategy and and the Super Science Initiative."', ['Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - an initiative of the Australian Government being conducted as part of the National Collaborative Research Infrastructure Strategy and and the Super Science Initiative."' char(10) 'Users of ORS data should acknowledge the Sydney Water Corporation as for their collection of the material.'])]
+S, distribution_statement  = [mat updateIfEmpty(strfind('[ddb Site Sites SiteName]', 'ORS'), 'Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.', ['Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.' char(10) 'Users of this data will be bound by terms and conditions of an agreement with the Sydney Water Corporation (SWC). The agreement conditions are set out as follows:' char(10) 'LIABILITY' char(10) '1. The Material is provided solely on an "as is" basis and the Recipient acknowledges that the entire risk as to quality, adaptability, and performance is wholly accepted by the Recipient. SWC does not guarantee, warrant, nor make any representation regarding the use of, or the results of the use of the Material in terms of correctness, accuracy or otherwise. The Recipient relies on its own enquiries to determine the suitability of the Material for any intended use.' char(10) '2. SWC does not assume any liability arising from the use of the Material by the Recipient for any direct, indirect, incidental or consequential, special or exemplary damages, regardless of its having been advised of the possibility of such damages.' char(10) '3. The Recipient acknowledges the receipt of a licence to use the Material and that the dealing between it and SWC does not imply any liability based on the arrangements made for the supply of the Material.' char(10) 'LICENCE' char(10) '4. SWC grants to the Recipient a non exclusive licence to the Material for its personal use. The Recipient may make copies of the Material provided it retains those copies in its possession. The Recipient undertakes not to distribute the Material further, nor to use it to gain commercial benefit, and to refer any requests for supply of the Material to SWC.' char(10) 'TERMINATION' char(10) '5. SWC may terminate this licence for any breach of this agreement by the Recipient. Termination shall occur immediately following service upon the Recipient by SWC of a notice to that effect. The Recipient shall cease to make use of the Material immediately following its receipt of the notice and shall within 10 working days of termination return the Material to SWC together with all copies of it made by the Recipient' char(10) 'EXPIRATION OF TERM' char(10) '6. Within 10 working days of the expiration of the Agreement, the Recipient shall return to SWC all the Material provided under this Agreement together with all copies held by the Recipient.' char(10) '7. Any publication rights established under this Agreement also cease on expiration of the Agreement and the Recipient agrees not to publish any work which relies on the Material provided by SWC.' char(10) 'CONFIDENTIALITY' char(10) '8. The Recipient shall ensure that the Material provided by SWC is used, copied, supplied or reproduced only for its personal use and shall be solely responsible for the safe keeping and maintenance of the Material provided by SWC under this Agreement.' char(10) '9. The Recipient may not, without prior written approval disclose to any person other than SWC personnel, any SWC Material or Confidential Information provided under this Agreement. In giving written approval SWC may impose such terms and conditions as it thinks fit.' char(10) 'PUBLICATION' char(10) '10. The Recipient shall not make any public announcements in relation to the Material without the prior written approval of SWC.' char(10) '11. The Recipient may publish either orally or in writing the results of its own work which relies on the Material supplied by SWC provided that it:' char(10) 'a. by request contained in a written notification to SWC seeks approval for any such publication; and,' char(10) 'b. provides at the time of notification a copy of the statement or article intended for publication.' char(10) 'c. recognises in the publication the contribution made by SWC in providing the Material via an acknowledgement or some other form of recognition.' char(10) '12. SWC shall have thirty working (30) days from receipt of the notification to consider the request to publish and shall advise the Publishing Party in writing either that:' char(10) 'a. it approves of the intended publication as presented or after incorporating changes agreed to by the Recipient and SWC.' char(10) 'b. it disapproves of the intended publication, stating the reasons for not approving.' char(10) '13. If SWC has not responded to a request within thirty (30) working days, it shall be taken to have approved publication.' char(10) '14. SWC will not withhold its approval unless it believes, on reasonable grounds, that the commercial position or the objectives of SWC will be prejudiced by such publication or disclosure.' char(10) '15. If SWC does not approve of the publication, the Recipient agrees that the results of its work which relied on Material provided by SWC as part of this agreement will not be published either orally or in writing.' char(10) 'GOVERNING LAW' char(10) '16. This Agreement is governed by and shall be construed in accordance with the laws of the State of New South Wales and the Recipient agrees to submit to the jurisdiction of the courts of that State.' char(10) '17. Where the Agreement provides SWC Material containing information relating to its customers or those who provide services to SWC the Recipient must also comply with the Privacy and Personal Protection Act, NSW (1998).' char(10) 'INTERPRETATION:' char(10) '- "Confidential Information" means all information constituting or relating to SWC acquired under this Agreement whether orally or in writing or by electronic transfer. It excludes information in the public domain other than through any breach of confidence; and information which can be shown by contemporaneous documentation to be known to the Recipient from a source other than the SWC, prior to the commencement of the Agreement.' char(10) '- "Recipient" includes the employees and any authorised sub-contractors and agents of the person signing this document;' char(10) '- "Material" means any Material provided by the SWC to the Recipient of this Agreement including, but not limited to, documents, equipment, goods, information, any item of Background Intellectual Property, and data stored by any means.'])]
 S, project_acknowledgement = The collection of this data was funded by IMOS
