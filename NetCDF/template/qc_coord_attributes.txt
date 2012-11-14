@@ -1,16 +1,18 @@
-S, long_name                   = quality flag for [mat imosParameters(sample_data.dimensions{k}.name, 'long_name')]
-S, standard_name               = [mat regexprep(strcat(imosParameters(sample_data.dimensions{k}.name, 'standard_name'), ' status_flag'),  '^ .*', '')]
-Q, valid_min                   = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'min')]
-Q, valid_max                   = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'max')]
-Q, _FillValue                  = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'fill_value')]
-N, add_offset                  = 
-N, scale_factor                = 
-S, comment                     = 
-S, history                     = 
-S, references                  = 
-N, quality_control_set         = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
-S, quality_control_conventions = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'set_desc')]
+S, long_name                            = quality flag for [mat imosParameters(sample_data.dimensions{k}.name, 'long_name')]
+S, standard_name                        = [mat regexprep(strcat(imosParameters(sample_data.dimensions{k}.name, 'standard_name'), ' status_flag'),  '^ .*', '')]
+Q, valid_min                            = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'min')]
+Q, valid_max                            = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'max')]
+Q, _FillValue                           = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'fill_value')]
+N, add_offset                           = 
+N, scale_factor                         = 
+S, comment                              = 
+S, history                              = 
+S, references                           = 
+N, quality_control_set                  = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
+S, quality_control_conventions          = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'set_desc')]
 
 % these fields are automatically populated upon NetCDF export
-Q, flag_values                 = 
-S, flag_meanings               = 
+Q, flag_values                          = 
+S, flag_meanings                        = 
+S, quality_control_global_conventions   = Argo reference table 2a, applied on data in position only (between global attributes time_deployment_start and time_deployment_end)
+Q, quality_control_global               = 

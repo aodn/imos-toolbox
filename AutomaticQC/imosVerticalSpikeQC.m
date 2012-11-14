@@ -72,8 +72,6 @@ if nargin<5, auto=false; end
 paramsLog = [];
 flags     = [];
 
-if ~strcmp(type, 'variables'), return; end
-
 % read all values from imosSpikeQC properties file
 values = readProperty('*', fullfile('AutomaticQC', 'imosVerticalSpikeQC.txt'));
 param = strtrim(values{1});
