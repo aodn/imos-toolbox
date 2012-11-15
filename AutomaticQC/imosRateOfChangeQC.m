@@ -153,14 +153,20 @@ if any(iParam)
             sample_data.variables{k}.flags(:,i) == pGoodFlag | ...
             sample_data.variables{k}.flags(:,i) == rawFlag);
         dataRelevant = lineData(iGoodData);
+        clear lineData;
         timeRelevant = time(iGoodData);
         iFirstNotBad = find(iGoodData, 1, 'first');
+        clear iGoodData
         iRelevantTimePeriod = (timeRelevant >= time(iFirstNotBad) & timeRelevant <= time(iFirstNotBad)+30*24*2600);
+        clear timeRelevant
         stdDev = std(dataRelevant(iRelevantTimePeriod));
+        clear dataRelevant
         
         previousGradient    = [0; abs(dataTested(2:end) - dataTested(1:end-1))]; % we don't know about the first point
         nextGradient        = [abs(dataTested(1:end-1) - dataTested(2:end)); 0]; % we don't know about the last point
+        clear dataTested
         doubleGradient      = previousGradient + nextGradient;
+        clear previousGradient nextGradient
         
         % let's compute threshold values
         try
@@ -178,22 +184,28 @@ if any(iParam)
         
         iGoodGrad = doubleGradient <= threshold;
         iBadGrad = doubleGradient > threshold;
+        clear doubleGradient threshold
         
         % if the time period between a point and its previous is greater than 1h, then the
         % test is cancelled and QC is set to Raw for current points.
         time(iBadData) = [];
         diffTime = time(2:end) - time(1:end-1);
         iGreater = diffTime > 3600;
+        clear diffTime
         iGreater = [false; iGreater];
         iGoodGrad(iGreater) = false;
         iBadGrad(iGreater)  = false;
+        clear iGreater
         
         % we do the same with the second gradient
         diffTime = abs(time(1:end-1) - time(2:end));
+        clear time
         iGreater = diffTime > 3600;
+        clear diffTime
         iGreater = [iGreater; false];
         iGoodGrad(iGreater) = false;
         iBadGrad(iGreater)  = false;
+        clear iGreater
         
         if any(iGoodGrad)
             flagsTested(iGoodGrad) = passFlag;
@@ -207,5 +219,6 @@ if any(iParam)
             lineFlags(~iBadData) = flagsTested;
             flags(:,i) = lineFlags;
         end
+        clear iGoodGrad iBadGrad iBadData flagsTested lineFlags
     end
 end
