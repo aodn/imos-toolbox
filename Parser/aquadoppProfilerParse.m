@@ -163,6 +163,7 @@ sample_data.toolbox_input_file              = filename;
 sample_data.meta.head                       = head;
 sample_data.meta.hardware                   = hardware;
 sample_data.meta.user                       = user;
+sample_data.meta.binSize                    = cellLength;
 sample_data.meta.instrument_make            = 'Nortek';
 sample_data.meta.instrument_model           = 'Aquadopp Profiler';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;

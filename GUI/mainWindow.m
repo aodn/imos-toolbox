@@ -254,16 +254,22 @@ function mainWindow(...
   set(hPan, 'ActionPostCallback', @zoomPostCallback);
   
   %set uimenu
-  hToolsMenu        = uimenu(fig, 'label', 'Tools');
-  hToolsDepth       = uimenu(hToolsMenu, 'label', 'Display mooring''s depths');
-  hToolsTemp        = uimenu(hToolsMenu, 'label', 'Display mooring''s variables');
-  hHelpMenu         = uimenu(fig, 'label', 'Help');
-  hHelpWiki         = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
+  hToolsMenu            = uimenu(fig, 'label', 'Tools');
+  hToolsDepth           = uimenu(hToolsMenu, 'label', 'Display mooring''s depths');
+  hToolsDepthNonQC      = uimenu(hToolsDepth, 'label', 'non QC');
+  hToolsDepthQC         = uimenu(hToolsDepth, 'label', 'QC');
+  hToolsCommonVar       = uimenu(hToolsMenu, 'label', 'Display mooring''s variables');
+  hToolsCommonVarNonQC  = uimenu(hToolsCommonVar, 'label', 'non QC');
+  hToolsCommonVarQC     = uimenu(hToolsCommonVar, 'label', 'QC');
+  hHelpMenu             = uimenu(fig, 'label', 'Help');
+  hHelpWiki             = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
   
   %set menu callbacks
-  set(hToolsDepth,      'callBack', @displayMooringDepth);
-  set(hToolsTemp,       'callBack', @displayMooringVar);
-  set(hHelpWiki,        'callBack', @openWikiPage);
+  set(hToolsDepthNonQC,     'callBack', {@displayMooringDepth, false});
+  set(hToolsDepthQC,        'callBack', {@displayMooringDepth, true});
+  set(hToolsCommonVarNonQC, 'callBack', {@displayMooringVar, false});
+  set(hToolsCommonVarQC,    'callBack', {@displayMooringVar, true});
+  set(hHelpWiki,            'callBack', @openWikiPage);
   
   %% Widget Callbacks
   
@@ -409,10 +415,13 @@ function mainWindow(...
   end
 
   %% Menu callback
-  function displayMooringDepth(source,ev)
+  function displayMooringDepth(source,ev, isQC)
   %DISPLAYMOORINGDEPTH Opens a new window where all the nominal depths and
   %actual/computed depths from intruments on the mooring are plotted.
   %
+    stringQC = 'non QC';
+    if isQC, stringQC = 'QC'; end
+    
     lenSampleData = length(sample_data);
     %plot depth information
     monitorRec = get(0,'MonitorPosition');
@@ -420,13 +429,13 @@ function mainWindow(...
     iBigMonitor = xResolution == max(xResolution);
     if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
     hFigMooringDepth = figure(...
-        'Name', 'Mooring''s instruments depths', ...
+        'Name', ['Mooring''s instruments ' stringQC '''d depths'], ...
         'NumberTitle','off', ...
         'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
     hAxMooringDepth = axes('Parent',   hFigMooringDepth, 'YDir', 'reverse');
     set(get(hAxMooringDepth, 'XLabel'), 'String', 'Time')
     set(get(hAxMooringDepth, 'YLabel'), 'String', 'Depth (m)')
-    set(get(hAxMooringDepth, 'Title'), 'String', 'Mooring''s instruments depths')
+    set(get(hAxMooringDepth, 'Title'), 'String', ['Mooring''s instruments ' stringQC '''d depths'])
     hold(hAxMooringDepth, 'on');
     
     %sort instruments by meta.depth
@@ -435,10 +444,11 @@ function mainWindow(...
     xMax = nan(lenSampleData, 1);
     for i=1:lenSampleData
         metaDepth(i) = sample_data{i}.meta.depth;
-        xMin = min(sample_data{i}.dimensions{1}.data);
-        xMax = max(sample_data{i}.dimensions{1}.data);
+        iTime = getVar(sample_data{i}.dimensions, 'TIME');
+        xMin = min(sample_data{i}.dimensions{iTime}.data);
+        xMax = max(sample_data{i}.dimensions{iTime}.data);
     end
-    [~, iSort] = sort(metaDepth);
+    [metaDepth, iSort] = sort(metaDepth);
     xMin = min(xMin);
     xMax = max(xMax);
     set(hAxMooringDepth, 'XTick', (xMin:(xMax-xMin)/4:xMax));
@@ -455,31 +465,38 @@ function mainWindow(...
     hLineDepth = nan(lenSampleData+1, 1);
     for i=1:lenSampleData
         instrumentDesc{i+1} = sample_data{iSort(i)}.instrument;
-        if ~isnan(sample_data{i}.meta.depth)
-            metaDepth = sample_data{iSort(i)}.meta.depth;
-            instrumentDesc{i+1} = [instrumentDesc{i+1} ' (' num2str(metaDepth) 'm)'];
-            hLineDepth(1) = line([sample_data{iSort(i)}.dimensions{1}.data(1), sample_data{iSort(i)}.dimensions{1}.data(end)], ...
-                [metaDepth, metaDepth], ...
+        if ~isnan(metaDepth(i))
+            instrumentDesc{i+1} = [instrumentDesc{i+1} ' (' num2str(metaDepth(i)) 'm)'];
+            hLineDepth(1) = line([xMin, xMax], [metaDepth(i), metaDepth(i)], ...
                 'Color', 'black');
         else
             fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
                 ', the ''sample_data.meta.depth'' attribute is not documented.']);
         end
         
-        %look for the depth variable
-        lenVar = length(sample_data{iSort(i)}.variables);
-        iDepth = 0;
-        for j=1:lenVar
-            if strcmpi(sample_data{iSort(i)}.variables{j}.name, 'DEPTH')
-                iDepth = j;
-                break;
-            end
-        end
+        %look for time and depth variable
+        iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
+        iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
         
         if iDepth > 0
-            hLineDepth(i+1) = line(sample_data{iSort(i)}.dimensions{1}.data, ...
-                sample_data{iSort(i)}.variables{iDepth}.data, ...
-                'Color', cMap(i, :), 'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+            iGood = true(size(sample_data{iSort(i)}.variables{iDepth}.data));
+            
+            if isQC
+                %get time and depth QC information
+                timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
+                depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
+                
+                iGood = (timeFlags == 1 | timeFlags == 2) & (depthFlags == 1 | depthFlags == 2);
+            end
+            
+            if all(~iGood)
+               fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                   ', there is not any data with good flags.']);
+            else
+                hLineDepth(i+1) = line(sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
+                    sample_data{iSort(i)}.variables{iDepth}.data(iGood), ...
+                    'Color', cMap(i, :), 'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+            end
         else
             fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
                 ', there is no DEPTH variable.']);
@@ -496,10 +513,13 @@ function mainWindow(...
     legend(hLineDepth, instrumentDesc, 'Location', 'NorthEastOutside');
   end
 
-    function displayMooringVar(source,ev)
+    function displayMooringVar(source,ev, isQC)
     %DISPLAYMOORINGVAR Opens a new window where all the previously selected
     % variables collected by intruments on the mooring are plotted.
     %
+        stringQC = 'non QC';
+        if isQC, stringQC = 'QC'; end
+        
         % get all params that are in common in at least two datasets
         lenSampleData = length(sample_data);
         paramsName = {};
@@ -538,7 +558,7 @@ function mainWindow(...
             'SelectionMode', 'single', ...
             'ListSize', [150 150], ...
             'InitialValue', iTEMP, ...
-            'Name', 'Plot a variable accross all instruments in the mooring', ...
+            'Name', ['Plot a ' stringQC '''d variable accross all instruments in the mooring'], ...
             'PromptString', 'Select a variable :');
         
         if ok==0
@@ -556,13 +576,13 @@ function mainWindow(...
         iBigMonitor = xResolution == max(xResolution);
         if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
         hFigMooringTemp = figure(...
-            'Name', ['Mooring''s instruments ' varTitle], ...
+            'Name', ['Mooring''s instruments ' stringQC '''d ' varTitle], ...
             'NumberTitle','off', ...
             'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
         hAxMooringTemp = axes('Parent',   hFigMooringTemp);
         set(get(hAxMooringTemp, 'XLabel'), 'String', 'Time');
         set(get(hAxMooringTemp, 'YLabel'), 'String', [varName ' (' varUnit ')']);
-        set(get(hAxMooringTemp, 'Title'), 'String', ['Mooring''s instruments ' varTitle]);
+        set(get(hAxMooringTemp, 'Title'), 'String', ['Mooring''s instruments ' stringQC '''d ' varTitle]);
         hold(hAxMooringTemp, 'on');
         
         %sort instruments by meta.depth
@@ -574,7 +594,7 @@ function mainWindow(...
             xMin = min(sample_data{i}.dimensions{1}.data);
             xMax = max(sample_data{i}.dimensions{1}.data);
         end
-        [~, iSort] = sort(metaDepth);
+        [metaDepth, iSort] = sort(metaDepth);
         xMin = min(xMin);
         xMax = max(xMax);
         set(hAxMooringTemp, 'XTick', (xMin:(xMax-xMin)/4:xMax));
@@ -590,26 +610,33 @@ function mainWindow(...
         hLineVar = nan(lenSampleData, 1);
         for i=1:lenSampleData
             instrumentDesc{i} = sample_data{iSort(i)}.instrument;
-            if ~isnan(sample_data{i}.meta.depth)
-                metaDepth = sample_data{iSort(i)}.meta.depth;
-                instrumentDesc{i} = [instrumentDesc{i} ' (' num2str(metaDepth) 'm)'];
+            if ~isnan(metaDepth(i))
+                instrumentDesc{i} = [instrumentDesc{i} ' (' num2str(metaDepth(i)) 'm)'];
                 
-                %look for the variable
-                lenVar = length(sample_data{iSort(i)}.variables);
-                iVar = 0;
-                for j=1:lenVar
-                    if strcmpi(sample_data{iSort(i)}.variables{j}.name, varName)
-                        iVar = j;
-                        break;
-                    end
-                end
+                %look for time and relevant variable
+                iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
+                iVar = getVar(sample_data{iSort(i)}.variables, varName);
                 
                 if iVar > 0
-                    dataVar = sample_data{iSort(i)}.variables{iVar}.data;
-                    hLineVar(i) = line(sample_data{iSort(i)}.dimensions{1}.data, ...
-                        dataVar, ...
-                        'Color', cMap(i, :), ...
-                        'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+                    iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
+                    
+                    if isQC
+                        %get time and var QC information
+                        timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
+                        varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
+                        
+                        iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+                    end
+                    
+                    if all(~iGood)
+                        fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                            ', there is not any data with good flags.']);
+                    else
+                        hLineVar(i) = line(sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
+                            sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
+                            'Color', cMap(i, :), ...
+                            'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+                    end
                 end
             else
                 fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
