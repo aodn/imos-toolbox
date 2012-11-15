@@ -104,7 +104,7 @@ goodFlag = imosQCFlag('good', qcSet, 'flag');
 rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
 
 %Pull out ADCP bin details
-BinSize = sample_data.meta.fixedLeader.depthCellLength/100;
+BinSize = sample_data.meta.binSize;
 Bins    = sample_data.dimensions{idHeight}.data';
 
 %BDM - 16/08/2010 - Added if statement below to take into account ADCPs

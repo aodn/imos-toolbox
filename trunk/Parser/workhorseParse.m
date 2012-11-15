@@ -206,6 +206,7 @@ error(nargchk(1,2,nargin));
   % fill in the sample_data struct
   sample_data.toolbox_input_file        = filename;
   sample_data.meta.fixedLeader          = fixed;
+  sample_data.meta.binSize              = fixed.depthCellLength/100;
   sample_data.meta.instrument_make      = 'Teledyne RDI';
   sample_data.meta.instrument_model     = 'Workhorse ADCP';
   sample_data.meta.instrument_serial_no =  num2str(fixed.instSerialNumber);

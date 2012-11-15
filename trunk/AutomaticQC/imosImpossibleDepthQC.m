@@ -142,23 +142,23 @@ if strcmpi(paramName, 'PRES') || ...
     nominalData = [];
     nominalOffset = [];
     
-    if isfield(sample_data, 'instrument_nominal_depth')
+    if ~isempty(sample_data.instrument_nominal_depth)
         nominalData = sample_data.instrument_nominal_depth;
-        if isfield(sample_data, 'site_nominal_depth')
+        if ~isempty(sample_data.site_nominal_depth)
             nominalOffset = sample_data.site_nominal_depth / nominalData;
-        elseif isfield(sample_data, 'site_depth_at_deployment')
+        elseif ~isempty(sample_data.site_depth_at_deployment)
             nominalOffset = sample_data.site_depth_at_deployment / nominalData;
         end
-    elseif isfield(sample_data, 'instrument_nominal_height') ...
-            && isfield(sample_data, 'site_nominal_depth')
-        nominalData = sample_data.site_nominal_depth - ...
-            sample_data.instrument_nominal_height;
-        nominalOffset = sample_data.site_nominal_depth / nominalData;
-    elseif isfield(sample_data, 'instrument_nominal_height') ...
-            && isfield(sample_data, 'site_depth_at_deployment')
-        nominalData = sample_data.site_depth_at_deployment - ...
-            sample_data.instrument_nominal_height;
-        nominalOffset = sample_data.site_depth_at_deployment / nominalData;
+    elseif ~isempty(sample_data.instrument_nominal_height)
+        if ~isempty(sample_data.site_nominal_depth)
+            nominalData = sample_data.site_nominal_depth - ...
+                sample_data.instrument_nominal_height;
+            nominalOffset = sample_data.site_nominal_depth / nominalData;
+        elseif ~isempty(sample_data.site_depth_at_deployment)
+            nominalData = sample_data.site_depth_at_deployment - ...
+                sample_data.instrument_nominal_height;
+            nominalOffset = sample_data.site_depth_at_deployment / nominalData;
+        end
     end
     
     if isempty(nominalData) || isempty(nominalOffset)
