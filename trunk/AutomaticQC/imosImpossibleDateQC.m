@@ -85,7 +85,7 @@ if ~isempty(dataTime)
     lenData = length(dataTime);
     
     % initially all data is bad
-    flags = ones(lenData, 1)*failFlag;
+    flags = ones(lenData, 1, 'int8')*failFlag;
     
     % read site name from imosImpossibleDateQC properties file
     dateMin = readProperty('dateMin', fullfile('AutomaticQC', 'imosImpossibleDateQC.txt'));

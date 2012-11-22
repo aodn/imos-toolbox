@@ -96,7 +96,7 @@ if ~isempty(dataLon) && ~isempty(dataLat)
         lenData = length(dataLon);
         
         % initially all data is bad
-        flagLon = ones(lenData, 1)*failFlag;
+        flagLon = ones(lenData, 1, 'int8')*failFlag;
         flagLat = flagLon;
         
         %test location

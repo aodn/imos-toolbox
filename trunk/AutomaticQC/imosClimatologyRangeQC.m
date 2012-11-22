@@ -58,7 +58,6 @@ function [data, flags, paramsLog] = imosClimatologyRangeQC( sample_data, data, k
 
 error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),              error('sample_data must be a struct');      end
-if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
 if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
 if ~ischar(type),                       error('type must be a string');             end
 
@@ -399,7 +398,7 @@ if isVar
     end
     
     % at first every point is raw
-    flags = ones(lenData, 1)*rawFlag;
+    flags = ones(lenData, 1, 'int8')*rawFlag;
     
     % range test
     dataRangeMin = nan(lenData, 1);

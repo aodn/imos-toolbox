@@ -60,7 +60,6 @@ function [data, flags, paramsLog] = imosGlobalRangeQC ( sample_data, data, k, ty
 
 error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),              error('sample_data must be a struct');      end
-if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
 if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
 if ~ischar(type),                       error('type must be a string');             end
 
@@ -127,23 +126,24 @@ if any(iParam)
     
     % matrix case, we unfold the matrix in one vector for timeserie study
     % purpose
-    isMatrix = ismatrix(data);
+    isMatrix = size(data, 1)>1 & size(data, 2)>1;
     if isMatrix
         len1 = size(data, 1);
         len2 = size(data, 2);
+        len3 = size(data, 3);
         data = data(:);
     end
     lenData = length(data);
     
     % initialise all flags to non QC'd
-    flags = ones(lenData, 1)*rawFlag;
+    flags = ones(lenData, 1, 'int8')*rawFlag;
     
     if ~isempty(min) && ~isempty(max)
         if max ~= min
             paramsLog = ['min=' num2str(min) ', max=' num2str(max)];
             
             % initialise all flags to bad
-            flags = ones(lenData, 1)*rangeFlag;
+            flags = ones(lenData, 1, 'int8')*rangeFlag;
             
             iPassed = data <= max;
             iPassed = iPassed & data >= min;
@@ -161,7 +161,7 @@ if any(iParam)
     
     if isMatrix
         % we fold the vector back into a matrix
-        data = reshape(data, len1, len2);
-        flags = reshape(flags, len1, len2);
+        data = reshape(data, [len1, len2, len3]);
+        flags = reshape(flags, [len1, len2, len3]);
     end
 end

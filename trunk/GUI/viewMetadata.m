@@ -115,8 +115,10 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
   [tables(1) panels(1)] = createTable(globData, '', 'global', dateFmt, mode);
   
   for k = 1:lenDims
+%     [tables(k+1) panels(k+1)] = createTable(...
+%       dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt, mode);
     [tables(k+1) panels(k+1)] = createTable(...
-      dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt, mode);
+        dimData{k}, ['dimensions{' num2str(k) '}'], 'dimension', dateFmt, mode);
   end
   
   for k = 1:lenVars
@@ -164,7 +166,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
     % back when edited. also we want date fields to be 
     % displayed nicely, not to show up as a numeric value
     templateDir = readProperty('toolbox.templateDir');
-    for i = 1:length(data)
+    for i = 1:size(data, 1)
       
       % get the type of the attribute
       t = templateType(templateDir, data{i,1}, tempType, mode);
@@ -301,11 +303,8 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
       try applyUpdate(prefix, templateDir, fieldName, newValue, tempType);
       
       catch e
-          fprintf('%s\n',   ['Error says : ' e.message]);
-          s = e.stack;
-          for l=1:length(s)
-              fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
-          end
+          errorString = getErrorString(e);
+          fprintf('%s\n',   ['Error says : ' errorString]);
           
           % display an error
           errordlg(e.message, 'Error');

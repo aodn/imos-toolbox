@@ -98,10 +98,22 @@ function updateViewMetadata(parent, sample_data, mode)
   % update a uitable for each data set
   updateTable(globData, '', 'global', dateFmt, mode);
   
+  % get path to templates subdirectory
+  path = readProperty('toolbox.templateDir');
+  if isempty(path) || ~exist(path, 'dir')
+    path = fullfile(pwd, 'NetCDF', 'template');
+  end
+  
   if strcmpi(mode, 'timeSeries')
       for k = 1:length(dims)
-          updateTable(...
-              dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt, mode);
+          temp = fullfile(path, [lower(dims{k}.name) '_attributes.txt']);
+          if exist(temp, 'file')
+              updateTable(...
+                  dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt, mode);
+          else
+              updateTable(...
+                  dimData{k}, ['dimensions{' num2str(k) '}'], 'dimension', dateFmt, mode);
+          end
       end
   end
   
@@ -117,7 +129,7 @@ function updateViewMetadata(parent, sample_data, mode)
     % back when edited. also we want date fields to be 
     % displayed nicely, not to show up as a numeric value
     templateDir = readProperty('toolbox.templateDir');
-    for i = 1:length(data)
+    for i = 1:size(data, 1)
       
       % get the type of the attribute
       t = templateType(templateDir, data{i,1}, tempType, mode);

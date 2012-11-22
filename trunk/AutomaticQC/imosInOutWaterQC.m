@@ -59,7 +59,6 @@ function [data flags paramsLog] = imosInOutWaterQC( sample_data, data, k, type, 
 
 error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),              error('sample_data must be a struct');      end
-if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
 if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
 if ~ischar(type),                       error('type must be a string');             end
 
@@ -103,17 +102,18 @@ paramsLog = ['in=' datestr(time_in_water, 'dd/mm/yy HH:MM:SS') ...
 
 % matrix case, we unfold the matrix in one vector for timeserie study
 % purpose
-isMatrix = ismatrix(data);
+isMatrix = size(data, 1)>1 & size(data, 2)>1;
 if isMatrix
     len1 = size(data, 1);
     len2 = size(data, 2);
+    len3 = size(data, 3);
     data = data(:);
 end
 
 lenData = length(data);
 
 % initially all data is bad
-flags = ones(lenData, 1)*failFlag;
+flags = ones(lenData, 1, 'int8')*failFlag;
 
 % case data is originaly a matrix
 lenTime = length(time);
@@ -131,6 +131,6 @@ end
 
 if isMatrix
     % we fold the vector back into a matrix
-    data = reshape(data, len1, len2);
-    flags = reshape(flags, len1, len2);
+    data = reshape(data, [len1, len2, len3]);
+    flags = reshape(flags, [len1, len2, len3]);
 end

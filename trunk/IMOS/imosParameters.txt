@@ -32,6 +32,7 @@ DENS,                1, sea_water_density,                                      
 DEPTH,               1, depth,                                                                          m,                                 Z, 999999.0, -5.0,    12000.0,  float
 DESC,                0, profiling_descent_rate_of_instrument,                                           m s-1,                             E, 999999.0, 0.0,     5.0,      float
 DEWT,                1, dew_point_temperature,                                                          Celsius,                           M, 999999.0, -50.0,   50.0,     float
+DIR,                 1, direction_of_radial_vector_away_from_instrument,                                Degrees clockwise from true North, E, 999999.0, 0.0,     360.0,    float
 DIRECTION,           0, direction_of_the_profile,                                                       ,                                  ,  ,         ,        ,         char
 DOX1,                1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,                  umol l-1,                          O, 999999.0, 0.0,     900000.0, float
 DOX2,                1, moles_of_oxygen_per_unit_mass_in_sea_water,                                     umol kg-1,                         O, 999999.0, 0.0,     880000.0, float
@@ -97,13 +98,12 @@ VAVT,                1, sea_surface_wave_zero_upcrossing_period,                
 VBSC,                0, volumetric_backscatter_coefficient,                                             m-1 sr-1,                          E, 999999.0, ,        ,         float
 VCUR,                1, northward_sea_water_velocity,                                                   m s-1,                             V, 999999.0, -10.0,   10.0,     float
 VDEN,                1, sea_surface_wave_variance_spectral_density,                                     m2 s,                              W, 999999.0, ,        ,         float
-VDIR,                1, sea_surface_wave_from_direction,                                                Degree clockwise from true North,  W, 999999.0, ,        ,         float
+VDIR,                1, sea_surface_wave_from_direction,                                                Degree clockwise from true North,  W, 999999.0, 0.0,     360.0,    float
 VOLT,                0, voltage,                                                                        V,                                 E, 999999.0, -100.0,  100.0,    float
 VSF470,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_470nm, m-1 sr-1,                          E, 999999.0, ,        ,         float
 VSF532,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_532nm, m-1 sr-1,                          E, 999999.0, ,        ,         float
 VSF650,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_650nm, m-1 sr-1,                          E, 999999.0, ,        ,         float
 VWND,                1, northward_wind,                                                                 m s-1,                             M, 999999.0, ,        ,         float
-WAV_DIR,             1, sea_surface_wave_from_direction,                                                Degrees clockwise from true North, E, 999999.0, 0.0,     360.0,    float
 WDIR,                1, wind_to_direction,                                                              Degrees clockwise from true North, M, 999999.0, ,        ,         float
 WSPD,                1, wind_speed,                                                                     m s-1,                             M, 999999.0, ,        ,         float
 WCUR,                1, upward_sea_water_velocity,                                                      m s-1,                             V, 999999.0, -5.0,    5.0,      float

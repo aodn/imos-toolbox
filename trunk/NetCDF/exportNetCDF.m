@@ -465,6 +465,9 @@ function vid = addQCVar(...
                   if size(sample_data.(type){varIdx}.data, 1) > 1 && size(sample_data.(type){varIdx}.data, 2) > 1
                       iInWater = repmat(iInWater, 1, size(sample_data.(type){varIdx}.data, 2));
                   end
+                  if size(sample_data.(type){varIdx}.data, 3) > 1
+                      iInWater = repmat(iInWater, [1 1 size(sample_data.(type){varIdx}.data, 3)]);
+                  end
               end
           end
   end

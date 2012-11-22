@@ -13,12 +13,7 @@ function waveData = readAWACWaveAscii( filename )
 %
 %   - That the .whd, .wap, .was, .wdr and .wds files exist in the same 
 %     directory as the input file.
-%   - That all of these files have the same number of rows (the .was and .wdr 
-%     files also contain a header row, specirying the frequency values, and 
-%     the .wds file contains 90 rows per frequency).
-%   - That the frequency dimension size and values used in the .was, .wdr
-%     and .wds files are identical.
-%   - That the timestamps for corresponding rows in the files are identical.
+%   - That the .wds file contains 90 rows per frequency.
 %   - That the files adhere to the column layouts listed below.
 %
 % Assumed column layout for wave header data file (.whd):
@@ -101,10 +96,10 @@ function waveData = readAWACWaveAscii( filename )
 %
 %  Each row is one frequency 0.02:0.01:[0.49 or 0.99] Hz 
 %  Each column is dicretized by 4 degrees 0:4:356 degrees
-%   Burst 1  [99 rows ]x[90 columns]     (m^2/Hz/deg)
-%   Burst 2  [99 rows ]x[90 columns]     (m^2/Hz/deg)
+%   Burst 1  [# frequencies rows ]x[90 columns]     (Normalized-Energy/deg)
+%   Burst 2  [# frequencies rows ]x[90 columns]     (Normalized-Energy/deg)
 %         .
-%   Burst n  [99 rows ]x[90 columns]     (m^2/Hz/deg)
+%   Burst n  [# frequencies rows ]x[90 columns]     (Normalized-Energy/deg)
 %
 %
 % A future enhancement to this function would be to work from the header 
@@ -168,72 +163,120 @@ pwrFreqDirFile = fullfile(path, [name '.wds']);
 if ~exist(headerFile, 'file') || ~exist(waveFile, 'file') || ...
         ~exist(dirFreqFile, 'file') || ~exist(pwrFreqFile, 'file') || ...
         ~exist(pwrFreqDirFile, 'file')
-    fprintf('%s\n', ['Warning : ' 'To read wave data, '...
-        '.whd, .wap, .wdr, .was, .wds are necessary.']);
+    fprintf('%s\n', ['Info : To read wave data related to ' name ...
+        ', .whd, .wap, .wdr, .was, .wds are necessary ' ...
+        '(use QuickWave or Storm Nortek softwares).']);
     return;
 end
 
-header     = importdata(headerFile);
-wave       = importdata(waveFile);
-dirFreq    = importdata(dirFreqFile);
-pwrFreq    = importdata(pwrFreqFile);
-pwrFreqDir = importdata(pwrFreqDirFile);
+try
+    header     = importdata(headerFile);
+    wave       = importdata(waveFile);
+    dirFreq    = importdata(dirFreqFile);
+    pwrFreq    = importdata(pwrFreqFile);
+    pwrFreqDir = importdata(pwrFreqDirFile);
+    
+    % Transform local missing value (-9.00) to NaN
+    wave(wave == -9.00) = NaN;
+    dirFreq(dirFreq == -9.00) = NaN;
+    pwrFreq(pwrFreq == -9.000000) = NaN;
+    pwrFreqDir(pwrFreqDir == -9.000000) = NaN;
+    
+    % let's have a look at the different time given in each file
+    headerTime = datenum(...
+        header(:,3), header(:,1), header(:,2), ...
+        header(:,4), header(:,5), header(:,6)  ...
+        );
+    
+    waveTime = datenum(...
+        wave(:,3), wave(:,1), wave(:,2), ...
+        wave(:,4), wave(:,5), wave(:,6)  ...
+        );
+    
+    totalTime = unique([headerTime; waveTime]);
+    iHeader = ismember(totalTime, headerTime);
+    iWave = ismember(totalTime, waveTime);
+    clear headerTime waveTime;
+    
+    waveData = struct;
+    
+    % copy data over to struct
+    waveData.Time = totalTime;
+    nTime = length(totalTime);
+    clear totalTime
+    
+    waveData.Battery     = nan(nTime, 1);
+    waveData.Heading     = nan(nTime, 1);
+    waveData.Pitch       = nan(nTime, 1);
+    waveData.Roll        = nan(nTime, 1);
+    waveData.MinPressure = nan(nTime, 1);
+    waveData.MaxPressure = nan(nTime, 1);
+    waveData.Temperature = nan(nTime, 1);
+    
+    waveData.Battery(iHeader)     = header(:,10);
+    waveData.Heading(iHeader)     = header(:,12);
+    waveData.Pitch(iHeader)       = header(:,13);
+    waveData.Roll(iHeader)        = header(:,14);
+    waveData.MinPressure(iHeader) = header(:,15);
+    waveData.MaxPressure(iHeader) = header(:,16);
+    waveData.Temperature(iHeader) = header(:,17);
+    clear header iHeader;
+    
+    waveData.SignificantHeight      = nan(nTime, 1);
+    waveData.MeanZeroCrossingPeriod = nan(nTime, 1);
+    waveData.PeakPeriod             = nan(nTime, 1);
+    waveData.PeakDirection          = nan(nTime, 1);
+    waveData.DirectionalSpread      = nan(nTime, 1);
+    waveData.MeanDirection          = nan(nTime, 1);
+    waveData.MeanPressure           = nan(nTime, 1);
+    waveData.UnidirectivityIndex    = nan(nTime, 1);
+    
+    waveData.SignificantHeight(iWave)      = wave(:,8);
+    waveData.PeakPeriod(iWave)             = wave(:,14);
+    waveData.MeanZeroCrossingPeriod(iWave) = wave(:,15);
+    waveData.PeakDirection(iWave)          = wave(:,19);
+    waveData.DirectionalSpread(iWave)      = wave(:,20);
+    waveData.MeanDirection(iWave)          = wave(:,21);
+    waveData.UnidirectivityIndex(iWave)    = wave(:,22);
+    waveData.MeanPressure(iWave)           = wave(:,23);
+    clear wave;
+    
+    % let's have a look at the different frequency given in each file
+    waveData.pwrFrequency = pwrFreq(1,:)';
+    waveData.dirFrequency = dirFreq(1,:)';
+    
+    nPwrFreq = length(waveData.pwrFrequency);
+    nDirFreq = length(waveData.dirFrequency);
+    
+    waveData.dirSpectrum = nan(nTime, nDirFreq);
+    waveData.pwrSpectrum = nan(nTime, nPwrFreq);
+    
+    waveData.dirSpectrum(iWave, :) = dirFreq(2:end,:);
+    clear dirFreq
+    waveData.pwrSpectrum(iWave, :) = pwrFreq(2:end,:);
+    clear pwrFreq iWave
+    
+    waveData.Direction = pwrFreqDir(1,:)';
+    nDir = length(waveData.Direction);
+    
+    waveData.fullSpectrum = nan(nTime, nDirFreq, nDir);
+    
+    % we should have nTime samples so :
+    nFreqFullSpectrum = length(pwrFreqDir(2:end,:)) / nTime;
+    
+    % rearrange full power spectrum matrix so dimensions
+    % are ordered: time, frequency, direction
+    start = 2;
+    for i=1:nTime
+        waveData.fullSpectrum(i, :, :) = pwrFreqDir(start:start+nFreqFullSpectrum-1,:);
+        start = start+nFreqFullSpectrum;
+    end
+    clear pwrFreqDir
+catch e
+    fprintf('%s\n', ['Warning : Wave data related to ' name ...
+        ' hasn''t been read successfully.']);
+    errorString = getErrorString(e);
+    fprintf('%s\n',   ['Error says : ' errorString]);
+end
 
-% Transform local missing value (-9.00) to NaN
-wave(wave == -9.00) = NaN;
-dirFreq(dirFreq == -9.00) = NaN;
-pwrFreq(pwrFreq == -9.000000) = NaN;
-pwrFreqDir(pwrFreqDir == -9.000000) = NaN;
-
-waveData = struct;
-
-% copy data over to struct
-waveData.Time = datenum(...
-  header(:,3), header(:,1), header(:,2), ...
-  header(:,4), header(:,5), header(:,6)  ...
-);
-
-waveData.Battery     = header(:,10);
-waveData.Heading     = header(:,12);
-waveData.Pitch       = header(:,13);
-waveData.Roll        = header(:,14);
-waveData.MinPressure = header(:,15);
-waveData.MaxPressure = header(:,16);
-waveData.Temperature = header(:,17);
-clear header;
-
-waveData.SignificantHeight      = wave(:,8);
-waveData.MeanZeroCrossingPeriod = wave(:,15);
-waveData.PeakPeriod             = wave(:,14);
-waveData.PeakDirection          = wave(:,19);
-waveData.DirectionalSpread      = wave(:,20);
-waveData.MeanDirection          = wave(:,21);
-waveData.MeanPressure           = wave(:,23);
-waveData.UnidirectivityIndex    = wave(:,22);
-clear wave;
-
-% it is assumed that the frequency dimension 
-% is identical for all spectrum data
-waveData.Frequency = pwrFreq(1,:)';
-
-waveData.dirSpectrum           = dirFreq(2:end,:);
-clear dirFreq;
-waveData.pwrSpectrum           = pwrFreq(2:end,:);
-clear pwrFreq;
-
-waveData.fullSpectrumDirection = pwrFreqDir(1,:)';
-
-waveData.fullSpectrum          = pwrFreqDir(2:end,:);
-clear pwrFreqDir;
-
-nFreqs   = length(waveData.Frequency);
-nDirs    = length(waveData.fullSpectrumDirection);
-nSamples = length(waveData.fullSpectrum) / nFreqs;
-
-% rearrange full power spectrum matrix so dimensions 
-% are ordered: time, frequency, direction
-
-% waveData.fullSpectrum = reshape(waveData.fullSpectrum, nSamples, nFreqs, nDirs);
-waveData.fullSpectrum = ...
-  permute(reshape(waveData.fullSpectrum', nDirs, nFreqs, nSamples), [3 2 1]);
-clear pwrFreqDir;
+end

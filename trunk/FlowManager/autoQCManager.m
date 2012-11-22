@@ -175,7 +175,7 @@ function qc_data = autoQCManager( sample_data, auto )
       if isempty(qcChain)
           rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
           for l=1:length(sample_data{k}.variables)
-              sample_data{k}.variables{l}.flags = rawFlag*ones(size(sample_data{k}.variables{l}.flags));
+              sample_data{k}.variables{l}.flags = rawFlag*ones(size(sample_data{k}.variables{l}.flags), 'int8');
           end
           
           % set level and file version on each unQC'd data set
