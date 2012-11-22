@@ -167,11 +167,8 @@ function [sample_data rawFile]= manualImport()
       
       close(progress);
       
-      fprintf('%s\n',   ['Error says : ' e.message]);
-      s = e.stack;
-      for l=1:length(s)
-          fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
-      end
+      errorString = getErrorString(e);
+      fprintf('%s\n',   ['Error says : ' errorString]);
       
       % make sure sprintf doesn't interpret windows 
       % file separators as escape characters
@@ -334,11 +331,8 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
                 fprintf('\t%s\n', ['Site = ' deps(k).Site]);
                 fprintf('\t%s\n', ['Station = ' deps(k).Station]);
                 fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
-                fprintf('%s\n',   ['Error says : ' e.message]);
-                s = e.stack;
-                for l=1:length(s)
-                    fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
-                end
+                errorString = getErrorString(e);
+                fprintf('%s\n',   ['Error says : ' errorString]);
             otherwise
                 fprintf('%s\n',   ['Warning : skipping ' deps(k).FileName]);
                 fprintf('\t%s\n', ['EndFieldTrip = ' deps(k).EndFieldTrip]);
@@ -347,11 +341,8 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
                 fprintf('\t%s\n', ['Station = ' deps(k).Station]);
                 fprintf('\t%s\n', ['DeploymentType = ' deps(k).DeploymentType]);
                 fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
-                fprintf('%s\n',   ['Error says : ' e.message]);
-                s = e.stack;
-                for l=1:length(s)
-                    fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
-                end
+                errorString = getErrorString(e);
+                fprintf('%s\n',   ['Error says : ' errorString]);
         end
     end
   end

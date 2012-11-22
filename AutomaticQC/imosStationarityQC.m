@@ -60,7 +60,6 @@ function [data, flags, paramsLog] = imosStationarityQC( sample_data, data, k, ty
 
 error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),              error('sample_data must be a struct');      end
-if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
 if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
 if ~ischar(type),                       error('type must be a string');             end
 
@@ -104,18 +103,19 @@ if any(iParam)
     
     % matrix case, we unfold the matrix in one vector for timeserie study
     % purpose
-    isMatrix = ismatrix(data);
+    isMatrix = size(data, 1)>1 & size(data, 2)>1;
     if isMatrix
         len1 = size(data, 1);
         len2 = size(data, 2);
+        len3 = size(data, 3);
         data = data(:);
     end
     lenData = length(data);
     lenDataTested = length(dataTested);
     
     % initially all data is good
-    flags = ones(lenData, 1)*passFlag;
-    flagsTested = ones(lenDataTested, 1)*passFlag;
+    flags = ones(lenData, 1, 'int8')*passFlag;
+    flagsTested = ones(lenDataTested, 1, 'int8')*passFlag;
     
     % calc the max allowed number of consecutive values
     delta_t = sample_data.meta.instrument_sample_interval/60;
@@ -179,7 +179,7 @@ if any(iParam)
     
     if isMatrix
         % we fold the vector back into a matrix
-        data = reshape(data, len1, len2);
-        flags = reshape(flags, len1, len2);
+        data = reshape(data, [len1, len2, len3]);
+        flags = reshape(flags, [len1, len2, len3]);
     end
 end

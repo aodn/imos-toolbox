@@ -56,7 +56,16 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 
 time = getVar(sample_data.dimensions, 'TIME');
-freq = getVar(sample_data.dimensions, 'FREQUENCY');
+
+dims = sample_data.variables{var}.dimensions;
+freq = getVar(sample_data.dimensions(dims), 'FREQUENCY');
+if freq == 0
+    freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_1');
+    if freq == 0
+        freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_2');
+    end
+end
+freq = dims(freq);
 
 time = sample_data.dimensions{time};
 freq = sample_data.dimensions{freq};
@@ -66,24 +75,8 @@ h = pcolor(ax, time.data, freq.data, var.data');
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
 cb = colorbar();
 
-% Define a context menu
-hMenu = uicontextmenu;
-
-% Define callbacks for context menu items that change linestyle
-hcb11 = 'colormap(jet)';
-hcb12 = 'colormapeditor';
-
-% Define the context menu items and install their callbacks
-mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
-uimenu(mainItem1, 'Label', 'jet',           'Callback', hcb11);
-uimenu(mainItem1, 'Label', 'other',         'Callback', hcb12);
-
-mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-uimenu(mainItem2, 'Label', 'full',                      'Callback', {@cbCLimRange, 'full', var.data});
-uimenu(mainItem2, 'Label', 'auto (+/-2*stdDev)',        'Callback', {@cbCLimRange, 'auto', var.data});
-uimenu(mainItem2, 'Label', 'manual',                    'Callback', {@cbCLimRange, 'manual', var.data});
-
 % Attach the context menu to colorbar
+hMenu = setTimeSerieColorbarContextMenu(var);
 set(cb,'uicontextmenu',hMenu);
 
 % Let's redefine properties after pcolor to make sure grid lines appear
@@ -101,3 +94,5 @@ if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel);
 
 labels = {'TIME', 'FREQUENCY'};
+
+end

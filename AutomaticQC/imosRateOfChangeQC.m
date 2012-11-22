@@ -74,7 +74,6 @@ function [data, flags, paramsLog] = imosRateOfChangeQC( sample_data, data, k, ty
 
 error(nargchk(4, 5, nargin));
 if ~isstruct(sample_data),              error('sample_data must be a struct');      end
-if ~isvector(data) && ~ismatrix(data),  error('data must be a vector or matrix');   end
 if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
 if ~ischar(type),                       error('type must be a string');             end
 
@@ -121,7 +120,7 @@ if any(iParam)
     % purpose
     len1 = size(data, 1);
     len2 = size(data, 2);
-    flags = ones(len1, len2)*rawFlag;
+    flags = ones(len1, len2, 'int8')*rawFlag;
     for i=1:len2
         lineData = data(:,i);
         
@@ -134,8 +133,8 @@ if any(iParam)
         lenLineData = length(lineData);
         lenDataTested = length(dataTested);
         
-        lineFlags = ones(lenLineData, 1)*rawFlag;
-        flagsTested = ones(lenDataTested, 1)*rawFlag;
+        lineFlags = ones(lenLineData, 1, 'int8')*rawFlag;
+        flagsTested = ones(lenDataTested, 1, 'int8')*rawFlag;
         
         % let's consider time in seconds
         tTime = 'dimensions';

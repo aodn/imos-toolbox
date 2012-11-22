@@ -1,10 +1,9 @@
-S, standard_name             = 
-S, long_name                 = frequency
-S, units                     = Hz
-S, axis                      = 
-N, valid_min                 = [mat imosParameters('FREQUENCY', 'valid_min')]
-N, valid_max                 = [mat imosParameters('FREQUENCY', 'valid_max')]
-N, _FillValue                = [mat imosParameters('FREQUENCY', 'fill_value')]
+S, standard_name             = [mat imosParameters(sample_data.dimensions{k}.name, 'standard_name')]
+S, long_name                 = [mat imosParameters(sample_data.dimensions{k}.name, 'long_name')]
+S, units                     = [mat imosParameters(sample_data.dimensions{k}.name, 'uom')]
+N, valid_min                 = [mat imosParameters(sample_data.dimensions{k}.name, 'valid_min')]
+N, valid_max                 = [mat imosParameters(sample_data.dimensions{k}.name, 'valid_max')]
+N, _FillValue                = [mat imosParameters(sample_data.dimensions{k}.name, 'fill_value')]
 N, add_offset                = 
 N, scale_factor              = 
 N, applied_offset            = 

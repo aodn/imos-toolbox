@@ -10,3 +10,4 @@ ADCP_CORR, TimeDepth
 ADCP_GOOD, TimeDepth
 VDEN,      TimeFrequency
 SSWD,      TimeFrequency
+SSWV,      TimeFrequencyDirection

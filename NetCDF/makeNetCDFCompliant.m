@@ -133,16 +133,21 @@ function sample_data = makeNetCDFCompliant( sample_data )
 
     dim = sample_data.dimensions{k};
     
+    % check for specificly defined variables
     temp = fullfile(path, [lower(dim.name) '_attributes.txt']);
-    if ~exist(temp, 'file'), continue; end
+    if exist(temp, 'file')
+        dimAtts = parseNetCDFTemplate(temp, sample_data);
+        
+        % check for existing Z coordinate variable
+        if strcmpi(dimAtts.axis, 'Z')
+            existZAxis = true;
+        end
+    else
+        temp = fullfile(path, 'dimension_attributes.txt');
 
-    dimAtts = parseNetCDFTemplate(temp, sample_data);
-    
-    % check existing Z coordinate dimension
-    if strcmpi(dimAtts.axis, 'Z')
-        existZAxis = true;
+        dimAtts = parseNetCDFTemplate(temp, sample_data, k);
     end
-
+    
     % merge dimension atts back into dimension struct
     sample_data.dimensions{k} = mergeAtts(sample_data.dimensions{k}, dimAtts);
   end
@@ -165,18 +170,18 @@ function sample_data = makeNetCDFCompliant( sample_data )
         % check for existing Z coordinate variable
         if isfield(varAtts, 'axis')
             if existZAxis && strcmpi(varAtts.axis, 'Z')
+                % we remove it as it already exists in a dimension
                 varAtts = rmfield(varAtts, 'axis');
             end
         end
-        sample_data.variables{k} = mergeAtts(var, varAtts);
     else
         temp = fullfile(path, 'variable_attributes.txt');
 
         varAtts = parseNetCDFTemplate(temp, sample_data, k);
-    
-        % merge variable atts back into variable struct
-        sample_data.variables{k} = mergeAtts(var, varAtts);
     end
+    
+    % merge variable atts back into variable struct
+    sample_data.variables{k} = mergeAtts(var, varAtts);
     
     % look for sensor serial numbers if exist
     if isfield(sample_data.meta, 'deployment')

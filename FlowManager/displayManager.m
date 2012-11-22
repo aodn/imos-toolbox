@@ -240,11 +240,8 @@ function displayManager(windowTitle, sample_data, callbacks)
         graphFunc = getGraphFunc(graphType, 'graph', '');
         graphFunc(panel, sample_data{setIdx}, vars);
       catch e
-        fprintf('%s\n',   ['Error says : ' e.message]);
-        s = e.stack;
-        for l=1:length(s)
-            fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
-        end
+        errorString = getErrorString(e);
+        fprintf('%s\n',   ['Error says : ' errorString]);
         
         errordlg(...
           ['Could not display this data set using ' graphType ...
@@ -291,11 +288,8 @@ function displayManager(windowTitle, sample_data, callbacks)
         end
         
       catch e
-        fprintf('%s\n',   ['Error says : ' e.message]);
-        s = e.stack;
-        for l=1:length(s)
-            fprintf('\t%s\t(%s: line %i)\n', s(l).name, s(l).file, s(l).line);
-        end
+        errorString = getErrorString(e);
+        fprintf('%s\n',   ['Error says : ' errorString]);
         
         errordlg(...
           ['Could not display this data set using ' graphType ...

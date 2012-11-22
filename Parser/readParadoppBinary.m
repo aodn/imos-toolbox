@@ -704,7 +704,7 @@ function [sect len off] = readAwacWaveData(data, idx)
 %READAWACWAVEDATA Reads an AWAC Wave data section (pg 41
 % of the system integrator manual).
 %
-  sect = struct;
+%   sect = struct;
   len = 24;
   off = len;
   sect = [];
