@@ -125,8 +125,12 @@ elseif strcmp(field, 'values') || strcmp(field, 'min') || strcmp(field, 'max')
   val = val{1};
   
   % try to convert to a vector of numbers, otherwise return a string
-  value = str2num(val);
-  if isempty(value), value = val(val ~= ' '); end
+  value = str2num(val); % we need str2num as we deal with an array
+  if isempty(value)
+    value = val(val ~= ' ');
+  else
+    value = int8(value);
+  end
   
   % return only the min/max value if requested
   if     strcmp(field, 'min'), value = value(1);
@@ -144,8 +148,12 @@ elseif strcmp(field, 'type')
 elseif strcmp(field, 'fill_value')
   
   val   = sets{5}(qcSetIdx);
-  value = str2double(val);
-  if isnan(value), value = val; end
+  if strcmpi(imosQCFlag(qcClass, qcSet, 'type'), 'byte')
+    value = str2double(val);
+    value = int8(value);
+  else
+    value = val{1};
+  end
   
   return;
 end
@@ -168,7 +176,7 @@ for k=1:length(lines)
           value = flags{4}{lines(k)};
 
           % if color was specified numerically, convert it from a string
-          temp = str2num(value);
+          temp = str2num(value); % we need str2num as we deal with an array
           if ~isempty(temp), value = temp; end
           return;
         case 'desc'
@@ -192,7 +200,10 @@ for k=1:length(lines)
         % try to convert to a number, on failure 
         % just return the character
         value = str2double(flags{2}{lines(k)});
-        if isnan(value), value = flags{2}{lines(k)};
+        if isnan(value)
+            value = flags{2}{lines(k)};
+        else
+            value = int8(value);
         end
     end
 

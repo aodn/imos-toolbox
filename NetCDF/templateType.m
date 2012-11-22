@@ -73,6 +73,18 @@ if strcmpi(temp, 'global')
         temp = [temp '_attributes_timeSeries.txt'];
     end
 else
+    % let's handle the case temp is a parameter name and we have multiple 
+    % same param distinguished by "_1", "_2", etc...
+    iLastUnderscore = strfind(temp, '_');
+    if iLastUnderscore > 0
+        iLastUnderscore = iLastUnderscore(end);
+        if length(temp) > iLastUnderscore
+            if ~isnan(str2double(temp(iLastUnderscore+1:end)))
+                temp = temp(1:iLastUnderscore-1);
+            end
+        end
+    end
+
     temp = [temp '_attributes.txt'];
 end
 

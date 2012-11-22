@@ -172,7 +172,8 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
             
             % log entries and any data changes that the routine generates
             % are currently discarded; only the flags are retained.
-            [d f l] = filter(sam, data, k, type{m}, auto);
+            [~, f, l] = filter(sam, data, k, type{m}, auto);
+            clear data
             
             if isempty(f), continue; end
             
@@ -200,13 +201,16 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
             probGoodIdx = canBeFlagProbGoodIdx & probGoodIdx;
             probBadIdx  = canBeFlagProbBadIdx & probBadIdx;
             badIdx      = canBeFlagBadIdx & badIdx;
+            clear canBeFlagGoodIdx canBeFlagProbGoodIdx canBeFlagProbBadIdx canBeFlagBadIdx
             
             flags(goodIdx)     = f(goodIdx);
             flags(probGoodIdx) = f(probGoodIdx);
             flags(probBadIdx)  = f(probBadIdx);
             flags(badIdx)      = f(badIdx);
+            clear goodIdx probGoodIdx probBadIdx badIdx
             
             sam.(type{m}){k}.flags = flags;
+            clear flags
             
             % add a log entry
             qcSet    = str2double(readProperty('toolbox.qc_set'));
@@ -232,11 +236,7 @@ function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, 
                     uFlagIdx = f == uFlags(i)-1;
                     canBeFlagIdx = initFlags < uFlags(i)-1;
                     uFlagIdx = canBeFlagIdx & uFlagIdx;
-                    if ismatrix(data)
-                        nFlag = sum(sum(uFlagIdx));
-                    else
-                        nFlag = sum(uFlagIdx);
-                    end
+                    nFlag = sum(sum(sum(uFlagIdx)));
                     
                     if nFlag == 0
                         sam.meta.log{end+1} = [filterName '(' l ')' ...

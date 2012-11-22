@@ -84,7 +84,7 @@ switch upper(var.name)
         uimenu(mainItem2, 'Label', 'auto, 0 centred [0 +/-2*stdDev] (default)', 'Callback', {@cbCLimRange, 'auto, 0 centred', var.data});
         uimenu(mainItem2, 'Label', 'manual',                                    'Callback', {@cbCLimRange, 'manual', var.data});
         
-    case {'CDIR'} % directions
+    case {'CDIR', 'SSWD'} % directions
         colormap(hsv);
         cbCLimRange('', '', 'direction [0; 360]', var.data);
         
@@ -124,7 +124,7 @@ switch upper(var.name)
         uimenu(mainItem2, 'Label', 'percent [0; 100] (default)',  'Callback', {@cbCLimRange, 'percent [0; 100]', var.data});
         uimenu(mainItem2, 'Label', 'manual',                      'Callback', {@cbCLimRange, 'manual', var.data});
         
-    case {'CSPD'} % [0; oo[ paremeters
+    case {'CSPD', 'VDEN'} % [0; oo[ paremeters
         colormap(jet);
         cbCLimRange('', '', 'auto from 0', var.data);
         
@@ -139,6 +139,33 @@ switch upper(var.name)
         mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
         uimenu(mainItem1, 'Label', 'jet (default)', 'Callback', hcb12);
         uimenu(mainItem1, 'Label', 'other',         'Callback', hcb13);
+        
+        mainItem2 = uimenu(hMenu, 'Label', 'Color range');
+        uimenu(mainItem2, 'Label', 'full',                                      'Callback', {@cbCLimRange, 'full', var.data});
+        uimenu(mainItem2, 'Label', 'full from 0',                               'Callback', {@cbCLimRange, 'full from 0', var.data});
+        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',                   'Callback', {@cbCLimRange, 'auto', var.data});
+        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev] (default)', 'Callback', {@cbCLimRange, 'auto from 0', var.data});
+        uimenu(mainItem2, 'Label', 'manual',                                    'Callback', {@cbCLimRange, 'manual', var.data});
+        
+    case {'SSWV'} % [0; oo[ paremeter with special jet_w colormap
+        % let's apply a colormap like jet but starting from white
+        load('jet_w.m', '-mat', 'jet_w');
+        colormap(jet_w);
+        cbCLimRange('', '', 'auto from 0', var.data);
+        
+        % Define a context menu
+        hMenu = uicontextmenu;
+        
+        % Define callbacks for context menu items that change linestyle
+        hcb12 = 'load(''jet_w.m'', ''-mat'', ''jet_w''); colormap(jet_w)';
+        hcb13 = 'colormap(jet)';
+        hcb14 = 'colormapeditor';
+        
+        % Define the context menu items and install their callbacks
+        mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
+        uimenu(mainItem1, 'Label', 'jet_w (default)', 'Callback', hcb12);
+        uimenu(mainItem1, 'Label', 'jet',             'Callback', hcb13);
+        uimenu(mainItem1, 'Label', 'other',           'Callback', hcb14);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
         uimenu(mainItem2, 'Label', 'full',                                      'Callback', {@cbCLimRange, 'full', var.data});
@@ -170,7 +197,7 @@ switch upper(var.name)
         uimenu(mainItem2, 'Label', 'full from 0',                       'Callback', {@cbCLimRange, 'full from 0', var.data});
         uimenu(mainItem2, 'Label', 'full, 0 centred',                   'Callback', {@cbCLimRange, 'full, 0 centred', var.data});
         uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',           'Callback', {@cbCLimRange, 'auto', var.data});
-        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev]', 'Callback', {@cbCLimRange, 'auto from 0', var.data});
+        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev]',   'Callback', {@cbCLimRange, 'auto from 0', var.data});
         uimenu(mainItem2, 'Label', 'auto, 0 centred [0 +/-2*stdDev]',   'Callback', {@cbCLimRange, 'auto, 0 centred', var.data});
         uimenu(mainItem2, 'Label', 'manual',                            'Callback', {@cbCLimRange, 'manual', var.data});
         
@@ -185,14 +212,14 @@ Clim = NaN(1, 2);
 
 switch cLimMode
     case 'full'
-        CLim = [min(min(data)), max(max(data))];
+        CLim = [min(min(min(data))), max(max(max(data)))];
         
     case 'full from 0'
-        maxVal = max(max(data));
+        maxVal = max(max(max(data)));
         CLim = [0, maxVal];
         
     case 'full, 0 centred'
-        maxVal = max(abs([min(min(data)), max(max(data))]));
+        maxVal = max(abs([min(min(min(data))), max(max(max(data)))]));
         CLim = [-maxVal, maxVal];
         
     case 'direction [0; 360]'
@@ -203,25 +230,32 @@ switch cLimMode
     
     case 'auto'
         iNan = isnan(data);
-        
-        meanData = mean(data(~iNan));
-        stdDev = std(data(~iNan));
+        data = data(~iNan);
+        clear iNan
+        meanData = mean(data);
+        stdDev = std(data);
+        clear data
         CLim = [meanData - 2*stdDev, meanData + 2*stdDev];
 
     case 'auto from 0'
         % let's compute std on a pseudo dataset symetrically distributed around 0
         pseudoData = [-data, data];
+        clear data
         iNan = isnan(pseudoData);
-
-        stdDev = std(pseudoData(~iNan));
+        pseudoData = pseudoData(~iNan);
+        clear iNan
+        stdDev = std(pseudoData);
+        clear pseudoData
         CLim = [0, 2*stdDev];
         
     case 'auto, 0 centred'
         iNan = isnan(data);
-
+        data = data(~iNan);
+        clear iNan
         % let's compute a pseudo standard deviation around 0 as we are
         % displaying current values symetrically around 0
-        stdDev = sqrt(mean((data(~iNan) - 0).^2));
+        stdDev = sqrt(mean((data - 0).^2));
+        clear data
         CLim = [-2*stdDev, 2*stdDev];
         
     case 'manual'

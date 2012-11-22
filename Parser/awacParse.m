@@ -78,7 +78,7 @@ ncells   = user.NBins;
 
 % preallocate memory for all sample data
 time         = zeros(nsamples, 1);
-distance        = zeros(ncells,   1);
+distance     = zeros(ncells,   1);
 analn1       = zeros(nsamples, 1);
 battery      = zeros(nsamples, 1);
 analn2       = zeros(nsamples, 1);
@@ -123,7 +123,6 @@ distance(:) = (cellStart):  ...
 distance = distance + cellLength;
 
 for k = 1:nsamples
-  
   time(k)           = structures{3 + k}.Time;
   analn1(k)         = structures{3 + k}.Analn1;
   battery(k)        = structures{3 + k}.Battery;
@@ -238,8 +237,6 @@ clear analn1 analn2 time distance velocity1 velocity2 velocity3 ...
 % of errors
 % return;
 
-filename = fullfile(path, filename);
-
 waveData = readAWACWaveAscii(filename);
 
 % no wave data, no problem
@@ -254,8 +251,8 @@ clear temp;
 % first sample_data struct, as all the metadata is the same
 sample_data{2} = sample_data{1};
 
-[~, filename, ~] = fileparts(filename);
-filename = [filename '.wap'];
+[path, filename, ~] = fileparts(filename);
+filename = fullfile(path, [filename '.wap']);
 
 sample_data{2}.toolbox_input_file              = filename;
 sample_data{2}.meta.head                       = [];
@@ -269,48 +266,56 @@ sample_data{2}.variables  = {};
 sample_data{2}.dimensions{1 }.name = 'TIME';
 sample_data{2}.dimensions{2 }.name = 'LATITUDE';
 sample_data{2}.dimensions{3 }.name = 'LONGITUDE';
-sample_data{2}.dimensions{4 }.name = 'FREQUENCY';
-sample_data{2}.dimensions{5 }.name = 'WAV_DIR';
+sample_data{2}.dimensions{4 }.name = 'FREQUENCY_1';
+sample_data{2}.dimensions{5 }.name = 'FREQUENCY_2';
+sample_data{2}.dimensions{6 }.name = 'DIR';
 
-sample_data{2}.variables {1 }.name = 'VOLT';
-sample_data{2}.variables {2 }.name = 'HEADING';
-sample_data{2}.variables {3 }.name = 'PITCH';
-sample_data{2}.variables {4 }.name = 'ROLL';
-sample_data{2}.variables {5 }.name = 'PRES';
-sample_data{2}.variables {6 }.name = 'TEMP';
-sample_data{2}.variables {7 }.name = 'VAVH';
-sample_data{2}.variables {8 }.name = 'VAVT';
-sample_data{2}.variables {9 }.name = 'VDEN';
-sample_data{2}.variables {10}.name = 'SSWD';
-sample_data{2}.variables {11}.name = 'SSWV';
+sample_data{2}.variables {1 }.name = 'VDEN';
+sample_data{2}.variables {2 }.name = 'SSWD';
+sample_data{2}.variables {3 }.name = 'VAVH';
+sample_data{2}.variables {4 }.name = 'VAVT';
+sample_data{2}.variables {5 }.name = 'VDIR';
+sample_data{2}.variables {6 }.name = 'SSDS';
+sample_data{2}.variables {7 }.name = 'TEMP';
+sample_data{2}.variables {8 }.name = 'PRES_REL';
+sample_data{2}.variables {9 }.name = 'VOLT';
+sample_data{2}.variables {10}.name = 'HEADING';
+sample_data{2}.variables {11}.name = 'PITCH';
+sample_data{2}.variables {12}.name = 'ROLL';
+sample_data{2}.variables {13}.name = 'SSWV';
 
-sample_data{2}.variables{1 }.dimensions = [1 2 3];
-sample_data{2}.variables{2 }.dimensions = [1 2 3];
+sample_data{2}.variables{1 }.dimensions = [1 2 3 4];
+sample_data{2}.variables{2 }.dimensions = [1 2 3 5];
 sample_data{2}.variables{3 }.dimensions = [1 2 3];
 sample_data{2}.variables{4 }.dimensions = [1 2 3];
 sample_data{2}.variables{5 }.dimensions = [1 2 3];
 sample_data{2}.variables{6 }.dimensions = [1 2 3];
 sample_data{2}.variables{7 }.dimensions = [1 2 3];
 sample_data{2}.variables{8 }.dimensions = [1 2 3];
-sample_data{2}.variables{9 }.dimensions = [1 2 3 4];
-sample_data{2}.variables{10}.dimensions = [1 2 3 4];
-sample_data{2}.variables{11}.dimensions = [1 2 3 4 5];
+sample_data{2}.variables{9 }.dimensions = [1 2 3];
+sample_data{2}.variables{10}.dimensions = [1 2 3];
+sample_data{2}.variables{11}.dimensions = [1 2 3];
+sample_data{2}.variables{12}.dimensions = [1 2 3];
+sample_data{2}.variables{13}.dimensions = [1 2 3 5 6];
 
 sample_data{2}.dimensions{1 }.data = waveData.Time;
 sample_data{2}.dimensions{2 }.data = NaN;
 sample_data{2}.dimensions{3 }.data = NaN;
-sample_data{2}.dimensions{4 }.data = waveData.Frequency;
-sample_data{2}.dimensions{5 }.data = waveData.fullSpectrumDirection;
+sample_data{2}.dimensions{4 }.data = waveData.pwrFrequency;
+sample_data{2}.dimensions{5 }.data = waveData.dirFrequency;
+sample_data{2}.dimensions{6 }.data = waveData.Direction;
 
-sample_data{2}.variables {1 }.data = waveData.Battery;
-sample_data{2}.variables {2 }.data = waveData.Heading;
-sample_data{2}.variables {3 }.data = waveData.Pitch;
-sample_data{2}.variables {4 }.data = waveData.Roll;
-sample_data{2}.variables {5 }.data = waveData.MeanPressure;
-sample_data{2}.variables {6 }.data = waveData.Temperature;
-sample_data{2}.variables {7 }.data = waveData.SignificantHeight;
-sample_data{2}.variables {8 }.data = waveData.MeanZeroCrossingPeriod;
-sample_data{2}.variables {9 }.data = waveData.pwrSpectrum;
-sample_data{2}.variables {10}.data = waveData.dirSpectrum;
-sample_data{2}.variables {11}.data = waveData.fullSpectrum;
+sample_data{2}.variables {1 }.data = waveData.pwrSpectrum;
+sample_data{2}.variables {2 }.data = waveData.dirSpectrum;
+sample_data{2}.variables {3 }.data = waveData.SignificantHeight;
+sample_data{2}.variables {4 }.data = waveData.MeanZeroCrossingPeriod;
+sample_data{2}.variables {5 }.data = waveData.MeanDirection;
+sample_data{2}.variables {6 }.data = waveData.DirectionalSpread;
+sample_data{2}.variables {7 }.data = waveData.Temperature;
+sample_data{2}.variables {8 }.data = waveData.MeanPressure;
+sample_data{2}.variables {9 }.data = waveData.Battery;
+sample_data{2}.variables {10}.data = waveData.Heading;
+sample_data{2}.variables {11}.data = waveData.Pitch;
+sample_data{2}.variables {12}.data = waveData.Roll;
+sample_data{2}.variables {13}.data = waveData.fullSpectrum;
 clear waveData;

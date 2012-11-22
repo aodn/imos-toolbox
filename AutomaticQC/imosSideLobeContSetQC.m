@@ -168,7 +168,7 @@ binDepth = depth*ones(1,length(Bins)) - ones(length(depth),1)*Bins;
 sizeCur = size(sample_data.variables{idUcur}.flags);
 
 % same flags are given to any variable
-flags = ones(sizeCur)*rawFlag;
+flags = ones(sizeCur, 'int8')*rawFlag;
 
 % test, all bins above the contaminated depth are flagged
 iFail = binDepth <= repmat(cDepth, 1, length(Bins));

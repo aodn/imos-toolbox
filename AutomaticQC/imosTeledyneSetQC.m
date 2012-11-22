@@ -146,7 +146,7 @@ iFail = ~iPass;
 sizeCur = size(sample_data.variables{idUcur}.flags);
 
 % same flags are given to any variable
-flags = ones(sizeCur)*rawFlag;
+flags = ones(sizeCur, 'int8')*rawFlag;
 
 %Run QC filter (iFail) on velocity data
 flags(iFail) = badFlag;

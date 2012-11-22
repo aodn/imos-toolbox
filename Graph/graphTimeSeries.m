@@ -81,6 +81,7 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   for k = 1:lenVar
     
     name = sample_data.variables{k}.name;
+    dims = sample_data.variables{k}.dimensions;
     distinctFlagsValue = union(distinctFlagsValue, unique(sample_data.variables{k}.flags));
     
     plotFunc = getGraphFunc('TimeSeries', 'graph', name);
@@ -111,9 +112,21 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
                 ceil(max(sample_data.dimensions{iZDim}.data)*10)/10];
             
         case 'graphTimeSeriesTimeFrequency'
-            iFDim = getVar(sample_data.dimensions, 'FREQUENCY');
+            iFDim = getVar(sample_data.dimensions(dims), 'FREQUENCY');
+            if iFDim == 0
+                iFDim = getVar(sample_data.dimensions(dims), 'FREQUENCY_1');
+                if iFDim == 0
+                    iFDim = getVar(sample_data.dimensions(dims), 'FREQUENCY_2');
+                end
+            end
+            iFDims = dims(iFDim);
+            
             yLimits = [floor(min(sample_data.dimensions{iFDim}.data)*10)/10, ...
                 ceil(max(sample_data.dimensions{iFDim}.data)*10)/10];
+            
+        case 'graphTimeSeriesTimeFrequencyDirection'
+            yLimits = [-1, 1];
+            xLimits = [-1, 1];
             
     end
     yStep   = (yLimits(2) - yLimits(1)) / 5;
@@ -147,16 +160,18 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     % plot the variable
     [lines(k,:) labels] = plotFunc(graphs(k), sample_data, k, col, xTickProp);
     
-    % set x labels and ticks
-    xlabel(graphs(k), labels{1});
-
-    % set y label and ticks
-    try      uom = [' (' imosParameters(labels{2}, 'uom') ')'];
-    catch e, uom = '';
+    if ~isempty(labels)
+        % set x labels and ticks
+        xlabel(graphs(k), labels{1});
+        
+        % set y label and ticks
+        try      uom = [' (' imosParameters(labels{2}, 'uom') ')'];
+        catch e, uom = '';
+        end
+        yLabel = strrep([labels{2} uom], '_', ' ');
+        if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
+        ylabel(graphs(k), yLabel);
     end
-    yLabel = strrep([labels{2} uom], '_', ' ');
-    if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
-    ylabel(graphs(k), yLabel);
   end
   
 end
