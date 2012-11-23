@@ -55,11 +55,11 @@ if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 
-[h, labels] = polarPlot(ax, sample_data, var);
+[h, labels] = polarPcolor(ax, sample_data, var);
 
 end
 
-function [h, labels] = polarPlot(ax, sample_data, var)
+function [h, labels] = polarPcolor(ax, sample_data, var)
 
 time = getVar(sample_data.dimensions, 'TIME');
 
@@ -88,7 +88,6 @@ if isempty(iTime)
 end
 
 myVar = sample_data.variables{var};
-myVar.data = single(myVar.data);
 
 nFreq = length(freqData);
 nDir = length(dirData);
@@ -103,7 +102,7 @@ for i=1:nDir+1
     X(i, :) = r*sin(theta(i));
 end
 
-h = pcolor(ax, X, Y, [squeeze(sswvData(iTime, :, :)), sswvData(iTime, :, 1)']'); % we need to repeat the first values at the end
+h = pcolor(ax, X, Y, double([squeeze(sswvData(iTime, :, :)), sswvData(iTime, :, 1)']')); % we need to repeat the first values at the end
 axis equal tight
 shading flat
 set(ax, ...
@@ -241,6 +240,9 @@ ax = subplot(lenVar, 1, var, ...
     'YGrid',  'on', ...
     'Layer',  'top');
 
-polarPlot(ax, sample_data, var);
+polarPcolor(ax, sample_data, var);
+if sample_data.meta.level == 1
+    flagTimeSeriesTimeFrequencyDirection( ax, sample_data, var );
+end
 
 end

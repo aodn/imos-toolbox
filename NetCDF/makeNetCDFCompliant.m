@@ -104,7 +104,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
   if ~isempty(globAtts.geospatial_vertical_min) && ~isempty(globAtts.geospatial_vertical_max)
       if globAtts.geospatial_vertical_min == globAtts.geospatial_vertical_max && idDepth > 0
          if length(sample_data.dimensions{idDepth}.data) == 1
-            sample_data.dimensions{idDepth}.data = globAtts.geospatial_vertical_min; 
+            sample_data.dimensions{idDepth}.data = sample_data.dimensions{idDepth}.typeCastFunc(globAtts.geospatial_vertical_min);
          end
       end
   end
@@ -112,7 +112,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
   if ~isempty(globAtts.geospatial_lat_min) && ~isempty(globAtts.geospatial_lat_max)
       if globAtts.geospatial_lat_min == globAtts.geospatial_lat_max && idLat > 0
           if length(sample_data.dimensions{idLat}.data) == 1
-              sample_data.dimensions{idLat}.data = globAtts.geospatial_lat_min;
+              sample_data.dimensions{idLat}.data = sample_data.dimensions{idLat}.typeCastFunc(globAtts.geospatial_lat_min);
           end
       end
   end
@@ -120,7 +120,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
   if ~isempty(globAtts.geospatial_lon_min) && ~isempty(globAtts.geospatial_lon_max)
       if globAtts.geospatial_lon_min == globAtts.geospatial_lon_max && idLon > 0
           if length(sample_data.dimensions{idLon}.data) == 1
-              sample_data.dimensions{idLon}.data = globAtts.geospatial_lon_min;
+              sample_data.dimensions{idLon}.data = sample_data.dimensions{idLon}.typeCastFunc(globAtts.geospatial_lon_min);
           end
       end
   end

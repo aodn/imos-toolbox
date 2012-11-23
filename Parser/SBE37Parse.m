@@ -169,13 +169,16 @@ if strcmpi(ext, '.DAT') && strcmp(line, '//Status Information')
     sample_data.variables  = {};
     
     % dimensions creation
-    sample_data.dimensions{1}.name = 'TIME';
+    sample_data.dimensions{1}.name          = 'TIME';
+    sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
     % generate time data from header information
-    sample_data.dimensions{1}.data = data.TIME;
-    sample_data.dimensions{2}.name = 'LATITUDE';
-    sample_data.dimensions{2}.data = NaN;
-    sample_data.dimensions{3}.name = 'LONGITUDE';
-    sample_data.dimensions{3}.data = NaN;
+    sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(data.TIME);
+    sample_data.dimensions{2}.name          = 'LATITUDE';
+    sample_data.dimensions{2}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
+    sample_data.dimensions{2}.data          = sample_data.dimensions{2}.typeCastFunc(NaN);
+    sample_data.dimensions{3}.name          = 'LONGITUDE';
+    sample_data.dimensions{3}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
+    sample_data.dimensions{3}.data          = sample_data.dimensions{3}.typeCastFunc(NaN);
     
     % scan through the list of parameters that were read
     % from the file, and create a variable for each
@@ -186,15 +189,16 @@ if strcmpi(ext, '.DAT') && strcmp(line, '//Status Information')
         
         % dimensions definition must stay in this order : T, Z, Y, X, others;
         % to be CF compliant
-        sample_data.variables{end+1}.dimensions = [1 2 3];
+        sample_data.variables{end+1}.dimensions     = [1 2 3];
         
-        sample_data.variables{end  }.name       = vars{k};
-        sample_data.variables{end  }.data       = data.(vars{k});
+        sample_data.variables{end  }.name           = vars{k};
+        sample_data.variables{end  }.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+        sample_data.variables{end  }.data           = sample_data.variables{end}.typeCastFunc(data.(vars{k}));
         
         if strncmp('PRES_REL', vars{k}, 8)
             % let's document the constant pressure atmosphere offset previously
             % applied by SeaBird software on the absolute presure measurement
-            sample_data.variables{end  }.applied_offset = -14.7*0.689476;
+            sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
         end
     end
 else

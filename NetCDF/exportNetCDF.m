@@ -154,7 +154,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       dims{m}.name = upper(dims{m}.name);
       
       dimAtts = dims{m};
-      dimAtts = rmfield(dimAtts, 'data');
+      dimAtts = rmfield(dimAtts, {'data', 'typeCastFunc'});
       if isfield(dimAtts, 'flags'), dimAtts = rmfield(dimAtts, 'flags'); end
       dimAtts = rmfield(dimAtts, 'stringlen');
       
@@ -229,10 +229,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
           vid = netcdf.defVar(fid, varname, varNetcdfType{m}, dids);
       end
       varAtts = vars{m};
-      varAtts = rmfield(varAtts, 'data');
-      varAtts = rmfield(varAtts, 'dimensions');
-      varAtts = rmfield(varAtts, 'flags');
-      varAtts = rmfield(varAtts, 'stringlen');
+      varAtts = rmfield(varAtts, {'data', 'dimensions', 'flags', 'stringlen', 'typeCastFunc'});
       
       % add the QC variable (defined below) 
       % to the ancillary variables attribute

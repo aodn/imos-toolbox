@@ -4,7 +4,7 @@ function v = readNetCDFVar(ncid, varid)
 % This function is able to import an IMOS compliant NetCDF file.
 %
 % Inputs:
-%   v    - strcut containing data for a given variable.
+%   v    - struct containing data for a given variable.
 %
 % Outputs:
 %   ncid - netCDF file id.
@@ -47,10 +47,11 @@ function v = readNetCDFVar(ncid, varid)
 
   [name, xtype, dimids, natts] = netcdf.inqVar(ncid, varid);
 
-  v            = struct;
-  v.name       = name;
-  v.dimensions = dimids; % this is transformed below
-  v.data       = netcdf.getVar(ncid, varid);
+  v                 = struct;
+  v.name            = name;
+  v.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(v.name, 'type')));
+  v.dimensions      = dimids; % this is transformed below
+  v.data            = netcdf.getVar(ncid, varid);
   
   % multi-dimensional data must be transformed, as matlab-netcdf api 
   % reverse dimensions order in variable when reading
@@ -70,6 +71,6 @@ function v = readNetCDFVar(ncid, varid)
   attnames = fieldnames(atts);
   for k = 1:length(attnames), v.(attnames{k}) = atts.(attnames{k}); end
   
-  % replace any fill values with matlab's nan
-  if isfield(atts, 'FillValue_'), v.data(v.data == atts.FillValue_) = nan; end
+  % replace any fill values with matlab's NaN
+  if isfield(atts, 'FillValue_'), v.data(v.data == atts.FillValue_) = v.typeCastFunc(NaN); end
 end

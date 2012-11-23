@@ -85,8 +85,9 @@ function sample_data = YSI6SeriesParse( filename, mode )
   
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant
-  sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.data = records.time';
+  sample_data.dimensions{1}.name            = 'TIME';
+  sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
+  sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(records.time');
   
   % convert time from seconds since 1 march 1984 00:00:00 
   % to days since 1 jan 0000 00:00:00
@@ -101,56 +102,71 @@ function sample_data = YSI6SeriesParse( filename, mode )
     
     field = getfield(records, fields{k});
 
-    sample_data.variables{k}.data       = field'; 
     sample_data.variables{k}.dimensions = [1];
     
     switch fields{k}
       
       case 'temperature'
-        sample_data.variables{k}.name = 'TEMP';
+        sample_data.variables{k}.name           = 'TEMP';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
         
       % convert conductivity from mS/cm to S/m
       case 'cond'
-        sample_data.variables{k}.name = 'CNDC';
-        sample_data.variables{k}.data = ...
-          sample_data.variables{k}.data / 10.0;
+        sample_data.variables{k}.name           = 'CNDC';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field' / 10.0);
         
       % convert conductivity from mS/cm to S/m
       case 'spcond'
-        sample_data.variables{k}.name = 'SPEC_CNDC';
-        sample_data.variables{k}.data = ...
-          sample_data.variables{k}.data / 10.0;
+        sample_data.variables{k}.name           = 'SPEC_CNDC';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field' / 10.0);
         
       % total dissolved solids
       case 'tds'
-        sample_data.variables{k}.name = 'TDS';    % non IMOS
+        sample_data.variables{k}.name           = 'TDS';    % non IMOS
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
         
       case 'salinity'
-        sample_data.variables{k}.name = 'PSAL';
+        sample_data.variables{k}.name           = 'PSAL';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
         
       case 'ph'
-        sample_data.variables{k}.name = 'ACID';   % non IMOS
-      
+        sample_data.variables{k}.name           = 'ACID';   % non IMOS
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
+        
       % oxidation reduction potential
       case 'orp'
-        sample_data.variables{k}.name = 'ORP';    % non IMOS
+        sample_data.variables{k}.name           = 'ORP';    % non IMOS
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
         
       case 'depth'
-        sample_data.variables{k}.name = 'DEPTH';
+        sample_data.variables{k}.name           = 'DEPTH';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
         
       % convert pressure from PSI to decibar
       case 'bp'
-        sample_data.variables{k}.name = 'PRES';
-        sample_data.variables{k}.data = ...
-          sample_data.variables{k}.data / 1.45037738;
+        sample_data.variables{k}.name           = 'PRES';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data = sample_data.variables{k}.typeCastFunc(field' / 1.45037738);
         
       case 'battery'
-        sample_data.variables{k}.name = 'BATT';    % non IMOS
-      
+        sample_data.variables{k}.name           = 'BATT';    % non IMOS
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
+        
       % ug/L == mg/m^3
       case 'chlorophyll'
-        sample_data.variables{k}.name       = 'CPHL';
-        sample_data.variables{k}.comment    = ['Artificial chlorophyll data '...
+        sample_data.variables{k}.name           = 'CPHL';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
+        sample_data.variables{k}.comment        = ['Artificial chlorophyll data '...
             'computed from bio-optical sensor raw counts measurements. '...
             'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'];
         
@@ -158,29 +174,37 @@ function sample_data = YSI6SeriesParse( filename, mode )
       %  sample_data.variables{k}.name = 'CPHL_RFU';
         
       case 'latitude'
-        sample_data.variables{k}.name = 'LATITUDE';
+        sample_data.variables{k}.name           = 'LATITUDE';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
         
       case 'longitude'
-        sample_data.variables{k}.name = 'LONGITUDE';
+        sample_data.variables{k}.name           = 'LONGITUDE';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
         
       case 'turbidity'
-        sample_data.variables{k}.name    = 'TURB';
-        sample_data.variables{k}.comment = 'Turbidity from 6136 sensor.';
+        sample_data.variables{k}.name           = 'TURB';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
+        sample_data.variables{k}.comment        = 'Turbidity from 6136 sensor.';
         
       % % saturation
       case 'odo'
-        sample_data.variables{k}.name    = 'DOXS';
-        sample_data.variables{k}.comment = ...
+        sample_data.variables{k}.name           = 'DOXS';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
+        sample_data.variables{k}.comment        = ...
           'Dissolved oxygen saturation from ROX optical sensor.';
         
       % mg/l => umol/l
       case 'odo2'
-        sample_data.variables{k}.name    = 'DOX1';
-        sample_data.variables{k}.comment = ...
+        sample_data.variables{k}.name           = 'DOX1';
+        sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+        sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field' * 44.660/1.429); % O2 density = 1.429kg/m3
+        sample_data.variables{k}.comment        = ...
           ['Dissolved oxygen from ROX optical sensor originally expressed '...
           'in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.'];
-        sample_data.variables{k}.data = ...
-          sample_data.variables{k}.data * 44.660/1.429; % O2 density = 1.429kg/m3
     end
   end
   
@@ -229,10 +253,11 @@ function sample_data = YSI6SeriesParse( filename, mode )
           comment = ['Originally expressed in % of saturation, using Garcia '...
               'and Gordon equations (1992-1993) and ml/l coefficients, assuming 1ml/l = 44.660umol/l.'];
           
-          sample_data.variables{l}.dimensions             = [1 2 3];
-          sample_data.variables{l}.comment                = comment;
-          sample_data.variables{l}.name                   = name;
-          sample_data.variables{l}.data                   = data;
+          sample_data.variables{end+1}.dimensions           = [1 2 3];
+          sample_data.variables{end}.comment                = comment;
+          sample_data.variables{end}.name                   = name;
+          sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+          sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
           
           % Let's add DOX2
           name = 'DOX2';
@@ -249,10 +274,11 @@ function sample_data = YSI6SeriesParse( filename, mode )
           comment = ['Originally expressed in % of saturation, using Garcia '...
               'and Gordon equations (1992-1993) and umol/kg coefficients.'];
           
-          sample_data.variables{l}.dimensions             = [1 2 3];
-          sample_data.variables{l}.comment                = comment;
-          sample_data.variables{l}.name                   = name;
-          sample_data.variables{l}.data                   = data;
+          sample_data.variables{end+1}.dimensions           = [1 2 3];
+          sample_data.variables{end}.comment                = comment;
+          sample_data.variables{end}.name                   = name;
+          sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+          sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
       end
   end
   
@@ -300,7 +326,8 @@ function sample_data = YSI6SeriesParse( filename, mode )
           sample_data.variables{end+1}.dimensions           = [1];
           sample_data.variables{end}.comment                = comment;
           sample_data.variables{end}.name                   = name;
-          sample_data.variables{end}.data                   = data;
+          sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+          sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
       end
   end
 end

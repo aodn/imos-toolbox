@@ -53,6 +53,8 @@ if ~ishandle(graphs),      error('graphs must be a graphic handle(s)'); end
 if ~isstruct(sample_data), error('sample_data must be a struct');       end
 if ~isnumeric(vars),       error('vars must be a numeric');             end
 
+flags = [];
+
 if isempty(vars), return; end
 
 % remove ungraphed variables

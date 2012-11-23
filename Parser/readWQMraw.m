@@ -157,11 +157,14 @@ function sample_data = readWQMraw( filename )
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant
   sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.data = time;
+  sample_data.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
+  sample_data.dimensions{1}.data = sample_data.dimensions{1}.typeCastFunc(time);
   sample_data.dimensions{2}.name = 'LATITUDE';
-  sample_data.dimensions{2}.data = NaN;
+  sample_data.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
+  sample_data.dimensions{2}.data = sample_data.dimensions{1}.typeCastFunc(NaN);
   sample_data.dimensions{3}.name = 'LONGITUDE';
-  sample_data.dimensions{3}.data = NaN;
+  sample_data.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
+  sample_data.dimensions{3}.data = sample_data.dimensions{1}.typeCastFunc(NaN);
 
   % create a variables struct in sample_data for each field in the file
   isUmolPerL = false;
@@ -218,13 +221,14 @@ function sample_data = readWQMraw( filename )
     sample_data.variables{k}.dimensions             = [1 2 3];
     sample_data.variables{k}.comment                = comment;
     sample_data.variables{k}.name                   = name;
-    sample_data.variables{k}.data                   = data;
+    sample_data.variables{k}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
+    sample_data.variables{k}.data                   = sample_data.variables{k}.typeCastFunc(data);
     
     % WQM uses SeaBird pressure sensor
     if strncmp('PRES_REL', sample_data.variables{k}.name, 8)
         % let's document the constant pressure atmosphere offset previously 
         % applied by SeaBird software on the absolute presure measurement
-        sample_data.variables{k}.applied_offset = -14.7*0.689476;
+        sample_data.variables{k}.applied_offset = sample_data.variables{k}.typeCastFunc(-14.7*0.689476);
     end
   end
   
@@ -288,7 +292,8 @@ function sample_data = readWQMraw( filename )
           sample_data.variables{end+1}.dimensions           = [1 2 3];
           sample_data.variables{end}.comment                = comment;
           sample_data.variables{end}.name                   = name;
-          sample_data.variables{end}.data                   = data;
+          sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+          sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
       end
   end
 end

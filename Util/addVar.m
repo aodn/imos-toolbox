@@ -58,9 +58,10 @@ qcSet   = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
 % add new variable to data set
-sam.variables{end+1}.name       = name;
-sam.variables{end  }.dimensions = dimensions;
-sam.variables{end  }.data       = data;
+sam.variables{end+1}.name           = name;
+sam.variables{end  }.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sam.variables{end}.name, 'type')));
+sam.variables{end  }.dimensions     = dimensions;
+sam.variables{end  }.data           = sam.variables{end  }.typeCastFunc(data);
 clear data;
 
 % create an empty flags matrix for the new variable
