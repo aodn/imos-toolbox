@@ -394,21 +394,24 @@ sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
 % dimensions definition must stay in this order : T, Z, Y, X, others;
 % to be CF compliant
 % copy the data into the sample_data struct
-sample_data.dimensions{1}.name = TIME_NAME;
-sample_data.dimensions{1}.data = time;
-sample_data.dimensions{2}.name = 'LATITUDE';
-sample_data.dimensions{2}.data = NaN;
-sample_data.dimensions{3}.name = 'LONGITUDE';
-sample_data.dimensions{3}.data = NaN;
+sample_data.dimensions{1}.name          = TIME_NAME;
+sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
+sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(time);
+sample_data.dimensions{2}.name          = 'LATITUDE';
+sample_data.dimensions{2}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
+sample_data.dimensions{2}.data          = sample_data.dimensions{2}.typeCastFunc(NaN);
+sample_data.dimensions{3}.name          = 'LONGITUDE';
+sample_data.dimensions{3}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
+sample_data.dimensions{3}.data          = sample_data.dimensions{3}.typeCastFunc(NaN);
 
 for k = 1:length(sample_data.variables)
   
-  sample_data.variables{k}.dimensions = [1 2 3];
-  
+  sample_data.variables{k}.dimensions   = [1 2 3];
+  sample_data.variables{k}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
   switch sample_data.variables{k}.name
-    case TEMPERATURE_NAME,  sample_data.variables{k}.data = temperature;
-    case CONDUCTIVITY_NAME, sample_data.variables{k}.data = conductivity;
-    case PRESSURE_NAME,     sample_data.variables{k}.data = pressure;
-    case SALINITY_NAME,     sample_data.variables{k}.data = salinity;
+    case TEMPERATURE_NAME,  sample_data.variables{k}.data = sample_data.variables{k}.typeCastFunc(temperature);
+    case CONDUCTIVITY_NAME, sample_data.variables{k}.data = sample_data.variables{k}.typeCastFunc(conductivity);
+    case PRESSURE_NAME,     sample_data.variables{k}.data = sample_data.variables{k}.typeCastFunc(pressure);
+    case SALINITY_NAME,     sample_data.variables{k}.data = sample_data.variables{k}.typeCastFunc(salinity);
   end
 end

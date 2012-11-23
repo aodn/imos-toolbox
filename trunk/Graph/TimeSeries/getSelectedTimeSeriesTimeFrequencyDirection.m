@@ -1,7 +1,7 @@
-function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
+function dataIdx = getSelectedTimeSeriesTimeFrequencyDirection( ...
   sample_data, var, ax, highlight, click )
-%GETSELECTEDTIMESERIESTIMEFREQUENCY Returns the currently selected data on the 
-% given time/frequency axis.
+%GETSELECTEDTIMESERIESTIMEFREQUENCYDIRECTION Returns the currently selected data on the 
+% given time/frequency/direction axis.
 %
 % Inputs:
 %   sample_data - Struct containing the data set.
@@ -14,8 +14,7 @@ function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
 %   dataIdx     - Vector of indices into the data, defining the indices
 %                 which are selected (and which were clicked on).
 %
-% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -61,6 +60,7 @@ time = getVar(sample_data.dimensions, 'TIME');
 
 dims = sample_data.variables{var}.dimensions;
 freq = getVar(sample_data.dimensions, 'FREQUENCY');
+dir = getVar(sample_data.dimensions(dims), 'DIR');
 if freq == 0
     freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_1');
     if freq == 0
@@ -68,10 +68,32 @@ if freq == 0
     end
 end
 freq = dims(freq);
+dir = dims(dir);
 
-time = sample_data.dimensions{time}.data;
-freq = sample_data.dimensions{freq}.data;
-var  = sample_data.variables {var} .data;
+varCheckbox = findobj('Tag', ['checkbox' sample_data.variables{var}.name]);
+iTime = get(varCheckbox, 'userData');
+if isempty(iTime)
+    % we choose an arbitrary time to plot
+    iTime = 1;
+end
+
+timeData = sample_data.dimensions{time}.data(iTime);
+dirData  = sample_data.dimensions{dir}.data;
+freqData = sample_data.dimensions{freq}.data;
+varData  = sample_data.variables {var} .data(iTime, :, :);
+
+nFreq = length(freqData);
+nDir = length(dirData);
+r = freqData/max(freqData);
+theta = 2*pi*dirData/360;
+theta = theta - (theta(2)-theta(1))/2; % we want to centre the angular beam on the actual angular value
+
+X = nan(nFreq, nDir);
+Y = nan(nFreq, nDir);
+for i=1:nDir
+    Y(:, i) = r*cos(theta(i)); % theta is positive clockwise from North
+    X(:, i) = r*sin(theta(i));
+end
 
 highlightX = get(highlight, 'XData');
 highlightY = get(highlight, 'YData');
@@ -86,10 +108,9 @@ if click(1) >= min(highlightX) && click(1) <= max(highlightX)...
   for k = 1:length(highlightX)
     
     % get the indices, on each dimension, of each point in the highlight
-    timeIdx = find(time == highlightX(k));
-    freqIdx = find(freq == highlightY(k));
+    idx = find(X == highlightX(k) & Y == highlightY(k))';
     
     % 'flatten' those indices
-    dataIdx = [dataIdx ((freqIdx - 1) * length(time) + timeIdx)];
+    dataIdx = [dataIdx ((iTime - 1) * numel(X) + idx)];
   end
 end

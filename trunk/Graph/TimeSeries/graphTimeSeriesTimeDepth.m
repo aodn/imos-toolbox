@@ -74,7 +74,15 @@ if strcmpi(depth.positive, 'down')
     set(ax, 'YDir', 'reverse');
 end
 
-h = pcolor(ax, time.data, depth.data, var.data');
+xPcolor = time.data;
+yPcolor = depth.data;
+
+% we actually want each square of the surface plot to be centred on its
+% coordinates
+% xPcolor = [time.data(1:end-1) - diff(time.data)/2; time.data(end) - (time.data(end)-time.data(end-1))/2];
+% yPcolor = [depth.data(1:end-1) - diff(depth.data)/2; depth.data(end) - (depth.data(end)-depth.data(end-1))/2];
+
+h = pcolor(ax, xPcolor, yPcolor, double(var.data'));
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
 cb = colorbar();
 

@@ -225,6 +225,10 @@ error(nargchk(1,2,nargin));
   sample_data.dimensions{3}.name       = 'LATITUDE';
   sample_data.dimensions{4}.name       = 'LONGITUDE';
   
+  for i=1:length(sample_data.dimensions)
+      sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{i}.name, 'type')));
+  end
+  
   % add variables
   sample_data.variables{ 1}.name       = 'VCUR';
   sample_data.variables{ 2}.name       = 'UCUR';
@@ -250,6 +254,10 @@ error(nargchk(1,2,nargin));
   sample_data.variables{22}.name       = 'PITCH';
   sample_data.variables{23}.name       = 'ROLL';
   sample_data.variables{24}.name       = 'HEADING';
+  
+  for i=1:length(sample_data.variables)
+      sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{i}.name, 'type')));
+  end
   
   % map dimensions to each variable
   sample_data.variables{ 1}.dimensions = [1 2 3 4];
@@ -278,37 +286,37 @@ error(nargchk(1,2,nargin));
   sample_data.variables{24}.dimensions = [1 3 4];
   
   % copy all the data across
-  sample_data.dimensions{1}.data       = time(:);
-  sample_data.dimensions{2}.data       = distance(:);
-  sample_data.dimensions{3}.data       = NaN;
-  sample_data.dimensions{4}.data       = NaN;
+  sample_data.dimensions{1}.data       = sample_data.dimensions{1}.typeCastFunc(time(:));
+  sample_data.dimensions{2}.data       = sample_data.dimensions{2}.typeCastFunc(distance(:));
+  sample_data.dimensions{3}.data       = sample_data.dimensions{3}.typeCastFunc(NaN);
+  sample_data.dimensions{4}.data       = sample_data.dimensions{4}.typeCastFunc(NaN);
   
-  sample_data.variables{ 1}.data       = vvel;
-  sample_data.variables{ 2}.data       = uvel;
-  sample_data.variables{ 3}.data       = wvel;
-  sample_data.variables{ 4}.data       = evel;
-  sample_data.variables{ 5}.data       = speed;
-  sample_data.variables{ 6}.data       = direction;
-  sample_data.variables{ 7}.data       = backscatter1;
-  sample_data.variables{ 8}.data       = backscatter2;
-  sample_data.variables{ 9}.data       = backscatter3;
-  sample_data.variables{10}.data       = backscatter4;
-  sample_data.variables{11}.data       = temperature;
-  sample_data.variables{12}.data       = pressure;
-  sample_data.variables{12}.applied_offset = -10.1325;
+  sample_data.variables{ 1}.data       = sample_data.variables{1}.typeCastFunc(vvel);
+  sample_data.variables{ 2}.data       = sample_data.variables{2}.typeCastFunc(uvel);
+  sample_data.variables{ 3}.data       = sample_data.variables{3}.typeCastFunc(wvel);
+  sample_data.variables{ 4}.data       = sample_data.variables{4}.typeCastFunc(evel);
+  sample_data.variables{ 5}.data       = sample_data.variables{5}.typeCastFunc(speed);
+  sample_data.variables{ 6}.data       = sample_data.variables{6}.typeCastFunc(direction);
+  sample_data.variables{ 7}.data       = sample_data.variables{7}.typeCastFunc(backscatter1);
+  sample_data.variables{ 8}.data       = sample_data.variables{8}.typeCastFunc(backscatter2);
+  sample_data.variables{ 9}.data       = sample_data.variables{9}.typeCastFunc(backscatter3);
+  sample_data.variables{10}.data       = sample_data.variables{10}.typeCastFunc(backscatter4);
+  sample_data.variables{11}.data       = sample_data.variables{11}.typeCastFunc(temperature);
+  sample_data.variables{12}.data       = sample_data.variables{12}.typeCastFunc(pressure);
+  sample_data.variables{12}.applied_offset = sample_data.variables{12}.typeCastFunc(-10.1325);
   
-  sample_data.variables{13}.data       = salinity;
-  sample_data.variables{14}.data       = correlation1;
-  sample_data.variables{15}.data       = correlation2;
-  sample_data.variables{16}.data       = correlation3;
-  sample_data.variables{17}.data       = correlation4;
-  sample_data.variables{18}.data       = percentGood1;
-  sample_data.variables{19}.data       = percentGood2;
-  sample_data.variables{20}.data       = percentGood3;
-  sample_data.variables{21}.data       = percentGood4;
-  sample_data.variables{22}.data       = pitch;
-  sample_data.variables{23}.data       = roll;
-  sample_data.variables{24}.data       = heading;
+  sample_data.variables{13}.data       = sample_data.variables{13}.typeCastFunc(salinity);
+  sample_data.variables{14}.data       = sample_data.variables{14}.typeCastFunc(correlation1);
+  sample_data.variables{15}.data       = sample_data.variables{15}.typeCastFunc(correlation2);
+  sample_data.variables{16}.data       = sample_data.variables{16}.typeCastFunc(correlation3);
+  sample_data.variables{17}.data       = sample_data.variables{17}.typeCastFunc(correlation4);
+  sample_data.variables{18}.data       = sample_data.variables{18}.typeCastFunc(percentGood1);
+  sample_data.variables{19}.data       = sample_data.variables{19}.typeCastFunc(percentGood2);
+  sample_data.variables{20}.data       = sample_data.variables{20}.typeCastFunc(percentGood3);
+  sample_data.variables{21}.data       = sample_data.variables{21}.typeCastFunc(percentGood4);
+  sample_data.variables{22}.data       = sample_data.variables{22}.typeCastFunc(pitch);
+  sample_data.variables{23}.data       = sample_data.variables{23}.typeCastFunc(roll);
+  sample_data.variables{24}.data       = sample_data.variables{24}.typeCastFunc(heading);
   
   % remove auxillary data if the sensors 
   % were not installed on the instrument

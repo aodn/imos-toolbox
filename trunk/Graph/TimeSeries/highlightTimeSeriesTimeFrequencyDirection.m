@@ -1,9 +1,10 @@
-function highlight = highlightTimeSeriesTimeDepth( ...
+function highlight = highlightTimeSeriesTimeFrequencyDirection( ...
   region, data, variable, type )
-%HIGHLIGHTTIMESERIESTIMEDEPTH Highlights the given region on the given
-% time/depth plot.
+%HIGHLIGHTTIMESERIESTIMEFREQUENCYDIRECTION Highlights the given region on the given
+% time/frequency/direction plot.
 %
-% Highlights the given region on a time/depth plot.
+% Highlights the given region on a time/frequency plot. This function just 
+% delegates to highlightTimeSeriesTimeDepth.
 %
 % Inputs:
 %   region    - a vector of length 4, containing the selected data region. 
@@ -16,8 +17,7 @@ function highlight = highlightTimeSeriesTimeDepth( ...
 % Outputs:
 %   highlight - handle to the patch highlight.
 %
-% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -59,12 +59,8 @@ if ~ishandle(data),     error('data must be a graphics handle'); end
 if ~isstruct(variable), error('variable must be a struct');      end
 if ~ischar(type),       error('type must be a string');          end
   
-xdata = get(data, 'XData');
-ydata = get(data, 'YData');
-
-Xdata = repmat(xdata, 1, size(ydata));
-Ydata = repmat(ydata', size(xdata), 1);
-clear xdata ydata;
+Xdata = get(data, 'XData');
+Ydata = get(data, 'YData');
 
 % figure out indices of all data points within the range
 X = ((Xdata >= region(1)) & (Xdata <= region(3)));
@@ -85,7 +81,7 @@ if ~any(any(idx)), highlight = [];
   
 else
 
-  highlight = line(Xdata(idx), Ydata(idx),...
+  highlight = line(Xdata(idx),Ydata(idx),...
     'Parent',          gca,...
     'LineStyle',       'none',...
     'Marker',          'o',...

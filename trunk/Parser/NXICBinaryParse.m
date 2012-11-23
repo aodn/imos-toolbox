@@ -110,12 +110,15 @@ function sample_data = NXICBinaryParse( filename, mode )
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant
   sample_data.dimensions = {};
-  sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.data = samples.time;
-  sample_data.dimensions{2}.name = 'LATITUDE';
-  sample_data.dimensions{2}.data = NaN;
-  sample_data.dimensions{3}.name = 'LONGITUDE';
-  sample_data.dimensions{3}.data = NaN;
+  sample_data.dimensions{1}.name            = 'TIME';
+  sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
+  sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(samples.time);
+  sample_data.dimensions{2}.name            = 'LATITUDE';
+  sample_data.dimensions{2}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
+  sample_data.dimensions{2}.data            = sample_data.dimensions{2}.typeCastFunc(NaN);
+  sample_data.dimensions{3}.name            = 'LONGITUDE';
+  sample_data.dimensions{3}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
+  sample_data.dimensions{3}.data            = sample_data.dimensions{3}.typeCastFunc(NaN);
   
   sample_data.variables = {};
   sample_data.variables{1}.name = 'TEMP';
@@ -132,6 +135,16 @@ function sample_data = NXICBinaryParse( filename, mode )
   %sample_data.variables{9}.name = '';
   %sample_data.variables{10}.name = '';
   
+  sample_data.variables{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+  sample_data.variables{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
+  sample_data.variables{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
+  sample_data.variables{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{4}.name, 'type')));
+  sample_data.variables{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{5}.name, 'type')));
+  sample_data.variables{6}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{6}.name, 'type')));
+%   sample_data.variables{7}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+%   sample_data.variables{8}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+%   sample_data.variables{9}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+%   sample_data.variables{10}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
   
   sample_data.variables{1}.dimensions = [1 2 3];
   sample_data.variables{2}.dimensions = [1 2 3];
@@ -144,23 +157,24 @@ function sample_data = NXICBinaryParse( filename, mode )
   %sample_data.variables{9}.dimensions = [1 2 3];
   %sample_data.variables{10}.dimensions = [1 2 3];
   
-  sample_data.variables{1}.data = samples.temperature;
-  sample_data.variables{2}.data = samples.conductivity;
-  sample_data.variables{3}.data = samples.pressure;
-  sample_data.variables{3}.applied_offset = -10.1325; % to be confirmed!
-  sample_data.variables{4}.data = samples.salinity;
-  sample_data.variables{5}.data = samples.soundSpeed;
-  sample_data.variables{6}.data = samples.voltage;
-  %sample_data.variables{7}.data = samples.analog1;  % FLNTU Turbidity
-  %sample_data.variables{8}.data = samples.analog2;  % FLNTU Fluorescence
-  %sample_data.variables{9}.data = samples.analog3;  % Biospherical PAR
-  %sample_data.variables{10}.data = samples.analog4;
+  sample_data.variables{1}.data = sample_data.variables{1}.typeCastFunc(samples.temperature);
+  sample_data.variables{2}.data = sample_data.variables{2}.typeCastFunc(samples.conductivity);
+  sample_data.variables{3}.data = sample_data.variables{3}.typeCastFunc(samples.pressure);
+  sample_data.variables{3}.applied_offset = sample_data.variables{3}.typeCastFunc(-10.1325); % to be confirmed!
+  sample_data.variables{4}.data = sample_data.variables{4}.typeCastFunc(samples.salinity);
+  sample_data.variables{5}.data = sample_data.variables{5}.typeCastFunc(samples.soundSpeed);
+  sample_data.variables{6}.data = sample_data.variables{6}.typeCastFunc(samples.voltage);
+  %sample_data.variables{7}.data = sample_data.variables{7}.typeCastFunc(samples.analog1);  % FLNTU Turbidity
+  %sample_data.variables{8}.data = sample_data.variables{8}.typeCastFunc(samples.analog2);  % FLNTU Fluorescence
+  %sample_data.variables{9}.data = sample_data.variables{9}.typeCastFunc(samples.analog3);  % Biospherical PAR
+  %sample_data.variables{10}.data = sample_data.variables{10}.typeCastFunc(samples.analog4);
   
   %if isfield(samples,'digital');
   % not all instruments have a digital channel.
   %sample_data.variables{11}.name = '';
+  %sample_data.variables{11}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{11}.name, 'type')));
   %sample_data.variables{11}.dimensions = [1 2 3];
-  %sample_data.variables{11}.data = samples.digital; % Aanderaa Optode
+  %sample_data.variables{11}.data = sample_data.variables{11}.typeCastFunc(samples.digital); % Aanderaa Optode
   %end;
   
 end
