@@ -79,7 +79,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
   dims = sample_data.dimensions;
   lenDims = length(dims);
   for k = 1:lenDims
-    dims{k} = orderfields(rmfield(dims{k}, 'data'));
+    dims{k} = orderfields(rmfield(dims{k}, {'data', 'typeCastFunc'}));
     if isfield(dims{k}, 'flags')
         dims{k} = orderfields(rmfield(dims{k}, 'flags'));
     end
@@ -88,7 +88,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
   vars = sample_data.variables;
   lenVars = length(vars);
   for k = 1:lenVars
-    vars{k} = orderfields(rmfield(vars{k}, {'data', 'dimensions', 'flags'})); 
+    vars{k} = orderfields(rmfield(vars{k}, {'data', 'dimensions', 'flags', 'typeCastFunc'})); 
   end
   
   % create a cell array containing global attribute data

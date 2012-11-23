@@ -71,7 +71,15 @@ time = sample_data.dimensions{time};
 freq = sample_data.dimensions{freq};
 var  = sample_data.variables {var};
 
-h = pcolor(ax, time.data, freq.data, var.data');
+xPcolor = time.data;
+yPcolor = freq.data;
+
+% we actually want each square of the surface plot to be centred on its
+% coordinates
+% xPcolor = [time.data(1:end-1) - diff(time.data)/2; time.data(end) - (time.data(end)-time.data(end-1))/2];
+% yPcolor = [freq.data(1:end-1) - diff(freq.data)/2; freq.data(end) - (freq.data(end)-freq.data(end-1))/2];
+
+h = pcolor(ax, xPcolor, yPcolor, double(var.data'));
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
 cb = colorbar();
 

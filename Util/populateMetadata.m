@@ -272,7 +272,7 @@ function sample_data = populateMetadata( sample_data )
           else
               % Not an ADCP, so we can update existing DEPTH dimension/variable from PRES data
               if idDepth > 0
-                  sample_data.dimensions{idDepth}.data = computedDepth;
+                  sample_data.dimensions{idDepth}.data = sample_data.dimensions{idDepth}.typeCastFunc(computedDepth);
                   comment = sample_data.dimensions{idDepth}.comment;
                   if isempty(comment)
                       sample_data.dimensions{idDepth}.comment = computedDepthComment;
@@ -282,7 +282,7 @@ function sample_data = populateMetadata( sample_data )
                   metadataChanged = true;
               end
               if ivDepth > 0
-                  sample_data.variables{ivDepth}.data = computedDepth;
+                  sample_data.variables{ivDepth}.data = sample_data.variables{ivDepth}.typeCastFunc(computedDepth);
                   comment = sample_data.variables{ivDepth}.comment;
                   if isempty(comment)
                       sample_data.variables{ivDepth}.comment = computedDepthComment;
@@ -325,11 +325,11 @@ function sample_data = populateMetadata( sample_data )
       if sample_data.geospatial_lat_min == sample_data.geospatial_lat_max
           switch mode
               case 'profile'
-                  sample_data.variables{ivLat}.data = ones(size(sample_data.variables{ivLat}.data))*sample_data.geospatial_lat_min;
+                  sample_data.variables{ivLat}.data = sample_data.variables{ivLat}.typeCastFunc(ones(size(sample_data.variables{ivLat}.data))*sample_data.geospatial_lat_min);
                   
               otherwise
                   if length(sample_data.dimensions{idLat}.data) == 1
-                      sample_data.dimensions{idLat}.data = sample_data.geospatial_lat_min;
+                      sample_data.dimensions{idLat}.data = sample_data.dimensions{idLat}.typeCastFunc(sample_data.geospatial_lat_min);
                   end
                   
           end
@@ -343,11 +343,11 @@ function sample_data = populateMetadata( sample_data )
       if sample_data.geospatial_lon_min == sample_data.geospatial_lon_max
           switch mode
               case 'profile'
-                  sample_data.variables{ivLon}.data = ones(size(sample_data.variables{ivLon}.data))*sample_data.geospatial_lon_min;
+                  sample_data.variables{ivLon}.data = sample_data.variables{ivLon}.typeCastFunc(ones(size(sample_data.variables{ivLon}.data))*sample_data.geospatial_lon_min);
                   
               otherwise
                   if length(sample_data.dimensions{idLon}.data) == 1
-                      sample_data.dimensions{idLon}.data = sample_data.geospatial_lon_min;
+                      sample_data.dimensions{idLon}.data = sample_data.dimensions{idLon}.typeCastFunc(sample_data.geospatial_lon_min);
                   end
                   
           end
@@ -359,16 +359,16 @@ function sample_data = populateMetadata( sample_data )
       switch mode
           case 'profile'
               if ~isempty(sample_data.site_depth_at_station)
-                  sample_data.variables{ivBotDepth}.data = ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_station;
+                  sample_data.variables{ivBotDepth}.data = sample_data.variables{ivBotDepth}.typeCastFunc(ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_station);
               elseif ~isempty(sample_data.site_nominal_depth)
-                  sample_data.variables{ivBotDepth}.data = ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_station;
+                  sample_data.variables{ivBotDepth}.data = sample_data.variables{ivBotDepth}.typeCastFunc(ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_nominal_depth);
               end
               
           otherwise
               if ~isempty(sample_data.site_depth_at_deployment)
-                  sample_data.variables{ivBotDepth}.data = ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_deployment;
+                  sample_data.variables{ivBotDepth}.data = sample_data.variables{ivBotDepth}.typeCastFunc(ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_deployment);
               elseif ~isempty(sample_data.site_nominal_depth)
-                  sample_data.variables{ivBotDepth}.data = ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_station;
+                  sample_data.variables{ivBotDepth}.data = sample_data.variables{ivBotDepth}.typeCastFunc(ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_nominal_depth);
               end
       end
   end

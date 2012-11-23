@@ -76,11 +76,14 @@ if ~ischar(filename), error('filename must contain a string'); end
   % dimensions definition must stay in this order : T, Z, Y, X, others;
   % to be CF compliant
   sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.data = data.time;
+  sample_data.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
+  sample_data.dimensions{1}.data = sample_data.dimensions{1}.typeCastFunc(data.time);
   sample_data.dimensions{2}.name = 'LATITUDE';
-  sample_data.dimensions{2}.data = NaN;
+  sample_data.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
+  sample_data.dimensions{2}.data = sample_data.dimensions{2}.typeCastFunc(NaN);
   sample_data.dimensions{3}.name = 'LONGITUDE';
-  sample_data.dimensions{3}.data = NaN;
+  sample_data.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
+  sample_data.dimensions{3}.data = sample_data.dimensions{3}.typeCastFunc(NaN);
   
   % copy variable data over
   data = rmfield(data, 'time');
@@ -101,10 +104,11 @@ if ~ischar(filename), error('filename must contain a string'); end
       end
     
       if ~strcmpi(name, '')
-          sample_data.variables{l}.name       = name;
-          sample_data.variables{l}.data       = data.(fields{k});
-          sample_data.variables{l}.dimensions = [1 2 3];
-          sample_data.variables{l}.comment    = comment;
+          sample_data.variables{l}.name         = name;
+          sample_data.variables{l}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{l}.name, 'type')));
+          sample_data.variables{l}.data         = sample_data.variables{l}.typeCastFunc(data.(fields{k}));
+          sample_data.variables{l}.dimensions   = [1 2 3];
+          sample_data.variables{l}.comment      = comment;
           l = l+1;
       end
   end

@@ -295,27 +295,32 @@ end
 %
 % dimensions definition must stay in this order : T, Z, Y, X, others;
 % to be CF compliant
-sample_data.dimensions{1}.name = 'TIME';
-sample_data.dimensions{1}.data = time;
-sample_data.dimensions{2}.name = 'LATITUDE';
-sample_data.dimensions{2}.data = NaN;
-sample_data.dimensions{3}.name = 'LONGITUDE';
-sample_data.dimensions{3}.data = NaN;
+sample_data.dimensions{1}.name          = 'TIME';
+sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
+sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(time);
+sample_data.dimensions{2}.name          = 'LATITUDE';
+sample_data.dimensions{2}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
+sample_data.dimensions{2}.data          = sample_data.dimensions{2}.typeCastFunc(NaN);
+sample_data.dimensions{3}.name          = 'LONGITUDE';
+sample_data.dimensions{3}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
+sample_data.dimensions{3}.data          = sample_data.dimensions{3}.typeCastFunc(NaN);
 
 if isempty(timeIdx), error('time column is missing'); end
 
 % add a temperature variable if present
 if ~isempty(tempIdx)
     sample_data.variables{end+1}.name       = 'TEMP';
+    sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
     sample_data.variables{end}  .dimensions = [1 2 3];
-    sample_data.variables{end}  .data       = temp;
+    sample_data.variables{end}  .data       = sample_data.variables{end}.typeCastFunc(temp);
 end
 
 % add a pressure variable if present
 if ~isempty(presIdx)
     sample_data.variables{end+1}.name       = 'PRES';
+    sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
     sample_data.variables{end}  .dimensions = [1 2 3];
-    sample_data.variables{end}  .data       = pres;
+    sample_data.variables{end}  .data       = sample_data.variables{end}.typeCastFunc(pres);
 end
 end
 
