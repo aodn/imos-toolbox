@@ -454,7 +454,7 @@ function vid = addQCVar(...
                   end
               end
               
-              if noTime
+              if noTime || isempty(sample_data.time_deployment_start) || isempty(sample_data.time_deployment_end)
                   iInWater = true(size(sample_data.(type){varIdx}.data));
               else
                   iInWater = sample_data.(tTime){iTime}.data >= sample_data.time_deployment_start & ...
