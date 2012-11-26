@@ -100,26 +100,10 @@ failFlag  = imosQCFlag('bad', qcSet, 'flag');
 paramsLog = ['in=' datestr(time_in_water, 'dd/mm/yy HH:MM:SS') ...
     ', out=' datestr(time_out_water, 'dd/mm/yy HH:MM:SS')];
 
-% matrix case, we unfold the matrix in one vector for timeserie study
-% purpose
-isMatrix = size(data, 1)>1 & size(data, 2)>1;
-if isMatrix
-    len1 = size(data, 1);
-    len2 = size(data, 2);
-    len3 = size(data, 3);
-    data = data(:);
-end
-
-lenData = length(data);
+lenData = length(time);
 
 % initially all data is bad
 flags = ones(lenData, 1, 'int8')*failFlag;
-
-% case data is originaly a matrix
-lenTime = length(time);
-if lenData > lenTime
-    time = repmat(time, lenData/lenTime, 1);
-end
 
 % find samples which were taken before in water
 iGood = time >= time_in_water;
@@ -129,8 +113,7 @@ if any(iGood)
     flags(iGood) = rawFlag;
 end
 
-if isMatrix
-    % we fold the vector back into a matrix
-    data = reshape(data, [len1, len2, len3]);
-    flags = reshape(flags, [len1, len2, len3]);
-end
+% transform flags to the appropriate output shape
+sizeData = size(data);
+sizeData(sizeData == lenData) = 1;
+flags = repmat(flags, sizeData);

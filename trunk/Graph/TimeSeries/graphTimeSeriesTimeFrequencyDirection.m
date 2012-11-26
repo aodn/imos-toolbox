@@ -108,6 +108,7 @@ shading flat
 set(ax, ...
     'Color',    'none', ...
     'Visible',  'off');
+clear sswvData
 
 % get x-axis text color so grid is in same color
 tc = get(ax, 'XColor');
