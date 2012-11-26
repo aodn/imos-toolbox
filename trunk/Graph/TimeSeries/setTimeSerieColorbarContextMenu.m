@@ -149,7 +149,7 @@ switch upper(var.name)
         
     case {'SSWV'} % [0; oo[ paremeter with special jet_w colormap
         % let's apply a colormap like jet but starting from white
-        load('jet_w.m', '-mat', 'jet_w');
+        load('jet_w.mat', '-mat', 'jet_w');
         colormap(jet_w);
         cbCLimRange('', '', 'auto from 0', var.data);
         
@@ -157,7 +157,7 @@ switch upper(var.name)
         hMenu = uicontextmenu;
         
         % Define callbacks for context menu items that change linestyle
-        hcb12 = 'load(''jet_w.m'', ''-mat'', ''jet_w''); colormap(jet_w)';
+        hcb12 = 'load(''jet_w.mat'', ''-mat'', ''jet_w''); colormap(jet_w)';
         hcb13 = 'colormap(jet)';
         hcb14 = 'colormapeditor';
         
