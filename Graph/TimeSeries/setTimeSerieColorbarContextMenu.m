@@ -238,15 +238,13 @@ switch cLimMode
         CLim = [meanData - 2*stdDev, meanData + 2*stdDev];
 
     case 'auto from 0'
-        % let's compute std on a pseudo dataset symetrically distributed around 0
-        pseudoData = [-data, data];
-        clear data
-        iNan = isnan(pseudoData);
-        pseudoData = pseudoData(~iNan);
+        iNan = isnan(data);
+        data = data(~iNan);
         clear iNan
-        stdDev = std(pseudoData);
-        clear pseudoData
-        CLim = [0, 2*stdDev];
+        meanData = mean(data);
+        stdDev = std(data);
+        clear data
+        CLim = [0, meanData + 2*stdDev];
         
     case 'auto, 0 centred'
         iNan = isnan(data);

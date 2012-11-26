@@ -189,6 +189,8 @@ for i=1:lenMooring
     
     sample_data   = importManager(toolboxVersion, true, iMooring);
     
+    if isempty(sample_data), continue; end
+    
     sample_data   = preprocessManager(sample_data, true);
     
     qc_data       = autoQCManager(sample_data, true);

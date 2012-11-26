@@ -68,8 +68,6 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     return; 
   end
   
-  distinctFlagsValue = [];
-  
   iTimeDim = getVar(sample_data.dimensions, 'TIME');
   xLimits = [min(sample_data.dimensions{iTimeDim}.data), max(sample_data.dimensions{iTimeDim}.data)];
   xStep   = (xLimits(2) - xLimits(1)) / 5;
@@ -82,7 +80,6 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     
     name = sample_data.variables{k}.name;
     dims = sample_data.variables{k}.dimensions;
-    distinctFlagsValue = union(distinctFlagsValue, unique(sample_data.variables{k}.flags));
     
     plotFunc = getGraphFunc('TimeSeries', 'graph', name);
     switch func2str(plotFunc)
