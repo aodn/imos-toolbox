@@ -126,6 +126,13 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
             xLimits = [-1, 1];
             
     end
+    
+    if yLimits(2) == yLimits(1)
+        % YLim values must be increasing.
+        yLimits(1) = yLimits(1) - 1;
+        yLimits(2) = yLimits(2) + 1;
+    end 
+    
     yStep   = (yLimits(2) - yLimits(1)) / 5;
     yTicks  = yLimits(1):yStep:yLimits(2);
     
