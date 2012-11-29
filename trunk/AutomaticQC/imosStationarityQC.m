@@ -123,8 +123,15 @@ if any(iParam)
     
     equVal  = (diff(dataTested) == 0);
     
-    % special case when not one consecutive couple of same value
+    % special case when not any consecutive couple of same value
     if all(~equVal)
+        return;
+    end
+    
+    % special case when all consecutive couple of same value
+    if all(equVal)
+        flagsTested = ones(lenDataTested, 1, 'int8')*failFlag;
+        flags(~iBadData) = flagsTested;
         return;
     end
     
