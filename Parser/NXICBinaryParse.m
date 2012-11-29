@@ -722,24 +722,32 @@ end
 function times = index2time(M, index)
 % function to extract times in 5 byte FSI format from data file at index
 % points.
-       
-    % 5 byte format first 4 bytes give datenumber to minutes 5th byte contains
-    % 100ths of seconds - need double precicison to preserve seconds.
-    
-    if islogical(index);
-        N = sum(index)*4;
-    else
-        N = length(index)*4;
-    end
-    
-    % This now forms the times from the 5 consecutive bytes formed from the
-    % offset memmapfile objects
-        times =...
-            bytecast(reshape(...
-            [M.b0.Data(index) M.b1.Data(index) ...
-            M.b2.Data(index) M.b3.Data(index)]'...
-            , N, 1), 'L', 'uint32') + ...
-            double(M.b4.Data(index))/100;
+
+% At this point it is possible that index=true in one of the last 5 places
+% which will cause an oversize index error (only use an index that will fit
+% into the shifted b4 data)
+indexmaxlen=length(M.b4.Data);
+lenindex=length(index);
+if indexmaxlen<lenindex
+    index=index(1:indexmaxlen);
+end
+
+% 5 byte format first 4 bytes give datenumber to minutes 5th byte contains
+% 100ths of seconds - need double precicison to preserve seconds.
+if islogical(index);
+    N = sum(index)*4;
+else
+    N = length(index)*4;
+end
+
+% This now forms the times from the 5 consecutive bytes formed from the
+% offset memmapfile objects
+times =...
+    bytecast(reshape(...
+    [M.b0.Data(index) M.b1.Data(index) ...
+    M.b2.Data(index) M.b3.Data(index)]'...
+    , N, 1), 'L', 'uint32') + ...
+    double(M.b4.Data(index))/100;
 
 end
 
