@@ -1,5 +1,5 @@
-function sam = qcFilter(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, probBadFlag, badFlag, cancel)
-%QCFILTER Runs the given data set through the given automatic QC filter and
+function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFlag, probBadFlag, badFlag, cancel)
+%QCFILTERMAIN Runs the given data set through the given automatic QC filter and
 % updates flags on sample_data structure.
 %
 % Inputs:
