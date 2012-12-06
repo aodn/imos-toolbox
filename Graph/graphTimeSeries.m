@@ -127,11 +127,17 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
             
     end
     
+    if xLimits(2) == xLimits(1)
+        % XLim values must be increasing.
+        xLimits(1) = xLimits(1) - 1;
+        xLimits(2) = xLimits(2) + 1;
+    end
+    
     if yLimits(2) == yLimits(1)
         % YLim values must be increasing.
         yLimits(1) = yLimits(1) - 1;
         yLimits(2) = yLimits(2) + 1;
-    end 
+    end
     
     yStep   = (yLimits(2) - yLimits(1)) / 5;
     yTicks  = yLimits(1):yStep:yLimits(2);
