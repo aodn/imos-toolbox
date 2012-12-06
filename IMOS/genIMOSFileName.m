@@ -92,7 +92,7 @@ function filename = genIMOSFileName( sample_data, suffix )
   
   % sanity check - ensure that file name contains 
   % only alpha numeric, hyphens, underscores and dots
-  filename(regexp(filename, '[^0-9a-zA-Z_-.]')) = '-';
+  filename(regexp(filename, '[^A-Za-z0-9_\.-]')) = '-';
   %BDM 24/02/2010 - Quick fix to get rid of multiple '-'
   while ~isempty(strfind(filename,'--'))
     filename=strrep(filename,'--','-');

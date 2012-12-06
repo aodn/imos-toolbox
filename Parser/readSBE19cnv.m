@@ -179,7 +179,7 @@ function [name, data, comment] = convertData(name, data, instHeader, procHeader)
       comment = '';
       
     % temperature (deg C)
-    case 'tv290C'
+    case {'tv290C', 't090C'}
       name = 'TEMP';
       comment = '';
       
