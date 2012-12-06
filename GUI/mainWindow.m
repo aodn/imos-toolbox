@@ -428,22 +428,29 @@ function mainWindow(...
     xResolution = monitorRec(:, 3)-monitorRec(:, 1);
     iBigMonitor = xResolution == max(xResolution);
     if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+    title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d depths'];
     hFigMooringDepth = figure(...
-        'Name', ['Mooring''s instruments ' stringQC '''d depths'], ...
+        'Name', title, ...
         'NumberTitle','off', ...
         'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
     hAxMooringDepth = axes('Parent',   hFigMooringDepth, 'YDir', 'reverse');
     set(get(hAxMooringDepth, 'XLabel'), 'String', 'Time')
     set(get(hAxMooringDepth, 'YLabel'), 'String', 'Depth (m)')
-    set(get(hAxMooringDepth, 'Title'), 'String', ['Mooring''s instruments ' stringQC '''d depths'])
+    set(get(hAxMooringDepth, 'Title'), 'String', title)
     hold(hAxMooringDepth, 'on');
     
-    %sort instruments by meta.depth
+    %sort instruments by depth
     metaDepth = nan(lenSampleData, 1);
     xMin = nan(lenSampleData, 1);
     xMax = nan(lenSampleData, 1);
     for i=1:lenSampleData
-        metaDepth(i) = sample_data{i}.meta.depth;
+        if ~isempty(sample_data{i}.meta.depth)
+            metaDepth(i) = sample_data{i}.meta.depth;
+        elseif ~isempty(sample_data{i}.instrument_nominal_depth)
+            metaDepth(i) = sample_data{i}.instrument_nominal_depth;
+        else
+            metaDepth(i) = NaN;
+        end
         iTime = getVar(sample_data{i}.dimensions, 'TIME');
         xMin = min(sample_data{i}.dimensions{iTime}.data);
         xMax = max(sample_data{i}.dimensions{iTime}.data);
@@ -464,15 +471,14 @@ function mainWindow(...
     instrumentDesc{1} = 'Nominal depths';
     hLineDepth = nan(lenSampleData+1, 1);
     for i=1:lenSampleData
-        instrumentDesc{i+1} = sample_data{iSort(i)}.instrument;
-        if ~isnan(metaDepth(i))
-            instrumentDesc{i+1} = [instrumentDesc{i+1} ' (' num2str(metaDepth(i)) 'm)'];
-            hLineDepth(1) = line([xMin, xMax], [metaDepth(i), metaDepth(i)], ...
-                'Color', 'black');
-        else
-            fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                ', the ''sample_data.meta.depth'' attribute is not documented.']);
+        if ~isempty(strtrim(sample_data{iSort(i)}.instrument))
+            instrumentDesc{i+1} = sample_data{iSort(i)}.instrument;
+        elseif ~isempty(sample_data{iSort(i)}.toolbox_input_file)
+            [~, instrumentDesc{i+1}] = fileparts(sample_data{iSort(i)}.toolbox_input_file);
         end
+        instrumentDesc{i+1} = [strrep(instrumentDesc{i+1}, '_', ' ') ' (' num2str(metaDepth(i)) 'm)'];
+        hLineDepth(1) = line([xMin, xMax], [metaDepth(i), metaDepth(i)], ...
+            'Color', 'black');
         
         %look for time and depth variable
         iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
@@ -575,22 +581,29 @@ function mainWindow(...
         xResolution = monitorRec(:, 3)-monitorRec(:, 1);
         iBigMonitor = xResolution == max(xResolution);
         if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+        title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d ' varTitle];
         hFigMooringTemp = figure(...
-            'Name', ['Mooring''s instruments ' stringQC '''d ' varTitle], ...
+            'Name', title, ...
             'NumberTitle','off', ...
             'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
         hAxMooringTemp = axes('Parent',   hFigMooringTemp);
         set(get(hAxMooringTemp, 'XLabel'), 'String', 'Time');
         set(get(hAxMooringTemp, 'YLabel'), 'String', [varName ' (' varUnit ')']);
-        set(get(hAxMooringTemp, 'Title'), 'String', ['Mooring''s instruments ' stringQC '''d ' varTitle]);
+        set(get(hAxMooringTemp, 'Title'), 'String', title);
         hold(hAxMooringTemp, 'on');
         
-        %sort instruments by meta.depth
+        %sort instruments by depth
         metaDepth = nan(lenSampleData, 1);
         xMin = nan(lenSampleData, 1);
         xMax = nan(lenSampleData, 1);
         for i=1:lenSampleData
-            metaDepth(i) = sample_data{i}.meta.depth;
+            if ~isempty(sample_data{i}.meta.depth)
+                metaDepth(i) = sample_data{i}.meta.depth;
+            elseif ~isempty(sample_data{i}.instrument_nominal_depth)
+                metaDepth(i) = sample_data{i}.instrument_nominal_depth;
+            else
+                metaDepth(i) = NaN;
+            end
             xMin = min(sample_data{i}.dimensions{1}.data);
             xMax = max(sample_data{i}.dimensions{1}.data);
         end
@@ -609,38 +622,37 @@ function mainWindow(...
         instrumentDesc = cell(lenSampleData, 1);
         hLineVar = nan(lenSampleData, 1);
         for i=1:lenSampleData
-            instrumentDesc{i} = sample_data{iSort(i)}.instrument;
-            if ~isnan(metaDepth(i))
-                instrumentDesc{i} = [instrumentDesc{i} ' (' num2str(metaDepth(i)) 'm)'];
+            if ~isempty(strtrim(sample_data{iSort(i)}.instrument))
+                instrumentDesc{i} = sample_data{iSort(i)}.instrument;
+            elseif ~isempty(sample_data{iSort(i)}.toolbox_input_file)
+                [~, instrumentDesc{i}] = fileparts(sample_data{iSort(i)}.toolbox_input_file);
+            end
+            instrumentDesc{i} = [strrep(instrumentDesc{i}, '_', ' ') ' (' num2str(metaDepth(i)) 'm)'];
+            
+            %look for time and relevant variable
+            iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
+            iVar = getVar(sample_data{iSort(i)}.variables, varName);
+            
+            if iVar > 0
+                iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
                 
-                %look for time and relevant variable
-                iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
-                iVar = getVar(sample_data{iSort(i)}.variables, varName);
-                
-                if iVar > 0
-                    iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
+                if isQC
+                    %get time and var QC information
+                    timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
+                    varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
                     
-                    if isQC
-                        %get time and var QC information
-                        timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-                        varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
-                        
-                        iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
-                    end
-                    
-                    if all(~iGood)
-                        fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                            ', there is not any data with good flags.']);
-                    else
-                        hLineVar(i) = line(sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
-                            sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
-                            'Color', cMap(i, :), ...
-                            'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
-                    end
+                    iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
                 end
-            else
-                fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                    ', the ''sample_data.meta.depth'' attribute is not documented.']);
+                
+                if all(~iGood)
+                    fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                        ', there is not any data with good flags.']);
+                else
+                    hLineVar(i) = line(sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
+                        sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
+                        'Color', cMap(i, :), ...
+                        'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+                end
             end
         end
         

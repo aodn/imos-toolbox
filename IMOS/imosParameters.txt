@@ -63,6 +63,7 @@ NSCT,                1, northward_sea_water_velocity,                           
 NTRA,                1, mole_concentration_of_nitrate_in_sea_water,                                     umole l-1,                         K, 999999.0, ,        ,         float
 NTR2,                1, moles_of_nitrate_per_unit_mass_in_sea_water,                                    umole kg-1,                        K, 999999.0, ,        ,         float
 OPBS,                0, optical_backscattering_coefficient,                                             ,                                  C, 999999.0, ,        ,         float
+PAR,                 1, downwelling_photosynthetic_photon_flux_in_sea_water,                            umole m-2 s-1,                     F, 999999.0, ,        ,         float
 PCO2,                1, surface_partial_pressure_of_carbon_dioxide_in_air,                              Pascal,                            K, 999999.0, ,        ,         float
 PHOS,                1, moles_of_phosphate_per_unit_mass_in_sea_water,                                  umole kg-1,                        K, 999999.0, ,        ,         float
 PHO2,                1, mole_concentration_of_phosphate_in_sea_water,                                   umole l-1,                         K, 999999.0, ,        ,         float
