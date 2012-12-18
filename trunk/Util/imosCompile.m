@@ -146,17 +146,17 @@ cflags = [cflags{:}];
 % run mcc; i can't call mcc like 'mcc(cflags)'. it gives me 
 % some nonsensical error about '-x is no longer supported'
 eval(['mcc ' cflags]);
-% 
-% % copy the compiled application over to the packaging area
-% if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], packagingRoot)
-%   error('could not copy imosToolbox to packaging area');
-% end
-% 
-% % create a zip file containing the standalone 
-% % application and all required resources
-% disp(['creating toolbox archive: ' packagingRoot filesep 'imos-toolbox.zip']);
-% zip('imos-toolbox.zip', packagingRoot);
-% 
-% % clean up
-% rmdir(stagingRoot,   's');
-% rmdir(packagingRoot, 's');
+
+% copy the compiled application over to the packaging area
+if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], packagingRoot)
+  error('could not copy imosToolbox to packaging area');
+end
+
+% create a zip file containing the standalone 
+% application and all required resources
+disp(['creating toolbox archive: ' packagingRoot filesep 'imos-toolbox.zip']);
+zip('imos-toolbox.zip', packagingRoot);
+
+% clean up
+rmdir(stagingRoot,   's');
+rmdir(packagingRoot, 's');
