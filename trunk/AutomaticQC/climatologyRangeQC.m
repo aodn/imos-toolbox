@@ -1,4 +1,4 @@
-function [data, flags, paramsLog] = imosClimatologyRangeQC( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = climatologyRangeQC( sample_data, data, k, type, auto )
 %IMOSCLIMATOLOGYRANGEQC Flags value out of a climatology range.
 %
 % Range test which finds and flags any data which value doesn't fit in the
@@ -296,8 +296,8 @@ if isVar
     lenData = length(data);
     
     % read step type from imosClimatologyRangeQC properties file
-    rangeMinExpr = readProperty('rangeMin', fullfile('AutomaticQC', 'imosClimatologyRangeQC.txt'));
-    rangeMaxExpr = readProperty('rangeMax', fullfile('AutomaticQC', 'imosClimatologyRangeQC.txt'));
+    rangeMinExpr = readProperty('rangeMin', fullfile('AutomaticQC', 'climatologyRangeQC.txt'));
+    rangeMaxExpr = readProperty('rangeMax', fullfile('AutomaticQC', 'climatologyRangeQC.txt'));
     
     % let's find the nearest depth in climatology
     iClimDepth = 0;

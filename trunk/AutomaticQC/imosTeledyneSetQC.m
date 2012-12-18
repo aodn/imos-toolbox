@@ -251,7 +251,7 @@ if any(iifNotNan)
     ib6(jkf >= repmat(iif, 1, lenBin)) = false;
 end
 
-%Find the number that fail the first five tests
+%Find the number that pass the first five tests
 ib7 = ib1 + ib2 + ib3 + ib4 + ib5;
 iPass1 = ib7 >= 4;
 
