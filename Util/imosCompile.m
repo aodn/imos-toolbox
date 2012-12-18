@@ -84,8 +84,8 @@ if ~mkdir(stagingRoot), error('could not create staging area'); end
 % find all .m, .mat, .txt, .jar and .bat files - these are to be 
 % included as resources in the standalone application 
 matlabFiles   =                fsearchRegexp('.m$',   toolboxRoot, 'files');
-matlabFiles   = [matlabFiles   fsearchRegexp('.mat$', toolboxRoot, 'files')];
-resourceFiles = [matlabFiles   fsearchRegexp('.txt$', toolboxRoot, 'files')];
+resourceFiles = [matlabFiles   fsearchRegexp('.mat$', toolboxRoot, 'files')];
+resourceFiles = [resourceFiles fsearchRegexp('.txt$', toolboxRoot, 'files')];
 resourceFiles = [resourceFiles fsearchRegexp('.jar$', toolboxRoot, 'files')];
 resourceFiles = [resourceFiles fsearchRegexp('.bat$', toolboxRoot, 'files')];
 
