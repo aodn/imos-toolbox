@@ -5,7 +5,7 @@
 %
 % Format:
 %
-% name, longitude, latitude, longitudePlusMinusThreshold, latitudePlusMinusThreshold, distanceKmPlusMinusThreshold
+% name, nominalLongitude, nominalLatitude, longitudePlusMinusThreshold, latitudePlusMinusThreshold, distanceKmPlusMinusThreshold
 %
 NRSMAI, 	148.2333, 		-42.59667, 		0.025, 	0.025, 	2.5
 NRSNSI, 	153.58, 		-27.389, 		0.025, 	0.025, 	2.5
@@ -66,3 +66,4 @@ PIL200, 	115.91535, 		-19.43557, 		0.025, 	0.025, 	2.5
 SAM3MS, 	135.904, 		-36.1459, 		0.025, 	0.025, 	2.5
 SAM7DS, 	135.8439, 		-36.1809, 		0.025, 	0.025, 	2.5
 SAM8SG, 	136.69, 		-35.25, 		0.025, 	0.025, 	2.5
+TAN100, 	113.9065833, 	-21.8493, 		0.025, 	0.025, 	2.5

@@ -34,7 +34,7 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
-autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosRegionalRangeQC imosImpossibleDepthQC imosRateOfChangeQC imosStationarityQC imosSalinityFromPTQC imosTeledyneSetQC imosSideLobeContSetQC
+autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosRegionalRangeQC imosImpossibleDepthQC imosRateOfChangeQC imosStationarityQC imosSalinityFromPTQC imosSideLobeContSetQC imosTeledyneSetQC
 autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosRegionalRangeQC imosVerticalSpikeQC imosStationarityQC imosSalinityFromPTQC
 
 % prompt for preprocessing (if false, 
@@ -52,13 +52,13 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % default values for start dialog
-startDialog.dataDir = 
+startDialog.dataDir = C:\
 startDialog.fieldTrip = 
 startDialog.lowDate = 
 startDialog.highDate = 
 
 % default directory for manual data import
-importManager.manualDir = C:\
+importManager.manualDir = 
 
 % default directory for climatology data
 importManager.climDir = 

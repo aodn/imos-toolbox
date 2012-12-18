@@ -69,7 +69,7 @@ function filename = genIMOSFileName( sample_data, suffix )
   switch lower(mode)
       case 'profile'
           % build the file name
-          filename = 'IMOS_';
+          filename = [sample_data.naming_authority '_'];
           filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
           filename = [filename        getVal(fileCfg, defCfg, 'data_code')     '_'];
           filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];
@@ -79,7 +79,7 @@ function filename = genIMOSFileName( sample_data, suffix )
           filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
       otherwise
           % build the file name
-          filename = 'IMOS_';
+          filename = [sample_data.naming_authority '_'];
           filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
           filename = [filename        getVal(fileCfg, defCfg, 'data_code')     '_'];
           filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];

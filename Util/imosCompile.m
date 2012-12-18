@@ -81,11 +81,13 @@ if ~mkdir(packagingRoot), error('could not create packaging area'); end
 disp(['creating staging area: ' stagingRoot]);
 if ~mkdir(stagingRoot), error('could not create staging area'); end
 
-% find all .m, .txt and .jar files - these are to be 
+% find all .m, .mat, .txt, .jar and .bat files - these are to be 
 % included as resources in the standalone application 
 matlabFiles   =                fsearchRegexp('.m$',   toolboxRoot, 'files');
+matlabFiles   = [matlabFiles   fsearchRegexp('.mat$', toolboxRoot, 'files')];
 resourceFiles = [matlabFiles   fsearchRegexp('.txt$', toolboxRoot, 'files')];
 resourceFiles = [resourceFiles fsearchRegexp('.jar$', toolboxRoot, 'files')];
+resourceFiles = [resourceFiles fsearchRegexp('.bat$', toolboxRoot, 'files')];
 
 % copy the resource files to the packaging area
 for k = 1:length(resourceFiles)

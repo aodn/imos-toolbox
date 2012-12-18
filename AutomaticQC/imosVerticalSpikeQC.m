@@ -100,7 +100,7 @@ if any(iParam)
     
     paramsLog = ['threshold=' thresholdExpr{iParam}];
     
-    % matrix case, we unfold the matrix in one vector for timeserie study
+    % matrix case, we unfold the matrix in one vector for profile study
     % purpose
     isMatrix = size(data, 1)>1 & size(data, 2)>1;
     if isMatrix
@@ -177,7 +177,7 @@ if any(iParam)
         % we execute the suggested PABIM white book v1.3 threshold value
         % for 'Flurorescence like' data (p.44):
         % 
-        % Threshold_Value = |median(V0,V1,V2,V3,V4)| + |?(V0,V1,V2,V3,V4)|
+        % Threshold_Value = |median(V0,V1,V2,V3,V4)| + |standard_deviation(V0,V1,V2,V3,V4)|
         IChl            = true(lenDataTested, 1);
         IChl(1:2)       = false;
         IChl(end-1:end) = false;
