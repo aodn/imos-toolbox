@@ -83,11 +83,12 @@ if ~mkdir(stagingRoot), error('could not create staging area'); end
 
 % find all .m, .mat, .txt, .jar and .bat files - these are to be 
 % included as resources in the standalone application 
-matlabFiles   =                fsearchRegexp('.m$',   toolboxRoot, 'files');
-resourceFiles = [matlabFiles   fsearchRegexp('.mat$', toolboxRoot, 'files')];
-resourceFiles = [resourceFiles fsearchRegexp('.txt$', toolboxRoot, 'files')];
-resourceFiles = [resourceFiles fsearchRegexp('.jar$', toolboxRoot, 'files')];
-resourceFiles = [resourceFiles fsearchRegexp('.bat$', toolboxRoot, 'files')];
+matlabFiles     = fsearchRegexp('.m$',   toolboxRoot, 'files');
+matlabDataFiles = fsearchRegexp('.mat$', toolboxRoot, 'files');
+resourceFiles   = [matlabFiles   matlabDataFiles];
+resourceFiles   = [resourceFiles fsearchRegexp('.txt$', toolboxRoot, 'files')];
+resourceFiles   = [resourceFiles fsearchRegexp('.jar$', toolboxRoot, 'files')];
+resourceFiles   = [resourceFiles fsearchRegexp('.bat$', toolboxRoot, 'files')];
 
 % copy the resource files to the packaging area
 for k = 1:length(resourceFiles)
@@ -129,6 +130,9 @@ cflags{end+1} = ['''' toolboxRoot filesep 'imosToolbox.m'''];
 for k = 1:length(matlabFiles)
   cflags{end+1} = ['''' matlabFiles{k} '''']; 
 end
+for k = 1:length(matlabDataFiles)
+  cflags{end+1} = ['-a ''' matlabDataFiles{k} '''']; 
+end
 
 % print out options
 disp('-- mcc options --');
@@ -142,17 +146,17 @@ cflags = [cflags{:}];
 % run mcc; i can't call mcc like 'mcc(cflags)'. it gives me 
 % some nonsensical error about '-x is no longer supported'
 eval(['mcc ' cflags]);
-
-% copy the compiled application over to the packaging area
-if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], packagingRoot)
-  error('could not copy imosToolbox to packaging area');
-end
-
-% create a zip file containing the standalone 
-% application and all required resources
-disp(['creating toolbox archive: ' packagingRoot filesep 'imos-toolbox.zip']);
-zip('imos-toolbox.zip', packagingRoot);
-
-% clean up
-rmdir(stagingRoot,   's');
-rmdir(packagingRoot, 's');
+% 
+% % copy the compiled application over to the packaging area
+% if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], packagingRoot)
+%   error('could not copy imosToolbox to packaging area');
+% end
+% 
+% % create a zip file containing the standalone 
+% % application and all required resources
+% disp(['creating toolbox archive: ' packagingRoot filesep 'imos-toolbox.zip']);
+% zip('imos-toolbox.zip', packagingRoot);
+% 
+% % clean up
+% rmdir(stagingRoot,   's');
+% rmdir(packagingRoot, 's');
