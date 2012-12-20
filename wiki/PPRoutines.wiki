@@ -5,7 +5,7 @@
 
 = Pre-processing routines =
 
-The following routines are available in the Toolbox since version 2.1b :
+The following routines are available in the Toolbox since version 2.2 :
 
 == Data time start redefinition - timeStartPP == 
 
@@ -48,6 +48,9 @@ EST,     -10.0
 AEST,    -10.0
 EDT,     -11.0
 AEDT,    -11.0
+
+NZST,    -12.0
+NZDT,    -13.0
 }}}
 
 In addition, do not forget to document the global attribute local_time_zone (= +10 for EST timezone for example) so that users easily know which offset to apply to be back in local time. Actually if your data is in local time and consistent with the local time where the instrument is deployed, then you can even use the deployment database field !TimeZone in the table !DeploymentData to automatically document this attribute in your global_atributes.txt configuration file :

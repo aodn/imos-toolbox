@@ -272,7 +272,7 @@ The samples that pass the test are the ones with parameter's value Vn verifying 
 
 It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable). If the test involves consecutive samples with a time period greater than 1h between them then the test is canceled for this triplet.
 
-The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user’s attention on specific areas in the profile that need a closer look and investigation before use.
+The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user's attention on specific areas in the profile that need a closer look and investigation before use.
 
 An imosVerticalSpikeQC.txt parameter file allows the user to define the threshold values to use. See default parameter file below :
 
@@ -304,13 +304,13 @@ imosRateOfChangeQC is looking for import changes in values among temporally adja
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2, UCUR, VCUR, WCUR, CSPD||1-Good data||3-Bad data that are potentially correctable||
 
-The samples that pass the test are the ones with parameter's value Vn verifying the test `|Vn – Vn-1| + |Vn – Vn+1| <= 2*(threshold)`.
+The samples that pass the test are the ones with parameter's value Vn verifying the test `|Vn - Vn-1| + |Vn - Vn+1| <= 2*(threshold)`.
 
-If the previous (or following) sample is missing then the test becomes `|Vn – Vn-1| <= 1*(threshold)` (respectively `|Vn – Vn+1| <= 1*(threshold)`).
+If the previous (or following) sample is missing then the test becomes `|Vn - Vn-1| <= 1*(threshold)` (respectively `|Vn - Vn+1| <= 1*(threshold)`).
 
 It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable). If the test involves consecutive samples with a time period greater than 1h between them then the test is canceled for this triplet or pair.
 
-The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user’s attention on specific areas in the time series that need a closer look and investigation before use.
+The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user's attention on specific areas in the time series that need a closer look and investigation before use.
 
 An imosRateOfChangeQC.txt parameter file allows the user to define the threshold values to use. See default parameter file below :
 
@@ -432,7 +432,7 @@ rangeMax = max(mean + 6*stdDev, maxi+2*stdDev)
 
 Parameters `mean`, `stdDev`, `mini` and `maxi` are respectively the mean, standard deviation, minimum value and maximum value from a temporal bin at a specific depth, found in the relevant climatology file. For each data sample, the relevant parameters are extracted so that they fall within the proper temporal bin and the climatology depth is the nearest from the actual depth of the sample.
 
-The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user’s attention on specific areas in the time series that need a closer look and investigation before use.
+The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user's attention on specific areas in the time series that need a closer look and investigation before use.
 
 If the site information is not documented in the metadata, the data set doesn't contain any depth variable or the according climatology file is not found then test is not performed and a warning is displayed.
 
