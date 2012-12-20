@@ -7,26 +7,27 @@ function sample_data = readWQMdat( filename )
 % wide range of fields to be included in the output file; the following are 
 % supported by this parser:
 %
-%   WQM             (literal 'WQM')
-%   SN              (serial number - required)
-%   MMDDYY          (date - required)
-%   HHMMSS          (time - required)
-%   WQM-SN          (serial number - required)
-%   MM/DD/YY        (date - required)
-%   HH:MM:SS        (time - required)
-%   Cond(mmho)      (floating point conductivity, Siemens/metre)
-%   Temp(C)         (floating point temperature, Degrees Celsius)
-%   Pres(dbar)      (floating point pressure, Decibar)
-%   Sal(PSU)        (floating point salinity, PSS)
-%   DO(mg/l)        (floating point dissolved oxygen, milligrams/Litre)
-%   DO(ml/l)        (floating point dissolved oxygen, millilitres/Litre)
-%   DO(mmol/m^3)	(floating point dissolved oxygen, millimole/metre^3)
-%   CHL(ug/l)       (floating point chlorophyll, micrograms/Litre)
-%   CHLa(ug/l)      (floating point chlorophyll, micrograms/Litre)
-%   F-Cal-CHL(ug/l) (floating point factory coefficient chlorophyll, micrograms/Litre)
-%   U-Cal-CHL(ug/l) (floating point user coefficient chlorophyll, micrograms/Litre)
-%   NTU             (floating point turbidity, NTU)
-%   NTU(NTU)        (floating point turbidity, NTU)
+%   WQM                 (literal 'WQM')
+%   SN                  (serial number - required)
+%   MMDDYY              (date - required)
+%   HHMMSS              (time - required)
+%   WQM-SN              (serial number - required)
+%   MM/DD/YY            (date - required)
+%   HH:MM:SS            (time - required)
+%   Cond(mmho)          (floating point conductivity, Siemens/metre)
+%   Temp(C)             (floating point temperature, Degrees Celsius)
+%   Pres(dbar)          (floating point pressure, Decibar)
+%   Sal(PSU)            (floating point salinity, PSS)
+%   DO(mg/l)            (floating point dissolved oxygen, milligrams/Litre)
+%   DO(ml/l)            (floating point dissolved oxygen, millilitres/Litre)
+%   DO(mmol/m^3)        (floating point dissolved oxygen, millimole/metre^3)
+%   CHL(ug/l)           (floating point chlorophyll, micrograms/Litre)
+%   CHLa(ug/l)          (floating point chlorophyll, micrograms/Litre)
+%   F-Cal-CHL(ug/l)     (floating point factory coefficient chlorophyll, micrograms/Litre)
+%   U-Cal-CHL(ug/l)     (floating point user coefficient chlorophyll, micrograms/Litre)
+%   NTU                 (floating point turbidity, NTU)
+%   NTU(NTU)            (floating point turbidity, NTU)
+%   PAR(umol_phtn/m2/s) (floating point photosynthetically active radiation, micromole of photon/m2/s)
 %
 % Any other fields which are present in the input file will be ignored.
 %
@@ -49,7 +50,8 @@ function sample_data = readWQMdat( filename )
 %                   Chlorophyll       ('CHLU'): mg/m^3   (user coefficient)
 %                   Chlorophyll       ('CHLF'): mg/m^3   (factory coefficient)
 %                   Chlorophyll       ('CHLR'): mg/m^3   (raw counts)
-%                   Turbidity         ('TURB') NTU
+%                   Turbidity         ('TURB'): NTU
+%                   Photosynthetically active radiation ('PAR'): umol_phtn/m^2/s
 %                 
 %                 Also contains some metadata fields. The '.dat' output 
 %                 format does not contain any calibration information, so 
