@@ -256,9 +256,16 @@ switch upper(columnsInfo.type)
         data = sample;
         
     case 'PAR'
-        % not identified by IMOS, won't be output in NetCDF
+        % not sure about what to do with this measurement from this
+        % instrument so for the time being won't be output in NetCDF
         name = ['ECO3_' columnsInfo.type];
         data = sample;
+        if isfield(columnsInfo, 'offset')
+            data = data - columnsInfo.offset;
+        end
+        if isfield(columnsInfo, 'scale')
+            data = data * columnsInfo.scale;
+        end
         
     case 'CHL' %ug/l (470/695nm)
         name = 'CPHL';
