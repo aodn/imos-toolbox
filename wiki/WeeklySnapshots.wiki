@@ -39,6 +39,7 @@ import os
 import sys
 import time
 import shutil
+import ziputil
 import gmail
 
 # snapshot.py
@@ -60,8 +61,8 @@ project = 'imos-toolbox'
 
 def googleSubmit(archive, summary):
 
-  username = 'my_google_code_id'
-  password = 'my_google_code_svn_password'
+  username = 'guillaume.galibert@gmail.com'
+  password = 'dZ2JH2wD4ad2' # SVN password!!!
   labels   = 'Type-Snapshot'
 
   print('\n--submitting %s to google' % archive)
@@ -77,9 +78,9 @@ def googleSubmit(archive, summary):
 
 url        = 'http://%s.googlecode.com/svn/trunk' % project
 exportDir  = 'export'
-stdArchive = '%04i-%02i-%02i_snapshot.zip' % (lt[0], lt[1], lt[2])
+stdArchive = '%04i-%02i-%02i_unstable_snapshot.zip' % (lt[0], lt[1], lt[2])
 
-stdSummary  = 'IMOS Toolbox SVN standalone snapshot from %s' % at 
+stdSummary  = 'IMOS Toolbox SVN unstable snapshot from %s for test purpose only' % at 
 compilerLog = '.\%s\log.txt' % exportDir
 
 #
@@ -108,8 +109,8 @@ if compiled is not 0:
     "[imos-toolbox] DDB interface compilation error",
     "Check the Java DDB interface code",
     None,
-    "my_gmail_login",
-    "my_gmail_password")
+    "guillaume.galibert",
+    "28gg=!bb")
 
 #
 # create snapshot
@@ -134,8 +135,8 @@ except:
     "[imos-toolbox] Snapshot upload error",
     "Check the snapshot script. Fix, then delete previous files before runnning new snapshot.",
     attachment,
-    "my_gmail_login",
-    "my_gmail_password")
+    "guillaume.galibert",
+    "28gg=!bb")
 
 print('\n--removing local SVN tree and archives')
 shutil.rmtree('%s' % exportDir)

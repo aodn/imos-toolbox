@@ -7,17 +7,20 @@
 NetCDF metadata attributes are automatically populated from a set of template files, which reside in the `NetCDF/template/` subdirectory. The following template files are used:
 
 ||*File*||*Use*||
-||`global_attributes.txt`||Global NetCDF attributes||
+||`global_attributes_timeSeries.txt`||Global NetCDF attributes used in timeSeries mode||
+||`global_attributes_profile.txt`||Global NetCDF attributes used in profile mode||
+||`dimension_attributes.txt`||Dimension attributes||
+||`variable_attributes.txt`||Variable attributes||
 ||`time_attributes.txt`||TIME coordinate variable attributes||
 ||`longitude_attributes.txt`||LONGITUDE coordinate variable attributes||
 ||`latitude_attributes.txt`||LATITUDE coordinate variable attributes||
 ||`depth_attributes.txt`||DEPTH coordinate variable attributes||
 ||`height_above_sensor_attributes.txt`||HEIGHT_ABOVE_SENSOR coordinate variable attributes||
-||`frequency_attributes.txt`||FREQUENCY coordinate variable attributes||
-||`wav_dir_attributes.txt`||WAV_DIR coordinate variable attributes||
-||`qc_coord_attributes.txt`||Quality control coordinate variable attributes||
-||`qc_attributes.txt`||Quality control variable attributes||
-||`variable_attributes.txt`||Variable attributes||
+||`instance_attributes.txt`||INSTANCE coordinate variable attributes||
+||`maxz_attributes.txt`||MAXZ coordinate variable attributes||
+||`direction_attributes.txt`||DIRECTION coordinate variable attributes||
+||`qc_coord_attributes.txt`||Quality control attributes for coordinate variables||
+||`qc_attributes.txt`||Quality control attributes||
 
 All of the template files except for the quality control ones are loaded when data is imported into the toolbox; the quality control template files are loaded just before data is exported. The generated attributes are added to the `sample_data` struct. you can use the template files to specify NetCDF attribute values in one of three different ways:
 
@@ -52,12 +55,12 @@ attribute_name = [ddb field [related_table [related_pkey] related_field]]
 
 where 
 
- * `field` is a field within the `DeploymentData` table, the value of which is to be used as the attribute value (unless `related_table` and `related_field` are specified).
+ * `field` is a field within the `DeploymentData` table (or `CTDData`, depending on wether the toolbox.mode is timeSeries or profile), the value of which is to be used as the attribute value (unless `related_table` and `related_field` are specified).
  * `related_table` is the name of a table to which the field should be considered a foreign key.
  * `related_pkey` is the name of the related_table primary key. If omitted, it is assumed to be the same as field.
  * `related_field` is the name of the field within the related_table, the value of which is to be used as the attribute value.
 
-A couple of examples:
+A couple of examples in timeSeries mode:
 
 1. For the attribute definition:
   {{{
@@ -107,7 +110,7 @@ the attribute value will be the value of the matlab statment:
 
 == Combinations ==
 
-You can combine each method of defining values, as shown in the following examples. Version 1.0 of the toolbox imposes a few restrictions upon the use of tokens; these restrictions are not present in version 1.5:
+You can combine each method of defining values, as shown in the following examples. Version 1.0 of the toolbox imposes a few restrictions upon the use of tokens; these restrictions are not present in version 1.5 and above:
  * Tokens may not be repeated
  * Tokens may not contain other tokens
 

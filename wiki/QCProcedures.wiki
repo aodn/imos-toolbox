@@ -3,48 +3,95 @@
 
 <wiki:toc/>
 
-
 = Automatic quality control procedures =
 
-The following automatic quality control procedures are available in the Toolbox version 2.1b. 
+The following automatic quality control policy and procedures are available in the Toolbox version 2.2. 
+
+== Flag management policy ==
 
 At the moment, the flag management policy is as follow :
 
--Every data point in the data set are checked by the QC procedures, procedure by procedure.<br>
--For each procedure, if a checked point was previously flagged "No QC performed" (which is initially the case before any test occurs) or "Good" and fails the test then it gains the corresponding fail flag.<br>
--If it was previously "No QC performed" and passes the test then it gains the corresponding pass flag.<br>
--If it was previously "Good" and passes the test then it keeps its "Good" flag.<br>
--If this checked point was previously flagged with a flag different from "No QC performed" or "Good" then it keeps its flag whatever the result of the test.<br>
+-Any data sample in the data set is checked by the QC procedures, procedure by procedure.<br>
+-For each procedure, if a checked sample fails a test, then it gains the corresponding fail flag if the latter is higher in the flag scale than its current one. That is to say flags are overwritten when higher.<br>
+-For each procedure, all flags are first initialised to "Raw". Then, usually when the test starts they are all initialised to the relevant "fail" flag and only the "pass" test is then performed so that "pass" flags are finally provided to the successfull samples. When relevant the "fail" test is performed instead of intialising everything with "fail" flag first, so that samples which neither fail or pass the test are provided with the "Raw" flag.<br>
+-If a procedure testing a data sample uses a formula involving neighbours then only the ones which don't already have a flag "Bad" are considered.<Br>
+<br>
+-QC procedures, parameters used and results are detailed in the global attribute history. They can also be displayed in a table via the 'QC stats' button on the main panel. QC procedure details can be queried when clicking on any cell from the table.<Br>
+<br>
+-Any QC test which relies on depth information takes into account the associated depth flags. If depth has been flagged not "Good", then nominal depth information is prefered to continue current QC test.<Br>
+<br>
+-When exporting a NetCDF file, for each ancillary variable for QC, a variable attribute quality_control_global is automatically populated according to the ARGO reference table 2a conventions ([http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/argo-dm-user-manual.pdf p.57 in ARGO USER'S MANUAL - Version 2.4, March 30th 2012]).<Br>
 <br>
 
-So called "official IMOS standard procedures" and their suggested parameters are still under development/validation, any feedback or comments are welcome.
+== Official IMOS standard set of procedures ==
 
-Other unofficial procedures are available for test purpose only. IMOS recommends that processed data files sent to eMII data centre should only be QC'd with official IMOS standard sets of procedures.
+This "official IMOS standard set of procedures" and their suggested parameters will always be under ongoing development/validation so any feedback or comment is welcome.
 
-== Official IMOS standard set of procedures for moored CTD ==
+IMOS recommends that processed data files sent to eMII data centre should only be QC'd with official IMOS standard sets of procedures. These tests are identified by the prefix "imos". Other unofficial procedures may be available for test purpose only.
 
-This set of QC procedures has been specifically designed for checking physical variables such as temperature and salinity collected on moorings. These tests should always been performed for data sets collected on moorings. In order to have consistency over processed data files and to make results easier to interpret, we recommend to follow the suggested order of tests below :
+These sets of QC procedures have been mainly designed to check physical variables such as temperature, salinity and pressure/depth collected either on moorings (time series) or while performing CTD profiles/casts from a boat at a specific station. In order to have consistency over processed data files and to make results easier to interpret, we recommend these tests should always been performed following the suggested order.
 
- # morelloImpossibleLocationSetQC
- # morelloImpossibleDateQC
- # morelloInWaterQC
- # morelloOutWaterQC
- # morelloSpikeQC
- # morelloGradientQC
- # morelloStationarityQC
- # morelloRangeQC
+=== Moored time series ===
 
-The basis of most of these tests is described in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/Morello_et_al_2011.pdf Morello et al. 2011 paper].
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC imosImpossibleDateQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC imosImpossibleLocationSetQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC imosInOutWaterQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC imosGlobalRangeQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Regional_range_test_-_imosRegionalRangeQC imosRegionalRangeQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_depth_test_-_imosImpossibleDepthQC imosImpossibleDepthQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Rate_of_change_test_-_imosRateOfChangeQC imosRateOfChangeQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Stationarity_test_-_imosStationarityQC imosStationarityQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC imosSalinityFromPTQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Side_lobe_contamination_test_-_imosSideLobeContSetQC imosSideLobeContSetQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Workhorse_ADCP_tests_-_imosTeledyneSetQC imosTeledyneSetQC]
 
+ 
+=== Profiles ===
 
-=== Impossible location test - morelloImpossibleLocationSetQC === 
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC imosImpossibleDateQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC imosImpossibleLocationSetQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC imosInOutWaterQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC imosGlobalRangeQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Regional_range_test_-_imosRegionalRangeQC imosRegionalRangeQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Vertical_spike_test_-_imosVerticalSpikeQC imosVerticalSpikeQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Stationarity_test_-_imosStationarityQC imosStationarityQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC imosSalinityFromPTQC]
 
-morelloImpossibleLocationSetQC tests impossible Latitude and Longitude data values against nominal values for the current mooring site. Useful to detect typos in positions documented in the metadata/deployment database.
+== IMOS procedures descriptions ==
 
-|| *Dimensions checked* || *Pass test flag* || *Fail test flag* ||
-||Longitude, Latitude||1-Good data||3-Bad data that are potentially correctable||
+The basis of most of these tests is described in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/Morello_et_al_2011.pdf Morello et al. 2011 paper]. A new paper is being written to be submitted soon.
 
-Site name is retrieved from the deployment database in the field Site of the table !DeploymentData and then IMOS sites information and test parameters are read from IMOS\imosSites.txt. See example of such parameter file below :
+Variables mentioned below are IMOS parameters code and their definition can be found in [http://code.google.com/p/imos-toolbox/source/browse/trunk/IMOS/imosParameters.txt IMOS\imosParameters.txt].
+
+=== Impossible date test - imosImpossibleDateQC === 
+
+imosImpossibleDateQC checks that the TIME values are within an acceptable range. Because some instrument files contain the date information in binary format like the datenum Matlab format (decimal days from a specific date and time, where datenum('Jan-01-0000 00:00:00') returns the number 1) it is only possible to set up a generic test that only checks the full date range. Cheking the day, month, hour, minute or second values separately (minimum/maximum valid values for minutes, months, days in February, etc...) is not possible in our case.
+
+|| *Variable checked* || *Pass test flag* || *Fail test flag* ||
+||TIME||1-Good data||3-Bad data that are potentially correctable||
+
+The samples that pass the test are the one verifying `TIME >= dateMin` and `TIME <= dateMax`.
+
+An imosImpossibleDateQC.txt parameter file allows the user to define the dateMin and dateMax values. See default configuration below :
+
+{{{
+dateMin = 01/01/2007
+dateMax = 
+
+}}}
+
+By default, if dateMax is left empty then dateMax is the current date at the time of test.
+
+Since this test is critical, a warning message is displayed if some samples fail the test.
+
+=== Impossible location test - imosImpossibleLocationSetQC === 
+
+imosImpossibleLocationSetQC checks the LATITUDE and LONGITUDE values against a nominal position and acceptable range for the relevant mooring site. Useful to detect typos in positions documented in the metadata/deployment database.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||LONGITUDE, LATITUDE||1-Good data||3-Bad data that are potentially correctable||
+
+The site name is retrieved from the deployment database in the field Site of the table !DeploymentData and then IMOS sites information and parameters are read from [http://code.google.com/p/imos-toolbox/source/browse/trunk/IMOS/imosSites.txt IMOS\imosSites.txt] for the relevant site. See example of default parameter file below :
 
 {{{
 % Definitions and descriptions of IMOS moorings/stations sites.
@@ -54,191 +101,290 @@ Site name is retrieved from the deployment database in the field Site of the tab
 %
 % Format:
 %
-%   name, longitude, latitude, longitudePlusMinusThreshold, latitudePlusMinusThreshold, distanceKmPlusMinusThreshold
+% name, nominalLongitude, nominalLatitude, longitudePlusMinusThreshold, latitudePlusMinusThreshold, distanceKmPlusMinusThreshold
 %
-NRSMAI,     148.2333,   -42.59667,  0.2,    0.25,   Nan
-NRSNSI,     153.58,     -27.389,    0.2,    0.25,   Nan
-NRSKAI,     136.4473,   -35.83217,  0.2,    0.25,   Nan
-NRSESP,     121.85,     -33.93333,  0.2,    0.25,   Nan
-NRSROT,     115.4167,   -32,        0.2,    0.25,   Nan
-NRSNIN,     113.947,    -21.86652,  0.2,    0.25,   Nan
-NRSDAR,     130.7681,   -12.4,      0.2,    0.25,   Nan
-NRSYON,     147.6184,   -19.30847,  0.2,    0.25,   Nan
-NRSPHB,     151.25,     -34.08333,  0.2,    0.25,   Nan
+NRSMAI, 	148.2333, 		-42.59667, 		0.025, 	0.025, 	2.5
+NRSNSI, 	153.58, 		-27.389, 		0.025, 	0.025, 	2.5
+...
 
 }}}
 
-The impossible location test can be performed according to 2 variations.
+The impossible location test can be performed according to 2 variations:
+
+ * distanceKmPlusMinusThreshold is not Nan (default case): 
+The LONGITUDE and LATITUDE samples values that pass the test are the one verifying `distance between coordinates (LONGITUDE, LATITUDE) and (nominalLongitude, nominalLatitude) <= distanceKmPlusMinusThreshold`.
+
+In this case, positions are expected to be in a circle centered on the nominal position and which radius is distanceKmPlusMinusThreshold. LATITUDE and LONGITUDE are checked together as a position and gain the same flag.
 
  * distanceKmPlusMinusThreshold is Nan : 
-Longitude and Latitude data are checked against nominal longitude and latitude values +/- longitudePlusMinusThreshold or latitudePlusMinusThreshold. 
+The LONGITUDE samples values that pass the test are the one verifying `LONGITUDE >= nominalLongitude - longitudePlusMinusThreshold` and `LONGITUDE <= nominalLongitude + longitudePlusMinusThreshold`.
+The LATITUDE samples values that pass the test are the one verifying `LATITUDE >= nominalLatitude - latitudePlusMinusThreshold` and `LATITUDE <= nominalLatitude + latitudePlusMinusThreshold`.
 
-In this case, positions are tested to be in a square centered on the nominal position and which width is 2*longitudePlusMinusThreshold and height is 2*latitudePlusMinusThreshold.
+In this case, positions are expected to be in a square centered on the nominal position and which width is 2*longitudePlusMinusThreshold and height 2*latitudePlusMinusThreshold. LATITUDE and LONGITUDE are checked separately and gain their own flag.
 
- * distanceKmPlusMinusThreshold is not Nan : 
-Longitude and Latitude data are checked against their distance to the nominal position and distanceKmPlusMinusThreshold. 
+Since this test is critical and can easily be corrected, an error message is triggered if some samples fail the test.
 
-In this case, positions are tested to be in a circle centered on the nominal position and which radius is distanceKmPlusMinusThreshold.
+=== In/Out water test - imosInOutWaterQC === 
 
+imosInOutWaterQC flags any variable sample which TIME values are not between the first and last time when the instrument is actually in position collecting data for time series purpose. Between these two times, data is deliberately left non QC'd.
 
-=== Impossible date test - morelloImpossibleDateQC === 
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||Any variable||0-No QC performed||4-Bad data||
 
-morelloImpossibleDateQC tests impossible Time values.
+The samples that pass the test are the ones which TIME values are verifying `TIME >= in water time` and `TIME <= out water time`.
 
-|| *Dimension checked* || *Pass test flag* || *Fail test flag* ||
-||Time||1-Good data||3-Bad data that are potentially correctable||
-
-Only the test `year > default_year_value` will be performed as the date information is stored in datenum format (decimal days since 01/01/0000) before being output. In addition not all the date information in input files are in ASCII format or expressed with day, month and year information, so we cannot do much more than assessing the year information is greater than a minimum value...
-
-A morelloImpossibleDateQC.txt parameter file allows the user to define the minimum default_year_value. See example below :
-
-{{{
-dateMin = 01/01/2007
-
-}}}
-
-
-=== Before deployment & after retrieving date flagging - morelloInWaterQC & morelloOutWaterQC === 
-
-morelloInWaterQC and morelloOutWaterQC flag Temperature and Salinity samples which were taken before an `in water` time and after `out water` time. Between these two time, data is deliberately left non QC'd.
-
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Temperature, Salinity||0-No QC performed||3-Bad data that are potentially correctable||
-
-`in water` time can be one of these date information taken from fields of the table !DeploymentData in the deployment database, in this order of preference :
+`in water time` can be one of these date information taken from fields of the table !DeploymentData in the deployment database, in this order of preference :
 
  # !TimeFirstGoodData : Time of first good data.
  # !TimeFirstInPos : Time instrument first in position.
  # !TimeFirstWet : Time instrument first in water.
  # !TimeSwitchOn : Time instrument is switched on.
  
-`out water` time can be one of these date information taken from fields of the table !DeploymentData in the deployment database, in this order of preference :
+`out water time` can be one of these date information taken from fields of the table !DeploymentData in the deployment database, in this order of preference :
 
  # !TimeLastGoodData : Time of last good data.
  # !TimeLastInPos : Time instrument last in position.
  # !TimeOnDeck : Time instrument on deck.
  # !TimeSwitchOff : Time instrument is switched off.
 
- 
-=== Spike test - morelloSpikeQC === 
+=== Global range test - imosGlobalRangeQC === 
 
-morelloSpikeQC flags Temperature and Salinity spikes.
+imosGlobalRangeQC checks that the parameter's values are within a global valid range. The default list of parameters impacted by this test is found in imosGlobalRangeQC.txt.
 
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Temperature, Salinity||1-Good data||4-Bad data||
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2, UCUR, VCUR, WCUR, CDIR, CSPD||1-Good data||4-Bad data||
 
-The algorithm used here is the same used by the Australian National Mooring Facility Ocean Gliders ([http://www2.sese.uwa.edu.au/~hollings/anfog/index.php ANFOG]), namely a spike test which detects any data which value Vn fails the following test :
+The samples that pass the test are the ones which parameter's values are verifying `PARAMETER >= validMin` and `PARAMETER <= validMax`.
+
+The [http://code.google.com/p/imos-toolbox/source/browse/trunk/IMOS/imosParameters.txt IMOS\imosParameters.txt] file contains validMin and validMax values for each IMOS parameters. The validMin and validMax values of the impacted parameters by this test have been set based on suggested values from the following documents : [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/argo-quality-control-manual-V2.7.pdf Argo quality control manual - Version 2.7, 3 January 2012] and [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/Recommendations_for_RTQC_procedures_V1_2.pdf EuroGOOS Recommendations for in-situ data Near Real Time Quality Control - Version 1.2, December 2010].
+
+See below default list of impacted parameters by this test and their validMin / validMax values from imosParameters.txt file : 
 
 {{{
-|Vn - (Vn+1 + Vn-1)/2| - |(Vn+1 - Vn-1)/2| > threshold
+%
+% A list of all IMOS compliant parameter names, associated standard names from version 20
+% (http://cf-pcmdi.llnl.gov/documents/cf-standard-names/standard-name-table/20/cf-standard-name-table.html/),
+% units of measurement, fill values, and valid min/max values. This list has been copied 
+% verbatim from the IMOS NetCDF User's manual version 1.3, and the IMOS NetCDF 
+% File Naming Convention version 1.3. Entries are in the following format:
+% 
+%   parameter name, is cf parameter, standard/long name, units of measurement, data code, fillValue, validMin, validMax, NetCDF 3.6.0 type
+%
+% For parameters which are specified as a percentage, use the word 'percent' 
+% in this file - this will be automatically converted into a '%' sign. This is 
+% necessary because Matlab will interpret literal '%' signs as the beginining 
+% of a comment.
+%
+
+CPHL,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                            K, 999999.0, 0.0,     100.0,    float
+CHLF,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                            K, 999999.0, 0.0,     100.0,    float
+CHLU,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                            K, 999999.0, 0.0,     100.0,    float
+CSPD,                1, sea_water_speed,                                                                m s-1,                             V, 999999.0, 0.0,     10.0,     float
+DEPTH,               1, depth,                                                                          m,                                 Z, 999999.0, -5.0,    12000.0,  float
+DOX1,                1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,                  umol l-1,                          O, 999999.0, 0.0,     900000.0, float
+DOX2,                1, moles_of_oxygen_per_unit_mass_in_sea_water,                                     umol kg-1,                         O, 999999.0, 0.0,     880000.0, float
+PRES,                1, sea_water_pressure,                                                             dbar,                              Z, 999999.0, -5.0,    12000.0,  float
+PRES_REL,            0, sea_water_relative_pressure,                                                    dbar,                              Z, 999999.0, -15.0,   12000.0,  float
+PSAL,                1, sea_water_salinity,                                                             psu,                               S, 999999.0, 2.0,     41.0,     float
+TEMP,                1, sea_water_temperature,                                                          Celsius,                           T, 999999.0, -2.5,    40.0,     float
+UCUR,                1, eastward_sea_water_velocity,                                                    m s-1,                             V, 999999.0, -10.0,   10.0,     float
+VCUR,                1, northward_sea_water_velocity,                                                   m s-1,                             V, 999999.0, -10.0,   10.0,     float
+WCUR,                1, upward_sea_water_velocity,                                                      m s-1,                             V, 999999.0, -5.0,    5.0,      float
 }}}
 
-A morelloSpikeQC.txt parameter file allows the user to define the threshold value to use. See example below :
+If valid ranges are not documented for a parameter or are of same value for Min and Max then the test is not performed.
+
+=== Regional range test - imosRegionalRangeQC === 
+
+imosRegionalRangeQC checks that the variables values are within a regional range which is site specific. The default list of sites and variables impacted by this test is found below.
+
+|| *Sites and variables checked* || *Pass test flag* || *Fail test flag* ||
+||See [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosRegionalRangeQC.txt AutomaticQC/imosRegionalRangeQC.txt]||1-Good data||4-Bad data||
+
+The samples that pass the test are the ones which parameters values are verifying `PARAMETER >= regionalRangeMin` and `PARAMETER <= regionalRangeMax`.
+Regional ranges are specified for each site and parameter in the AutomaticQC/imosRegionalRangeQC.txt parameter file.
+
+See example of default parameter file below :
+
+{{{
+% Definitions and descriptions of IMOS moorings/stations sites regional ranges.
+%
+% These information are used in the regional range QC test.
+% These thresholds values were taken from an histogram distribution
+% analysis either from historical water samples or in-situ sensor data
+%
+% Format:
+%
+% siteName, IMOSParameter, regionalRangeMin, regionalRangeMax
+%
+NRSNSI, PSAL, 31.3, 38.7
+NRSNSI, TEMP, 9, 33
+NRSMAI, PSAL, 27.5, 38.9
+NRSMAI, TEMP, 5, 25
+...
+
+}}}
+
+If regional ranges are not documented for a site and parameter, or are of same value for Min and Max then the test is not performed.
+
+The test is not performed and a warning message is displayed if the current processed site is not documented in the parameter file.
+
+=== Impossible depth test - imosImpossibleDepthQC === 
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/impossibleDepthIllustration.png
+
+imosImpossibleDepthQC checks that the pressure/depth data are given within an acceptable range. Basically, the test checks that the instrument is close to its nominal depth, allowing enough flexibility to cope with possible mismatch between nominal and actual depth when deployed, and knock down events related to strong current events.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||PRES, PRES_REL, DEPTH||1-Good data||4-Bad data||
+
+The samples that pass the test are the ones which depth values are verifying `DEPTH >= instrumentNominalDepth - lowerCoeff*(siteNominalDepth/instrumentNominalDepth)` and `DEPTH <= instrumentNominalDepth + upperCoeff*(siteNominalDepth/instrumentNominalDepth)`. Indeed, a greater range should be allowed for instruments close to the surface and which site is deep (likely to drop more during strong current events).
+
+The upper and lower coefficient values can be modified in the imosImpossibleDepth.txt parameter file. Default values have been set respectively to 3 and 5 (an instrument on a mooring is more likely to drop than rise from its nominal depth). These values are basically the offset bounds in metre for the acceptable depth range when the instrument lays on the bottom (i.e. :  for a 100m deep site, the corresponding acceptable range will be [97; 105]).
+
+See below a table example using upper and lower coefficient of respective value 3 and 5 :
+
+|| *Site nominal depth (m)* || *Instrument nominal depth (m)* || *Upper bound depth (m)* || *Upper bound depth (m)* ||
+||50||10||-5||35||
+||50||40||36||46||
+||50||50||47||55||
+||100||20||5||45||
+||100||90||87||96||
+||100||100||97||105||
+
+The resulting range cannot be out of the water or deeper than 10% of the relevant site nominal depth.
+
+If the site nominal depth is not documented, then the site depth at deployment is used.
+If the instrument nominal depth is not documented, then the instrument nominal height and site nominal depth (or site depth at deployment) are used.
+
+The test is not performed and a warning diplayed if not enough nominal depth/height information is provided.
+
+=== Vertical spike test - imosVerticalSpikeQC === 
+
+imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of samples. This test is mostly useful for CTD profile/cast data.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2||1-Good data||3-Bad data that are potentially correctable||
+
+The algorithm used here is the same used by the Australian National Mooring Facility Ocean Gliders ([http://www2.sese.uwa.edu.au/~hollings/anfog/index.php ANFOG]).
+
+The samples that pass the test are the ones with parameter's value Vn verifying the test `|Vn - (Vn+1 + Vn-1)/2| - |(Vn+1 - Vn-1)/2| <= threshold`.
+
+It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable). If the test involves consecutive samples with a time period greater than 1h between them then the test is canceled for this triplet.
+
+The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user’s attention on specific areas in the profile that need a closer look and investigation before use.
+
+An imosVerticalSpikeQC.txt parameter file allows the user to define the threshold values to use. See default parameter file below :
 
 {{{
 TEMP = 6
 PSAL = 0.9
-
+PRES = 3
+PRES_REL = 3
+DEPTH = 3
+CPHL = PABIM
+CHLU = PABIM
+CHLF = PABIM
+DOX1 = PABIM
+DOX2 = PABIM
 }}}
 
-Threshold values proposed by various protocols are as follow :
-
- * Temperature
-Threshold = 6 when pressure < 500 dbar<br>
-Threshold = 2 when pressure >= 500 dbar
-
- * Salinity
-Threshold = 0.9 when pressure < 500 dbar<br>
-Threshold = 0.3 when pressure >= 500 dbar
-
-
-=== Gradient test - morelloGradientQC === 
-
-morelloGradientQC flags consecutive Temperature or Salinity values with gradient > threshold.
-
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Temperature, Salinity||1-Good data||4-Bad data||
-
-Both current and previous points used to calculate gradient are flagged if the test fails.
-
-Like for the spike test, a morelloGradientQC.txt parameter file allows the user to define the threshold value to use. See example below :
+PABIM is equivalent to the following formula : 
 
 {{{
-TEMP = 6
-PSAL = 0.9
-
+|median(Vn-2,Vn-1,Vn,Vn+1,Vn+2)| + |standard_deviation(Vn-2,Vn-1,Vn,Vn+1,Vn+2)|
 }}}
 
-Again, threshold values proposed by various protocols are as follow :
+Threshold values have been set based on suggested values from the following documents : [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/argo-quality-control-manual-V2.7.pdf Argo quality control manual - Version 2.7, 3 January 2012], [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/Recommendations_for_RTQC_procedures_V1_2.pdf EuroGOOS Recommendations for in-situ data Near Real Time Quality Control - Version 1.2, December 2010] and [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/PABIM_white_book_version1.3.pdf PABIM White Book on Oceanic Autonomous Platforms for Biogchemical Studies: Instrumentation and Measure - Version 1.3, February 2010].
 
- * Temperature
-Threshold = 6 when pressure < 500 dbar<br>
-Threshold = 2 when pressure >= 500 dbar
+=== Rate of change test - imosRateOfChangeQC === 
 
- * Salinity
-Threshold = 0.9 when pressure < 500 dbar<br>
-Threshold = 0.3 when pressure >= 500 dbar
+imosRateOfChangeQC is looking for import changes in values among temporally adjacent triplet (or pair) of samples. This test is mostly useful for time series data.
 
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2, UCUR, VCUR, WCUR, CSPD||1-Good data||3-Bad data that are potentially correctable||
 
-=== Stationarity test - morelloStationarityQC === 
+The samples that pass the test are the ones with parameter's value Vn verifying the test `|Vn – Vn-1| + |Vn – Vn+1| <= 2*(threshold)`.
 
-morelloStationarityQC flags consecutive Temperature or Salinity equal values in the given data set.
+If the previous (or following) sample is missing then the test becomes `|Vn – Vn-1| <= 1*(threshold)` (respectively `|Vn – Vn+1| <= 1*(threshold)`).
 
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Temperature, Salinity||1-Good data||4-Bad data||
+It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable). If the test involves consecutive samples with a time period greater than 1h between them then the test is canceled for this triplet or pair.
 
-The algorithm used is based on the stationarity test from IOC which detects any consecutive equal values when `number of consecutive points > T = 24*(60/delta_t)` with delta_t the sampling interval in minutes.
+The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user’s attention on specific areas in the time series that need a closer look and investigation before use.
 
-
-=== Climatology range test - morelloRangeQC === 
-
-morelloRangeQC flags Temperature and Salinity values out of a climatology range.
-
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Temperature, Salinity||1-Good data||4-Bad data||
-
-In order to perform this test, you need a climatology file for each of your mooring site. In your toolboxProperties.txt configuration file, make sure the directory where lie those climatology files is documented :
+An imosRateOfChangeQC.txt parameter file allows the user to define the threshold values to use. See default parameter file below :
 
 {{{
-% default directory for climatology data
-importManager.climDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\CLIMATOLOGIES\
+TEMP = 2*stdDev
+PSAL = 2*stdDev
+PRES = 2*stdDev
+PRES_REL = 2*stdDev
+DEPTH = 2*stdDev
+CPHL = 2*stdDev
+CHLU = 2*stdDev
+CHLF = 2*stdDev
+DOX1 = 2*stdDev
+DOX2 = 2*stdDev
+UCUR = 2*stdDev
+VCUR = 2*stdDev
+WCUR = 2*stdDev
+CSPD = 2*stdDev
 }}}
 
-The cimatology test consists in a range test which detects any data which value doesn't fit in the range `[min max] = climRange(lon, lat, date, depth, param)` of a climatology. The range (mean +/- k*standard deviation) is location and time dependent and can be obtained using various parameters.
+Threshold values have been set based on suggested values from the following document : [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/argo-quality-control-manual-V2.7.pdf Argo quality control manual - Version 2.7, 3 January 2012] and [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/Recommendations_for_RTQC_procedures_V1_2.pdf EuroGOOS Recommendations for in-situ data Near Real Time Quality Control - Version 1.2, December 2010].
 
-A morelloRangeQC.txt parameter file allows the user to define these parameters. See example below :
+By default, the gradient is compared to 2 times the standard deviation observed on the first month of 'Good' data so far (which means taking into account only the data with flags lower or equal to 2 (Probably good) that have been provided by previously performed QC tests).
 
-{{{
-CLIM_STEP = monthly
-DAILY_METHOD = trend_corr
-MAX_TIME_SD = 6
+=== Stationarity test - imosStationarityQC === 
 
-}}}
+imosStationarityQC checks that consecutive equal values of a parameter don't exceed a maximum number. The algorithm used is based on the stationarity test from IOC. The default list of parameters impacted by this test is found in imosGlobalRangeQC.txt.
 
-CLIM_STEP option values can be 'monthly' or 'daily' to obtain monthly or daily range values from the climatology. 'monthly' should be appropriate in most cases.
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2, UCUR, VCUR, WCUR, CDIR, CSPD||1-Good data||4-Bad data||
 
-DAILY_METHOD option values can be 'trend_corr' or 'loess' in case CLIM_STEP chosen option is 'daily'. 'trend_corr' should be appropriate in most cases.
+The samples with consecutive equal values that pass the test are the ones verifying the test `number of consecutive points <= 24*(60/delta_t)` with delta_t the sampling interval in minutes.
 
-Eventually, MAX_TIME_SD option is the number of standard deviation from the mean used to define the allowed min/max range. Default value is 6 but you might have to find the best value for each of your site.
+It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable).
 
+=== flag inheritance test on Salinity - imosSalinityFromPTQC ===
 
-== Official IMOS standard set of procedures for moored ADCP ==
+imosSalinityFromPTQC checks that any salinity measurement has its flag equals or greater than any pressure/depth and temperature measurements on the same sample. If not, it gives the highest observed flag.
 
-This multi tests QC procedure has been specifically designed for checking horizontal and vertical components of the current collected from ADCPs on moorings. These tests should always been performed for data sets collected on moorings :
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||PSAL||1-Good data||highest flag from temperature, depth and pressure measurements os the same sample||
 
- # teledyneSetQC
+=== Side lobe contamination test - imosSideLobeContSetQC ===
 
- 
-=== Workhorse ADCP tests - teledyneSetQC === 
+imosSideLobeContSetQC finds for each timestamp what is the HEIGHT_ABOVE_SENSOR from which any data sample is contaminated by side lobes effect (close to the surface). Impacted data samples are then flagged accordingly. This test can be applied on any ADCP data providing we know the beam angle of the ADCP transducer. It is based on RDI's [http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes documentation].
 
-This quality procedure only works for Workhorse ADCPs manufactured by Teledyne RD Instruments.
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
 
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||U, V and Z components of the current||1-Good data||4-Bad data||
+The samples that pass the test are the ones with HEIGHT_ABOVE_SENSOR values verifying `depth of bin > (instrument depth * cos(beam angle) + 2 * bin size)`.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/sideLobeEffect.png
+
+Adding 2 times the size of a bin to the theoretical contaminated depth enables us to be conservative in order to make sure that the data in the first bin below the contaminated depth hasn't been computed from any contaminated signal (data in a bin may also come from information found in adjacent bins).
+
+=== Workhorse ADCP tests - imosTeledyneSetQC === 
+
+imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertical current velocity *and* is based on the quality parameters ECUR(error_sea_water_velocity), ADCP_GOOD(adcp_percentage_good), ABSI(acoustic_backscatter_intensity) and ADCP_CORR(adcp_correlation_magnitude) which are basically provided by all the Workhorse ADCPs manufactured by Teledyne RD Instruments.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
+
+The samples that pass the test are the ones with parameter's value verifying at least 4 of the 5 first following tests and the 6th test : 
+
+ # `|ECUR| < err_vel`
+ # `|ADCP_GOOD_4| >= pgood` (performed on the 4th beam only)
+ # `|ADCP_CORR_n| > cmag` (performed on the 4 beams, at least 2 must comply to the test)
+ # `|UCUR + i*VCUR| < hvel`
+ # `|WCUR| < vvel`
+ # `|ABSI_n(current bin)-ABSI_n(previous bin)| <= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. This test is performed on the half of the water column in which belongs the surface).
 
 It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)]. 
 
-This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determinatination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
 
 http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
 
@@ -251,142 +397,43 @@ cmag      = 110
 vvel      = 0.2
 hvel      = 2.0
 ea_thresh = 30
-cutoff    = 2
 
 }}}
 
-The additional cutoff parameter is used to clean up the above surface bins. Any bin with its depth value <= cutoff*binSize gets a bad data flag.
+== Other procedures descriptions ==
 
-== Other procedures ==
+These QC procedures are still under development/validation and should only be used with full knowledge for test purpose. IMOS do not recommend these tests to be performed on data files that will be sent to eMII data centre.
 
-These QC procedures were historically included in previous versions of the toolbox and should only be used with full knowledge for test purpose. IMOS do not recommend these tests to be performed on data files that will be sent to eMII data centre.
+# climatologyRangeQC
 
-=== Time gap detection - timeGapQC === 
+=== Climatology range test - climatologyRangeQC === 
 
-timeGapQC flags consecutive samples which have a suspiciously large temporal difference.
-
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Any variable (not dimension) in the file||1-Good data||4-Bad data||
-
-The timeGapQC function steps through the time dimension searching for gaps which are larger than the specified gapsize. Any detected gap will lead to the flagging of both points involved in the gap time.
-
-The timeGapQC.txt parameter file contains this gap size value in decimal days. See example below :
+climatologyRangeQC checks parameter's values against a climatology. In order to perform this test, you need a climatology file for each of your mooring site. In your toolboxProperties.txt configuration file, make sure the directory where lay those climatology files is documented :
 
 {{{
-gapsize = 0.25
-
+% default directory for climatology data
+importManager.climDir = E:\Documents and Settings\ggalibert\My Documents\IMOS_toolbox\data_files_examples\CLIMATOLOGIES\
 }}}
 
+Examples of climatology files and documents detailing the methodology applied to create them can be found [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/climatologyRange here].
 
-=== Before deployment & after retrieving date flagging - inWaterQC & outWaterQC === 
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||Any parameter found in the climatology file||1-Good data||3-Bad data that are potentially correctable||
 
-inWaterQC and outWaterQC flag data samples which were taken before an `in water` time and after `out water` time. Between these two time, data is deliberately left non QC'd.
+The samples that pass the test are the ones which parameters values are verifying `PARAMETER >= climatologyRangeMin` and `PARAMETER <= climatologyRangeMax`.
+Climatology ranges are specified in a generic way in the AutomaticQC/climatologyRangeQC.txt parameter file.
 
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Any variable (not dimension) in the file||0-No QC performed||3-Bad data that are potentially correctable||
-
-`in water` time can be one of these date information taken from fields of the table !DeploymentData in the deployment database, in this order of preference :
-
- # !TimeFirstGoodData : Time of first good data.
- # !TimeFirstInPos : Time instrument first in position.
- # !TimeFirstWet : Time instrument first in water.
- # !TimeSwitchOn : Time instrument is switched on.
- 
-`out water` time can be one of these date information taken from fields of the table !DeploymentData in the deployment database, in this order of preference :
-
- # !TimeLastGoodData : Time of last good data.
- # !TimeLastInPos : Time instrument last in position.
- # !TimeOnDeck : Time instrument on deck.
- # !TimeSwitchOff : Time instrument is switched off.
-
- 
-=== Tukey spike detection - tukey53HDespikeQC === 
-
-tukey53HDespikeQC detects spikes in the given data using the Tukey 53H method. 
-
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Any variable (not dimension) in the file||1-Good data||3-Bad data that are potentially correctable||
-
-This method is described and tested against others in _[http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/goring_nikora02.pdf Goring DG & Nikora VI 2002 'Despiking Acoustic Doppler Velocimeter Data', Journal of Hydraulic Engineering, January 2002, vol 128, issue 1, pp 117-126.]_ referencing _Otnes RK & Enochson Loren, 1978 'Applied Time Series Analysis Volume 1: Basic Techniques', pgs 96-97, Wiley._
-
-The results say that this algorithm is highly influenced by the choice of the k parameter, so it isn't very reliable from a fully automated point of view.
-
-A tukey53HDespikeQC.txt parameter file enables the user to tune the sensitivity of this spike detection test. See example below :
+See example of default parameter file below :
 
 {{{
-k = 1.5
-
+rangeMin = min(mean - 6*stdDev, mini-2*stdDev)
+rangeMax = max(mean + 6*stdDev, maxi+2*stdDev)
 }}}
 
+Parameters `mean`, `stdDev`, `mini` and `maxi` are respectively the mean, standard deviation, minimum value and maximum value from a temporal bin at a specific depth, found in the relevant climatology file. For each data sample, the relevant parameters are extracted so that they fall within the proper temporal bin and the climatology depth is the nearest from the actual depth of the sample.
 
-=== RC filter spike detection - rcFilterDespikeQC === 
+The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user’s attention on specific areas in the time series that need a closer look and investigation before use.
 
-rcFilterDespikeQC detects spikes in the given data using the RC filter method. 
+If the site information is not documented in the metadata, the data set doesn't contain any depth variable or the according climatology file is not found then test is not performed and a warning is displayed.
 
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Any variable (not dimension) in the file||1-Good data||3-Bad data that are potentially correctable||
-
-This method is described and tested against others in _[http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/goring_nikora02.pdf Goring DG & Nikora VI 2002 'Despiking Acoustic Doppler Velocimeter Data', Journal of Hydraulic Engineering, January 2002, vol 128, issue 1, pp 117-126.]_ referencing _Otnes RK & Enochson Loren, 1978 'Applied Time Series Analysis Volume 1: Basic Techniques', pgs 96-97, Wiley._
-
-The results say that this algorithm has a tendency to detects far too many spikes and that the choice of the k parameter doesn't influence much on this behaviour.
-
-A rcFilterDespikeQC.txt parameter file enables the user to tune the sensitivity of this spike detection test. See example below :
-
-{{{
-k = 3
-
-}}}
-
-
-=== Stationarity test - flatlineQC === 
-
-flatlineQC flags flatline regions in the given data set.
-
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Any variable (not dimension) in the file||1-Good data||4-Bad data||
-
-A flatline is defined as a consecutive set of samples which have the same value.
-
-A flatlineQC.txt parameter file enables the user to specify the number of consecutive samples to be considered. See example below :
-
-{{{
-nsamples = 10
-
-}}}
-
-
-=== Basic range test - rangeQC === 
-
-rangeQC flags data which is out of the variable's valid range.
-
-|| *Variables checked* || *Pass test flag* || *Fail test flag* ||
-||Any variable (not dimension) in the file||1-Good data||4-Bad data||
-
-valid_min and valid_max values can be specified for any variable in the imosParameters.txt configuration file (two last columns). Any variable having no valid_min/max values or valid_min == valid_max will not be QC'd.
-
-See below an example of imosParameters.txt file : 
-
-{{{
-%
-% A list of all IMOS compliant parameter names, standard names, units of 
-% measurement, fill values, and valid min/max values.This list has been copied 
-% verbatim from the IMOS NetCDF User's manual version 1.2, and the IMOS NetCDF 
-% File Naming Convention version 1.3. Entries are in the following format:
-% 
-%   parameter name, is cf parameter, standard/long name, units of measurement, data code, fillValue, validMin, validMax
-%
-% For parameters which are specified as a percentage, use the word 'percent' 
-% in this file - this will be automatically converted into a '%' sign. This is 
-% necessary because Matlab will interpret literal '%' signs as the beginining 
-% of a comment.
-%
-
-ABSI,      0, acoustic_backscatter_intensity,                     Decibels,                                                          A, 999999.0, 0.0,     150.0
-ADCP_CORR, 0, adcp_correlation_magnitude,                         .,                                                                 E, 999999.0, 0.0,     250.0
-ADCP_GOOD, 0, adcp_percentage_good,                               percent,                                                           E, 999999.0, 0.0,     100.0
-AIRT,      1, air_temperature,                                    Celsius,                                                           M, 999999.0, -50.0,   50.0
-ATMP,      1, air_pressure,                                       Pascal,                                                            M, 999999.0, 90000.0, 110000.0
-ATMS,      1, air_pressure_at_sea_level,                          Pascal,                                                            M, 999999.0, 90000.0, 110000.0
-CDIR,      1, direction_of_sea_water_velocity,                    Degrees clockwise from true North in the direction of the current, V, 999999.0, 0.0,     360.0
-CDOM,      0, concentration_of_coloured_dissolved_organic_matter, mg m-3,                                                            K, 999999.0,    ,     
-}}}
+If a sample has its depth value further than the closest depth in the climatology + 2 times the vertical resolution of this climatology then this sample won't be QC'd.

@@ -9,3 +9,4 @@ The development schedule is as follows:
 || November 4^th^ 2010 || Toolbox version 1.5.5 released to community. || ||
 || August 5^th^ 2011 || [http://code.google.com/p/imos-toolbox/downloads/detail?name=imos-toolbox-2.0.zip&can=3&q= Toolbox version 2.0] released to community. || ||
 || November 9^th^ 2011 || [http://code.google.com/p/imos-toolbox/downloads/detail?name=imos-tooolbox-2.1b.zip&can=2&q= Toolbox version 2.1b] released to community. || ||
+|| December 20^th^ 2012 || [http://code.google.com/p/imos-toolbox/downloads/detail?name=imos-tooolbox-2.2.zip&can=2&q= Toolbox version 2.2] released to community. || ||

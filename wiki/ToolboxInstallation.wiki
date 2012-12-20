@@ -12,8 +12,8 @@ This page provides an overview of the steps required in order to get the IMOS To
 === Requirements ===
 
  * Windows XP
- * (Optional) A deployment database which contains some data (have a look at the deployment database [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf guidelines]). 
- * (Optional) Java JRE (1.5 or newer). Only required if you are using a deployment database.
+ * (Recommended) A deployment database which contains some data (have a look at the deployment database [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf guidelines])
+ * (Recommended) Java JRE (1.5 or newer) to be able to query the deployment database with the toolbox.
 
 === Install Matlab Runtime ===
 
@@ -27,13 +27,15 @@ The installer is a straightforward Windows installer; you only need to run it on
 
 === Install IMOS Toolbox ===
 
-Download an archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Most of the users should only use the last stable version : imos-toolbox-X.XX.zip. Extract the archive to a directory of your choice. 
+Download an archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Most of the users should only use the last stable version : imos-toolbox-X.XX.zip. Unstable versions YY-MM-DD_unstable_snapshot.zip should be used for test purpose only and not in any case to deliver data to eMII. Extract the archive to a directory of your choice. 
 
 === Configure Deployment Database ===
 
-Since imos-toolbox versions strictly above 1.5.5, in addition to the MS-Access deployment database, it is also possible to connect to any user-specific database.
+Since imos-toolbox versions strictly above 1.5.5, in addition to the MS-Access deployment database (template provided in the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page), it is also possible to connect to any user-specific database providing its schema complies to a minimum requirements.
 
-If you are using the MS-Access deployment database, you must configure it as an ODBC source:
+==== ACCESS database ====
+
+To be able to use the MS-Access deployment database, you must configure it as an ODBC source:
 
  * Start
   * Control Panel
@@ -47,26 +49,30 @@ If you are using the MS-Access deployment database, you must configure it as an 
 
 Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name. If you are not using a deployment database, ensure the `toolbox.ddb` property is unset.
 
-If you are using your own database, you must put the driver (.jar file) used to connect to it in the Java directory and set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) properly. You must also follow a [DeploymentDatabase#Interface_requirements minimum interface requirements] to prevent the toolbox from crashes.
+==== Other database ====
+
+Your deployment database architecture has to follow a [DeploymentDatabase#Interface_requirements minimum interface requirements] to prevent the toolbox from crashing. Then to be able to query it through the toolbox, you must put the driver (.jar file) used to connect to it in the Java directory and set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) properly.
 
 === Startup ===
 
-Start the toolbox by double clicking on `imosToolbox.exe`.
+Start the toolbox by double clicking on `imosToolbox.bat`. This is basically executing `imosToolbox.exe` but then will pause in the DOS command window after exiting the toolbox so that you can have a look for any output message.
 
 == Source installation ==
 
-Only high level users should be interested in using the source code, for example users that would like to contribute to the development of the code. See [http://code.google.com/p/imos-toolbox/wiki/ContributeToTheCode how to contribute to the code] part.
+Only high level users should be interested in using the source code, for example users who would like to contribute to the development of the code. See [http://code.google.com/p/imos-toolbox/wiki/ContributeToTheCode how to contribute to the code] part.
 
 === Requirements ===
 
  * Windows XP
- * Matlab (r 2008a or newer)
- * (Optional) A deployment database which contains some data
- * (Optional) Java JRE (1.5 or newer). Only required if you are using a deployment database.
+ * Matlab (r 2010b or newer)
+ * (Recommended) A deployment database which contains some data (have a look at the deployment database [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf guidelines])
+ * (Recommended) Java JRE (1.5 or newer) to be able to query the deployment database with the toolbox.
 
 === Download and install ===
 
-Download an archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Extract the archive to a directory of your choice. Before you can use the toolbox, you must configure the matlab path and deployment database.
+Download an archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Most of the users should only use the last stable version : imos-toolbox-X.XX.zip. Unstable versions YY-MM-DD_unstable_snapshot.zip should be used for test purpose only and not in any case to deliver data to eMII. Extract the archive to a directory of your choice.
+
+Before you can use the toolbox, you must configure the matlab path and deployment database.
 
 === Matlab path ===
 
@@ -74,20 +80,20 @@ The toolbox root, and every subdirectory within the toolbox root must be on the 
 
 Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the following directories to the path:
   * `C:\imos-toolbox\`
-  * `C:\imos-toolbox\AutomaticQC`
-  * `C:\imos-toolbox\DDB`
-  * `C:\imos-toolbox\FlowManager`
-  * `C:\imos-toolbox\Graph`
-    * `C:\imos-toolbox\Graph\TimeSeries`
-    * `C:\imos-toolbox\Graph\DepthProfile`
-    * `C:\imos-toolbox\Graph\Transect`
-  * `C:\imos-toolbox\GUI`
-  * `C:\imos-toolbox\IMOS`
-  * `C:\imos-toolbox\NetCDF`
-  * `C:\imos-toolbox\Parser`
-  * `C:\imos-toolbox\Preprocessing`
-  * `C:\imos-toolbox\Seawater`
-  * `C:\imos-toolbox\Util`
+    * `C:\imos-toolbox\AutomaticQC`
+    * `C:\imos-toolbox\DDB`
+    * `C:\imos-toolbox\FlowManager`
+    * `C:\imos-toolbox\Graph`
+      * `C:\imos-toolbox\Graph\TimeSeries`
+      * `C:\imos-toolbox\Graph\DepthProfile`
+      * `C:\imos-toolbox\Graph\Transect`
+    * `C:\imos-toolbox\GUI`
+    * `C:\imos-toolbox\IMOS`
+    * `C:\imos-toolbox\NetCDF`
+    * `C:\imos-toolbox\Parser`
+    * `C:\imos-toolbox\Preprocessing`
+    * `C:\imos-toolbox\Seawater`
+    * `C:\imos-toolbox\Util`
 
 === Deployment Database ===
 
@@ -111,4 +117,4 @@ See the [UsingTheToolboxOverview overview] on using the toolbox to get started.
 
 == Using the toolbox under Linux ==
 
-The toolbox should run under Linux. If you are using a deployment database however, MS Access support under Linux is flaky at best. Having said that, the development of the toolbox until version 1.5.5 has been almost exclusively performed under Ubuntu 9.04 (testing under Windows regularly, of course). See [DeploymentDatabaseInterface here] for more details on running the toolbox under Linux. Since version 1.5.5 and above, the development have only been performed under Windows.
+The toolbox should run under Linux. If you are using a deployment database however, MS Access support under Linux is flaky at best. Having said that, the development of the toolbox until version 1.5.5 has been almost exclusively performed under Ubuntu 9.04 (testing under Windows regularly, of course). See [DeploymentDatabaseInterface here] for more details on running the toolbox under Linux. Since version 1.5.5 and above, the development have only been performed under Windows XP 32bits.

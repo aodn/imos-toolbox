@@ -5,47 +5,52 @@
 
 = Using the Toolbox =
 
-This page gives a brief overview on how to use the toolbox. You are encouraged to provide feedback on any aspect of the toolbox (e.g. is the user interface intuitive, easy to use?). Check out the [ToolboxInstallation installation instructions] for details on how to get the toolbox up and running.
+This page gives a brief overview on how to use the toolbox. You are encouraged to provide feedback on any aspect of the toolbox (e.g. is the user interface intuitive, easy to use?). Check out the [ToolboxInstallation installation] instructions for details on how to get the toolbox up and running.
 
 == Starting the toolbox ==
 
-The standalone version of the toolbox is started by double clicking on `imosToolbox.exe`.
+Before starting the toolbox, keep in mind that you will need to [ToolboxConfiguration configure] it first, especially by setting your deployment database, your use mode timeSeries or profile and your NetCDF templates.
 
-If you are using the toolbox within Matlab, the toolbox is started via the `imosToolbox` function:
+=== Interactive execution ===
+
+ * The standalone version of the toolbox is started by double clicking on `imosToolbox.bat`.
+
+ * If you are using the toolbox within Matlab, the toolbox is started via the `imosToolbox` function:
 {{{
 >> imosToolbox
 }}}
 
-=== Automatic toolbox execution ===
+=== Automatic execution ===
 
 The toolbox can be executed in an automatic manner, by passing some arguments to the `imosToolbox` function. A deployment database must be present in order to run the toolbox automatically. When you pass the string `'auto'` to the `imosToolbox` function, the toolbox will import all of the files specified in the deployment database, using the field trip and data directory specified in `toolboxProperties.txt`, run the data sets through the default set of automatic pre-processing and QC routines, and export the data sets as NetCDF to the default export directory :
 
--Using the standalone version, create an `imosToolboxBatch.bat` file, in the same directory of `imosToolbox.exe`, containing the following code :
+ * Using the standalone version, you can use the `imosToolboxBatch.bat` file which contains the default following code :
 {{{
 imosToolbox.exe auto
 pause
 }}}
-Finally double click on this file to execute it.
+Just double click on this file to execute it.
 
--Using the source code within MATLAB just proceed as follow :
+ * Using the source code within MATLAB just proceed as follow :
 {{{
 >> imosToolbox auto
 }}}
 
-
 Alternatively, you can specify the field trip, data directory, pre-processing routines, QC routines and export directory as arguments to `imosToolbox` :
 
--Using the standalone version, the code of the `imosToolboxBatch.bat` file would be something like :
+ * Using the standalone version, edit the `imosToolboxBatch.bat` file so that it includes something like :
 
 {{{
-imosToolbox.exe auto "4788" "C:\Raw Data\" "{'timeOffsetPP' 'depthPP'}" "{'inWaterQC' 'outWaterQC'}" "C:\NetCDF\"
+imosToolbox.exe auto "4788" "C:\Raw Data\" "{'depthPP' 'salinityPP'}" "{'imosImpossibleDateQC' 'imosImpossibleLocationSetQC' 'imosInOutWaterQC' 'imosGlobalRangeQC' 'imosRegionalRangeQC' 'imosImpossibleDepthQC' 'imosRateOfChangeQC' 'imosStationarityQC' 'imosSalinityFromPTQC' 'imosSideLobeContSetQC' 'imosTeledyneSetQC'}" "C:\NetCDF\"
 pause
 }}}
 
--Using the source code within MATLAB just type as follow :
+You can add as many lines in the `imosToolboxBatch.bat` file as mooring deployments that need to be processed sequentially.
+
+ * Using the source code within MATLAB just type as follow :
 
 {{{
->> imosToolbox auto '4788' 'C:\Raw Data\' {'timeOffsetPP' 'depthPP'} {'inWaterQC' 'outWaterQC'} 'C:\NetCDF\'
+>> imosToolbox auto '4788' 'C:\Raw Data\' {'depthPP' 'salinityPP'} {'imosImpossibleDateQC' 'imosImpossibleLocationSetQC' 'imosInOutWaterQC' 'imosGlobalRangeQC' 'imosRegionalRangeQC' 'imosImpossibleDepthQC' 'imosRateOfChangeQC' 'imosStationarityQC' 'imosSalinityFromPTQC' 'imosSideLobeContSetQC' 'imosTeledyneSetQC'} 'C:\NetCDF\'
 }}}
 
 If no pre-processing or quality control routine should be performed then provide an empty {}.
@@ -96,15 +101,23 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/gui_preprocess.png
 
 == Viewing data ==
 
-When the data has been imported, you will be presented with the main window, which allows you to view the sample data. Use the drop down menu at the top left to select the data set to view. With the panel at the bottom left you can choose to omit parameters. 
+When the data has been imported, you will be presented with the main window, which allows you to view the sample data, data set by data set. You can use zoom in zoom out and pan functions. With the panel at the bottom left you can choose to omit parameters. Below is the TimSeries view which is the default view in timeSeris mode :
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window.png
 
-By clicking on the 'Metadata' button on the left, you can also view and modify metadata:
+Use the drop down menu at the top left window to select the data set to view.
 
-http://imos-toolbox.googlecode.com/svn/wiki/images/gui_metadata.png
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_list_datasets.png
 
-If your data set has a depth dimension or variable, you can view the data as a depth profile, by selecting '!DepthProfile' from the graph list at the top right of the window:
+You can tune the colorbar colormap and color range settings by right-clicking on the colorbar and using the context menu. Each family of parameters has it own context menu with different default settings:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_colorbar_colormap.png
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_colorbar_ranges.png
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_colorbar_ranges_dialog.png
+
+If your data set has a depth dimension or variable, you can view the data as a depth profile, by selecting '!DepthProfile' (default view in profile mode) from the graph list at the top right of the window:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_depth_profile.png
 
@@ -112,22 +125,70 @@ Similarly, for data with latitude/longitude variables, you can view the data as 
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_transect.png
 
+== Metadata ==
+
+By clicking on the 'Metadata' button on the left, you can view and modify metadata (common metadata entries can even be replicated accross data sets from the current one being displayed by clicking on the 'Replicate' button):
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_metadata.png
+
+This is possible for global attributes as well as any variable attribute by using the drop down menu at the top of the metadata panel.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_metadata_list_atttributes.png
+
 == Quality Control ==
 
-By clicking on the 'Quality Control' button, you can choose to run the data through a set of automatic QC filters, which will automatically flag the data sets. The flags will be overlaid on the graphs:
+By clicking on the 'QC data' button, you can choose to run the data through a set of automatic QC filters, which will automatically flag the data sets. The flags will be overlaid on the graphs:
 
-http://imos-toolbox.googlecode.com/svn/wiki/images/gui_qc_dialog.png
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_QC_dialog.png
 
-You can see that a few data points have been flagged. You can use the Matlab zoom mode to zoom in for a closer look. When you deselect zoom mode, you can use click+drag a box around data points to select them. Use the left mouse button to select all data points, and the right mouse button to select already-flagged data points. The selected data points are highlighted in white.
+You can see that a few data points have been flagged. 
 
-Clicking on a set of selected data points will bring up a dialog, allowing you to set the QC flag on those points. The options will be different depending on which QC set you are using. When you confirm the flag dialog, you will see that the flag values for the selected data points have changed.
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_QC.png
 
-http://imos-toolbox.googlecode.com/svn/wiki/images/gui_flag_dialog.png
+You can display the actual label associated with the overlaying color of the flag by right-clicking on it.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_QC_labels.png
+
+To manually QC some data samples, you can use click+drag a box to select them. Use the left mouse button to select all data points, and the right mouse button to select already-flagged data points. The selected data points are highlighted in white.
+
+Clicking on a set of selected data points will bring up a dialog, allowing you to set the QC flag on those points. The options will be different depending on which QC set you are using.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_manual_QC_dialog.png
+
+When you confirm the flag dialog, you will see that the flag values for the selected data points have changed.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_manual_QC_result.png
+
+By clicking on the 'QC stats' button, you can access the details of each QC procedure result on each parameter data set per dataset:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_QC_stats.png
+
+Clicking on a specific cell in the QC stat table displays the full details, procedure's parameters applied included:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_QC_stats_infos.png
+
+== Menu features ==
+
+The menu panel can give you access to this google wiki page to look for help:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_menu_help.png
+
+You can also plot a common variable to some data sets on the same figure:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_menu_mooring_variables.png
+
+useful to monitor instruments measurements against each others:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mooring_instruments_depth.png
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mooring_instruments_temperature.png
 
 == Export ==
 
-Ay any time, you can click the 'Export NetCDF' button to export the data sets to IMOS compliant NetCDF files. You can choose to omit specific variables, and to export raw data, QC'd data or both:
+Ay any time, you can click the 'Export NetCDF' button to export the data sets to IMOS compliant NetCDF files. You can choose to omit specific variables, and to export non QC'd data, QC'd data or both:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_export.png
+
+An export configuration (common variable(s) and/or QC level omited) can be replicated accross all the data sets from the current one being displayed by clicking on on the 'Replicate' button.
 
 You will be presented with a similar dialog upon clicking the 'Export Raw' button, which allows you to copy the original raw data files, renamed with an IMOS compliant file name.

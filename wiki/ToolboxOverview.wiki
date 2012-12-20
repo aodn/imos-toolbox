@@ -19,11 +19,11 @@ Typical usage of the Toolbox would proceed as follows:
  # User downloads data set from an instrument supported by the Toolbox (e.g. SBE37).
  # User imports data set into Toolbox along with a deployment data base containing metadata.
  # User performs pre-processing routines over data set, such as depth calculation for each sensor, time offset to UTC time...
- # User executes semi-automatic QC procedures over data set, such as in/out of water flagging, spike detection, outlier checks, flatline checks...
+ # User executes semi-automatic QC procedures over data set, such as time and location checks, in/out of water flagging, range checks, spike detection, stationarity checks...
  # User performs manual QC over data via interactive display.
- # Toolbox generates eMII/IMOS compatible NetCDF files containing metadata and data at raw and QC'd levels.
+ # Toolbox generates eMII/IMOS compatible NetCDF files containing metadata and data at non QC'd and QC'd levels.
 
-While the Toolbox will be designed to execute with minimal user intervention (apart from semi-automatic QC procedures configuration and manual quality control), the Matlab source will be available for users who wish to [ContributeToTheCode contribute] to the existing code with new features, have more fine grained control over the execution flow, or who wish to integrate the Toolbox into an existing Matlab codebase. The Toolbox will be made available to, and will hopefully be useful for, all IMOS facilities.
+While the Toolbox will be designed to execute with minimal user intervention (apart from semi-automatic QC procedures configuration and manual quality control), the Matlab source will be available for users who wish to [ContributeToTheCode contribute] to the existing code with new features, have more fine grained control over the execution flow, or who wish to integrate the Toolbox into an existing Matlab codebase. The Toolbox will be made available to all.
 
 == System requirements ==
 
@@ -62,7 +62,7 @@ IMOS quantitative scale flag follows the IOC scale flag. See description [Proces
 
 == Output format ==
 
-The Toolbox generates NetCDF files according to the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User's Manual] and the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_filenaming_convention_v1.3.pdf IMOS file naming convention]. 
+The Toolbox generates NetCDF files according to the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.3.pdf IMOS NetCDF User's Manual] and the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_filenaming_convention_v1.4.pdf IMOS file naming convention]. 
 
 Global and variables attributes can be automatically documented via [NetCDFTemplates configurable template files].
 
@@ -70,7 +70,7 @@ Global and variables attributes can be automatically documented via [NetCDFTempl
 
 The following levels of processed data will be saved as separate NetCDF files:
 
- * Level 0: Raw (non QC'd) data
+ * Level 0: Non QC'd data
  * Level 1: QC'd data
 
-These [ProcessLevelsAndQC#ProcessLevels levels] (and the output files) map directly to the Processed Data levels defined in the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.2.pdf IMOS NetCDF User's Manual].
+These [ProcessLevelsAndQC#ProcessLevels levels] (and the output files) map directly to the Processed Data levels defined in the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.3.pdf IMOS NetCDF User's Manual].
