@@ -3,9 +3,9 @@ function sample_data = SBE56Parse( filename, mode )
 % CTD recorder.
 %
 % This function is able to read in a .cnv data file retrieved
-% from a Seabird SBE56 CTD recorder. It makes use of a lower level
-% function readSBE56cnv. The files consist of up to
-% three sections:
+% from a Seabird SBE56 Temperature Logger. It reads specific instrument header 
+% format and makes use of a lower level function readSBE37cnv to read the data. 
+% The files consist of up to three sections:
 %
 %   - instrument header - header information as retrieved from the instrument.
 %                         These lines are prefixed with '*'.
