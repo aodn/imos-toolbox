@@ -14,7 +14,7 @@ At the moment, the flag management policy is as follow :
 -Any data sample in the data set is checked by the QC procedures, procedure by procedure.<br>
 -For each procedure, if a checked sample fails a test, then it gains the corresponding fail flag if the latter is higher in the flag scale than its current one. That is to say flags are overwritten when higher.<br>
 -For each procedure, all flags are first initialised to "Raw". Then, usually when the test starts they are all initialised to the relevant "fail" flag and only the "pass" test is then performed so that "pass" flags are finally provided to the successfull samples. When relevant the "fail" test is performed instead of intialising everything with "fail" flag first, so that samples which neither fail or pass the test are provided with the "Raw" flag.<br>
--If a procedure testing a data sample uses a formula involving neighbours then only the ones which don't already have a flag "Bad" are considered.<Br>
+-If a procedure testing a data sample uses a formula involving neighbours then the considered neighbours are the nearest ones which don't already have a flag "Bad".<Br>
 <br>
 -QC procedures, parameters used and results are detailed in the global attribute history. They can also be displayed in a table via the 'QC stats' button on the main panel. QC procedure details can be queried when clicking on any cell from the table.<Br>
 <br>
@@ -67,7 +67,7 @@ Variables mentioned below are IMOS parameters code and their definition can be f
 
 imosImpossibleDateQC checks that the TIME values are within an acceptable range. Because some instrument files contain the date information in binary format like the datenum Matlab format (decimal days from a specific date and time, where datenum('Jan-01-0000 00:00:00') returns the number 1) it is only possible to set up a generic test that only checks the full date range. Cheking the day, month, hour, minute or second values separately (minimum/maximum valid values for minutes, months, days in February, etc...) is not possible in our case.
 
-|| *Variable checked* || *Pass test flag* || *Fail test flag* ||
+|| *Parameter checked* || *Pass test flag* || *Fail test flag* ||
 ||TIME||1-Good data||3-Bad data that are potentially correctable||
 
 The samples that pass the test are the one verifying `TIME >= dateMin` and `TIME <= dateMax`.
@@ -176,6 +176,7 @@ See below default list of impacted parameters by this test and their validMin / 
 % of a comment.
 %
 
+CDIR,                1, direction_of_sea_water_velocity,                                                Degrees clockwise from true North, V, 999999.0, 0.0,     360.0,    float
 CPHL,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                            K, 999999.0, 0.0,     100.0,    float
 CHLF,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                            K, 999999.0, 0.0,     100.0,    float
 CHLU,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                            K, 999999.0, 0.0,     100.0,    float
@@ -244,7 +245,7 @@ The upper and lower coefficient values can be modified in the imosImpossibleDept
 
 See below a table example using upper and lower coefficient of respective value 3 and 5 :
 
-|| *Site nominal depth (m)* || *Instrument nominal depth (m)* || *Upper bound depth (m)* || *Upper bound depth (m)* ||
+|| *Site nominal depth (m)* || *Instrument nominal depth (m)* || *Upper bound depth (m)* || *Lower bound depth (m)* ||
 ||50||10||-5||35||
 ||50||40||36||46||
 ||50||50||47||55||
@@ -257,7 +258,7 @@ The resulting range cannot be out of the water or deeper than 10% of the relevan
 If the site nominal depth is not documented, then the site depth at deployment is used.
 If the instrument nominal depth is not documented, then the instrument nominal height and site nominal depth (or site depth at deployment) are used.
 
-The test is not performed and a warning diplayed if not enough nominal depth/height information is provided.
+The test is not performed and a warning is diplayed if there is not enough nominal depth/height information provided.
 
 === Vertical spike test - imosVerticalSpikeQC === 
 
@@ -266,7 +267,7 @@ imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of s
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2||1-Good data||3-Bad data that are potentially correctable||
 
-The algorithm used here is the same used by the Australian National Mooring Facility Ocean Gliders ([http://www2.sese.uwa.edu.au/~hollings/anfog/index.php ANFOG]).
+The algorithm used here is the same used by the Australian National Mooring Facility Ocean Gliders ([http://www2.sese.uwa.edu.au/~hollings/anfog/index.php ANFOG]) and ARGO's spike test.
 
 The samples that pass the test are the ones with parameter's value Vn verifying the test `|Vn - (Vn+1 + Vn-1)/2| - |(Vn+1 - Vn-1)/2| <= threshold`.
 
@@ -299,7 +300,7 @@ Threshold values have been set based on suggested values from the following docu
 
 === Rate of change test - imosRateOfChangeQC === 
 
-imosRateOfChangeQC is looking for import changes in values among temporally adjacent triplet (or pair) of samples. This test is mostly useful for time series data.
+imosRateOfChangeQC is looking for important changes in values among temporally adjacent triplet (or pair) of samples. This test is mostly useful for time series data.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2, UCUR, VCUR, WCUR, CSPD||1-Good data||3-Bad data that are potentially correctable||
@@ -360,7 +361,7 @@ imosSideLobeContSetQC finds for each timestamp what is the HEIGHT_ABOVE_SENSOR f
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
 
-The samples that pass the test are the ones with HEIGHT_ABOVE_SENSOR values verifying `depth of bin > (instrument depth * cos(beam angle) + 2 * bin size)`.
+The samples that pass the test are the ones with HEIGHT_ABOVE_SENSOR values verifying `depth of bin > (instrument depth * cos(beam angle) + 2 * bin size)`. The following figure illustrates the case of an ADCP set on the sea bottom :
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/sideLobeEffect.png
 
@@ -368,19 +369,19 @@ Adding 2 times the size of a bin to the theoretical contaminated depth enables u
 
 === Workhorse ADCP tests - imosTeledyneSetQC === 
 
-imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertical current velocity *and* is based on the quality parameters ECUR(error_sea_water_velocity), ADCP_GOOD(adcp_percentage_good), ABSI(acoustic_backscatter_intensity) and ADCP_CORR(adcp_correlation_magnitude) which are basically provided by all the Workhorse ADCPs manufactured by Teledyne RD Instruments.
+imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertical current velocity *and* quality parameters ECUR(error_sea_water_velocity), ADCP_GOOD(adcp_percentage_good), ABSI(acoustic_backscatter_intensity) and ADCP_CORR(adcp_correlation_magnitude). These parameters are basically provided by all the Workhorse ADCPs manufactured by Teledyne RD Instruments.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
 
 The samples that pass the test are the ones with parameter's value verifying at least 4 of the 5 first following tests and the 6th test : 
 
- # `|ECUR| < err_vel`
- # `|ADCP_GOOD_4| >= pgood` (performed on the 4th beam only)
- # `|ADCP_CORR_n| > cmag` (performed on the 4 beams, at least 2 must comply to the test)
- # `|UCUR + i*VCUR| < hvel`
- # `|WCUR| < vvel`
- # `|ABSI_n(current bin)-ABSI_n(previous bin)| <= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. This test is performed on the half of the water column in which belongs the surface).
+ # `|ECUR| 										<  err_vel`
+ # `|ADCP_GOOD_4| 								>= pgood` (performed on the 4th beam only)
+ # `|ADCP_CORR_n| 								>  cmag` (performed on the 4 beams, at least 2 must comply to the test)
+ # `|UCUR + i*VCUR| 							<  hvel`
+ # `|WCUR| 										<  vvel`
+ # `|ABSI_n(current bin)-ABSI_n(previous bin)| 	<= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. This test is performed on the half of the water column in which belongs the surface).
 
 It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)]. 
 
