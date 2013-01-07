@@ -48,6 +48,8 @@ These sets of QC procedures have been mainly designed to check physical variable
  
 === Profiles ===
 
+In addition to the IMOS [http://imos.org.au/fileadmin/user_upload/shared/IMOS%20General/documents/Facility_manuals/NRS_sampling_Manual_Data_Processing_Guide_Draftv1_5b_IngletonMorris.pdf ANMN standardised profiling CTD data post-processing procedures], IMOS recommends applying the following tests to any CTD profile data which is imported in the toolbox:
+
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC imosImpossibleDateQC]
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC imosImpossibleLocationSetQC]
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC imosInOutWaterQC]
