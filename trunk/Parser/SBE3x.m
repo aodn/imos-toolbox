@@ -340,6 +340,8 @@ while ~feof(fid)
   % temperature[, conductivity][, pressure][, salinity], date, time
   samples = textscan(fid, sample_expr, 'delimiter', ',');
 
+  if isempty(samples{end}) || isempty(samples{end-1}), continue; end % current line doesn't match expected format or doesn't have time stamp
+  
   block = 1;
   
   temp_block = samples{block}; block = block+1;
