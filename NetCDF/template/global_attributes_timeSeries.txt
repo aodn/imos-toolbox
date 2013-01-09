@@ -69,7 +69,7 @@ S, institution_references       = http://www.imos.org.au/emii.html
 
 % how
 S, lineage				   = 
-S, citation                = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-url], accessed [date-of-access]"
-S, acknowledgement         = Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - an initiative of the Australian Government being conducted as part of the National Collaborative Research Infrastructure Strategy and and the Super Science Initiative."
+S, citation                = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-URL], accessed [date-of-access].".
+S, acknowledgement         = Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is supported by the Australian Government through the National Collaborative Research Infrastructure Strategy and the Super Science Initiative." If relevant, also credit other organisations involved in collection of this particular datastream (as listed in 'credit' in the metadata record).
 S, distribution_statement  = Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
 S, project_acknowledgement = The collection of this data was funded by IMOS
