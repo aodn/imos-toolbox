@@ -8,7 +8,8 @@ function hits = fsearch(pattern, root, restriction)
 %
 % Inputs:
 %
-%   pattern     - Pattern to match.
+%   pattern     - Pattern to match. Can be a filename, a full path or part
+%                 of a path including a filename.
 %
 %   root        - Directory from which to start the search.
 %
@@ -64,6 +65,12 @@ function hits = fsearch(pattern, root, restriction)
   if ~isdir(root),     return; end
   if isempty(pattern), return; end
   
+  % case when the pattern is already a full path with filename
+  if exist(pattern, 'file') == 2
+      hits{end+1} = pattern;
+      return;
+  end
+  
   entries = dir(root);
   
   for k = 3:length(entries) % we ignore . and ..
@@ -78,8 +85,8 @@ function hits = fsearch(pattern, root, restriction)
     switch lower(restriction)
         case 'dirs'
             if ~d.isdir, continue; end
-            if ~isempty(strfind(lower(d.name), lower(pattern)))
-                hits{end+1} = [root filesep d.name];
+            if ~isempty(strfind(lower(fullfile(root, d.name)), lower(pattern)))
+                hits{end+1} = fullfile(root, d.name);
             end
         case 'files'
             if d.isdir
@@ -87,18 +94,18 @@ function hits = fsearch(pattern, root, restriction)
                 subhits = fsearch(pattern, [root filesep d.name], restriction);
                 hits = [hits subhits];
             else
-                if ~isempty(strfind(lower(d.name), lower(pattern)))
-                    hits{end+1} = [root filesep d.name];
+                if ~isempty(strfind(lower(fullfile(root, d.name)), lower(pattern)))
+                    hits{end+1} = fullfile(root, d.name);
                 end
             end
         otherwise % both
-            if ~isempty(strfind(lower(d.name), lower(pattern)))
-                hits{end+1} = [root filesep d.name];
+            if ~isempty(strfind(lower(fullfile(root, d.name)), lower(pattern)))
+                hits{end+1} = fullfile(root, d.name);
             end
             
             if d.isdir
                 % recursively search subdirectories
-                subhits = fsearch(pattern, [root filesep d.name], restriction);
+                subhits = fsearch(pattern, fullfile(root, d.name), restriction);
                 hits = [hits subhits];
             end
     end

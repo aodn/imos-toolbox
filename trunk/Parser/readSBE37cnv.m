@@ -139,7 +139,9 @@ function [name, data, comment] = convertData(name, data, procHeader)
 %This is not used for SBE37SM
 % the cast date, if present, is used for time field offset
 castDate = 0;
-% if isfield(instHeader, 'castDate'), castDate = instHeader.castDate; end
+if isfield(procHeader, 'startTime')
+    castDate = procHeader.startTime;
+end
 
 %sort out start year for conversion of Julian days
 startYear=2010;%This is clumsy - may need fixing!!

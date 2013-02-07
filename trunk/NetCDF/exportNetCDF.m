@@ -62,7 +62,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
   filename = [dest filesep filename];
   
   fid = netcdf.create(filename, 'NC_CLOBBER');
-  if fid == -1, error(['could not create ' filename]); end
+  if fid == -1, error(['Could not create ' filename]); end
   
   % we don't want the API to automatically pre-fill with FillValue, we're
   % taking care of it ourselves and avoid 2 times writting on disk
