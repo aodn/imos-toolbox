@@ -52,8 +52,8 @@
 % section the first - all supported QC sets
 %
 
-1, IMOS standard set using the IODE flags,                 0 1 2 3 4 5 6 7 8 9,       byte, 99
-2, ARGO quality control procedure,                         0 1 2 3 4 5 6 7 8 9,       byte, 99
+1, IMOS standard set using the IODE flags,                 0 1 2 3 4 5 6 7 8 9,       byte, 9
+2, ARGO quality control procedure,                         0 1 2 3 4 5 6 7 8 9,       byte, 9
 3, BOM quality control procedure (SST and Air-Sea fluxes), B C D E F G H L T U V X Z, char, 0
 
 %

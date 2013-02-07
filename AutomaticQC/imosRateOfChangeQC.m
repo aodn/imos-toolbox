@@ -121,11 +121,25 @@ if any(iParam)
     len1 = size(data, 1);
     len2 = size(data, 2);
     flags = ones(len1, len2, 'int8')*rawFlag;
+    
+    % check for Greg Coleman AIMS of previously computed stddev
+    isPrep = flase;
+    if isfield(sample_data.meta, 'qcPrep')
+        if isfield(sample_data.meta.qcPrep, 'imosRateOfChangeQC')
+            qcPrep = sample_data.meta.qcPrep.('imosRateOfChangeQC');
+            if ~strcmpi(qcPrep, 'none')
+                stdDevs = qcPrep.(type){k}.stdDev;
+                stdDev = stdDevs(1);
+                isPrep = true;
+            end
+        end
+    end
+    
     for i=1:len2
         lineData = data(:,i);
         
         % we don't consider already bad data in the current test
-        iBadData = sample_data.variables{k}.flags(:,i) == badFlag;
+        iBadData = sample_data.(type){k}.flags(:,i) == badFlag;
         dataTested = lineData(~iBadData);
         
         if isempty(dataTested), return; end
@@ -146,21 +160,23 @@ if any(iParam)
             time = time';
         end
     
-        % We compute the standard deviation on relevant data for the first month of
-        % the time serie
-        iGoodData = (sample_data.variables{k}.flags(:,i) == goodFlag | ...
-            sample_data.variables{k}.flags(:,i) == pGoodFlag | ...
-            sample_data.variables{k}.flags(:,i) == rawFlag);
-        dataRelevant = lineData(iGoodData);
-        clear lineData;
-        timeRelevant = time(iGoodData);
-        iFirstNotBad = find(iGoodData, 1, 'first');
-        clear iGoodData
-        iRelevantTimePeriod = (timeRelevant >= time(iFirstNotBad) & timeRelevant <= time(iFirstNotBad)+30*24*2600);
-        clear timeRelevant
-        stdDev = std(dataRelevant(iRelevantTimePeriod));
-        clear dataRelevant
-        
+        if ~isPrep
+            % We compute the standard deviation on relevant data for the first month of
+            % the time serie
+            iGoodData = (sample_data.(type){k}.flags(:,i) == goodFlag | ...
+                sample_data.(type){k}.flags(:,i) == pGoodFlag | ...
+                sample_data.(type){k}.flags(:,i) == rawFlag);
+            dataRelevant = lineData(iGoodData);
+            clear lineData;
+            timeRelevant = time(iGoodData);
+            iFirstNotBad = find(iGoodData, 1, 'first');
+            clear iGoodData
+            iRelevantTimePeriod = (timeRelevant >= time(iFirstNotBad) & timeRelevant <= time(iFirstNotBad)+30*24*2600);
+            clear timeRelevant
+            stdDev = std(dataRelevant(iRelevantTimePeriod));
+            clear dataRelevant
+        end
+    
         previousGradient    = [0; abs(dataTested(2:end) - dataTested(1:end-1))]; % we don't know about the first point
         nextGradient        = [abs(dataTested(1:end-1) - dataTested(2:end)); 0]; % we don't know about the last point
         clear dataTested
