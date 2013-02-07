@@ -168,6 +168,7 @@ time                   = [];
 
 % booleans used to determine whether to expect 
 % the corresponding variable in the data
+read_temp = 0;
 read_sal  = 0;
 read_cond = 0;
 read_pres = 0;
@@ -238,6 +239,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
      
     if strcmp('temperature', tkn{1}{1})
       
+      read_temp = 1;
       sample_expr = ['%f' sample_expr];
       sample_data.variables{end+1}.name = TEMPERATURE_NAME;
       
@@ -311,85 +313,135 @@ end
 fseek(fid, -length(line) - 1, 'cof');
 
 %% Read sample data
-%
-% This is a bit complex, as errors are sometimes present in the SBE output, so
-% we can't do it with a single textscan call.
-% 
-% The arrays in sample_data are preallocated to improve execution speed.
-% The preallocation size is determined by approximating the number of lines in
-% the file based on the file size, and an approximate line size of 30
-% characters. This is a slightly optimistic estimate, so memory usage is not 
-% optimal, however excess memory is freed after the data has been parsed.
-%
-nsamples = int32(filesize / 30);
-
-% others are allocated below as needed
-time        = zeros(nsamples,1);
-temperature = zeros(nsamples,1);
-
-if read_pres, pressure     = zeros(nsamples,1); end
-if read_cond, conductivity = zeros(nsamples,1); end
-if read_sal,  salinity     = zeros(nsamples,1); end
-
-% the nsamples index points to the next 
-% free space in the variable arrays
-nsamples = 1;
-
-while ~feof(fid)
-
-  % temperature[, conductivity][, pressure][, salinity], date, time
-  samples = textscan(fid, sample_expr, 'delimiter', ',');
-
-  if isempty(samples{end}) || isempty(samples{end-1}), continue; end % current line doesn't match expected format or doesn't have time stamp
-  
-  block = 1;
-  
-  temp_block = samples{block}; block = block+1;
-  
-  if read_cond, cond_block = samples{block}; block = block+1; end
-  if read_pres, pres_block = samples{block}; block = block+1; end
-  if read_sal,  sal_block  = samples{block}; block = block+1; end
-  
-  time_block = cellstr(samples{block});
-
-  % error on most recent line - discard it and continue
-  if ~feof(fid)
-    time_block = time_block(1:end-1);
-    temp_block = temp_block(1:length(time_block));
+if read_temp == 0 && read_cond == 0 && read_pres == 0 && read_sal == 0
+    % (file format without any header)
+    % We assume the first line has the correct number of columns
+    nCol = length(strfind(line, ',')) + 1;
+    switch nCol
+        case 3
+            read_temp = 1;
+            sample_expr = '%f%21c';
+            sample_data.variables{end+1}.name = TEMPERATURE_NAME;
+            
+        case 4
+            read_temp = 1;
+            read_cond = 1;
+            sample_expr = '%f%f%21c';
+            sample_data.variables{end+1}.name = TEMPERATURE_NAME;
+            sample_data.variables{end+1}.name = CONDUCTIVITY_NAME;
+            
+        case 5
+            read_temp = 1;
+            read_cond = 1;
+            read_pres = 1;
+            sample_expr = '%f%f%f%21c';
+            sample_data.variables{end+1}.name = TEMPERATURE_NAME;
+            sample_data.variables{end+1}.name = CONDUCTIVITY_NAME;
+            sample_data.variables{end+1}.name = PRESSURE_NAME;
+            
+        case 6
+            read_temp = 1;
+            read_cond = 1;
+            read_pres = 1;
+            read_sal = 1;
+            sample_expr = '%f%f%f%f%21c';
+            sample_data.variables{end+1}.name = TEMPERATURE_NAME;
+            sample_data.variables{end+1}.name = CONDUCTIVITY_NAME;
+            sample_data.variables{end+1}.name = PRESSURE_NAME;
+            sample_data.variables{end+1}.name = SALINITY_NAME;
+            
+        otherwise
+            error('Not supported file format.');
+            
+    end
     
-    if read_cond, cond_block = cond_block(1:length(time_block)); end
-    if read_pres, pres_block = pres_block(1:length(time_block)); end
-    if read_sal,  sal_block  = sal_block( 1:length(time_block)); end
-    fgetl(fid);
-  end
-
-  time_block = datenum(time_block, 'dd mmm yyyy, HH:MM:SS');
-
-  temperature(   nsamples:nsamples+length(temp_block)-1) = temp_block;
-  
-  if read_cond
-    conductivity(nsamples:nsamples+length(cond_block)-1) = cond_block; end
-  if read_pres
-    pressure(    nsamples:nsamples+length(pres_block)-1) = pres_block; end
-  if read_sal
-    salinity(    nsamples:nsamples+length(sal_block) -1) = sal_block;  end
-  
-  time(          nsamples:nsamples+length(time_block)-1) = time_block;
-
-  nsamples = nsamples + length(time_block);
+    samples = textscan(fid, sample_expr, 'delimiter', ',');
+    
+    time = datenum(samples{end},'dd mmm yyyy, HH:MM:SS');
+    
+    if read_temp, temperature = samples{1}; end
+    if read_cond, conductivity = samples{2}; end
+    if read_pres, pressure = samples{3}; end
+    if read_sal, salinity = samples{4}; end
+    
+else
+    % (original file format with header)
+    % This is a bit complex, as errors are sometimes present in the SBE output, so
+    % we can't do it with a single textscan call.
+    %
+    % The arrays in sample_data are preallocated to improve execution speed.
+    % The preallocation size is determined by approximating the number of lines in
+    % the file based on the file size, and an approximate line size of 30
+    % characters. This is a slightly optimistic estimate, so memory usage is not
+    % optimal, however excess memory is freed after the data has been parsed.
+    %
+    nsamples = int32(filesize / 30);
+    
+    % others are allocated below as needed
+    time        = zeros(nsamples,1);
+    temperature = zeros(nsamples,1);
+    
+    if read_pres, pressure     = zeros(nsamples,1); end
+    if read_cond, conductivity = zeros(nsamples,1); end
+    if read_sal,  salinity     = zeros(nsamples,1); end
+    
+    % the nsamples index points to the next
+    % free space in the variable arrays
+    nsamples = 1;
+    
+    while ~feof(fid)
+        
+        % temperature[, conductivity][, pressure][, salinity], date, time
+        samples = textscan(fid, sample_expr, 'delimiter', ',');
+        
+        if isempty(samples{end}) || isempty(samples{end-1}), continue; end % current line doesn't match expected format or doesn't have time stamp
+        
+        block = 1;
+        
+        temp_block = samples{block}; block = block+1;
+        
+        if read_cond, cond_block = samples{block}; block = block+1; end
+        if read_pres, pres_block = samples{block}; block = block+1; end
+        if read_sal,  sal_block  = samples{block}; block = block+1; end
+        
+        time_block = cellstr(samples{block});
+        
+        % error on most recent line - discard it and continue
+        if ~feof(fid)
+            time_block = time_block(1:end-1);
+            temp_block = temp_block(1:length(time_block));
+            
+            if read_cond, cond_block = cond_block(1:length(time_block)); end
+            if read_pres, pres_block = pres_block(1:length(time_block)); end
+            if read_sal,  sal_block  = sal_block( 1:length(time_block)); end
+            fgetl(fid);
+        end
+        
+        time_block = datenum(time_block, 'dd mmm yyyy, HH:MM:SS');
+        
+        temperature(   nsamples:nsamples+length(temp_block)-1) = temp_block;
+        
+        if read_cond
+            conductivity(nsamples:nsamples+length(cond_block)-1) = cond_block; end
+        if read_pres
+            pressure(    nsamples:nsamples+length(pres_block)-1) = pres_block; end
+        if read_sal
+            salinity(    nsamples:nsamples+length(sal_block) -1) = sal_block;  end
+        
+        time(          nsamples:nsamples+length(time_block)-1) = time_block;
+        
+        nsamples = nsamples + length(time_block);
+    end
+    fclose(fid);
+    
+    % we overallocated memory for the sample data - truncate
+    % each array so we're only using the memory that we need
+    time(nsamples:end) = [];
+    if ~isempty(temperature),  temperature( nsamples:end) = []; end
+    if ~isempty(conductivity), conductivity(nsamples:end) = []; end
+    if ~isempty(pressure),     pressure(    nsamples:end) = []; end
+    if ~isempty(salinity),     salinity(    nsamples:end) = []; end
 end
-
-%% Clean up
-
-fclose(fid);
-
-% we overallocated memory for the sample data - truncate 
-% each array so we're only using the memory that we need
-time(nsamples:end) = [];
-if ~isempty(temperature),  temperature( nsamples:end) = []; end
-if ~isempty(conductivity), conductivity(nsamples:end) = []; end
-if ~isempty(pressure),     pressure(    nsamples:end) = []; end
-if ~isempty(salinity),     salinity(    nsamples:end) = []; end
 
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
 
