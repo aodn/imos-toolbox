@@ -48,12 +48,19 @@ fun = str2func([filtername 'Prep']);
 fun2 = functions(fun);
 ok = size(fun2.file, 2) > 0;
 
-if (ok)
+if ok
     type{1} = 'dimensions';
     type{2} = 'variables';
     qcPrep=struct;
     for m = 1:length(type)
         for k = 1:length(sam.(type{m}))
+            % check for previously computed stddev
+            if isfield(sam.meta, 'qcPrep')
+                if isfield(sam.meta.qcPrep, filtername)
+                    continue;
+                end
+            end
+
             data  = sam.(type{m}){k}.data;
             qcPrep.(type{m}){k} =  fun(sam, data, k, type{m});
         end
