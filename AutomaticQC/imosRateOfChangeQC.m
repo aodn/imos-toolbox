@@ -122,18 +122,9 @@ if any(iParam)
     len2 = size(data, 2);
     flags = ones(len1, len2, 'int8')*rawFlag;
     
-    % check for Greg Coleman AIMS of previously computed stddev
-    isPrep = flase;
-    if isfield(sample_data.meta, 'qcPrep')
-        if isfield(sample_data.meta.qcPrep, 'imosRateOfChangeQC')
-            qcPrep = sample_data.meta.qcPrep.('imosRateOfChangeQC');
-            if ~strcmpi(qcPrep, 'none')
-                stdDevs = qcPrep.(type){k}.stdDev;
-                stdDev = stdDevs(1);
-                isPrep = true;
-            end
-        end
-    end
+    % get previously computed stddev
+    qcPrep = sample_data.meta.qcPrep.('imosRateOfChangeQC');
+    stdDevs = qcPrep.(type){k}.stdDev;
     
     for i=1:len2
         lineData = data(:,i);
@@ -160,21 +151,10 @@ if any(iParam)
             time = time';
         end
     
-        if ~isPrep
-            % We compute the standard deviation on relevant data for the first month of
-            % the time serie
-            iGoodData = (sample_data.(type){k}.flags(:,i) == goodFlag | ...
-                sample_data.(type){k}.flags(:,i) == pGoodFlag | ...
-                sample_data.(type){k}.flags(:,i) == rawFlag);
-            dataRelevant = lineData(iGoodData);
-            clear lineData;
-            timeRelevant = time(iGoodData);
-            iFirstNotBad = find(iGoodData, 1, 'first');
-            clear iGoodData
-            iRelevantTimePeriod = (timeRelevant >= time(iFirstNotBad) & timeRelevant <= time(iFirstNotBad)+30*24*2600);
-            clear timeRelevant
-            stdDev = std(dataRelevant(iRelevantTimePeriod));
-            clear dataRelevant
+        if len2 > 1
+            stdDev = stdDevs(i);
+        else
+            stdDev = stdDevs;
         end
     
         previousGradient    = [0; abs(dataTested(2:end) - dataTested(1:end-1))]; % we don't know about the first point
