@@ -303,7 +303,7 @@ error(nargchk(1,2,nargin));
   sample_data.variables{10}.data       = sample_data.variables{10}.typeCastFunc(backscatter4);
   sample_data.variables{11}.data       = sample_data.variables{11}.typeCastFunc(temperature);
   sample_data.variables{12}.data       = sample_data.variables{12}.typeCastFunc(pressure);
-  sample_data.variables{12}.applied_offset = sample_data.variables{12}.typeCastFunc(-10.1325);
+  sample_data.variables{12}.applied_offset = sample_data.variables{12}.typeCastFunc(-gsw_P0/10^4); % (gsw_P0/10^4 = 10.1325 dbar)
   
   sample_data.variables{13}.data       = sample_data.variables{13}.typeCastFunc(salinity);
   sample_data.variables{14}.data       = sample_data.variables{14}.typeCastFunc(correlation1);

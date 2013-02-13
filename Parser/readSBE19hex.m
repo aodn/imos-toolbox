@@ -213,20 +213,21 @@ function [newData, comment] = convertData(data, header)
               psal = newData.PSAL;
           else
               cndc = newData.CNDC;
-              % conductivity is in S/m and sw_c3515 in mS/cm
-              crat = 10*cndc ./ sw_c3515;
+              % conductivity is in S/m and gsw_C3515 in mS/cm
+              crat = 10*cndc ./ gsw_C3515;
               
-              psal = sw_salt(crat, temp, pres);
+              % we need to use relative pressure using gsw_P0 = 101325 Pa 
+              psal = gsw_SP_from_R(crat, temp, pres - gsw_P0/10^4);
           end
           
           % calculate density from salinity, temperature and pressure
-          dens = sw_dens(psal, newData.TEMP, newData.PRES);
+          dens = sw_dens(psal, temp, pres - gsw_P0/10^4); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
           
           % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
           newData.DOX2 = newData.DOX1 .* 1000.0 ./ dens;
           comment.DOX2 = ['Originally expressed in umol/l, assuming 1l = 0.001m3 '...
               'and using density computed from Temperature, Salinity and Pressure '...
-              'with the Seawater toolbox.'];
+              'with the CSIRO SeaWater library (EOS-80).'];
       end
   end
 end

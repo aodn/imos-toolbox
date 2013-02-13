@@ -232,10 +232,11 @@ function sample_data = YSI6SeriesParse( filename, mode )
           else
               cndc = sample_data.variables{cndc};
               pres = sample_data.variables{pres};
-              % conductivity is in S/m and sw_c3515 in mS/cm
-              crat = 10*cndc.data ./ sw_c3515;
+              % conductivity is in S/m and gsw_C3515 in mS/cm
+              crat = 10*cndc.data ./ gsw_C3515;
               
-              psal.data = sw_salt(crat, temp.data, pres.data);
+              % we need to use relative pressure using gsw_P0 = 101325 Pa 
+              psal.data = gsw_SP_from_R(crat, temp.data, pres.data - gsw_P0/10^4);
           end
           
           % O2 solubility (Garcia and Gordon, 1992-1993)
@@ -308,20 +309,21 @@ function sample_data = YSI6SeriesParse( filename, mode )
               psal = sample_data.variables{psal};
           else
               cndc = sample_data.variables{cndc};
-              % conductivity is in S/m and sw_c3515 in mS/cm
-              crat = 10*cndc.data ./ sw_c3515;
+              % conductivity is in S/m and gsw_C3515 in mS/cm
+              crat = 10*cndc.data ./ gsw_C3515;
               
-              psal.data = sw_salt(crat, temp.data, pres.data);
+              % we need to use relative pressure using gsw_P0 = 101325 Pa 
+              psal.data = gsw_SP_from_R(crat, temp.data, pres.data - gsw_P0/10^4);
           end
           
           % calculate density from salinity, temperature and pressure
-          dens = sw_dens(psal.data, temp.data, pres.data);
+          dens = sw_dens(psal.data, temp.data, pres.data - gsw_P0/10^4); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
           
           % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
           data = dox1.data .* 1000.0 ./ dens;
           comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'with the Seawater toolbox.'];
+          'with the CSIRO SeaWater library (EOS-80).'];
           
           sample_data.variables{end+1}.dimensions           = [1];
           sample_data.variables{end}.comment                = comment;
