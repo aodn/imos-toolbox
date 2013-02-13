@@ -2,7 +2,7 @@ function sample_data = salinityPP( sample_data, auto )
 %SALINITYPP Adds a salinity variable to the given data sets, if they
 % contain conductivity, temperature and pressure variables. 
 %
-% This function uses the CSIRO Matlab Seawater Library to derive salinity 
+% This function uses the Gibbs-SeaWater toolbox (TEOS-10) to derive salinity
 % data from conductivity, temperature and pressure. It adds the salinity 
 % data as a new variable in the data sets. Data sets which do not contain 
 % conductivity, temperature and pressure variable are left unmodified.
@@ -80,15 +80,16 @@ for k = 1:length(sample_data)
       % update from a relative pressure like SeaBird computes
       % it in its processed files, substracting a constant value
       % 10.1325 dbar for nominal atmospheric pressure
-      presRel = sam.variables{presIdx}.data - 10.1325;
+      presRel = sam.variables{presIdx}.data - gsw_P0/10^4;
       presName = 'PRES substracting a constant value 10.1325 dbar for nominal atmospheric pressure';
   end
   
   % calculate C(S,T,P)/C(35,15,0) ratio
-  R = cndc ./ 4.2914;
+  % conductivity is in S/m and gsw_C3515 in mS/cm
+  R = 10*cndc ./ gsw_C3515;
   
   % calculate salinity
-  psal = sw_salt(R, temp, presRel);
+  psal = gsw_SP_from_R(R, temp, presRel);
   
   % add salinity data as new variable in data set
   sample_data{k} = addVar(...
@@ -96,5 +97,5 @@ for k = 1:length(sample_data)
     'PSAL', ...
     psal, ...
     getVar(sam.dimensions, 'TIME'), ...
-    ['salinityPP.m: derived from CNDC, TEMP and ' presName]);
+    ['salinityPP.m: derived from CNDC, TEMP and ' presName ' using the Gibbs-SeaWater toolbox (TEOS-10)']);
 end

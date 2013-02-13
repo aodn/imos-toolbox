@@ -241,17 +241,17 @@ function sample_data = readWQMraw( filename )
       data = getVar(sample_data.variables, 'DOX1_1');
       comment = ['Originally expressed in mmol/m3, assuming 1l = 0.001m3 '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'with the Seawater toolbox.'];
+          'with the CSIRO SeaWater library (EOS-80).'];
       if data == 0
           data = getVar(sample_data.variables, 'DOX1_2');
           comment = ['Originally expressed in ml/l, assuming 1ml/l = 44.660umol/l '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'with the Seawater toolbox.'];
+          'with the CSIRO SeaWater library (EOS-80).'];
           if data == 0
               data = getVar(sample_data.variables, 'DOX1_3');
               comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
                   'and using density computed from Temperature, Salinity and Pressure '...
-                  'with the Seawater toolbox.'];
+                  'with the CSIRO SeaWater library (EOS-80).'];
           end
       end
       data = sample_data.variables{data};
@@ -277,14 +277,14 @@ function sample_data = readWQMraw( filename )
               psal = sample_data.variables{psal};
           else
               cndc = sample_data.variables{cndc};
-              % conductivity is in S/m and sw_c3515 in mS/cm
-              crat = 10*cndc.data ./ sw_c3515;
+              % conductivity is in S/m and gsw_C3515 in mS/cm
+              crat = 10*cndc.data ./ gsw_C3515;
               
-              psal.data = sw_salt(crat, temp.data, pres.data);
+              psal.data = gsw_SP_from_R(crat, temp.data, pres.data);
           end
           
           % calculate density from salinity, temperature and pressure
-          dens = sw_dens(psal.data, temp.data, pres.data);
+          dens = sw_dens(psal.data, temp.data, pres.data); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
           
           % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
           data = data .* 1000.0 ./ dens;
@@ -341,10 +341,9 @@ function WQM=readWQMinternal(flnm)
 %
 % Charles James May 2010
 % note:
-% This function also requires the CSIRO Seawater toolbox for CTP
-% to salinity conversion
-% sw_c3514:   Returns conductivity at S=35 psu , T=15 C [ITPS 68] and P=0 db)
-% sw_salt:    Calculates Salinity from conductivity ratio. UNESCO 1983 polynomial.
+% This function also requires the Gibbs-SeaWater toolbox (TEOS-10)
+% gsw_C3515:        Returns conductivity at S=35 psu , T=15 C [ITPS 68] and P=0 db)
+% gsw_SP_from_R:    Calculates Salinity from conductivity ratio. UNESCO 1983 polynomial
 
 
 fid=fopen(flnm,'r');
@@ -597,10 +596,10 @@ WQM.temperature = A(:,2);
 WQM.pressure = A(:,3);
 
 % compute conductivity ratio to use seawater salinity algorithm
-% Wetlabs conductivity is in S/m and sw_c3515 in mS/cm
-crat = 10*WQM.conductivity./sw_c3515;
+% Wetlabs conductivity is in S/m and gsw_C3515 in mS/cm
+crat = 10*WQM.conductivity./gsw_C3515;
 
-WQM.salinity = sw_salt(crat, WQM.temperature, WQM.pressure);
+WQM.salinity = gsw_SP_from_R(crat, WQM.temperature, WQM.pressure);
 
 % find sensor coefficients
 

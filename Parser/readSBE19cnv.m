@@ -117,20 +117,20 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader, mode
               psal = data.PSAL;
           else
               cndc = data.CNDC;
-              % conductivity is in S/m and sw_c3515 in mS/cm
-              crat = 10*cndc ./ sw_c3515;
+              % conductivity is in S/m and gsw_C3515 in mS/cm
+              crat = 10*cndc ./ gsw_C3515;
               
-              psal = sw_salt(crat, temp, pres);
+              psal = gsw_SP_from_R(crat, temp, pres);
           end
           
           % calculate density from salinity, temperature and pressure
-          dens = sw_dens(psal, temp, pres);
+          dens = sw_dens(psal, temp, pres); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
           
           % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
           data.DOX2 = data.DOX1 .* 1000.0 ./ dens;
           comment.DOX2 = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'with the Seawater toolbox.'];
+          'with the CSIRO SeaWater library (EOS-80).'];
       end
   end
 end
