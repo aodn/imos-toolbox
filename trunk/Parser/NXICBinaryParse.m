@@ -160,7 +160,7 @@ function sample_data = NXICBinaryParse( filename, mode )
   sample_data.variables{1}.data = sample_data.variables{1}.typeCastFunc(samples.temperature);
   sample_data.variables{2}.data = sample_data.variables{2}.typeCastFunc(samples.conductivity);
   sample_data.variables{3}.data = sample_data.variables{3}.typeCastFunc(samples.pressure);
-  sample_data.variables{3}.applied_offset = sample_data.variables{3}.typeCastFunc(-10.1325); % to be confirmed!
+  sample_data.variables{3}.applied_offset = sample_data.variables{3}.typeCastFunc(-gsw_P0/10^4); % to be confirmed! (gsw_P0/10^4 = 10.1325 dbar)
   sample_data.variables{4}.data = sample_data.variables{4}.typeCastFunc(samples.salinity);
   sample_data.variables{5}.data = sample_data.variables{5}.typeCastFunc(samples.soundSpeed);
   sample_data.variables{6}.data = sample_data.variables{6}.typeCastFunc(samples.voltage);

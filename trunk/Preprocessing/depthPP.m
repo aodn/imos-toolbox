@@ -2,7 +2,7 @@ function sample_data = depthPP( sample_data, auto )
 %DEPTHPP Adds a depth variable to the given data sets, if they contain a
 % pressure variable.
 %
-% This function uses the CSIRO Matlab Seawater Library to derive depth data
+% This function uses the Gibbs-SeaWater toolbox (TEOS-10) to derive depth data
 % from pressure. It adds the depth data as a new variable in the data sets.
 % Data sets which do not contain a pressure variable are left unmodified 
 % when loaded alone. Data sets which do not contain a pressure variable
@@ -250,7 +250,7 @@ for k = 1:length(sample_data)
                         % update from an absolute pressure like SeaBird computes
                         % a relative pressure in its processed files, substracting a constant value
                         % 10.1325 dbar for nominal atmospheric pressure
-                        relPresOther = otherSam.variables{presIdxOther}.data - 10.1325;
+                        relPresOther = otherSam.variables{presIdxOther}.data - gsw_P0/10^4;
                         presComment = ['absolute '...
                             'pressure measurements to which a nominal '...
                             'value for atmospheric pressure (10.1325 dbar) '...
@@ -285,25 +285,25 @@ for k = 1:length(sample_data)
                     end
                     
                     if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
-                        % compute depth with SeaWater toolbox
-                        % depth ~= sw_dpth(pressure, latitude)
+                        % compute depth with Gibbs-SeaWater toolbox (TEOS-10)
+                        % depth ~= - gsw_z_from_p(relative_pressure, latitude)
                         if curSam.geospatial_lat_min == curSam.geospatial_lat_max
-                            zOther = sw_dpth(relPresOther, curSam.geospatial_lat_min);
+                            zOther = - gsw_z_from_p(relPresOther, curSam.geospatial_lat_min);
                             clear relPresOther;
                             
                             computedDepthComment  = ['depthPP: Depth computed from '...
                                 'the only pressure sensor available, using the '...
-                                'SeaWater toolbox from latitude and '...
+                                'Gibbs-SeaWater toolbox (TEOS-10) from latitude and '...
                                 presComment '.'];
                         else
                             meanLat = curSam.geospatial_lat_min + ...
                                 (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
-                            zOther = sw_dpth(relPresOther, meanLat);
+                            zOther = - gsw_z_from_p(relPresOther, meanLat);
                             clear relPresOther;
                             
                             computedDepthComment  = ['depthPP: Depth computed from '...
                                 'the only pressure sensor available, using the '...
-                                'SeaWater toolbox from mean latitude and '...
+                                'Gibbs-SeaWater toolbox (TEOS-10) from mean latitude and '...
                                 presComment '.'];
                         end
                     else
@@ -341,14 +341,14 @@ for k = 1:length(sample_data)
                         % update from an absolute pressure like SeaBird computes
                         % a relative pressure in its processed files, substracting a constant value
                         % 10.1325 dbar for nominal atmospheric pressure
-                        relPresFirst    = samFirst.variables{presIdxFirst}.data - 10.1325;
-                        relPresSecond   = samSecond.variables{presIdxSecond}.data - 10.1325;
+                        relPresFirst    = samFirst.variables{presIdxFirst}.data - gsw_P0/10^4;
+                        relPresSecond   = samSecond.variables{presIdxSecond}.data - gsw_P0/10^4;
                         presComment     = ['absolute '...
                             'pressure measurements to which a nominal '...
                             'value for atmospheric pressure (10.1325 dbar) '...
                             'has been substracted'];
                     elseif presIdxFirst ~= 0 && presIdxSecond == 0
-                        relPresFirst    = samFirst.variables{presIdxFirst}.data - 10.1325;
+                        relPresFirst    = samFirst.variables{presIdxFirst}.data - gsw_P0/10^4;
                         relPresSecond   = samSecond.variables{presRelIdxSecond}.data;
                         presComment     = ['relative and absolute '...
                             'pressure measurements to which a nominal '...
@@ -356,7 +356,7 @@ for k = 1:length(sample_data)
                             'has been substracted'];
                     elseif presIdxFirst == 0 && presIdxSecond ~= 0
                         relPresFirst    = samFirst.variables{presRelIdxFirst}.data;
-                        relPresSecond   = samSecond.variables{presIdxSecond}.data - 10.1325;
+                        relPresSecond   = samSecond.variables{presIdxSecond}.data - gsw_P0/10^4;
                         presComment     = ['relative and absolute '...
                             'pressure measurements to which a nominal '...
                             'value for atmospheric pressure (10.1325 dbar) '...
@@ -396,28 +396,28 @@ for k = 1:length(sample_data)
                     % pressure = density*gravity*depth
                     %
                     if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
-                        % compute depth with SeaWater toolbox
-                        % depth ~= sw_dpth(pressure, latitude)
+                        % compute depth with Gibbs-SeaWater toolbox (TEOS-10)
+                        % depth ~= - gsw_z_from_p(relative_pressure, latitude)
                         if curSam.geospatial_lat_min == curSam.geospatial_lat_max
-                            zFirst = sw_dpth(relPresFirst, curSam.geospatial_lat_min);
-                            zSecond = sw_dpth(relPresSecond, curSam.geospatial_lat_min);
+                            zFirst = - gsw_z_from_p(relPresFirst, curSam.geospatial_lat_min);
+                            zSecond = - gsw_z_from_p(relPresSecond, curSam.geospatial_lat_min);
                             clear relPresFirst relPresSecond;
                             
                             computedDepthComment  = ['depthPP: Depth computed from '...
                                 'the 2 nearest pressure sensors available, using the '...
-                                'SeaWater toolbox from latitude and '...
+                                'Gibbs-SeaWater toolbox (TEOS-10) from latitude and '...
                                 presComment '.'];
                         else
                             meanLat = curSam.geospatial_lat_min + ...
                                 (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
                             
-                            zFirst = sw_dpth(relPresFirst, meanLat);
-                            zSecond = sw_dpth(relPresSecond, meanLat);
+                            zFirst = - gsw_z_from_p(relPresFirst, meanLat);
+                            zSecond = - gsw_z_from_p(relPresSecond, meanLat);
                             clear relPresFirst relPresSecond;
                             
                             computedDepthComment  = ['depthPP: Depth computed from '...
                                 'the 2 nearest pressure sensors available, using the '...
-                                'SeaWater toolbox from mean latitude and '...
+                                'Gibbs-SeaWater toolbox (TEOS-10) from mean latitude and '...
                                 presComment '.'];
                         end
                     else
@@ -463,7 +463,7 @@ for k = 1:length(sample_data)
             % update from a relative pressure like SeaBird computes
             % it in its processed files, substracting a constant value
             % 10.1325 dbar for nominal atmospheric pressure
-            relPres = curSam.variables{presIdx}.data - 10.1325;
+            relPres = curSam.variables{presIdx}.data - gsw_P0/10^4;
             presComment = ['absolute '...
                 'pressure measurements to which a nominal '...
                 'value for atmospheric pressure (10.1325 dbar) '...
@@ -479,22 +479,22 @@ for k = 1:length(sample_data)
         end
         
         if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
-            % compute vertical min/max with SeaWater toolbox
+            % compute vertical min/max with Gibbs-SeaWater toolbox (TEOS-10)
             if curSam.geospatial_lat_min == curSam.geospatial_lat_max
-                computedDepth         = sw_dpth(relPres, ...
+                computedDepth         = - gsw_z_from_p(relPres, ...
                     curSam.geospatial_lat_min);
                 clear relPres;
                 computedDepthComment  = ['depthPP: Depth computed using the '...
-                    'SeaWater toolbox from latitude and '...
+                    'Gibbs-SeaWater toolbox (TEOS-10) from latitude and '...
                     presComment '.'];
             else
                 meanLat = curSam.geospatial_lat_min + ...
                     (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
                 
-                computedDepth         = sw_dpth(relPres, meanLat);
+                computedDepth         = - gsw_z_from_p(relPres, meanLat);
                 clear relPres;
                 computedDepthComment  = ['depthPP: Depth computed using the '...
-                    'SeaWater toolbox from mean latitude and '...
+                    'Gibbs-SeaWater toolbox (TEOS-10) from mean latitude and '...
                     presComment '.'];
             end
         else

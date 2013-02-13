@@ -192,10 +192,10 @@ if strcmpi(paramName, 'PRES') || ...
     
     if strcmpi(paramName, 'PRES')
         % convert depth into absolute pressure assuming 1 dbar ~= 1 m and
-        % nominal atmospheric pressure ~= 10.1325 dBar
-        possibleMin = possibleMin + 10.1325;
-        possibleMax = possibleMax + 10.1325;
-        nominalData = nominalData + 10.1325;
+        % nominal atmospheric pressure ~= 10.1325 dBar (gsw_P0/10^4)
+        possibleMin = possibleMin + gsw_P0/10^4;
+        possibleMax = possibleMax + gsw_P0/10^4;
+        nominalData = nominalData + gsw_P0/10^4;
     elseif strcmpi(paramName, 'PRES_REL')
         % convert depth into relative pressure assuming 1 dbar ~= 1 m
         % Nothing to do!

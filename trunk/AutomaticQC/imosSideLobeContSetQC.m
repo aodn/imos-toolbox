@@ -125,8 +125,8 @@ elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
         ff = (sample_data.variables{idPres}.flags == rawFlag) | ...
             (sample_data.variables{idPres}.flags == goodFlag);
-        % relative pressure is used to compute depth
-        pressure = sample_data.variables{idPres}.data - 10.1325;
+        % relative pressure is used to compute depth (10.1325 dbar = gsw_P0/10^4)
+        pressure = sample_data.variables{idPres}.data - gsw_P0/10^4;
     else
         ff = (sample_data.variables{idPresRel}.flags == rawFlag) | ...
             (sample_data.variables{idPresRel}.flags == goodFlag);
