@@ -128,6 +128,8 @@ depthPP adds a DEPTH variable to the given data sets, if not already exist. Usef
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/Mooring_knocked_down3.png
 
+This function uses the [http://www.cmar.csiro.au/datacentre/ext_docs/seawater.htm CSIRO Matlab Seawater Library of EOS-80] to derive depth data from pressure and latitude.
+
 When a data set is loaded without using a deployment database, DEPTH will be calculated from PRES or PRES_REL variables present in the dataset. Without any latitude metadata information, 1 dbar ~= 1 m is assumed. If latitude metadata information is documented then DEPTH will be updated taking this new information into account using the CSIRO Matlab Seawater Library.
 
 When a data set is loaded using a deployment database, DEPTH will be calculated from PRES or PRES_REL variables present in the current instrument dataset or in the ones from the nearest pressure sensor on the mooring (1 or 2 nearest pressure sensors are used when possible). Latitude metadata information si taken into account using the Seawater toolbox. If latitude metadata information is updated then DEPTH will be updated taking this new information into account.
@@ -175,7 +177,7 @@ exclude,       ADCP
 
 salinityPP adds a salinity variable to the given data sets, if they contain conductivity, temperature and pressure variables.
 
-This function uses the CSIRO Matlab Seawater Library to derive salinity data from conductivity, temperature and pressure. It adds the salinity data as a new variable in the data sets. Data sets which do not contain conductivity, temperature and pressure variable or already contain a salinity variable are left unmodified.
+This function uses the [http://www.cmar.csiro.au/datacentre/ext_docs/seawater.htm CSIRO Matlab Seawater Library of EOS-80] to derive salinity data from conductivity, temperature and pressure. It adds the salinity data as a new variable in the data sets. Data sets which do not contain conductivity, temperature and pressure variable or already contain a salinity variable are left unmodified.
 
 == Variable transformation - transformPP == 
 

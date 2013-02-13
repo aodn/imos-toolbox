@@ -273,7 +273,7 @@ The algorithm used here is the same used by the Australian National Mooring Faci
 
 The samples that pass the test are the ones with parameter's value Vn verifying the test `|Vn - (Vn+1 + Vn-1)/2| - |(Vn+1 - Vn-1)/2| <= threshold`.
 
-It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable). If the test involves consecutive samples with a time period greater than 1h between them then the test is canceled for this triplet.
+It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable). If the test involves consecutive samples with a time period greater than 1h between them then the test is cancelled for this triplet.
 
 The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user's attention on specific areas in the profile that need a closer look and investigation before use.
 
@@ -311,7 +311,7 @@ The samples that pass the test are the ones with parameter's value Vn verifying 
 
 If the previous (or following) sample is missing then the test becomes `|Vn - Vn-1| <= 1*(threshold)` (respectively `|Vn - Vn+1| <= 1*(threshold)`).
 
-It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable). If the test involves consecutive samples with a time period greater than 1h between them then the test is canceled for this triplet or pair.
+It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable). If the test involves consecutive samples with a time period greater than 1h between them then the test is cancelled for this triplet or pair.
 
 The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user's attention on specific areas in the time series that need a closer look and investigation before use.
 
@@ -354,7 +354,7 @@ It is only considering adjacent samples with flags lower or equal to 3 (Bad data
 imosSalinityFromPTQC checks that any salinity measurement has its flag equals or greater than any pressure/depth and temperature measurements on the same sample. If not, it gives the highest observed flag.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
-||PSAL||1-Good data||highest flag from temperature, depth and pressure measurements os the same sample||
+||PSAL||1-Good data||highest flag from temperature, depth and pressure measurements of the same sample||
 
 === Side lobe contamination test - imosSideLobeContSetQC ===
 
