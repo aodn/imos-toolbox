@@ -71,7 +71,7 @@ PRES_REL,            0, sea_water_relative_pressure,                            
 PSAL,                1, sea_water_salinity,                                                             psu,                               S, 999999.0, 2.0,     41.0,     float
 Q,                   1, specific_humidity,                                                              ,                                  M, 999999.0, 0.0,     150.0,    float
 RRATE,               1, rainfall_rate,                                                                  mm s-1,                            M, 999999.0, ,        ,         float
-RAIN_AMOUNT,         1, thickness_of_rainfall_amount,                                                   m,                                 M, 999999.0, ,        ,         float
+RAIN_AMOUNT,         1, thickness_of_rainfall_amount,                                                   mm,                                M, 999999.0, ,        ,         float
 RELH,                1, relative_humidity,                                                              percent,                           M, 999999.0, 0.0,     150.0,    float
 ROLL,                1, platform_roll_angle,                                                            Degrees,                           E, 999999.0, -180.0,  180.0,    float
 SLCA,                1, mole_concentration_of_silicate_in_sea_water,                                    umole l-1,                         K, 999999.0, ,        ,         float
@@ -80,6 +80,7 @@ SPEC_CNDC,           0, sea_water_specific_electrical_conductivity,             
 SRAD,                1, isotropic_shortwave_radiance_in_air,                                            W m-1 sr-1,                        F, 999999.0, ,        ,         float
 SSPD,                1, speed_of_sound_in_sea_water,                                                    m s-1,                             A, 999999.0, 1400.0,  1600.0,   float
 SST,                 1, sea_surface_skin_temperature,                                                   Celsius,                           T, 999999.0, ,        ,         float
+SSTI,                1, sea_surface_temperature,                                                        Celsius,                           T, 999999.0, -2.5,    40.0,     float
 SSDS,                0, sea_surface_wave_directional_spread,                                            Degrees clockwise from true North, W, 999999.0, 0.0,     360.0,    float
 SSWD,                0, sea_surface_wave_direction_spectral_density,                                    Degrees clockwise from true North, W, 999999.0, 0.0,     360.0,    float
 SSWP,                1, sea_surface_swell_wave_period,                                                  Second,                            W, 999999.0, 0.0,     900000.0, float
@@ -92,7 +93,7 @@ TIME,                1, time,                                                   
 TURB,                0, turbidity,                                                                      NTU,                               U, 999999.0, 0.0,     1000.0,   float
 UCUR,                1, eastward_sea_water_velocity,                                                    m s-1,                             V, 999999.0, -10.0,   10.0,     float
 UWND,                1, eastward_wind,                                                                  m s-1,                             M, 999999.0, ,        ,         float
-VAVH,                1, sea_surface_wave_significant_height,                                            m,                                 W, 999999.0, ,        ,         float
+VAVH,                1, sea_surface_wave_significant_height,                                            m,                                 W, 999999.0, 0.0,     500.0,    float
 VAVT,                1, sea_surface_wave_zero_upcrossing_period,                                        s,                                 W, 999999.0, ,        ,         float
 VBSC,                0, volumetric_backscatter_coefficient,                                             m-1 sr-1,                          E, 999999.0, ,        ,         float
 VCUR,                1, northward_sea_water_velocity,                                                   m s-1,                             V, 999999.0, -10.0,   10.0,     float
@@ -103,6 +104,10 @@ VSF470,              0, volume_scattering_function_of_radiative_flux_in_sea_wate
 VSF532,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_532nm, m-1 sr-1,                          E, 999999.0, ,        ,         float
 VSF650,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_650nm, m-1 sr-1,                          E, 999999.0, ,        ,         float
 VWND,                1, northward_wind,                                                                 m s-1,                             M, 999999.0, ,        ,         float
-WDIR,                1, wind_to_direction,                                                              Degrees clockwise from true North, M, 999999.0, ,        ,         float
+WDIR,                1, wind_to_direction,                                                              Degrees clockwise from true North, M, 999999.0, 0.0,     360.0,    float
+WDIRF_AVG,           1, wind_from_direction,                                                            Degrees clockwise from true North, M, 999999.0, 0.0,     360.0,    float
 WSPD,                1, wind_speed,                                                                     m s-1,                             M, 999999.0, ,        ,         float
+WSPD_AVG,            1, wind_speed,                                                                     m s-1,                             M, 999999.0, ,        ,         float
+WSPD_MIN,            1, wind_speed,                                                                     m s-1,                             M, 999999.0, ,        ,         float
+WSPD_MAX,            1, wind_speed,                                                                     m s-1,                             M, 999999.0, ,        ,         float
 WCUR,                1, upward_sea_water_velocity,                                                      m s-1,                             V, 999999.0, -5.0,    5.0,      float
