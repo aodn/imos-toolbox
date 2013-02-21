@@ -79,6 +79,7 @@ SLC2,                1, moles_of_silicate_per_unit_mass_in_sea_water,           
 SPEC_CNDC,           0, sea_water_specific_electrical_conductivity,                                     S m-1,                             C, 999999.0, 0.0,     50000.0,  float
 SRAD,                1, isotropic_shortwave_radiance_in_air,                                            W m-1 sr-1,                        F, 999999.0, ,        ,         float
 SSPD,                1, speed_of_sound_in_sea_water,                                                    m s-1,                             A, 999999.0, 1400.0,  1600.0,   float
+SSS,                 1, sea_surface_salinity,                                                           psu,                               S, 999999.0, 2.0,     41.0,     float
 SST,                 1, sea_surface_skin_temperature,                                                   Celsius,                           T, 999999.0, ,        ,         float
 SSTI,                1, sea_surface_temperature,                                                        Celsius,                           T, 999999.0, -2.5,    40.0,     float
 SSDS,                0, sea_surface_wave_directional_spread,                                            Degrees clockwise from true North, W, 999999.0, 0.0,     360.0,    float
@@ -111,3 +112,5 @@ WSPD_AVG,            1, wind_speed,                                             
 WSPD_MIN,            1, wind_speed,                                                                     m s-1,                             M, 999999.0, ,        ,         float
 WSPD_MAX,            1, wind_speed,                                                                     m s-1,                             M, 999999.0, ,        ,         float
 WCUR,                1, upward_sea_water_velocity,                                                      m s-1,                             V, 999999.0, -5.0,    5.0,      float
+XCO2_AIR,            1, mole_fraction_of_carbon_dioxide_in_air,                                         ppm,                               K, 999999.0, ,        ,         float
+XCO2_WATER,          0, mole_fraction_of_carbon_dioxide_in_sea_water,                                   ppm,                               K, 999999.0, ,        ,         float
