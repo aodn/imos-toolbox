@@ -65,6 +65,7 @@ The fourth type of line is a name-value pair of a particular calibration coeffic
 
 For this instrument the following regular expressions (with single quotes) are performed to retrieve information from the instrument header section:
 
+{{{
 header 		: '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>'
 scan 		: 'number of scans to average = (\d+)';
 mem  		: 'samples = (\d+), free = (\d+), casts = (\d+)';
@@ -80,30 +81,37 @@ optode		: 'OPTODE = (yes|no)';
 voltCal		: 'volt (\d): offset = (\S+), slope = (\S+)';
 other		: '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
 firm		: '<FirmwareVersion>(\S+)</FirmwareVersion>';
+}}}
 
 And from the processed header section:
 
+{{{
 name		: 'name \d+ = (.+):';
 nval		: 'nvalues = (\d+)';
 bad			: 'bad_flag = (.*)$';
 interval	: 'interval = (.+): ([\d]+)$';
 start		: 'start_time = (.+)';
+}}}
 
 ==== SBE 56 Header ====
 
 For this instrument the following regular expressions (with single quotes) are performed to retrieve information from the instrument header section:
 
+{{{
 header 		: '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>'
 mem  		: '<MemorySummary>';
 sample		: 'samplePeriod=''(\d+)''';
 firm		: '<FirmwareVersion>(\S+)</FirmwareVersion>';
+}}}
 
 And from the processed header section:
 
+{{{
 name		: 'name \d+ = (.+):';
 nval		: 'nvalues = (\d+)';
 bad			: 'bad_flag = (.*)$';
 start		: 'start_time = (.+)';
+}}}
 
 ==== Data ====
 
