@@ -154,7 +154,7 @@ The samples that pass the test are the ones which TIME values are verifying `TIM
 imosGlobalRangeQC checks that the parameter's values are within a global valid range. The default list of parameters impacted by this test is found in imosGlobalRangeQC.txt.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
-||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2, UCUR, VCUR, WCUR, CDIR, CSPD||1-Good data||4-Bad data||
+||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOXY, DOX1, DOX2, UCUR, VCUR, WCUR, CDIR, CSPD||1-Good data||4-Bad data||
 
 The samples that pass the test are the ones which parameter's values are verifying `PARAMETER >= validMin` and `PARAMETER <= validMax`.
 
@@ -184,6 +184,7 @@ CHLF,                1, mass_concentration_of_chlorophyll_in_sea_water,         
 CHLU,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                            K, 999999.0, 0.0,     100.0,    float
 CSPD,                1, sea_water_speed,                                                                m s-1,                             V, 999999.0, 0.0,     10.0,     float
 DEPTH,               1, depth,                                                                          m,                                 Z, 999999.0, -5.0,    12000.0,  float
+DOXY,                1, mass_concentration_of_oxygen_in_sea_water,                                      kg m-3,                            O, 999999.0, 0.0,     29.0,     float
 DOX1,                1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,                  umol l-1,                          O, 999999.0, 0.0,     900000.0, float
 DOX2,                1, moles_of_oxygen_per_unit_mass_in_sea_water,                                     umol kg-1,                         O, 999999.0, 0.0,     880000.0, float
 PRES,                1, sea_water_pressure,                                                             dbar,                              Z, 999999.0, -5.0,    12000.0,  float
@@ -267,7 +268,7 @@ The test is not performed and a warning is diplayed if there is not enough nomin
 imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of samples. This test is mostly useful for CTD profile/cast data.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
-||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2||1-Good data||3-Bad data that are potentially correctable||
+||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOXY, DOX1, DOX2||1-Good data||3-Bad data that are potentially correctable||
 
 The algorithm used here is the same used by the Australian National Mooring Facility Ocean Gliders ([http://www2.sese.uwa.edu.au/~hollings/anfog/index.php ANFOG]) and ARGO's spike test.
 
@@ -288,6 +289,7 @@ DEPTH = 3
 CPHL = PABIM
 CHLU = PABIM
 CHLF = PABIM
+DOXY = PABIM
 DOX1 = PABIM
 DOX2 = PABIM
 }}}
@@ -305,7 +307,7 @@ Threshold values have been set based on suggested values from the following docu
 imosRateOfChangeQC is looking for important changes in values among temporally adjacent triplet (or pair) of samples. This test is mostly useful for time series data.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
-||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2, UCUR, VCUR, WCUR, CSPD||1-Good data||3-Bad data that are potentially correctable||
+||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOXY, DOX1, DOX2, UCUR, VCUR, WCUR, CSPD||1-Good data||3-Bad data that are potentially correctable||
 
 The samples that pass the test are the ones with parameter's value Vn verifying the test `|Vn - Vn-1| + |Vn - Vn+1| <= 2*(threshold)`.
 
@@ -326,6 +328,7 @@ DEPTH = 2*stdDev
 CPHL = 2*stdDev
 CHLU = 2*stdDev
 CHLF = 2*stdDev
+DOXY = 2*stdDev
 DOX1 = 2*stdDev
 DOX2 = 2*stdDev
 UCUR = 2*stdDev
@@ -358,7 +361,7 @@ imosSalinityFromPTQC checks that any salinity measurement has its flag equals or
 
 === Side lobe contamination test - imosSideLobeContSetQC ===
 
-imosSideLobeContSetQC finds for each timestamp what is the HEIGHT_ABOVE_SENSOR from which any data sample is contaminated by side lobes effect (close to the surface). Impacted data samples are then flagged accordingly. This test can be applied on any ADCP data providing we know the beam angle of the ADCP transducer. It is based on RDI's [http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes documentation].
+imosSideLobeContSetQC finds for each timestamp what is the HEIGHT_ABOVE_SENSOR from which any data sample is contaminated by side lobes effect (close to the surface). Impacted data samples are then flagged accordingly. This test can be applied on any ADCP data providing we know the beam angle of the ADCP transducer. It is based on Nortek's [http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes documentation].
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||

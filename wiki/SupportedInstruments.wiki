@@ -31,7 +31,83 @@ The SBE output format is configurable, and there are slight differences in outpu
 
 === ASCII file format ===
 
-The toolbox will parse sample data which is in the following ASCII format ('.asc' or '.cnv' files, order of fields doesn't matter):
+==== SBE 37 and 39 Header ====
+
+The input file must have a header section which contains sensor metadata and calibration information (as obtained via the 'DS' and 'DC' commands) - this is the output format provided by the Windows Seaterm program. It contains four different line formats that we want to capture. 
+
+The first format contains the sensor type, firmware version and serial number. It is of the format:
+
+{{{
+	SBE[variant] V [firmware_version] [serial_number]
+}}}
+
+The second type of line is a name-value pair of a particular sensor type. These lines have the format:
+
+{{{
+	sensor: info
+}}}
+
+The temperature (and optional conductivity) sensor (and rtc) information is just a calibration date. The (optional) pressure sensor also contains a serial number and pressure range.
+
+The third type of line is an indication of whether salinity is output in the data. It is literally:
+
+{{{
+	output salinity with each sample
+}}}
+
+The fourth type of line is a name-value pair of a particular calibration coefficient. These lines have the format:
+
+{{{
+	name = value
+}}}
+
+==== SBE 37SM Header ====
+
+For this instrument the following regular expressions (with single quotes) are performed to retrieve information from the instrument header section:
+
+header 		: '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>'
+scan 		: 'number of scans to average = (\d+)';
+mem  		: 'samples = (\d+), free = (\d+), casts = (\d+)';
+sample  	: 'sample interval = (\d+) (\w+), number of measurements per sample = (\d+)';
+mode    	: 'mode = (\w+)';
+pressure	: 'pressure sensor = (strain gauge|quartz)';
+volt		: 'Ext Volt ?(\d+) = (yes|no)';
+output		: 'output format = (.*)$';
+cast		: 'Cast Time = (\w+ \d+ \d+ \d+:\d+:\d+)';
+interval	: 'interval = (.*): ([\d\.\+)$';
+sbe38		: 'SBE 38 = (yes|no), Gas Tension Device = (yes|no)';
+optode		: 'OPTODE = (yes|no)';
+voltCal		: 'volt (\d): offset = (\S+), slope = (\S+)';
+other		: '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
+firm		: '<FirmwareVersion>(\S+)</FirmwareVersion>';
+
+And from the processed header section:
+
+name		: 'name \d+ = (.+):';
+nval		: 'nvalues = (\d+)';
+bad			: 'bad_flag = (.*)$';
+interval	: 'interval = (.+): ([\d]+)$';
+start		: 'start_time = (.+)';
+
+==== SBE 56 Header ====
+
+For this instrument the following regular expressions (with single quotes) are performed to retrieve information from the instrument header section:
+
+header 		: '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>'
+mem  		: '<MemorySummary>';
+sample		: 'samplePeriod=''(\d+)''';
+firm		: '<FirmwareVersion>(\S+)</FirmwareVersion>';
+
+And from the processed header section:
+
+name		: 'name \d+ = (.+):';
+nval		: 'nvalues = (\d+)';
+bad			: 'bad_flag = (.*)$';
+start		: 'start_time = (.+)';
+
+==== Data ====
+
+The toolbox will then parse sample data which is in the following ASCII format ('.asc' or '.cnv' files, order of fields doesn't matter):
 
 {{{
   temperature[, conductivity][, pressure][, salinity][, fluorescence][, chlorophyll][, oxygen][, turbidity][, depth][, date][, time]
@@ -66,8 +142,6 @@ OutputSV=N
 OutputDensity=N (if sensor supports this command)
 OutputTime=Y    (if sensor supports this command)
 }}}
-
-The input file must also contain a header section which contains sensor metadata and calibration information (as obtained via the 'DS' and 'DC' commands) - this is the output format provided by the Windows Seaterm program. 
 
 Output file formats from Seaterm v2 and firmware v1.4 are also supported for SBE37-SM.
 
