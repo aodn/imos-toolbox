@@ -172,17 +172,19 @@ if strcmpi(paramName, 'PRES') || ...
     end
     
     % read coefficients from imosImpossibleDepthQC properties file
-    coefUp      = readProperty('coefUp',    fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
-    coefDown    = readProperty('coefDown',  fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
+    fixedMargin = readProperty('fixedMargin',   fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
+    coefUp      = readProperty('coefUp',        fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
+    coefDown    = readProperty('coefDown',      fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
     
-    paramsLog = ['coefUp=' coefUp ', coefDown=' coefDown];
+    paramsLog = ['fixedMargin=' fixedMargin ', coefUp=' coefUp ', coefDown=' coefDown];
     
+    fixedMargin = str2double(fixedMargin);
     coefUp      = str2double(coefUp);
     coefDown    = str2double(coefDown);
     
     % get possible min/max values
-    possibleMax = nominalData + coefDown*nominalOffset;
-    possibleMin = nominalData - coefUp*nominalOffset;
+    possibleMax = nominalData + fixedMargin + coefDown*nominalOffset;
+    possibleMin = nominalData - fixedMargin - coefUp*nominalOffset;
     
     % possibleMin shouldn't be higher than the surface but this is handled by
     % the global range test anyway.
