@@ -183,13 +183,18 @@ if strcmpi(paramName, 'PRES') || ...
     coefDown    = str2double(coefDown);
     
     % get possible min/max values
-    possibleMax = nominalData + fixedMargin + coefDown*nominalOffset;
-    possibleMin = nominalData - fixedMargin - coefUp*nominalOffset;
+    possibleMin = nominalData - coefUp*nominalOffset;
+    possibleMax = nominalData + coefDown*nominalOffset;
     
-    % possibleMin shouldn't be higher than the surface but this is handled by
-    % the global range test anyway.
-    % possibleMax cannot be lower than the site depth
+    % possibleMin cannot be greater than the instrument nominal depth - fixed margin
+    % possibleMax cannot be lower than the instrument nominal depth + fixed margin
+    possibleMin = min(possibleMin, nominalData - fixedMargin);
+    possibleMax = max(possibleMax, nominalData + fixedMargin);
+    
+    % possibleMin shouldn't be above the surface (~global range value)
+    % possibleMax cannot be below the site depth
     siteDepth = nominalOffset*nominalData;
+    possibleMin = max(possibleMin, imosParameters('DEPTH', 'valid_min')); % value from global range
     possibleMax = min(possibleMax, siteDepth + 10*siteDepth/100); % we allow +10% to the site Depth
     
     if strcmpi(paramName, 'PRES')
