@@ -1,3 +1,3 @@
-fixedMargin = 5
+fixedMargin = 7
 coefUp = 3
 coefDown = 5
