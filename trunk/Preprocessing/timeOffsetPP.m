@@ -173,9 +173,17 @@ function sample_data = timeOffsetPP(sample_data, auto)
       % this set has been deselected
       if ~sets(k), continue; end
       
-      timeIdx = getVar(sample_data{k}.dimensions, 'TIME');
+      % look time through dimensions
+      type = 'dimensions';
+      timeIdx = getVar(sample_data{k}.(type), 'TIME');
       
-      % no time dimension in this dataset
+      if timeIdx == 0
+          % look time through variables
+          type = 'variables';
+          timeIdx = getVar(sample_data{k}.(type), 'TIME');
+      end
+      
+      % no time dimension nor variable in this dataset
       if timeIdx == 0, continue; end
       
       signOffset = sign(offsets(k));
@@ -189,13 +197,13 @@ function sample_data = timeOffsetPP(sample_data, auto)
           'applied the following offset : ' signOffset num2str(abs(offsets(k))) ' hours.'];
       
       % otherwise apply the offset
-      sample_data{k}.dimensions{timeIdx}.data = ...
-          sample_data{k}.dimensions{timeIdx}.data + (offsets(k) / 24);
-      comment = sample_data{k}.dimensions{timeIdx}.comment;
+      sample_data{k}.(type){timeIdx}.data = ...
+          sample_data{k}.(type){timeIdx}.data + (offsets(k) / 24);
+      comment = sample_data{k}.(type){timeIdx}.comment;
       if isempty(comment)
-          sample_data{k}.dimensions{timeIdx}.comment = timeOffsetComment;
+          sample_data{k}.(type){timeIdx}.comment = timeOffsetComment;
       else
-          sample_data{k}.dimensions{timeIdx}.comment = [comment ' ' timeOffsetComment];
+          sample_data{k}.(type){timeIdx}.comment = [comment ' ' timeOffsetComment];
       end
       sample_data{k}.time_coverage_start = ...
           sample_data{k}.time_coverage_start      + (offsets(k) / 24);
