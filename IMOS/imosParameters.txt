@@ -44,7 +44,7 @@ DYNHT,               0, dynamic_height,                                         
 ECUR,                0, error_sea_water_velocity,                                                       m s-1,                             V, 999999.0, -5.0,    5.0,      float
 FLU2,                0, fluorescence_in_sea_water,                                                      counts,                            B, 999999.0, ,        ,         float
 FREQUENCY,           0, frequency,                                                                      Hz,                                E, 999999.0, 0.0,     900000.0, float
-HEADING,             0, heading,                                                                        Degrees,                           E, 999999.0, 0.0,     360.0,    float
+HEADING,             1, platform_yaw_angle,                                                             Degrees,                           E, 999999.0, 0.0,     360.0,    float
 HEAT,                0, heat_content,                                                                   10^10 J m-2,                       E, 999999.0, ,        ,         float
 HEAT_NET,            1, upward_heat_flux_in_air,                                                        W m-2,                             F, 999999.0, ,        ,         float
 HEIGHT_ABOVE_SENSOR, 0, height_above_sensor,                                                            m,                                 Z, 999999.0, 0.0,     12000.0,  float
