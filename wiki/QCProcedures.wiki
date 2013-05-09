@@ -386,7 +386,7 @@ The samples that pass the test are the ones with parameter's value verifying at 
  # `|ADCP_CORR_n| 								>  cmag` (performed on the 4 beams, at least 2 must comply to the test)
  # `|UCUR + i*VCUR| 							<  hvel`
  # `|WCUR| 										<  vvel`
- # `|ABSI_n(current bin)-ABSI_n(previous bin)| 	<= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. This test is performed on the half of the water column in which belongs the surface).
+ # `|ABSI_n(current bin)-ABSI_n(previous bin)| 	<= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. When a bin is flagged bad, then all the bins above it are flagged bad as well. This test is performed on the half of the water column in which belongs the surface).
 
 It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)]. 
 
