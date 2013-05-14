@@ -381,8 +381,8 @@ imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertic
 
 The samples that pass the test are the ones with parameter's value verifying at least 4 of the 5 first following tests and the 6th test : 
 
- # `|ECUR| 										<  err_vel`
- # `|ADCP_GOOD_4| 								>= pgood` (performed on the 4th beam only)
+ # `|ECUR| 										<=  err_vel`
+ # `|ADCP_GOOD_4| 								> pgood` (performed on the 4th value only: represents the 4 beam solution in earth coordinates configuration)
  # `|ADCP_CORR_n| 								>  cmag` (performed on the 4 beams, at least 2 must comply to the test)
  # `|UCUR + i*VCUR| 							<  hvel`
  # `|WCUR| 										<  vvel`

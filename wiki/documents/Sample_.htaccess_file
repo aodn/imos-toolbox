@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr" id="developer-mozilla-org" xmlns:fb="http://www.facebook.com/2008/fbml" xmlns:og="http://ogp.me/ns#">
+<head>
+  <title>.htaccess | MDN</title>
+  
+  <meta charset="utf-8">
+  <meta name="robots" content="index, follow">
+  <link rel="home" href="/en-US/">
+  <link rel="copyright" href="#copyright">
+  <link rel="shortcut icon" href="https://developer.cdn.mozilla.net/media/img/favicon.ico">
+
+        <!--[if !IE 6]><!-->
+  <link rel="stylesheet" media="screen,projection,tv" href="https://developer.cdn.mozilla.net/media/css/mdn-min.css?build=ffdade9" />
+      <link rel="stylesheet" media="screen,projection,tv" href="https://developer.cdn.mozilla.net/media/css/wiki-min.css?build=ffdade9" />
+    <!--<![endif]-->
+  <!--[if IE]><link rel="stylesheet" type="text/css" media="all" href="https://developer.cdn.mozilla.net/media/css/mdn-ie.css"><![endif]-->
+  <!--[if lte IE 7]><link rel="stylesheet" type="text/css" media="all" href="https://developer.cdn.mozilla.net/media/css/mdn-ie7.css"><![endif]-->
+  <!--[if lte IE 6]><link rel="stylesheet" type="text/css" media="all" href="https://developer.cdn.mozilla.net/media/css/mdn-ie6.css"><![endif]-->
+  <link rel="stylesheet" type="text/css" media="print" href="https://developer.cdn.mozilla.net/media/css/mdn-print.css">
+  <link rel="stylesheet" href="//www.mozilla.org/tabzilla/media/css/tabzilla.css">
+
+  <link rel="search" type="application/opensearchdescription+xml" href="https://developer.mozilla.org/en-US/search/xml" title="Mozilla Developer Network" />
+
+  
+    <link rel="stylesheet" media="print" href="https://developer.cdn.mozilla.net/media/css/wiki-print-min.css?build=ffdade9" />
+          <link rel="stylesheet" type="text/css"
+            href="/en-US/docs/Template:CustomCSS?raw=1" />
+    
+  <!--[if IE]>
+  <meta http-equiv="imagetoolbar" content="no">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <script src="https://developer.cdn.mozilla.net/media/js/html5.js"></script>
+  <![endif]-->
+
+    <link rel="alternate" type="application/json" href="/en-US/docs/Sample_.htaccess_file$json" />
+  <link rel="canonical" href="https://developer.mozilla.org/en-US/docs/Sample_.htaccess_file" />
+
+  <meta property="og:title" content=".htaccess" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://developer.mozilla.org/media/img/mdn-logo-sm.png" />
+  <meta property="og:site_name" content="Mozilla Developer Network" />
+  <meta property="og:url" content="https://developer.mozilla.org/en-US/docs/Sample_.htaccess_file" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:url" content="https://developer.mozilla.org/en-US/docs/Sample_.htaccess_file" />
+  <meta name="twitter:title" content=".htaccess" />
+  <meta name="twitter:image" content="https://developer.cdn.mozilla.net/media/img/mdn-logo-sm.png" />
+  <meta name="twitter:site" content="@mozhacks" />
+  <meta name="twitter:creator" content="@mozhacks" />
+
+    <meta property="og:description" content="This is a sample.htaccess file for configuring the Apache web server to send many common file types with the correct MIME types :"/>
+  <meta name="description" content="This is a sample.htaccess file for configuring the Apache web server to send many common file types with the correct MIME types :" />
+  <meta name="twitter:description" content="This is a sample.htaccess file for configuring the Apache web server to send many common file types with the correct MIME types :" />
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-36116321-5']);
+  _gaq.push(['_trackPageview']);
+
+  (function(a, d) {
+    var ga = d.createElement(a); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == d.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = d.getElementsByTagName(a)[0]; s.parentNode.insertBefore(ga, s);
+  })('script', document);
+
+</script>
+</head>
+
+<body id="" class="html-ltr document" role="document">
+<!--[if lte IE 8]>
+<noscript><div class="global-notice">
+<p><strong>Warning:</strong> The Mozilla Developer Network website employs emerging web standards that may not be fully supported in some versions of Microsoft Internet Explorer. You can improve your experience of this website by enabling JavaScript.</p></div></noscript>
+<![endif]-->
+  <header id="masthead" class="minor ">
+    <div class="wrap">
+      <ul id="nav-access">
+        <li><a href="#language">Select language</a></li>
+        <li><a href="#q">Skip to search</a></li>
+        <li><a href="#content">Skip to main content</a></li>
+      </ul>
+    
+      <div id="branding">
+                <div id="logo"><a href="/en-US/"><img src="https://developer.cdn.mozilla.net/media/img/mdn-logo-sm.png" alt="Mozilla Developer Network" title="Mozilla Developer Network" width="62" height="71"> Mozilla Developer Network</a></div>
+              </div>
+      
+      
+              <nav id="nav">
+          <ul id="nav-main" role="menubar">
+            <li id="nav-main-topics" class="menu" role="menuitem"><a href="#nav-sub-topics" class="toggle" aria-haspopup="true" aria-labelledby="nav-main-topics" title="Explore other parts of MDN">Topics</a>
+              <ul id="nav-sub-topics" class="sub-menu" aria-hidden="true">
+                <li id="nav-sub-web"><a href="/en-US/web">Web</a></li>
+                <li id="nav-sub-apps"><a href="/en-US/docs/apps">Apps</a></li>
+                <li id="nav-sub-mobile"><a href="/en-US/mobile">Mobile</a></li>
+                <li id="nav-sub-addons"><a href="/en-US/addons">Add-ons</a></li>
+                <li id="nav-sub-mozilla"><a href="/en-US/mozilla">Mozilla</a></li>
+              </ul>
+            </li>
+            <li id="nav-main-docs" class="menu" role="menuitem">
+              <a href="/en-US/docs" class="docs toggle" aria-haspopup="true" aria-labelledby="nav-main-docs">Docs</a>
+              <div id="nav-sub-docs" class="sub-menu" aria-hidden="true">
+                <ul>
+                  <li>
+                    <ul>
+                      <li><a href="/en-US/docs/HTML">HTML</a></li>
+                      <li><a href="/en-US/docs/DOM">DOM</a></li>
+                      <li><a href="/en-US/docs/HTML/Using_HTML5_audio_and_video">Video</a></li>
+                      <li><a href="/en-US/docs/HTML/Using_HTML5_audio_and_video">Audio</a></li>
+                      <li><a href="/en-US/docs/SVG">SVG</a></li>
+                      <li><a href="/en-US/docs/WebGL">WebGL</a></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <ul>
+                      <li><a href="/en-US/docs/HTML/HTML5">HTML5</a></li>
+                      <li><a href="/en-US/docs/WebSockets">WebSockets</a></li>
+                      <li><a href="/en-US/docs/HTML/Using_the_application_cache">Offline Cache</a></li>
+                      <li><a href="/en-US/docs/DOM/Storage">Local Storage</a></li>
+                      <li><a href="/en-US/docs/IndexedDB">IndexedDB</a></li>
+                      <li><a href="/en-US/docs/Using_files_from_web_applications">File API</a></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <ul>
+                      <li><a href="/en-US/docs/CSS">CSS</a></li>
+                      <li><a href="/en-US/docs/CSS/Using_CSS_gradients">Gradients</a></li>
+                      <li><a href="/en-US/docs/CSS/Tutorials/Using_CSS_transforms">Transforms</a></li>
+                      <li><a href="/en-US/docs/CSS/Tutorials/Using_CSS_transitions">Transitions</a></li>
+                      <li><a href="/en-US/docs/CSS/Tutorials/Using_CSS_animations">Animations</a></li>
+                      <li><a href="/en-US/docs/CSS/Media_queries">Media Queries</a></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <ul>
+                      <li><a href="/en-US/docs/JavaScript">JavaScript</a></li>
+                      <li><a href="/en-US/docs/AJAX">AJAX</a></li>
+                      <li><a href="/en-US/docs/HTML/Canvas">Canvas</a></li>
+                      <li><a href="/en-US/docs/Using_geolocation">Geolocation</a></li>
+                      <li><a href="/en-US/docs/DragDrop/Drag_and_Drop">Drag &amp; Drop</a></li>
+                      <li><a href="/en-US/docs/DOM/Using_web_workers">Web Workers</a></li>
+                    </ul>
+                  </li>
+                </ul>
+                <p><a href="/en-US/docs">More docs&hellip;</a></p>
+              </div>
+            </li>
+            <li id="nav-main-demos" role="menuitem"><a href="/en-US/demos/" class="demos">Demos</a></li>
+            <li id="nav-main-learning" role="menuitem"><a href="/en-US/learn" class="learning">Learning</a></li>
+            <li id="nav-main-community" class="menu" role="menuitem"><a href="#nav-sub-community" class="community toggle" aria-haspopup="true" aria-labelledby="nav-main-community">Community</a>
+              <ul id="nav-sub-community" class="sub-menu">
+                <li><a href="/en-US/events">Events</a></li>
+                <li><a href="/en-US/promote">Promote</a></li>
+                <li><a href="/en-US/docs/Project:How_to_Help">Contribute</a></li>
+                <li><a href="/en-US/newsletter">Newsletter</a></li>
+              </ul>
+            </li>
+          </ul>
+        </nav>
+      
+          
+      <ul class="user-state signed-out">
+    <li class="user-signin menu">
+    <form class="browserid" action="/en-US/users/browserid_verify" method="POST">
+        <input id="next" name="next" type="hidden" value="/en-US/docs/Sample_.htaccess_file"/>
+        <input required="required" type="hidden" name="assertion" id="id_assertion" />
+                        <a href="#" target="_blank" class="browserid-signin toggle" aria-haspopup="true" title="Sign in with Persona">Sign in</a>
+                <div class="browserid-info sub-menu" aria-hidden="true">
+                <h3>What's this?</h3> <p>MDN has switched to <a href="https://persona.org/" target="_blank" rel="external">Persona</a>, a safe and simple way to sign in with just your e-mail address. <a href="http://identity.mozilla.com/post/12950196039/deploying-browserid-at-mozilla" rel="external">Learn more about why Mozilla is using Persona</a>.</p> <p><strong>Returning members:</strong> sign in with Persona and you'll be connected to your MDN profile (all your information is still here).</p> <p><strong>New members:</strong> sign in with Persona first, then you'll be able to set up your new MDN profile.</p>          <p><a href="#" target="_blank" class="browserid-signin" title="Sign in with Persona">Sign in</a></p>
+        </div>
+              </form>
+    </li>
+  </ul>
+      
+      <form id="site-search" method="get" action="http://www.google.com/search"
+              data-url="/en-US/search">
+        <p>
+          <input type="search" role="search" placeholder="Search MDN" id="q" name="q" value="">
+          <noscript><button type="submit">Search</button></noscript>
+        </p>
+        <input type="hidden" name="sitesearch" value="developer.mozilla.org">
+                <div id="site-search-gg"></div>
+              </form>
+
+      <a href="http://www.mozilla.org/" id="tabzilla">mozilla</a>
+    </div>
+  </header>
+
+    
+
+<!-- top toolbar -->
+<section id="nav-toolbar"><div><div class="wrap">
+  <!-- right floated navigation -->
+  <nav id="tool-menus" role="navigation">
+    <ul id="tools">
+      <li class="menu">
+        <a href="#page-tools" class="toggle">This page</a>
+        <ul id="page-tools" class="sub-menu">
+          <li class="page-print"> <a href="#" onclick="return window.print();"  title="Print page">Print this page</a></li>
+                      <li><a href="/en-US/docs/new?parent=14917">New sub-page</a></li>
+            <li><a href="/en-US/docs/new?clone=14917">Clone this page</a></li>
+                                      </ul>
+      </li>
+            <li class="menu">
+        <a href="#" class="toggle">Languages</a>
+        <ul id="translations">
+                    
+                      <li><a href="/en-US/docs/Sample_.htaccess_file$locales">Add translation</a></li>
+                  </ul>
+      </li>
+          </ul>
+  </nav>
+  
+  <!-- left crumb navigation -->
+  <nav class="crumbs" role="navigation">
+    <ol>
+            <li class="crumb">.htaccess</li>
+    </ol>
+  </nav>
+  
+</div></div></section>
+
+
+
+<section id="content">
+  <div class="wrap">
+    <div id="content-main" class="full">
+      <article class="article" role="main" 
+          data-current-revision="388291"
+          data-refresh-message="Your changes were merged. However, something else has been edited, so this page will be refreshed to reflect the changes."
+          data-cancel-edit-message="Abort editing in progress? Your unsaved changes will be discarded.">
+      <header id="article-head">
+        <div class="title">
+            <h1 class="page-title">.htaccess</h1>
+                    </div>
+        <ul id="page-buttons">
+            <li class="page-history"><a href="/en-US/docs/Sample_.htaccess_file$history">History</a></li>
+                                                                                  <li class="page-edit"><a href="/en-US/docs/Sample_.htaccess_file$edit">Edit</a></li>
+                    </ul>
+
+        
+               </header>
+
+           
+                                  
+            
+      <div id="wikiArticle" class="page-content boxed">
+                <div id="article-nav">
+          <div class="page-toc">
+            <h2>Table of Contents</h2>
+            <ol>
+              <code></code>
+            </ol>
+          </div>
+          <ul class="page-anchors">
+            <li class="anchor-tags">
+                              <span title="This document has no tags">Tags</span>
+                          </li>
+            <li class="anchor-files">
+                              <span title="This document has no attachments">Files</span>
+                          </li>
+          </ul>
+        </div>
+                                <p>This is a sample <code>.htaccess</code> file for configuring the Apache web server to send many common file types with the <a href="/en-US/docs/Properly_Configuring_Server_MIME_Types" title="Properly_Configuring_Server_MIME_Types">correct MIME types</a>:</p>
+                  </div>
+    <section class="page-meta">
+      
+      
+      
+                    
+      <section id="doc-contributors" role="contentinfo">
+        Contributors to this page: <a href="/en-US/profiles/tito">tito</a>, <a href="/en-US/profiles/Nickolay">Nickolay</a>, <a href="/en-US/profiles/ethertank">ethertank</a>, <a href="/en-US/profiles/Schapel">Schapel</a>, <a href="/en-US/profiles/amberphotobug">amberphotobug</a>
+                          <br />
+          Last updated by:  
+          <a href="/en-US/profiles/ethertank">ethertank</a>, 
+          <time datetime="2013-05-03T18:58:42-07:00">May 3, 2013 6:58:42 PM</time>
+                      <br />
+            Last reviewed by:  
+            <a href="/en-US/profiles/ethertank">ethertank</a>, 
+            <time datetime="2013-05-03T18:58:42-07:00">May 3, 2013 6:58:42 PM</time>
+                        </section>
+    </section>
+  </article>
+  <form id="wiki-page-edit" class="editing" method="post" action="/en-US/docs/Sample_.htaccess_file$edit">
+      <input type="hidden" name="form" id="form" value="rev" />
+      <input type="hidden" name="content" id="content" value="" />
+  </form>
+      </div>
+   </div>
+    </section>
+
+<section id="footbar">
+<div class="wrap">
+  <p>
+  Is MDN helpful to you? Please <a href="/en-US/docs/Project:Feedback">share your feedback</a> with us. Or join our <a id="dev-mdc-link" href="https://lists.mozilla.org/listinfo/dev-mdc">mailing list about improving MDN content</a>.  </p>
+</div>
+</section>
+<footer id="site-info" class="footer" role="contentinfo">
+<div class="wrap">
+    <div id="legal">
+      <img src="https://developer.cdn.mozilla.net/media/img/mdn-logo-tiny.png" alt="" width="42" height="48">
+      <p id="copyright">&copy; 2005 - 2013 Mozilla Developer Network and individual contributors</p>
+      <p>
+      Content is available under <a href="/en-US/docs/Project:Copyrights">these licenses</a>      &bull; <a href="/en-US/docs/Project:About">About MDN</a>
+      &bull; <a href="https://github.com/mozilla/kuma/">Contribute to the code</a>
+      &bull; <a href="http://www.mozilla.org/en-US/privacy">Privacy Policy</a>
+    </div>
+          <form class="languages go" method="get" action="/en-US/docs">
+      <label for="language">Other languages:</label>
+      <select id="language" class="wiki-l10n" name="next" dir="ltr">
+        <option value="/en-US/docs/Sample_.htaccess_file" selected>
+          English (US)
+        </option>
+              </select>
+      <noscript><button type="submit">Go</button></noscript>
+    </form>
+  </div>
+</footer>
+
+<script src="/en-US/jsi18n/build:ffdade9"></script>
+  <script src="//www.mozilla.org/tabzilla/media/js/tabzilla.js" async></script>
+  <script src="//www.google.com/jsapi" type="text/javascript"></script>
+  <script src="https://login.persona.org/include.js" type="text/javascript"></script>
+  <script src="https://developer.cdn.mozilla.net/media/js/mdn-min.js?build=ffdade9"></script>
+      <script src="https://developer.cdn.mozilla.net/media/js/wiki-min.js?build=ffdade9"></script>
+  
+
+          <!-- include syntax highlighting scripts -->
+  
+  <link rel="stylesheet" href="https://developer.cdn.mozilla.net/media/syntaxhighlighter/styles/shCore.css" type="text/css" />
+  <link rel="stylesheet" href="https://developer.cdn.mozilla.net/media/syntaxhighlighter/styles/shThemeDefault.css" type="text/css" />
+
+  <script type="text/javascript" src="https://developer.cdn.mozilla.net/media/syntaxhighlighter/scripts/shCore.js"></script>
+  <script type="text/javascript" src="https://developer.cdn.mozilla.net/media/syntaxhighlighter/scripts/shBrushBash.js"></script>
+  <script type="text/javascript" src="https://developer.cdn.mozilla.net/media/syntaxhighlighter/scripts/shBrushCpp.js"></script>
+  <script type="text/javascript" src="https://developer.cdn.mozilla.net/media/syntaxhighlighter/scripts/shBrushCss.js"></script>
+  <script type="text/javascript" src="https://developer.cdn.mozilla.net/media/syntaxhighlighter/scripts/shBrushJava.js"></script>
+  <script type="text/javascript" src="https://developer.cdn.mozilla.net/media/syntaxhighlighter/scripts/shBrushJScript.js"></script>
+  <script type="text/javascript" src="https://developer.cdn.mozilla.net/media/syntaxhighlighter/scripts/shBrushPhp.js"></script>
+  <script type="text/javascript" src="https://developer.cdn.mozilla.net/media/syntaxhighlighter/scripts/shBrushXml.js"></script>
+  <script type="text/javascript" src="https://developer.cdn.mozilla.net/media/syntaxhighlighter/scripts/shBrushPlain.js"></script>
+  <script type="text/javascript" src="https://developer.cdn.mozilla.net/media/syntaxhighlighter/scripts/shBrushPython.js"></script>
+  <script type="text/javascript">
+    (function($) {
+      $(document).ready(function() {
+        $('pre').each(function() {
+            var $this = $(this),
+                newText = $this.text().replace(/<span class="nowiki">(.*)<\/span>/g, '$1');
+            $this.text(newText);
+        });
+        SyntaxHighlighter.defaults.toolbar = false;
+        SyntaxHighlighter.defaults['auto-links'] = false;
+        SyntaxHighlighter.all();
+      });
+    })(jQuery);
+  </script>
+</body>
+</html>
