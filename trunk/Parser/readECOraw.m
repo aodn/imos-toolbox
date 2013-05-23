@@ -274,7 +274,6 @@ switch upper(columnsInfo.type)
             'ug/l, 1l = 0.001m3 was assumed.'];
         data = sample;
         data = (data - columnsInfo.offset)*columnsInfo.scale;
-        data = data * 1000;
         
     case 'PHYCOERYTHRIN' %ug/l (540/570nm)
         % not identified by IMOS, won't be output in NetCDF

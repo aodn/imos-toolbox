@@ -13,9 +13,18 @@
 % of a comment.
 %
 
-ABSI,                0, acoustic_backscatter_intensity,                                                 Decibels,                          A, 999999.0, 0.0,     150.0,    float
-ADCP_CORR,           0, adcp_correlation_magnitude,                                                     ,                                  E, 999999.0, 0.0,     250.0,    float
-ADCP_GOOD,           0, adcp_percentage_good,                                                           percent,                           E, 999999.0, 0.0,     100.0,    float
+ABSI1,               0, backscatter_intensity_from_acoustic_beam_1,                                     Decibels,                          A, 999999.0, 0.0,     150.0,    float
+ABSI2,               0, backscatter_intensity_from_acoustic_beam_2,                                     Decibels,                          A, 999999.0, 0.0,     150.0,    float
+ABSI3,               0, backscatter_intensity_from_acoustic_beam_3,                                     Decibels,                          A, 999999.0, 0.0,     150.0,    float
+ABSI4,               0, backscatter_intensity_from_acoustic_beam_4,                                     Decibels,                          A, 999999.0, 0.0,     150.0,    float
+CMAG1,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_1,               ,                                  E, 999999.0, 0.0,     250.0,    float
+CMAG2,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_2,               ,                                  E, 999999.0, 0.0,     250.0,    float
+CMAG3,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_3,               ,                                  E, 999999.0, 0.0,     250.0,    float
+CMAG4,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_4,               ,                                  E, 999999.0, 0.0,     250.0,    float
+PERG1,               0, percentage_of_good_three_beam_solutions,                                        percent,                           E, 999999.0, 0.0,     100.0,    float
+PERG2,               0, percentage_of_good_transformations,                                             percent,                           E, 999999.0, 0.0,     100.0,    float
+PERG3,               0, percentage_of_measurements_with_more_than_one_beam_bad,                         percent,                           E, 999999.0, 0.0,     100.0,    float
+PERG4,               0, percentage_of_measurements_with_four_beam_solutions,                            percent,                           E, 999999.0, 0.0,     100.0,    float
 AIRT,                1, air_temperature,                                                                Celsius,                           M, 999999.0, -50.0,   50.0,     float
 ATMP,                1, air_pressure,                                                                   Pascal,                            M, 999999.0, 90000.0, 110000.0, float
 ATMS,                1, air_pressure_at_sea_level,                                                      Pascal,                            M, 999999.0, 90000.0, 110000.0, float
@@ -67,7 +76,7 @@ PHOS,                1, moles_of_phosphate_per_unit_mass_in_sea_water,          
 PHO2,                1, mole_concentration_of_phosphate_in_sea_water,                                   umole l-1,                         K, 999999.0, ,        ,         float
 PITCH,               1, platform_pitch_angle,                                                           Degrees,                           E, 999999.0, -180.0,  180.0,    float
 PRES,                1, sea_water_pressure,                                                             dbar,                              Z, 999999.0, -5.0,    12000.0,  float
-PRES_REL,            0, sea_water_relative_pressure,                                                    dbar,                              Z, 999999.0, -15.0,   12000.0,  float
+PRES_REL,            1, sea_water_pressure_due_to_sea_water,                                            dbar,                              Z, 999999.0, -15.0,   12000.0,  float
 PSAL,                1, sea_water_salinity,                                                             psu,                               S, 999999.0, 2.0,     41.0,     float
 Q,                   1, specific_humidity,                                                              ,                                  M, 999999.0, 0.0,     150.0,    float
 RRATE,               1, rainfall_rate,                                                                  mm s-1,                            M, 999999.0, ,        ,         float

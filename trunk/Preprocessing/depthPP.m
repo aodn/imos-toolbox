@@ -455,9 +455,11 @@ for k = 1:length(sample_data)
             continue;
         end
         
-        % looking for dimensions to give to variable Depth
-        idx = getVar(curSam.variables, 'TEMP');
-        dimensions = curSam.variables{idx}.dimensions;
+        % variable Depth will be a function of T, Y, and X
+        timeIdx = getVar(curSam.dimensions, 'TIME');
+        latitudeIdx = getVar(curSam.dimensions, 'LATITUDE');
+        longitudeIdx = getVar(curSam.dimensions, 'LONGITUDE');
+        dimensions = [timex latitudeIdx longitudeIdx];
     else
         if presRelIdx == 0
             % update from a relative pressure like SeaBird computes

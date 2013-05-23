@@ -66,13 +66,13 @@ idWcur = 0;
 idEcur = 0;
 idCspd = 0;
 idCdir = 0;
-idADCP_GOOD = cell(4, 1);
-idABSI      = cell(4, 1);
-idADCP_CORR = cell(4, 1);
+idPERG = cell(4, 1);
+idABSI = cell(4, 1);
+idCMAG = cell(4, 1);
 for j=1:4
-    idADCP_GOOD{j}  = 0;
-    idABSI{j}       = 0;
-    idADCP_CORR{j}  = 0;
+    idPERG{j}  = 0;
+    idABSI{j}  = 0;
+    idCMAG{j}  = 0;
 end
 lenVar = size(sample_data.variables,2);
 for i=1:lenVar
@@ -84,16 +84,16 @@ for i=1:lenVar
     if strcmpi(sample_data.variables{i}.name, 'CDIR'), idCdir = i; end
     for j=1:4
         cc = int2str(j);
-        if strcmpi(sample_data.variables{i}.name, ['ADCP_GOOD_' cc]),   idADCP_GOOD{j}  = i; end
-        if strcmpi(sample_data.variables{i}.name, ['ABSI_' cc]),        idABSI{j}       = i; end
-        if strcmpi(sample_data.variables{i}.name, ['ADCP_CORR_' cc]),   idADCP_CORR{j}  = i; end
+        if strcmpi(sample_data.variables{i}.name, ['PERG' cc]), idPERG{j} = i; end
+        if strcmpi(sample_data.variables{i}.name, ['ABSI' cc]), idABSI{j} = i; end
+        if strcmpi(sample_data.variables{i}.name, ['CMAG' cc]), idCMAG{j} = i; end
     end
 end
 
 % check if the data is compatible with the QC algorithm
 idMandatory = idHeight & idUcur & idVcur & idWcur & idEcur;
 for j=1:4
-    idMandatory = idMandatory & idADCP_GOOD{j} & idABSI{j} & idADCP_CORR{j};
+    idMandatory = idMandatory & idPERG{j} & idABSI{j} & idCMAG{j};
 end
 if ~idMandatory, return; end
 
@@ -118,11 +118,11 @@ erv = sample_data.variables{idEcur}.data;
 %Pull out percent good/echo amplitude/correlation magnitude
 qc = struct;
 for j=1:4;
-    pg = sample_data.variables{idADCP_GOOD{j}}.data;
+    pg = sample_data.variables{idPERG{j}}.data;
     qc(j).pg = pg;
     ea = sample_data.variables{idABSI{j}}.data;
     qc(j).ea = ea;
-    cr = sample_data.variables{idADCP_CORR{j}}.data;
+    cr = sample_data.variables{idCMAG{j}}.data;
     qc(j).cr = cr;
 end
 
@@ -192,12 +192,13 @@ clear ib* isub* ifb iFail*
 % measurement of disagreement of measurement estimates of opposite beams.
 % Derived from 2 idpt beams and therefore is 2 indp measures of vertical
 % velocity
-ib1 = abs(erv) < err_vel;
+ib1 = abs(erv) <= err_vel;
 
-%test 2, Percent Good test for Long ranger, use only
-%good for 4 beam solutions (ie pg(4))
-%use 4 as it is the percentage of measurements that have 4 beam solutions
-ib2 = qc(4).pg >= pgood;
+%test 2, Percent Good test on 4 beam solution only
+% in earth coordinate (!=beam coordinate) configuration, pg(1) is
+% percent good of measurements with 3 beam solution and pg(4) is
+% percent good of measurements with 4 beam solution.
+ib2 = qc(4).pg > pgood;
 
 % Test 3, correlation magnitude test
 isub1 = (qc(1).cr > cmag);
@@ -213,10 +214,10 @@ ib3 = isub_all >= 2;
 clear isub1 isub2 isub3 isub4 isub_all;
 
 % Test 4, Vertical velocity test
-ib4 = abs(w) < vvel;
+ib4 = abs(w) <= vvel;
 
 % Test 5, Horizontal velocity test
-ib5 = abs(u) < hvel;
+ib5 = abs(u) <= hvel;
 
 %Test 6, Echo Amplitude test
 % this test looks at the difference between consecutive vertical bin values of ea and
