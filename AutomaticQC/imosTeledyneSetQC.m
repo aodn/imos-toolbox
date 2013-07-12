@@ -246,8 +246,8 @@ iif = min(iii, [], 2);
 clear iii;
 iifNotNan = ~isnan(iif);
 
+ib6 = true(lenTime, lenBin);
 if any(iifNotNan)
-    ib6 = true(lenTime, lenBin);
     % all bins above the first bad one is reset to bad
     ib6(jkf >= repmat(iif, 1, lenBin)) = false;
 end
