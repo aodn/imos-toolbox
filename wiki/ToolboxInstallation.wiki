@@ -92,6 +92,7 @@ Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the fo
     * `C:\imos-toolbox\NetCDF`
     * `C:\imos-toolbox\Parser`
     * `C:\imos-toolbox\Preprocessing`
+    	* `C:\imos-toolbox\Preprocessing\Transform`
     * `C:\imos-toolbox\Seawater`
     * `C:\imos-toolbox\Util`
 
