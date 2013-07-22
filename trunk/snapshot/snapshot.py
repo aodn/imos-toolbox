@@ -15,7 +15,7 @@ import gmail
 # 
 # Both of these files are submitted back to the project as file downloads.
 #
-# svn (SlikSvn), javac, ant and matlab must be on PATH
+# python, svn (SlikSvn), javac, ant and matlab must be on PATH
 # JAVA_HOME must be set
 #
 
