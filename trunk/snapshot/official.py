@@ -27,7 +27,7 @@ project = 'imos-toolbox'
 def googleSubmit(archive, summary):
 
   username = 'guillaume.galibert@gmail.com'
-  password = 'monPasswordSVN' # SVN password!!!
+  password = 'myPasswordSVN' # SVN password!!!
   labels   = 'Featured'
 
   print('\n--submitting %s to google' % archive)
@@ -78,7 +78,7 @@ if compiled is not 0:
     "Check the Java DDB interface code",
     None,
     "guillaume.galibert",
-    "monPasswordGMAIL")
+    "myPasswordGMAIL")
 
 #
 # create snapshot
@@ -104,7 +104,7 @@ except:
     "Check the snapshot script. Fix, then delete previous files before runnning new snapshot.",
     attachment,
     "guillaume.galibert",
-    "monPasswordGmail")
+    "myPasswordGmail")
 
 print('\n--removing local SVN tree and archives')
 shutil.rmtree('%s' % exportDir)
