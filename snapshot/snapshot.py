@@ -15,7 +15,7 @@ import gmail
 # 
 # Both of these files are submitted back to the project as file downloads.
 #
-# svn, javac, ant and matlab must be on PATH
+# svn (SlikSvn), javac, ant and matlab must be on PATH
 # JAVA_HOME must be set
 #
 
@@ -55,10 +55,11 @@ print('\n--exporting tree from %s to %s' % (url, exportDir))
 os.system('svn export %s %s' % (url, exportDir))
 
 #
-# remove Tests directory
+# remove Tests and snapshot directories
 #
-print('\n--removing tests')
+print('\n--removing Tests and snapshot')
 shutil.rmtree('%s/Tests' % exportDir)
+shutil.rmtree('%s/snapshot' % exportDir)
 
 #
 # build DDB interface
