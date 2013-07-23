@@ -459,7 +459,7 @@ for k = 1:length(sample_data)
         timeIdx = getVar(curSam.dimensions, 'TIME');
         latitudeIdx = getVar(curSam.dimensions, 'LATITUDE');
         longitudeIdx = getVar(curSam.dimensions, 'LONGITUDE');
-        dimensions = [timex latitudeIdx longitudeIdx];
+        dimensions = [timeIdx latitudeIdx longitudeIdx];
     else
         if presRelIdx == 0
             % update from a relative pressure like SeaBird computes
