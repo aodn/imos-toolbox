@@ -69,7 +69,7 @@ public abstract class DDB {
     String os = System.getProperty("os.name");
     
     if      (os.startsWith("Windows")) return new ODBCDDB(  name);
-    else if (os.startsWith("Linux"))   return new MDBSQLDDB(name);
+    else if (os.startsWith("Linux"))   return new JDBCDDB(name);
     
     return ddb;
   }
