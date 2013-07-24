@@ -83,6 +83,8 @@ public class JDBCDDB extends DDB {
   /**
    * Create a JDBC DDB object using the specified UCanAccess driver and mdb file name as connection. 
    * 
+   * ucanaccess-1.0.2.jar and its .jar dependencies must be added to Java Build Path libraries of the project. 
+   * 
    * @param driver Class name of UCanAccess JDBC database driver
    * @param connection Access .mdb filename (including full path), it is supposed that user and password is not required by the database.
    * @throws ClassNotFoundException If the specified Database driver can't be found
