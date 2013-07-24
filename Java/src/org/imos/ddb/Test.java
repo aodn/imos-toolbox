@@ -34,7 +34,6 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import org.imos.ddb.schema.DeploymentData;
-import org.imos.ddb.schema.CTDData;
 import org.imos.ddb.schema.Personnel;
 import org.imos.ddb.schema.Sites;
 
@@ -66,7 +65,22 @@ public class Test {
     long startFreeMem, endFreeMem;
     DDB mdb = null;
     
-    try {mdb = DDB.getDDB(args[0]);}
+    //String odbcArgs = "imos-ddb_bmorris";
+    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/NSW-IMOS_DeploymentDatabase2.0.mdb";
+//    String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
+//    String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/NSW-IMOS_DeploymentDatabase2.0.mdb";
+//    String connection = "jdbc:ucanaccess://" + mdbFile;
+//    String user = "";
+//    String password = "";
+//    String[] jdbcArgs = new String[4];
+//    jdbcArgs[0] = driver;
+//    jdbcArgs[1] = connection;
+//    jdbcArgs[2] = user;
+//    jdbcArgs[3] = password;
+    
+    try {
+    	mdb = DDB.getDDB(odbcArgs);}
+    	//mdb = DDB.getDDB(jdbcArgs[0], jdbcArgs[1], jdbcArgs[2], jdbcArgs[3]);}
     catch (Exception e) {
       e.printStackTrace();
       System.exit(1);
@@ -76,14 +90,8 @@ public class Test {
     
     try {
 
-//    	List<CTDData> ctds = mdb.executeQuery("CTDData", null, null);
-//    	for (CTDData d : ctds) printObj(d);
-
     	List<DeploymentData> deps = mdb.executeQuery("DeploymentData", null, null);
     	for (DeploymentData d : deps) printObj(d);
-//
-//    	List<Personnel> people = mdb.executeQuery("Personnel", null, null);
-//    	for (Personnel p : people) printObj(p);
 //
 //
 //    	List<Sites> capeSites = mdb.executeQuery("Sites", "ResearchActivity", "NW Cape 2002");
