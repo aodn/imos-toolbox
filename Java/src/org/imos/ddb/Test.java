@@ -34,6 +34,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import org.imos.ddb.schema.DeploymentData;
+import org.imos.ddb.schema.CTDData;
 import org.imos.ddb.schema.Personnel;
 import org.imos.ddb.schema.Sites;
 
@@ -75,15 +76,18 @@ public class Test {
     
     try {
 
-      List<DeploymentData> deps = mdb.executeQuery("DeploymentData", null, null);
-      for (DeploymentData d : deps) printObj(d);
-      
-      List<Personnel> people = mdb.executeQuery("Personnel", null, null);
-      for (Personnel p : people) printObj(p);
-      
-      
-      List<Sites> capeSites = mdb.executeQuery("Sites", "ResearchActivity", "NW Cape 2002");
-      for (Sites s : capeSites) printObj(s);
+//    	List<CTDData> ctds = mdb.executeQuery("CTDData", null, null);
+//    	for (CTDData d : ctds) printObj(d);
+
+    	List<DeploymentData> deps = mdb.executeQuery("DeploymentData", null, null);
+    	for (DeploymentData d : deps) printObj(d);
+//
+//    	List<Personnel> people = mdb.executeQuery("Personnel", null, null);
+//    	for (Personnel p : people) printObj(p);
+//
+//
+//    	List<Sites> capeSites = mdb.executeQuery("Sites", "ResearchActivity", "NW Cape 2002");
+//    	for (Sites s : capeSites) printObj(s);
     }
     catch (Exception e) {e.printStackTrace();}
     
