@@ -68,8 +68,14 @@ public abstract class DDB {
     
     String os = System.getProperty("os.name");
     
-    if      (os.startsWith("Windows")) return new ODBCDDB(  name);
-    else if (os.startsWith("Linux"))   return new JDBCDDB(name);
+    if (os.startsWith("Windows"))
+    	return new ODBCDDB(name);
+    else if (os.startsWith("Linux"))
+    	//By default, uses the UCanAccess driver and mdb file name as connection, 
+    	//assuming username and password are not necessary (see http://ucanaccess.sourceforge.net/site.html).
+    	//ucanaccess-1.0.2.jar and its .jar dependencies must be added to the 
+    	//Java Build Path libraries of the project (and at least in Matlab classpath.txt).
+    	return new JDBCDDB("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + name, "", "");
     
     return ddb;
   }
