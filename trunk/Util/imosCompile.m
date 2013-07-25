@@ -167,7 +167,7 @@ end
 % create a zip file containing the standalone 
 % application and all required resources
 disp(['creating toolbox archive: ' packagingRoot filesep 'imos-toolbox.zip']);
-%zip('imos-toolbox.zip', packagingRoot);
+zip('imos-toolbox.zip', packagingRoot);
 
 % clean up
 rmdir(stagingRoot,   's');
