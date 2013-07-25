@@ -148,14 +148,26 @@ cflags = [cflags{:}];
 eval(['mcc ' cflags]);
 
 % copy the compiled application over to the packaging area
-if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], packagingRoot)
-  error('could not copy imosToolbox to packaging area');
+if strcmpi(computer, 'PCWIN')
+    if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], packagingRoot)
+        error('could not copy imosToolbox.exe to packaging area');
+    end
+else
+    if ~copyfile([stagingRoot filesep 'imosToolbox'], packagingRoot)
+        error('could not copy imosToolbox to packaging area');
+    end
+    if ~copyfile([stagingRoot filesep 'run_imosToolbox.sh'], [packagingRoot filesep 'imosToolbox.sh'])
+        error('could not copy imosToolbox.sh to packaging area');
+    end
+    if ~copyfile([stagingRoot filesep 'readme.txt'], [packagingRoot filesep 'linuxreadme.txt'])
+        error('could not copy linuxreadme.txt to packaging area');
+    end
 end
 
 % create a zip file containing the standalone 
 % application and all required resources
 disp(['creating toolbox archive: ' packagingRoot filesep 'imos-toolbox.zip']);
-zip('imos-toolbox.zip', packagingRoot);
+%zip('imos-toolbox.zip', packagingRoot);
 
 % clean up
 rmdir(stagingRoot,   's');
