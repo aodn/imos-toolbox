@@ -56,9 +56,9 @@ toolboxVersion = '2.3 unstable';
 % manually add the ddb.jar java library to the classpath
 if isdeployed
     % Add any *.jar java library and jdbc drivers to the classpath
-    jars = dir(['Java' filesep '*.jar']);
+    jars = fsearch('.jar', 'Java', 'files');
     for j = 1 : length(jars)
-        javaaddpath(['Java' filesep jars(j).name]);
+        javaaddpath(jars{j});
     end
 end
 
