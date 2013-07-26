@@ -84,7 +84,7 @@ if ~mkdir(stagingRoot), error('could not create staging area'); end
 % find all .m, .mat, .txt, .jar and .bat files - these are to be 
 % included as resources in the standalone application 
 matlabFiles     = fsearchRegexp('.m$',   toolboxRoot, 'files');
-matlabDataFiles = fsearchRegexp('.mat$', toolboxRoot, 'files');
+matlabDataFiles = fsearch('.mat', toolboxRoot, 'files');
 resourceFiles   = [matlabFiles   matlabDataFiles];
 resourceFiles   = [resourceFiles fsearchRegexp('.txt$', toolboxRoot, 'files')];
 resourceFiles   = [resourceFiles fsearchRegexp('.jar$', toolboxRoot, 'files')];
@@ -149,17 +149,21 @@ eval(['mcc ' cflags]);
 
 % copy the compiled application over to the packaging area
 if strcmpi(computer, 'PCWIN')
-    if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], packagingRoot)
+    if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], [packagingRoot filesep 'imosToolbox-Win32.exe'])
         error('could not copy imosToolbox.exe to packaging area');
     end
-else
+elseif strcmpi(computer, 'PCWIN64')
+    if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], [packagingRoot filesep 'imosToolbox-Win64.exe'])
+        error('could not copy imosToolbox.exe to packaging area');
+    end
+elseif strcmpi(computer, 'GLNXA64')
     if ~copyfile([stagingRoot filesep 'imosToolbox'], packagingRoot)
         error('could not copy imosToolbox to packaging area');
     end
-    if ~copyfile([stagingRoot filesep 'run_imosToolbox.sh'], [packagingRoot filesep 'imosToolbox.sh'])
+    if ~copyfile([stagingRoot filesep 'run_imosToolbox.sh'], [packagingRoot filesep 'imosToolbox-Linux64.sh'])
         error('could not copy imosToolbox.sh to packaging area');
     end
-    if ~copyfile([stagingRoot filesep 'readme.txt'], [packagingRoot filesep 'linuxreadme.txt'])
+    if ~copyfile([stagingRoot filesep 'readme.txt'], [packagingRoot filesep 'readme-Linux64.txt'])
         error('could not copy linuxreadme.txt to packaging area');
     end
 end
