@@ -71,47 +71,17 @@ exportRoot    = pwd;
 toolboxRoot   = [exportRoot filesep '..' filesep '..'];
 stagingRoot   = [exportRoot filesep '..' filesep 'staging'];
 
-if ~isempty(dir(packagingRoot)), error([packagingRoot ' already exists']); end
 if ~isempty(dir(stagingRoot)),   error([stagingRoot   ' already exists']); end
 
-% create a directory from which the resulting zip file will
-% be generated - the packaging area, and a directory to put 
+% create a directory to put 
 % the compiled file(s) - the staging area
-disp(['creating packaging area: ' packagingRoot]);
-if ~mkdir(packagingRoot), error('could not create packaging area'); end
-
 disp(['creating staging area: ' stagingRoot]);
 if ~mkdir(stagingRoot), error('could not create staging area'); end
 
-% find all .m, .mat, .txt, .jar and .bat files - these are to be 
+% find all .m and .mat files - these are to be 
 % included as resources in the standalone application 
 matlabFiles     = fsearchRegexp('.m$',   exportRoot, 'files');
 matlabDataFiles = fsearch('.mat', exportRoot, 'files');
-resourceFiles   = [matlabFiles   matlabDataFiles];
-resourceFiles   = [resourceFiles fsearchRegexp('.txt$', exportRoot, 'files')];
-resourceFiles   = [resourceFiles fsearchRegexp('.jar$', exportRoot, 'files')];
-resourceFiles   = [resourceFiles fsearchRegexp('.bat$', exportRoot, 'files')];
-
-% copy the resource files to the packaging area
-for k = 1:length(resourceFiles)
-
-  f = resourceFiles{k};
-
-  % get the name of the directory to create in the packaging area, 
-  % by replacing the exportRoot prefix with the packagingRoot prefix
-  fpath = strrep(f, exportRoot, packagingRoot);
-  fpath = fileparts(fpath);
-
-  % create directory in packaging area - mkdir warns, but 
-  % returns success if the new directory already exists
-  [stat, msg, id] = mkdir(fpath);
-  if ~stat, error(['could not create directory: ' fpath]); end
-
-  % copy the resource file over to the packaging area
-  disp(['copying resource ' f ' to packaging area']);
-  [stat, msg, id] = copyfile(f, fpath);
-  if ~stat, error(['could not copy resource to packaging area: ' f]); end
-end
 
 % we leave out imosToolbox.m because, as the main 
 % function, it must be listed first.
@@ -169,4 +139,3 @@ end
 
 % clean up
 rmdir(stagingRoot,   's');
-rmdir(packagingRoot, 's');
