@@ -69,6 +69,7 @@ function imosCompile()
 % snapshot/buildBinaries.py)
 exportRoot    = pwd;
 toolboxRoot   = [exportRoot filesep '..' filesep '..'];
+packagingRoot = [exportRoot filesep '..' filesep 'imos-toolbox'];
 stagingRoot   = [exportRoot filesep '..' filesep 'staging'];
 
 if ~isempty(dir(packagingRoot)), error([packagingRoot ' already exists']); end
