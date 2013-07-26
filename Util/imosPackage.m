@@ -151,21 +151,24 @@ eval(['mcc ' cflags]);
 
 % copy the compiled application over to the working project directory
 if strcmpi(computer, 'PCWIN')
-    if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], [toolboxRoot filesep 'imosToolbox-Win32.exe'])
+    if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], [packagingRoot filesep 'imosToolbox-Win32.exe'])
         error('could not copy imosToolbox.exe to packaging area');
     end
 elseif strcmpi(computer, 'PCWIN64')
-    if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], [toolboxRoot filesep 'imosToolbox-Win64.exe'])
+    if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], [packagingRoot filesep 'imosToolbox-Win64.exe'])
         error('could not copy imosToolbox.exe to packaging area');
     end
 elseif strcmpi(computer, 'GLNXA64')
-    if ~copyfile([stagingRoot filesep 'imosToolbox'], toolboxRoot)
+    if ~copyfile([stagingRoot filesep 'imosToolbox'], packagingRoot)
         error('could not copy imosToolbox to packaging area');
     end
-    if ~copyfile([stagingRoot filesep 'run_imosToolbox.sh'], [toolboxRoot filesep 'imosToolbox-Linux64.sh'])
+    if ~copyfile([stagingRoot filesep 'run_imosToolbox.sh'], [packagingRoot filesep 'imosToolbox-Linux64.sh'])
         error('could not copy imosToolbox.sh to packaging area');
     end
 end
+
+% copy binaries and relevant files to project directory
+
 
 % clean up
 rmdir(stagingRoot,   's');
