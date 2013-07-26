@@ -29,6 +29,7 @@
  */
 package org.imos.ddb;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -67,15 +68,23 @@ public abstract class DDB {
     if (ddb != null) return ddb;
     
     String os = System.getProperty("os.name");
+    File filename = new File(name);
     
-    if (os.startsWith("Windows"))
-    	return new ODBCDDB(name);
-    else if (os.startsWith("Linux"))
+    if (filename.isFile())
     	//By default, uses the UCanAccess driver and mdb file name as connection, 
     	//assuming username and password are not necessary (see http://ucanaccess.sourceforge.net/site.html).
     	//ucanaccess-1.0.2.jar and its .jar dependencies must be added to the 
     	//Java Build Path libraries of the project (and at least in Matlab classpath.txt).
     	return new JDBCDDB("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + name, "", "");
+    else {
+    	if (os.startsWith("Windows"))
+        	return new ODBCDDB(name);
+        else {
+        	System.err.println(name + " is not a valid filepath!");
+        	System.exit(1);
+        }
+        	
+    }
     
     return ddb;
   }
