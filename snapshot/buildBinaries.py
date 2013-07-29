@@ -4,7 +4,6 @@ import os
 import sys
 import time
 import shutil
-import gmail
 
 # buildBinaries.py
 # Exports the IMOS Toolbox from SVN and
@@ -48,13 +47,6 @@ compiled = os.system('cd %s/Java && ant install' % exportDir)
 if compiled is not 0:
   print('\n--DDB interface compilation failed - cleaning')
   os.system('cd %s/Java && ant clean' % exportDir)
-  gmail.send(
-    "guillaume.galibert@utas.edu.au",
-    "[imos-toolbox] DDB interface compilation error",
-    "Check the Java DDB interface code",
-    None,
-    "guillaume.galibert",
-    "28gg=!bb")
 
 #
 # create snapshot
