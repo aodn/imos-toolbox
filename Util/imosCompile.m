@@ -100,7 +100,7 @@ elseif strcmpi(myComputer, 'GLNXA64')
     architecture = 'Linux64';
 end
 
-outputName = ['imosToolbox-' architecture];
+outputName = ['imosToolbox_' architecture];
 
 cflags{end+1} = ['-o ''' outputName ''''];  % specify output name
 cflags{end+1} = ['-d ''' stagingRoot '''']; % specified directory for output
