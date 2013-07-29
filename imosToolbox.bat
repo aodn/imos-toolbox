@@ -1,2 +1,2 @@
-imosToolbox.exe
+imosToolbox_Win32.exe
 pause
