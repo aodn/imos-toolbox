@@ -65,7 +65,7 @@ shutil.rmtree('%s/snapshot' % exportDir)
 # create snapshot
 #
 print('\n--creating snapshot')
-matlabOpts = '-wait -nosplash -nodesktop -logfile "%s"' % compilerLog
+matlabOpts = '-nodisplay -wait -logfile "%s"' % compilerLog
 matlabCmd = "addpath('Util'); try, imosPackage(); exit(); catch e, disp(e.message); end;"
 os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 shutil.copy('%s/imos-toolbox.zip' % exportDir, './%s' % stdArchive)
