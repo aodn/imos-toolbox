@@ -65,7 +65,7 @@ function imosCompile()
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-% assume we are running from the export root (see
+% assume we are running from snapshot/export (see
 % snapshot/buildBinaries.py)
 exportRoot    = pwd;
 toolboxRoot   = [exportRoot filesep '..' filesep '..'];
@@ -132,15 +132,15 @@ cflags = [cflags{:}];
 eval(['mcc ' cflags]);
 
 % copy the compiled application over to the working project directory
-if any(strcmpi(architecture, {'PCWIN', 'PCWIN64'}))
+if any(strcmpi(myComputer, {'PCWIN', 'PCWIN64'}))
     if ~copyfile([stagingRoot filesep outputName '.exe'], toolboxRoot)
         error(['could not copy ' outputName '.exe to working project area']);
     end
-elseif strcmpi(architecture, 'GLNXA64')
+elseif strcmpi(myComputer, 'GLNXA64')
     if ~copyfile([stagingRoot filesep outputName], toolboxRoot)
         error(['could not copy ' outputName ' to working project area']);
     end
-    if ~copyfile([stagingRoot filesep outputName '.sh'], toolboxRoot)
+    if ~copyfile([stagingRoot filesep 'run_' outputName '.sh'], toolboxRoot)
         error(['could not copy ' outputName '.sh to working project area']);
     end
 end
