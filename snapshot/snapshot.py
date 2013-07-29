@@ -5,18 +5,16 @@ import sys
 import time
 import shutil
 import ziputil
-import gmail
 
 # snapshot.py
 # Exports the IMOS Toolbox from SVN and
 #
 #   - Creates an archive of the source 
-#   - Runs Util/imosCompile.m to create a standalone executable archive
+#   - Runs Util/imosPackage.m to package the source
 # 
-# Both of these files are submitted back to the project as file downloads.
+# These files are submitted back to the project as file downloads.
 #
-# python, svn (SlikSvn), javac, ant and matlab must be on PATH
-# JAVA_HOME must be set
+# python, svn (SlikSvn) and matlab must be on PATH
 #
 
 lt = time.localtime()
@@ -27,7 +25,7 @@ project = 'imos-toolbox'
 def googleSubmit(archive, summary):
 
   username = 'guillaume.galibert@gmail.com'
-  password = 'myPasswordSVN' # SVN password!!!
+  password = 'dZ2JH2wD4ad2' # SVN password!!!
   labels   = 'Type-Snapshot'
 
   print('\n--submitting %s to google' % archive)
@@ -62,21 +60,11 @@ shutil.rmtree('%s/Tests' % exportDir)
 shutil.rmtree('%s/snapshot' % exportDir)
 
 #
-# build DDB interface
-#
-print('\n--building DDB interface')
-compiled = os.system('cd %s/Java && ant install' % exportDir)
-
-if compiled is not 0:
-  print('\n--DDB interface compilation failed - cleaning')
-  os.system('cd %s/Java && ant clean' % exportDir)
-
-#
-# create snapshot
+# package snapshot
 #
 print('\n--creating snapshot')
 matlabOpts = '-nodisplay -nojvm -logfile "%s"' % compilerLog
-matlabCmd = "addpath('Util'); try, imosCompile(); exit(); catch e, disp(e.message); end;"
+matlabCmd = "addpath('Util'); try, imosPackage(); exit(); catch e, disp(e.message); end;"
 os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 shutil.copy('%s/imos-toolbox.zip' % exportDir, './%s' % stdArchive)
 
@@ -84,11 +72,6 @@ try:
   googleSubmit(stdArchive, stdSummary)
 
 except:
-  if os.path.exists(compilerLog):
-    attachment = compilerLog
-  else:
-    attachment = None
-
   print('\n--Snapshot upload error. Check script, fix and then delete previous files before running new snapshot')
 
 print('\n--removing local SVN tree and archives')
