@@ -64,5 +64,5 @@ matlabOpts = '-nodisplay -nojvm -wait -logfile "%s"' % compilerLog
 matlabCmd = "addpath('Util'); try, imosCompile(); exit(); catch e, disp(e.message); end;"
 os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 
-#print('\n--removing local SVN tree')
+print('\n--removing local SVN tree')
 shutil.rmtree('%s' % exportDir)
