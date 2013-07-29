@@ -33,7 +33,7 @@ else
       args="${args} ${token}" 
       shift
   done
-  "${exe_dir}"/imosToolbox_Linux64 $args
+  "${exe_dir}"/imosToolbox_Linux64.bin $args
 fi
 exit
 

@@ -86,11 +86,10 @@ if strcmpi(myComputer, 'PCWIN')
 elseif strcmpi(myComputer, 'PCWIN64')
     architecture = 'Win64';
 elseif strcmpi(myComputer, 'GLNXA64')
-    architecture = 'Linux64.bin';
+    architecture = 'Linux64';
 end
 
 outputName = ['imosToolbox_' architecture];
-linuxOutputNameRad = 'imosToolbox_Linux64';
 
 cflags{end+1} = ['-o ''' outputName ''''];  % specify output name
 cflags{end+1} = ['-d ''' stagingRoot '''']; % specified directory for output
@@ -127,12 +126,12 @@ if any(strcmpi(myComputer, {'PCWIN', 'PCWIN64'}))
         error(['could not copy ' outputName '.exe to working project area']);
     end
 elseif strcmpi(myComputer, 'GLNXA64')
-    if ~copyfile([stagingRoot filesep outputName], toolboxRoot)
-        error(['could not copy ' outputName ' to working project area']);
+    if ~copyfile([stagingRoot filesep outputName], [toolboxRoot filesep toolboxRoot '.bin'])
+        error(['could not copy ' outputName '.bin to working project area']);
     end
-    if ~copyfile([stagingRoot filesep 'run_' outputName '.sh'], [toolboxRoot filesep linuxOutputNameRad '.sh'])
-        error(['could not copy ' linuxOutputNameRad '.sh to working project area']);
-    end
+%     if ~copyfile([stagingRoot filesep 'run_' outputName '.sh'], [toolboxRoot filesep outputName '.sh'])
+%         error(['could not copy ' linuxOutputNameRad '.sh to working project area']);
+%     end
 end
 
 % clean up
