@@ -27,7 +27,7 @@ project = 'imos-toolbox'
 def googleSubmit(archive, summary):
 
   username = 'guillaume.galibert@gmail.com'
-  password = 'myPasswordSVN' # SVN password!!!
+  password = 'dZ2JH2wD4ad2' # SVN password!!!
   labels   = 'Type-Snapshot'
 
   print('\n--submitting %s to google' % archive)
@@ -76,13 +76,13 @@ if compiled is not 0:
     "Check the Java DDB interface code",
     None,
     "guillaume.galibert",
-    "myPasswordGMAIL")
+    "28gg=!bb")
 
 #
 # create snapshot
 #
 print('\n--creating snapshot')
-matlabOpts = '-wait -nosplash -nodesktop -logfile "%s"' % compilerLog
+matlabOpts = '-nodisplay -nojvm -logfile "%s"' % compilerLog
 matlabCmd = "addpath('Util'); try, imosCompile(); exit(); catch e, disp(e.message); end;"
 os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 shutil.copy('%s/imos-toolbox.zip' % exportDir, './%s' % stdArchive)
@@ -102,7 +102,7 @@ except:
     "Check the snapshot script. Fix, then delete previous files before runnning new snapshot.",
     attachment,
     "guillaume.galibert",
-    "myPasswordGMAIL")
+    "28gg=!bb")
 
 print('\n--removing local SVN tree and archives')
 shutil.rmtree('%s' % exportDir)
