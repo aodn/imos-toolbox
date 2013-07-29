@@ -126,7 +126,7 @@ if any(strcmpi(myComputer, {'PCWIN', 'PCWIN64'}))
         error(['could not copy ' outputName '.exe to working project area']);
     end
 elseif strcmpi(myComputer, 'GLNXA64')
-    if ~copyfile([stagingRoot filesep outputName], [toolboxRoot filesep toolboxRoot '.bin'])
+    if ~copyfile([stagingRoot filesep outputName], [toolboxRoot filesep outputName '.bin'])
         error(['could not copy ' outputName '.bin to working project area']);
     end
 %     if ~copyfile([stagingRoot filesep 'run_' outputName '.sh'], [toolboxRoot filesep outputName '.sh'])
