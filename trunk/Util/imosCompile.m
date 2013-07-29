@@ -90,7 +90,19 @@ matlabFiles(iMainFile) = [];
 
 % compile the compiler options
 cflags{1}     =  '-m';                      % generate a standalone application
-cflags{end+1} =  '-o ''imosToolbox''';      % specify output name
+
+myComputer = computer();
+if strcmpi(myComputer, 'PCWIN')
+    architecture = 'Win32';
+elseif strcmpi(myComputer, 'PCWIN64')
+    architecture = 'Win64';
+elseif strcmpi(myComputer, 'GLNXA64')
+    architecture = 'Linux64';
+end
+
+outputName = ['imosToolbox-' architecture];
+
+cflags{end+1} = ['-o ''' outputName ''''];  % specify output name
 cflags{end+1} = ['-d ''' stagingRoot '''']; % specified directory for output
 cflags{end+1} =  '-v';                      % verbose
 cflags{end+1} =  '-N';                      % clear path
@@ -120,20 +132,16 @@ cflags = [cflags{:}];
 eval(['mcc ' cflags]);
 
 % copy the compiled application over to the working project directory
-if strcmpi(computer, 'PCWIN')
-    if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], [toolboxRoot filesep 'imosToolbox-Win32.exe'])
-        error('could not copy imosToolbox.exe to packaging area');
+if any(strcmpi(architecture, {'PCWIN', 'PCWIN64'}))
+    if ~copyfile([stagingRoot filesep outputName '.exe'], toolboxRoot)
+        error(['could not copy ' outputName '.exe to working project area']);
     end
-elseif strcmpi(computer, 'PCWIN64')
-    if ~copyfile([stagingRoot filesep 'imosToolbox.exe'], [toolboxRoot filesep 'imosToolbox-Win64.exe'])
-        error('could not copy imosToolbox.exe to packaging area');
+elseif strcmpi(architecture, 'GLNXA64')
+    if ~copyfile([stagingRoot filesep outputName], toolboxRoot)
+        error(['could not copy ' outputName ' to working project area']);
     end
-elseif strcmpi(computer, 'GLNXA64')
-    if ~copyfile([stagingRoot filesep 'imosToolbox'], toolboxRoot)
-        error('could not copy imosToolbox to packaging area');
-    end
-    if ~copyfile([stagingRoot filesep 'run_imosToolbox.sh'], [toolboxRoot filesep 'imosToolbox-Linux64.sh'])
-        error('could not copy imosToolbox.sh to packaging area');
+    if ~copyfile([stagingRoot filesep outputName '.sh'], toolboxRoot)
+        error(['could not copy ' outputName '.sh to working project area']);
     end
 end
 
