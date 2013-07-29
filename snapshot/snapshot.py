@@ -25,7 +25,7 @@ project = 'imos-toolbox'
 def googleSubmit(archive, summary):
 
   username = 'guillaume.galibert@gmail.com'
-  password = 'myPasswordSVN' # SVN password!!!
+  password = 'myPassword' # SVN password!!!
   labels   = 'Type-Snapshot'
 
   print('\n--submitting %s to google' % archive)
@@ -44,7 +44,7 @@ exportDir  = 'export'
 stdArchive = '%04i-%02i-%02i_unstable_snapshot.zip' % (lt[0], lt[1], lt[2])
 
 stdSummary  = 'IMOS Toolbox SVN unstable snapshot from %s for test purpose only' % at 
-compilerLog = '.\%s\log.txt' % exportDir
+compilerLog = './%s/log.txt' % exportDir
 
 #
 # export from SVN
