@@ -1,34 +1,23 @@
 function imosCompile()
-%IMOSCOMPILE Compiles a standalone version of the toolbox.
+%IMOSCOMPILE builds standalone binaries.
 %
-% This function uses the Matlab Compiler to compile the toolbox code, and
-% creates a zip file containing the toolbox executable, source, and
-% configuration files. Users are able to extract this zip file, and run the
-% toolbox on Windows computers which do not have Matlab installed. This
-% function has only been tested on Windows XP.
+% This function uses the Matlab Compiler to compile the toolbox code.
 %
 % This function must be executed from the root of the toolbox directory 
-% tree that is to be compiled. As part of the compilation process, two 
-% directories are created at the same level as the toolbox directory tree, 
-%'staging', and 'imos-toolbox'. For example, if the toolbox tree is located 
-% in 'C:\matlab\toolbox', the following directories will be created:
+% tree that is to be compiled. As part of the compilation process, a 'staging' 
+% directory is created at the same level as the toolbox directory tree.
+% For example, if the toolbox tree is located in 'C:\matlab\toolbox',
+% the following directory will be created:
 %
 %   - 'C:\matlab\staging'
-%   - 'C:\matlab\imos-toolbox'
 %
-% If either of these directories already exist, the function will fail.
-% These directories are deleted after compilation. The resulting zip 
-% file, named 'imos-toolbox.zip', is created from the 'imos-toolbox' 
+% If this directory already exists, the function will fail.
+% This directory is deleted after compilation. The resulting executable binary 
+% file, named 'imos-toolbox.exe', is created from the 'imos-toolbox' 
 % directory, and will be stored in the root of the toolbox directory tree 
 % (i.e. the directory that the function was called from).
 %
-% The source code is included in the zip file because certain parts of the
-% toolbox rely upon the existence of the Matlab source files. For example,
-% the listParsers function scans the contents of the Parsers subdirectory
-% to determine which parser functions are available. It is important to
-% note that modifying these source files will not have any effect upon the 
-% execution of the toolbox; all of the source files are compiled into the 
-% executable. If you wish to modify the toolbox, you must execute the 
+% If you wish to modify the toolbox, you must execute the 
 % toolbox from the source, which requires a Matlab license.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
@@ -97,10 +86,11 @@ if strcmpi(myComputer, 'PCWIN')
 elseif strcmpi(myComputer, 'PCWIN64')
     architecture = 'Win64';
 elseif strcmpi(myComputer, 'GLNXA64')
-    architecture = 'Linux64';
+    architecture = 'Linux64.bin';
 end
 
 outputName = ['imosToolbox_' architecture];
+linuxOutputNameRad = 'imosToolbox_Linux64';
 
 cflags{end+1} = ['-o ''' outputName ''''];  % specify output name
 cflags{end+1} = ['-d ''' stagingRoot '''']; % specified directory for output
@@ -140,8 +130,8 @@ elseif strcmpi(myComputer, 'GLNXA64')
     if ~copyfile([stagingRoot filesep outputName], toolboxRoot)
         error(['could not copy ' outputName ' to working project area']);
     end
-    if ~copyfile([stagingRoot filesep 'run_' outputName '.sh'], [toolboxRoot filesep outputName '.sh'])
-        error(['could not copy ' outputName '.sh to working project area']);
+    if ~copyfile([stagingRoot filesep 'run_' outputName '.sh'], [toolboxRoot filesep linuxOutputNameRad '.sh'])
+        error(['could not copy ' linuxOutputNameRad '.sh to working project area']);
     end
 end
 
