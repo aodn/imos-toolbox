@@ -140,7 +140,7 @@ elseif strcmpi(myComputer, 'GLNXA64')
     if ~copyfile([stagingRoot filesep outputName], toolboxRoot)
         error(['could not copy ' outputName ' to working project area']);
     end
-    if ~copyfile([stagingRoot filesep 'run_' outputName '.sh'], toolboxRoot)
+    if ~copyfile([stagingRoot filesep 'run_' outputName '.sh'], [toolboxRoot filesep outputName '.sh'])
         error(['could not copy ' outputName '.sh to working project area']);
     end
 end
