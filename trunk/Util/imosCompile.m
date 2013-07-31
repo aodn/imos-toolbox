@@ -135,7 +135,7 @@ elseif strcmpi(myComputer, 'GLNXA64')
 end
 
 % copy the previously built ddb.jar before cleaning
-if ~copyfile([stagingRoot filesep 'Java' filesep 'ddb.jar'], [toolboxRoot filesep 'Java'])
+if ~copyfile([exportRoot filesep 'Java' filesep 'ddb.jar'], [toolboxRoot filesep 'Java'])
     error('could not copy ddb.exe to working project area');
 end
 
