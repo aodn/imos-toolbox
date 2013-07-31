@@ -52,17 +52,11 @@ if nargin == 0, auto = 'manual'; end
 % Set current toolbox version
 toolboxVersion = ['2.3 unstable - ' computer];
 
-% if running as a standalone compiled application, we must 
-% manually add the ddb.jar java library to the classpath
-if isdeployed
-    % Add any *.jar java library and jdbc drivers to the classpath
-    jars = fsearch('.jar', fullfile(pwd, 'Java'), 'files');
-    javaClassPath = javaclasspath('-all');
-    for j = 1 : length(jars)
-        if ~any(strcmpi(jars{j}, javaClassPath))
-            javaaddpath(jars{j});
-        end
-    end
+% we must dynamically add the ddb.jar java library to the classpath
+% as well as any other .jar library and jdbc drivers
+jars = fsearch('.jar', fullfile(pwd, 'Java'), 'files');
+for j = 1 : length(jars)
+    javaaddpath(jars{j});
 end
 
 switch auto
