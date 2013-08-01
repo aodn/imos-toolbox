@@ -114,7 +114,7 @@ function exportManager(dataSets, levelNames, output, auto)
     try
       switch (output)
         case 'netcdf'
-          filenames{end+1} = exportNetCDF(dataSets{k}, exportDir, mode);
+            filenames{end+1} = exportNetCDF(dataSets{k}, exportDir, mode);
         case 'raw'
           exportRawData(dataSets{k}, exportDir, setNames{k});
           filenames{end+1} = setNames{k};
