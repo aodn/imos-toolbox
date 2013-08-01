@@ -61,7 +61,8 @@ function filename = exportNetCDF( sample_data, dest, mode )
   filename = genIMOSFileName(sample_data, 'nc');
   filename = [dest filesep filename];
   
-  fid = netcdf.create(filename, 'NC_CLOBBER');
+  compressionLevel = 1; % it seems the compression level 1 gives the best ration size/cpu
+  fid = netcdf.create(filename, 'NETCDF4');
   if fid == -1, error(['Could not create ' filename]); end
   
   % we don't want the API to automatically pre-fill with FillValue, we're
@@ -205,15 +206,23 @@ function filename = exportNetCDF( sample_data, dest, mode )
       
       % get the dimensions for this variable
       dimIdxs = vars{m}.dimensions;
-      lenDimIdxs = length(dimIdxs);
-      dids = nan(1, lenDimIdxs);
-      for n = 1:lenDimIdxs, dids(n) = dims{dimIdxs(n)}.did; end
+      nDim = length(dimIdxs);
+      dids = NaN(1, nDim);
+      dimLen = NaN(1, nDim);
+      dimname = cell(1, nDim);
+      for n = 1:nDim
+          dids(n) = dims{dimIdxs(n)}.did;
+          dimLen(n) = length(dims{dimIdxs(n)}.data);
+          dimname{n} = dims{dimIdxs(n)}.name;
+      end
       
       % reverse dimension order - matlab netcdf.defvar requires 
       % dimensions in order of fastest changing to slowest changing. 
       % The time dimension is always first in the variable.dimensions 
       % list, and is always the slowest changing.
       dids = fliplr(dids);
+      dimLen = fliplr(dimLen);
+      dimname = fliplr(dimname);
       
       % create the variable
       if iscell(vars{m}.data)
@@ -228,6 +237,48 @@ function filename = exportNetCDF( sample_data, dest, mode )
           varNetcdfType{m} = imosParameters(varname, 'type');
           vid = netcdf.defVar(fid, varname, varNetcdfType{m}, dids);
       end
+      
+      % Setting the chunks as big as possible is optimum for most use
+      % cases, at least until the number of dimensions with length > 1 is
+      % <= 2. When this number is > 2 then the chunk size is not optimised
+      % for a 2D representation (performance in reading not optimised). So 
+      % far, the toolbox is not producing any file that would be 
+      % interesting to view in 3D.
+      greatDim = dimLen > 1;
+      optimised = true;
+      if sum(greatDim) > 2
+          % we look if the variable is TIME, FREQUENCY and DIR dependent. In this
+          % case we know that we want the chunk size to be of all FREQUENCY and DIR
+          % only for each TIME step. This is the only exception known so
+          % far which is faced with ADCP wave data. In all other cases, we
+          % don't know what to do and will choose the biggest chunk size
+          % possible.
+          if sum(greatDim) == 3
+              greatDimName = dimname(greatDim);
+              if any(strcmpi('TIME', greatDimName)) && ...
+                      any(strncmpi('FREQUENCY', greatDimName, 9)) && ...
+                      any(strcmpi('DIR', greatDimName))
+                  iTime = strcmpi('TIME', dimname);
+                  dimLen(iTime) = 1;
+              else
+                  optimised = false;
+              end
+          else
+              optimised = false;
+          end
+      end
+      
+      if ~optimised
+          fprintf('%s\n', ['Warning : in ' filename ', the variable ' ...
+              varname ' has been created with a chunk size not ' ...
+              'optimised for any 2D representation (slower performance).' ...
+              ' Please inform eMII.']);
+      end
+      
+      netcdf.defVarChunking(fid, vid, 'CHUNKED', dimLen);
+      
+      netcdf.defVarDeflate(fid, vid, true, true, compressionLevel);
+      
       varAtts = vars{m};
       varAtts = rmfield(varAtts, {'data', 'dimensions', 'flags', 'stringlen', 'typeCastFunc'});
       
@@ -240,8 +291,12 @@ function filename = exportNetCDF( sample_data, dest, mode )
       
       % create the ancillary QC variable
       qcvid = addQCVar(...
-        fid, sample_data, m, [qcDimId dids], 'variables', qcType, dateFmt, mode);
+          fid, sample_data, m, [qcDimId dids], 'variables', qcType, dateFmt, mode);
       
+      netcdf.defVarChunking(fid, qcvid, 'CHUNKED', dimLen);
+      
+      netcdf.defVarDeflate(fid, qcvid, true, true, compressionLevel);
+    
       % save variable IDs for later reference
       sample_data.variables{m}.vid   = vid;
       sample_data.variables{m}.qcvid = qcvid;
@@ -573,6 +628,10 @@ function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mod
     
     % add the attribute
     %disp(['  ' name ': ' val]);
-    netcdf.putAtt(fid, vid, name, val);
+    if strcmpi(name, '_FillValue')
+        netcdf.defVarFill(fid, vid, false, val); % false means noFillMode == false
+    else
+        netcdf.putAtt(fid, vid, name, val);
+    end
   end
 end
