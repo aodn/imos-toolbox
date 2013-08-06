@@ -601,8 +601,10 @@ function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mod
     if isempty(val), continue; end;
     
     type = 'S';
-    try, type = templateType(templateDir, name, templateFile, mode);
-    catch e, end
+    try 
+        type = templateType(templateDir, name, templateFile, mode);
+    catch e,
+    end
     
     switch type
       case 'D', val = datestr(val, dateFmt);
