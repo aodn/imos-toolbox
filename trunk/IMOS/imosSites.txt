@@ -8,7 +8,7 @@
 % name, nominalLongitude, nominalLatitude, longitudePlusMinusThreshold, latitudePlusMinusThreshold, distanceKmPlusMinusThreshold
 %
 NRSMAI, 	148.2333, 		-42.59667, 		0.025, 	0.025, 	2.5
-NRSNSI, 	153.58, 		-27.389, 		0.025, 	0.025, 	2.5
+NRSNSI, 	153.562, 		-27.34, 		0.025, 	0.025, 	2.5
 NRSKAI, 	136.4473, 		-35.83217, 		0.025, 	0.025, 	2.5
 NRSESP, 	121.85, 		-33.93333, 		0.025, 	0.025, 	2.5
 NRSROT, 	115.4167, 		-32, 			0.025, 	0.025, 	2.5
