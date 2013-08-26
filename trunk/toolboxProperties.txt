@@ -1,11 +1,14 @@
 % filename or ODBC DSN of MS-ACCESS deployment database
+% ex. : /home/ggalibert/OceanDB.mdb or imos-ddb
 toolbox.ddb = 
 
 % or full connection details to other kind of deployment database :
 % class name of JDBC database driver
+% ex. : net.ucanaccess.jdbc.UcanaccessDriver
 toolbox.ddb.driver = 
 
 % database connection string, must include user and password if required by the database
+% ex. : "jdbc:ucanaccess:///home/ggalibert/OceanDB.mdb;jackcessOpener=org.imos.ddb.CryptCodecOpener"
 toolbox.ddb.connection = 
 
 % user's login and password to database

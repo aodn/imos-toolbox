@@ -340,11 +340,11 @@ error(nargchk(1,2,nargin));
   % also remove empty backscatter and correlation data in case of ADCP with
   % less than 4 beams
   for k = 4:-1:numBeams+1
-    remove(end+1) = getVar(sample_data.variables, ['ABSI_' num2str(k)]);
+    remove(end+1) = getVar(sample_data.variables, ['ABSI' num2str(k)]);
     remove(end+1) = ...
-      getVar(sample_data.variables, ['ADCP_CORR_' num2str(k)]);
+      getVar(sample_data.variables, ['CMAG' num2str(k)]);
     remove(end+1) = ...
-      getVar(sample_data.variables, ['ADCP_GOOD_' num2str(k)]);
+      getVar(sample_data.variables, ['PERG' num2str(k)]);
   end
   
   sample_data.variables(remove) = [];

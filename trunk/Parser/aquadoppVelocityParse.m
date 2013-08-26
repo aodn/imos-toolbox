@@ -1,8 +1,7 @@
-function sample_data = aquadoppProfilerParse( filename, mode )
-%AQUADOPPPROFILERPARSE Parses ADCP data from a raw Nortek Aquadopp Profiler 
-% binary (.prf) file.
+function sample_data = aquadoppVelocityParse( filename, mode )
+%AQUADOPPVELOCITYPARSE Parses ADCP data from a raw Nortek Aquadopp Velocity 
+% binary (.aqd) file.
 %
-% Does not yet support HR Aquadopp profilers.
 %
 % Inputs:
 %   filename    - Cell array containing the name of the raw aquadopp profiler 
@@ -12,7 +11,6 @@ function sample_data = aquadoppProfilerParse( filename, mode )
 % Outputs:
 %   sample_data - Struct containing sample data.
 %
-% Author: 		Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor: 	Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
@@ -60,9 +58,11 @@ hardware = structures{1};
 head     = structures{2};
 user     = structures{3};
 
-% the rest of the sections are aquadopp profiler velocity data 
-
-nsamples = length(structures) - 3;
+% the rest of the sections are aquadopp velocity data, diagnostic header
+% and diagnostic data. We will only keep the velocity data (Id == 1) .
+iIdVelocityData = cellfun(@(x) x.Id, structures) == 1;
+structures = structures(iIdVelocityData);
+nsamples = length(structures);
 ncells   = user.NBins;
 
 % preallocate memory for all sample data
@@ -95,9 +95,6 @@ cellLength = user.BinLength; % counts
 factor     = 0;              % used for conversion
 
 switch freq
-  case 400,  factor = 0.1195;
-  case 600,  factor = 0.0797;
-  case 1000, factor = 0.0478;
   case 2000, factor = 0.0239;
 end
 
@@ -112,12 +109,14 @@ distance(:) = (cellStart):  ...
 % Note this is actually the distance between the ADCP's transducers and the
 % middle of each cell
 % See http://www.nortek-bv.nl/en/knowledge-center/forum/current-profilers-and-current-meters/579860330
+% in the case of a current meter, this is a horizontal distance from the
+% transducer.
 distance = distance + cellLength;
        
 % retrieve sample data
 for k = 1:nsamples
   
-  st = structures{k+3};
+  st = structures{k};
   
   time(k)           = st.Time;
   analn1(k)         = st.Analn1;
@@ -165,21 +164,19 @@ sample_data.meta.hardware                   = hardware;
 sample_data.meta.user                       = user;
 sample_data.meta.binSize                    = cellLength;
 sample_data.meta.instrument_make            = 'Nortek';
-sample_data.meta.instrument_model           = 'Aquadopp Profiler';
+sample_data.meta.instrument_model           = 'Aquadopp Current Meter';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
-sample_data.meta.beam_angle                 = 25;   % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
+sample_data.meta.beam_angle                 = 45;   % http://wiki.neptunecanada.ca/download/attachments/18022846/Nortek+Aquadopp+Current+Meter+User+Manual+-+Rev+C.pdf
 
 sample_data.dimensions{1} .name = 'TIME';
-sample_data.dimensions{2} .name = 'HEIGHT_ABOVE_SENSOR';
-sample_data.dimensions{3} .name = 'LATITUDE';
-sample_data.dimensions{4} .name = 'LONGITUDE';
+sample_data.dimensions{2} .name = 'LATITUDE';
+sample_data.dimensions{3} .name = 'LONGITUDE';
 
 sample_data.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
 sample_data.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
 sample_data.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
-sample_data.dimensions{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{4}.name, 'type')));
 
 sample_data.variables {1} .name = 'VCUR';
 sample_data.variables {2} .name = 'UCUR';
@@ -207,23 +204,22 @@ sample_data.variables{10}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParame
 sample_data.variables{11}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{11}.name, 'type')));
 sample_data.variables{12}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{12}.name, 'type')));
 
-sample_data.variables {1} .dimensions = [1 2 3 4];
-sample_data.variables {2} .dimensions = [1 2 3 4];
-sample_data.variables {3} .dimensions = [1 2 3 4];
-sample_data.variables {4} .dimensions = [1 2 3 4];
-sample_data.variables {5} .dimensions = [1 2 3 4];
-sample_data.variables {6} .dimensions = [1 2 3 4];
-sample_data.variables {7} .dimensions = [1 3 4];
-sample_data.variables {8} .dimensions = [1 3 4];
-sample_data.variables {9} .dimensions = [1 3 4];
-sample_data.variables {10}.dimensions = [1 3 4];
-sample_data.variables {11}.dimensions = [1 3 4];
-sample_data.variables {12}.dimensions = [1 3 4];
+sample_data.variables {1} .dimensions = [1 2 3];
+sample_data.variables {2} .dimensions = [1 2 3];
+sample_data.variables {3} .dimensions = [1 2 3];
+sample_data.variables {4} .dimensions = [1 2 3];
+sample_data.variables {5} .dimensions = [1 2 3];
+sample_data.variables {6} .dimensions = [1 2 3];
+sample_data.variables {7} .dimensions = [1 2 3];
+sample_data.variables {8} .dimensions = [1 2 3];
+sample_data.variables {9} .dimensions = [1 2 3];
+sample_data.variables {10}.dimensions = [1 2 3];
+sample_data.variables {11}.dimensions = [1 2 3];
+sample_data.variables {12}.dimensions = [1 2 3];
 
 sample_data.dimensions{1} .data = sample_data.dimensions{1}.typeCastFunc(time);
-sample_data.dimensions{2} .data = sample_data.dimensions{2}.typeCastFunc(distance);
+sample_data.dimensions{2} .data = sample_data.dimensions{2}.typeCastFunc(NaN);
 sample_data.dimensions{3} .data = sample_data.dimensions{3}.typeCastFunc(NaN);
-sample_data.dimensions{4} .data = sample_data.dimensions{4}.typeCastFunc(NaN);
 
 sample_data.variables {1} .data = sample_data.variables{1}.typeCastFunc(velocity2); % V
 sample_data.variables {2} .data = sample_data.variables{2}.typeCastFunc(velocity1); % U

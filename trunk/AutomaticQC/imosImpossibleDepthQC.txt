@@ -1,3 +1,2 @@
-fixedMargin = 7
-coefUp = 3
-coefDown = 5
+zNominalMargin = 15
+maxAngle = 60
