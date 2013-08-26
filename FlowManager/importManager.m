@@ -75,10 +75,13 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   % deployment database. Otherwise perform a manual import
   ddb = readProperty('toolbox.ddb');
   
+  driver = readProperty('toolbox.ddb.driver');
+  connection = readProperty('toolbox.ddb.connection');
+  
   sample_data = {};
   rawFiles    = {};
   
-  if ~isempty(ddb)
+  if ~isempty(ddb) || (~isempty(driver) && ~isempty(connection))
       [structs rawFiles] = ddbImport(auto, iMooring);
   else
     if auto, error('manual import cannot be automated without deployment database'); end

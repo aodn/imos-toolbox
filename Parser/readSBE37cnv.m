@@ -188,6 +188,14 @@ switch name
         name = 'PRES_REL';
         comment = '';
         
+        % strain gauge pressure (psi)
+        % 1 psi = 0.68948 dBar
+        % 1 dbar = 1.45038 psi
+    case 'prdE'
+        name = 'PRES_REL';
+        data = data .* 0.68948;
+        comment = '';
+        
         % temperature (deg C)
         %case 'tv290C'
     case {'t090C', 'tv290C', 't090'}
@@ -201,13 +209,13 @@ switch name
         
         % conductivity (mS/cm)
         % mS/cm -> S/m
-    case {'c0ms0x2Fcm', 'cond0ms0x2Fcm'}
+    case {'c0ms0x2Fcm', 'cond0ms0x2Fcm', 'c0mS0x2Fcm', 'cond0mS0x2Fcm'}
         name = 'CNDC';
         data = data ./ 10;
         comment = '';
         
         % conductivity (uS/cm)
-    case {'c0us0x2Fcm', 'cond0us0x2Fcm'}
+    case {'c0us0x2Fcm', 'cond0us0x2Fcm', 'c0uS0x2Fcm', 'cond0uS0x2Fcm'}
         name = 'CNDC';
         data = data ./ 10000;
         comment = '';

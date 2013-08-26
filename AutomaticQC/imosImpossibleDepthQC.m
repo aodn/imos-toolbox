@@ -2,15 +2,23 @@ function [data, flags, paramsLog] = imosImpossibleDepthQC( sample_data, data, k,
 %IMOSIMPOSSIBLEDEPTHQC Flags PRES, PRES_REL and DEPTH impossible values in
 % the given data set.
 %
-% Impossible depth test compares the actual depth of the instruments to its
-% nominal depth. If actual depth values don't fall into an acceptable range
-% of values around the nominal depth then they are flagged.
+% Impossible depth test compares the actual depth of the instruments to an
+% acceptable range of values around the nominal depth. If they don't fall
+% within that range then they are flagged.
 %
 % Acceptable ranges are derived from this formula :
 %
-% instrument_nominal_depth +/- coefficient * (site_nominal_depth / instrument_nominal_depth) 
+% upperRange = instrumentNominalDepth - zNominalMargin
+% lowerRange = instrumentNominalDepth + zNominalMargin + ...
+%   (siteNominalDepth - (instrumentNominalDepth + zNominalMargin)) * ...
+%   (1 - cos(maxAngle * pi/180))
 %
-% Distinct coefficient values can be defined for upper and lower threshold.
+% zNominalMargin is the acceptable difference between the expected instrument 
+% nominal depth and its actual depth when deployed (mooring being ideally 
+% vertical).
+%
+% maxAngle is the maximum angle from the vertical axis that the mooring 
+% line can reach in highest current speed conditions.
 %
 % Inputs:
 %   sample_data - struct containing the data set.
@@ -138,30 +146,39 @@ if strcmpi(paramName, 'PRES') || ...
     end
     lenData = length(data);
     
-    % get nominal depth and nominal offset information
-    nominalData = [];
-    nominalOffset = [];
+    % read coefficients from imosImpossibleDepthQC properties file
+    zNominalMargin = readProperty('zNominalMargin',   fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
+    maxAngle    = readProperty('maxAngle',      fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
+    
+    paramsLog = ['zNominalMargin=' zNominalMargin ', maxAngle=' maxAngle];
+    
+    zNominalMargin = str2double(zNominalMargin);
+    maxAngle    = str2double(maxAngle);
+    
+    % get nominal depths information
+    instrumentNominalDepth = [];
+    siteNominalDepth = [];
     
     if ~isempty(sample_data.instrument_nominal_depth)
-        nominalData = sample_data.instrument_nominal_depth;
+        instrumentNominalDepth = sample_data.instrument_nominal_depth;
         if ~isempty(sample_data.site_nominal_depth)
-            nominalOffset = sample_data.site_nominal_depth / nominalData;
+            siteNominalDepth = sample_data.site_nominal_depth;
         elseif ~isempty(sample_data.site_depth_at_deployment)
-            nominalOffset = sample_data.site_depth_at_deployment / nominalData;
+            siteNominalDepth = sample_data.site_depth_at_deployment;
         end
     elseif ~isempty(sample_data.instrument_nominal_height)
         if ~isempty(sample_data.site_nominal_depth)
-            nominalData = sample_data.site_nominal_depth - ...
+            instrumentNominalDepth = sample_data.site_nominal_depth - ...
                 sample_data.instrument_nominal_height;
-            nominalOffset = sample_data.site_nominal_depth / nominalData;
+            siteNominalDepth = sample_data.site_nominal_depth;
         elseif ~isempty(sample_data.site_depth_at_deployment)
-            nominalData = sample_data.site_depth_at_deployment - ...
+            instrumentNominalDepth = sample_data.site_depth_at_deployment - ...
                 sample_data.instrument_nominal_height;
-            nominalOffset = sample_data.site_depth_at_deployment / nominalData;
+            siteNominalDepth = sample_data.site_depth_at_deployment;
         end
     end
     
-    if isempty(nominalData) || isempty(nominalOffset)
+    if isempty(instrumentNominalDepth) || isempty(siteNominalDepth)
         fprintf('%s\n', ['Warning : ' 'Not enough instrument and/or site ' ...
             'nominal/actual depth/height metadata found to perform impossible ' ...
             'depth QC test.']);
@@ -171,38 +188,24 @@ if strcmpi(paramName, 'PRES') || ...
         return;
     end
     
-    % read coefficients from imosImpossibleDepthQC properties file
-    fixedMargin = readProperty('fixedMargin',   fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
-    coefUp      = readProperty('coefUp',        fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
-    coefDown    = readProperty('coefDown',      fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
-    
-    paramsLog = ['fixedMargin=' fixedMargin ', coefUp=' coefUp ', coefDown=' coefDown];
-    
-    fixedMargin = str2double(fixedMargin);
-    coefUp      = str2double(coefUp);
-    coefDown    = str2double(coefDown);
-    
     % get possible min/max values
-    possibleMin = nominalData - coefUp*nominalOffset;
-    possibleMax = nominalData + coefDown*nominalOffset;
+    possibleMin = instrumentNominalDepth - zNominalMargin;
     
-    % possibleMin cannot be greater than the instrument nominal depth - fixed margin
-    % possibleMax cannot be lower than the instrument nominal depth + fixed margin
-    possibleMin = min(possibleMin, nominalData - fixedMargin);
-    possibleMax = max(possibleMax, nominalData + fixedMargin);
+    deltaZ = (siteNominalDepth - (instrumentNominalDepth + zNominalMargin)) * ...
+        (1 - cos(maxAngle * pi/180));
+    possibleMax = instrumentNominalDepth + zNominalMargin + deltaZ;
     
     % possibleMin shouldn't be above the surface (~global range value)
     % possibleMax cannot be below the site depth
-    siteDepth = nominalOffset*nominalData;
     possibleMin = max(possibleMin, imosParameters('DEPTH', 'valid_min')); % value from global range
-    possibleMax = min(possibleMax, siteDepth + 10*siteDepth/100); % we allow +10% to the site Depth
+    possibleMax = min(possibleMax, siteNominalDepth + 10*siteNominalDepth/100); % we allow +10% to the site Depth
     
     if strcmpi(paramName, 'PRES')
         % convert depth into absolute pressure assuming 1 dbar ~= 1 m and
         % nominal atmospheric pressure ~= 10.1325 dBar (gsw_P0/10^4)
         possibleMin = possibleMin + gsw_P0/10^4;
         possibleMax = possibleMax + gsw_P0/10^4;
-        nominalData = nominalData + gsw_P0/10^4;
+        instrumentNominalDepth = instrumentNominalDepth + gsw_P0/10^4;
     elseif strcmpi(paramName, 'PRES_REL')
         % convert depth into relative pressure assuming 1 dbar ~= 1 m
         % Nothing to do!
@@ -231,7 +234,7 @@ if strcmpi(paramName, 'PRES') || ...
     end
     
     % update climatologyRange info for display
-    climatologyRange(p).(['range' paramName]) = [nominalData; nominalData];
+    climatologyRange(p).(['range' paramName]) = [instrumentNominalDepth; instrumentNominalDepth];
     climatologyRange(p).(['rangeMin' paramName]) = [possibleMin; possibleMin];
     climatologyRange(p).(['rangeMax' paramName]) = [possibleMax; possibleMax];
     set(mWh, 'UserData', climatologyRange);

@@ -104,7 +104,7 @@ switch upper(var.name)
         uimenu(mainItem2, 'Label', 'direction [0; 360] (default)',  'Callback', {@cbCLimRange, 'direction [0; 360]', var.data});
         uimenu(mainItem2, 'Label', 'manual',                        'Callback', {@cbCLimRange, 'manual', var.data});
         
-    case {'ADCP_GOOD'} % percentages
+    case {'PERG1', 'PERG2', 'PERG3', 'PERG4'} % percentages
         colormap(jet);
         cbCLimRange('', '', 'percent [0; 100]', var.data);
         

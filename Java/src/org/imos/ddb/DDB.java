@@ -75,7 +75,7 @@ public abstract class DDB {
     	//assuming username and password are not necessary (see http://ucanaccess.sourceforge.net/site.html).
     	//ucanaccess-1.0.2.jar and its .jar dependencies must be added to the 
     	//Java Build Path libraries of the project (and at least in Matlab classpath.txt).
-    	return new JDBCDDB("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + name, "", "");
+    	return new JDBCDDB("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + name + ";jackcessOpener=org.imos.ddb.CryptCodecOpener", "", "");
     else {
     	if (os.startsWith("Windows"))
         	return new ODBCDDB(name);
