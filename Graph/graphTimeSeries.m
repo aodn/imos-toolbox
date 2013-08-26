@@ -81,7 +81,13 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     name = sample_data.variables{k}.name;
     dims = sample_data.variables{k}.dimensions;
     
-    plotFunc = getGraphFunc('TimeSeries', 'graph', name);
+    if length(dims) == 3
+        % 1D display
+        plotFunc = @graphTimeSeriesGeneric;
+    else
+        % 1D or 2D display
+        plotFunc = getGraphFunc('TimeSeries', 'graph', name);
+    end
     switch func2str(plotFunc)
         case 'graphTimeSeriesGeneric'
             yLimits = [floor(min(sample_data.variables{k}.data)*10)/10, ...

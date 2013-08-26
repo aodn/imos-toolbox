@@ -6,7 +6,7 @@ function structures = readParadoppBinary( filename )
 % which is defined in the Firmware Data Structures section of the Nortek 
 % System Integrator Guide, June 2008:
 %
-%   - Aquadopp Current Meter
+%   - Aquadopp Current Meter (Velocity)
 %   - Aquadopp Profiler
 %   - Aquadopp HR Profiler
 %   - Continental
@@ -332,17 +332,21 @@ function [sect len off] = readAquadoppVelocity(data, idx)
   sect.Heading     = block(5);
   sect.Pitch       = block(6);
   sect.Roll        = block(7);
+  
   sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8');
   sect.Status      = data(idx+25);
-  block            = bytecast(data(idx+26:idx+33), 'L', 'uint16');
+  
+  block            = bytecast(data(idx+26:idx+29), 'L', 'uint16');
   sect.PressureLSW = block(1);
-  sect.Temperature = block(2); 
-  sect.VelB1       = block(3);
-  sect.VelB2       = block(4);
-  sect.VelB3       = block(5);
-  sect.AmpB1       = bytecast(data(idx+36), 'L', 'uint8');
-  sect.AmpB2       = bytecast(data(idx+37), 'L', 'uint8');
-  sect.AmpB3       = bytecast(data(idx+38), 'L', 'uint8');
+  sect.Temperature = block(2);
+  % !!! velocity can be negative
+  block            = bytecast(data(idx+30:idx+35), 'L', 'int16');
+  sect.Vel1        = block(1);
+  sect.Vel2        = block(2);
+  sect.Vel3        = block(3);
+  sect.Amp1        = bytecast(data(idx+36), 'L', 'uint8');
+  sect.Amp2        = bytecast(data(idx+37), 'L', 'uint8');
+  sect.Amp3        = bytecast(data(idx+38), 'L', 'uint8');
   sect.Fill        = bytecast(data(idx+39), 'L', 'uint8');
   sect.Checksum    = bytecast(data(idx+40:idx+41), 'L', 'uint16');
 

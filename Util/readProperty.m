@@ -69,7 +69,7 @@ propFilePath = pwd;
 fid = fopen([propFilePath filesep file], 'rt');
 if fid == -1, error(['could not open ' file]); end
 
-lines = textscan(fid, '%s%s', 'Delimiter', delim, 'CommentStyle', '%');
+lines = textscan(fid, '%s%q', 'Delimiter', delim, 'CommentStyle', '%');
 
 fclose(fid);
 

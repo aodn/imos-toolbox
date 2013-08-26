@@ -69,25 +69,35 @@ hold on;
 flags = nan(lenVar, 1);
 
 for k = 1:lenVar
-  % apply the flag function for this variable
-  flagFunc = getGraphFunc('TimeSeries', 'flag', sample_data.variables{k}.name);
-  f = flagFunc(graphs(k), sample_data, k);
-  
-  % if the flag function returned nothing, insert a dummy handle 
-  if isempty(f), f = 0.0; end
-  
-  %
-  % the following is some ugly code which takes the flag handle(s) returned
-  % from the variable-specific flag function, and saves it/them in the 
-  % flags matrix, accounting for differences in size.
-  %
-  
-  fl = length(f);
-  fs = size(flags,2);
-  
-  if     fl > fs, flags(:,fs+1:fl) = 0.0;
-  elseif fl < fs, f    (  fl+1:fs) = 0.0;
-  end
-  
-  flags(k,:) = f;
+    name = sample_data.variables{k}.name;
+    dims = sample_data.variables{k}.dimensions;
+    
+    if length(dims) == 3
+        % 1D display
+        flagFunc = @flagTimeSeriesGeneric;
+    else
+        % 1D or 2D display
+        flagFunc = getGraphFunc('TimeSeries', 'flag', name);
+    end
+    
+    % apply the flag function for this variable
+    f = flagFunc(graphs(k), sample_data, k);
+    
+    % if the flag function returned nothing, insert a dummy handle
+    if isempty(f), f = 0.0; end
+    
+    %
+    % the following is some ugly code which takes the flag handle(s) returned
+    % from the variable-specific flag function, and saves it/them in the
+    % flags matrix, accounting for differences in size.
+    %
+    
+    fl = length(f);
+    fs = size(flags,2);
+    
+    if     fl > fs, flags(:,fs+1:fl) = 0.0;
+    elseif fl < fs, f    (  fl+1:fs) = 0.0;
+    end
+    
+    flags(k,:) = f;
 end
