@@ -93,7 +93,7 @@ function structures = readParadoppBinary( filename )
   lastLen = 0;
   while dIdx < dataLen
     
-    [sect len] = readSection(data, dIdx);
+    [sect len] = readSection(filename, data, dIdx);
     
     if ~isempty(sect), structures{end+1} = sect; end
     if ~isempty(len)
@@ -110,7 +110,7 @@ end
 % specified in the System integrator Manual.
 %
 
-function [sect off] = readSection(data, idx)
+function [sect off] = readSection(filename, data, idx)
 %READSECTION Reads the next data structure in the data array, starting at
 % the given index.
 %
