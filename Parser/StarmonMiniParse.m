@@ -305,7 +305,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
     iContent = i + nColumnTime;
     
     switch header.param(iParam).column;
-        case 'Temp(�C)'
+        case {'Temp(�C)', 'Temp(°C)'}
             var = 'TEMP';
             values = str2double(strrep(DataContent{iContent}, ',', '.'));
             comment = '';
@@ -322,7 +322,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).values = values;
             data.(var).comment = comment;
             
-        case 'Temp(�F)' % ([°F] − 32) × 5⁄9
+        case {'Temp(�F)', 'Temp(°F)'} % ([°F] − 32) × 5⁄9
             var = 'TEMP';
             values = str2double(strrep(DataContent{iContent}, ',', '.'));
             comment = 'Originaly expressed in Fahrenheit.';
