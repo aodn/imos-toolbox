@@ -10,14 +10,16 @@
 
 	<property name="sourcedir" value="${basedir}/src" />
 	<property name="targetdir" value="${basedir}/bin" />
-	<property name="ucanaccessdir" value="${basedir}/UCanAccess/*" />
-	<property name="ucanaccesslibdir" value="${basedir}/UCanAccess/lib/*" />
 
 	<path id="classpath">
 		<pathelement path="${targetdir}" />
 		<pathelement path="${basedir}" />
-		<pathelement path="${ucanaccessdir}" />
-		<pathelement path="${ucanaccesslibdir}" />
+		<fileset dir="UCanAccess">
+			<include name="**/*.jar"/>
+		</fileset>
+		<fileset dir="UCanAccess/lib">
+			<include name="**/*.jar"/>
+		</fileset>
 	</path>
 
 	<target name="clean" description="--> Clean up object code">
