@@ -124,7 +124,7 @@ switch upper(var.name)
         uimenu(mainItem2, 'Label', 'percent [0; 100] (default)',  'Callback', {@cbCLimRange, 'percent [0; 100]', var.data});
         uimenu(mainItem2, 'Label', 'manual',                      'Callback', {@cbCLimRange, 'manual', var.data});
         
-    case {'CSPD', 'VDEN'} % [0; oo[ paremeters
+    case {'CSPD', 'VDEN', 'VDEP', 'VDES', 'VDEV'} % [0; oo[ paremeters
         colormap(jet);
         cbCLimRange('', '', 'auto from 0', var.data);
         
