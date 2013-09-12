@@ -1,0 +1,198 @@
+function waveData = readWorkhorseWaveAscii( filename )
+%READWORKHORSEWAVEASCII Reads RDI Workhorse wave data from processed wave text files 
+% (_LOG5.txt, DSpec*.txt, PSpec*.txt, SSpec*.txt and VSpec*.txt).
+%
+% Inspired from read_adcpWvs.m and read_adcpWvs_spec.m by Charlene Sullivan
+% csullivan@usgs.gov USGS Woods Hole Science Center.
+%
+% This function takes the name of a binnary RDI wave data file (.WVS) and 
+% from that name locates the log5 and spectra files (_LOG5.txt, DSpec*.txt,
+% PSpec*.txt, SSpec*.txt and VSpec*.txt). Those files can be obtained using
+% WavesMon RDI softwares (see http://pubs.usgs.gov/of/2005/1211/images/pdf/report.pdf).
+% It is assumed that these files are located in the same directory as the 
+% binary file and that the log5 file is named '*_LOG5.TXT'.
+%
+% This function currently assumes a number of things:
+%
+%   - That the ASCII files exist in the same directory as the binary file.
+%   - That the spectra files are named DSpec*.txt, PSpec*.txt, SSpec*.txt 
+%   and VSpec*.txt with * being a date of format yyyymmddHHMM.
+%   - That the log file is of format 5 and with a name such as
+%   '*_LOG5.TXT'.
+%
+% Inputs:
+%   filename - The name of a binary RDI wave file (.WVS).
+%
+% Outputs:
+%   waveData - struct containing data read in from the wave data text files.
+%
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%
+
+%
+% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Marine Observing System (IMOS).
+% All rights reserved.
+% 
+% Redistribution and use in source and binary forms, with or without 
+% modification, are permitted provided that the following conditions are met:
+% 
+%     * Redistributions of source code must retain the above copyright notice, 
+%       this list of conditions and the following disclaimer.
+%     * Redistributions in binary form must reproduce the above copyright 
+%       notice, this list of conditions and the following disclaimer in the 
+%       documentation and/or other materials provided with the distribution.
+%     * Neither the name of the eMII/IMOS nor the names of its contributors 
+%       may be used to endorse or promote products derived from this software 
+%       without specific prior written permission.
+% 
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+% POSSIBILITY OF SUCH DAMAGE.
+%
+narginchk(1,1);
+
+if ~ischar(filename), error('filename must be a string'); end
+
+waveData = struct;
+
+% transform the filename into a path
+filePath = fileparts(filename);
+
+% Load the *_LOG5.TXT file
+logFile = dir(fullfile(filePath, '*_LOG5.TXT'));
+
+if isempty(logFile), error(['file ' filePath filesep '*_LOG5.TXT not found!']); end
+
+data = csvread(fullfile(filePath, logFile.name));
+
+% Extract time
+time.YY = data(:,2) + 2000;
+time.MM = data(:,3);
+time.DD = data(:,4);
+time.hh = data(:,5);
+time.mm = data(:,6);
+time.ss = data(:,7);
+time.cc = data(:,8);
+
+waveData.param.time = datenum(time.YY, time.MM, time.DD, time.hh, time.mm, time.ss + time.cc/100);
+clear time;
+
+% Extract wave parameters
+waveData.param.Hs = data(:,9);
+waveData.param.Tp = data(:,10);
+waveData.param.Dp = data(:,11);
+waveData.param.ht = data(:,12);
+waveData.param.Hm = data(:,13);
+waveData.param.Tm = data(:,14);
+clear data;
+
+% Replace all values of -1 (WavesMon bad data indicator
+% for data in the *LOG5.TXT file) with NaN
+param = {'Hs','Tp','Dp','ht','Hm','Tm'};
+for i = 1:length(param)
+    iNaN = waveData.param.(param{i}) == -1;
+    waveData.param.(param{i})(iNaN) = NaN;
+end
+
+% Spectra types
+specType = {'D', 'P', 'S', 'V'};
+for s = 1:length(specType)
+    % get list of files for the spectra type
+    specFile = dir(fullfile(filePath, [specType{s} 'Spec*.txt']));
+    
+    if isempty(specFile), error(['file ' filePath filesep specType{s} 'Spec*.txt not found!']); end
+    
+    % loop through the files and load the data.  Also replace
+    % all values of 0 (WavesMon bad data indicator for spectra
+    % data) with NaN
+    nFiles = length(specFile);
+    for n = 1:nFiles
+        filename = specFile(n).name;
+        
+        filetime = str2double(filename(6:end-4)) + 200000000000;
+        filetime = [num2str(filetime) '0'];
+        filetime = datenum(filetime, 'yyyymmddHHMM');
+        
+        switch specType{s}
+            case 'D'
+                if n == 1
+                   % get some metadata that are the same through the
+                   % deployment
+                   fid = fopen(fullfile(filePath, filename), 'r');
+                   for i=1:2
+                       junk = fgetl(fid);
+                   end
+                   
+                   infoDim = fgetl(fid);
+                   
+                   junk = fgetl(fid);
+                   
+                   infoFreq = fgetl(fid);
+                   fclose(fid);
+                   clear junk
+                   
+                   infoDim = sscanf(infoDim', '%*s %d %*s %*s %d %*s');
+                   waveData.Dspec.nDir  = infoDim(1);
+                   waveData.Dspec.nFreq = infoDim(2);
+                       
+                   infoFreq = sscanf(infoFreq', '%*s %*s %*s %*s %f %*s %*s %*s %*s %*s %*s %*s %f');
+                   freqStep  = infoFreq(1);
+                   firstFreq = infoFreq(2);
+                   
+                   waveData.Dspec.freq = (firstFreq : freqStep : firstFreq + (waveData.Dspec.nFreq-1)*freqStep)';
+                   waveData.Dspec.dir = (0 : 360/waveData.Dspec.nDir : 360 - 360/waveData.Dspec.nDir)';
+                end
+                
+                % get the direction at which the first direction slice
+                % begins. It is determined by WavesMon and can vary between
+                % individual deployments
+                fid = fopen(fullfile(filePath, filename), 'r');
+                for i=1:5
+                    junk = fgetl(fid);
+                end
+                clear junk;
+                infoDir = fgetl(fid);
+                fclose(fid);
+                
+                firstDirSlice = ...
+                       sscanf(infoDir', '%*s %*s %*s %*s %*s %*s %*s %d %*s');
+                
+                direction = (firstDirSlice : 360/waveData.Dspec.nDir : firstDirSlice + 360 - 360/waveData.Dspec.nDir)';
+                direction(direction >= 360) = direction(direction >= 360) - 360;
+                
+                % we add a negative value so that interpolation is possible
+                % for 0
+                iLastDir = direction == max(direction);
+                direction(end+1) = min(direction) - 360/waveData.Dspec.nDir;
+                   
+                data = load(fullfile(filePath, filename), '-ascii');
+                data( data == 0 ) = nan;
+                data(:, end+1) = data(:, iLastDir);
+                
+                % let's interpolate the data at fixed directions
+                interpData = nan(waveData.Dspec.nFreq, waveData.Dspec.nDir);
+                for i=1:waveData.Dspec.nFreq
+                    interpData(i, :) = interp1(direction, data(i, :), waveData.Dspec.dir);
+                end
+                waveData.Dspec.time(n) = filetime;
+                waveData.Dspec.data(n, :, :) = interpData;
+                clear data interpData;
+                
+            otherwise
+                data = load(fullfile(filePath, filename), '-ascii');
+                data( data == 0 ) = nan;
+                waveData.([specType{s} 'spec']).time(n) = filetime;
+                waveData.([specType{s} 'spec']).data(n, :)= data;
+        end
+    end
+end
+end

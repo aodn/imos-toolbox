@@ -68,10 +68,11 @@ public class Test {
     
     //String odbcArgs = "imos-ddb_bmorris";
     //String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/NSW-IMOS_DeploymentDatabase2.0.mdb";
+    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Cristian_Munoz/OceanDB/OceanDB.mdb";
 
     String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
-    String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/NSW-IMOS_DeploymentDatabase2.0.mdb";
-    String connection = "jdbc:ucanaccess://" + mdbFile;
+    String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Cristian_Munoz/OceanDB/OceanDB.mdb";
+    String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener";
     String user = "";
     String password = "";
     String[] jdbcArgs = new String[4];
@@ -81,8 +82,8 @@ public class Test {
     jdbcArgs[3] = password;
     
     try {
-    	//mdb = DDB.getDDB(odbcArgs);}
-    	mdb = DDB.getDDB(jdbcArgs[0], jdbcArgs[1], jdbcArgs[2], jdbcArgs[3]);}
+    	mdb = DDB.getDDB(odbcArgs);}
+    	//mdb = DDB.getDDB(jdbcArgs[0], jdbcArgs[1], jdbcArgs[2], jdbcArgs[3]);}
     catch (Exception e) {
       e.printStackTrace();
       System.exit(1);
