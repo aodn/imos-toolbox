@@ -87,15 +87,17 @@ SLCA,                1, mole_concentration_of_silicate_in_sea_water,            
 SLC2,                1, moles_of_silicate_per_unit_mass_in_sea_water,                                   umole kg-1,                        K, 999999.0, ,        ,         float
 SPEC_CNDC,           0, sea_water_specific_electrical_conductivity,                                     S m-1,                             C, 999999.0, 0.0,     50000.0,  float
 SRAD,                1, isotropic_shortwave_radiance_in_air,                                            W m-1 sr-1,                        F, 999999.0, ,        ,         float
+SSDS,                0, sea_surface_wave_directional_spread,                                            Degrees clockwise from true North, W, 999999.0, 0.0,     360.0,    float
 SSPD,                1, speed_of_sound_in_sea_water,                                                    m s-1,                             A, 999999.0, 1400.0,  1600.0,   float
 SSS,                 1, sea_surface_salinity,                                                           psu,                               S, 999999.0, 2.0,     41.0,     float
 SST,                 1, sea_surface_skin_temperature,                                                   Celsius,                           T, 999999.0, ,        ,         float
 SSTI,                1, sea_surface_temperature,                                                        Celsius,                           T, 999999.0, -2.5,    40.0,     float
-SSDS,                0, sea_surface_wave_directional_spread,                                            Degrees clockwise from true North, W, 999999.0, 0.0,     360.0,    float
 SSWD,                0, sea_surface_wave_direction_spectral_density,                                    Degrees clockwise from true North, W, 999999.0, 0.0,     360.0,    float
 SSWP,                1, sea_surface_swell_wave_period,                                                  Second,                            W, 999999.0, 0.0,     900000.0, float
 SSWV,                1, sea_surface_wave_directional_variance_spectral_density,                         m2 s deg-1,                        W, 999999.0, ,        ,         float
 SW,                  1, surface_downwelling_shortwave_flux_in_air,                                      W m-2,                             F, 999999.0, ,        ,         float
+SWPD,                0, sea_surface_swell_peak_wave_from_direction,                                     Degrees clockwise from true North, W, 999999.0, 0.0,     360.0,    float
+SWPP,                0, sea_surface_swell_peak_wave_period,                                             Second,                            W, 999999.0, 0.0,     900000.0, float
 SW_NET,              1, surface_net_upward_shortwave_flux,                                              W m-2,                             F, 999999.0, ,        ,         float
 TAU,                 1, magnitude_of_surface_downward_stress,                                           Pascal,                            F, 999999.0, ,        ,         float
 TEMP,                1, sea_water_temperature,                                                          Celsius,                           T, 999999.0, -2.5,    40.0,     float
@@ -108,7 +110,10 @@ VAVT,                1, sea_surface_wave_zero_upcrossing_period,                
 VBSC,                0, volumetric_backscatter_coefficient,                                             m-1 sr-1,                          E, 999999.0, ,        ,         float
 VCUR,                1, northward_sea_water_velocity,                                                   m s-1,                             V, 999999.0, -10.0,   10.0,     float
 VDEN,                1, sea_surface_wave_variance_spectral_density,                                     m2 s,                              W, 999999.0, ,        ,         float
-VDIR,                1, sea_surface_wave_from_direction,                                                Degree clockwise from true North,  W, 999999.0, 0.0,     360.0,    float
+VDEP,                1, sea_surface_wave_variance_spectral_density_from_pressure,                       m2 s,                              W, 999999.0, ,        ,         float
+VDES,                1, sea_surface_wave_variance_spectral_density_from_surface_range,                  m2 s,                              W, 999999.0, ,        ,         float
+VDEV,                1, sea_surface_wave_variance_spectral_density_from_velocity,                       m2 s,                              W, 999999.0, ,        ,         float
+VDIR,                1, sea_surface_wave_from_direction,                                                Degrees clockwise from true North, W, 999999.0, 0.0,     360.0,    float
 VOLT,                0, voltage,                                                                        V,                                 E, 999999.0, -100.0,  100.0,    float
 VSF470,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_470nm, m-1 sr-1,                          E, 999999.0, ,        ,         float
 VSF532,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_532nm, m-1 sr-1,                          E, 999999.0, ,        ,         float

@@ -198,7 +198,7 @@ if strcmpi(paramName, 'PRES') || ...
     % possibleMin shouldn't be above the surface (~global range value)
     % possibleMax cannot be below the site depth
     possibleMin = max(possibleMin, imosParameters('DEPTH', 'valid_min')); % value from global range
-    possibleMax = min(possibleMax, siteNominalDepth + 10*siteNominalDepth/100); % we allow +10% to the site Depth
+    possibleMax = min(possibleMax, siteNominalDepth + 20*siteNominalDepth/100); % we allow +20% to the site Depth
     
     if strcmpi(paramName, 'PRES')
         % convert depth into absolute pressure assuming 1 dbar ~= 1 m and

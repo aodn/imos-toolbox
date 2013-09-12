@@ -52,7 +52,7 @@ timeFmt = readProperty('toolbox.timeFormat');
 timeRange = [datestr(sam.time_coverage_start, timeFmt) ' - ' ...
              datestr(sam.time_coverage_end,   timeFmt)];
 
-[fPath fName fSuffix] = fileparts(sam.meta.raw_data_file);
+[fPath fName fSuffix] = fileparts(sam.toolbox_input_file);
 
 fName = [fName fSuffix];
 

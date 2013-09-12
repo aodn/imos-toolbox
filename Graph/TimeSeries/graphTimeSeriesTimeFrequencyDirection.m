@@ -49,7 +49,7 @@ function [h labels] = graphTimeSeriesTimeFrequencyDirection( ax, sample_data, va
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+narginchk(5,5);
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
@@ -92,7 +92,7 @@ myVar = sample_data.variables{var};
 nFreq = length(freqData);
 nDir = length(dirData);
 r = freqData/max(freqData);
-theta = 2*pi*[dirData; 360]/360; % we need to manually add the last angle value to complete the circle
+theta = 2*pi*[dirData; dirData(end) + (dirData(end) - dirData(end-1))]/360; % we need to manually add the last angle value to complete the circle
 theta = theta - (theta(2)-theta(1))/2; % we want to centre the angular beam on the actual angular value
 
 X = nan(nDir+1, nFreq);

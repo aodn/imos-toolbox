@@ -264,8 +264,8 @@ clear temp;
 % first sample_data struct, as all the metadata is the same
 sample_data{2} = sample_data{1};
 
-[path, filename, ~] = fileparts(filename);
-filename = fullfile(path, [filename '.wap']);
+[filePath, fileRadName, ~] = fileparts(filename);
+filename = fullfile(filePath, [fileRadName '.wap']);
 
 sample_data{2}.toolbox_input_file              = filename;
 sample_data{2}.meta.head                       = [];

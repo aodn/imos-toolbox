@@ -3,7 +3,7 @@ function sample_data = workhorseParse( filename, mode )
 % ADCP.
 %
 % This function uses the readWorkhorseEnsembles function to read in a set
-% of ensembles from a raw binary Workhorse ADCP file. It parses the 
+% of ensembles from a raw binary PD0 Workhorse ADCP file. It parses the 
 % ensembles, and extracts and returns the following:
 %
 %   - time
@@ -63,10 +63,24 @@ function sample_data = workhorseParse( filename, mode )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,2,nargin));
+narginchk(1,2);
 
   filename = filename{1};
 
+  % we first look if the file has been processed to extract current and
+  % wave data separately (.PD0 and .WVS)
+  [filePath, fileRadName, ~] = fileparts(filename);
+  
+  currentFile   = fullfile(filePath, [fileRadName '.PD0']);
+  waveFile      = fullfile(filePath, [fileRadName '.WVS']);
+  
+  isWaveData = false;
+  if exist(currentFile, 'file') && exist(currentFile, 'file')
+      % we process current and wave files
+      isWaveData = true;
+      filename = currentFile;
+  end
+  
   ensembles = readWorkhorseEnsembles( filename );
   
   if isempty(ensembles), error(['no ensembles found in file ' filename]); end
@@ -349,4 +363,90 @@ error(nargchk(1,2,nargin));
   
   sample_data.variables(remove) = [];
   
+  if isWaveData
+      %
+      % if wave data files are present, read them in
+      %
+      filename = waveFile;
+      
+      waveData = readWorkhorseWaveAscii(filename);
+      
+      % turn sample data into a cell array
+      temp{1} = sample_data;
+      sample_data = temp;
+      clear temp;
+      
+      % copy wave data into a sample_data struct; start with a copy of the
+      % first sample_data struct, as all the metadata is the same
+      sample_data{2} = sample_data{1};
+      
+      sample_data{2}.toolbox_input_file              = filename;
+      sample_data{2}.meta.head                       = [];
+      sample_data{2}.meta.hardware                   = [];
+      sample_data{2}.meta.user                       = [];
+      sample_data{2}.meta.instrument_sample_interval = median(diff(waveData.param.time*24*3600));
+      
+      sample_data{2}.dimensions = {};
+      sample_data{2}.variables  = {};
+      
+      sample_data{2}.dimensions{1 }.name = 'TIME';
+      sample_data{2}.dimensions{2 }.name = 'LATITUDE';
+      sample_data{2}.dimensions{3 }.name = 'LONGITUDE';
+      sample_data{2}.dimensions{4 }.name = 'FREQUENCY';
+      sample_data{2}.dimensions{5 }.name = 'DIR';
+      
+      sample_data{2}.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{1}.name, 'type')));
+      sample_data{2}.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{2}.name, 'type')));
+      sample_data{2}.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{3}.name, 'type')));
+      sample_data{2}.dimensions{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{4}.name, 'type')));
+      sample_data{2}.dimensions{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{5}.name, 'type')));
+      
+      sample_data{2}.variables {1 }.name = 'VAVH';
+      sample_data{2}.variables {2 }.name = 'SWPP';
+      sample_data{2}.variables {3 }.name = 'SSWP';
+      sample_data{2}.variables {4 }.name = 'SWPD';
+      sample_data{2}.variables {5 }.name = 'DEPTH';
+      sample_data{2}.variables {6 }.name = 'SSWV';
+      sample_data{2}.variables {7 }.name = 'VDEP';
+      sample_data{2}.variables {8 }.name = 'VDES';
+      sample_data{2}.variables {9 }.name = 'VDEV';
+      
+      sample_data{2}.variables{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{1}.name, 'type')));
+      sample_data{2}.variables{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{2}.name, 'type')));
+      sample_data{2}.variables{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{3}.name, 'type')));
+      sample_data{2}.variables{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{4}.name, 'type')));
+      sample_data{2}.variables{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{5}.name, 'type')));
+      sample_data{2}.variables{6}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{6}.name, 'type')));
+      sample_data{2}.variables{7}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{7}.name, 'type')));
+      sample_data{2}.variables{8}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{8}.name, 'type')));
+      sample_data{2}.variables{9}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{9}.name, 'type')));
+      
+      sample_data{2}.variables{1 }.dimensions = [1 2 3];
+      sample_data{2}.variables{2 }.dimensions = [1 2 3];
+      sample_data{2}.variables{3 }.dimensions = [1 2 3];
+      sample_data{2}.variables{4 }.dimensions = [1 2 3];
+      sample_data{2}.variables{5 }.dimensions = [1 2 3];
+      sample_data{2}.variables{6 }.dimensions = [1 2 3 4 5];
+      sample_data{2}.variables{7 }.dimensions = [1 2 3 4];
+      sample_data{2}.variables{8 }.dimensions = [1 2 3 4];
+      sample_data{2}.variables{9 }.dimensions = [1 2 3 4];
+      
+      sample_data{2}.dimensions{1 }.data = sample_data{2}.dimensions{1}.typeCastFunc(waveData.param.time);
+      sample_data{2}.dimensions{2 }.data = sample_data{2}.dimensions{2}.typeCastFunc(NaN);
+      sample_data{2}.dimensions{3 }.data = sample_data{2}.dimensions{3}.typeCastFunc(NaN);
+      
+      sample_data{2}.dimensions{4 }.data = sample_data{2}.dimensions{4}.typeCastFunc(waveData.Dspec.freq);
+      sample_data{2}.dimensions{5 }.data = sample_data{2}.dimensions{5}.typeCastFunc(waveData.Dspec.dir);
+      
+      sample_data{2}.variables {1 }.data = sample_data{2}.variables{1}.typeCastFunc(waveData.param.Hs);
+      sample_data{2}.variables {2 }.data = sample_data{2}.variables{2}.typeCastFunc(waveData.param.Tp);
+      sample_data{2}.variables {3 }.data = sample_data{2}.variables{3}.typeCastFunc(waveData.param.Tm);
+      sample_data{2}.variables {4 }.data = sample_data{2}.variables{4}.typeCastFunc(waveData.param.Dp);
+      sample_data{2}.variables {5 }.data = sample_data{2}.variables{5}.typeCastFunc(waveData.param.ht/1000); % ht is in mm
+      sample_data{2}.variables {6 }.data = sample_data{2}.variables{6}.typeCastFunc(waveData.Dspec.data/1000.^2); % Dspec is in mm^2/Hz/deg
+      sample_data{2}.variables {7 }.data = sample_data{2}.variables{7}.typeCastFunc((waveData.Pspec.data/1000).^2); % ?spec are in mm/sqrt(Hz)
+      sample_data{2}.variables {8 }.data = sample_data{2}.variables{8}.typeCastFunc((waveData.Sspec.data/1000).^2);
+      sample_data{2}.variables {9 }.data = sample_data{2}.variables{9}.typeCastFunc((waveData.Vspec.data/1000).^2);
+      clear waveData;
+  end
 end
