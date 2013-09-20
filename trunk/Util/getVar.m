@@ -46,7 +46,7 @@ function var = getVar(vars, name)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(2,2);
+error(nargchk(2, 2, nargin));
 
 if ~iscell(vars), error('vars must be a cell array'); end
 if ~ischar(name), error('name must be a string');     end
