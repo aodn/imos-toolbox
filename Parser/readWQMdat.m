@@ -296,17 +296,17 @@ function sample_data = readWQMdat( filename )
       data = getVar(sample_data.variables, 'DOX1_1');
       comment = ['Originally expressed in mmol/m3, assuming 1l = 0.001m3 '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80).'];
+          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
       if data == 0
           data = getVar(sample_data.variables, 'DOX1_2');
           comment = ['Originally expressed in ml/l, assuming 1ml/l = 44.660umol/l '...
               'and using density computed from Temperature, Salinity and Pressure '...
-              'with the CSIRO SeaWater library (EOS-80).'];
+              'with the CSIRO SeaWater library (EOS-80) v1.1.'];
           if data == 0
               data = getVar(sample_data.variables, 'DOX1_3');
               comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
                   'and using density computed from Temperature, Salinity and Pressure '...
-                  'with the CSIRO SeaWater library (EOS-80).'];
+                  'with the CSIRO SeaWater library (EOS-80) v1.1.'];
           end
       end
       data = sample_data.variables{data};

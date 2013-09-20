@@ -56,7 +56,7 @@ function sample_data = awacParse( filename, mode )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,2,nargin));
+narginchk(1,2);
 
 if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 
@@ -72,7 +72,6 @@ head     = structures{2};
 user     = structures{3};
 
 % the rest of the sections are awac data
-
 nsamples = length(structures) - 3;
 ncells   = user.NBins;
 
@@ -177,75 +176,49 @@ sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.beam_angle                 = 25;   % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
 
-sample_data.dimensions{1} .name = 'TIME';
-sample_data.dimensions{2} .name = 'HEIGHT_ABOVE_SENSOR';
-sample_data.dimensions{3} .name = 'LATITUDE';
-sample_data.dimensions{4} .name = 'LONGITUDE';
+% add dimensions with their data mapped
+dims = {
+    'TIME',                   time; ...
+    'HEIGHT_ABOVE_SENSOR',    distance; ...
+    'LATITUDE',               NaN; ...
+    'LONGITUDE',              NaN
+    };
+clear time distance;
 
-sample_data.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
-sample_data.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-sample_data.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
-sample_data.dimensions{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{4}.name, 'type')));
+for i=1:size(dims, 1)
+    sample_data.dimensions{i}.name         = dims{i, 1};
+    sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
+    sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
+end
+clear dims;
 
-sample_data.variables {1} .name = 'VCUR';
-sample_data.variables {2} .name = 'UCUR';
-sample_data.variables {3} .name = 'WCUR';
-sample_data.variables {4} .name = 'ABSI1';
-sample_data.variables {5} .name = 'ABSI2';
-sample_data.variables {6} .name = 'ABSI3';
-sample_data.variables {7} .name = 'TEMP';
-sample_data.variables {8} .name = 'PRES_REL';
-sample_data.variables {9} .name = 'VOLT';
-sample_data.variables {10}.name = 'PITCH';
-sample_data.variables {11}.name = 'ROLL';
-sample_data.variables {12}.name = 'HEADING';
-
-sample_data.variables{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
-sample_data.variables{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
-sample_data.variables{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
-sample_data.variables{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{4}.name, 'type')));
-sample_data.variables{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{5}.name, 'type')));
-sample_data.variables{6}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{6}.name, 'type')));
-sample_data.variables{7}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{7}.name, 'type')));
-sample_data.variables{8}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{8}.name, 'type')));
-sample_data.variables{9}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{9}.name, 'type')));
-sample_data.variables{10}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{10}.name, 'type')));
-sample_data.variables{11}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{11}.name, 'type')));
-sample_data.variables{12}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{12}.name, 'type')));
-
-sample_data.variables {1} .dimensions = [1 2 3 4];
-sample_data.variables {2} .dimensions = [1 2 3 4];
-sample_data.variables {3} .dimensions = [1 2 3 4];
-sample_data.variables {4} .dimensions = [1 2 3 4];
-sample_data.variables {5} .dimensions = [1 2 3 4];
-sample_data.variables {6} .dimensions = [1 2 3 4];
-sample_data.variables {7} .dimensions = [1 3 4];
-sample_data.variables {8} .dimensions = [1 3 4];
-sample_data.variables {9} .dimensions = [1 3 4];
-sample_data.variables {10}.dimensions = [1 3 4];
-sample_data.variables {11}.dimensions = [1 3 4];
-sample_data.variables {12}.dimensions = [1 3 4];
-
-sample_data.dimensions{1} .data = sample_data.dimensions{1}.typeCastFunc(time);
-sample_data.dimensions{2} .data = sample_data.dimensions{2}.typeCastFunc(distance);
-sample_data.dimensions{3} .data = sample_data.dimensions{3}.typeCastFunc(NaN);
-sample_data.dimensions{4} .data = sample_data.dimensions{4}.typeCastFunc(NaN);
-
-sample_data.variables {1} .data = sample_data.variables{1}.typeCastFunc(velocity2); % V
-sample_data.variables {2} .data = sample_data.variables{2}.typeCastFunc(velocity1); % U
-sample_data.variables {3} .data = sample_data.variables{3}.typeCastFunc(velocity3);
-sample_data.variables {4} .data = sample_data.variables{4}.typeCastFunc(backscatter1);
-sample_data.variables {5} .data = sample_data.variables{5}.typeCastFunc(backscatter2);
-sample_data.variables {6} .data = sample_data.variables{6}.typeCastFunc(backscatter3);
-sample_data.variables {7} .data = sample_data.variables{7}.typeCastFunc(temperature);
-sample_data.variables {8} .data = sample_data.variables{8}.typeCastFunc(pressure);
-sample_data.variables {9} .data = sample_data.variables{9}.typeCastFunc(battery);
-sample_data.variables {10}.data = sample_data.variables{10}.typeCastFunc(pitch);
-sample_data.variables {11}.data = sample_data.variables{11}.typeCastFunc(roll);
-sample_data.variables {12}.data = sample_data.variables{12}.typeCastFunc(heading);
+% add variables with their dimensions and data mapped.
+% we assume no correction for magnetic declination has been applied
+vars = {
+    'VCUR_MAG',   [1 2 3 4],  velocity2; ... % V
+    'UCUR_MAG',   [1 2 3 4],  velocity1; ... % U
+    'WCUR',       [1 2 3 4],  velocity3; ...
+    'ABSI1',      [1 2 3 4],  backscatter1; ...
+    'ABSI2',      [1 2 3 4],  backscatter2; ...
+    'ABSI3',      [1 2 3 4],  backscatter3; ...
+    'TEMP',       [1 3 4],    temperature; ...
+    'PRES_REL',   [1 3 4],    pressure; ...
+    'VOLT',       [1 3 4],    battery; ...
+    'PITCH',      [1 3 4],    pitch; ...
+    'ROLL',       [1 3 4],    roll; ...
+    'HEADING_MAG',[1 3 4],    heading
+    };
 clear analn1 analn2 time distance velocity1 velocity2 velocity3 ...
     backscatter1 backscatter2 backscatter3 ...
     temperature pressure battery pitch roll heading;
+
+for i=1:size(vars, 1)
+    sample_data.variables{i}.name         = vars{i, 1};
+    sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
+    sample_data.variables{i}.dimensions   = vars{i, 2};
+    sample_data.variables{i}.data         = sample_data.variables{i}.typeCastFunc(vars{i, 3});
+end
+clear vars;
 
 %
 % if wave data files are present, read them in
@@ -276,80 +249,47 @@ sample_data{2}.meta.instrument_sample_interval = median(diff(waveData.Time*24*36
 sample_data{2}.dimensions = {};
 sample_data{2}.variables  = {};
 
-sample_data{2}.dimensions{1 }.name = 'TIME';
-sample_data{2}.dimensions{2 }.name = 'LATITUDE';
-sample_data{2}.dimensions{3 }.name = 'LONGITUDE';
-sample_data{2}.dimensions{4 }.name = 'FREQUENCY_1';
-sample_data{2}.dimensions{5 }.name = 'FREQUENCY_2';
-sample_data{2}.dimensions{6 }.name = 'DIR';
+% we assume no correction for magnetic declination has been applied
 
-sample_data{2}.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{1}.name, 'type')));
-sample_data{2}.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{2}.name, 'type')));
-sample_data{2}.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{3}.name, 'type')));
-sample_data{2}.dimensions{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{4}.name, 'type')));
-sample_data{2}.dimensions{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{5}.name, 'type')));
-sample_data{2}.dimensions{6}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{6}.name, 'type')));
+% add dimensions with their data mapped
+dims = {
+    'TIME',                   waveData.Time; ...
+    'LATITUDE',               NaN; ...
+    'LONGITUDE',              NaN; ...
+    'FREQUENCY_1',            waveData.pwrFrequency; ...
+    'FREQUENCY_2',            waveData.dirFrequency; ...
+    'DIR_MAG',                waveData.Direction
+    };
 
-sample_data{2}.variables {1 }.name = 'VDEN';
-sample_data{2}.variables {2 }.name = 'SSWD';
-sample_data{2}.variables {3 }.name = 'VAVH';
-sample_data{2}.variables {4 }.name = 'VAVT';
-sample_data{2}.variables {5 }.name = 'VDIR';
-sample_data{2}.variables {6 }.name = 'SSDS';
-sample_data{2}.variables {7 }.name = 'TEMP';
-sample_data{2}.variables {8 }.name = 'PRES_REL';
-sample_data{2}.variables {9 }.name = 'VOLT';
-sample_data{2}.variables {10}.name = 'HEADING';
-sample_data{2}.variables {11}.name = 'PITCH';
-sample_data{2}.variables {12}.name = 'ROLL';
-sample_data{2}.variables {13}.name = 'SSWV';
+for i=1:size(dims, 1)
+    sample_data{2}.dimensions{i}.name         = dims{i, 1};
+    sample_data{2}.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
+    sample_data{2}.dimensions{i}.data         = sample_data{2}.dimensions{i}.typeCastFunc(dims{i, 2});
+end
+clear dims;
 
-sample_data{2}.variables{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{1}.name, 'type')));
-sample_data{2}.variables{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{2}.name, 'type')));
-sample_data{2}.variables{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{3}.name, 'type')));
-sample_data{2}.variables{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{4}.name, 'type')));
-sample_data{2}.variables{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{5}.name, 'type')));
-sample_data{2}.variables{6}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{6}.name, 'type')));
-sample_data{2}.variables{7}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{7}.name, 'type')));
-sample_data{2}.variables{8}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{8}.name, 'type')));
-sample_data{2}.variables{9}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{9}.name, 'type')));
-sample_data{2}.variables{10}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{10}.name, 'type')));
-sample_data{2}.variables{11}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{11}.name, 'type')));
-sample_data{2}.variables{12}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{12}.name, 'type')));
-sample_data{2}.variables{13}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{13}.name, 'type')));
-
-sample_data{2}.variables{1 }.dimensions = [1 2 3 4];
-sample_data{2}.variables{2 }.dimensions = [1 2 3 5];
-sample_data{2}.variables{3 }.dimensions = [1 2 3];
-sample_data{2}.variables{4 }.dimensions = [1 2 3];
-sample_data{2}.variables{5 }.dimensions = [1 2 3];
-sample_data{2}.variables{6 }.dimensions = [1 2 3];
-sample_data{2}.variables{7 }.dimensions = [1 2 3];
-sample_data{2}.variables{8 }.dimensions = [1 2 3];
-sample_data{2}.variables{9 }.dimensions = [1 2 3];
-sample_data{2}.variables{10}.dimensions = [1 2 3];
-sample_data{2}.variables{11}.dimensions = [1 2 3];
-sample_data{2}.variables{12}.dimensions = [1 2 3];
-sample_data{2}.variables{13}.dimensions = [1 2 3 5 6];
-
-sample_data{2}.dimensions{1 }.data = sample_data{2}.dimensions{1}.typeCastFunc(waveData.Time);
-sample_data{2}.dimensions{2 }.data = sample_data{2}.dimensions{2}.typeCastFunc(NaN);
-sample_data{2}.dimensions{3 }.data = sample_data{2}.dimensions{3}.typeCastFunc(NaN);
-sample_data{2}.dimensions{4 }.data = sample_data{2}.dimensions{4}.typeCastFunc(waveData.pwrFrequency);
-sample_data{2}.dimensions{5 }.data = sample_data{2}.dimensions{5}.typeCastFunc(waveData.dirFrequency);
-sample_data{2}.dimensions{6 }.data = sample_data{2}.dimensions{6}.typeCastFunc(waveData.Direction);
-
-sample_data{2}.variables {1 }.data = sample_data{2}.variables{1}.typeCastFunc(waveData.pwrSpectrum);
-sample_data{2}.variables {2 }.data = sample_data{2}.variables{2}.typeCastFunc(waveData.dirSpectrum);
-sample_data{2}.variables {3 }.data = sample_data{2}.variables{3}.typeCastFunc(waveData.SignificantHeight);
-sample_data{2}.variables {4 }.data = sample_data{2}.variables{4}.typeCastFunc(waveData.MeanZeroCrossingPeriod);
-sample_data{2}.variables {5 }.data = sample_data{2}.variables{5}.typeCastFunc(waveData.MeanDirection);
-sample_data{2}.variables {6 }.data = sample_data{2}.variables{6}.typeCastFunc(waveData.DirectionalSpread);
-sample_data{2}.variables {7 }.data = sample_data{2}.variables{7}.typeCastFunc(waveData.Temperature);
-sample_data{2}.variables {8 }.data = sample_data{2}.variables{8}.typeCastFunc(waveData.MeanPressure);
-sample_data{2}.variables {9 }.data = sample_data{2}.variables{9}.typeCastFunc(waveData.Battery);
-sample_data{2}.variables {10}.data = sample_data{2}.variables{10}.typeCastFunc(waveData.Heading);
-sample_data{2}.variables {11}.data = sample_data{2}.variables{11}.typeCastFunc(waveData.Pitch);
-sample_data{2}.variables {12}.data = sample_data{2}.variables{12}.typeCastFunc(waveData.Roll);
-sample_data{2}.variables {13}.data = sample_data{2}.variables{13}.typeCastFunc(waveData.fullSpectrum);
+% add variables with their dimensions and data mapped
+vars = {
+    'VDEN',         [1 2 3 4],  waveData.pwrSpectrum; ... 
+    'SSWD_MAG',     [1 2 3 5],  waveData.dirSpectrum; ... 
+    'VAVH',         [1 2 3],    waveData.SignificantHeight; ...
+    'VAVT',         [1 2 3],    waveData.MeanZeroCrossingPeriod; ...
+    'VDIR_MAG',     [1 2 3],    waveData.MeanDirection; ...
+    'SSDS_MAG',     [1 2 3],    waveData.DirectionalSpread; ...
+    'TEMP',         [1 2 3],    waveData.Temperature; ...
+    'PRES_REL',     [1 2 3],    waveData.MeanPressure; ...
+    'VOLT',         [1 2 3],    waveData.Battery; ...
+    'HEADING_MAG',  [1 2 3],    waveData.Heading; ...
+    'PITCH',        [1 2 3],    waveData.Pitch; ...
+    'ROLL',         [1 2 3],    waveData.Roll; ...
+    'SSWV_MAG',     [1 2 3 5 6],waveData.fullSpectrum
+    };
 clear waveData;
+
+for i=1:size(vars, 1)
+    sample_data{2}.variables{i}.name         = vars{i, 1};
+    sample_data{2}.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
+    sample_data{2}.variables{i}.dimensions   = vars{i, 2};
+    sample_data{2}.variables{i}.data         = sample_data{2}.variables{i}.typeCastFunc(vars{i, 3});
+end
+clear vars;

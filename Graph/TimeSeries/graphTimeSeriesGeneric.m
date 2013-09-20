@@ -47,14 +47,15 @@ function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var, color, xTick
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+narginchk(5,5);
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 if ~isvector(color),       error('color must be a vector');       end
 
-time = getVar(sample_data.dimensions, 'TIME');
+time = sample_data.variables{var}.dimensions(1);
+
 time = sample_data.dimensions{time};
 var  = sample_data.variables {var};
 
@@ -116,4 +117,4 @@ if strncmp(var.name, 'DEPTH', 4)
     set(ax, 'YDir', 'reverse');
 end
 
-labels = {'TIME', var.name};
+labels = {time.name, var.name};

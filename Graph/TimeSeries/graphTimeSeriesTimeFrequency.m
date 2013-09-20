@@ -49,23 +49,14 @@ function [h labels] = graphTimeSeriesTimeFrequency( ax, sample_data, var, color,
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+narginchk(5,5);
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 
-time = getVar(sample_data.dimensions, 'TIME');
-
-dims = sample_data.variables{var}.dimensions;
-freq = getVar(sample_data.dimensions(dims), 'FREQUENCY');
-if freq == 0
-    freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_1');
-    if freq == 0
-        freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_2');
-    end
-end
-freq = dims(freq);
+time = sample_data.variables{var}.dimensions(1);
+freq = sample_data.variables{var}.dimensions(4);
 
 time = sample_data.dimensions{time};
 freq = sample_data.dimensions{freq};
@@ -101,6 +92,6 @@ cbLabel = [var.name ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel);
 
-labels = {'TIME', 'FREQUENCY'};
+labels = {time.name, freq.name};
 
 end

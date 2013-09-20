@@ -46,7 +46,7 @@ function flags = flagTimeSeriesTimeFrequencyDirection( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error (nargchk(3,3,nargin));
+narginchk(3,3);
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
@@ -55,17 +55,11 @@ if ~isnumeric(var),        error('var must be numeric');          end
 qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
-dims = sample_data.variables{var}.dimensions;
-freq = getVar(sample_data.dimensions(dims), 'FREQUENCY');
-dir = getVar(sample_data.dimensions(dims), 'DIR');
-if freq == 0
-    freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_1');
-    if freq == 0
-        freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_2');
-    end
-end
-dir = dims(dir);
-freq = dims(freq);
+freq = sample_data.variables{var}.dimensions(4);
+dir  = sample_data.variables{var}.dimensions(5);
+
+dirData   = sample_data.dimensions{dir}.data;
+freqData  = sample_data.dimensions{freq}.data;
 
 varCheckbox = findobj('Tag', ['checkbox' sample_data.variables{var}.name]);
 iTime = get(varCheckbox, 'userData');
@@ -73,9 +67,6 @@ if isempty(iTime)
     % we choose an arbitrary time to plot
     iTime = 1;
 end
-
-dirData = sample_data.dimensions{dir}.data;
-freqData = sample_data.dimensions{freq}.data;
 
 sswvFlags = sample_data.variables{var}.flags(iTime, :, :);
 

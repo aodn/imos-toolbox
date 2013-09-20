@@ -227,7 +227,7 @@ function [newData, comment] = convertData(data, header)
           newData.DOX2 = newData.DOX1 .* 1000.0 ./ dens;
           comment.DOX2 = ['Originally expressed in umol/l, assuming 1l = 0.001m3 '...
               'and using density computed from Temperature, Salinity and Pressure '...
-              'with the CSIRO SeaWater library (EOS-80).'];
+              'with the CSIRO SeaWater library (EOS-80) v1.1.'];
       end
   end
 end

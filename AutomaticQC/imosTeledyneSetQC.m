@@ -49,7 +49,7 @@ function [sample_data, varChecked, paramsLog] = imosTeledyneSetQC( sample_data, 
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 2, nargin));
+narginchk(1, 2);
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
 % auto logical in input to enable running under batch processing
@@ -74,24 +74,40 @@ for j=1:4
     idABSI{j}  = 0;
     idCMAG{j}  = 0;
 end
-lenVar = size(sample_data.variables,2);
+lenVar = size(sample_data.variables, 2);
 for i=1:lenVar
-    if strcmpi(sample_data.variables{i}.name, 'UCUR'), idUcur = i; end
-    if strcmpi(sample_data.variables{i}.name, 'VCUR'), idVcur = i; end
-    if strcmpi(sample_data.variables{i}.name, 'WCUR'), idWcur = i; end
-    if strcmpi(sample_data.variables{i}.name, 'ECUR'), idEcur = i; end
-    if strcmpi(sample_data.variables{i}.name, 'CSPD'), idCspd = i; end
-    if strcmpi(sample_data.variables{i}.name, 'CDIR'), idCdir = i; end
+    % let's handle the case where same current params 
+    % are distinguished by "_1" and "_2"
+    paramName = sample_data.variables{i}.name;
+    
+    if strcmpi(paramName, 'UCUR_MAG'),  idUcur(1)   = i; end
+    if strcmpi(paramName, 'UCUR'),      idUcur(2)   = i; end
+    if strcmpi(paramName, 'UCUR_1'),    idUcur(2)   = i; end % PARAM and PARAM_1 shouldn't be possible
+    if strcmpi(paramName, 'UCUR_2'),    idUcur(3)   = i; end
+    
+    if strcmpi(paramName, 'VCUR_MAG'),  idVcur(1)   = i; end
+    if strcmpi(paramName, 'VCUR'),      idVcur(2)   = i; end
+    if strcmpi(paramName, 'VCUR_1'),    idVcur(2)   = i; end
+    if strcmpi(paramName, 'VCUR_2'),    idVcur(3)   = i; end
+    
+    if strcmpi(paramName, 'WCUR'),      idWcur      = i; end
+    if strcmpi(paramName, 'ECUR'),      idEcur      = i; end
+    if strcmpi(paramName, 'CSPD'),      idCspd      = i; end
+    
+    if strcmpi(paramName, 'CDIR_MAG'),  idCdir(1)   = i; end
+    if strcmpi(paramName, 'CDIR'),      idCdir(2)   = i; end
+    if strcmpi(paramName, 'CDIR_1'),    idCdir(2)   = i; end
+    if strcmpi(paramName, 'CDIR_2'),    idCdir(3)   = i; end
     for j=1:4
         cc = int2str(j);
-        if strcmpi(sample_data.variables{i}.name, ['PERG' cc]), idPERG{j} = i; end
-        if strcmpi(sample_data.variables{i}.name, ['ABSI' cc]), idABSI{j} = i; end
-        if strcmpi(sample_data.variables{i}.name, ['CMAG' cc]), idCMAG{j} = i; end
+        if strcmpi(paramName, ['PERG' cc]), idPERG{j} = i; end
+        if strcmpi(paramName, ['ABSI' cc]), idABSI{j} = i; end
+        if strcmpi(paramName, ['CMAG' cc]), idCMAG{j} = i; end
     end
 end
 
 % check if the data is compatible with the QC algorithm
-idMandatory = idHeight & idUcur & idVcur & idWcur & idEcur;
+idMandatory = idHeight & idUcur(1) & idVcur(1) & idWcur & idEcur; % PARAM_MAG will always be there first
 for j=1:4
     idMandatory = idMandatory & idPERG{j} & idABSI{j} & idCMAG{j};
 end
@@ -104,8 +120,10 @@ goodFlag = imosQCFlag('good', qcSet, 'flag');
 rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
 
 %Pull out horizontal velocities
-u = sample_data.variables{idUcur}.data;
-v = sample_data.variables{idVcur}.data;
+% we can afford to run the test only once (if couple of UCUR/VCUR) since u
+% is only tested in absolute value (direction doesn't matter)
+u = sample_data.variables{idUcur(1)}.data;
+v = sample_data.variables{idVcur(1)}.data;
 u = u + 1i*v;
 clear v;
 
@@ -139,38 +157,46 @@ paramsLog = ['err_vel=' num2str(qcthresh.err_vel) ', pgood=' num2str(qcthresh.pg
     ', cmag=' num2str(qcthresh.cmag) ', vvel=' num2str(qcthresh.vvel) ...
     ', hvel=' num2str(qcthresh.hvel) ', ea_thresh=' num2str(qcthresh.ea_thresh)];
 
-%Run QC
-[iPass] = adcpqctest(qcthresh,qc,u,w,erv);
-iFail = ~iPass;
-
-sizeCur = size(sample_data.variables{idUcur}.flags);
+sizeCur = size(sample_data.variables{idWcur}.flags);
 
 % same flags are given to any variable
 flags = ones(sizeCur, 'int8')*rawFlag;
+
+%Run QC
+% we can afford to run the test only once (if couple of UCUR/VCUR) since u
+% is only tested in absolute value (direction doesn't matter)
+[iPass] = adcpqctest(qcthresh, qc, u, w, erv);
+iFail = ~iPass;
 
 %Run QC filter (iFail) on velocity data
 flags(iFail) = badFlag;
 flags(~iFail) = goodFlag;
 
-sample_data.variables{idUcur}.flags = flags;
-sample_data.variables{idVcur}.flags = flags;
-sample_data.variables{idWcur}.flags = flags;
+nCurrentData = length(idUcur);
+for i=1:nCurrentData
+    sample_data.variables{idUcur(i)}.flags = flags;
+    sample_data.variables{idVcur(i)}.flags = flags;
+    
+    varChecked = {sample_data.variables{idUcur(i)}.name, ...
+        sample_data.variables{idVcur(i)}.name};
+    
+    if any(idCdir(1)) % if the first is identified then the folowing are as well
+        sample_data.variables{idCdir(i)}.flags = flags;
+        varChecked = [varChecked, {sample_data.variables{idCdir(i)}.name}];
+    end
+end
 
-varChecked = {'UCUR', 'VCUR', 'WCUR'};
+sample_data.variables{idWcur}.flags = flags;
+varChecked = [varChecked, {'WCUR'}];
 
 if any(idCspd)
     sample_data.variables{idCspd}.flags = flags;
     varChecked = [varChecked, {'CSPD'}];
 end
-
-if any(idCdir)
-    sample_data.variables{idCdir}.flags = flags;
-    varChecked = [varChecked, {'CDIR'}];
+    
 end
 
-end
-
-function [iPass] = adcpqctest(qcthresh,qc,u,w,erv)
+function [iPass] = adcpqctest(qcthresh, qc, u, w, erv)
 %[iPass] = adcpqctest(qcthresh,qc,u,w,erv)
 % Inputs: a structure of thresholds for each of the following:
 %   qcthresh.errvel  :  error velocity

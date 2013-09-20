@@ -44,7 +44,7 @@ function hMenu = setTimeSerieColorbarContextMenu(var)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+narginchk(1,1);
 
 if ~isstruct(var), error('var must be a struct'); end
 
@@ -62,7 +62,7 @@ if iLastUnderscore > 0
     end
 end
 
-switch upper(var.name)
+switch upper(var.name(1:4))
     case {'UCUR', 'VCUR', 'WCUR', 'ECUR'} % 0 centred parameters
         colormap(r_b);
         cbCLimRange('', '', 'auto, 0 centred', var.data);
@@ -104,7 +104,7 @@ switch upper(var.name)
         uimenu(mainItem2, 'Label', 'direction [0; 360] (default)',  'Callback', {@cbCLimRange, 'direction [0; 360]', var.data});
         uimenu(mainItem2, 'Label', 'manual',                        'Callback', {@cbCLimRange, 'manual', var.data});
         
-    case {'PERG1', 'PERG2', 'PERG3', 'PERG4'} % percentages
+    case 'PERG' % percentages
         colormap(jet);
         cbCLimRange('', '', 'percent [0; 100]', var.data);
         
@@ -124,7 +124,7 @@ switch upper(var.name)
         uimenu(mainItem2, 'Label', 'percent [0; 100] (default)',  'Callback', {@cbCLimRange, 'percent [0; 100]', var.data});
         uimenu(mainItem2, 'Label', 'manual',                      'Callback', {@cbCLimRange, 'manual', var.data});
         
-    case {'CSPD', 'VDEN', 'VDEP', 'VDES', 'VDEV'} % [0; oo[ paremeters
+    case {'CSPD', 'VDEN'} % [0; oo[ paremeters
         colormap(jet);
         cbCLimRange('', '', 'auto from 0', var.data);
         
