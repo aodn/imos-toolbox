@@ -86,10 +86,11 @@ matlabFiles     = fsearchRegexp('.m$',   toolboxRoot, 'files');
 matlabDataFiles = fsearch('.mat', toolboxRoot, 'files');
 resourceFiles   = [matlabFiles   matlabDataFiles];
 resourceFiles   = [resourceFiles fsearchRegexp('.txt$', toolboxRoot, 'files')];
+resourceFiles   = [resourceFiles fsearchRegexp('.COF$', toolboxRoot, 'files')];
 resourceFiles   = [resourceFiles fsearchRegexp('.jar$', toolboxRoot, 'files')];
 resourceFiles   = [resourceFiles fsearchRegexp('.bat$', toolboxRoot, 'files')];
 resourceFiles   = [resourceFiles fsearchRegexp('.exe$', toolboxRoot, 'files')];
-resourceFiles   = [resourceFiles fsearchRegexp('.sh$', toolboxRoot, 'files')];
+resourceFiles   = [resourceFiles fsearchRegexp('.sh$',  toolboxRoot, 'files')];
 resourceFiles   = [resourceFiles fsearchRegexp('.bin$', toolboxRoot, 'files')];
 
 % copy the resource files to the packaging area
