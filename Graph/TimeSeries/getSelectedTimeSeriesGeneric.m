@@ -47,7 +47,7 @@ function dataIdx = getSelectedTimeSeriesGeneric( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(5,5);
+error(nargchk(5, 5, nargin));
 
 if ~isstruct(sample_data), error('sample_data must be a struct');        end
 if ~isnumeric(var),        error('var must be numeric');                 end

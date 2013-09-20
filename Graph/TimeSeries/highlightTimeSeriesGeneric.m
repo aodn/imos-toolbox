@@ -49,7 +49,7 @@ function highlight = highlightTimeSeriesGeneric( region, data, variable, type )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(4,4);
+error(nargchk(4, 4, nargin));
 
 if ~isnumeric(region) || ~isvector(region) || length(region) ~= 4
   error('region must be a numeric vector of length 4');
