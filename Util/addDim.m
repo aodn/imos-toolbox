@@ -1,20 +1,19 @@
-function var = getVar(vars, name)
-%GETVAR Finds and returns the index of the variable with the given name from 
-% the given cell array of variables. If the array does not contain a variable 
-% of the given name, 0 is returned.
+function sam = addDim(sam, name, data, comment)
+%ADDDIM Adds a new dimension to the given data set.
 %
-% This function is simply a for loop - it saves having to repeat the same
-% code elsewhere.
+% Adds a new variable with the given name, data and commment to
+% the given data set.
 %
 % Inputs:
-%   vars - Cell array of variable structs.
-%   name - Name of the variable in question.
+%   sam        - data set to which the new dimension is added
+%   name       - new dimension name
+%   data       - dimension data
+%   comment    - dimension comment
 %
 % Outputs:
-%   var  - Index into the vars array, specifying the variable with the
-%          given name, or 0 if the variable wasn't found.
+%   sam        - data set  with the new dimension added.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -46,14 +45,33 @@ function var = getVar(vars, name)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(2,2);
+narginchk(4,4);
 
-if ~iscell(vars), error('vars must be a cell array'); end
-if ~ischar(name), error('name must be a string');     end
+if ~isstruct( sam),        error('sam must be a struct');        end
+if ~ischar(   name),       error('name must be a string');       end
+if ~isnumeric(data),       error('data must be a matrix');       end
+if ~ischar(   comment),    error('comment must be a string');    end
 
-var = 0;
+qcSet   = str2double(readProperty('toolbox.qc_set'));
+rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
-for k = 1:length(vars)
+% add new dimension to data set
+sam.dimensions{end+1}.name           = name;
+sam.dimensions{end  }.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sam.dimensions{end}.name, 'type')));
+sam.dimensions{end  }.data           = sam.dimensions{end}.typeCastFunc(data);
+clear data;
 
-  if strcmp(vars{k}.name, name), var = k; return; end
+% create an empty flags matrix for the new dimension
+sam.dimensions{end}.flags(1:numel(sam.dimensions{end}.data)) = rawFlag;
+sam.dimensions{end}.flags = reshape(...
+  sam.dimensions{end}.flags, size(sam.dimensions{end}.data));
+  
+% ensure that the new dimension is populated  with all 
+% required NetCDF  attributes - all existing fields are 
+% left unmodified by the makeNetCDFCompliant function
+sam = makeNetCDFCompliant(sam);
+
+if isfield(sam.dimensions{end}, 'comment')
+    sam.dimensions{end}.comment      = comment;
 end
+  

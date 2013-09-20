@@ -46,7 +46,7 @@ function sam = addVar(sam, name, data, dimensions, comment)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(nargin, 5, 5));
+narginchk(5,5);
 
 if ~isstruct( sam),        error('sam must be a struct');        end
 if ~ischar(   name),       error('name must be a string');       end

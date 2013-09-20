@@ -255,11 +255,10 @@ function filename = exportNetCDF( sample_data, dest, mode )
           % possible.
           if sum(greatDim) == 3
               greatDimName = dimname(greatDim);
-              if any(strcmpi('TIME', greatDimName)) && ...
+              if any(strncmpi('TIME', greatDimName, 4)) && ...
                       any(strncmpi('FREQUENCY', greatDimName, 9)) && ...
-                      any(strcmpi('DIR', greatDimName))
-                  iTime = strcmpi('TIME', dimname);
-                  dimLen(iTime) = 1;
+                      any(strncmpi('DIR', greatDimName, 3))
+                  dimLen(1) = 1; % T dimension always comes first
               else
                   optimised = false;
               end

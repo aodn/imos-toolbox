@@ -241,17 +241,17 @@ function sample_data = readWQMraw( filename )
       data = getVar(sample_data.variables, 'DOX1_1');
       comment = ['Originally expressed in mmol/m3, assuming 1l = 0.001m3 '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80).'];
+          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
       if data == 0
           data = getVar(sample_data.variables, 'DOX1_2');
           comment = ['Originally expressed in ml/l, assuming 1ml/l = 44.660umol/l '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80).'];
+          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
           if data == 0
               data = getVar(sample_data.variables, 'DOX1_3');
               comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
                   'and using density computed from Temperature, Salinity and Pressure '...
-                  'with the CSIRO SeaWater library (EOS-80).'];
+                  'with the CSIRO SeaWater library (EOS-80) v1.1.'];
           end
       end
       data = sample_data.variables{data};
@@ -701,7 +701,7 @@ P1=Soc*(freq+FOffset);
 P2=(1+A.*T+B.*T.^2+C.*T.^3);
 K=T+273.15;
 P3=exp(E.*P./K);
-oxsat=sw_satO2(S,T);
+oxsat=sw_satO2(S,T); % cannot use the GSW SeaWater library TEOS-10 since there is not any function provided for oxygen.
 
 O2=P1.*P2.*oxsat.*P3;
 % is 30000 a bad flag can't tell but O2 is bad if freq sticks

@@ -323,7 +323,7 @@ function sample_data = YSI6SeriesParse( filename, mode )
           data = dox1.data .* 1000.0 ./ dens;
           comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
           'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80).'];
+          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
           
           sample_data.variables{end+1}.dimensions           = [1];
           sample_data.variables{end}.comment                = comment;

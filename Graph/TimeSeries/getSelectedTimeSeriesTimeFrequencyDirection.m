@@ -46,7 +46,7 @@ function dataIdx = getSelectedTimeSeriesTimeFrequencyDirection( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+narginchk(5,5);
 
 if ~isstruct(sample_data), error('sample_data must be a struct');        end
 if ~isnumeric(var),        error('var must be numeric');                 end
@@ -56,19 +56,8 @@ if ~isnumeric(click),      error('click must be numeric');               end
 
 dataIdx = [];
 
-time = getVar(sample_data.dimensions, 'TIME');
-
-dims = sample_data.variables{var}.dimensions;
-freq = getVar(sample_data.dimensions, 'FREQUENCY');
-dir = getVar(sample_data.dimensions(dims), 'DIR');
-if freq == 0
-    freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_1');
-    if freq == 0
-        freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_2');
-    end
-end
-freq = dims(freq);
-dir = dims(dir);
+freq = sample_data.variables{var}.dimensions(4);
+dir  = sample_data.variables{var}.dimensions(5);
 
 varCheckbox = findobj('Tag', ['checkbox' sample_data.variables{var}.name]);
 iTime = get(varCheckbox, 'userData');
@@ -77,10 +66,8 @@ if isempty(iTime)
     iTime = 1;
 end
 
-timeData = sample_data.dimensions{time}.data(iTime);
 dirData  = sample_data.dimensions{dir}.data;
 freqData = sample_data.dimensions{freq}.data;
-varData  = sample_data.variables {var} .data(iTime, :, :);
 
 nFreq = length(freqData);
 nDir = length(dirData);

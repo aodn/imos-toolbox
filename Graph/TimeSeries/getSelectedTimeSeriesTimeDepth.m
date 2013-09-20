@@ -47,7 +47,7 @@ function dataIdx = getSelectedTimeSeriesTimeDepth( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+narginchk(5,5);
 
 if ~isstruct(sample_data), error('sample_data must be a struct');        end
 if ~isnumeric(var),        error('var must be numeric');                 end
@@ -57,20 +57,11 @@ if ~isnumeric(click),      error('click must be numeric');               end
 
 dataIdx = [];
 
-zTitle = 'DEPTH';
-
-time  = getVar(sample_data.dimensions, 'TIME');
-depth = getVar(sample_data.dimensions, zTitle);
-
-% case of sensors on the seabed looking upward like moored ADCPs
-if depth == 0
-    zTitle = 'HEIGHT_ABOVE_SENSOR';
-    depth = getVar(sample_data.dimensions, zTitle);
-end
+time  = sample_data.variables{var}.dimensions(1);
+depth = sample_data.variables{var}.dimensions(2);
 
 time  = sample_data.dimensions{time} .data;
 depth = sample_data.dimensions{depth}.data;
-var   = sample_data.variables {var}  .data;
 
 highlightX = get(highlight, 'XData');
 highlightY = get(highlight, 'YData');

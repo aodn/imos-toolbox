@@ -4,7 +4,7 @@ function [h labels] = graphTimeSeriesTimeFrequencyDirection( ax, sample_data, va
 % This function is used for plotting time/frequency/direction data for one 
 % selected time value. The pcolor function is  used to display a 2-D color 
 % polar plot, with frequency on the rho axis and direction on the theta
-% axis. Dhe data is indicated by the colour.
+% axis. The data is indicated by the colour.
 %
 % Inputs:
 %   ax          - Parent axis.
@@ -61,23 +61,13 @@ end
 
 function [h, labels] = polarPcolor(ax, sample_data, var)
 
-time = getVar(sample_data.dimensions, 'TIME');
+time = sample_data.variables{var}.dimensions(1);
+freq = sample_data.variables{var}.dimensions(4);
+dir  = sample_data.variables{var}.dimensions(5);
 
-dims = sample_data.variables{var}.dimensions;
-freq = getVar(sample_data.dimensions(dims), 'FREQUENCY');
-dir = getVar(sample_data.dimensions(dims), 'DIR');
-if freq == 0
-    freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_1');
-    if freq == 0
-        freq = getVar(sample_data.dimensions(dims), 'FREQUENCY_2');
-    end
-end
-dir = dims(dir);
-freq = dims(freq);
-
-timeData = sample_data.dimensions{time}.data;
-dirData = sample_data.dimensions{dir}.data;
-freqData = sample_data.dimensions{freq}.data;
+timeData  = sample_data.dimensions{time}.data;
+dirData   = sample_data.dimensions{dir}.data;
+freqData  = sample_data.dimensions{freq}.data;
 sswvData  = sample_data.variables{var}.data;
 
 varCheckbox = findobj('Tag', ['checkbox' sample_data.variables{var}.name]);
@@ -176,7 +166,7 @@ for i = 1 : length(th)
         'HorizontalAlignment', 'center', ...
         'HandleVisibility', 'off', 'Parent', ax);
     if i == length(th)
-        loc = [int2str(0) ' (Degrees clockwise from true North)'];
+        loc = [int2str(0) ' (' sample_data.dimensions{dir}.units ')'];
         horizAlign = 'left';
     else
         loc = int2str(180 + i * 30);
@@ -217,7 +207,7 @@ hMenu = setTimeSerieColorbarContextMenu(myVar);
 set(cb,'uicontextmenu',hMenu);
 
 cbLabel = imosParameters(myVar.name, 'uom');
-cbLabel = [myVar.name ' (' cbLabel ')'];
+cbLabel = [strrep(myVar.name, '_', ' ') ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel);
 

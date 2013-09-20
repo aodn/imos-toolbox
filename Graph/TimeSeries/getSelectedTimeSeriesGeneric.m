@@ -47,7 +47,7 @@ function dataIdx = getSelectedTimeSeriesGeneric( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+narginchk(5,5);
 
 if ~isstruct(sample_data), error('sample_data must be a struct');        end
 if ~isnumeric(var),        error('var must be numeric');                 end
@@ -57,7 +57,7 @@ if ~isnumeric(click),      error('click must be numeric');               end
 
 dataIdx = [];
 
-time = getVar(sample_data.dimensions, 'TIME');
+time = sample_data.variables{var}.dimensions(1);
 time = sample_data.dimensions{time};
 
 highlightX = get(highlight, 'XData');
