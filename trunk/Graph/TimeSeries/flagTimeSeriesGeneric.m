@@ -48,7 +48,7 @@ function flags = flagTimeSeriesGeneric( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error (nargchk(3,3,nargin));
+narginchk(3,3);
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
@@ -57,7 +57,7 @@ if ~isnumeric(var),        error('var must be numeric');          end
 qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
-time = getVar(sample_data.dimensions, 'TIME');
+time = sample_data.variables{var}.dimensions(1);
 time = sample_data.dimensions{time};
 
 dim   = time.data;

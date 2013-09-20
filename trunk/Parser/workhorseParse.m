@@ -126,89 +126,66 @@ narginchk(1,2);
   % note this is actually distance between the ADCP's transducers and the
   % middle of each cell
   distance = (cellStart):  ...
-             (cellLength): ...
-             (cellStart + (numCells-1) * cellLength);
+      (cellLength): ...
+      (cellStart + (numCells-1) * cellLength);
   
   % rearrange the sample data
-    time = datenum(...
-     [variable.y2kCentury*100 + variable.y2kYear,...
+  time = datenum(...
+      [variable.y2kCentury*100 + variable.y2kYear,...
       variable.y2kMonth,...
       variable.y2kDay,...
       variable.y2kHour,...
       variable.y2kMinute,...
       variable.y2kSecond + variable.y2kHundredth/100.0]);
-    
-    %
-    % auxillary data
-    %
-    temperature = variable.temperature;
-    pressure    = variable.pressure;
-    salinity    = variable.salinity;
-    pitch       = variable.pitch;
-    roll        = variable.roll;
-    heading     = variable.heading;
-    clear variable;
-    
-    %
-    % calculate velocity (speed and direction)
-    % currently assuming earth coordinate transform
-    %
-    
-    veast = velocity.velocity1;
-    vnrth = velocity.velocity2;
-    vvert = velocity.velocity3;
-    verr  = velocity.velocity4;
-    clear velocity;
-    
-    % set all bad values to NaN. 
-    vnrth(vnrth == -32768) = NaN;
-    veast(veast == -32768) = NaN;
-    vvert(vvert == -32768) = NaN;
-    verr( verr  == -32768) = NaN;
-    
-    vvel = vnrth;
-    uvel = veast;
-    wvel = vvert;
-    evel = verr;
-    clear vvert verr vnrth veast;
-    
-    speed = sqrt(vvel.^2 + uvel.^2);
-    
-    % direction is in degrees clockwise from north
-    direction = atan(abs(uvel ./ vvel)) .* (180 / pi);
-    
-    % !!! if vvel == 0 we get NaN !!!
-    direction(vvel == 0) = 90;
-    
-    se = vvel <  0 & uvel >= 0;
-    sw = vvel <  0 & uvel <  0;
-    nw = vvel >= 0 & uvel <  0;
-    
-    direction(se) = 180 - direction(se);
-    direction(sw) = 180 + direction(sw);
-    direction(nw) = 360 - direction(nw);
+  
+  %
+  % auxillary data
+  %
+  temperature = variable.temperature;
+  pressure    = variable.pressure;
+  salinity    = variable.salinity;
+  pitch       = variable.pitch;
+  roll        = variable.roll;
+  heading     = variable.heading;
+  clear variable;
+  
+  %
+  % calculate velocity (speed and direction)
+  % currently assuming earth coordinate transform
+  %
+  
+  veast = velocity.velocity1;
+  vnrth = velocity.velocity2;
+  wvel  = velocity.velocity3;
+  evel  = velocity.velocity4;
+  clear velocity;
+  
+  % set all bad values to NaN.
+  vnrth(vnrth == -32768) = NaN;
+  veast(veast == -32768) = NaN;
+  wvel (wvel  == -32768) = NaN;
+  evel (evel  == -32768) = NaN;
+  
   %
   % temperature / 100.0  (0.01 deg   -> deg)
   % pressure    / 1000.0 (decapascal -> decibar)
-  % vvel        / 1000.0 (mm/s       -> m/s)
-  % uvel        / 1000.0 (mm/s       -> m/s)
+  % vnrth       / 1000.0 (mm/s       -> m/s)
+  % veast       / 1000.0 (mm/s       -> m/s)
   % wvel        / 1000.0 (mm/s       -> m/s)
   % evel        / 1000.0 (mm/s       -> m/s)
-  % speed       / 1000.0 (mm/s       -> m/s)
   % backscatter * 0.45   (count      -> dB)
-  % pitch       / 100.0 (0.01 deg    -> deg)
-  % roll        / 100.0 (0.01 deg    -> deg)
-  % heading     / 100.0 (0.01 deg    -> deg)
-  % no conversion for salinity - i'm treating 
+  % pitch       / 100.0  (0.01 deg   -> deg)
+  % roll        / 100.0  (0.01 deg   -> deg)
+  % heading     / 100.0  (0.01 deg   -> deg)
+  % no conversion for salinity - i'm treating
   % ppt and PSU as interchangeable
   %
   temperature  = temperature  / 100.0;
   pressure     = pressure     / 1000.0;
-  vvel         = vvel         / 1000.0;
-  uvel         = uvel         / 1000.0;
+  vnrth        = vnrth        / 1000.0;
+  veast        = veast        / 1000.0;
   wvel         = wvel         / 1000.0;
   evel         = evel         / 1000.0;
-  speed        = speed        / 1000.0;
   backscatter1 = backscatter1 * 0.45;
   backscatter2 = backscatter2 * 0.45;
   backscatter3 = backscatter3 * 0.45;
@@ -216,6 +193,44 @@ narginchk(1,2);
   pitch        = pitch        / 100.0;
   roll         = roll         / 100.0;
   heading      = heading      / 100.0;
+  
+  % check for electrical/magnetic heading bias (usually magnetic declination)
+  isMagBias = false;
+  magDec = fixed.headingBias*0.01; % Scaling: LSD = 0.01degree; Range = -179.99 to 180.00degrees
+  if magDec ~= 0
+      isMagBias = true;
+      magBiasComment = ['An electrical/magnetic bias of ' num2str(magDec) ...
+          'degrees has been applied to the data by RDI''s software ' ...
+          '(usually to account for magnetic declination).'];
+  end
+  
+  if isMagBias
+      vvel_user = vnrth;
+      uvel_user = veast;
+      
+      heading_user = heading;
+      
+      vvel_mag = vvel_user*cos(magDec * pi/180) + uvel_user*sin(magDec * pi/180);
+      uvel_mag = -vvel_user*sin(magDec * pi/180) + uvel_user*cos(magDec * pi/180);
+      
+      heading_mag = heading - magDec;
+      
+      % we make sure values fall within [0; 360[
+      heading_mag = make0To360(heading_mag);
+  else
+      vvel_mag = vnrth;
+      uvel_mag = veast;
+      
+      heading_mag = heading;
+  end
+  clear vnrth veast heading;
+  
+  speed = sqrt(vvel_mag.^2 + uvel_mag.^2);
+  
+  direction_mag = getDirectionFromUV(uvel_mag, vvel_mag);
+  if isMagBias
+      direction_user = getDirectionFromUV(uvel_user, vvel_user);
+  end
   
   % fill in the sample_data struct
   sample_data.toolbox_input_file        = filename;
@@ -233,104 +248,103 @@ narginchk(1,2);
       sample_data.meta.beam_angle       =  fixed.beamAngle;
   end
                                     
-  % add dimensions
-  sample_data.dimensions{1}.name       = 'TIME';
-  sample_data.dimensions{2}.name       = 'HEIGHT_ABOVE_SENSOR';
-  sample_data.dimensions{3}.name       = 'LATITUDE';
-  sample_data.dimensions{4}.name       = 'LONGITUDE';
+  % add dimensions with their data mapped
+  dims = {
+      'TIME',                   time(:); ...
+      'HEIGHT_ABOVE_SENSOR',    distance(:); ...
+      'LATITUDE',               NaN; ...
+      'LONGITUDE',              NaN
+      };
+  clear time distance;
   
-  for i=1:length(sample_data.dimensions)
-      sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{i}.name, 'type')));
+  for i=1:size(dims, 1)
+      sample_data.dimensions{i}.name         = dims{i, 1};
+      sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
+      sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
+  end
+  clear dims;
+  
+  % add variables with their dimensions and data mapped
+  vars = {
+      'VCUR_MAG',   [1 2 3 4],  vvel_mag; ...
+      'UCUR_MAG',   [1 2 3 4],  uvel_mag
+      };
+  
+  if isMagBias
+      vars = [vars; ...
+          {
+          'VCUR',   [1 2 3 4],  vvel_user; ...
+          'UCUR',   [1 2 3 4],  uvel_user
+          }];
   end
   
-  % add variables
-  sample_data.variables{ 1}.name       = 'VCUR';
-  sample_data.variables{ 2}.name       = 'UCUR';
-  sample_data.variables{ 3}.name       = 'WCUR';
-  sample_data.variables{ 4}.name       = 'ECUR';
-  sample_data.variables{ 5}.name       = 'CSPD';
-  sample_data.variables{ 6}.name       = 'CDIR';
-  sample_data.variables{ 7}.name       = 'ABSI1';
-  sample_data.variables{ 8}.name       = 'ABSI2';
-  sample_data.variables{ 9}.name       = 'ABSI3';
-  sample_data.variables{10}.name       = 'ABSI4';
-  sample_data.variables{11}.name       = 'TEMP';
-  sample_data.variables{12}.name       = 'PRES_REL';
-  sample_data.variables{13}.name       = 'PSAL';
-  sample_data.variables{14}.name       = 'CMAG1';
-  sample_data.variables{15}.name       = 'CMAG2';
-  sample_data.variables{16}.name       = 'CMAG3';
-  sample_data.variables{17}.name       = 'CMAG4';
-  sample_data.variables{18}.name       = 'PERG1';
-  sample_data.variables{19}.name       = 'PERG2';
-  sample_data.variables{20}.name       = 'PERG3';
-  sample_data.variables{21}.name       = 'PERG4';
-  sample_data.variables{22}.name       = 'PITCH';
-  sample_data.variables{23}.name       = 'ROLL';
-  sample_data.variables{24}.name       = 'HEADING';
+  vars = [vars; ...
+      {
+      'WCUR',       [1 2 3 4],  wvel; ...
+      'ECUR',       [1 2 3 4],  evel; ...
+      'CSPD',       [1 2 3 4],  speed; ...
+      'CDIR_MAG',   [1 2 3 4],  direction_mag
+      }];
   
-  for i=1:length(sample_data.variables)
-      sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{i}.name, 'type')));
+  if isMagBias
+      vars = [vars; ...
+          {
+          'CDIR',   [1 2 3 4],  direction_user
+          }];
   end
   
-  % map dimensions to each variable
-  sample_data.variables{ 1}.dimensions = [1 2 3 4];
-  sample_data.variables{ 2}.dimensions = [1 2 3 4];
-  sample_data.variables{ 3}.dimensions = [1 2 3 4];
-  sample_data.variables{ 4}.dimensions = [1 2 3 4];
-  sample_data.variables{ 5}.dimensions = [1 2 3 4];
-  sample_data.variables{ 6}.dimensions = [1 2 3 4];
-  sample_data.variables{ 7}.dimensions = [1 2 3 4];
-  sample_data.variables{ 8}.dimensions = [1 2 3 4];
-  sample_data.variables{ 9}.dimensions = [1 2 3 4];
-  sample_data.variables{10}.dimensions = [1 2 3 4];
-  sample_data.variables{11}.dimensions = [1 3 4];
-  sample_data.variables{12}.dimensions = [1 3 4];
-  sample_data.variables{13}.dimensions = [1 3 4];
-  sample_data.variables{14}.dimensions = [1 2 3 4];
-  sample_data.variables{15}.dimensions = [1 2 3 4];
-  sample_data.variables{16}.dimensions = [1 2 3 4];
-  sample_data.variables{17}.dimensions = [1 2 3 4];
-  sample_data.variables{18}.dimensions = [1 2 3 4];
-  sample_data.variables{19}.dimensions = [1 2 3 4];
-  sample_data.variables{20}.dimensions = [1 2 3 4];
-  sample_data.variables{21}.dimensions = [1 2 3 4];
-  sample_data.variables{22}.dimensions = [1 3 4];
-  sample_data.variables{23}.dimensions = [1 3 4];
-  sample_data.variables{24}.dimensions = [1 3 4];
+  vars = [vars; ...
+      {
+      'ABSI1',      [1 2 3 4],  backscatter1; ...
+      'ABSI2',      [1 2 3 4],  backscatter2; ...
+      'ABSI3',      [1 2 3 4],  backscatter3; ...
+      'ABSI4',      [1 2 3 4],  backscatter4; ...
+      'TEMP',       [1 3 4],    temperature; ...
+      'PRES_REL',   [1 3 4],    pressure; ...
+      'PSAL',       [1 3 4],    salinity; ...
+      'CMAG1',      [1 2 3 4],  correlation1; ...
+      'CMAG2',      [1 2 3 4],  correlation2; ...
+      'CMAG3',      [1 2 3 4],  correlation3; ...
+      'CMAG4',      [1 2 3 4],  correlation4; ...
+      'PERG1',      [1 2 3 4],  percentGood1; ...
+      'PERG2',      [1 2 3 4],  percentGood2; ...
+      'PERG3',      [1 2 3 4],  percentGood3; ...
+      'PERG4',      [1 2 3 4],  percentGood4; ...
+      'PITCH',      [1 3 4],    pitch; ...
+      'ROLL',       [1 3 4],    roll; ...
+      'HEADING_MAG',[1 3 4],    heading_mag
+      }];
   
-  % copy all the data across
-  sample_data.dimensions{1}.data       = sample_data.dimensions{1}.typeCastFunc(time(:));
-  sample_data.dimensions{2}.data       = sample_data.dimensions{2}.typeCastFunc(distance(:));
-  sample_data.dimensions{3}.data       = sample_data.dimensions{3}.typeCastFunc(NaN);
-  sample_data.dimensions{4}.data       = sample_data.dimensions{4}.typeCastFunc(NaN);
+  if isMagBias
+      vars = [vars; ...
+          {
+          'HEADING',   [1 3 4],  heading_user
+          }];
+  end
   
-  sample_data.variables{ 1}.data       = sample_data.variables{1}.typeCastFunc(vvel);
-  sample_data.variables{ 2}.data       = sample_data.variables{2}.typeCastFunc(uvel);
-  sample_data.variables{ 3}.data       = sample_data.variables{3}.typeCastFunc(wvel);
-  sample_data.variables{ 4}.data       = sample_data.variables{4}.typeCastFunc(evel);
-  sample_data.variables{ 5}.data       = sample_data.variables{5}.typeCastFunc(speed);
-  sample_data.variables{ 6}.data       = sample_data.variables{6}.typeCastFunc(direction);
-  sample_data.variables{ 7}.data       = sample_data.variables{7}.typeCastFunc(backscatter1);
-  sample_data.variables{ 8}.data       = sample_data.variables{8}.typeCastFunc(backscatter2);
-  sample_data.variables{ 9}.data       = sample_data.variables{9}.typeCastFunc(backscatter3);
-  sample_data.variables{10}.data       = sample_data.variables{10}.typeCastFunc(backscatter4);
-  sample_data.variables{11}.data       = sample_data.variables{11}.typeCastFunc(temperature);
-  sample_data.variables{12}.data       = sample_data.variables{12}.typeCastFunc(pressure);
-  sample_data.variables{12}.applied_offset = sample_data.variables{12}.typeCastFunc(-gsw_P0/10^4); % (gsw_P0/10^4 = 10.1325 dbar)
+  clear vvel_mag uvel_mag wvel evel speed direction_mag backscatter1 ...
+      backscatter2 backscatter3 backscatter4 temperature pressure ...
+      salinity correlation1 correlation2 correlation3 correlation4 ...
+      percentGood1 percentGood2 percentGood3 percentGood4 pitch roll ...
+      heading_mag;
   
-  sample_data.variables{13}.data       = sample_data.variables{13}.typeCastFunc(salinity);
-  sample_data.variables{14}.data       = sample_data.variables{14}.typeCastFunc(correlation1);
-  sample_data.variables{15}.data       = sample_data.variables{15}.typeCastFunc(correlation2);
-  sample_data.variables{16}.data       = sample_data.variables{16}.typeCastFunc(correlation3);
-  sample_data.variables{17}.data       = sample_data.variables{17}.typeCastFunc(correlation4);
-  sample_data.variables{18}.data       = sample_data.variables{18}.typeCastFunc(percentGood1);
-  sample_data.variables{19}.data       = sample_data.variables{19}.typeCastFunc(percentGood2);
-  sample_data.variables{20}.data       = sample_data.variables{20}.typeCastFunc(percentGood3);
-  sample_data.variables{21}.data       = sample_data.variables{21}.typeCastFunc(percentGood4);
-  sample_data.variables{22}.data       = sample_data.variables{22}.typeCastFunc(pitch);
-  sample_data.variables{23}.data       = sample_data.variables{23}.typeCastFunc(roll);
-  sample_data.variables{24}.data       = sample_data.variables{24}.typeCastFunc(heading);
+  if isMagBias
+      clear vvel_user uvel_user direction_user heading_user;
+  end
+  
+  for i=1:size(vars, 1)
+      sample_data.variables{i}.name         = vars{i, 1};
+      sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
+      sample_data.variables{i}.dimensions   = vars{i, 2};
+      sample_data.variables{i}.data         = sample_data.variables{i}.typeCastFunc(vars{i, 3});
+      if strcmpi(vars{i, 1}, 'PRES_REL')
+          sample_data.variables{i}.applied_offset = sample_data.variables{i}.typeCastFunc(-gsw_P0/10^4); % (gsw_P0/10^4 = 10.1325 dbar)
+      end
+      if any(strcmpi(vars{i, 1}, {'VCUR', 'UCUR', 'CDIR', 'HEADING'}))
+          sample_data.variables{i}.comment = magBiasComment;
+      end
+  end
+  clear vars;
   
   % remove auxillary data if the sensors 
   % were not installed on the instrument
@@ -389,64 +403,124 @@ narginchk(1,2);
       sample_data{2}.dimensions = {};
       sample_data{2}.variables  = {};
       
-      sample_data{2}.dimensions{1 }.name = 'TIME';
-      sample_data{2}.dimensions{2 }.name = 'LATITUDE';
-      sample_data{2}.dimensions{3 }.name = 'LONGITUDE';
-      sample_data{2}.dimensions{4 }.name = 'FREQUENCY';
-      sample_data{2}.dimensions{5 }.name = 'DIR';
+      if isMagBias
+          dir_user = waveData.Dspec.dir;
+          dir_mag  = waveData.Dspec.dir - magDec;
+          
+          Dp_user  = waveData.param.Dp;
+          Dp_mag   = waveData.param.Dp - magDec;
+          
+          % we make sure values fall within [0; 360[
+          dir_mag = make0To360(dir_mag);
+          Dp_mag  = make0To360(Dp_mag);
+          
+          % we sort the dimension dir_mag so that it is monotonic
+          [dir_mag, iSortDirMag] = sort(dir_mag);
+      else
+          dir_mag = waveData.Dspec.dir;
+          Dp_mag  = waveData.param.Dp;
+      end
       
-      sample_data{2}.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{1}.name, 'type')));
-      sample_data{2}.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{2}.name, 'type')));
-      sample_data{2}.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{3}.name, 'type')));
-      sample_data{2}.dimensions{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{4}.name, 'type')));
-      sample_data{2}.dimensions{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.dimensions{5}.name, 'type')));
+      % add dimensions with their data mapped
+      dims = {
+          'TIME',                   waveData.param.time; ...
+          'LATITUDE',               NaN; ...
+          'LONGITUDE',              NaN; ...
+          'FREQUENCY',              waveData.Dspec.freq; ...
+          'DIR_MAG',                dir_mag
+          };
       
-      sample_data{2}.variables {1 }.name = 'VAVH';
-      sample_data{2}.variables {2 }.name = 'SWPP';
-      sample_data{2}.variables {3 }.name = 'SSWP';
-      sample_data{2}.variables {4 }.name = 'SWPD';
-      sample_data{2}.variables {5 }.name = 'DEPTH';
-      sample_data{2}.variables {6 }.name = 'SSWV';
-      sample_data{2}.variables {7 }.name = 'VDEP';
-      sample_data{2}.variables {8 }.name = 'VDES';
-      sample_data{2}.variables {9 }.name = 'VDEV';
+      if isMagBias
+      dims = [dims; ...
+          {
+          'DIR',                    dir_user;
+          }];
+      end
+      clear dir_mag;
+      if isMagBias
+          clear dir_user;
+      end
       
-      sample_data{2}.variables{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{1}.name, 'type')));
-      sample_data{2}.variables{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{2}.name, 'type')));
-      sample_data{2}.variables{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{3}.name, 'type')));
-      sample_data{2}.variables{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{4}.name, 'type')));
-      sample_data{2}.variables{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{5}.name, 'type')));
-      sample_data{2}.variables{6}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{6}.name, 'type')));
-      sample_data{2}.variables{7}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{7}.name, 'type')));
-      sample_data{2}.variables{8}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{8}.name, 'type')));
-      sample_data{2}.variables{9}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data{2}.variables{9}.name, 'type')));
+      for i=1:size(dims, 1)
+          sample_data{2}.dimensions{i}.name         = dims{i, 1};
+          sample_data{2}.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
+          sample_data{2}.dimensions{i}.data         = sample_data{2}.dimensions{i}.typeCastFunc(dims{i, 2});
+          if strcmpi(dims{i, 1}, 'DIR')
+              sample_data{2}.dimensions{i}.comment  = magBiasComment;
+          end
+      end
+      clear dims;
       
-      sample_data{2}.variables{1 }.dimensions = [1 2 3];
-      sample_data{2}.variables{2 }.dimensions = [1 2 3];
-      sample_data{2}.variables{3 }.dimensions = [1 2 3];
-      sample_data{2}.variables{4 }.dimensions = [1 2 3];
-      sample_data{2}.variables{5 }.dimensions = [1 2 3];
-      sample_data{2}.variables{6 }.dimensions = [1 2 3 4 5];
-      sample_data{2}.variables{7 }.dimensions = [1 2 3 4];
-      sample_data{2}.variables{8 }.dimensions = [1 2 3 4];
-      sample_data{2}.variables{9 }.dimensions = [1 2 3 4];
+      % add variables with their dimensions and data mapped
+      vars = {
+          'VAVH',       [1 2 3],  waveData.param.Hs; ... % sea_surface_wave_significant_height
+          'SWPP',       [1 2 3],  waveData.param.Tp; ... % sea_surface_swell_peak_wave_period
+          'SSWP',       [1 2 3],  waveData.param.Tm; ... % sea_surface_swell_wave_period
+          'SWPD_MAG',   [1 2 3],  Dp_mag  % sea_surface_swell_peak_wave_from_direction
+          };
       
-      sample_data{2}.dimensions{1 }.data = sample_data{2}.dimensions{1}.typeCastFunc(waveData.param.time);
-      sample_data{2}.dimensions{2 }.data = sample_data{2}.dimensions{2}.typeCastFunc(NaN);
-      sample_data{2}.dimensions{3 }.data = sample_data{2}.dimensions{3}.typeCastFunc(NaN);
+      if isMagBias
+          vars = [vars; ...
+              {
+              'SWPD',   [1 2 3],  Dp_user % sea_surface_swell_peak_wave_from_direction
+              }];
+      end
       
-      sample_data{2}.dimensions{4 }.data = sample_data{2}.dimensions{4}.typeCastFunc(waveData.Dspec.freq);
-      sample_data{2}.dimensions{5 }.data = sample_data{2}.dimensions{5}.typeCastFunc(waveData.Dspec.dir);
+      vars = [vars; ...
+          {
+          'DEPTH',      [1 2 3],     waveData.param.ht/1000; ... % ht is in mm
+          % Vspec is in mm/sqrt(Hz)
+          'VDEN',      [1 2 3 4], (waveData.Vspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density from velocity
+          % Dspec is in mm^2/Hz/deg
+          % we need to re-arrange the matrix according to the new DIR
+          % dimension order
+          'SSWV_MAG',   [1 2 3 4 5], waveData.Dspec.data(:,:,iSortDirMag)/1000.^2 % sea_surface_wave_magnetic_directional_variance_spectral_density
+          }];
       
-      sample_data{2}.variables {1 }.data = sample_data{2}.variables{1}.typeCastFunc(waveData.param.Hs);
-      sample_data{2}.variables {2 }.data = sample_data{2}.variables{2}.typeCastFunc(waveData.param.Tp);
-      sample_data{2}.variables {3 }.data = sample_data{2}.variables{3}.typeCastFunc(waveData.param.Tm);
-      sample_data{2}.variables {4 }.data = sample_data{2}.variables{4}.typeCastFunc(waveData.param.Dp);
-      sample_data{2}.variables {5 }.data = sample_data{2}.variables{5}.typeCastFunc(waveData.param.ht/1000); % ht is in mm
-      sample_data{2}.variables {6 }.data = sample_data{2}.variables{6}.typeCastFunc(waveData.Dspec.data/1000.^2); % Dspec is in mm^2/Hz/deg
-      sample_data{2}.variables {7 }.data = sample_data{2}.variables{7}.typeCastFunc((waveData.Pspec.data/1000).^2); % ?spec are in mm/sqrt(Hz)
-      sample_data{2}.variables {8 }.data = sample_data{2}.variables{8}.typeCastFunc((waveData.Sspec.data/1000).^2);
-      sample_data{2}.variables {9 }.data = sample_data{2}.variables{9}.typeCastFunc((waveData.Vspec.data/1000).^2);
+      if isMagBias
+          vars = [vars; ...
+              {
+              'SSWV',   [1 2 3 4 6], waveData.Dspec.data/1000.^2 % sea_surface_wave_directional_variance_spectral_density
+              }];
+      end
       clear waveData;
+      
+      for i=1:size(vars, 1)
+          sample_data{2}.variables{i}.name         = vars{i, 1};
+          sample_data{2}.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
+          sample_data{2}.variables{i}.dimensions   = vars{i, 2};
+          sample_data{2}.variables{i}.data         = sample_data{2}.variables{i}.typeCastFunc(vars{i, 3});
+          if any(strcmpi(vars{i, 1}, {'SWPD', 'SSWV'}))
+              sample_data{2}.variables{i}.comment  = magBiasComment;
+          end
+          if strcmpi(vars{i, 1}, 'VDEN')
+              sample_data{2}.variables{i}.comment = 'Inferred from velocity timeserie measurements.';
+          end
+      end
+      clear vars;
   end
+end
+
+function direction = getDirectionFromUV(uvel, vvel)
+    % direction is in degrees clockwise from north
+    direction = atan(abs(uvel ./ vvel)) .* (180 / pi);
+    
+    % !!! if vvel == 0 we get NaN !!!
+    direction(vvel == 0) = 90;
+    
+    se = vvel <  0 & uvel >= 0;
+    sw = vvel <  0 & uvel <  0;
+    nw = vvel >= 0 & uvel <  0;
+    
+    direction(se) = 180 - direction(se);
+    direction(sw) = 180 + direction(sw);
+    direction(nw) = 360 - direction(nw);
+end
+
+function angle = make0To360(angle)
+    iLower = angle < 0;
+    angle(iLower) = 360 + angle(iLower);
+    
+    iHigher = angle >= 360;
+    angle(iHigher) = angle(iHigher) - 360;
 end

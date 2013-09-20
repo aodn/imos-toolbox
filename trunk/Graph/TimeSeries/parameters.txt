@@ -3,6 +3,9 @@ CSPD,      TimeDepth
 CDIR,      TimeDepth
 VCUR,      TimeDepth
 UCUR,      TimeDepth
+CDIR_MAG,  TimeDepth
+VCUR_MAG,  TimeDepth
+UCUR_MAG,  TimeDepth
 WCUR,      TimeDepth
 ECUR,      TimeDepth
 ABSI1,     TimeDepth
@@ -18,8 +21,7 @@ PERG2,     TimeDepth
 PERG3,     TimeDepth
 PERG4,     TimeDepth
 VDEN,      TimeFrequency
-VDEP,      TimeFrequency
-VDES,      TimeFrequency
-VDEV,      TimeFrequency
 SSWD,      TimeFrequency
+SSWD_MAG,  TimeFrequency
 SSWV,      TimeFrequencyDirection
+SSWV_MAG,  TimeFrequencyDirection

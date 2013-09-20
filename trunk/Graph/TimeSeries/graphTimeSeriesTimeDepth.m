@@ -49,22 +49,14 @@ function [h labels] = graphTimeSeriesTimeDepth( ax, sample_data, var, color, xTi
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+narginchk(5,5);
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 
-zTitle = 'DEPTH';
-
-time  = getVar(sample_data.dimensions, 'TIME');
-depth = getVar(sample_data.dimensions, zTitle);
-
-% case of sensors on the seabed looking upward like moored ADCPs
-if depth == 0
-    zTitle = 'HEIGHT_ABOVE_SENSOR';
-    depth = getVar(sample_data.dimensions, zTitle);
-end
+time  = sample_data.variables{var}.dimensions(1);
+depth = sample_data.variables{var}.dimensions(2);
 
 time  = sample_data.dimensions{time};
 depth = sample_data.dimensions{depth};
@@ -104,6 +96,6 @@ cbLabel = [strrep(var.name, '_', ' ') ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel);
 
-labels = {'TIME', zTitle};
+labels = {time.name, depth.name};
 
 end

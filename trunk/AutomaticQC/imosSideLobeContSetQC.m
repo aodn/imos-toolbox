@@ -62,7 +62,7 @@ function [sample_data, varChecked, paramsLog] = imosSideLobeContSetQC( sample_da
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 2, nargin));
+narginchk(1, 2);
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
 % auto logical in input to enable running under batch processing
@@ -83,18 +83,35 @@ idCspd = 0;
 idCdir = 0;
 lenVar = size(sample_data.variables,2);
 for i=1:lenVar
-    if strcmpi(sample_data.variables{i}.name, 'PRES'), idPres = i; end
-    if strcmpi(sample_data.variables{i}.name, 'PRES_REL'), idPresRel = i; end
-    if strcmpi(sample_data.variables{i}.name, 'DEPTH'), idDepth = i; end
-    if strcmpi(sample_data.variables{i}.name, 'UCUR'), idUcur = i; end
-    if strcmpi(sample_data.variables{i}.name, 'VCUR'), idVcur = i; end
-    if strcmpi(sample_data.variables{i}.name, 'WCUR'), idWcur = i; end
-    if strcmpi(sample_data.variables{i}.name, 'CSPD'), idCspd = i; end
-    if strcmpi(sample_data.variables{i}.name, 'CDIR'), idCdir = i; end
+    % let's handle the case where same current params 
+    % are distinguished by "_1", "_2" and "_MAG"
+    paramName = sample_data.variables{i}.name;
+    
+    if strcmpi(paramName, 'PRES'),      idPres      = i; end
+    if strcmpi(paramName, 'PRES_REL'),  idPresRel   = i; end
+    if strcmpi(paramName, 'DEPTH'),     idDepth     = i; end
+    
+    if strcmpi(paramName, 'UCUR_MAG'),  idUcur(1)   = i; end
+    if strcmpi(paramName, 'UCUR'),      idUcur(2)   = i; end
+    if strcmpi(paramName, 'UCUR_1'),    idUcur(2)   = i; end % PARAM and PARAM_1 shouldn't be possible
+    if strcmpi(paramName, 'UCUR_2'),    idUcur(3)   = i; end
+    
+    if strcmpi(paramName, 'VCUR_MAG'),  idVcur(1)   = i; end
+    if strcmpi(paramName, 'VCUR'),      idVcur(2)   = i; end
+    if strcmpi(paramName, 'VCUR_1'),    idVcur(2)   = i; end
+    if strcmpi(paramName, 'VCUR_2'),    idVcur(3)   = i; end
+    
+    if strcmpi(paramName, 'WCUR'),      idWcur      = i; end
+    if strcmpi(paramName, 'CSPD'),      idCspd      = i; end
+    
+    if strcmpi(paramName, 'CDIR_MAG'),  idCdir(1)   = i; end
+    if strcmpi(paramName, 'CDIR'),      idCdir(2)   = i; end
+    if strcmpi(paramName, 'CDIR_1'),    idCdir(2)   = i; end
+    if strcmpi(paramName, 'CDIR_2'),    idCdir(3)   = i; end
 end
 
 % check if the data is compatible with the QC algorithm
-idMandatory = idHeight & (idUcur | idVcur | idWcur | idCspd | idCdir);
+idMandatory = idHeight & (idUcur(1) | idVcur(1) | idWcur | idCspd | idCdir(1)); % PARAM_MAG will always be there first
 
 if ~idMandatory, return; end
 
@@ -110,9 +127,11 @@ Bins    = sample_data.dimensions{idHeight}.data';
 %BDM - 16/08/2010 - Added if statement below to take into account ADCPs
 %without pressure records. Use mean of nominal water depth minus sensor height.
 
+sizeCur = size(sample_data.variables{idWcur}.flags);
+
 %Pull out pressure and calculate array of depth bins
 if idPres == 0 && idPresRel == 0 && idDepth == 0
-    lenData = size(sample_data.variables{idUcur}.flags, 1);
+    lenData = sizeCur(1);
     ff = true(lenData, 1);
     
     if isempty(sample_data.instrument_nominal_depth)
@@ -139,7 +158,7 @@ if idDepth == 0
     depth = pressure;
 else
     ff = (sample_data.variables{idDepth}.flags == rawFlag) | ...
-            (sample_data.variables{idDepth}.flags == goodFlag);
+        (sample_data.variables{idDepth}.flags == goodFlag);
     depth = sample_data.variables{idDepth}.data;
 end
 
@@ -165,8 +184,6 @@ cDepth = depth - (depth * cos(sample_data.meta.beam_angle*pi/180) - 2*BinSize);
 % calculate bins depth
 binDepth = depth*ones(1,length(Bins)) - ones(length(depth),1)*Bins;
 
-sizeCur = size(sample_data.variables{idUcur}.flags);
-
 % same flags are given to any variable
 flags = ones(sizeCur, 'int8')*rawFlag;
 
@@ -181,14 +198,6 @@ iFail = allFF & iFail;
 flags(iPass) = goodFlag;
 flags(iFail) = badFlag;
 
-if any(idUcur)
-    sample_data.variables{idUcur}.flags = flags;
-    varChecked = [varChecked, {'UCUR'}];
-end
-if any(idVcur)
-    sample_data.variables{idVcur}.flags = flags;
-    varChecked = [varChecked, {'VCUR'}];
-end
 if any(idWcur)
     sample_data.variables{idWcur}.flags = flags;
     varChecked = [varChecked, {'WCUR'}];
@@ -197,9 +206,20 @@ if any(idCspd)
     sample_data.variables{idCspd}.flags = flags;
     varChecked = [varChecked, {'CSPD'}];
 end
-if any(idCdir)
-    sample_data.variables{idCdir}.flags = flags;
-    varChecked = [varChecked, {'CDIR'}];
-end
 
+nCurrentData = length(idUcur);
+for i=1:nCurrentData
+    if any(idUcur(1)) % if the first is identified then the folowing are as well
+        sample_data.variables{idUcur(i)}.flags = flags;
+        varChecked = [varChecked, {sample_data.variables{idUcur(i)}.name}];
+    end
+    if any(idVcur(1))
+        sample_data.variables{idVcur(i)}.flags = flags;
+        varChecked = [varChecked, {sample_data.variables{idVcur(i)}.name}];
+    end
+    if any(idCdir(1))
+        sample_data.variables{idCdir(i)}.flags = flags;
+        varChecked = [varChecked, {sample_data.variables{idCdir(i)}.name}];
+    end
+end
 end
