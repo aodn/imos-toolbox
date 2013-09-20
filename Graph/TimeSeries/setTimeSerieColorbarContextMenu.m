@@ -44,7 +44,7 @@ function hMenu = setTimeSerieColorbarContextMenu(var)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(1,1);
+error(nargchk(1, 1, nargin));
 
 if ~isstruct(var), error('var must be a struct'); end
 

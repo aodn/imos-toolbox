@@ -56,7 +56,7 @@ function sample_data = awacParse( filename, mode )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(1,2);
+error(nargchk(1, 2, nargin));
 
 if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 

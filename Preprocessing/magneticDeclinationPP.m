@@ -48,7 +48,7 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(1,2);
+  error(nargchk(1, 2, nargin));
 
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
