@@ -456,7 +456,7 @@ function vid = addQCVar(...
   % get qc flag values
   qcFlags = imosQCFlag('', sample_data.quality_control_set, 'values');
   nQcFlags = length(qcFlags);
-  qcDescs = cell(nQcFlags);
+  qcDescs = cell(nQcFlags, 1);
   
   % get flag descriptions
   for k = 1:nQcFlags
@@ -476,6 +476,7 @@ function vid = addQCVar(...
   
   % turn descriptions into space separated string
   qcDescs = cellfun(@(x)(sprintf('%s ', x)), qcDescs, 'UniformOutput', false);
+  qcDescs{end}(end) = [];
   qcAtts.flag_meanings = [qcDescs{:}];
   
   % let's compute percentage of good data over in water data, following 
