@@ -22,13 +22,13 @@ function value = imosQCFlag( qcClass, qcSet, field )
 % Inputs:
 %
 %   qcClass  - If field is one of 'flag', 'desc' or 'color', must be one 
-%              of the (case insensitive) strings listed in the imosQCSets.txt 
+%              of the (case insensitive) strings listed in the imosQCFlag.txt 
 %              file. If it is not equal to one of these strings, the return 
 %              value will be empty.
 %
 %   qcSet    - must be an integer identifier to one of the supported QC sets. 
 %              If it does not map to a supported QC set, it is assumed to be 
-%              the first qc set defined in the imosQCSets.txt file.
+%              the first qc set defined in the imosQCFlag.txt file.
 %
 %   field    - String which defines what the return value is. Must be one
 %              of 'flag', 'desc', 'set_desc', 'type', 'values' 'min', 'max',
