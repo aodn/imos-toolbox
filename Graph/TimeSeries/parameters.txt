@@ -21,6 +21,9 @@ PERG2,     TimeDepth
 PERG3,     TimeDepth
 PERG4,     TimeDepth
 VDEN,      TimeFrequency
+VDEV,      TimeFrequency
+VDEP,      TimeFrequency
+VDES,      TimeFrequency
 SSWD,      TimeFrequency
 SSWD_MAG,  TimeFrequency
 SSWV,      TimeFrequencyDirection

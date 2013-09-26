@@ -107,23 +107,12 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
                 end
             end
         case 'graphTimeSeriesTimeDepth'
-            iZDim = getVar(sample_data.dimensions, 'DEPTH');
-            if iZDim == 0
-                iZDim = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
-            end
+            iZDim = sample_data.variables{k}.dimensions(2);
             yLimits = [floor(min(sample_data.dimensions{iZDim}.data)*10)/10, ...
                 ceil(max(sample_data.dimensions{iZDim}.data)*10)/10];
             
         case 'graphTimeSeriesTimeFrequency'
-            iFDim = getVar(sample_data.dimensions(dims), 'FREQUENCY');
-            if iFDim == 0
-                iFDim = getVar(sample_data.dimensions(dims), 'FREQUENCY_1');
-                if iFDim == 0
-                    iFDim = getVar(sample_data.dimensions(dims), 'FREQUENCY_2');
-                end
-            end
-            iFDims = dims(iFDim);
-            
+            iFDim = sample_data.variables{k}.dimensions(4);
             yLimits = [floor(min(sample_data.dimensions{iFDim}.data)*10)/10, ...
                 ceil(max(sample_data.dimensions{iFDim}.data)*10)/10];
             

@@ -4,7 +4,8 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
 %
 % Makes use of the NOAA Geomag software to compute the magnetic declination
 % at a specific location and time (centre of data time coverage) and then
-% applies the relevant correction to any *_MAG IMOS code parameter.
+% applies the relevant correction to any *_MAG IMOS code parameter which are
+% then renamed without '_MAG'.
 %
 % Inputs:
 %   sample_data - cell array of structs, the data sets for which a magnetic
@@ -14,7 +15,7 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
 %
 % Outputs:
 %   sample_data - same as input, with data parameters referring to true 
-%                 North added.
+%                 North instead of magnetic North.
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -74,7 +75,9 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
   
   % magnetic measurement dependent IMOS parameters
   magParam = {'CDIR_MAG', 'HEADING_MAG', 'SSDS_MAG', 'SSWD_MAG', ...
-      'SSWV_MAG', 'SWPD_MAG', 'UCUR_MAG', 'VCUR_MAG', 'VDIR_MAG'};
+      'SSWV_MAG', 'SWPD_MAG', 'UCUR_MAG', 'VCUR_MAG', 'VDIR_MAG', ...
+      'CDIR', 'HEADING', 'SSDS', 'SSWD', 'SSWV', 'SWPD', 'UCUR', ...
+      'VCUR', 'VDIR'};
   
   nDataSet = length(sample_data);
   iMagDataSet = [];
@@ -132,8 +135,8 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
       
       nMagDataSet = length(iMagDataSet);
       for i = 1:nMagDataSet
-          magneticDeclinationComment = ['magneticDeclinationPP: data referring to true North have ' ...
-              'been added, based on data referring to magnetic North and a computed magnetic ' ...
+          magneticDeclinationComment = ['magneticDeclinationPP: data initially referring to magnetic North has ' ...
+              'been modified so that it now refers to true North, applying a computed magnetic ' ...
               'declination of ' num2str(geomagDeclin(i)) 'degrees. NOAA''s Geomag v7.0 software + IGRF11 ' ...
               'model have been used to compute this value at a latitude=' num2str(geomagLat(i)) 'degrees ' ...
               'North, longitude=' num2str(geomagLon(i)) 'degrees East, depth=' num2str(geomagDepth(i)) 'm ' ...
@@ -141,6 +144,12 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
               ' (date in the middle of time_coverage_start and time_coverage_end).'];
           
           % we look for magnetic measurement dependent IMOS parameters
+          iVcur_mag = getVar(sample_data{iMagDataSet(i)}.variables, 'VCUR_MAG');
+          if iVcur_mag ~= 0, vcur_mag = sample_data{iMagDataSet(i)}.variables{iVcur_mag}.data; end
+          
+          iUcur_mag = getVar(sample_data{iMagDataSet(i)}.variables, 'UCUR_MAG');
+          if iVcur_mag ~= 0, ucur_mag = sample_data{iMagDataSet(i)}.variables{iUcur_mag}.data; end
+                      
           nVar = length(sample_data{iMagDataSet(i)}.variables);
           for j = 1:nVar
               switch sample_data{iMagDataSet(i)}.variables{j}.name
@@ -156,31 +165,15 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
                       % we make sure values fall within [0; 360[
                       data = make0To360(data);
                       
-                      data_dimensions = sample_data{iMagDataSet(i)}.variables{j}.dimensions;
-                      
                   case 'VCUR_MAG' % magnetic_northward_sea_water_velocity (m s-1)
-                      vcur_mag = sample_data{iMagDataSet(i)}.variables{j}.data;
-                      
-                      iUcur_mag = getVar(sample_data{iMagDataSet(i)}.variables, 'UCUR_MAG');
-                      ucur_mag = sample_data{iMagDataSet(i)}.variables{iUcur_mag}.data;
-                      
                       data = vcur_mag*cos(geomagDeclin(i) * pi/180) - ucur_mag*sin(geomagDeclin(i) * pi/180);
                       
-                      data_dimensions = sample_data{iMagDataSet(i)}.variables{j}.dimensions;
-                      
                   case 'UCUR_MAG' % magnetic_eastward_sea_water_velocity (m s-1)
-                      ucur_mag = sample_data{iMagDataSet(i)}.variables{j}.data;
-                      
-                      iVcur_mag = getVar(sample_data{iMagDataSet(i)}.variables, 'VCUR_MAG');
-                      vcur_mag = sample_data{iMagDataSet(i)}.variables{iVcur_mag}.data;
-                      
                       data = vcur_mag*sin(geomagDeclin(i) * pi/180) + ucur_mag*cos(geomagDeclin(i) * pi/180);
                       
-                      data_dimensions = sample_data{iMagDataSet(i)}.variables{j}.dimensions;
-                      
                   case 'SSWV_MAG' % sea_surface_wave_magnetic_directional_variance_spectral_density (m2 s deg-1)
-                      % data stays the same but we modify the dimension
-                      % from DIR_MAG to DIR which we create
+                      % data stays "the same" but we modify the dimension
+                      % from DIR_MAG to DIR
                       iDim = sample_data{iMagDataSet(i)}.variables{j}.dimensions(end);
                       dataDir_mag = sample_data{iMagDataSet(i)}.dimensions{iDim}.data;
                       dataDir = dataDir_mag + geomagDeclin(i);
@@ -191,44 +184,54 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
                       % we sort the dimension dataDir so that it is monotonic
                       [dataDir, iSortDirMag] = sort(dataDir);
                       
-                      % see if PARAM dimension already exists
-                      paramName = sample_data{iMagDataSet(i)}.dimensions{iDim}.name(1:end-4);
-                      iPARAM = getVar(sample_data{iMagDataSet(i)}.dimensions, paramName);
-                      if iPARAM ~= 0
-                          % we rename the existing one
-                          sample_data{iMagDataSet(i)}.dimensions{iPARAM}.name = [paramName '_1'];
-                          paramName = [paramName '_2'];
-                      end
-                      
-                      % we create the new dimension
-                      sample_data{iMagDataSet(i)} = addDim(sample_data{iMagDataSet(i)}, ...
-                          paramName, dataDir, magneticDeclinationComment);
-                      
                       % we need to re-arrange the data matrix according to the new DIR
                       % dimension order
                       data = sample_data{iMagDataSet(i)}.variables{j}.data(:,:,iSortDirMag);
                       
-                      data_dimensions = sample_data{iMagDataSet(i)}.variables{j}.dimensions;
-                      data_dimensions(end) = getVar(sample_data{iMagDataSet(i)}.dimensions, paramName);
+                      % we modify the DIR values
+                      sample_data{iMagDataSet(i)}.dimensions{iDim}.name = ...
+                          sample_data{iMagDataSet(i)}.dimensions{iDim}.name(1:end-4);
+                      sample_data{iMagDataSet(i)}.dimensions{iDim}.standard_name = '';
+                      sample_data{iMagDataSet(i)}.dimensions{iDim}.long_name = '';
+                      sample_data{iMagDataSet(i)}.dimensions{iDim}.units = '';
+                      sample_data{iMagDataSet(i)}.dimensions{iDim}.data = dataDir;
+                      sample_data{iMagDataSet(i)}.dimensions{iDim}.magnetic_declination = geomagDeclin(i);
+                      sample_data{iMagDataSet(i)}.dimensions{iDim}.compass_correction_applied = geomagDeclin(i);
+                      sample_data{iMagDataSet(i)}.dimensions{iDim}.comment = magneticDeclinationComment;
               
+                  case {'CDIR', 'HEADING', 'VDIR', 'SSDS', 'SSWD', 'SWPD', 'VCUR', 'UCUR'}
+                      % we add a variable attribute for theoretical
+                      % magnetic declination but don't do any modification
+                      % to the data
+                      sample_data{iMagDataSet(i)}.variables{j}.magnetic_declination = geomagDeclin(i);
+                      continue;
+                      
+                  case 'SSWV'
+                      % we add a variable attribute for theoretical
+                      % magnetic declination but don't do any modification
+                      % to the data and dimension
+                      sample_data{iMagDataSet(i)}.variables{j}.magnetic_declination = geomagDeclin(i);
+                      iDim = sample_data{iMagDataSet(i)}.variables{j}.dimensions(end);
+                      sample_data{iMagDataSet(i)}.dimensions{iDim}.magnetic_declination = geomagDeclin(i);
+                      continue;
+                      
                   otherwise
+                      % we don't do any modification
                       continue;
               end
               
-              % see if PARAM variable already exists
+              % we apply the modifications to the data and metadata
               paramName = sample_data{iMagDataSet(i)}.variables{j}.name(1:end-4);
-              iPARAM = getVar(sample_data{iMagDataSet(i)}.variables, paramName);
-              if iPARAM ~= 0
-                  % we rename the existing one
-                  sample_data{iMagDataSet(i)}.variables{iPARAM}.name = [paramName '_1'];
-                  paramName = [paramName '_2'];
-              end
+              sample_data{iMagDataSet(i)}.variables{j}.name = paramName;
+              sample_data{iMagDataSet(i)}.variables{j}.standard_name = '';
+              sample_data{iMagDataSet(i)}.variables{j}.long_name = '';
+              sample_data{iMagDataSet(i)}.variables{j}.units = '';
+              sample_data{iMagDataSet(i)}.variables{j}.data = data;
+              sample_data{iMagDataSet(i)}.variables{j}.magnetic_declination = geomagDeclin(i);
+              sample_data{iMagDataSet(i)}.variables{j}.compass_correction_applied = geomagDeclin(i);
+              sample_data{iMagDataSet(i)}.variables{j}.comment = magneticDeclinationComment;
               
-              % we finally create the new variable
-              sample_data{iMagDataSet(i)} = addVar(sample_data{iMagDataSet(i)}, ...
-                  paramName, data, ...
-                  data_dimensions, ...
-                  magneticDeclinationComment);
+              sample_data{iMagDataSet(i)} = makeNetCDFCompliant(sample_data{iMagDataSet(i)});
           end
       end
   end
