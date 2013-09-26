@@ -98,13 +98,13 @@ SST,                 1, sea_surface_skin_temperature,                           
 SSTI,                1, sea_surface_temperature,                                                        Celsius,                               T, 999999.0, -2.5,    40.0,     float
 SSWD,                0, sea_surface_wave_direction_spectral_density,                                    Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 SSWD_MAG,            0, sea_surface_wave_direction_spectral_density,                                    Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
-SSWP,                1, sea_surface_swell_wave_period,                                                  Second,                                W, 999999.0, 0.0,     900000.0, float
+SSWP,                0, sea_surface_wave_period,                                                        Second,                                W, 999999.0, 0.0,     900000.0, float
 SSWV,                1, sea_surface_wave_directional_variance_spectral_density,                         m2 s deg-1,                            W, 999999.0, ,        ,         float
 SSWV_MAG,            0, sea_surface_wave_magnetic_directional_variance_spectral_density,                m2 s deg-1,                            W, 999999.0, ,        ,         float
 SW,                  1, surface_downwelling_shortwave_flux_in_air,                                      W m-2,                                 F, 999999.0, ,        ,         float
-SWPD,                0, sea_surface_swell_peak_wave_from_direction,                                     Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
-SWPD_MAG,            0, sea_surface_swell_peak_wave_from_direction,                                     Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
-SWPP,                0, sea_surface_swell_peak_wave_period,                                             Second,                                W, 999999.0, 0.0,     900000.0, float
+SWPD,                0, sea_surface_wave_from_direction_at_variance_spectral_density_maximum,           Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
+SWPD_MAG,            0, sea_surface_wave_from_direction_at_variance_spectral_density_maximum,           Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
+SWPP,                1, sea_surface_wave_period_at_variance_spectral_density_maximum,                   Second,                                W, 999999.0, 0.0,     900000.0, float
 SW_NET,              1, surface_net_upward_shortwave_flux,                                              W m-2,                                 F, 999999.0, ,        ,         float
 TAU,                 1, magnitude_of_surface_downward_stress,                                           Pascal,                                F, 999999.0, ,        ,         float
 TEMP,                1, sea_water_temperature,                                                          Celsius,                               T, 999999.0, -2.5,    40.0,     float
@@ -119,6 +119,9 @@ VBSC,                0, volumetric_backscatter_coefficient,                     
 VCUR,                1, northward_sea_water_velocity,                                                   m s-1,                                 V, 999999.0, -10.0,   10.0,     float
 VCUR_MAG,            0, magnetic_northward_sea_water_velocity,                                          m s-1,                                 V, 999999.0, -10.0,   10.0,     float
 VDEN,                1, sea_surface_wave_variance_spectral_density,                                     m2 s,                                  W, 999999.0, ,        ,         float
+VDEV,                0, sea_surface_wave_variance_spectral_density_from_velocity,                       m2 s,                                  W, 999999.0, ,        ,         float
+VDEP,                0, sea_surface_wave_variance_spectral_density_from_pressure,                       m2 s,                                  W, 999999.0, ,        ,         float
+VDES,                0, sea_surface_wave_variance_spectral_density_from_range_to_surface,               m2 s,                                  W, 999999.0, ,        ,         float
 VDIR,                1, sea_surface_wave_from_direction,                                                Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 VDIR_MAG,            1, sea_surface_wave_from_direction,                                                Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
 VOLT,                0, voltage,                                                                        V,                                     E, 999999.0, -100.0,  100.0,    float

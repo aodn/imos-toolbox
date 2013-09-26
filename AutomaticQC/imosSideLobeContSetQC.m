@@ -83,35 +83,20 @@ idCspd = 0;
 idCdir = 0;
 lenVar = size(sample_data.variables,2);
 for i=1:lenVar
-    % let's handle the case where same current params 
-    % are distinguished by "_1", "_2" and "_MAG"
     paramName = sample_data.variables{i}.name;
     
-    if strcmpi(paramName, 'PRES'),      idPres      = i; end
-    if strcmpi(paramName, 'PRES_REL'),  idPresRel   = i; end
-    if strcmpi(paramName, 'DEPTH'),     idDepth     = i; end
-    
-    if strcmpi(paramName, 'UCUR_MAG'),  idUcur(1)   = i; end
-    if strcmpi(paramName, 'UCUR'),      idUcur(2)   = i; end
-    if strcmpi(paramName, 'UCUR_1'),    idUcur(2)   = i; end % PARAM and PARAM_1 shouldn't be possible
-    if strcmpi(paramName, 'UCUR_2'),    idUcur(3)   = i; end
-    
-    if strcmpi(paramName, 'VCUR_MAG'),  idVcur(1)   = i; end
-    if strcmpi(paramName, 'VCUR'),      idVcur(2)   = i; end
-    if strcmpi(paramName, 'VCUR_1'),    idVcur(2)   = i; end
-    if strcmpi(paramName, 'VCUR_2'),    idVcur(3)   = i; end
-    
-    if strcmpi(paramName, 'WCUR'),      idWcur      = i; end
-    if strcmpi(paramName, 'CSPD'),      idCspd      = i; end
-    
-    if strcmpi(paramName, 'CDIR_MAG'),  idCdir(1)   = i; end
-    if strcmpi(paramName, 'CDIR'),      idCdir(2)   = i; end
-    if strcmpi(paramName, 'CDIR_1'),    idCdir(2)   = i; end
-    if strcmpi(paramName, 'CDIR_2'),    idCdir(3)   = i; end
+    if strcmpi(paramName, 'PRES'),      idPres    = i; end
+    if strcmpi(paramName, 'PRES_REL'),  idPresRel = i; end
+    if strcmpi(paramName, 'DEPTH'),     idDepth   = i; end
+    if strncmpi(paramName, 'UCUR', 4),  idUcur    = i; end
+    if strncmpi(paramName, 'VCUR', 4),  idVcur    = i; end
+    if strcmpi(paramName, 'WCUR'),      idWcur    = i; end
+    if strcmpi(paramName, 'CSPD'),      idCspd    = i; end
+    if strncmpi(paramName, 'CDIR', 4),  idCdir    = i; end
 end
 
 % check if the data is compatible with the QC algorithm
-idMandatory = idHeight & (idUcur(1) | idVcur(1) | idWcur | idCspd | idCdir(1)); % PARAM_MAG will always be there first
+idMandatory = idHeight & (idUcur | idVcur | idWcur | idCspd | idCdir);
 
 if ~idMandatory, return; end
 
@@ -198,28 +183,25 @@ iFail = allFF & iFail;
 flags(iPass) = goodFlag;
 flags(iFail) = badFlag;
 
-if any(idWcur)
+if idWcur
     sample_data.variables{idWcur}.flags = flags;
     varChecked = [varChecked, {'WCUR'}];
 end
-if any(idCspd)
+if idCspd
     sample_data.variables{idCspd}.flags = flags;
     varChecked = [varChecked, {'CSPD'}];
 end
 
-nCurrentData = length(idUcur);
-for i=1:nCurrentData
-    if any(idUcur(1)) % if the first is identified then the folowing are as well
-        sample_data.variables{idUcur(i)}.flags = flags;
-        varChecked = [varChecked, {sample_data.variables{idUcur(i)}.name}];
-    end
-    if any(idVcur(1))
-        sample_data.variables{idVcur(i)}.flags = flags;
-        varChecked = [varChecked, {sample_data.variables{idVcur(i)}.name}];
-    end
-    if any(idCdir(1))
-        sample_data.variables{idCdir(i)}.flags = flags;
-        varChecked = [varChecked, {sample_data.variables{idCdir(i)}.name}];
-    end
+if idUcur
+    sample_data.variables{idUcur}.flags = flags;
+    varChecked = [varChecked, {sample_data.variables{idUcur}.name}];
+end
+if idVcur
+    sample_data.variables{idVcur}.flags = flags;
+    varChecked = [varChecked, {sample_data.variables{idVcur}.name}];
+end
+if idCdir
+    sample_data.variables{idCdir}.flags = flags;
+    varChecked = [varChecked, {sample_data.variables{idCdir}.name}];
 end
 end

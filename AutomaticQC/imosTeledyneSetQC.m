@@ -76,28 +76,14 @@ for j=1:4
 end
 lenVar = size(sample_data.variables, 2);
 for i=1:lenVar
-    % let's handle the case where same current params 
-    % are distinguished by "_1" and "_2"
-    paramName = sample_data.variables{i}.name;
+    paramName = sample_data.variables{i}.name(1:end-4);
     
-    if strcmpi(paramName, 'UCUR_MAG'),  idUcur(1)   = i; end
-    if strcmpi(paramName, 'UCUR'),      idUcur(2)   = i; end
-    if strcmpi(paramName, 'UCUR_1'),    idUcur(2)   = i; end % PARAM and PARAM_1 shouldn't be possible
-    if strcmpi(paramName, 'UCUR_2'),    idUcur(3)   = i; end
-    
-    if strcmpi(paramName, 'VCUR_MAG'),  idVcur(1)   = i; end
-    if strcmpi(paramName, 'VCUR'),      idVcur(2)   = i; end
-    if strcmpi(paramName, 'VCUR_1'),    idVcur(2)   = i; end
-    if strcmpi(paramName, 'VCUR_2'),    idVcur(3)   = i; end
-    
-    if strcmpi(paramName, 'WCUR'),      idWcur      = i; end
-    if strcmpi(paramName, 'ECUR'),      idEcur      = i; end
-    if strcmpi(paramName, 'CSPD'),      idCspd      = i; end
-    
-    if strcmpi(paramName, 'CDIR_MAG'),  idCdir(1)   = i; end
-    if strcmpi(paramName, 'CDIR'),      idCdir(2)   = i; end
-    if strcmpi(paramName, 'CDIR_1'),    idCdir(2)   = i; end
-    if strcmpi(paramName, 'CDIR_2'),    idCdir(3)   = i; end
+    if strcmpi(paramName, 'UCUR'),      idUcur = i; end
+    if strcmpi(paramName, 'VCUR'),      idVcur = i; end
+    if strcmpi(paramName, 'WCUR'),      idWcur = i; end
+    if strcmpi(paramName, 'ECUR'),      idEcur = i; end
+    if strcmpi(paramName, 'CSPD'),      idCspd = i; end
+    if strcmpi(paramName, 'CDIR'),      idCdir = i; end
     for j=1:4
         cc = int2str(j);
         if strcmpi(paramName, ['PERG' cc]), idPERG{j} = i; end
@@ -107,7 +93,7 @@ for i=1:lenVar
 end
 
 % check if the data is compatible with the QC algorithm
-idMandatory = idHeight & idUcur(1) & idVcur(1) & idWcur & idEcur; % PARAM_MAG will always be there first
+idMandatory = idHeight & idUcur & idVcur & idWcur & idEcur;
 for j=1:4
     idMandatory = idMandatory & idPERG{j} & idABSI{j} & idCMAG{j};
 end
@@ -122,8 +108,8 @@ rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
 %Pull out horizontal velocities
 % we can afford to run the test only once (if couple of UCUR/VCUR) since u
 % is only tested in absolute value (direction doesn't matter)
-u = sample_data.variables{idUcur(1)}.data;
-v = sample_data.variables{idVcur(1)}.data;
+u = sample_data.variables{idUcur}.data;
+v = sample_data.variables{idVcur}.data;
 u = u + 1i*v;
 clear v;
 
@@ -172,26 +158,23 @@ iFail = ~iPass;
 flags(iFail) = badFlag;
 flags(~iFail) = goodFlag;
 
-nCurrentData = length(idUcur);
-for i=1:nCurrentData
-    sample_data.variables{idUcur(i)}.flags = flags;
-    sample_data.variables{idVcur(i)}.flags = flags;
-    
-    varChecked = {sample_data.variables{idUcur(i)}.name, ...
-        sample_data.variables{idVcur(i)}.name};
-    
-    if any(idCdir(1)) % if the first is identified then the folowing are as well
-        sample_data.variables{idCdir(i)}.flags = flags;
-        varChecked = [varChecked, {sample_data.variables{idCdir(i)}.name}];
-    end
+sample_data.variables{idUcur}.flags = flags;
+sample_data.variables{idVcur}.flags = flags;
+
+varChecked = {sample_data.variables{idUcur}.name, ...
+    sample_data.variables{idVcur}.name};
+
+if idCdir
+    sample_data.variables{idCdir}.flags = flags;
+    varChecked = [varChecked, {sample_data.variables{idCdir}.name}];
 end
 
 sample_data.variables{idWcur}.flags = flags;
-varChecked = [varChecked, {'WCUR'}];
+varChecked = [varChecked, {sample_data.variables{idWcur}.name}];
 
-if any(idCspd)
+if idCspd
     sample_data.variables{idCspd}.flags = flags;
-    varChecked = [varChecked, {'CSPD'}];
+    varChecked = [varChecked, {sample_data.variables{idCspd}.name}];
 end
     
 end

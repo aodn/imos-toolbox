@@ -199,38 +199,13 @@ error(nargchk(1, 2, nargin));
   magDec = fixed.headingBias*0.01; % Scaling: LSD = 0.01degree; Range = -179.99 to 180.00degrees
   if magDec ~= 0
       isMagBias = true;
-      magBiasComment = ['An electrical/magnetic bias of ' num2str(magDec) ...
-          'degrees has been applied to the data by RDI''s software ' ...
+      magBiasComment = ['A compass correction of ' num2str(magDec) ...
+          'degrees has been applied to the data by a technician using RDI''s software ' ...
           '(usually to account for magnetic declination).'];
   end
   
-  if isMagBias
-      vvel_user = vnrth;
-      uvel_user = veast;
-      
-      heading_user = heading;
-      
-      vvel_mag = vvel_user*cos(magDec * pi/180) + uvel_user*sin(magDec * pi/180);
-      uvel_mag = -vvel_user*sin(magDec * pi/180) + uvel_user*cos(magDec * pi/180);
-      
-      heading_mag = heading - magDec;
-      
-      % we make sure values fall within [0; 360[
-      heading_mag = make0To360(heading_mag);
-  else
-      vvel_mag = vnrth;
-      uvel_mag = veast;
-      
-      heading_mag = heading;
-  end
-  clear vnrth veast heading;
-  
-  speed = sqrt(vvel_mag.^2 + uvel_mag.^2);
-  
-  direction_mag = getDirectionFromUV(uvel_mag, vvel_mag);
-  if isMagBias
-      direction_user = getDirectionFromUV(uvel_user, vvel_user);
-  end
+  speed = sqrt(vnrth.^2 + veast.^2);
+  direction = getDirectionFromUV(veast, vnrth);
   
   % fill in the sample_data struct
   sample_data.toolbox_input_file        = filename;
@@ -265,72 +240,44 @@ error(nargchk(1, 2, nargin));
   clear dims;
   
   % add variables with their dimensions and data mapped
+  if isMagBias
+      magExt = '';
+  else
+      magExt = '_MAG';
+  end
+  
   vars = {
-      'VCUR_MAG',   [1 2 3 4],  vvel_mag; ...
-      'UCUR_MAG',   [1 2 3 4],  uvel_mag
+      ['VCUR' magExt],      [1 2 3 4],  vnrth; ...
+      ['UCUR' magExt],      [1 2 3 4],  veast; ...
+      'WCUR',               [1 2 3 4],  wvel; ...
+      'ECUR',               [1 2 3 4],  evel; ...
+      'CSPD',               [1 2 3 4],  speed; ...
+      ['CDIR' magExt],      [1 2 3 4],  direction; ...
+      'ABSI1',              [1 2 3 4],  backscatter1; ...
+      'ABSI2',              [1 2 3 4],  backscatter2; ...
+      'ABSI3',              [1 2 3 4],  backscatter3; ...
+      'ABSI4',              [1 2 3 4],  backscatter4; ...
+      'TEMP',               [1 3 4],    temperature; ...
+      'PRES_REL',           [1 3 4],    pressure; ...
+      'PSAL',               [1 3 4],    salinity; ...
+      'CMAG1',              [1 2 3 4],  correlation1; ...
+      'CMAG2',              [1 2 3 4],  correlation2; ...
+      'CMAG3',              [1 2 3 4],  correlation3; ...
+      'CMAG4',              [1 2 3 4],  correlation4; ...
+      'PERG1',              [1 2 3 4],  percentGood1; ...
+      'PERG2',              [1 2 3 4],  percentGood2; ...
+      'PERG3',              [1 2 3 4],  percentGood3; ...
+      'PERG4',              [1 2 3 4],  percentGood4; ...
+      'PITCH',              [1 3 4],    pitch; ...
+      'ROLL',               [1 3 4],    roll; ...
+      ['HEADING' magExt],   [1 3 4],    heading
       };
   
-  if isMagBias
-      vars = [vars; ...
-          {
-          'VCUR',   [1 2 3 4],  vvel_user; ...
-          'UCUR',   [1 2 3 4],  uvel_user
-          }];
-  end
-  
-  vars = [vars; ...
-      {
-      'WCUR',       [1 2 3 4],  wvel; ...
-      'ECUR',       [1 2 3 4],  evel; ...
-      'CSPD',       [1 2 3 4],  speed; ...
-      'CDIR_MAG',   [1 2 3 4],  direction_mag
-      }];
-  
-  if isMagBias
-      vars = [vars; ...
-          {
-          'CDIR',   [1 2 3 4],  direction_user
-          }];
-  end
-  
-  vars = [vars; ...
-      {
-      'ABSI1',      [1 2 3 4],  backscatter1; ...
-      'ABSI2',      [1 2 3 4],  backscatter2; ...
-      'ABSI3',      [1 2 3 4],  backscatter3; ...
-      'ABSI4',      [1 2 3 4],  backscatter4; ...
-      'TEMP',       [1 3 4],    temperature; ...
-      'PRES_REL',   [1 3 4],    pressure; ...
-      'PSAL',       [1 3 4],    salinity; ...
-      'CMAG1',      [1 2 3 4],  correlation1; ...
-      'CMAG2',      [1 2 3 4],  correlation2; ...
-      'CMAG3',      [1 2 3 4],  correlation3; ...
-      'CMAG4',      [1 2 3 4],  correlation4; ...
-      'PERG1',      [1 2 3 4],  percentGood1; ...
-      'PERG2',      [1 2 3 4],  percentGood2; ...
-      'PERG3',      [1 2 3 4],  percentGood3; ...
-      'PERG4',      [1 2 3 4],  percentGood4; ...
-      'PITCH',      [1 3 4],    pitch; ...
-      'ROLL',       [1 3 4],    roll; ...
-      'HEADING_MAG',[1 3 4],    heading_mag
-      }];
-  
-  if isMagBias
-      vars = [vars; ...
-          {
-          'HEADING',   [1 3 4],  heading_user
-          }];
-  end
-  
-  clear vvel_mag uvel_mag wvel evel speed direction_mag backscatter1 ...
+  clear vnrth veast wvel evel speed direction backscatter1 ...
       backscatter2 backscatter3 backscatter4 temperature pressure ...
       salinity correlation1 correlation2 correlation3 correlation4 ...
       percentGood1 percentGood2 percentGood3 percentGood4 pitch roll ...
-      heading_mag;
-  
-  if isMagBias
-      clear vvel_user uvel_user direction_user heading_user;
-  end
+      heading;
   
   for i=1:size(vars, 1)
       sample_data.variables{i}.name         = vars{i, 1};
@@ -341,6 +288,7 @@ error(nargchk(1, 2, nargin));
           sample_data.variables{i}.applied_offset = sample_data.variables{i}.typeCastFunc(-gsw_P0/10^4); % (gsw_P0/10^4 = 10.1325 dbar)
       end
       if any(strcmpi(vars{i, 1}, {'VCUR', 'UCUR', 'CDIR', 'HEADING'}))
+          sample_data.variables{i}.compass_correction_applied = magDec;
           sample_data.variables{i}.comment = magBiasComment;
       end
   end
@@ -403,49 +351,21 @@ error(nargchk(1, 2, nargin));
       sample_data{2}.dimensions = {};
       sample_data{2}.variables  = {};
       
-      if isMagBias
-          dir_user = waveData.Dspec.dir;
-          dir_mag  = waveData.Dspec.dir - magDec;
-          
-          Dp_user  = waveData.param.Dp;
-          Dp_mag   = waveData.param.Dp - magDec;
-          
-          % we make sure values fall within [0; 360[
-          dir_mag = make0To360(dir_mag);
-          Dp_mag  = make0To360(Dp_mag);
-          
-          % we sort the dimension dir_mag so that it is monotonic
-          [dir_mag, iSortDirMag] = sort(dir_mag);
-      else
-          dir_mag = waveData.Dspec.dir;
-          Dp_mag  = waveData.param.Dp;
-      end
-      
       % add dimensions with their data mapped
       dims = {
           'TIME',                   waveData.param.time; ...
           'LATITUDE',               NaN; ...
           'LONGITUDE',              NaN; ...
           'FREQUENCY',              waveData.Dspec.freq; ...
-          'DIR_MAG',                dir_mag
+          ['DIR' magExt],           waveData.Dspec.dir
           };
-      
-      if isMagBias
-      dims = [dims; ...
-          {
-          'DIR',                    dir_user;
-          }];
-      end
-      clear dir_mag;
-      if isMagBias
-          clear dir_user;
-      end
       
       for i=1:size(dims, 1)
           sample_data{2}.dimensions{i}.name         = dims{i, 1};
           sample_data{2}.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
           sample_data{2}.dimensions{i}.data         = sample_data{2}.dimensions{i}.typeCastFunc(dims{i, 2});
           if strcmpi(dims{i, 1}, 'DIR')
+              sample_data{2}.dimensions{i}.compass_correction_applied = magDec;
               sample_data{2}.dimensions{i}.comment  = magBiasComment;
           end
       end
@@ -453,36 +373,19 @@ error(nargchk(1, 2, nargin));
       
       % add variables with their dimensions and data mapped
       vars = {
-          'VAVH',       [1 2 3],  waveData.param.Hs; ... % sea_surface_wave_significant_height
-          'SWPP',       [1 2 3],  waveData.param.Tp; ... % sea_surface_swell_peak_wave_period
-          'SSWP',       [1 2 3],  waveData.param.Tm; ... % sea_surface_swell_wave_period
-          'SWPD_MAG',   [1 2 3],  Dp_mag  % sea_surface_swell_peak_wave_from_direction
-          };
-      
-      if isMagBias
-          vars = [vars; ...
-              {
-              'SWPD',   [1 2 3],  Dp_user % sea_surface_swell_peak_wave_from_direction
-              }];
-      end
-      
-      vars = [vars; ...
-          {
-          'DEPTH',      [1 2 3],     waveData.param.ht/1000; ... % ht is in mm
+          'VAVH',           [1 2 3],    waveData.param.Hs; ... % sea_surface_wave_significant_height
+          'SWPP',           [1 2 3],    waveData.param.Tp; ... % sea_surface_wave_period_at_variance_spectral_density_maximum
+          'SSWP',           [1 2 3],    waveData.param.Tm; ... % sea_surface_wave_period
+          ['SWPD' magExt],  [1 2 3],    waveData.param.Dp; ... % sea_surface_wave_from_direction_at_variance_spectral_density_maximum
+          % ht is in mm
+          'DEPTH',          [1 2 3],    waveData.param.ht/1000; ...
           % Vspec is in mm/sqrt(Hz)
-          'VDEN',      [1 2 3 4], (waveData.Vspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density from velocity
+          'VDEV',           [1 2 3 4], (waveData.Vspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_velocity
+          'VDEP',           [1 2 3 4], (waveData.Pspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_pressure
+          'VDES',           [1 2 3 4], (waveData.Sspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_range_to_surface
           % Dspec is in mm^2/Hz/deg
-          % we need to re-arrange the matrix according to the new DIR
-          % dimension order
-          'SSWV_MAG',   [1 2 3 4 5], waveData.Dspec.data(:,:,iSortDirMag)/1000.^2 % sea_surface_wave_magnetic_directional_variance_spectral_density
-          }];
-      
-      if isMagBias
-          vars = [vars; ...
-              {
-              'SSWV',   [1 2 3 4 6], waveData.Dspec.data/1000.^2 % sea_surface_wave_directional_variance_spectral_density
-              }];
-      end
+          ['SSWV' magExt],  [1 2 3 4 5],waveData.Dspec.data/1000.^2 % sea_surface_wave_directional_variance_spectral_density
+          };
       clear waveData;
       
       for i=1:size(vars, 1)
@@ -491,6 +394,7 @@ error(nargchk(1, 2, nargin));
           sample_data{2}.variables{i}.dimensions   = vars{i, 2};
           sample_data{2}.variables{i}.data         = sample_data{2}.variables{i}.typeCastFunc(vars{i, 3});
           if any(strcmpi(vars{i, 1}, {'SWPD', 'SSWV'}))
+              sample_data{2}.variables{i}.compass_correction_applied = magDec;
               sample_data{2}.variables{i}.comment  = magBiasComment;
           end
           if strcmpi(vars{i, 1}, 'VDEN')
