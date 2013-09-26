@@ -45,7 +45,7 @@ autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationS
 preprocessManager.preprocessPrompt = true
 
 % default set of preprocessing routines
-preprocessManager.preprocessChain = depthPP salinityPP
+preprocessManager.preprocessChain = depthPP salinityPP magneticDeclinationPP
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
@@ -55,7 +55,7 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % default values for start dialog
-startDialog.dataDir = C:\
+startDialog.dataDir = 
 startDialog.fieldTrip = 
 startDialog.lowDate = 
 startDialog.highDate = 
@@ -75,6 +75,6 @@ importManager.noParserPrompt = true
 
 % default directory for saving graphs as images
 saveGraph.noPrompt  = false
-saveGraph.exportDir = C:\
+saveGraph.exportDir = 
 saveGraph.imgType   = png
 
