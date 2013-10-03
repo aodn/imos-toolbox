@@ -265,7 +265,15 @@ function value = castAtt(value, t, qcType, dateFmt)
   switch t
     case 'S', value = value;
     case 'N'
-      value = str2double(value);
+      if isempty(value)
+          value = []; 
+          return;
+      end
+      
+      % in case several values
+      value = textscan(value, '%s');
+      value = str2double(value{1});
+      
       if isnan(value), value = []; end
     case 'D'
       
@@ -286,8 +294,17 @@ function value = castAtt(value, t, qcType, dateFmt)
     case 'Q'
       
       switch (qcType)
-        case 'byte', value = int8(str2double(value));
-        case 'char', value = value;
+        case 'byte' 
+            if isempty(value)
+                value = [];
+                return;
+            end
+      
+            % in case several values
+            value = textscan(value, '%s');
+            value = int8(str2double(value{1}));
+        case 'char'
+            value = value;
       end
   end
 end
