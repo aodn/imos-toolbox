@@ -282,7 +282,8 @@ vars = {
     'HEADING_MAG',  [1 2 3],    waveData.Heading; ...
     'PITCH',        [1 2 3],    waveData.Pitch; ...
     'ROLL',         [1 2 3],    waveData.Roll; ...
-    'SSWV_MAG',     [1 2 3 5 6],waveData.fullSpectrum % sea_surface_wave_magnetic_directional_variance_spectral_density
+    'SSWV_MAG',     [1 2 3 5 6],waveData.fullSpectrum; ... % sea_surface_wave_magnetic_directional_variance_spectral_density
+    'SPCT',         [1 2 3],    waveData.SpectraType % awac_spectra_calculation_method
     };
 clear waveData;
 
