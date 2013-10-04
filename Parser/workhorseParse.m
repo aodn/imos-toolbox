@@ -373,12 +373,26 @@ error(nargchk(1, 2, nargin));
       
       % add variables with their dimensions and data mapped
       vars = {
-          'VAVH',           [1 2 3],    waveData.param.Hs; ... % sea_surface_wave_significant_height
-          'SWPP',           [1 2 3],    waveData.param.Tp; ... % sea_surface_wave_period_at_variance_spectral_density_maximum
-          'SSWP',           [1 2 3],    waveData.param.Tm; ... % sea_surface_wave_period
-          ['SWPD' magExt],  [1 2 3],    waveData.param.Dp; ... % sea_surface_wave_from_direction_at_variance_spectral_density_maximum
+          'VAVH',           [1 2 3],    waveData.param.Hs; ...   % sea_surface_wave_significant_height
+          'WPPE',           [1 2 3],    waveData.param.Tp; ...   % sea_surface_wave_period_at_variance_spectral_density_maximum
+          ['WPDI' magExt],  [1 2 3],    waveData.param.Dp; ...   % sea_surface_wave_from_direction_at_variance_spectral_density_maximum
+          'WWSH',           [1 2 3],    waveData.param.Hs_W; ... % sea_surface_wind_wave_significant_height
+          'WWPP',           [1 2 3],    waveData.param.Tp_W; ... % sea_surface_wind_wave_period_at_variance_spectral_density_maximum
+          ['WWPD' magExt],  [1 2 3],    waveData.param.Dp_W; ... % sea_surface_wind_wave_from_direction_at_variance_spectral_density_maximum
+          'SWSH',           [1 2 3],    waveData.param.Hs_S; ... % sea_surface_swell_wave_significant_height
+          'SWPP',           [1 2 3],    waveData.param.Tp_S; ... % sea_surface_swell_wave_period_at_variance_spectral_density_maximum
+          ['SWPD' magExt],  [1 2 3],    waveData.param.Dp_S; ... % sea_surface_swell_wave_from_direction_at_variance_spectral_density_maximum
           % ht is in mm
           'DEPTH',          [1 2 3],    waveData.param.ht/1000; ...
+          'WMXH',           [1 2 3],    waveData.param.Hmax; ...  % sea_surface_wave_maximum_height
+          'WMPP',           [1 2 3],    waveData.param.Tmax; ...  % sea_surface_wave_maximum_period_at_variance_spectral_density_maximum
+          'WHTH',           [1 2 3],    waveData.param.Hth; ...   % sea_surface_wave_significant_height_of_largest_third
+          'WPTH',           [1 2 3],    waveData.param.Tth; ...   % sea_surface_wave_period_at_largest_third_peak_wave_height
+          'WMSH',           [1 2 3],    waveData.param.Hmn; ...   % sea_surface_wave_mean_significant_height
+          'WPMH',           [1 2 3],    waveData.param.Tmn; ...   % sea_surface_wave_period_at_mean_significant_wave_height
+          'WHTE',           [1 2 3],    waveData.param.Hte; ...   % sea_surface_wave_significant_height_of_largest_tenth
+          'WPTE',           [1 2 3],    waveData.param.Tte; ...   % sea_surface_wave_period_at_largest_tenth_peak_wave_height
+          ['WMPD' magExt],  [1 2 3],    waveData.param.Dmn; ...   % sea_surface_wave_from_mean_direction_at_variance_spectral_density_maximum
           % Vspec is in mm/sqrt(Hz)
           'VDEV',           [1 2 3 4], (waveData.Vspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_velocity
           'VDEP',           [1 2 3 4], (waveData.Pspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_pressure
@@ -393,12 +407,9 @@ error(nargchk(1, 2, nargin));
           sample_data{2}.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
           sample_data{2}.variables{i}.dimensions   = vars{i, 2};
           sample_data{2}.variables{i}.data         = sample_data{2}.variables{i}.typeCastFunc(vars{i, 3});
-          if any(strcmpi(vars{i, 1}, {'SWPD', 'SSWV'}))
+          if any(strcmpi(vars{i, 1}, {'WPDI', 'WWPD', 'SWPD', 'WMPD', 'SSWV'}))
               sample_data{2}.variables{i}.compass_correction_applied = magDec;
               sample_data{2}.variables{i}.comment  = magBiasComment;
-          end
-          if strcmpi(vars{i, 1}, 'VDEN')
-              sample_data{2}.variables{i}.comment = 'Inferred from velocity timeserie measurements.';
           end
       end
       clear vars;

@@ -1,24 +1,25 @@
 function waveData = readWorkhorseWaveAscii( filename )
 %READWORKHORSEWAVEASCII Reads RDI Workhorse wave data from processed wave text files 
-% (_LOG5.txt, DSpec*.txt, PSpec*.txt, SSpec*.txt and VSpec*.txt).
+% (_LOG9.txt, DSpec*.txt, PSpec*.txt, SSpec*.txt and VSpec*.txt).
 %
 % Inspired from read_adcpWvs.m and read_adcpWvs_spec.m by Charlene Sullivan
 % csullivan@usgs.gov USGS Woods Hole Science Center.
 %
 % This function takes the name of a binnary RDI wave data file (.WVS) and 
-% from that name locates the log5 and spectra files (_LOG5.txt, DSpec*.txt,
+% from that name locates the log9 and spectra files (_LOG9.txt, DSpec*.txt,
 % PSpec*.txt, SSpec*.txt and VSpec*.txt). Those files can be obtained using
 % WavesMon RDI softwares (see http://pubs.usgs.gov/of/2005/1211/images/pdf/report.pdf).
 % It is assumed that these files are located in the same directory as the 
-% binary file and that the log5 file is named '*_LOG5.TXT'.
+% binary file and that the log9 file is named '*_LOG9.TXT'.
 %
 % This function currently assumes a number of things:
 %
 %   - That the ASCII files exist in the same directory as the binary file.
 %   - That the spectra files are named DSpec*.txt, PSpec*.txt, SSpec*.txt 
 %   and VSpec*.txt with * being a date of format yyyymmddHHMM.
-%   - That the log file is of format 5 and with a name such as
-%   '*_LOG5.TXT'.
+%   - That the log file is of format 9 and with a name such as
+%   '*_LOG9.TXT'. See this URL below for more details on the format :
+% https://imos-toolbox.googlecode.com/svn/wiki/documents/Instruments/RDI/WavesMon_Users_Guide.pdf
 %
 % Inputs:
 %   filename - The name of a binary RDI wave file (.WVS).
@@ -68,9 +69,9 @@ waveData = struct;
 filePath = fileparts(filename);
 
 % Load the *_LOG5.TXT file
-logFile = dir(fullfile(filePath, '*_LOG5.TXT'));
+logFile = dir(fullfile(filePath, '*_LOG9.TXT'));
 
-if isempty(logFile), error(['file ' filePath filesep '*_LOG5.TXT not found!']); end
+if isempty(logFile), error(['file ' filePath filesep '*_LOG9.TXT not found!']); end
 
 data = csvread(fullfile(filePath, logFile.name));
 
@@ -87,21 +88,26 @@ waveData.param.time = datenum(time.YY, time.MM, time.DD, time.hh, time.mm, time.
 clear time;
 
 % Extract wave parameters
-waveData.param.Hs = data(:,9);
-waveData.param.Tp = data(:,10);
-waveData.param.Dp = data(:,11);
-waveData.param.ht = data(:,12);
-waveData.param.Hm = data(:,13);
-waveData.param.Tm = data(:,14);
-clear data;
-
-% Replace all values of -1 (WavesMon bad data indicator
-% for data in the *LOG5.TXT file) with NaN
-param = {'Hs','Tp','Dp','ht','Hm','Tm'};
-for i = 1:length(param)
-    iNaN = waveData.param.(param{i}) == -1;
-    waveData.param.(param{i})(iNaN) = NaN;
+param = {...
+    'Hs',   'Tp',   'Dp', ...
+    'Tp_W', 'Dp_W', 'Hs_W', ...
+    'Tp_S', 'Dp_S', 'Hs_S', ...
+    'ht', ...
+    'Hmax', 'Tmax', ...
+    'Hth',  'Tth', ...
+    'Hmn',  'Tmn', ...
+    'Hte',  'Tte', ...
+    'Dmn'};
+nParam = length(param);
+for i = 1:nParam
+    waveData.param.(param{i}) = data(:, i+8);
+    
+    % Replace all values of -1 and -32768 (WavesMon bad data indicator
+    % for data in the *LOG9.TXT file) with NaN
+    waveData.param.(param{i})(waveData.param.(param{i}) == -1) = NaN;
+    waveData.param.(param{i})(waveData.param.(param{i}) == -32768) = NaN;
 end
+clear data;
 
 % Spectra types
 specType = {'D', 'P', 'S', 'V'};
