@@ -79,14 +79,26 @@ for i=1:len2
     iGoodData = (sample_data.(type){k}.flags(:,i) == goodFlag | ...
         sample_data.(type){k}.flags(:,i) == pGoodFlag | ...
         sample_data.(type){k}.flags(:,i) == rawFlag);
-    dataRelevant = lineData(iGoodData);
-    clear lineData;
-    timeRelevant = time(iGoodData);
-    iFirstNotBad = find(iGoodData, 1, 'first');
-    clear iGoodData
-    iRelevantTimePeriod = (timeRelevant >= time(iFirstNotBad) & timeRelevant <= time(iFirstNotBad)+30*24*2600);
-    clear timeRelevant
-    stdDev(i) = std(dataRelevant(iRelevantTimePeriod));
+    if any(iGoodData)
+        dataRelevant = lineData(iGoodData);
+        clear lineData;
+        timeRelevant = time(iGoodData);
+        iFirstNotBad = find(iGoodData, 1, 'first');
+        clear iGoodData
+        iRelevantTimePeriod = (timeRelevant >= time(iFirstNotBad) & timeRelevant <= time(iFirstNotBad)+30*24*2600);
+        clear timeRelevant
+        if any(iRelevantTimePeriod)
+            % std only applies to single or double (both are floats of different precision)
+            if ~isa(dataRelevant, 'float')
+                dataRelevant = single(dataRelevant);
+            end
+            stdDev(i) = std(dataRelevant(iRelevantTimePeriod));
+        else
+            stdDev(i) = NaN;
+        end
+    else
+        stdDev(i) = NaN;
+    end
 end
 
 qcPrep.stdDev = stdDev;
