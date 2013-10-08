@@ -36,7 +36,6 @@ CNDC,                1, sea_water_electrical_conductivity,                      
 CPHL,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                                K, 999999.0, 0.0,     100.0,    float
 CHLF,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                                K, 999999.0, 0.0,     100.0,    float
 CHLU,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                                K, 999999.0, 0.0,     100.0,    float
-CHLR,                0, raw_concentration_of_chlorophyll_in_sea_water,                                  counts,                                K, 999999.0, ,        ,         float
 CSPD,                1, sea_water_speed,                                                                m s-1,                                 V, 999999.0, 0.0,     10.0,     float
 DENS,                1, sea_water_density,                                                              kg m-3,                                D, 999999.0, ,        ,         float
 DEPTH,               1, depth,                                                                          m,                                     Z, 999999.0, -5.0,    12000.0,  float

@@ -146,6 +146,7 @@ function [name, data, comment] = convertData(name, data, instHeader, procHeader)
   % the cast date, if present, is used for time field offset
   castDate = 0;
   if isfield(instHeader, 'castDate'), castDate = instHeader.castDate; end
+  if isfield(procHeader, 'startTime'), castDate = procHeader.startTime; end
 
   switch name
     
@@ -237,11 +238,21 @@ function [name, data, comment] = convertData(name, data, instHeader, procHeader)
       name = 'PSAL';
       comment = '';
     
+    % PAR/Irradiance, Biospherical/Licor
+    case 'par'
+      name = 'PAR';
+      comment = '';
+      
     % turbidity (NTU)
     case 'obs'
       name = 'TURB';
       comment = '';
     
+    % turbidity (NTU)
+    case 'turbWETntu0'
+      name = 'TURB';
+      comment = '';
+      
     % turbidity (NTU)
     case 'upoly0'
       name = 'TURB';

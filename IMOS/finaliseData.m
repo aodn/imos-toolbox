@@ -130,23 +130,31 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   % set the time deployment period from the metadata
   if isfield(sam.meta, 'deployment')
       if ~isempty(sam.meta.deployment.TimeFirstGoodData)
-          sam.time_deployment_start = sam.meta.deployment.TimeFirstGoodData;
+          sam.time_deployment_start         = sam.meta.deployment.TimeFirstGoodData;
+          sam.time_deployment_start_origin  = 'TimeFirstGoodData';
       elseif ~isempty(sam.meta.deployment.TimeFirstInPos)
-          sam.time_deployment_start = sam.meta.deployment.TimeFirstInPos;
+          sam.time_deployment_start         = sam.meta.deployment.TimeFirstInPos;
+          sam.time_deployment_start_origin  = 'TimeFirstInPos';
       elseif ~isempty(sam.meta.deployment.TimeFirstWet)
-          sam.time_deployment_start = sam.meta.deployment.TimeFirstWet;
+          sam.time_deployment_start         = sam.meta.deployment.TimeFirstWet;
+          sam.time_deployment_start_origin  = 'TimeFirstWet';
       elseif ~isempty(sam.meta.deployment.TimeSwitchOn)
-          sam.time_deployment_start = sam.meta.deployment.TimeSwitchOn;
+          sam.time_deployment_start         = sam.meta.deployment.TimeSwitchOn;
+          sam.time_deployment_start_origin  = 'TimeSwitchOn';
       end
       
       if ~isempty(sam.meta.deployment.TimeLastGoodData)
-          sam.time_deployment_end = sam.meta.deployment.TimeLastGoodData;
+          sam.time_deployment_end           = sam.meta.deployment.TimeLastGoodData;
+          sam.time_deployment_end_origin    = 'TimeLastGoodData';
       elseif ~isempty(sam.meta.deployment.TimeLastInPos)
-          sam.time_deployment_end = sam.meta.deployment.TimeLastInPos;
+          sam.time_deployment_end           = sam.meta.deployment.TimeLastInPos;
+          sam.time_deployment_end_origin    = 'TimeLastInPos';
       elseif ~isempty(sam.meta.deployment.TimeOnDeck)
-          sam.time_deployment_end = sam.meta.deployment.TimeOnDeck;
+          sam.time_deployment_end           = sam.meta.deployment.TimeOnDeck;
+          sam.time_deployment_end_origin    = 'TimeOnDeck';
       elseif ~isempty(sam.meta.deployment.TimeSwitchOff)
-          sam.time_deployment_end = sam.meta.deployment.TimeSwitchOff;
+          sam.time_deployment_end           = sam.meta.deployment.TimeSwitchOff;
+          sam.time_deployment_end_origin    = 'TimeSwitchOff';
       end
   elseif isfield(sam.meta, 'profile')
       if ~isempty(sam.meta.profile.DateFirstInPos) && ~isempty(sam.meta.profile.TimeFirstInPos)
@@ -160,8 +168,14 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
       end
   end
   
-  if isempty(sam.time_deployment_start), sam.time_deployment_start = []; end
-  if isempty(sam.time_deployment_end),   sam.time_deployment_end   = []; end
+  if isempty(sam.time_deployment_start)
+      sam.time_deployment_start         = [];
+      sam.time_deployment_start_origin  = [];
+  end
+  if isempty(sam.time_deployment_end)
+      sam.time_deployment_end           = [];
+      sam.time_deployment_end_origin    = [];
+  end
   
   % set the time coverage period from the data
   switch mode

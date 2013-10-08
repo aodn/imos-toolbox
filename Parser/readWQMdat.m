@@ -49,7 +49,7 @@ function sample_data = readWQMdat( filename )
 %                   Chlorophyll       ('CPHL'): mg/m^3
 %                   Chlorophyll       ('CHLU'): mg/m^3   (user coefficient)
 %                   Chlorophyll       ('CHLF'): mg/m^3   (factory coefficient)
-%                   Chlorophyll       ('CHLR'): mg/m^3   (raw counts)
+%                   Fluorescence      ('FLU2'): raw counts
 %                   Turbidity         ('TURB'): NTU
 %                   Photosynthetically active radiation ('PAR'): umol_phtn/m^2/s
 %                 
@@ -127,7 +127,7 @@ function sample_data = readWQMdat( filename )
   params{end+1} = {'CHLa(ug/l)',            {'CPHL', 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements. Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};  
   params{end+1} = {'F-Cal-CHL(ug/l)',       {'CHLF', 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements using factory calibration coefficient. Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
   params{end+1} = {'U-Cal-CHL(ug/l)',       {'CHLU', 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements using user calibration coefficient. Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
-  params{end+1} = {'RawCHL(Counts)',        {'CHLR', 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements. Expressed in raw counts.'}};
+  params{end+1} = {'RawCHL(Counts)',        {'FLU2', ''}};
   params{end+1} = {'NTU',                   {'TURB', ''}};
   params{end+1} = {'NTU(NTU)',              {'TURB', ''}};
   params{end+1} = {'PAR(umol_phtn/m2/s)',   {'PAR', ''}};

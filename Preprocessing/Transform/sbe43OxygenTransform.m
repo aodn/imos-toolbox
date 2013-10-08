@@ -1,4 +1,4 @@
-function [data, name, comment] = sbe43OxygenTransform( sam, varIdx )
+function [data, name, comment, history] = sbe43OxygenTransform( sam, varIdx )
 %SBE43OXYGENTRANSFORM Implementation of SBE43 voltage to oxygen concentration
 %data.
 %
@@ -19,8 +19,10 @@ function [data, name, comment] = sbe43OxygenTransform( sam, varIdx )
 %   data    - array of oxygen concentration values, umol/l
 %   name    - new variable name 'DOX1'
 %   comment - string which can be used for variable comment
+%   history - string which can be used for the dataset history
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -70,6 +72,7 @@ function [data, name, comment] = sbe43OxygenTransform( sam, varIdx )
   data    = sam.variables{doxy}.data;
   name    = sam.variables{doxy}.name;
   comment = sam.variables{doxy}.comment;
+  history = sam.history;
   
   % measured parameters
   T = sam.variables{temp}.data;
@@ -115,7 +118,17 @@ function [data, name, comment] = sbe43OxygenTransform( sam, varIdx )
   data = data .* 44.660;
   
   name    = 'DOX1';
-  comment = ['sbe43Transform: derived from ' sam.variables{doxy}.name '.'];
+  sbe43OxygenTransformComment = ['sbe43OxygenTransform: ' name ' derived from ' sam.variables{doxy}.name '.'];
+  if isempty(comment)
+      comment = sbe43OxygenTransformComment;
+  else
+      comment = [comment ' ' sbe43OxygenTransformComment];
+  end
+  if isempty(history)
+      history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), sbe43OxygenTransformComment);
+  else
+      history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), sbe43OxygenTransformComment);
+  end
 end
 
 function oxygen = oxygenConcentration(V, T, S, P, params)
