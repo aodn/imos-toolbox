@@ -161,6 +161,12 @@ function sample_data = timeStartPP( sample_data, auto )
       sample_data{k}.dimensions{timeIdx}.data - oldStart;
     sample_data{k}.dimensions{timeIdx}.data = ...
       sample_data{k}.dimensions{timeIdx}.data + newStart;
+    
+    % and to the time coverage atttributes
+    sample_data{k}.time_coverage_start = newStart;
+    sample_data{k}.time_coverage_end = ...
+      sample_data{k}.dimensions{timeIdx}.data(end);
+  
     comment = sample_data{k}.dimensions{timeIdx}.comment;
     if isempty(comment)
         sample_data{k}.dimensions{timeIdx}.comment = timeStartComment;
@@ -168,11 +174,12 @@ function sample_data = timeStartPP( sample_data, auto )
         sample_data{k}.dimensions{timeIdx}.comment = [comment ' ' timeStartComment];
     end
     
-    % and to the time coverage atttributes
-    sample_data{k}.time_coverage_start = newStart;
-    sample_data{k}.time_coverage_end = ...
-      sample_data{k}.dimensions{timeIdx}.data(end);
-    
+    history = sample_data{k}.history;
+    if isempty(history)
+        sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), timeStartComment);
+    else
+        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), timeStartComment);
+    end
   end
   
   function keyPressCallback(source,ev)

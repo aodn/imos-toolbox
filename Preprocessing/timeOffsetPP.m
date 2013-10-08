@@ -199,18 +199,25 @@ function sample_data = timeOffsetPP(sample_data, auto)
       % otherwise apply the offset
       sample_data{k}.(type){timeIdx}.data = ...
           sample_data{k}.(type){timeIdx}.data + (offsets(k) / 24);
+      
+      sample_data{k}.time_coverage_start = ...
+          sample_data{k}.time_coverage_start      + (offsets(k) / 24);
+      sample_data{k}.time_coverage_end   = ...
+          sample_data{k}.time_coverage_end        + (offsets(k) / 24);
+      
       comment = sample_data{k}.(type){timeIdx}.comment;
       if isempty(comment)
           sample_data{k}.(type){timeIdx}.comment = timeOffsetComment;
       else
           sample_data{k}.(type){timeIdx}.comment = [comment ' ' timeOffsetComment];
       end
-      sample_data{k}.time_coverage_start = ...
-          sample_data{k}.time_coverage_start      + (offsets(k) / 24);
-      sample_data{k}.time_coverage_end   = ...
-          sample_data{k}.time_coverage_end        + (offsets(k) / 24);
       
-      
+      history = sample_data{k}.history;
+      if isempty(history)
+          sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), timeOffsetComment);
+      else
+          sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), timeOffsetComment);
+      end
   end
   
   function keyPressCallback(source,ev)

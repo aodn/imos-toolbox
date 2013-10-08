@@ -14,5 +14,5 @@ S, quality_control_conventions          = [mat imosQCFlag('', str2double(readPro
 % these fields are automatically populated upon NetCDF export
 Q, flag_values                          = 
 S, flag_meanings                        = 
-S, quality_control_global_conventions   = Argo reference table 2a, applied on data in position only (between global attributes time_deployment_start and time_deployment_end)
+S, quality_control_global_conventions   = Argo reference table 2a (see http://www.cmar.csiro.au/argo/dmqc/user_doc/QC_flags.html), applied on data in position only (between global attributes time_deployment_start and time_deployment_end)
 Q, quality_control_global               = 
