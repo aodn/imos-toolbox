@@ -204,6 +204,13 @@ for k = 1:lenSam
         dimensions, ...
         computedPresRelComment);
     
+    history = sample_data{k}.history;
+    if isempty(history)
+        sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), computedPresRelComment);
+    else
+        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), computedPresRelComment);
+    end
+    
     sam = sample_data{k};
     
     presRelIdx = getVar(sam.variables, 'PRES_REL');

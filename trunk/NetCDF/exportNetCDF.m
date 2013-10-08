@@ -93,12 +93,12 @@ function filename = exportNetCDF( sample_data, dest, mode )
     globAtts = rmfield(globAtts, 'variables');
     globAtts = rmfield(globAtts, 'dimensions');    
     
-    % let's add history information from log
+    % let's add QC information from log
     if ~isempty(sample_data.meta.log)
-      globAtts.history = cellfun(@(x)(sprintf('%s\n', x)), ...
+      globAtts.quality_control_log = cellfun(@(x)(sprintf('%s\n', x)), ...
         sample_data.meta.log, 'UniformOutput', false);
-      globAtts.history = [globAtts.history{:}];
-      globAtts.history = globAtts.history(1:end-1);
+      globAtts.quality_control_log = [globAtts.quality_control_log{:}];
+      globAtts.quality_control_log = globAtts.quality_control_log(1:end-1);
     end
     
     putAtts(fid, globConst, [], globAtts, 'global', 'double', dateFmt, mode);
@@ -160,9 +160,11 @@ function filename = exportNetCDF( sample_data, dest, mode )
       dimAtts = rmfield(dimAtts, 'stringlen');
       
       if isfield(dims{m}, 'flags')
-          % add the QC variable (defined below)
-          % to the ancillary variables attribute
-          dimAtts.ancillary_variables = [dims{m}.name '_quality_control'];
+          if any(dims{m}.flags ~= imosQCFlag('', qcSet, 'min'))
+              % add the QC variable (defined below)
+              % to the ancillary variables attribute
+              dimAtts.ancillary_variables = [dims{m}.name '_quality_control'];
+          end
       end
 
       % create dimension
@@ -185,10 +187,16 @@ function filename = exportNetCDF( sample_data, dest, mode )
       sample_data.dimensions{m}.vid   = vid;
       
       if isfield(dims{m}, 'flags')
-          % create the ancillary QC variable
-          qcvid = addQCVar(...
-              fid, sample_data, m, [qcDimId did], 'dimensions', qcType, dateFmt, mode);
-          sample_data.dimensions{m}.qcvid = qcvid;
+          if any(dims{m}.flags ~= imosQCFlag('', qcSet, 'min'))
+              % create the ancillary QC variable
+              qcvid = addQCVar(...
+                  fid, sample_data, m, [qcDimId did], 'dimensions', qcType, dateFmt, mode);
+              sample_data.dimensions{m}.qcvid = qcvid;
+              
+              netcdf.defVarChunking(fid, qcvid, 'CHUNKED', length(dims{m}.flags));
+      
+              netcdf.defVarDeflate(fid, qcvid, true, true, compressionLevel);
+          end
       end
     end
     
@@ -281,20 +289,26 @@ function filename = exportNetCDF( sample_data, dest, mode )
       varAtts = vars{m};
       varAtts = rmfield(varAtts, {'data', 'dimensions', 'flags', 'stringlen', 'typeCastFunc'});
       
-      % add the QC variable (defined below) 
-      % to the ancillary variables attribute
-      varAtts.ancillary_variables = [varname '_quality_control'];
+      if any(vars{m}.flags ~= imosQCFlag('', qcSet, 'min'))
+          % add the QC variable (defined below)
+          % to the ancillary variables attribute
+          varAtts.ancillary_variables = [varname '_quality_control'];
+      end
 
       % add the attributes
       putAtts(fid, vid, vars{m}, varAtts, 'variable', varNetcdfType{m}, dateFmt, mode);
       
-      % create the ancillary QC variable
-      qcvid = addQCVar(...
-          fid, sample_data, m, [qcDimId dids], 'variables', qcType, dateFmt, mode);
+      if any(vars{m}.flags ~= imosQCFlag('', qcSet, 'min'))
+          % create the ancillary QC variable
+          qcvid = addQCVar(...
+              fid, sample_data, m, [qcDimId dids], 'variables', qcType, dateFmt, mode);
+          
+          netcdf.defVarChunking(fid, qcvid, 'CHUNKED', dimLen);
       
-      netcdf.defVarChunking(fid, qcvid, 'CHUNKED', dimLen);
-      
-      netcdf.defVarDeflate(fid, qcvid, true, true, compressionLevel);
+          netcdf.defVarDeflate(fid, qcvid, true, true, compressionLevel);
+      else
+          qcvid = NaN;
+      end
     
       % save variable IDs for later reference
       sample_data.variables{m}.vid   = vid;
@@ -339,12 +353,14 @@ function filename = exportNetCDF( sample_data, dest, mode )
       end
       
       if isfield(dims{m}, 'flags')
-          % ancillary QC variable data
-          flags   = dims{m}.flags;
-          qcvid   = dims{m}.qcvid;
-          typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
-          flags = typeCastFunction(flags);
-          netcdf.putVar(fid, qcvid, flags);
+          if any(dims{m}.flags ~= imosQCFlag('', qcSet, 'min'))
+              % ancillary QC variable data
+              flags   = dims{m}.flags;
+              qcvid   = dims{m}.qcvid;
+              typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
+              flags = typeCastFunction(flags);
+              netcdf.putVar(fid, qcvid, flags);
+          end
       end
     end
 
@@ -356,9 +372,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
 
       % variable data
       data    = vars{m}.data;
-      flags   = vars{m}.flags;
       vid     = vars{m}.vid;
-      qcvid   = vars{m}.qcvid;
       stringlen = vars{m}.stringlen;
       typeCastFunction = str2func(netcdf3ToMatlabType(varNetcdfType{m}));
       
@@ -391,12 +405,16 @@ function filename = exportNetCDF( sample_data, dest, mode )
       end
       
       % ancillary QC variable data
-      typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
-      flags = typeCastFunction(flags);
-      
-      if nDims > 1, flags = permute(flags, nDims:-1:1); end
-      
-      netcdf.putVar(fid, qcvid, flags);
+      if any(vars{m}.flags ~= imosQCFlag('', qcSet, 'min'))
+          flags   = vars{m}.flags;
+          qcvid   = vars{m}.qcvid;
+          typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
+          flags = typeCastFunction(flags);
+          
+          if nDims > 1, flags = permute(flags, nDims:-1:1); end
+          
+          netcdf.putVar(fid, qcvid, flags);
+      end
     end
 
     %
@@ -598,6 +616,19 @@ function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mod
     name = atts{k};
     val  = template.(name);
     
+    if strcmpi(name, 'quality_control_indicator') && isfield(var, 'flags')
+        if any(var.flags ~= imosQCFlag('', qcSet, 'min'))
+            % if all flag values are equal, add the
+            % quality_control_indicator attribute
+            minFlag = min(var.flags(:));
+            maxFlag = max(var.flags(:));
+            if minFlag == maxFlag
+                val = minFlag;
+            end
+            val = qcTypeCastFunction(val);
+        end
+    end
+    
     if isempty(val), continue; end;
     
     type = 'S';
@@ -615,17 +646,6 @@ function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mod
     
     if any(strcmpi(name, {'valid_min', 'valid_max', '_FillValue', 'flag_values'}))
         val = typeCastFunction(val);
-    end
-    
-    if strcmpi(name, 'quality_control_indicator') && isfield(var, 'flags')
-        % if all flag values are equal, add the 
-        % quality_control_indicator attribute
-        minFlag = min(var.flags(:));
-        maxFlag = max(var.flags(:));
-        if minFlag == maxFlag
-            val = minFlag;
-        end
-        val = qcTypeCastFunction(val);
     end
     
     % add the attribute

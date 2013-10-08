@@ -565,6 +565,13 @@ for k = 1:length(sample_data)
         computedDepthComment);
     clear computedDepth;
     
+    history = sample_data{k}.history;
+    if isempty(history)
+        sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), computedDepthComment);
+    else
+        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), computedDepthComment);
+    end
+    
     % update the keywords with variable DEPTH
     sample_data{k}.keywords = [sample_data{k}.keywords, ', DEPTH'];
     

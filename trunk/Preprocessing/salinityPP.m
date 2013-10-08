@@ -92,10 +92,18 @@ for k = 1:length(sample_data)
   psal = gsw_SP_from_R(R, temp, presRel);
   
   % add salinity data as new variable in data set
+  salinityComment = ['salinityPP.m: derived from CNDC, TEMP and ' presName ' using the Gibbs-SeaWater toolbox (TEOS-10) v3.02'];
   sample_data{k} = addVar(...
     sam, ...
     'PSAL', ...
     psal, ...
     getVar(sam.dimensions, 'TIME'), ...
-    ['salinityPP.m: derived from CNDC, TEMP and ' presName ' using the Gibbs-SeaWater toolbox (TEOS-10) v3.02']);
+    salinityComment);
+
+    history = sample_data{k}.history;
+    if isempty(history)
+        sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), salinityComment);
+    else
+        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), salinityComment);
+    end
 end

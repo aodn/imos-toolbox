@@ -251,7 +251,7 @@ function sample_data = transformPP( sample_data, auto )
       tfmFunc = str2func(tfmName);
       
       % apply the transformation
-      [data, name, comment] = tfmFunc(sam, m);
+      [data, name, comment, history] = tfmFunc(sam, m);
       dimensions = sam.variables{m}.dimensions;
       
       % update new default for this variable
@@ -261,6 +261,7 @@ function sample_data = transformPP( sample_data, auto )
       sam = addVar(sam, name, data, dimensions, comment);
       sam.variables{m} = sam.variables{end};
       sam.variables(end) = [];
+      sam.history = history;
     end
     
     sample_data{k} = sam;

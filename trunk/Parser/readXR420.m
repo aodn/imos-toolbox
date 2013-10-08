@@ -3,7 +3,8 @@ function sample_data = readXR420( filename, mode )
 %
 % This function is able to read in a single file retrieved from an RBR
 % XR420 data logger using RBR Windows v 6.13 software. The pressure data 
-% is returned in a sample_data struct.
+% is returned in a sample_data struct. RBR TDR 2050 and TWR 2050 CTDs are
+% also supported when processed with RBR Windows v 6.13 software.
 %
 % Inputs:
 %   filename    - Cell array containing the name of the file to parse.
@@ -72,6 +73,10 @@ function sample_data = readXR420( filename, mode )
   sample_data.meta.instrument_serial_no = header.serial;
   sample_data.meta.instrument_sample_interval = median(diff(data.time*24*3600));
   sample_data.meta.correction           = header.correction;
+  
+  if isfield(header, 'correction'),             sample_data.meta.correction             = header.correction; end
+  if isfield(header, 'averaging_time_period'),  sample_data.meta.averaging_time_period  = header.averaging_time_period; end
+  if isfield(header, 'burst_sample_rate'),      sample_data.meta.burst_sample_rate      = header.burst_sample_rate; end
   
   switch mode
       case 'profile'
@@ -233,13 +238,16 @@ function sample_data = readXR420( filename, mode )
                       name = 'CNDC';
                       data.(vars{k}) = data.(vars{k})/10;
                       
-                      %Temperature (Celsius degree)
+                  %Temperature (Celsius degree)
                   case 'Temp', name = 'TEMP';
                       
-                      %Pressure (dBar)
+                  %Pressure (dBar)
                   case 'Pres', name = 'PRES';
                       
-                      %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
+                  %Depth (m)
+                  case 'Depth', name = 'DEPTH';
+                      
+                  %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlCa'
                       name = 'CPHL';
                       comment.(vars{k}) = ['Artificial chlorophyll data computed from ' ...
@@ -289,13 +297,16 @@ function sample_data = readXR420( filename, mode )
                       name = 'CNDC';
                       data.(fields{k}) = data.(fields{k})/10;
                       
-                      %Temperature (Celsius degree)
+                  %Temperature (Celsius degree)
                   case 'Temp', name = 'TEMP';
                       
-                      %Pressure (dBar)
+                  %Pressure (dBar)
                   case 'Pres', name = 'PRES';
                       
-                      %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
+                  %Depth (m)
+                  case 'Depth', name = 'DEPTH';
+                      
+                  %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlCa'
                       name = 'CPHL';
                       comment.(fields{k}) = ['Artificial chlorophyll data computed from ' ...
@@ -335,6 +346,8 @@ function header = readHeader(fid)
     ['^Sample period +'                '(\d\d:\d\d:\d\d)$']
      '^Correction to conductivity: (.*)$'
      '^Number of channels = +(\d)+, number of samples = +(\d)+'
+     '^Averaging: +(\d)+'
+     '^Wave burst sample rate: +(\d)+'
   };
   
   for k = 1:length(lines)
@@ -370,6 +383,12 @@ function header = readHeader(fid)
         % number of channels, number of samples
         case 6, header.channels = str2double(tkns{1}{1});
                 header.samples  = str2double(tkns{1}{2});
+                
+        % bursts and averaging details
+        case 7, header.averaging_time_period  = str2double(tkns{1}{1});
+            
+        case 8, header.burst_sample_rate  = str2double(tkns{1}{1});
+            
       end
     end
   end
@@ -380,23 +399,21 @@ function data = readData(fid, header)
 
   data = struct;
   
-  fmt  = '';
-  
-  % figure out number of columns from the number of channels
-  for k = 1:header.channels, fmt = [fmt '%n']; end
-  
   cols = {};
   
   % get the column names
   colLine = fgetl(fid);
   [col, colLine] = strtok(colLine);
   while ~isempty(colLine)
-    
-    cols           = [cols col];
-    [col, colLine] = strtok(colLine);
+      %rename FlC-a to FlCa because Matlbal doesn't understand - whitin a structure name
+      strrep(col, '-', '')
+      
+      cols           = [cols col];
+      [col, colLine] = strtok(colLine);
   end
-  cols{4}='FlCa'; %renaim FlC-a to FlCa because Matlbal doesn't understand - whitin a structure name
+  
   % read in the sample data
+  fmt = repmat('%n',[1 numel(cols)]);
   samples = textscan(fid, fmt);
   
   % save sample data into the data struct, 

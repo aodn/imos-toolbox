@@ -32,31 +32,34 @@ S, institution_postal_address   =
 S, file_version                 = 
 S, file_version_quality_control = 
 S, history                      = 
+S, quality_control_log          = 
 
 % where
-N, geospatial_lat_min      	= [ddb Site Sites Latitude]
-N, geospatial_lat_max      	= [ddb Site Sites Latitude]
-N, geospatial_lon_min      	= [ddb Site Sites Longitude]
-N, geospatial_lon_max      	= [ddb Site Sites Longitude]
-N, instrument_nominal_height= 
-N, instrument_nominal_depth = 
-N, site_nominal_depth      	= 
-N, site_depth_at_deployment = 
+N, geospatial_lat_min           = [ddb Site Sites Latitude]
+N, geospatial_lat_max           = [ddb Site Sites Latitude]
+N, geospatial_lon_min           = [ddb Site Sites Longitude]
+N, geospatial_lon_max           = [ddb Site Sites Longitude]
+N, instrument_nominal_height    = 
+N, instrument_nominal_depth     = 
+N, site_nominal_depth           = 
+N, site_depth_at_deployment     = 
 
 % if left empty, these fields are automatically populated upon import 
 % when DEPTH variable exist (if not use depthPP pre-processing routine)
-N, geospatial_vertical_min = 
-N, geospatial_vertical_max = 
+N, geospatial_vertical_min      = 
+N, geospatial_vertical_max      = 
 S, geospatial_vertical_positive = down
 
 % when
-N, local_time_zone     		= 
+N, local_time_zone              = 
 
 % these fields are automatically populated upon import
-D, time_deployment_start 	= 
-D, time_deployment_end 		= 
-D, time_coverage_start 		= 
-D, time_coverage_end   		= 
+D, time_deployment_start        = 
+S, time_deployment_start_origin = 
+D, time_deployment_end          = 
+S, time_deployment_end_origin   = 
+D, time_coverage_start          = 
+D, time_coverage_end            = 
 
 % who
 S, data_centre                  = eMarine Information Infrastructure (eMII)
@@ -68,8 +71,8 @@ S, principal_investigator_email =
 S, institution_references       = http://www.imos.org.au/emii.html
 
 % how
-S, lineage				   = 
-S, citation                = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-URL], accessed [date-of-access].".
-S, acknowledgement         = Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is supported by the Australian Government through the National Collaborative Research Infrastructure Strategy and the Super Science Initiative." If relevant, also credit other organisations involved in collection of this particular datastream (as listed in 'credit' in the metadata record).
-S, distribution_statement  = Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
-S, project_acknowledgement = The collection of this data was funded by IMOS
+S, lineage                      = 
+S, citation                     = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-URL], accessed [date-of-access].".
+S, acknowledgement              = Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is supported by the Australian Government through the National Collaborative Research Infrastructure Strategy and the Super Science Initiative." If relevant, also credit other organisations involved in collection of this particular datastream (as listed in 'credit' in the metadata record).
+S, distribution_statement       = Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
+S, project_acknowledgement      = The collection of this data was funded by IMOS

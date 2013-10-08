@@ -81,6 +81,9 @@ function sample_data = DR1050Parse( filename, mode )
   else
       sample_data.meta.instrument_sample_interval = median(diff(data.time*24*3600));
   end
+  
+  if ~strcmpi(header.comment(end), '.'), header.comment(end+1) = '.'; end
+  
   sample_data.meta.comment                      = header.comment;
   
   % dimensions definition must stay in this order : T, Z, Y, X, others;

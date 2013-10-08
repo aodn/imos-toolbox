@@ -273,6 +273,8 @@ function sample_data = variableOffsetPP( sample_data, auto )
   % otherwise, apply the offsets/scales
   for k = 1:length(sample_data)
     
+    history = sample_data{k}.history;
+      
     vars = sample_data{k}.variables;
     for m = 1:length(vars)
       
@@ -284,17 +286,24 @@ function sample_data = variableOffsetPP( sample_data, auto )
               (offsets{k}(m) ~= 0 || scales{k}(m) ~= 1)
           vars{m}.data = o + (s .* d);
           
+          variableOffsetComment = ['variableOffsetPP: variable values modified applying '...
+                  'the following offset : ' num2str(offsets{k}(m)) ' and scale : ' num2str(scales{k}(m)) '.'];
+          
           comment = vars{m}.comment;
           if isempty(comment)
-              vars{m}.comment = ['variableOffsetPP: variable values modified applying '...
-                  'the following offset : ' num2str(offsets{k}(m)) ' and scale : ' num2str(scales{k}(m)) '.'];
+              vars{m}.comment = variableOffsetComment;
           else
-              vars{m}.comment = [comment ' ' 'variableOffsetPP: variable values modified applying '...
-                  'the following offset : ' num2str(offsets{k}(m)) ' and scale : ' num2str(scales{k}(m)) '.'];
+              vars{m}.comment = [comment ' ' variableOffsetComment];
           end
           
           str = sprintf('%0.6f,%0.6f', offsets{k}(m), scales{k}(m));
           writeProperty(vars{m}.name, str, offsetFile);
+      end
+      
+      if isempty(history)
+          history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
+      else
+          history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
       end
     end
     sample_data{k}.variables = vars;

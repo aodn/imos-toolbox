@@ -178,16 +178,12 @@ for i=3:nColumns
     samples{i} = str2double(samples{i});
 end
 
-% get rid of samples with count value 4130 and over which looks like to be the maximum
+% count value 4130 and over look like to be the maximum
 % possible count value the instrument can deliver
 maxCount = 4130;
-iMaxCount = false(length(samples{1}), nColumns-2);
 for i=3:nColumns
-    iMaxCount(:, i-2) = samples{i} >= maxCount;
-end
-iMaxCount = any(iMaxCount, 2);
-for i=1:nColumns
-    samples{i}(iMaxCount) = [];
+    iMaxCount = samples{i} >= maxCount;
+    samples{i}(iMaxCount) = NaN;
 end
 clear iMaxCount;
 

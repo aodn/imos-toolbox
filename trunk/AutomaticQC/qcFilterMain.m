@@ -123,11 +123,11 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
                 
             if isempty(uFlags)
                 sam.meta.log{end+1} = [filterName '(' flog ')' ...
-                        ' didn''t fail on any ' ...
-                        sam.(type{m}){k}.name ' sample'];
+                        ' did not fail on any ' ...
+                        sam.(type{m}){k}.name ' sample.'];
             else
                 for i=1:length(uFlags)
-                    flagString = ['"' imosQCFlag(uFlags(i),  qcSet, 'desc') '"'];
+                    flagString = imosQCFlag(uFlags(i),  qcSet, 'desc');
                     
                     flagIdxI = fsam.(type{m}){k}.flags == uFlags(i);
                     canBeFlagIdx = initFlags < uFlags(i);
@@ -136,12 +136,12 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
                 
                     if nFlag == 0
                         sam.meta.log{end+1} = [filterName '(' flog ')' ...
-                            ' didn''t fail on any ' ...
-                            sam.(type{m}){k}.name ' sample'];
+                            ' did not fail on any ' ...
+                            sam.(type{m}){k}.name ' sample.'];
                     else
                         sam.meta.log{end+1} = [filterName '(' flog ')' ...
                             ' flagged ' num2str(nFlag) ' ' ...
-                            sam.(type{m}){k}.name ' samples with flag ' flagString];
+                            sam.(type{m}){k}.name ' samples with flag ' flagString '.'];
                         
                         sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).nFlag = nFlag;
                         sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).codeFlag = uFlags(i);
@@ -228,11 +228,11 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             
             if isempty(uFlags)
                 sam.meta.log{end+1} = [filterName '(' l ')' ...
-                        ' didn''t fail on any ' ...
-                        sam.(type{m}){k}.name ' sample'];
+                        ' did not fail on any ' ...
+                        sam.(type{m}){k}.name ' sample.'];
             else
                 for i=1:length(uFlags)
-                    flagString = ['"' imosQCFlag(uFlags(i)-1,  qcSet, 'desc') '"'];
+                    flagString = imosQCFlag(uFlags(i)-1,  qcSet, 'desc');
                     uFlagIdx = f == uFlags(i)-1;
                     canBeFlagIdx = initFlags < uFlags(i)-1;
                     uFlagIdx = canBeFlagIdx & uFlagIdx;
@@ -240,12 +240,12 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
                     
                     if nFlag == 0
                         sam.meta.log{end+1} = [filterName '(' l ')' ...
-                            ' didn''t fail on any ' ...
-                            sam.(type{m}){k}.name ' sample'];
+                            ' did not fail on any ' ...
+                            sam.(type{m}){k}.name ' sample.'];
                     else
                         sam.meta.log{end+1} = [filterName '(' l ')' ...
                             ' flagged ' num2str(nFlag) ' ' ...
-                            sam.(type{m}){k}.name ' samples with flag ' flagString];
+                            sam.(type{m}){k}.name ' samples with flag ' flagString '.'];
                         
                         sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).nFlag = nFlag;
                         sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).codeFlag = uFlags(i)-1;

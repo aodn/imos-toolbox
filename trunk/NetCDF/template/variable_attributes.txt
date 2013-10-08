@@ -20,7 +20,3 @@ N, accuracy                  =
 N, precision                 = 
 N, resolution                = 
 S, cell_methods              = 
-N, quality_control_set       = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
-
-% this field is automatically populated upon NetCDF export
-Q, quality_control_indicator = 

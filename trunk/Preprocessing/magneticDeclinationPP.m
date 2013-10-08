@@ -137,6 +137,7 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
       
       nMagDataSet = length(iMagDataSet);
       for i = 1:nMagDataSet
+          isMagDecApplied = false;
           magneticDeclinationComment = ['magneticDeclinationPP: data initially referring to magnetic North has ' ...
               'been modified so that it now refers to true North, applying a computed magnetic ' ...
               'declination of ' num2str(geomagDeclin(i)) 'degrees. NOAA''s Geomag v7.0 software + IGRF11 ' ...
@@ -200,6 +201,13 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
                       sample_data{iMagDataSet(i)}.dimensions{iDim}.magnetic_declination = geomagDeclin(i);
                       sample_data{iMagDataSet(i)}.dimensions{iDim}.compass_correction_applied = geomagDeclin(i);
                       sample_data{iMagDataSet(i)}.dimensions{iDim}.comment = magneticDeclinationComment;
+                      
+                      comment = sample_data{iMagDataSet(i)}.dimensions{iDim}.comment;
+                      if isempty(comment)
+                          sample_data{iMagDataSet(i)}.dimensions{iDim}.comment = magneticDeclinationComment;
+                      else
+                          sample_data{iMagDataSet(i)}.dimensions{iDim}.comment = [comment ' ' magneticDeclinationComment];
+                      end
               
                   case {'CDIR', 'HEADING', 'VDIR', 'SSDS', 'SSWD', 'WPDI', ...
                           'WWPD', 'SWPD', 'WMPD', 'VCUR', 'UCUR'}
@@ -232,9 +240,26 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
               sample_data{iMagDataSet(i)}.variables{j}.data = data;
               sample_data{iMagDataSet(i)}.variables{j}.magnetic_declination = geomagDeclin(i);
               sample_data{iMagDataSet(i)}.variables{j}.compass_correction_applied = geomagDeclin(i);
-              sample_data{iMagDataSet(i)}.variables{j}.comment = magneticDeclinationComment;
+              
+              comment = sample_data{iMagDataSet(i)}.variables{j}.comment;
+              if isempty(comment)
+                  sample_data{iMagDataSet(i)}.variables{j}.comment = magneticDeclinationComment;
+              else
+                  sample_data{iMagDataSet(i)}.variables{j}.comment = [comment ' ' magneticDeclinationComment];
+              end
               
               sample_data{iMagDataSet(i)} = makeNetCDFCompliant(sample_data{iMagDataSet(i)});
+              
+              isMagDecApplied = true;
+          end
+          
+          if isMagDecApplied
+              history = sample_data{iMagDataSet(i)}.history;
+              if isempty(history)
+                  sample_data{iMagDataSet(i)}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), magneticDeclinationComment);
+              else
+                  sample_data{iMagDataSet(i)}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), magneticDeclinationComment);
+              end
           end
       end
   end
