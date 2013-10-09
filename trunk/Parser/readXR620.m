@@ -5,7 +5,8 @@ function sample_data = readXR620( filename, mode )
 % This function is able to read in a single file retrieved from an RBR
 % XR620 or RX420 data logger in Engineering unit .txt format (processed 
 % using Ruskin software). The pressure data is returned in a sample_data 
-% struct.
+% struct. Other RBR instrument like TDR 2050, TR 1060 might be supported
+% when processed with Ruskin software.
 %
 % Inputs:
 %   filename    - Cell array containing the name of the file to parse.
@@ -686,9 +687,9 @@ function header = readHeader(fid)
     ['^Firmware=+' '(\S+)$']
     ['^Serial=+' '(\S+)$']
     ['^LoggingStartDate=+' '(\S+)$']
-    ['^LoggingStartTime=+' '(\S+)$']
+    ['^LoggingStartTime=+' '(\S+\s?\S+)$']
     ['^LoggingEndDate=+' '(\S+)$']
-    ['^LoggingEndTime=+' '(\S+)$']
+    ['^LoggingEndTime=+' '(\S+\s?\S+)$']
     ['^LoggingSamplingPeriod=+' '(\d+)Hz']
     ['^LoggingSamplingPeriod=+' '(\d\d:\d\d:\d\d)']
     ['^NumberOfChannels=+' '(\d+)']
@@ -740,8 +741,8 @@ function header = readHeader(fid)
               
           % other sample interval
           case 9
-              tkns{1}{1}      = ['0000/01/00 ' tkns{1}{1}];
-              header.interval = datenum(tkns{1}{1}, 'yyyy/mm/dd HH:MM:SS');
+              [~, ~, ~, H, MN, S] = datevec(datenum(tkns{1}{1}, 'HH:MM:SS'));
+              header.interval = H*3600 + MN*60 + S;
               
           % number of channels
           case 10
@@ -758,20 +759,26 @@ function header = readHeader(fid)
     end
   end
   
-  if ~isempty(startDate) && ~isempty(startTime)
+  if ~isempty(startDate) && ~isempty(startTime) % ruskin v1.5
       if length(startDate) == 8 
           header.start    = datenum([startDate ' ' startTime],  'yy/mm/dd HH:MM:SS.FFF');
       else
           header.start    = datenum([startDate ' ' startTime],  'yyyy/mmm/dd HH:MM:SS.FFF');
       end
+  elseif isempty(startDate) && ~isempty(startTime) % ruskin v1.7
+      header.start    = datenum(startTime,  'dd-mmm-yyyy HH:MM:SS.FFF');
   end
-  if ~isempty(endDate) && ~isempty(endTime)
+  
+  if ~isempty(endDate) && ~isempty(endTime) % ruskin v1.5
       if length(endDate) == 8
           header.end      = datenum([endDate   ' ' endTime],    'yy/mm/dd HH:MM:SS.FFF');
       else
           header.end      = datenum([endDate   ' ' endTime],    'yyyy/mmm/dd HH:MM:SS.FFF');
       end
+  elseif isempty(endDate) && ~isempty(endTime) % ruskin v1.7
+      header.end    = datenum(endTime,  'dd-mmm-yyyy HH:MM:SS.FFF');
   end
+  
 end
 
 function data = readData(fid, header)
@@ -823,7 +830,11 @@ function data = readData(fid, header)
   if length(data.Date{1}) == 8 
       data.time = datenum(data.Date, 'yy/mm/dd') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
   else
-      data.time = datenum(data.Date, 'yyyy/mmm/dd') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
+      if isempty(strfind(data.Date{1}, '-'))
+          data.time = datenum(data.Date, 'yyyy/mmm/dd') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
+      else
+          data.time = datenum(data.Date, 'dd-mmm-yyyy') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
+      end
   end
   
   data = rmfield(data, 'Date');
