@@ -177,7 +177,7 @@ function flowManager(toolboxVersion)
       nDim = length(target.dimensions);
       for k = 1:nDim
 %         updatedTarget.dimensions{k}.data  = target.dimensions{k}.data;
-        updatedTarget.dimensions{k}.flags = target.dimensions{k}.flags;
+        if isfield(target.dimensions{k}, 'flags'), updatedTarget.dimensions{k}.flags = target.dimensions{k}.flags; end
       end
     end
   end
