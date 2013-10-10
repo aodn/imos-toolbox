@@ -62,7 +62,7 @@ project = 'imos-toolbox'
 def googleSubmit(archive, summary):
 
   username = 'guillaume.galibert@gmail.com'
-  password = 'dZ2JH2wD4ad2' # SVN password!!!
+  password = 'mySVNPassword' # SVN password!!!
   labels   = 'Type-Snapshot'
 
   print('\n--submitting %s to google' % archive)
@@ -110,7 +110,7 @@ if compiled is not 0:
     "Check the Java DDB interface code",
     None,
     "guillaume.galibert",
-    "28gg=!bb")
+    "myGmailPassword")
 
 #
 # create snapshot
