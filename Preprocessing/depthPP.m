@@ -286,7 +286,6 @@ for k = 1:length(sample_data)
                     
                     if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
                         % compute depth with Gibbs-SeaWater toolbox
-                        % (TEOS-10) v3.02
                         % depth ~= - gsw_z_from_p(relative_pressure, latitude)
                         if curSam.geospatial_lat_min == curSam.geospatial_lat_max
                             zOther = - gsw_z_from_p(relPresOther, curSam.geospatial_lat_min);
@@ -397,7 +396,7 @@ for k = 1:length(sample_data)
                     % pressure = density*gravity*depth
                     %
                     if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
-                        % compute depth with Gibbs-SeaWater toolbox (TEOS-10)
+                        % compute depth with Gibbs-SeaWater toolbox
                         % depth ~= - gsw_z_from_p(relative_pressure, latitude)
                         if curSam.geospatial_lat_min == curSam.geospatial_lat_max
                             zFirst = - gsw_z_from_p(relPresFirst, curSam.geospatial_lat_min);
@@ -482,7 +481,7 @@ for k = 1:length(sample_data)
         end
         
         if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
-            % compute vertical min/max with Gibbs-SeaWater toolbox (TEOS-10)
+            % compute vertical min/max with Gibbs-SeaWater toolbox
             if curSam.geospatial_lat_min == curSam.geospatial_lat_max
                 computedDepth         = - gsw_z_from_p(relPres, ...
                     curSam.geospatial_lat_min);

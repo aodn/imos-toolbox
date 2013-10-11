@@ -170,66 +170,45 @@ sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
 sample_data.meta.beam_angle                 = 45;   % http://wiki.neptunecanada.ca/download/attachments/18022846/Nortek+Aquadopp+Current+Meter+User+Manual+-+Rev+C.pdf
 
-sample_data.dimensions{1} .name = 'TIME';
-sample_data.dimensions{2} .name = 'LATITUDE';
-sample_data.dimensions{3} .name = 'LONGITUDE';
+% add dimensions with their data mapped
+dims = {
+    'TIME',                   time; ...
+    'LATITUDE',               NaN; ...
+    'LONGITUDE',              NaN
+    };
+clear time;
 
-sample_data.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
-sample_data.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-sample_data.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
+for i=1:size(dims, 1)
+    sample_data.dimensions{i}.name         = dims{i, 1};
+    sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
+    sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
+end
+clear dims;
 
-sample_data.variables {1} .name = 'VCUR';
-sample_data.variables {2} .name = 'UCUR';
-sample_data.variables {3} .name = 'WCUR';
-sample_data.variables {4} .name = 'ABSI1';
-sample_data.variables {5} .name = 'ABSI2';
-sample_data.variables {6} .name = 'ABSI3';
-sample_data.variables {7} .name = 'TEMP';
-sample_data.variables {8} .name = 'PRES_REL';
-sample_data.variables {9} .name = 'VOLT';
-sample_data.variables {10}.name = 'PITCH';
-sample_data.variables {11}.name = 'ROLL';
-sample_data.variables {12}.name = 'HEADING';
+% add variables with their dimensions and data mapped.
+% we assume no correction for magnetic declination has been applied
+vars = {
+    'VCUR_MAG',   [1 2 3],  velocity2; ... % V
+    'UCUR_MAG',   [1 2 3],  velocity1; ... % U
+    'WCUR',       [1 2 3],  velocity3; ...
+    'ABSI1',      [1 2 3],  backscatter1; ...
+    'ABSI2',      [1 2 3],  backscatter2; ...
+    'ABSI3',      [1 2 3],  backscatter3; ...
+    'TEMP',       [1 2 3],  temperature; ...
+    'PRES_REL',   [1 2 3],  pressure; ...
+    'VOLT',       [1 2 3],  battery; ...
+    'PITCH',      [1 2 3],  pitch; ...
+    'ROLL',       [1 2 3],  roll; ...
+    'HEADING_MAG',[1 2 3],  heading
+    };
+clear analn1 analn2 time distance velocity1 velocity2 velocity3 ...
+    backscatter1 backscatter2 backscatter3 ...
+    temperature pressure battery pitch roll heading;
 
-sample_data.variables{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
-sample_data.variables{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
-sample_data.variables{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
-sample_data.variables{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{4}.name, 'type')));
-sample_data.variables{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{5}.name, 'type')));
-sample_data.variables{6}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{6}.name, 'type')));
-sample_data.variables{7}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{7}.name, 'type')));
-sample_data.variables{8}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{8}.name, 'type')));
-sample_data.variables{9}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{9}.name, 'type')));
-sample_data.variables{10}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{10}.name, 'type')));
-sample_data.variables{11}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{11}.name, 'type')));
-sample_data.variables{12}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{12}.name, 'type')));
-
-sample_data.variables {1} .dimensions = [1 2 3];
-sample_data.variables {2} .dimensions = [1 2 3];
-sample_data.variables {3} .dimensions = [1 2 3];
-sample_data.variables {4} .dimensions = [1 2 3];
-sample_data.variables {5} .dimensions = [1 2 3];
-sample_data.variables {6} .dimensions = [1 2 3];
-sample_data.variables {7} .dimensions = [1 2 3];
-sample_data.variables {8} .dimensions = [1 2 3];
-sample_data.variables {9} .dimensions = [1 2 3];
-sample_data.variables {10}.dimensions = [1 2 3];
-sample_data.variables {11}.dimensions = [1 2 3];
-sample_data.variables {12}.dimensions = [1 2 3];
-
-sample_data.dimensions{1} .data = sample_data.dimensions{1}.typeCastFunc(time);
-sample_data.dimensions{2} .data = sample_data.dimensions{2}.typeCastFunc(NaN);
-sample_data.dimensions{3} .data = sample_data.dimensions{3}.typeCastFunc(NaN);
-
-sample_data.variables {1} .data = sample_data.variables{1}.typeCastFunc(velocity2); % V
-sample_data.variables {2} .data = sample_data.variables{2}.typeCastFunc(velocity1); % U
-sample_data.variables {3} .data = sample_data.variables{3}.typeCastFunc(velocity3);
-sample_data.variables {4} .data = sample_data.variables{4}.typeCastFunc(backscatter1);
-sample_data.variables {5} .data = sample_data.variables{5}.typeCastFunc(backscatter2);
-sample_data.variables {6} .data = sample_data.variables{6}.typeCastFunc(backscatter3);
-sample_data.variables {7} .data = sample_data.variables{7}.typeCastFunc(temperature);
-sample_data.variables {8} .data = sample_data.variables{8}.typeCastFunc(pressure);
-sample_data.variables {9} .data = sample_data.variables{9}.typeCastFunc(battery);
-sample_data.variables {10}.data = sample_data.variables{10}.typeCastFunc(pitch);
-sample_data.variables {11}.data = sample_data.variables{11}.typeCastFunc(roll);
-sample_data.variables {12}.data = sample_data.variables{12}.typeCastFunc(heading);
+for i=1:size(vars, 1)
+    sample_data.variables{i}.name         = vars{i, 1};
+    sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
+    sample_data.variables{i}.dimensions   = vars{i, 2};
+    sample_data.variables{i}.data         = sample_data.variables{i}.typeCastFunc(vars{i, 3});
+end
+clear vars;
