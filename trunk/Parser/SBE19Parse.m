@@ -1,9 +1,9 @@
 function sample_data = SBE19Parse( filename, mode )
-%SBE19PARSE Parses a .cnv or .hex data file from a Seabird SBE19plus V2 
+%SBE19PARSE Parses a .cnv or .hex data file from a Seabird SBE19plus v2 or a .cnv SBE16plus
 % CTD recorder.
 %
 % This function is able to read in a .cnv or .hex data file retrieved 
-% from a Seabird SBE19plus V2 CTD recorder. It makes use of two lower level
+% from a Seabird SBE19plus V2 or a .cnv from a SBE16plus CTD recorder. It makes use of two lower level
 % functions, readSBE19hex and readSBE19cnv. The files consist of up to
 % three sections: 
 %

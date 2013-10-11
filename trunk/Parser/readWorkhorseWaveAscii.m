@@ -68,7 +68,7 @@ waveData = struct;
 % transform the filename into a path
 filePath = fileparts(filename);
 
-% Load the *_LOG5.TXT file
+% Load the *_LOG9.TXT file
 logFile = dir(fullfile(filePath, '*_LOG9.TXT'));
 
 if isempty(logFile), error(['file ' filePath filesep '*_LOG9.TXT not found!']); end
