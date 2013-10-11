@@ -200,15 +200,36 @@ if strcmpi(paramName, 'PRES') || ...
     possibleMin = max(possibleMin, imosParameters('DEPTH', 'valid_min')); % value from global range
     possibleMax = min(possibleMax, siteNominalDepth + 20*siteNominalDepth/100); % we allow +20% to the site Depth
     
-    if strcmpi(paramName, 'PRES')
-        % convert depth into absolute pressure assuming 1 dbar ~= 1 m and
-        % nominal atmospheric pressure ~= 10.1325 dBar (gsw_P0/10^4)
-        possibleMin = possibleMin + gsw_P0/10^4;
-        possibleMax = possibleMax + gsw_P0/10^4;
-        instrumentNominalDepth = instrumentNominalDepth + gsw_P0/10^4;
-    elseif strcmpi(paramName, 'PRES_REL')
-        % convert depth into relative pressure assuming 1 dbar ~= 1 m
-        % Nothing to do!
+    if any(strcmpi(paramName, {'PRES', 'PRES_REL'}))
+        if ~isempty(sample_data.geospatial_lat_min) && ~isempty(sample_data.geospatial_lat_max)
+            % compute depth with Gibbs-SeaWater toolbox
+            % relative_pressure ~= gsw_p_from_z(-depth, latitude)
+            if sample_data.geospatial_lat_min == sample_data.geospatial_lat_max
+                possibleMin             = gsw_p_from_z(-possibleMin, sample_data.geospatial_lat_min);
+                possibleMax             = gsw_p_from_z(-possibleMax, sample_data.geospatial_lat_min);
+                instrumentNominalDepth  = gsw_p_from_z(-instrumentNominalDepth, sample_data.geospatial_lat_min);
+            else
+                meanLat = sample_data.geospatial_lat_min + ...
+                    (sample_data.geospatial_lat_max - sample_data.geospatial_lat_min)/2;
+                possibleMin             = gsw_p_from_z(-possibleMin, meanLat);
+                possibleMax             = gsw_p_from_z(-possibleMax, meanLat);
+                instrumentNominalDepth  = gsw_p_from_z(-instrumentNominalDepth, meanLat);
+            end
+        else
+            % without latitude information, we assume 1dbar ~= 1m
+            fprintf('%s\n', ['Warning : ' 'Not enough location metadata ' ...
+                'found to perform correct impossible depth QC test. 1dbar ~= 1m has been assumed.']);
+            fprintf('%s\n', ['Please make sure global_attributes ' ...
+                'geospatial_lat_min and geospatial_lat_max ' ...
+                'are documented.']);
+        end
+        
+        if strcmpi(paramName, 'PRES')
+            % we assume nominal atmospheric pressure ~= 10.1325 dBar (gsw_P0/10^4)
+            possibleMin = possibleMin + gsw_P0/10^4;
+            possibleMax = possibleMax + gsw_P0/10^4;
+            instrumentNominalDepth = instrumentNominalDepth + gsw_P0/10^4;
+        end
     end
     
     paramsLog = [paramsLog ' => min=' num2str(possibleMin) ', max=' num2str(possibleMax)];
