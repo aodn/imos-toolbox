@@ -133,7 +133,9 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
       geomagDepth   = -geomagOutputData{2};
       geomagLat     = geomagOutputData{3};
       geomagLon     = geomagOutputData{4};
-      geomagDeclin  = geomagOutputData{5} + geomagOutputData{6}/60;
+      signDeclin    = sign(geomagOutputData{5});
+      if signDeclin >= 0, signDeclin = 1; end
+      geomagDeclin  = geomagOutputData{5} + signDeclin*geomagOutputData{6}/60;
       
       nMagDataSet = length(iMagDataSet);
       for i = 1:nMagDataSet
