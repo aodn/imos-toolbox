@@ -159,12 +159,10 @@ function filename = exportNetCDF( sample_data, dest, mode )
       if isfield(dimAtts, 'flags'), dimAtts = rmfield(dimAtts, 'flags'); end
       dimAtts = rmfield(dimAtts, 'stringlen');
       
-      if isfield(dims{m}, 'flags')
-          if any(dims{m}.flags ~= imosQCFlag('', qcSet, 'min'))
-              % add the QC variable (defined below)
-              % to the ancillary variables attribute
-              dimAtts.ancillary_variables = [dims{m}.name '_quality_control'];
-          end
+      if isfield(dims{m}, 'flags') && sample_data.meta.level > 0
+          % add the QC variable (defined below)
+          % to the ancillary variables attribute
+          dimAtts.ancillary_variables = [dims{m}.name '_quality_control'];
       end
 
       % create dimension
@@ -186,17 +184,15 @@ function filename = exportNetCDF( sample_data, dest, mode )
       sample_data.dimensions{m}.did   = did;
       sample_data.dimensions{m}.vid   = vid;
       
-      if isfield(dims{m}, 'flags')
-          if any(dims{m}.flags ~= imosQCFlag('', qcSet, 'min'))
-              % create the ancillary QC variable
-              qcvid = addQCVar(...
-                  fid, sample_data, m, [qcDimId did], 'dimensions', qcType, dateFmt, mode);
-              sample_data.dimensions{m}.qcvid = qcvid;
-              
-              netcdf.defVarChunking(fid, qcvid, 'CHUNKED', length(dims{m}.flags));
-      
-              netcdf.defVarDeflate(fid, qcvid, true, true, compressionLevel);
-          end
+      if isfield(dims{m}, 'flags') && sample_data.meta.level > 0
+          % create the ancillary QC variable
+          qcvid = addQCVar(...
+              fid, sample_data, m, [qcDimId did], 'dimensions', qcType, dateFmt, mode);
+          sample_data.dimensions{m}.qcvid = qcvid;
+          
+          netcdf.defVarChunking(fid, qcvid, 'CHUNKED', length(dims{m}.flags));
+          
+          netcdf.defVarDeflate(fid, qcvid, true, true, compressionLevel);
       end
     end
     
@@ -289,7 +285,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       varAtts = vars{m};
       varAtts = rmfield(varAtts, {'data', 'dimensions', 'flags', 'stringlen', 'typeCastFunc'});
       
-      if any(vars{m}.flags ~= imosQCFlag('', qcSet, 'min'))
+      if  sample_data.meta.level > 0
           % add the QC variable (defined below)
           % to the ancillary variables attribute
           varAtts.ancillary_variables = [varname '_quality_control'];
@@ -298,7 +294,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       % add the attributes
       putAtts(fid, vid, vars{m}, varAtts, 'variable', varNetcdfType{m}, dateFmt, mode);
       
-      if any(vars{m}.flags ~= imosQCFlag('', qcSet, 'min'))
+      if  sample_data.meta.level > 0
           % create the ancillary QC variable
           qcvid = addQCVar(...
               fid, sample_data, m, [qcDimId dids], 'variables', qcType, dateFmt, mode);
@@ -352,15 +348,13 @@ function filename = exportNetCDF( sample_data, dest, mode )
           end
       end
       
-      if isfield(dims{m}, 'flags')
-          if any(dims{m}.flags ~= imosQCFlag('', qcSet, 'min'))
-              % ancillary QC variable data
-              flags   = dims{m}.flags;
-              qcvid   = dims{m}.qcvid;
-              typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
-              flags = typeCastFunction(flags);
-              netcdf.putVar(fid, qcvid, flags);
-          end
+      if isfield(dims{m}, 'flags') && sample_data.meta.level > 0
+          % ancillary QC variable data
+          flags   = dims{m}.flags;
+          qcvid   = dims{m}.qcvid;
+          typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
+          flags = typeCastFunction(flags);
+          netcdf.putVar(fid, qcvid, flags);
       end
     end
 
@@ -405,7 +399,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       end
       
       % ancillary QC variable data
-      if any(vars{m}.flags ~= imosQCFlag('', qcSet, 'min'))
+      if  sample_data.meta.level > 0
           flags   = vars{m}.flags;
           qcvid   = vars{m}.qcvid;
           typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
