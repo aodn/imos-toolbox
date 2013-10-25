@@ -62,7 +62,7 @@ Supported variable titles in file are as follow :
  * Depth
  * Salin
  * !SpecCond
- * DensAnom
+ * !DensAnom
  * SoSUN
  * rdO2C
 
