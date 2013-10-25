@@ -6,10 +6,10 @@
 = Supported Instruments =
 
 This page lists the instrument Makes which are supported by the toolbox. So far, supported instruments/formats are for the following makes :
- * [http://code.google.com/p/imos-toolbox/wiki/instruments/Seabird Seabird]
- * [http://code.google.com/p/imos-toolbox/wiki/instruments/Wetlabs WET labs]
- * [http://code.google.com/p/imos-toolbox/wiki/instruments/RBR RBR]
- * [http://code.google.com/p/imos-toolbox/wiki/instruments/RDI Teledyne RDI]
- * [http://code.google.com/p/imos-toolbox/wiki/instruments/Nortek Nortek]
- * [http://code.google.com/p/imos-toolbox/wiki/instruments/OtherMakes Others]
+ * [Seabird Seabird]
+ * [Wetlabs WET labs]
+ * [RBR RBR]
+ * [RDI Teledyne RDI]
+ * [Nortek Nortek]
+ * [OtherMakes Others]
 

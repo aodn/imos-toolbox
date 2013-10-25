@@ -34,7 +34,7 @@
   * [ProcessLevelsAndQC]
   * DeploymentDatabaseInterface
   * GraphingInMatlab
-  * [http://code.google.com/p/imos-toolbox/wiki/instruments/NXICBinaryFormat NXICBinaryFormat]
-  * [http://code.google.com/p/imos-toolbox/wiki/instruments/YSIBinaryFormat YSIBinaryFormat]
+  * [NXICBinaryFormat]
+  * [YSIBinaryFormat]
 
  

@@ -1,0 +1,143 @@
+#summary Lists the rest of the instruments that are currently supported.
+#labels Support,Featured
+
+<wiki:toc/>
+
+= Other makes supported instruments =
+
+This page lists the rest of the instrument Makes and Models which are supported by the toolbox, and the data formats required for each of them. If you have some data from an unsupported instrument or format, send me an [http://code.google.com/u/guillaume.galibert/ email], or leave a comment on this page with files examples, and I'll look into adding support for this new instrument/format.
+
+== Star Oddi - Starmon mini ==
+
+The toolbobx is able to read the data from a .DAT file retrieved from a Starmon mini Temperature Recorder using the *StarmonMini* parser. The supported ASCII file format is the .DAT file described in the [https://imos-toolbox.googlecode.com/svn/wiki/documents/Instruments/Star_ODDI/StarmonT.pdf Starmon mini user manual]. % The files consist of two sections:
+
+ * file headerContent : Each header item is contained in one line, and all header lines start with a '#' (bookmark) and a number. Then follows a description of the header item, and then 1-4 directives, all separated by tabs. Eventually a comment trails the directives, preceded by a ';' (semicolon).
+ 
+Example :
+{{
+#0	Date-time:	9/06/2013 1:18:40
+#1	Recorder:	3T4098
+#2	File type:	1
+#3	Columns:	3
+#4	Channels:	1
+#5	Field separation:	0
+#6	Decimal point:	0
+#7	Date def.:	0	0
+#8	Time def.:	0
+#9	Channel 1:	Temperature(°C)	Temp(°C)	2	1
+#11	Reconvertion:	0
+#19	Line color:	1	2	3	4; comment
+#30	Trend Type Number:	1
+#33	Limit Temp. Corr. OTCR:	0
+}}
+ 
+ * data : The first column is the measurement number, the second column the date and the time, depending on the set-up. The third column is the time or the first measured parameter, depending on set-up. The following column(s) contain the converted measured parameters with units and number of decimals according to set-up. Number of parameters can range from 1-3, and number of columns 3-6 accordingly.
+
+Example :
+{{
+1	01.04.12 00:00:00	25,22
+2	01.04.12 00:04:00	25,30
+3	01.04.12 00:08:00	25,32
+4	01.04.12 00:12:00	25,51
+5	01.04.12 00:16:00	25,24
+6	01.04.12 00:20:00	25,15
+7	01.04.12 00:24:00	25,51
+8	01.04.12 00:28:00	25,49
+9	01.04.12 00:32:00	25,25
+}}
+
+== !ReefNet Sensus Ultra logger ==
+
+The toolbobx is able to read the data from a .csv file retrieved from a ReefNet Sensus Ultra logger using the *sensusUltra* parser. The supported file has no header and consists in a comma separated list of values with columns ordered as follow :
+
+ # `dive id`					(integer)
+ # `instrument serial number`	(string)
+ # `unknown`					(string)
+ # `start year`					(integer, time - required)
+ # `start month`				(integer, time - required)
+ # `start day`					(integer, time - required)
+ # `start hour`					(integer, time - required)
+ # `start minute`				(integer, time - required)
+ # `start second`				(integer, time - required)
+ # `ellapsed millisecond`		(integer, time - required)
+ # `pressure`					(integer, absolute pressure, mbar)
+ # `temperature`				(floating point, temperature, Kelvin)
+
+== Aquatec Aqualogger 520 ==
+
+The toolbox is able to parse raw data file retrieved from an Aquatec AQUAlogger 520 using the *aquatec* parser. The
+AQUAlogger 520 range of sensors provide logging capability for temperature and pressure. The following variants on the AQUAlogger 520 exist:
+ * 520T:  temperature
+ * 520P:  pressure
+ * 520PT: pressure and temperature
+
+The raw data file format for all loggers is identical; every line in a file, including sample data, is a key-value pair, separated by a comma. The following lines are examples:
+
+{{{
+VERSION,3.0
+LOGGER TYPE,520PT Pressure & Temperature   
+LOGGER,23-502,SYD100 T2 
+DATA,23:00:01 24/06/2008,29412,16.310779,26345,1.025358,
+DATA,23:00:02 24/06/2008,29411,16.312112,26346,1.025938,
+}}}
+
+If the logger was configured to use burst mode, the bursts are averaged.
+
+== FSI NXIC CTD ==
+
+The toolbox is able to import raw (.ctd) files retrieved from an NXIC CTD instrument, and parse the conductivity, temperature and depth data contained within it using the *NXICBinary* parser. A specification for the .ctd file format is not available, so the toolbox relies upon [NXICBinaryFormat reverse engineering] efforts which may not be reliable. I am unsure as to whether data retrieved from instruments with a firmware version older than 4.42 can be imported into the toolbox.
+
+Currently, the parser only provides conductivity, temperature and pressure data. I am in contact with FSI regarding access to the file format specification, and hope to provide auxillary sensor data in the near future.
+
+== YSI 6-Series == 
+
+The toolbox is able to read in files retrieved from YSI 6-series data loggers (only the 6600 v2.4 has been tested) using the *YSI6Series* parser. YSI have not published details of the binary file format, so the toolbox relies upon [YSIBinaryFormat reverse engineering efforts] which may not be completely reliable.
+
+== !EchoView ==
+
+The toolbox includes a draft attempt to parse an !EchoView results comma separated variable (CSV) file using the *echoview* parser. 
+
+This function is almost a generic CSV Parser. The list of fields to define and the column names that populate those fields are defined in a text file `./Parser/echoview_config.txt` or the file specified by the property 'echoview.config' if defined in `toolboxProperties.txt`.
+
+Limitations:
+ * Text quoting is not properly supported (fields cannot contain ,)
+ * Dates are only supported in the format yyyymmdd
+ * Times are only supported in the format HH:MM:SS.ss
+ * Timestamps are only supported as a date field followed by a time field yyyymmdd, HH:MM:SS.ss
+
+== NIWA .DAT3 ==
+
+The toolbox now includes a first attempt to parse NIWA's processed output ASCII file format .DAT3 using the *NIWA* parser as follow :
+
+{{{
+s0910ver1.DAT3                                 filename                        1
+mcat 7285                                      instrument type and Serial #    2
+ 35 15.843 S 174 06.102 E                      lat lon (dd mm.mmm)             3
+Veronica Channel, Bay of Islands               description of location         4
+6 5.85                                         water depth,meter height - m    5
+2009-10-06 15:50:01, 2010-04-20 13:20:01, +12  record start/finish time & zone 6
+0   0  10   0                                  data gap interval d,h,m,s       7
+severely fouled on recovery                                                    8
+. Processed using pmd.m and read_mcat 14-Dec-2012 11:37:19                     9
+Green nav pile in Veronica Channel                                            10
+Quality control by BSG using qcmd_save.m 14/Dec/2012                          11
+                                                                              12
+                                                                              13
+                                                                              14
+                                                                              15
+                                                                              16
+                                                                              17
+                                                                              18
+time                  con    tem    pre    sal                                  
+yyyy-mm-dd HH:MM:SS   s/m   degc   dbar    psu                                  
+2009-10-06 15:50:01 4.020 15.176    0.9 32.386
+2009-10-06 16:00:01 4.025 15.251    1.0 32.368
+2009-10-06 16:10:01 4.026 15.264    1.1 32.367
+...
+}}}
+
+Sampling interval and comments are read out of the header. Other information are redundant with what can be found in the .meta file (metadata) which will be used to populate the deployment database.
+
+== NetCDF ==
+
+NetCDF file format that are IMOS ANMN compliant should be read by the toolbox using the *netcdf* parser. However, when the file also exists in the original instrument format, is supported by the toolbox and referenced in a deployment database, then it is recommended to use the original instrument file along with the deployment database.
