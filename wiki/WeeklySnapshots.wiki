@@ -132,11 +132,7 @@ project = 'imos-toolbox'
 def googleSubmit(archive, summary):
 
   username = 'guillaume.galibert@gmail.com'
-<<<<<<< .mine
-  password = 'myPassword' # SVN password!!!
-=======
   password = 'mySVNPassword' # SVN password!!!
->>>>>>> .r1411
   labels   = 'Type-Snapshot'
 
   print('\n--submitting %s to google' % archive)
@@ -173,26 +169,6 @@ shutil.rmtree('%s/snapshot' % exportDir)
 #
 # package snapshot
 #
-<<<<<<< .mine
-=======
-print('\n--building DDB interface')
-compiled = os.system('cd %s/Java && ant install' % exportDir)
-
-if compiled is not 0:
-  print('\n--DDB interface compilation failed - cleaning')
-  os.system('cd %s/Java && ant clean' % exportDir)
-  gmail.send(
-    "guillaume.galibert@utas.edu.au",
-    "[imos-toolbox] DDB interface compilation error",
-    "Check the Java DDB interface code",
-    None,
-    "guillaume.galibert",
-    "myGmailPassword")
-
-#
-# create snapshot
-#
->>>>>>> .r1411
 print('\n--creating snapshot')
 matlabOpts = '-nodisplay -wait -logfile "%s"' % compilerLog
 matlabCmd = "addpath('Util'); try, imosPackage(); exit(); catch e, disp(e.message); end;"

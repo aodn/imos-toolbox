@@ -33,7 +33,7 @@ System requirements for using the Toolbox are as follows:
  * Java Runtime Environment 1.6
  * Matlab from R2010b to R2012b (Optional, a self-contained executable version is available)
  * A local deployment database (Optional)
- * Microsoft Access 32bit if you use a 32bit operating system, 64bit if you use a 64bit one (Optional, can be bypassed with UCanAccess, especially when using Linux)
+ * Microsoft Access 32bit if you use a 32bit operating system / Matlab, 64bit if you use a 64bit one (Optional, can be bypassed with UCanAccess, especially when using Linux)
  
 == Using the toolbox ==
 
