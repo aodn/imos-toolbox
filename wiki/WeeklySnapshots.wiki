@@ -1,36 +1,108 @@
-#summary Weekly SVN snapshot
+#summary SVN snapshot
 #labels Support
 
 <wiki:toc/>
 
-= Weekly SVN Snapshot =
+= SVN Snapshot =
 
-Weekly snapshot of the Toolbox codebase is available from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. A snapshot is created every Monday at 13:00 (AEST).
+A snapshot of the Toolbox codebase is available from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. A snapshot is created from time to time by the developper to be able to ask IMOS users test a new feature or fix before releasing an official version.
 
  * *Snapshot*: Contains a compiled version of the source code and the source code straight from the SVN.
 
-Compilation of the snapshot requires use of the Matlab Compiler, which is on a shared license. This means that if someone else is using the compiler when the snapshot script runs, the script will fail, and the snapshot will not be uploaded. When this happens, I will attempt to compile a standalone snapshot as soon as possible.
+Compilation of the snapshot requires use of the Matlab Compiler.
 
 == File format and contents ==
 
-The snapshot is a zip file which contains the contents of the SVN `trunk` directory, minus the `Tests/sample_data` directory. 
+The snapshot is a zip file which contains the contents of the SVN `trunk` directory, minus the `Tests/sample_data` and `snapshot` directories. 
 
 The Java files are automatically compiled when the snapshot file is created, so there is no need to do any compilation. 
 
-The Java code is compiled with the Sun Java Development Kit, version 1.6.0_25.
+The Java code is compiled with the Sun Java Development Kit, version 1.6.0_45.
 
-The matlab code is compiled with the Matlab Compiler, version 4.14 (R 2010b) since imos-toolbox versions strictly above 1.5.5.
+The matlab code is compiled with the Matlab Compiler, version 4.18 (R2012b) since imos-toolbox versions 2.3.
+
+== Building script ==
+
+Prior to submit a snapshot or official release, the different standalone binaries need to be built manually for each supported platform :
+
+ * Windows Seven 32bit with Matlab R2012b 32bit
+ * Windows Seven 64bit with Matlab R2012b 64bit
+ * Linux Ubuntu 12.04 64bit with Matlab R2012b 64bit
+ 
+My native operating system is the Ubuntu 12.04. I run the others in VMs with Virtualbox.
+
+The binary is created when executing buildBinaries.bat or buildBinaries.sh which runs a Python buidBinaries.py script:
+
+{{{
+#!/usr/bin/python
+
+import os
+import sys
+import time
+import shutil
+
+# buildBinaries.py
+# Exports the IMOS Toolbox from SVN and
+#
+#   - Runs Util/imosCompile.m to create a ddb.jar and imosToolbox executables
+#
+# Both of these files are copied to the relevant directory and commited to SVN.
+#
+# python, svn (SlikSvn), javac, ant and matlab must be on PATH
+# JAVA_HOME must be set
+#
+
+lt = time.localtime()
+
+project = 'imos-toolbox'
+
+url        = 'http://%s.googlecode.com/svn/trunk' % project
+exportDir  = 'export'
+
+compilerLog = '.\%s\log.txt' % exportDir
+
+#
+# export from SVN
+#
+print('\n--exporting tree from %s to %s' % (url, exportDir))
+os.system('svn export %s %s' % (url, exportDir))
+
+#
+# remove Tests and snapshot directories
+#
+print('\n--removing Tests and snapshot')
+shutil.rmtree('%s/Tests' % exportDir)
+shutil.rmtree('%s/snapshot' % exportDir)
+
+#
+# build DDB interface
+#
+print('\n--building DDB interface')
+compiled = os.system('cd %s/Java && ant install' % exportDir)
+
+if compiled is not 0:
+  print('\n--DDB interface compilation failed - cleaning')
+  os.system('cd %s/Java && ant clean' % exportDir)
+
+#
+# create snapshot
+#
+print('\n--building Matlab binaries')
+matlabOpts = '-nodisplay -nojvm -wait -logfile "%s"' % compilerLog
+matlabCmd = "addpath('Util'); try, imosCompile(); exit(); catch e, disp(e.message); end;"
+os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
+
+print('\n--removing local SVN tree')
+shutil.rmtree('%s' % exportDir)
+}}}
+
+Finally the newly created binary has to be commited in SVN.
 
 == Submission script ==
 
-The snapshot is created on a Windows XP platform. Snapshot creation is triggered by a weekly cronjob, which executes the simple snapshot.bat script below :
+A snapshot can be created after all binaries have been updated and commited to SVN. It is created by executing snapshot.bat or snapshot.sh which runs snapshot.py script.
 
-{{{
-python snapshot.py
-pause
-}}} 
-
-The snapshot.py python script exports the SVN trunk, compiles the Java and then Matlab files, creates the snapshot, and finally calls another python script which uploads it to the project website. This [http://code.google.com/p/support/wiki/ScriptedUploads upload script] is conveniently provided by Google Code.
+The snapshot.py python script exports the SVN trunk, creates the snapshot, and finally calls another python script which uploads it to the project website. This [http://code.google.com/p/support/wiki/ScriptedUploads upload script] is conveniently provided by Google Code.
 
 {{{
 #!/usr/bin/python
@@ -40,18 +112,16 @@ import sys
 import time
 import shutil
 import ziputil
-import gmail
 
 # snapshot.py
 # Exports the IMOS Toolbox from SVN and
 #
-#   - Creates an archive of the source 
-#   - Runs Util/imosCompile.m to create a standalone executable archive
-# 
-# Both of these files are submitted back to the project as file downloads.
+#   - Creates an archive of the source
+#   - Runs Util/imosPackage.m to package the source
 #
-# svn, javac, ant and matlab must be on PATH
-# JAVA_HOME must be set
+# These files are submitted back to the project as file downloads.
+#
+# python, svn (SlikSvn) and matlab must be on PATH
 #
 
 lt = time.localtime()
@@ -62,7 +132,11 @@ project = 'imos-toolbox'
 def googleSubmit(archive, summary):
 
   username = 'guillaume.galibert@gmail.com'
+<<<<<<< .mine
+  password = 'myPassword' # SVN password!!!
+=======
   password = 'mySVNPassword' # SVN password!!!
+>>>>>>> .r1411
   labels   = 'Type-Snapshot'
 
   print('\n--submitting %s to google' % archive)
@@ -73,15 +147,15 @@ def googleSubmit(archive, summary):
   cmd = ' %s -w %s'   % (cmd,password)
   cmd = ' %s -l "%s"' % (cmd,labels)
   cmd = ' %s %s'      % (cmd,archive)
-  
+ 
   os.system(cmd)
 
 url        = 'http://%s.googlecode.com/svn/trunk' % project
 exportDir  = 'export'
 stdArchive = '%04i-%02i-%02i_unstable_snapshot.zip' % (lt[0], lt[1], lt[2])
 
-stdSummary  = 'IMOS Toolbox SVN unstable snapshot from %s for test purpose only' % at 
-compilerLog = '.\%s\log.txt' % exportDir
+stdSummary  = 'IMOS Toolbox SVN unstable snapshot from %s for test purpose only' % at
+compilerLog = './%s/log.txt' % exportDir
 
 #
 # export from SVN
@@ -90,14 +164,17 @@ print('\n--exporting tree from %s to %s' % (url, exportDir))
 os.system('svn export %s %s' % (url, exportDir))
 
 #
-# remove Tests directory
+# remove Tests and snapshot directories
 #
-print('\n--removing tests')
+print('\n--removing Tests and snapshot')
 shutil.rmtree('%s/Tests' % exportDir)
+shutil.rmtree('%s/snapshot' % exportDir)
 
 #
-# build DDB interface
+# package snapshot
 #
+<<<<<<< .mine
+=======
 print('\n--building DDB interface')
 compiled = os.system('cd %s/Java && ant install' % exportDir)
 
@@ -115,9 +192,10 @@ if compiled is not 0:
 #
 # create snapshot
 #
+>>>>>>> .r1411
 print('\n--creating snapshot')
-matlabOpts = '-wait -nosplash -nodesktop -logfile "%s"' % compilerLog
-matlabCmd = "addpath('Util'); try, imosCompile(); catch e, disp(e.message); end; exit();"
+matlabOpts = '-nodisplay -wait -logfile "%s"' % compilerLog
+matlabCmd = "addpath('Util'); try, imosPackage(); exit(); catch e, disp(e.message); end;"
 os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 shutil.copy('%s/imos-toolbox.zip' % exportDir, './%s' % stdArchive)
 
@@ -125,61 +203,95 @@ try:
   googleSubmit(stdArchive, stdSummary)
 
 except:
-  if os.path.exists(compilerLog):
-    attachment = compilerLog
-  else:
-    attachment = None
-  
-  gmail.send(
-    "guillaume.galibert@utas.edu.au",
-    "[imos-toolbox] Snapshot upload error",
-    "Check the snapshot script. Fix, then delete previous files before runnning new snapshot.",
-    attachment,
-    "guillaume.galibert",
-    "28gg=!bb")
+  print('\n--Snapshot upload error. Check script, fix and then delete previous files before running new snapshot')
 
 print('\n--removing local SVN tree and archives')
 shutil.rmtree('%s' % exportDir)
 os.remove(stdArchive)
 }}}
 
-The `gmail` module, which sends me an email if compilation fails:
+Following the same phylosophy, I can create an official version of the toolbox by executing official.bat or official.sh which runs the following official.py script:
+
 {{{
 #!/usr/bin/python
-#
-# Thank you, http://kutuma.blogspot.com/2007/08/sending-emails-via-gmail-with-python.html
-#
 
-import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
-from email.MIMEText import MIMEText
-from email import Encoders
 import os
+import sys
+import time
+import shutil
+import ziputil
 
-def send(to, subject, text, attach, user, pwd):
+# official.py
+# Exports the IMOS Toolbox from SVN and
+#
+#   - Creates an archive of the source
+#   - Runs Util/imosPackage.m to to package the source
+#
+# These files are submitted back to the project as file downloads.
+#
+# python, svn (SlikSvn) and matlab must be on PATH
+#
 
-  msg = MIMEMultipart()
+lt = time.localtime()
+at = time.asctime()
 
-  msg['From']    = user
-  msg['To']      = to
-  msg['Subject'] = subject
+project = 'imos-toolbox'
 
-  msg.attach(MIMEText(text))
+def googleSubmit(archive, summary):
 
-  if attach is not None:
-    part = MIMEBase('application', 'octet-stream')
-    part.set_payload(open(attach, 'rb').read())
-    Encoders.encode_base64(part)
-    part.add_header('Content-Disposition',
-      'attachment; filename="%s"' % os.path.basename(attach))
-    msg.attach(part)
+  username = 'guillaume.galibert@gmail.com'
+  password = 'myPassword' # SVN password!!!
+  labels   = 'Featured'
 
-  mailServer = smtplib.SMTP("smtp.gmail.com", 587)
-  mailServer.ehlo()
-  mailServer.starttls()
-  mailServer.ehlo()
-  mailServer.login(user, pwd)
-  mailServer.sendmail(user, to, msg.as_string())
-  mailServer.close()
+  print('\n--submitting %s to google' % archive)
+  cmd = 'python googlecode_upload.py'
+  cmd = ' %s -s "%s"' % (cmd,summary)
+  cmd = ' %s -p %s'   % (cmd,project)
+  cmd = ' %s -u %s'   % (cmd,username)
+  cmd = ' %s -w %s'   % (cmd,password)
+  cmd = ' %s -l "%s"' % (cmd,labels)
+  cmd = ' %s %s'      % (cmd,archive)
+ 
+  os.system(cmd)
+
+version    = '2.3'
+ 
+url        = 'http://%s.googlecode.com/svn/trunk' % project
+exportDir  = 'export'
+stdArchive = 'imos-toolbox-%s.zip' % version
+
+stdSummary  = 'IMOS Toolbox %s (standalone + source)' % version
+compilerLog = './%s/log.txt' % exportDir
+
+#
+# export from SVN
+#
+print('\n--exporting tree from %s to %s' % (url, exportDir))
+os.system('svn export %s %s' % (url, exportDir))
+
+#
+# remove Tests and snapshot directories
+#
+print('\n--removing Tests and snapshot')
+shutil.rmtree('%s/Tests' % exportDir)
+shutil.rmtree('%s/snapshot' % exportDir)
+
+#
+# create snapshot
+#
+print('\n--creating snapshot')
+matlabOpts = '-nodisplay -wait -logfile "%s"' % compilerLog
+matlabCmd = "addpath('Util'); try, imosPackage(); exit(); catch e, disp(e.message); end;"
+os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
+shutil.copy('%s/imos-toolbox.zip' % exportDir, './%s' % stdArchive)
+
+try:
+  googleSubmit(stdArchive, stdSummary)
+
+except:
+  print('\n--Snapshot upload error. Check script, fix and then delete previous files before running new snapshot')
+
+print('\n--removing local SVN tree and archives')
+shutil.rmtree('%s' % exportDir)
+os.remove(stdArchive)
 }}}

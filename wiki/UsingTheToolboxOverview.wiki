@@ -13,7 +13,7 @@ Before starting the toolbox, keep in mind that you will need to [ToolboxConfigur
 
 === Interactive execution ===
 
- * The standalone version of the toolbox is started by double clicking on `imosToolbox.bat`.
+ * The standalone version of the toolbox is started by double clicking on the relevant `.bat` or `.sh` file depending on your operating system.
 
  * If you are using the toolbox within Matlab, the toolbox is started via the `imosToolbox` function:
 {{{
@@ -24,9 +24,9 @@ Before starting the toolbox, keep in mind that you will need to [ToolboxConfigur
 
 The toolbox can be executed in an automatic manner, by passing some arguments to the `imosToolbox` function. A deployment database must be present in order to run the toolbox automatically. When you pass the string `'auto'` to the `imosToolbox` function, the toolbox will import all of the files specified in the deployment database, using the field trip and data directory specified in `toolboxProperties.txt`, run the data sets through the default set of automatic pre-processing and QC routines, and export the data sets as NetCDF to the default export directory :
 
- * Using the standalone version, you can use the `imosToolboxBatch.bat` file which contains the default following code :
+ * For example using the standalone Windows 32bit version, you can use the `imosToolboxBatch_Win32.bat` file which contains the default following code :
 {{{
-imosToolbox.exe auto
+imosToolbox_Win32.exe auto
 pause
 }}}
 Just double click on this file to execute it.
@@ -38,22 +38,22 @@ Just double click on this file to execute it.
 
 Alternatively, you can specify the field trip, data directory, pre-processing routines, QC routines and export directory as arguments to `imosToolbox` :
 
- * Using the standalone version, edit the `imosToolboxBatch.bat` file so that it includes something like :
+ * For example using the standalone Windows 32bit version, edit the `imosToolboxBatch_Win32.bat` file so that it includes something like :
 
 {{{
-imosToolbox.exe auto "4788" "C:\Raw Data\" "{'depthPP' 'salinityPP'}" "{'imosImpossibleDateQC' 'imosImpossibleLocationSetQC' 'imosInOutWaterQC' 'imosGlobalRangeQC' 'imosRegionalRangeQC' 'imosImpossibleDepthQC' 'imosRateOfChangeQC' 'imosStationarityQC' 'imosSalinityFromPTQC' 'imosSideLobeContSetQC' 'imosTeledyneSetQC'}" "C:\NetCDF\"
+imosToolbox_Win32.exe auto "4788" "C:\Raw Data\" "{'depthPP' 'salinityPP' 'magneticDeclinationPP'}" "{'imosImpossibleDateQC' 'imosImpossibleLocationSetQC' 'imosInOutWaterQC' 'imosGlobalRangeQC' 'imosRegionalRangeQC' 'imosImpossibleDepthQC' 'imosRateOfChangeQC' 'imosStationarityQC' 'imosSalinityFromPTQC' 'imosSideLobeContSetQC' 'imosTeledyneSetQC'}" "C:\NetCDF\"
 pause
 }}}
 
-You can add as many lines in the `imosToolboxBatch.bat` file as mooring deployments that need to be processed sequentially.
+You can add as many lines in the `imosToolboxBatch_Win32.bat` file as mooring deployments that need to be processed sequentially.
 
  * Using the source code within MATLAB just type as follow :
 
 {{{
->> imosToolbox auto '4788' 'C:\Raw Data\' {'depthPP' 'salinityPP'} {'imosImpossibleDateQC' 'imosImpossibleLocationSetQC' 'imosInOutWaterQC' 'imosGlobalRangeQC' 'imosRegionalRangeQC' 'imosImpossibleDepthQC' 'imosRateOfChangeQC' 'imosStationarityQC' 'imosSalinityFromPTQC' 'imosSideLobeContSetQC' 'imosTeledyneSetQC'} 'C:\NetCDF\'
+>> imosToolbox auto '4788' 'C:\Raw Data\' {'depthPP' 'salinityPP' 'magneticDeclinationPP'} {'imosImpossibleDateQC' 'imosImpossibleLocationSetQC' 'imosInOutWaterQC' 'imosGlobalRangeQC' 'imosRegionalRangeQC' 'imosImpossibleDepthQC' 'imosRateOfChangeQC' 'imosStationarityQC' 'imosSalinityFromPTQC' 'imosSideLobeContSetQC' 'imosTeledyneSetQC'} 'C:\NetCDF\'
 }}}
 
-If no pre-processing or quality control routine should be performed then provide an empty {}.
+If no pre-processing or quality control routine should be performed then provide an empty cell array `{}`.
 
 == Importing data ==
 

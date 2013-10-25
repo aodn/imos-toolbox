@@ -5,7 +5,7 @@
 
 = Automatic quality control procedures =
 
-The following automatic quality control policy and procedures are available in the Toolbox version 2.2. 
+The following automatic quality control policy and procedures are available in the Toolbox version 2.3. 
 
 == Flag management policy ==
 
@@ -242,21 +242,18 @@ imosImpossibleDepthQC checks that the pressure/depth data are given within an ac
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||PRES, PRES_REL, DEPTH||1-Good data||4-Bad data||
 
-The samples that pass the test are the ones which depth values are verifying `DEPTH >= instrumentNominalDepth - lowerCoeff*(siteNominalDepth/instrumentNominalDepth)` and `DEPTH <= instrumentNominalDepth + upperCoeff*(siteNominalDepth/instrumentNominalDepth)`. Indeed, a greater range should be allowed for instruments close to the surface and which site is deep (likely to drop more during strong current events).
+The samples that pass the test are the ones which depth values are verifying `DEPTH >= lower bound` and `DEPTH <= upper bound`:
 
-The upper and lower coefficient values can be modified in the imosImpossibleDepth.txt parameter file. Default values have been set respectively to 3 and 5 (an instrument on a mooring is more likely to drop than rise from its nominal depth). These values are basically the offset bounds in metre for the acceptable depth range when the instrument lays on the bottom (i.e. :  for a 100m deep site, the corresponding acceptable range will be [97; 105]).
+ * `upper bound = instrument nominal depth - allowed maximum mismatch between nominal and actual depth`
+ * `lower bound = instrument nominal depth + allowed maximum mismatch between nominal and actual depth + allowed minimum distance between site nominal depth and instrument depth * (1 - cos(allowed maximum knock down angle)`
+ 
+Indeed, a greater range should be allowed for instruments close to the surface and which site is deep (during strong current events an instrument on a mooring is more likely to drop than rise from its nominal depth), with : 
 
-See below a table example using upper and lower coefficient of respective value 3 and 5 :
+ * `minimum distance between site nominal depth and instrument depth = site nominal depth - (instrument nominal depth + allowed maximum mismatch between nominal and actual depth)`
 
-|| *Site nominal depth (m)* || *Instrument nominal depth (m)* || *Upper bound depth (m)* || *Lower bound depth (m)* ||
-||50||10||-5||35||
-||50||40||36||46||
-||50||50||47||55||
-||100||20||5||45||
-||100||90||87||96||
-||100||100||97||105||
+The allowed maximum mismatch between nominal and actual depth and allowed maximum knock down angle values can be modified in the imosImpossibleDepth.txt parameter file. Default values have been set respectively to 15m and 70deg. These values are based on experience should be updated if greater values are experienced.
 
-The resulting range cannot be out of the water or deeper than 10% of the relevant site nominal depth.
+Finally, the resulting possible depth range cannot be out of the water or deeper than 20% of the relevant site nominal depth.
 
 If the site nominal depth is not documented, then the site depth at deployment is used.
 If the instrument nominal depth is not documented, then the instrument nominal height and site nominal depth (or site depth at deployment) are used.

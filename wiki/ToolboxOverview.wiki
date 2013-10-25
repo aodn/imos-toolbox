@@ -29,10 +29,11 @@ While the Toolbox will be designed to execute with minimal user intervention (ap
 
 System requirements for using the Toolbox are as follows:
 
- * Windows operating system (XP from Seven should be supported)
+ * Windows (XP from Seven either in 32bit or 64bit) or Linux 64bit operating system
  * Java Runtime Environment 1.6
- * (Optional) Local deployment database
- * (Optional) Matlab R 2010b (A self-contained executable version is available)
+ * Matlab from R2010b to R2012b (Optional, a self-contained executable version is available)
+ * A local deployment database (Optional)
+ * Microsoft Access 32bit if you use a 32bit operating system, 64bit if you use a 64bit one (Optional, can be bypassed with UCanAccess, especially when using Linux)
  
 == Using the toolbox ==
 
@@ -42,27 +43,27 @@ See how to [ToolboxInstallation install], [ToolboxConfiguration configure] and [
 
 The deployment database is a MS Access database which is local to each site, and which conforms to the deployment database schema developed at AIMS. The deployment database is used to store metadata for every deployment of interest to the site. The toolbox should always be used with a deployment database. Otherwise more work is required by the user in filling out metadata for each data set and some important pre-processing/quality control procedures won't be available.
 
-The deployment data contains metadata for all aspects of a deployment, including instrument/sensor/platform model and calibration information, and deployment location/depth. This information is used by the Toolbox for the generation of MEST compatible metadata documents, and metadata fields in the NetCDF files. See [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf deployment database conventions] to have an idea on how to document your local deployment database.
+The deployment database contains metadata for all aspects of a deployment, including instrument/sensor/platform model, calibration information, and deployment location/depth. This information is used by the Toolbox for the generation of MEST compatible metadata documents, and metadata fields in the NetCDF files. See [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf deployment database conventions] to have an idea on how to document your local deployment database.
 
 == Supported instruments ==
 
-See the SupportedInstruments page for a detailed list of currently supported instruments.
+See the current [SupportedInstruments supported instruments] list.
 
-In order for the Toolbox to be useful for a variety of instruments, the input format for a particular instrument must sometimes be provided in a standard format, or a limited set of formats.
+In order for the Toolbox to be useful for a variety of instruments, the input format for a particular instrument sometimes has to be provided in a standard format, or a limited set of formats.
 
 == Pre-processing routines ==
 
-See the [PPRoutines] page for a detailed list of currently available pre-processing routines.
+See the current [PPRoutines pre-processing routines] list.
 
 == Quality control procedures ==
 
-See the [QCProcedures] page for a detailed list of currently available quality control procedures.
+See the current [QCProcedures quality control procedures] list.
 
 IMOS quantitative scale flag follows the IOC scale flag. See description [ProcessLevelsAndQC#Quality_Control here].
 
 == Output format ==
 
-The Toolbox generates NetCDF files according to the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.3.pdf IMOS NetCDF User's Manual] and the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_filenaming_convention_v1.4.pdf IMOS file naming convention]. 
+The Toolbox generates NetCDF4 files according to the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.3.pdf IMOS NetCDF User's Manual] and the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_filenaming_convention_v1.4.pdf IMOS file naming convention]. 
 
 Global and variables attributes can be automatically documented via [NetCDFTemplates configurable template files].
 

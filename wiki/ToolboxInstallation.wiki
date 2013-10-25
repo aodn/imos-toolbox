@@ -11,19 +11,21 @@ This page provides an overview of the steps required in order to get the IMOS To
 
 === Requirements ===
 
- * Windows XP
+ * Windows (XP from Seven either in 32bit or 64bit) or Linux 64bit operating system
  * (Recommended) A deployment database which contains some data (have a look at the deployment database [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf guidelines])
- * (Recommended) Java JRE (1.5 or newer) to be able to query the deployment database with the toolbox.
+ * (Recommended) Java JRE (1.6 or newer) to be able to query the deployment database with the toolbox.
+ * Microsoft Access 32bit if you use a 32bit operating system / Matlab, 64bit if you use a 64bit one (Optional, can be bypassed with UCanAccess, especially when using Linux)
 
 === Install Matlab Runtime ===
 
 In order to run the standalone version of the Toolbox, you must first install the Matlab Component Runtime (MCR). You can download the proper MCR installer [ftp://dataupload.emii.org.au/pub/software/MCRInstaller here] :
 
- * imos-toolbox version 1.5 : MCRInstaller_7.10.exe
- * imos-toolbox version 1.5.5 : MCRInstaller_7.12.exe
- * imos-toolbox > version 1.5.5 : MCRInstaller_7.14.exe
+ * imos-toolbox version 1.5 : MCRInstaller_7.10
+ * imos-toolbox version 1.5.5 : MCRInstaller_7.12
+ * imos-toolbox >= version 2.0 : MCRInstaller_7.14
+ * imos-toolbox >= version 2.3 : MCRInstaller_8.0, choose according to your operating system.
 
-The installer is a straightforward Windows installer; you only need to run it once. After you've downloaded the file, double click on it, and follow the instructions. During installation, you might be warned about requiring the .NET Framework - you may safely ignore this warning.
+You only need to run the installer once. For Windows, it comes as a straightforward executable, for Linux you need to unzip the archive, give executable permissions to the 'install' file and then execute it with root credentials. Then simply follow the instructions. During installation, you might be warned about requiring the .NET Framework - you may safely ignore this warning.
 
 === Install IMOS Toolbox ===
 
@@ -31,11 +33,15 @@ Download an archive from the [http://code.google.com/p/imos-toolbox/downloads/li
 
 === Configure Deployment Database ===
 
-Since imos-toolbox versions strictly above 1.5.5, in addition to the MS-Access deployment database (template provided in the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page), it is also possible to connect to any user-specific database providing its schema complies to a minimum requirements.
+Since imos-toolbox versions 2.0, in addition to the MS-Access deployment database (template provided in the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page), it is also possible to connect to any user-specific database providing its schema complies to a minimum requirements.
 
-==== ACCESS database ====
+==== MS Access database ====
 
-To be able to use the MS-Access deployment database, you must configure it as an ODBC source:
+The toolbox is able to read the MS Access deployment database either using Microsoft ODBC driver (recommended) or UCanAccess JDBC driver (no other choice for Linux).
+
+===== With Microsoft Access ODBC drivers =====
+
+The Microsoft Access software comes with a Microsoft Access ODBC driver which can be used to turn your MS Access file into an ODBC source following the described steps below:
 
  * Start
   * Control Panel
@@ -49,13 +55,25 @@ To be able to use the MS-Access deployment database, you must configure it as an
 
 Once you have configured the ddb as an ODBC source, set the `toolbox.ddb` property (in `toolboxProperties.txt`) to the ODBC Data Source Name. If you are not using a deployment database, ensure the `toolbox.ddb` property is unset.
 
+It is important that your Microsoft Access software version (32bit or 64bit) matches the IMOS toolbox standalone or Matlab version (32bit or 64bit) used.
+
+===== With UCanAccess JDBC drivers =====
+
+Simply set the `toolbox.ddb` property (in `toolboxProperties.txt`) to your MS Access file full path.
+
 ==== Other database ====
 
-Your deployment database architecture has to follow a [DeploymentDatabase#Interface_requirements minimum interface requirements] to prevent the toolbox from crashing. Then to be able to query it through the toolbox, you must put the driver (.jar file) used to connect to it in the Java directory and set the `toolbox.ddb.*` properties (in `toolboxProperties.txt`) properly.
+Your deployment database architecture has to follow a [DeploymentDatabase#Interface_requirements minimum interface requirements] to prevent the toolbox from crashing. Then to be able to query it through the toolbox, you must put the driver (.jar file) used to connect to it in the Java directory and set the relevant `toolbox.ddb.*` properties (in `toolboxProperties.txt`) properly.
 
 === Startup ===
 
-Start the toolbox by double clicking on `imosToolbox.bat`. This is basically executing `imosToolbox.exe` but then will pause in the DOS command window after exiting the toolbox so that you can have a look for any output message.
+Start the toolbox by double clicking on the relevant executable according to your operating system (if any doubt try Windows 32bit):
+
+ * `imosToolbox_Win32.bat`  for Windows 32bit 
+ * `imosToolbox_Win64.bat`  for Windows 64bit
+ * `imosToolbox_Linux64.sh` for Linux 64bit
+
+This is basically executing the relevant `imosToolbox.exe` but then will pause in the DOS command window after exiting the toolbox so that you can have a look at any output message.
 
 == Source installation ==
 
@@ -63,10 +81,11 @@ Only high level users should be interested in using the source code, for example
 
 === Requirements ===
 
- * Windows XP
- * Matlab (r 2010b or newer)
+ * Windows (XP from Seven either in 32bit or 64bit) or Linux 64bit operating system
+ * Matlab (R2010b or newer)
  * (Recommended) A deployment database which contains some data (have a look at the deployment database [http://imos-toolbox.googlecode.com/svn/wiki/documents/deployment_database_conventions.pdf guidelines])
- * (Recommended) Java JRE (1.5 or newer) to be able to query the deployment database with the toolbox.
+ * (Recommended) Java JRE (1.6 or newer) to be able to query the deployment database with the toolbox.
+ * Microsoft Access 32bit if you use a 32bit operating system / Matlab, 64bit if you use a 64bit one (Optional, can be bypassed with UCanAccess, especially when using Linux)
 
 === Download and install ===
 
@@ -100,11 +119,7 @@ Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the fo
 
 As with a standalone installation, you must [#Configure_Deployment_Database configure your database].
 
-The ddb is accessed via Java code, thus you must also let Matlab know where the Java classes are, by editing `classpath.txt`. To do so, open Matlab and type `edit classpath.txt` in the console. Assuming that the toolbox is installed in `C:\imos-toolbox`, add the following line to the file `classpath.txt`:
-{{{
-C:\imos-toolbox\Java\ddb.jar
-}}}
-Then restart Matlab so that those changes take effect.
+Since version 2.3, it is not necessary to edit your Matlab `classpath.txt`. Any jar file in the Java directory and sub-directories is dynamically added to the matlab classpath whether the application is standalone or within matlab.
 
 === Startup ===
 
@@ -118,4 +133,4 @@ See the [UsingTheToolboxOverview overview] on using the toolbox to get started.
 
 == Using the toolbox under Linux ==
 
-The toolbox should run under Linux. If you are using a deployment database however, MS Access support under Linux is flaky at best. Having said that, the development of the toolbox until version 1.5.5 has been almost exclusively performed under Ubuntu 9.04 (testing under Windows regularly, of course). See [DeploymentDatabaseInterface here] for more details on running the toolbox under Linux. Since version 1.5.5 and above, the development have only been performed under Windows XP 32bits.
+The toolbox runs under Linux. If you are using a deployment database however, MS Access support under Linux is still not the best with warning messages often displayed by UCanAccess. It is possible to query AIMS protected deployment database (used only by AIMS staff, the template provided by IMOS is not protected) from Matlab by increasing Matlab Java heap space memory to at least 1.5Gb which consequently slows down the queries performance.

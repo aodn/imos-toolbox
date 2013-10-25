@@ -5,7 +5,7 @@
 
 = Pre-processing routines =
 
-The following routines are available in the Toolbox since version 2.2 :
+The following routines are available in the Toolbox since version 2.3 :
 
 == Data time start redefinition - timeStartPP == 
 
@@ -128,11 +128,11 @@ depthPP adds a DEPTH variable to the given data sets, if not already exist. Usef
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/Mooring_knocked_down3.png
 
-This function uses the [http://www.cmar.csiro.au/datacentre/ext_docs/seawater.htm CSIRO Matlab Seawater Library of EOS-80] to derive depth data from pressure and latitude.
+This function uses the [http://www.teos-10.org/ Gibbs-SeaWater toolbox (TEOS-10)] to derive depth data from pressure and latitude.
 
-When a data set is loaded without using a deployment database, DEPTH will be calculated from PRES or PRES_REL variables present in the dataset. Without any latitude metadata information, 1 dbar ~= 1 m is assumed. If latitude metadata information is documented then DEPTH will be updated taking this new information into account using the CSIRO Matlab Seawater Library.
+When a data set is loaded without using a deployment database, DEPTH will be calculated from PRES or PRES_REL variables present in the dataset. Without any latitude metadata information, 1 dbar ~= 1 m is assumed. If latitude metadata information is documented then DEPTH will be updated taking this new information into account using the Gibbs-SeaWater toolbox.
 
-When a data set is loaded using a deployment database, DEPTH will be calculated from PRES or PRES_REL variables present in the current instrument dataset or in the ones from the nearest pressure sensor on the mooring (1 or 2 nearest pressure sensors are used when possible). Latitude metadata information si taken into account using the Seawater toolbox. If latitude metadata information is updated then DEPTH will be updated taking this new information into account.
+When a data set is loaded using a deployment database, DEPTH will be calculated from PRES or PRES_REL variables present in the current instrument dataset or in the ones from the nearest pressure sensor on the mooring (1 or 2 nearest pressure sensors are used when possible). Latitude metadata information si taken into account using the Gibbs-SeaWater toolbox. If latitude metadata information is updated then DEPTH will be updated taking this new information into account.
 
 When an instrument data set doesn't contain any pressure/depth information, then the nearest pressure sensor (1 or 2 when possible) data on the mooring is considered and depth for the current instrument is linearly interpolated knowing the geometry/design of the mooring. Indeed, either global attributes instrument_nominal_height or instrument_nominal_depth must be documented for each instrument so that this routine can be performed properly.
 
@@ -177,7 +177,11 @@ exclude,       ADCP
 
 salinityPP adds a salinity variable to the given data sets, if they contain conductivity, temperature and pressure variables.
 
-This function uses the [http://www.cmar.csiro.au/datacentre/ext_docs/seawater.htm CSIRO Matlab Seawater Library of EOS-80] to derive salinity data from conductivity, temperature and pressure. It adds the salinity data as a new variable in the data sets. Data sets which do not contain conductivity, temperature and pressure variable or already contain a salinity variable are left unmodified.
+This function uses the [http://www.teos-10.org/ Gibbs-SeaWater toolbox (TEOS-10)] to derive salinity data from conductivity, temperature and pressure. It adds the salinity data as a new variable in the data sets. Data sets which do not contain conductivity, temperature and pressure variable or already contain a salinity variable are left unmodified.
+
+== Correction for magnetic declination - magneticDeclinationPP == 
+
+magneticDeclinationPP computes a theoretical magnetic declination, for any data set relying on a magnetic compass, using NOAA's [www.ngdc.noaa.gov/geomag/ Geomag] v7.0 software and the [http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html IGRF11] model. The actual location of the mooring, the instrument nominal depth and the date in the middle of the time_coverage_start and time_coverage_end of the dataset (it is assumed that the declination variation which occurs during the deployment time period is negligeable compared to the angular resolution of the data) are considered as inputs for Geomag. This computed magnetic declination is documented in a global attribute and a correction from it is applied to any data relying on a magnetic compass when it still refers to magnetic North so that it finally refers to true North.
 
 == Variable transformation - transformPP == 
 

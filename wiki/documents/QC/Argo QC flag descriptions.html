@@ -1,0 +1,64 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+    <title>Argo QC flag descriptions</title>
+</head>
+
+
+<body><h3>Reference table 2: measurement flag scale</h3>
+
+<table width="90%" border="1">
+
+    <caption><b>Argo measurement flag scale</b></caption>
+
+   <tbody><tr> <th> n </th> <th>Meaning </th> <th>Real-time comment</th> <th>Delayed-mode comment</th> </tr>
+
+   <tr> <td> 0</td> <td>no Qc performed </td><td>. </td><td> .</td> </tr>
+   <tr> <td> 1</td><td>good data </td><td> All realtime QC tests passed</td><td>
+	Adjusted value is statistically consistent and a statistical error 
+	estimate is supplied </td> </tr>
+   <tr> <td> 2</td> <td>probably good </td><td> n/a </td><td>. </td> </tr>
+   <tr> <td> 3</td> <td>bad but potentially correctable </td>
+	<td>not to be used without scientific correction </td>
+	<td>An adjustment has been made but the value may still be bad </td> </tr>
+   <tr> <td> 4</td> <td>bad </td><td>. </td><td>. </td> </tr>
+   <tr> <td> 5</td> <td>value changed </td><td>. </td><td> .</td> </tr>
+   <tr> <td> 6</td> <td> .</td><td>. </td><td>. </td> </tr>
+   <tr> <td> 7</td> <td>. </td><td>. </td><td>. </td> </tr>
+   <tr> <td> 8</td> <td>interpolated </td><td>. </td><td> .</td> </tr>
+   <tr> <td> 9</td> <td>missing value </td><td>. </td><td>. </td> </tr>
+</tbody></table>
+
+<p><br> </p><p>
+
+</p><h3>Reference table 2a: profile quality flag</h3>
+
+ <p></p><dl>
+<dt> N is defined as the percentage of levels with good data where:
+</dt><dd> QC flag values of 1, 2, 5, or 8  are GOOD data
+</dd><dd> QC flag values of 9 (missing) are NOT USED in the computation
+</dd><dd> All other QC flag values are BAD data
+</dd></dl>
+
+The computation should be taken from 
+<i>PARAM</i>_ADJUSTED_QC if available and from <i>PARAM</i>_QC otherwise.
+
+ <p><table width="90%" border="1">
+
+    <caption><b>Argo whole-of-profile flags</b></caption>
+
+   <tbody><tr> <th> n </th> <th> Meaning </th> </tr>
+
+   <tr> <td> ' ' </td> <td> No QC performed </td> </tr>
+   <tr> <td> A </td> <td> <b>N</b> = 100%; All good </td> </tr>
+   <tr> <td> B </td> <td> 75% &lt;= <b>N</b> &lt; 100% </td> </tr>
+   <tr> <td> C </td> <td> 50% &lt;= <b>N</b> &lt; 75% </td> </tr>
+   <tr> <td> D </td> <td> 25% &lt;= <b>N</b> &lt; 50%</td> </tr>
+   <tr> <td> E </td> <td> 0% &lt; <b>N</b> &lt; 2% </td> </tr>
+   <tr> <td> F </td> <td><b>N</b>=0%; all bad </td> </tr>
+
+</tbody></table>
+
+
+
+
+</p></body></html>

@@ -9,8 +9,8 @@ NetCDF metadata attributes are automatically populated from a set of template fi
 ||*File*||*Use*||
 ||`global_attributes_timeSeries.txt`||Global NetCDF attributes used in timeSeries mode||
 ||`global_attributes_profile.txt`||Global NetCDF attributes used in profile mode||
-||`dimension_attributes.txt`||Dimension attributes||
-||`variable_attributes.txt`||Variable attributes||
+||`dimension_attributes.txt`||Any dimension attributes||
+||`variable_attributes.txt`||Any variable attributes||
 ||`time_attributes.txt`||TIME coordinate variable attributes||
 ||`longitude_attributes.txt`||LONGITUDE coordinate variable attributes||
 ||`latitude_attributes.txt`||LATITUDE coordinate variable attributes||
@@ -19,6 +19,7 @@ NetCDF metadata attributes are automatically populated from a set of template fi
 ||`instance_attributes.txt`||INSTANCE coordinate variable attributes||
 ||`maxz_attributes.txt`||MAXZ coordinate variable attributes||
 ||`direction_attributes.txt`||DIRECTION coordinate variable attributes||
+||`spct_attributes.txt`||SPCT variable attributes||
 ||`qc_coord_attributes.txt`||Quality control attributes for coordinate variables||
 ||`qc_attributes.txt`||Quality control attributes||
 

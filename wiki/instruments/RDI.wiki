@@ -1,0 +1,63 @@
+#summary Lists the Teledyne RDI instruments that are currently supported.
+#labels Support,Featured
+
+<wiki:toc/>
+
+= Teledyne RDI supported instruments =
+
+This page lists the Teledyne RDI instrument Models which are supported by the toolbox, and the data formats required for each of them. If you have some data from an unsupported instrument or format, send me an [http://code.google.com/u/guillaume.galibert/ email], or leave a comment on this page with files examples, and I'll look into adding support for this new instrument/format.
+
+== Workhorse ADCP ==
+
+The toolbox is able to parse current and wave data files retrieved from a Teledyne RDI Workhorse ADCP instrument using the *workhorse* parser.
+
+*IMPORTANT:* The heading bias information accounting for electrical/magnetic bias (usually magnetic declination) found in the PD0 file Fixed Leader Data (see Current data below) and set up by a technician prior to the deployment or during post-processing with RDI's softwares is taken into account to decide whether the current and wave data is referring to magnetic North (heading bias is found to be 0) or true North (heading bias is found to be different from 0).
+
+=== Current data ===
+
+Current data raw files are read in the PD0 format (see the Workhorse H-ADCP Operation manual available [http://imos-toolbox.googlecode.com/svn/wiki/documents/Instruments/RDI/Workhorse_Quartermaster_ADCP/WorkHorse_Commands_and_Output_Data_Format_Nov07.pdf here] for a description of the format as it stands at November 2007). As the toolbox works from raw binary files, pre-processing with RDI software is not required.
+
+A raw Workhorse current data file consists of a set of 'ensembles'. Each ensemble contains data for one sample period. An ensemble is made up of a number of sections, the last five of which may or may not be present:
+
+ * *Header*: Ensemble information (size/contents). Always present
+ * *Fixed Leader Data*: ADCP configuration, serial number etc. Always present
+ * *Variable Leader Data*: Time, temperature, salinity etc. Always present.
+ * *Velocity*: Current velocities for each depth (a.k.a 'bins' or 'cells').
+ * *Correlation Magnitude*: 'Magnitude of the normalized echo autocorrelation at the lag used for estimating the Doppler phase change'. 
+ * *Echo Intensity*: Echo intensity data. 
+ * *Percent Good*: Percentage of good data for each depth cell.
+ * *Bottom Track Data*: Bottom track data. 
+
+The toolbox reads in all of the ensembles and extracts the following:
+ * Time
+ * Temperature (at each time)
+ * Pressure (at each time, if present)
+ * Salinity (at each time, if present)
+ * Northward velocity (at each time and depth)
+ * Eastward velocity (at each time and depth)
+ * Water speed (at each time and depth, derived from northward/eastward velocities)
+ * Water direction (at each time and depth, derived from northward/eastward velocities)
+ * Acoustic backscatter intensity (at each time and depth, a separate variable for each beam)
+ * Particle distribution correlation magnitude (at each time and depth, a separate variable for each beam)
+ * Percentage of good three beam solutions (at each time and depth)
+ * Percentage of good transformations (at each time and depth)
+ * Percentage of measurements with more than one beam bad (at each time and depth)
+ * Percentage of measurements with four beam solutions (at each time and depth)
+ * Pitch (at each time, if present)
+ * Roll (at each time, if present)
+ * Heading (at each time, if present)
+
+The conversion from the ADCP velocity values currently assumes that the ADCP is using earth coordinates (see section 13.4 'Velocity Data Format' of the Workhorse H-ADCP Operation Manual).
+
+=== Wave data ===
+
+Wave data raw files in the WVS format is not supported since there is no specifiation available for this binary format. However, it is possible to re-play a .WVS datset with RDIs WavesMon software and then output the wave data in ASCII files that are documented (see the WavesMon user's guide available [http://imos-toolbox.googlecode.com/svn/wiki/documents/Instruments/RDI/WavesMon_Users_Guide.pdf here] for a description of the formats as they stand at November 2011). In the deployment database, the toolbox looks for the PD0 file to read current data but then if a .WVS file with the same name exists in the same folder, then relevant wave data ASCII log9 and spectra files (`*_LOG9.txt`, `DSpec*.txt`, `PSpec*.txt`, `SSpec*.txt` and `VSpec*.txt`) files are looked for and read. The toolbox assumes there is only one set of .PD0, .WVS, .LOG9 and spectra files in the same folder.
+
+A Workhorse set of wave data file consists in 5 files:
+
+ * `*_LOG9.txt`: Includes time and ADCP's depth and many wave parameters such as significant wave height, peak wave period, peak wave direction (the laters also distinctively for wind and swell wave), maximum wave height, maximum peak wave period, mean wave direction, etc...
+ * `DSpecyyyymmddHHMM.txt`: Includes the wave directional energy spectra at the time yyyymmddHHMM in the file's name and by default based on orbital velocity measurements.
+ * `VSpecyyyymmddHHMM.txt`: Includes the wave non-directional energy spectra at the time yyyymmddHHMM in the file's name and based on orbital velocity measurements.
+ * `PSpecyyyymmddHHMM.txt`: Includes the wave non-directional energy spectra at the time yyyymmddHHMM in the file's name and based on pressure measurements.
+ * `SSpecyyyymmddHHMM.txt`: Includes the wave non-directional energy spectra at the time yyyymmddHHMM in the file's name and based on surface tracking measurements.
+
