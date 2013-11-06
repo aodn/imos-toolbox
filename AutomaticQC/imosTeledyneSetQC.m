@@ -76,14 +76,14 @@ for j=1:4
 end
 lenVar = size(sample_data.variables, 2);
 for i=1:lenVar
-    paramName = sample_data.variables{i}.name(1:end-4);
+    paramName = sample_data.variables{i}.name;
     
-    if strcmpi(paramName, 'UCUR'),      idUcur = i; end
-    if strcmpi(paramName, 'VCUR'),      idVcur = i; end
+    if strncmpi(paramName, 'UCUR', 4),  idUcur = i; end
+    if strncmpi(paramName, 'VCUR', 4),  idVcur = i; end
     if strcmpi(paramName, 'WCUR'),      idWcur = i; end
     if strcmpi(paramName, 'ECUR'),      idEcur = i; end
     if strcmpi(paramName, 'CSPD'),      idCspd = i; end
-    if strcmpi(paramName, 'CDIR'),      idCdir = i; end
+    if strncmpi(paramName, 'CDIR', 4),  idCdir = i; end
     for j=1:4
         cc = int2str(j);
         if strcmpi(paramName, ['PERG' cc]), idPERG{j} = i; end
@@ -203,11 +203,11 @@ clear ib* isub* ifb iFail*
 % velocity
 ib1 = abs(erv) <= err_vel;
 
-%test 2, Percent Good test on 4 beam solution only
+%test 2, Percent Good test on 3 and 4 beam solutions
 % in earth coordinate (!=beam coordinate) configuration, pg(1) is
 % percent good of measurements with 3 beam solution and pg(4) is
 % percent good of measurements with 4 beam solution.
-ib2 = qc(4).pg > pgood;
+ib2 = qc(1).pg + qc(4).pg > pgood;
 
 % Test 3, correlation magnitude test
 isub1 = (qc(1).cr > cmag);
@@ -232,23 +232,25 @@ ib5 = abs(u) <= hvel;
 % this test looks at the difference between consecutive vertical bin values of ea and
 % if the value exceeds the threshold, then the bin fails, and all bins
 % above this are also considered to have failed.
-% This test is only applied from the middle bin to the end bin, since it is
-% a test designed to get rid of surface bins
+% This test designed to get rid of surface bins.
 [lenTime, lenBin] = size(u);
-halfLenBin = round(lenBin/2);
 
 % if the following test is successfull, the bin gets good
-ib = (abs(diff(qc(1).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh) & ...
-     (abs(diff(qc(2).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh) & ...
-     (abs(diff(qc(3).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh) & ...
-     (abs(diff(qc(4).ea(:,halfLenBin:lenBin),1,2)) <= ea_thresh);
+ib = uint8(abs(diff(qc(1).ea(:,:),1,2)) <= ea_thresh) + ...
+     uint8(abs(diff(qc(2).ea(:,:),1,2)) <= ea_thresh) + ...
+     uint8(abs(diff(qc(3).ea(:,:),1,2)) <= ea_thresh) + ...
+     uint8(abs(diff(qc(4).ea(:,:),1,2)) <= ea_thresh);
+
+% we look for the bins that have 3 or more beams that pass the tests
+ib = ib >= 3;
  
-ib = [true(lenTime, lenBin-size(ib, 2)), ib];
-
+% we assume the first bin is good
+ib = [true(lenTime, 1), ib];
+ 
 % however, any good bin over a bad one should have stayed bad
-jkf = repmat((1:1:lenBin), lenTime, 1);
+jkf = repmat(single(1:1:lenBin), lenTime, 1);
 
-iii = double(~ib).*jkf;
+iii = single(~ib).*jkf;
 clear ib;
 iii(iii == 0) = NaN;
 iif = min(iii, [], 2);
@@ -260,13 +262,26 @@ if any(iifNotNan)
     % all bins above the first bad one is reset to bad
     ib6(jkf >= repmat(iif, 1, lenBin)) = false;
 end
+clear iifNotNan iif jkf;
 
-%Find the number that pass the first five tests
-ib7 = ib1 + ib2 + ib3 + ib4 + ib5;
-iPass1 = ib7 >= 4;
+% if less than 50% of the bins below the surface (test 6) in a profile have passed all of the first
+% 5 tests then the entire profile fails.
+iPass1 = ib1 & ib2 & ib3 & ib4 & ib5;
 
-iPass2 = iPass1 + ib6;
+ib7 = iPass1;
+ib7(~ib6) = false; % override any bin above the surface with a fail
 
-iPass = iPass2 >= 2;
+nTotalBinBelowSurface = sum(ib6, 2);
+nGoodBinBelowSurface  = sum(ib7, 2);
+clear ib7;
+
+iPass2 = nGoodBinBelowSurface >= nTotalBinBelowSurface/2;
+clear nGoodBinBelowSurface nTotalBinBelowSurface;
+
+iPass = iPass1 & ib6; % every single test is passed
+clear ib6 iPass1;
+
+iPass(~iPass2, :) = false; % we flag a whole profile bad when relevant
+clear iPass2;
 
 end
