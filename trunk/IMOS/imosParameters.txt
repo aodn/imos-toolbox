@@ -22,9 +22,9 @@ CMAG2,               0, particle_distribution_correlation_magnitude_from_acousti
 CMAG3,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_3,               ,                                      E, 999999.0, 0.0,     250.0,    float
 CMAG4,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_4,               ,                                      E, 999999.0, 0.0,     250.0,    float
 PERG1,               0, percentage_of_good_three_beam_solutions,                                        percent,                               E, 999999.0, 0.0,     100.0,    float
-PERG2,               0, percentage_of_good_transformations,                                             percent,                               E, 999999.0, 0.0,     100.0,    float
+PERG2,               0, percentage_of_transformations_rejected,                                         percent,                               E, 999999.0, 0.0,     100.0,    float
 PERG3,               0, percentage_of_measurements_with_more_than_one_beam_bad,                         percent,                               E, 999999.0, 0.0,     100.0,    float
-PERG4,               0, percentage_of_measurements_with_four_beam_solutions,                            percent,                               E, 999999.0, 0.0,     100.0,    float
+PERG4,               0, percentage_of_good_four_beam_solutions,                                         percent,                               E, 999999.0, 0.0,     100.0,    float
 AIRT,                1, air_temperature,                                                                Celsius,                               M, 999999.0, -50.0,   50.0,     float
 ATMP,                1, air_pressure,                                                                   Pascal,                                M, 999999.0, 90000.0, 110000.0, float
 ATMS,                1, air_pressure_at_sea_level,                                                      Pascal,                                M, 999999.0, 90000.0, 110000.0, float
