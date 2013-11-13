@@ -65,7 +65,7 @@ The basis of most of these tests is described in [http://imos-toolbox.googlecode
 
 Variables mentioned below are IMOS parameters code and their definition can be found in [http://code.google.com/p/imos-toolbox/source/browse/trunk/IMOS/imosParameters.txt IMOS\imosParameters.txt].
 
-=== Impossible date test - imosImpossibleDateQC === 
+=== Impossible date test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleDateQC.m imosImpossibleDateQC] === 
 
 imosImpossibleDateQC checks that the TIME values are within an acceptable range. Because some instrument files contain the date information in binary format like the datenum Matlab format (decimal days from a specific date and time, where datenum('Jan-01-0000 00:00:00') returns the number 1) it is only possible to set up a generic test that only checks the full date range. Cheking the day, month, hour, minute or second values separately (minimum/maximum valid values for minutes, months, days in February, etc...) is not possible in our case.
 
@@ -86,7 +86,7 @@ By default, if dateMax is left empty then dateMax is the current date at the tim
 
 Since this test is critical, a warning message is displayed if some samples fail the test.
 
-=== Impossible location test - imosImpossibleLocationSetQC === 
+=== Impossible location test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleLocationSetQC.m imosImpossibleLocationSetQC] === 
 
 imosImpossibleLocationSetQC checks the LATITUDE and LONGITUDE values against a nominal position and acceptable range for the relevant mooring site. Useful to detect typos in positions documented in the metadata/deployment database.
 
@@ -126,7 +126,7 @@ In this case, positions are expected to be in a square centered on the nominal p
 
 Since this test is critical and can easily be corrected, an error message is triggered if some samples fail the test.
 
-=== In/Out water test - imosInOutWaterQC === 
+=== In/Out water test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosInOutWaterQC.m imosInOutWaterQC] === 
 
 imosInOutWaterQC flags any variable sample which TIME values are not between the first and last time when the instrument is actually in position collecting data for time series purpose. Between these two times, data is deliberately left non QC'd.
 
@@ -149,7 +149,7 @@ The samples that pass the test are the ones which TIME values are verifying `TIM
  # !TimeOnDeck : Time instrument on deck.
  # !TimeSwitchOff : Time instrument is switched off.
 
-=== Global range test - imosGlobalRangeQC === 
+=== Global range test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosGlobalRangeQC.m imosGlobalRangeQC] === 
 
 imosGlobalRangeQC checks that the parameter's values are within a global valid range. The default list of parameters impacted by this test is found in imosGlobalRangeQC.txt.
 
@@ -178,27 +178,27 @@ See below default list of impacted parameters by this test and their validMin / 
 % of a comment.
 %
 
-CDIR,                1, direction_of_sea_water_velocity,                                                Degrees clockwise from true North, V, 999999.0, 0.0,     360.0,    float
-CPHL,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                            K, 999999.0, 0.0,     100.0,    float
-CHLF,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                            K, 999999.0, 0.0,     100.0,    float
-CHLU,                1, mass_concentration_of_chlorophyll_in_sea_water,                                 mg m-3,                            K, 999999.0, 0.0,     100.0,    float
-CSPD,                1, sea_water_speed,                                                                m s-1,                             V, 999999.0, 0.0,     10.0,     float
-DEPTH,               1, depth,                                                                          m,                                 Z, 999999.0, -5.0,    12000.0,  float
-DOXY,                1, mass_concentration_of_oxygen_in_sea_water,                                      kg m-3,                            O, 999999.0, 0.0,     29.0,     float
-DOX1,                1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,                  umol l-1,                          O, 999999.0, 0.0,     900000.0, float
-DOX2,                1, moles_of_oxygen_per_unit_mass_in_sea_water,                                     umol kg-1,                         O, 999999.0, 0.0,     880000.0, float
-PRES,                1, sea_water_pressure,                                                             dbar,                              Z, 999999.0, -5.0,    12000.0,  float
-PRES_REL,            0, sea_water_relative_pressure,                                                    dbar,                              Z, 999999.0, -15.0,   12000.0,  float
-PSAL,                1, sea_water_salinity,                                                             psu,                               S, 999999.0, 2.0,     41.0,     float
-TEMP,                1, sea_water_temperature,                                                          Celsius,                           T, 999999.0, -2.5,    40.0,     float
-UCUR,                1, eastward_sea_water_velocity,                                                    m s-1,                             V, 999999.0, -10.0,   10.0,     float
-VCUR,                1, northward_sea_water_velocity,                                                   m s-1,                             V, 999999.0, -10.0,   10.0,     float
-WCUR,                1, upward_sea_water_velocity,                                                      m s-1,                             V, 999999.0, -5.0,    5.0,      float
+CDIR,     1, direction_of_sea_water_velocity,                               Degrees clockwise from true North, V, 999999.0, 0.0,     360.0,    float
+CPHL,     1, mass_concentration_of_chlorophyll_in_sea_water,                mg m-3,                            K, 999999.0, 0.0,     100.0,    float
+CHLF,     1, mass_concentration_of_chlorophyll_in_sea_water,                mg m-3,                            K, 999999.0, 0.0,     100.0,    float
+CHLU,     1, mass_concentration_of_chlorophyll_in_sea_water,                mg m-3,                            K, 999999.0, 0.0,     100.0,    float
+CSPD,     1, sea_water_speed,                                               m s-1,                             V, 999999.0, 0.0,     10.0,     float
+DEPTH,    1, depth,                                                         m,                                 Z, 999999.0, -5.0,    12000.0,  float
+DOXY,     1, mass_concentration_of_oxygen_in_sea_water,                     kg m-3,                            O, 999999.0, 0.0,     29.0,     float
+DOX1,     1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water, umol l-1,                          O, 999999.0, 0.0,     900000.0, float
+DOX2,     1, moles_of_oxygen_per_unit_mass_in_sea_water,                    umol kg-1,                         O, 999999.0, 0.0,     880000.0, float
+PRES,     1, sea_water_pressure,                                            dbar,                              Z, 999999.0, -5.0,    12000.0,  float
+PRES_REL, 1, sea_water_pressure_due_to_sea_water,                           dbar,                              Z, 999999.0, -15.0,   12000.0,  float
+PSAL,     1, sea_water_salinity,                                            psu,                               S, 999999.0, 2.0,     41.0,     float
+TEMP,     1, sea_water_temperature,                                         Celsius,                           T, 999999.0, -2.5,    40.0,     float
+UCUR,     1, eastward_sea_water_velocity,                                   m s-1,                             V, 999999.0, -10.0,   10.0,     float
+VCUR,     1, northward_sea_water_velocity,                                  m s-1,                             V, 999999.0, -10.0,   10.0,     float
+WCUR,     1, upward_sea_water_velocity,                                     m s-1,                             V, 999999.0, -5.0,    5.0,      float
 }}}
 
 If valid ranges are not documented for a parameter or are of same value for Min and Max then the test is not performed.
 
-=== Regional range test - imosRegionalRangeQC === 
+=== Regional range test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosRegionalRangeQC.m imosRegionalRangeQC] === 
 
 imosRegionalRangeQC checks that the variables values are within a regional range which is site specific. The default list of sites and variables impacted by this test is found below.
 
@@ -233,7 +233,7 @@ If regional ranges are not documented for a site and parameter, or are of same v
 
 The test is not performed and a warning message is displayed if the current processed site is not documented in the parameter file.
 
-=== Impossible depth test - imosImpossibleDepthQC === 
+=== Impossible depth test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleDepthQC.m imosImpossibleDepthQC] === 
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/impossibleDepthIllustration.png
 
@@ -260,7 +260,7 @@ If the instrument nominal depth is not documented, then the instrument nominal h
 
 The test is not performed and a warning is diplayed if there is not enough nominal depth/height information provided.
 
-=== Vertical spike test - imosVerticalSpikeQC === 
+=== Vertical spike test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosVerticalSpikeQC.m imosVerticalSpikeQC] === 
 
 imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of samples. This test is mostly useful for CTD profile/cast data.
 
@@ -299,7 +299,7 @@ PABIM is equivalent to the following formula :
 
 Threshold values have been set based on suggested values from the following documents : [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/argo-quality-control-manual-V2.7.pdf Argo quality control manual - Version 2.7, 3 January 2012], [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/Recommendations_for_RTQC_procedures_V1_2.pdf EuroGOOS Recommendations for in-situ data Near Real Time Quality Control - Version 1.2, December 2010] and [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/PABIM_white_book_version1.3.pdf PABIM White Book on Oceanic Autonomous Platforms for Biogchemical Studies: Instrumentation and Measure - Version 1.3, February 2010].
 
-=== Rate of change test - imosRateOfChangeQC === 
+=== Rate of change test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosRateOfChangeQC.m imosRateOfChangeQC] === 
 
 imosRateOfChangeQC is looking for important changes in values among temporally adjacent triplet (or pair) of samples. This test is mostly useful for time series data.
 
@@ -338,7 +338,7 @@ Threshold values have been set based on suggested values from the following docu
 
 By default, the gradient is compared to 2 times the standard deviation observed on the first month of 'Good' data so far (which means taking into account only the data with flags lower or equal to 2 (Probably good) that have been provided by previously performed QC tests).
 
-=== Stationarity test - imosStationarityQC === 
+=== Stationarity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosStationarityQC.m imosStationarityQC] === 
 
 imosStationarityQC checks that consecutive equal values of a parameter don't exceed a maximum number. The algorithm used is based on the stationarity test from IOC. The default list of parameters impacted by this test is found in imosGlobalRangeQC.txt.
 
@@ -349,14 +349,14 @@ The samples with consecutive equal values that pass the test are the ones verify
 
 It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable).
 
-=== flag inheritance test on Salinity - imosSalinityFromPTQC ===
+=== flag inheritance test on Salinity - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosSalinityFromPTQC.m imosSalinityFromPTQC] ===
 
 imosSalinityFromPTQC checks that any salinity measurement has its flag equals or greater than any pressure/depth and temperature measurements on the same sample. If not, it gives the highest observed flag.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||PSAL||1-Good data||highest flag from temperature, depth and pressure measurements of the same sample||
 
-=== Side lobe contamination test - imosSideLobeContSetQC ===
+=== Side lobe contamination test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosSideLobeContSetQC.m imosSideLobeContSetQC] ===
 
 imosSideLobeContSetQC finds for each timestamp what is the HEIGHT_ABOVE_SENSOR from which any data sample is contaminated by side lobes effect (close to the surface). Impacted data samples are then flagged accordingly. This test can be applied on any ADCP data providing we know the beam angle of the ADCP transducer. It is based on Nortek's [http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes documentation].
 
@@ -369,7 +369,7 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/sideLobeEffect.png
 
 Adding 2 times the size of a bin to the theoretical contaminated depth enables us to be conservative in order to make sure that the data in the first bin below the contaminated depth hasn't been computed from any contaminated signal (data in a bin may also come from information found in adjacent bins).
 
-=== Workhorse ADCP tests - imosTeledyneSetQC === 
+=== Workhorse ADCP tests - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosTeledyneSetQC.m imosTeledyneSetQC] === 
 
 imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertical current velocity *and* quality parameters ECUR(error_sea_water_velocity), ADCP_GOOD(adcp_percentage_good), ABSI(acoustic_backscatter_intensity) and ADCP_CORR(adcp_correlation_magnitude). These parameters are basically provided by all the Workhorse ADCPs manufactured by Teledyne RD Instruments.
 
@@ -409,7 +409,7 @@ These QC procedures are still under development/validation and should only be us
 
 # climatologyRangeQC
 
-=== Climatology range test - climatologyRangeQC === 
+=== Climatology range test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/climatologyRangeQC.m climatologyRangeQC] === 
 
 climatologyRangeQC checks parameter's values against a climatology. In order to perform this test, you need a climatology file for each of your mooring site. In your toolboxProperties.txt configuration file, make sure the directory where lay those climatology files is documented :
 
