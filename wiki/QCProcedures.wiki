@@ -340,7 +340,7 @@ By default, the gradient is compared to 2 times the standard deviation observed 
 
 === Stationarity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosStationarityQC.m imosStationarityQC] === 
 
-imosStationarityQC checks that consecutive equal values of a parameter don't exceed a maximum number. The algorithm used is based on the stationarity test from IOC. The default list of parameters impacted by this test is found in imosGlobalRangeQC.txt.
+imosStationarityQC checks that consecutive equal values of a parameter don't exceed a maximum number. The algorithm used is based on the stationarity test from [IOC http://www.jodc.go.jp/info/ioc_doc/Manual/mg26.pdf]. The default list of parameters impacted by this test is found in imosGlobalRangeQC.txt.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2, UCUR, VCUR, WCUR, CDIR, CSPD||1-Good data||4-Bad data||
@@ -376,16 +376,20 @@ imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertic
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
 
-The samples that pass the test are the ones with parameter's value verifying at least 4 of the 5 first following tests and the 6th test : 
+This test can be decomposed in the 6 following sub-tests.
+
+The bin samples that pass the test are the ones passing the 6 sub-tests and which belong to a profile which has less than 50% of its bins failing the 5 first sub-tests : 
 
  # `|ECUR| 										<=  err_vel`
- # `|ADCP_GOOD_4| 								> pgood` (performed on the 4th value only: represents the 4 beam solution in earth coordinates configuration)
- # `|ADCP_CORR_n| 								>  cmag` (performed on the 4 beams, at least 2 must comply to the test)
- # `|UCUR + i*VCUR| 							<  hvel`
+ # `PERG1 + PERG4 								> pgood` (performed on the 1st and 4th value only: represents the percentage good of 3 and 4 beam solutions in earth coordinates configuration)
+ # `CMAG_n 								>  cmag` (performed on the 4 beams, at least 2 must be greater than cmag in order to pass to the test)
  # `|WCUR| 										<  vvel`
- # `|ABSI_n(current bin)-ABSI_n(previous bin)| 	<= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. When a bin is flagged bad, then all the bins above it are flagged bad as well. This test is performed on the half of the water column in which belongs the surface).
+ # `|UCUR + i*VCUR| 							<  hvel`
+ # `ABSI_n(current bin)-ABSI_n(previous bin) 	<= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. At least 3 beams differences must be less than ea_thresh in order to pass the test. When a bin is flagged bad, then all the bins above it are flagged bad as well.).
 
-It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)]. 
+It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
+
+However, thanks to Rebecca Cowley (CSIRO Hobart) this procedure has been corrected from a mis-interpretation of the original document [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/ADCP_Data_QA-QC_App_Note.pdf Darryl R Symonds (2006)] on which is based Crout et al. (2005).
 
 This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
 
