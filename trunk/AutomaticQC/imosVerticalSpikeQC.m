@@ -137,8 +137,8 @@ if any(iParam)
     data2 = dataTested(I);
     data3 = dataTested(Ip1);
     
-    testval(I) = abs(abs(data2 - (data3 + data1)/2) ...
-        - abs((data3 - data1)/2));
+    testval(I) = abs(data2 - (data3 + data1)/2) ...
+        - abs((data3 - data1)/2);
     
     % let's consider time in seconds
     tTime = 'dimensions';
