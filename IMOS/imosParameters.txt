@@ -39,6 +39,7 @@ CHLU,                1, mass_concentration_of_chlorophyll_in_sea_water,         
 CSPD,                1, sea_water_speed,                                                                m s-1,                                 V, 999999.0, 0.0,     10.0,     float
 DENS,                1, sea_water_density,                                                              kg m-3,                                D, 999999.0, ,        ,         float
 DEPTH,               1, depth,                                                                          m,                                     Z, 999999.0, -5.0,    12000.0,  float
+DEPTH_BELOW_SENSOR,  0, depth_below_sensor,                                                             m,                                     Z, 999999.0, 0.0,     12000.0,  float
 DESC,                0, profiling_descent_rate_of_instrument,                                           m s-1,                                 E, 999999.0, 0.0,     5.0,      float
 DEWT,                1, dew_point_temperature,                                                          Celsius,                               M, 999999.0, -50.0,   50.0,     float
 DIR,                 1, direction_of_radial_vector_away_from_instrument,                                Degrees clockwise from true North,     E, 999999.0, 0.0,     360.0,    float

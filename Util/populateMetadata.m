@@ -2,8 +2,8 @@ function sample_data = populateMetadata( sample_data )
 %POPULATEMETADATA poulates metadata fields in the given sample_data struct 
 % given the content of existing metadata and data.
 %
-% Mainly populates depth metadata according to PRES, PRES_REL, DEPTH or HEIGHT_ABOVE_SENSOR 
-% data from moored/profiling CTD or moored ADCP.
+% Mainly populates depth metadata according to PRES, PRES_REL, DEPTH or 
+% HEIGHT_ABOVE_SENSOR / DEPTH_BELOW_SENSOR data from moored/profiling CTD or moored ADCP.
 %
 % Inputs:
 %   sample_data - a struct containing sample data.
@@ -54,6 +54,7 @@ function sample_data = populateMetadata( sample_data )
   
   idDepth = 0;
   idHeight = 0;
+  idDepthBelowSensor = 0;
   idLat = 0;
   idLon = 0;
   for i=1:length(sample_data.dimensions)
@@ -62,6 +63,9 @@ function sample_data = populateMetadata( sample_data )
       end
       if strcmpi(sample_data.dimensions{i}.name, 'HEIGHT_ABOVE_SENSOR')
           idHeight = i;
+      end
+      if strcmpi(sample_data.dimensions{i}.name, 'DEPTH_BELOW_SENSOR')
+          idDepthBelowSensor = i;
       end
       if strcmpi(sample_data.dimensions{i}.name, 'LATITUDE')
           idLat = i;
@@ -233,41 +237,65 @@ function sample_data = populateMetadata( sample_data )
           computedMinDepth      = round(computedMinDepth*100)/100;
           computedMaxDepth      = round(computedMaxDepth*100)/100;
           
-          if idHeight > 0
+          if idHeight > 0 || idDepthBelowSensor > 0
               % ADCP
-              % Let's compare this computed depth from pressure
-              % with the maximum distance the ADCP can measure. Sometimes,
-              % PRES from ADCP pressure sensor is just wrong
-              maxDistance = round(max(sample_data.dimensions{idHeight}.data)*100)/100;
-              diff = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
-              
-              % update vertical min/max metadata from data
-              % we assume that data is collected between the
-              % vertical extremes of surface and sensor depth
-              if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
-                  sample_data.geospatial_vertical_min = 0;
+              if idHeight > 0
+                  % Let's compare this computed depth from pressure
+                  % with the maximum distance the ADCP can measure. Sometimes,
+                  % PRES from ADCP pressure sensor is just wrong
+                  maxDistance = round(max(sample_data.dimensions{idHeight}.data)*100)/100;
+                  diff = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
                   
-                  if diff < 30/100
-                      % Depth from PRES Ok if diff < 30% and latitude
-                      % filled
-                      sample_data.geospatial_vertical_max = computedMedianDepth;
-                      comment  = strrep(computedMedianDepthComment, 'min/', '');
-                  else
-                      % Depth is taken from maxDistance between ADCP and bins
-                      sample_data.geospatial_vertical_max = maxDistance;
-                      comment  = ['Geospatial vertical max '...
-                          'information has been assumed as the distance '...
-                          'between the ADCP''s tranducers and the furthest '...
-                          'bin measured.'];
+                  % update vertical min/max metadata from data
+                  % we assume that data is collected between the
+                  % vertical extremes of surface and sensor depth
+                  if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
+                      sample_data.geospatial_vertical_min = 0;
+                      
+                      if diff < 30/100
+                          % Depth from PRES Ok if diff < 30% and latitude
+                          % filled
+                          sample_data.geospatial_vertical_max = computedMedianDepth;
+                          comment  = strrep(computedMedianDepthComment, 'min/', '');
+                      else
+                          % Depth is taken from maxDistance between ADCP and bins
+                          sample_data.geospatial_vertical_max = maxDistance;
+                          comment  = ['Geospatial vertical max '...
+                              'information has been assumed as the distance '...
+                              'between the ADCP''s tranducers and the furthest '...
+                              'bin measured.'];
+                      end
+                      
+                      if isempty(sample_data.comment)
+                          sample_data.comment = comment;
+                      elseif ~strcmpi(sample_data.comment, comment)
+                          sample_data.comment = [sample_data.comment ' ' comment];
+                      end
+                      
+                      metadataChanged = true;
                   end
-                  
-                  if isempty(sample_data.comment)
-                      sample_data.comment = comment;
-                  elseif ~strcmpi(sample_data.comment, comment)
-                      sample_data.comment = [sample_data.comment ' ' comment];
+              else
+                  % update vertical min/max metadata from data
+                  % we assume that data is collected between the
+                  % vertical extremes of bottom and sensor depth
+                  if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
+                      sample_data.geospatial_vertical_max = sample_data.site_nominal_depth;
+                      if isempty(sample_data.geospatial_vertical_max)
+                          sample_data.geospatial_vertical_max = sample_data.site_depth_at_deployment;
+                      end
+                      
+                      % we haven't any choice but to assume pressure is OK
+                      sample_data.geospatial_vertical_min = computedMedianDepth;
+                      comment  = strrep(computedMedianDepthComment, '/max', '');
+                      
+                      if isempty(sample_data.comment)
+                          sample_data.comment = comment;
+                      elseif ~strcmpi(sample_data.comment, comment)
+                          sample_data.comment = [sample_data.comment ' ' comment];
+                      end
+                      
+                      metadataChanged = true;
                   end
-                  
-                  metadataChanged = true;
               end
           else
               % Not an ADCP, so we can update existing DEPTH dimension/variable from PRES data
