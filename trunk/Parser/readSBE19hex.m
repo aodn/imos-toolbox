@@ -183,9 +183,9 @@ function [newData, comment] = convertData(data, header)
         newData.TIME = (data.time / 86400) - datenum('2000-01-00 00:00:00');
         comment.TIME = '';
       
-      % A/D counts to volts
+      % A/D counts to volts (sensor_analog_output 0 to 5)
       case {'volt0', 'volt1', 'volt2', 'volt3', 'volt4', 'volt5'}
-        newName = ['VOLT_' name(end)];
+        newName = ['ANA' name(end)];
         newData.(newName) = convertVolts(data.(name), name, header);
         comment.(newName) = '';
       

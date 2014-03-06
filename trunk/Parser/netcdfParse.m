@@ -76,7 +76,7 @@ function sample_data = netcdfParse( filename, mode )
     if isfield(globals, timeAtts{k})
       
       % Aargh, matlab is a steamer. Datenum cannot handle a trailing 'Z',
-      % even though it's ISO8601 compliant. I hate you, matlab. Assuming 
+      % even though it's ISO8601 compliant. Assuming 
       % knowledge of the date format here (dropping the last character).
       newTime = 0;
       try
