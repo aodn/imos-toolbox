@@ -140,6 +140,18 @@ function qc_data = autoQCManager( sample_data, auto )
       end
   end
 
+  % we reset QC flags to 0
+  for k = 1:length(sample_data)
+      type{1} = 'dimensions';
+      type{2} = 'variables';
+      for m = 1:length(type)
+          for l = 1:length(sample_data{k}.(type{m}))
+              if ~isfield(sample_data{k}.(type{m}){l}, 'flags'), continue; end
+              sample_data{k}.(type{m}){l}.flags(:) = 0;
+          end
+      end
+  end
+  
   % run each data set through the chain
   try
     for k = 1:length(sample_data)
