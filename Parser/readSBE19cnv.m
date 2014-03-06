@@ -273,10 +273,10 @@ function [name, data, comment] = convertData(name, data, instHeader, procHeader)
       name = 'DEPTH';
       comment = '';
     
-    % volts
+    % A/D counts to volts (sensor_analog_output 0 to 2)
     case {'v0', 'v1', 'v2'}
       origName = name;
-      name = ['VOLT_' origName(end)];
+      name = ['ANA' origName(end)];
       comment = getVoltageComment(origName, procHeader);
         
     otherwise 
