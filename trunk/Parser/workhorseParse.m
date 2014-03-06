@@ -222,11 +222,18 @@ error(nargchk(1, 2, nargin));
   else
       sample_data.meta.beam_angle       =  fixed.beamAngle;
   end
-                                    
+
   % add dimensions with their data mapped
+  switch fixed.systemConfiguration(1)
+      case '1'
+          zDim = 'HEIGHT_ABOVE_SENSOR';
+      otherwise
+          zDim = 'DEPTH_BELOW_SENSOR';
+  end
+  
   dims = {
       'TIME',                   time(:); ...
-      'HEIGHT_ABOVE_SENSOR',    distance(:); ...
+      zDim,                     distance(:); ...
       'LATITUDE',               NaN; ...
       'LONGITUDE',              NaN
       };

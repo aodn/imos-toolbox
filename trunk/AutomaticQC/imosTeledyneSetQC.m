@@ -60,6 +60,7 @@ paramsLog  = [];
 
 % get all necessary dimensions and variables id in sample_data struct
 idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
+idDepthBelow = getVar(sample_data.dimensions, 'DEPTH_BELOW_SENSOR');
 idUcur = 0;
 idVcur = 0;
 idWcur = 0;
@@ -93,7 +94,7 @@ for i=1:lenVar
 end
 
 % check if the data is compatible with the QC algorithm
-idMandatory = idHeight & idUcur & idVcur & idWcur & idEcur;
+idMandatory = (idHeight | idDepthBelow) & idUcur & idVcur & idWcur & idEcur;
 for j=1:4
     idMandatory = idMandatory & idPERG{j} & idABSI{j} & idCMAG{j};
 end
@@ -232,7 +233,7 @@ ib5 = abs(u) <= hvel;
 % this test looks at the difference between consecutive vertical bin values of ea and
 % if the value exceeds the threshold, then the bin fails, and all bins
 % above this are also considered to have failed.
-% This test designed to get rid of surface bins.
+% This test designed to get rid of surface/bottom bins.
 [lenTime, lenBin] = size(u);
 
 % if the following test is successfull, the bin gets good
