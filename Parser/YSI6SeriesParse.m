@@ -156,8 +156,8 @@ function sample_data = YSI6SeriesParse( filename, mode )
         sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
         sample_data.variables{k}.data = sample_data.variables{k}.typeCastFunc(field' / 1.45037738);
         
-      case 'battery'
-        sample_data.variables{k}.name           = 'BATT';    % non IMOS
+      case 'battery' % battery voltage
+        sample_data.variables{k}.name           = 'VOLT';
         sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
         sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(field');
         

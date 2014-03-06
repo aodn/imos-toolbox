@@ -126,7 +126,7 @@ function sample_data = NXICBinaryParse( filename, mode )
   sample_data.variables{3}.name = 'PRES_REL';
   sample_data.variables{4}.name = 'PSAL';
   sample_data.variables{5}.name = 'SSPD';
-  sample_data.variables{6}.name = 'VOLT';
+  sample_data.variables{6}.name = 'VOLT'; % battery voltage
   % these are the analog and digital channels for the external sensors
   % calibration coefficients in header file are unreliable so will need
   % processing into standard units.
