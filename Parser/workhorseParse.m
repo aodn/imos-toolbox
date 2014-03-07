@@ -224,16 +224,10 @@ error(nargchk(1, 2, nargin));
   end
 
   % add dimensions with their data mapped
-  switch fixed.systemConfiguration(1)
-      case '1'
-          zDim = 'HEIGHT_ABOVE_SENSOR';
-      otherwise
-          zDim = 'DEPTH_BELOW_SENSOR';
-  end
-  
+  if fixed.systemConfiguration(1) == '0', distance = -distance; end % case of a downward looking ADCP -> negative values
   dims = {
       'TIME',                   time(:); ...
-      zDim,                     distance(:); ...
+      'HEIGHT_ABOVE_SENSOR',    distance(:); ...
       'LATITUDE',               NaN; ...
       'LONGITUDE',              NaN
       };
