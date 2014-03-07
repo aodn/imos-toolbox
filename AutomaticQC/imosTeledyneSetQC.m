@@ -60,7 +60,6 @@ paramsLog  = [];
 
 % get all necessary dimensions and variables id in sample_data struct
 idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
-idDepthBelow = getVar(sample_data.dimensions, 'DEPTH_BELOW_SENSOR');
 idUcur = 0;
 idVcur = 0;
 idWcur = 0;
@@ -94,7 +93,7 @@ for i=1:lenVar
 end
 
 % check if the data is compatible with the QC algorithm
-idMandatory = (idHeight | idDepthBelow) & idUcur & idVcur & idWcur & idEcur;
+idMandatory = idHeight & idUcur & idVcur & idWcur & idEcur;
 for j=1:4
     idMandatory = idMandatory & idPERG{j} & idABSI{j} & idCMAG{j};
 end
@@ -248,7 +247,7 @@ ib = ib >= 3;
 % we assume the first bin is good
 ib = [true(lenTime, 1), ib];
  
-% however, any good bin over a bad one should have stayed bad
+% however, any good bin further than a bad one should have stayed bad
 jkf = repmat(single(1:1:lenBin), lenTime, 1);
 
 iii = single(~ib).*jkf;
@@ -260,23 +259,23 @@ iifNotNan = ~isnan(iif);
 
 ib6 = true(lenTime, lenBin);
 if any(iifNotNan)
-    % all bins above the first bad one is reset to bad
+    % all bins further than the first bad one is reset to bad
     ib6(jkf >= repmat(iif, 1, lenBin)) = false;
 end
 clear iifNotNan iif jkf;
 
-% if less than 50% of the bins below the surface (test 6) in a profile have passed all of the first
+% if less than 50% of the bins in the water column (test 6) in a profile have passed all of the first
 % 5 tests then the entire profile fails.
 iPass1 = ib1 & ib2 & ib3 & ib4 & ib5;
 
 ib7 = iPass1;
-ib7(~ib6) = false; % override any bin above the surface with a fail
+ib7(~ib6) = false; % override any bin outside the water column with a fail
 
-nTotalBinBelowSurface = sum(ib6, 2);
-nGoodBinBelowSurface  = sum(ib7, 2);
+nTotalBinWaterColumn = sum(ib6, 2);
+nGoodBinWaterColumn  = sum(ib7, 2);
 clear ib7;
 
-iPass2 = nGoodBinBelowSurface >= nTotalBinBelowSurface/2;
+iPass2 = nGoodBinWaterColumn >= nTotalBinWaterColumn/2;
 clear nGoodBinBelowSurface nTotalBinBelowSurface;
 
 iPass = iPass1 & ib6; % every single test is passed
