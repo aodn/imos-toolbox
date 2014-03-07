@@ -109,6 +109,8 @@ rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
 BinSize = sample_data.meta.binSize;
 Bins    = sample_data.dimensions{idHeight}.data';
 
+if all(Bins <= 0), return; end % we don't deal with the case of a downward looking ADCP.
+
 %BDM - 16/08/2010 - Added if statement below to take into account ADCPs
 %without pressure records. Use mean of nominal water depth minus sensor height.
 

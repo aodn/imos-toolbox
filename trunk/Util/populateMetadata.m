@@ -54,7 +54,6 @@ function sample_data = populateMetadata( sample_data )
   
   idDepth = 0;
   idHeight = 0;
-  idDepthBelowSensor = 0;
   idLat = 0;
   idLon = 0;
   for i=1:length(sample_data.dimensions)
@@ -63,9 +62,6 @@ function sample_data = populateMetadata( sample_data )
       end
       if strcmpi(sample_data.dimensions{i}.name, 'HEIGHT_ABOVE_SENSOR')
           idHeight = i;
-      end
-      if strcmpi(sample_data.dimensions{i}.name, 'DEPTH_BELOW_SENSOR')
-          idDepthBelowSensor = i;
       end
       if strcmpi(sample_data.dimensions{i}.name, 'LATITUDE')
           idLat = i;
@@ -237,9 +233,9 @@ function sample_data = populateMetadata( sample_data )
           computedMinDepth      = round(computedMinDepth*100)/100;
           computedMaxDepth      = round(computedMaxDepth*100)/100;
           
-          if idHeight > 0 || idDepthBelowSensor > 0
+          if idHeight > 0
               % ADCP
-              if idHeight > 0
+              if all(sample_data.dimensions{idHeight}.data >= 0) % upward looking configuration
                   % Let's compare this computed depth from pressure
                   % with the maximum distance the ADCP can measure. Sometimes,
                   % PRES from ADCP pressure sensor is just wrong
@@ -274,7 +270,7 @@ function sample_data = populateMetadata( sample_data )
                       
                       metadataChanged = true;
                   end
-              else
+              else % downward looking configuration
                   % update vertical min/max metadata from data
                   % we assume that data is collected between the
                   % vertical extremes of bottom and sensor depth
