@@ -273,11 +273,11 @@ if isBurst
             % time is the mean of the burst timestamps
             burstTime = mean(time(burstIdx));
             
-            newTime(k) = burstTime;
+            newTime(k, 1) = burstTime;
             
             % temp/pres are means of the burst samples
-            if ~isempty(temp), newTemp(k) = mean(temp(burstIdx)); end
-            if ~isempty(pres), newPres(k) = mean(pres(burstIdx)); end
+            if ~isempty(temp), newTemp(k, 1) = mean(temp(burstIdx)); end
+            if ~isempty(pres), newPres(k, 1) = mean(pres(burstIdx)); end
         end
         
         time = newTime;

@@ -174,6 +174,12 @@ function [name, data, comment] = convertData(name, data, instHeader, procHeader)
       data = rem(data, floor(data)) + floor(castDate);
       comment = '';
     
+    % elapsed time (seconds since 1970-01-01)
+    case 'timeY'
+      name = 'TIME';
+      data = data / 86400 + datenum(1970,1,1,0,0,0);
+      comment = '';
+        
     % strain gauge pressure (dbar)
     case 'prdM'
       name = 'PRES_REL';
