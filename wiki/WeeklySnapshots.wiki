@@ -5,7 +5,7 @@
 
 = SVN Snapshot =
 
-A snapshot of the Toolbox codebase is available from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. A snapshot is created from time to time by the developper to be able to ask IMOS users test a new feature or fix before releasing an official version.
+A snapshot of the Toolbox codebase is available from the [http://data.aodn.org.au/IMOS/public/eMII/softwares/imos-toolbox/ downloads] page. A snapshot is created from time to time by the developper to be able to ask IMOS users test a new feature or fix before releasing an official version.
 
  * *Snapshot*: Contains a compiled version of the source code and the source code straight from the SVN.
 
@@ -102,7 +102,7 @@ Finally the newly created binary has to be commited in SVN.
 
 A snapshot can be created after all binaries have been updated and commited to SVN. It is created by executing snapshot.bat or snapshot.sh which runs snapshot.py script.
 
-The snapshot.py python script exports the SVN trunk, creates the snapshot, and finally calls another python script which uploads it to the project website. This [http://code.google.com/p/support/wiki/ScriptedUploads upload script] is conveniently provided by Google Code.
+The snapshot.py python script exports the SVN trunk, creates the snapshot, and finally calls scp to upload it to the [http://data.aodn.org.au/IMOS/public/eMII/softwares/imos-toolbox/ IMOS/public/eMII/softwares/imos-toolbox] directory on 5-nsp-mel.
 
 {{{
 #!/usr/bin/python
@@ -116,12 +116,12 @@ import ziputil
 # snapshot.py
 # Exports the IMOS Toolbox from SVN and
 #
-#   - Creates an archive of the source
+#   - Creates an archive of the source 
 #   - Runs Util/imosPackage.m to package the source
-#
+# 
 # These files are submitted back to the project as file downloads.
 #
-# python, svn (SlikSvn) and matlab must be on PATH
+# python, svn (SlikSvn), scp and matlab must be on PATH
 #
 
 lt = time.localtime()
@@ -129,28 +129,22 @@ at = time.asctime()
 
 project = 'imos-toolbox'
 
-def googleSubmit(archive, summary):
+def submit(archive):
 
-  username = 'guillaume.galibert@gmail.com'
-  password = 'mySVNPassword' # SVN password!!!
-  labels   = 'Type-Snapshot'
+  user     = 'ggalibert'
+  server   = '5-nsp-mel.emii.org.au'
+  dir      = '/mnt/imos-t4/IMOS/public/eMII/softwares/imos-toolbox'
+  http_url = 'http://data.aodn.org.au/IMOS/public/eMII/softwares/imos-toolbox/'
 
-  print('\n--submitting %s to google' % archive)
-  cmd = 'python googlecode_upload.py'
-  cmd = ' %s -s "%s"' % (cmd,summary)
-  cmd = ' %s -p %s'   % (cmd,project)
-  cmd = ' %s -u %s'   % (cmd,username)
-  cmd = ' %s -w %s'   % (cmd,password)
-  cmd = ' %s -l "%s"' % (cmd,labels)
-  cmd = ' %s %s'      % (cmd,archive)
- 
+  print('\n--submitting %s to %s' % (archive,http_url))
+  cmd = 'scp %s %s@%s:%s' % (archive,user,server,dir)
+  
   os.system(cmd)
 
 url        = 'http://%s.googlecode.com/svn/trunk' % project
 exportDir  = 'export'
 stdArchive = '%04i-%02i-%02i_unstable_snapshot.zip' % (lt[0], lt[1], lt[2])
 
-stdSummary  = 'IMOS Toolbox SVN unstable snapshot from %s for test purpose only' % at
 compilerLog = './%s/log.txt' % exportDir
 
 #
@@ -176,7 +170,7 @@ os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 shutil.copy('%s/imos-toolbox.zip' % exportDir, './%s' % stdArchive)
 
 try:
-  googleSubmit(stdArchive, stdSummary)
+  submit(stdArchive)
 
 except:
   print('\n--Snapshot upload error. Check script, fix and then delete previous files before running new snapshot')
@@ -200,12 +194,12 @@ import ziputil
 # official.py
 # Exports the IMOS Toolbox from SVN and
 #
-#   - Creates an archive of the source
+#   - Creates an archive of the source 
 #   - Runs Util/imosPackage.m to to package the source
-#
+# 
 # These files are submitted back to the project as file downloads.
 #
-# python, svn (SlikSvn) and matlab must be on PATH
+# python, svn (SlikSvn), scp and matlab must be on PATH
 #
 
 lt = time.localtime()
@@ -213,30 +207,24 @@ at = time.asctime()
 
 project = 'imos-toolbox'
 
-def googleSubmit(archive, summary):
+def submit(archive):
 
-  username = 'guillaume.galibert@gmail.com'
-  password = 'myPassword' # SVN password!!!
-  labels   = 'Featured'
+  user     = 'ggalibert'
+  server   = '5-nsp-mel.emii.org.au'
+  dir      = '/mnt/imos-t4/IMOS/public/eMII/softwares/imos-toolbox'
+  http_url = 'http://data.aodn.org.au/IMOS/public/eMII/softwares/imos-toolbox/'
 
-  print('\n--submitting %s to google' % archive)
-  cmd = 'python googlecode_upload.py'
-  cmd = ' %s -s "%s"' % (cmd,summary)
-  cmd = ' %s -p %s'   % (cmd,project)
-  cmd = ' %s -u %s'   % (cmd,username)
-  cmd = ' %s -w %s'   % (cmd,password)
-  cmd = ' %s -l "%s"' % (cmd,labels)
-  cmd = ' %s %s'      % (cmd,archive)
- 
+  print('\n--submitting %s to %s' % (archive,http_url))
+  cmd = 'scp %s %s@%s:%s' % (archive,user,server,dir)
+  
   os.system(cmd)
 
-version    = '2.3'
- 
+version    = '2.4'
+  
 url        = 'http://%s.googlecode.com/svn/trunk' % project
 exportDir  = 'export'
 stdArchive = 'imos-toolbox-%s.zip' % version
 
-stdSummary  = 'IMOS Toolbox %s (standalone + source)' % version
 compilerLog = './%s/log.txt' % exportDir
 
 #
@@ -262,7 +250,7 @@ os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 shutil.copy('%s/imos-toolbox.zip' % exportDir, './%s' % stdArchive)
 
 try:
-  googleSubmit(stdArchive, stdSummary)
+  submit(stdArchive)
 
 except:
   print('\n--Snapshot upload error. Check script, fix and then delete previous files before running new snapshot')

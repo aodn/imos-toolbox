@@ -18,7 +18,7 @@ This page provides an overview of the steps required in order to get the IMOS To
 
 === Install Matlab Runtime ===
 
-In order to run the standalone version of the Toolbox, you must first install the Matlab Component Runtime (MCR). You can download the proper MCR installer [ftp://dataupload.emii.org.au/pub/software/MCRInstaller here] :
+In order to run the standalone version of the Toolbox, you must first install the Matlab Component Runtime (MCR). You can download the proper MCR installer [http://data.aodn.org.au/IMOS/public/eMII/softwares/MCRInstaller/ here] :
 
  * imos-toolbox version 1.5 : MCRInstaller_7.10
  * imos-toolbox version 1.5.5 : MCRInstaller_7.12
@@ -29,11 +29,11 @@ You only need to run the installer once. For Windows, it comes as a straightforw
 
 === Install IMOS Toolbox ===
 
-Download an archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Most of the users should only use the last stable version : imos-toolbox-X.XX.zip. Unstable versions YY-MM-DD_unstable_snapshot.zip should be used for test purpose only and not in any case to deliver data to eMII. Extract the archive to a directory of your choice. 
+Download an archive from the [http://data.aodn.org.au/IMOS/public/eMII/softwares/imos-toolbox/ downloads] page. Most of the users should only use the last stable version : imos-toolbox-X.XX.zip. Unstable versions YY-MM-DD_unstable_snapshot.zip should be used for test purpose only and not in any case to deliver data to eMII. Extract the archive to a directory of your choice. 
 
 === Configure Deployment Database ===
 
-Since imos-toolbox versions 2.0, in addition to the MS-Access deployment database (template provided in the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page), it is also possible to connect to any user-specific database providing its schema complies to a minimum requirements.
+Since imos-toolbox versions 2.0, in addition to the MS-Access deployment database (template provided in the [http://data.aodn.org.au/IMOS/public/eMII/softwares/imos-toolbox/ downloads] page), it is also possible to connect to any user-specific database providing its schema complies to a minimum requirements.
 
 ==== MS Access database ====
 
@@ -89,7 +89,7 @@ Only high level users should be interested in using the source code, for example
 
 === Download and install ===
 
-Download an archive from the [http://code.google.com/p/imos-toolbox/downloads/list downloads] page. Most of the users should only use the last stable version : imos-toolbox-X.XX.zip. Unstable versions YY-MM-DD_unstable_snapshot.zip should be used for test purpose only and not in any case to deliver data to eMII. Extract the archive to a directory of your choice.
+Download an archive from the [http://data.aodn.org.au/IMOS/public/eMII/softwares/imos-toolbox/ downloads] page. Most of the users should only use the last stable version : imos-toolbox-X.XX.zip. Unstable versions YY-MM-DD_unstable_snapshot.zip should be used for test purpose only and not in any case to deliver data to eMII. Extract the archive to a directory of your choice.
 
 Before you can use the toolbox, you must configure the matlab path and deployment database.
 
