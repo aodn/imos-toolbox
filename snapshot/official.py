@@ -14,7 +14,7 @@ import ziputil
 # 
 # These files are submitted back to the project as file downloads.
 #
-# python, svn (SlikSvn) and matlab must be on PATH
+# python, svn (SlikSvn), scp and matlab must be on PATH
 #
 
 lt = time.localtime()
@@ -22,30 +22,24 @@ at = time.asctime()
 
 project = 'imos-toolbox'
 
-def googleSubmit(archive, summary):
+def submit(archive):
 
-  username = 'guillaume.galibert@gmail.com'
-  password = 'myPassword' # SVN password!!!
-  labels   = 'Featured'
+  user     = 'ggalibert'
+  server   = '5-nsp-mel.emii.org.au'
+  dir      = '/mnt/imos-t4/IMOS/resource/imos-toolbox'
+  http_url = 'http://data.aodn.org.au/IMOS/resource/imos-toolbox/'
 
-  print('\n--submitting %s to google' % archive)
-  cmd = 'python googlecode_upload.py'
-  cmd = ' %s -s "%s"' % (cmd,summary)
-  cmd = ' %s -p %s'   % (cmd,project)
-  cmd = ' %s -u %s'   % (cmd,username)
-  cmd = ' %s -w %s'   % (cmd,password)
-  cmd = ' %s -l "%s"' % (cmd,labels)
-  cmd = ' %s %s'      % (cmd,archive)
+  print('\n--submitting %s to %s' % (archive,http_url))
+  cmd = 'scp %s %s@%s:%s' % (archive,user,server,dir)
   
   os.system(cmd)
 
-version    = '2.3'
+version    = '2.4'
   
 url        = 'http://%s.googlecode.com/svn/trunk' % project
 exportDir  = 'export'
 stdArchive = 'imos-toolbox-%s.zip' % version
 
-stdSummary  = 'IMOS Toolbox %s (standalone + source)' % version
 compilerLog = './%s/log.txt' % exportDir
 
 #
@@ -71,7 +65,7 @@ os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 shutil.copy('%s/imos-toolbox.zip' % exportDir, './%s' % stdArchive)
 
 try:
-  googleSubmit(stdArchive, stdSummary)
+  submit(stdArchive)
 
 except:
   print('\n--Snapshot upload error. Check script, fix and then delete previous files before running new snapshot')
