@@ -294,7 +294,7 @@ if stat == 0
         % browser not running, then start it up.
 %         comm = [doccmd ' ' unixOptions ' ''' html_file ''' ' shellarg];
         comm = [doccmd ' ' unixOptions ' ''' html_file ''' '];
-        [status,output] = unix(comm, '-echo');
+        [status,output] = system(comm);
         disp(['system browser started with ' comm]);
         disp(status);
         disp(output);
