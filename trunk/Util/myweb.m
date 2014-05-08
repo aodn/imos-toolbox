@@ -106,11 +106,6 @@ end
 % returning a status code.
 options.warnOnSystemError = nargout == 0;
 
-% open HTML file in system browser
-if isOnFileSystem(html_file)
-    html_file = helpUtils.removeDotsFromFilePath(html_file);
-end
-
 if ismac
     % We can't detect system errors on the Mac, so the warning options are unnecessary.
     stat = openMacBrowser(html_file);
@@ -187,52 +182,6 @@ if ~isempty(html_file)
         end
     end
 end
-end
-
-%--------------------------------------------------------------------------
-function [activeBrowser, html_file] = openMatlabBrowser(html_file, options)
-
-% Initialize the active browser.
-activeBrowser = [];
-
-% if the file is under docroot, use the help browser.
-options.useHelpBrowser = options.useHelpBrowser || helpUtils.isUnderDocroot(html_file);
-
-% If no protocol specified, or an absolute/UNC pathname is not given,
-% include explicit 'http:'.  Otherwise the web browser assumes 'file:'
-if ~isempty(html_file) && isempty(strfind(html_file,':')) && ~strcmp(html_file(1:2),'\\') && ~strcmp(html_file(1),'/')
-    html_file = ['http://' html_file];
-end
-
-% The file should be displayed inside the help browser
-if options.useHelpBrowser
-    if strncmp(html_file,'text://',7)
-        com.mathworks.mlservices.MLHelpServices.setHtmlText(html_file(8:end));
-    else
-        com.mathworks.mlservices.MLHelpServices.setCurrentLocation(html_file);
-    end
-else
-    activeBrowser = [];
-    if ~options.newBrowser
-        % User doesn't want a new browser, so find the active browser.
-        activeBrowser = com.mathworks.mde.webbrowser.WebBrowser.getActiveBrowser;
-    end
-    if isempty(activeBrowser)
-        % If there is no active browser, create a new one.
-        activeBrowser = com.mathworks.mde.webbrowser.WebBrowser.createBrowser(options.showToolbar, options.showAddressBox);
-    end
-    
-    if ~isempty(html_file)
-        if strncmp(html_file,'text://',7)
-            activeBrowser.setHtmlText(html_file(8:end));
-        else
-            activeBrowser.setCurrentLocation(html_file);
-        end
-    else
-        html_file = char(activeBrowser.getCurrentLocation);
-    end
-end
-
 end
 
 %--------------------------------------------------------------------------
