@@ -292,8 +292,9 @@ if stat == 0
     if status
         disp('system browser not running');
         % browser not running, then start it up.
-        comm = [doccmd ' ' unixOptions ' ''' html_file ''' ' shellarg];
-        [status,output] = unix(comm);
+%         comm = [doccmd ' ' unixOptions ' ''' html_file ''' ' shellarg];
+        comm = [doccmd ' ' unixOptions ' ''' html_file ''];
+        [status,output] = unix(comm, '-echo');
         disp(['system browser started with ' comm]);
         disp(status);
         disp(output);
@@ -309,6 +310,7 @@ if stat == 0
         % no-op to test for netscape being alive and running.
         %
         if options.waitForNetscape,
+            disp('waitForNetscape');
             comm = [doccmd ' ' unixOptions ' -remote "undefined-key()" ' shellarg];
             while ~status,
                 status = unix(comm);
