@@ -671,7 +671,7 @@ function mainWindow(...
   %IMOS-Toolbox wiki
   %
     url = 'http://code.google.com/p/imos-toolbox/wiki/Sidebar';
-    stat = myweb(url, '-browser');
+    stat = web(url, '-browser');
     if stat == 1
         fprintf('%s\n', 'Warning : Browser was not found.');
     elseif stat == 2
