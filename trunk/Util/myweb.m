@@ -210,18 +210,19 @@ end
 %--------------------------------------------------------------------------
 function stat = openUnixBrowser(html_file,options)
 stat = 0;
-
+disp('openUnixBrowser');
 % Get the system browser and options from the preferences.
 doccmd = system_dependent('getpref', 'HTMLSystemBrowser');
 unixOptions = system_dependent('getpref', 'HTMLSystemBrowserOptions');
 unixOptions = unixOptions(2:end);  % Strip off the S
-
+disp('got system options');
 if isempty(doccmd)
     % The preference has not been set from the preferences dialog, so use the default.
     doccmd = 'firefox';
 else
     % Strip off the "S" which was returned by the system_dependent command above.
     doccmd = doccmd(2:end);
+    disp('got system browser');
 end
 
 if isempty(doccmd)
@@ -241,12 +242,14 @@ else
             options.warnOnSystemError, options.showWarningInDialog);
         stat = 1;
     end
+    disp('system browser exists');
 end
 
 if stat == 0
     %determine what kind of shell we are running
     shell = getenv('SHELL');
     [~, shellname] = fileparts(shell);
+    disp(['got system shell ' shellname]);
     %construct shell specific command
     if isequal(shellname, 'tcsh') || isequal(shellname, 'csh')
         shellarg ='>& /dev/null &';
@@ -290,6 +293,7 @@ if stat == 0
         % browser not running, then start it up.
         comm = [doccmd ' ' unixOptions ' ''' html_file ''' ' shellarg];
         [status,output] = unix(comm);
+        disp('system browser running');
         if status
             stat = 1;
         end
