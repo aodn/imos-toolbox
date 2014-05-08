@@ -293,7 +293,7 @@ if stat == 0
         disp('system browser not running');
         % browser not running, then start it up.
 %         comm = [doccmd ' ' unixOptions ' ''' html_file ''' ' shellarg];
-        comm = [doccmd ' ' unixOptions ' ''' html_file ''];
+        comm = [doccmd ' ' unixOptions ' ''' html_file ''' '];
         [status,output] = unix(comm, '-echo');
         disp(['system browser started with ' comm]);
         disp(status);
