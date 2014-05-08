@@ -24,12 +24,10 @@ project = 'imos-toolbox'
 
 def submit(archive):
 
-  user     = 'myLogin'
-  password = 'myPassword'
+  user     = 'ggalibert'
   server   = '5-nsp-mel.emii.org.au'
   dir      = '/mnt/imos-t4/IMOS/resource/imos-toolbox'
   http_url = 'http://data.aodn.org.au/IMOS/resource/imos-toolbox/'
-  labels   = 'Type-Snapshot'
 
   print('\n--submitting %s to %s' % (archive,http_url))
   cmd = 'scp %s %s@%s:%s' % (archive,user,server,dir)
