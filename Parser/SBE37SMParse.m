@@ -358,7 +358,9 @@ function header = parseProcessedHeader(headerLines)
   badExpr  = 'bad_flag = (.*)$';
   intervalExpr = 'interval = (.+): ([\d]+)$';
   %BDM (18/02/2011) - added to get start time
-  startExpr = 'start_time = (.+)';
+%   startExpr = 'start_time = (.+)';
+  startExpr = 'start_time = (.{20,20})';
+  
   
   for k = 1:length(headerLines)
     
