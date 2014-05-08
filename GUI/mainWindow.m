@@ -670,7 +670,6 @@ function mainWindow(...
   %OPENWIKIPAGE opens a new tab in your web-browser to access the
   %IMOS-Toolbox wiki
   %
-    %#function helpUtils
     url = 'http://code.google.com/p/imos-toolbox/wiki/Sidebar';
     stat = web(url, '-browser');
     if stat == 1
