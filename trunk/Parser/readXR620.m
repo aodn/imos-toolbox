@@ -280,6 +280,16 @@ function sample_data = readXR620( filename, mode )
                       comment.(vars{k}) = ['Originally expressed in mg/l, ' ...
                           'O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.'];
                       data.(vars{k}) = data.(vars{k}) * 44.660/1.429; % O2 density = 1.429 kg/m3
+                      
+                      % Oxyguard dissolved O2 (%)
+                  case 'D_O2', name = 'DOXS';
+                      
+                      % Oxyguard dissolved O2 concentration (ml/l) => (umol/l)
+                  case 'dO2C'
+                      name = 'DOX1';
+                      comment.(vars{k}) = ['Originally expressed in ml/l, ' ...
+                          '1ml/l = 44.660umol/l was assumed.'];
+                      data.(vars{k}) = data.(vars{k}) * 44.660;
               end
               
               if ~isempty(name)
@@ -526,6 +536,16 @@ function sample_data = readXR620( filename, mode )
                       comment.(fields{k}) = ['Originally expressed in mg/l, ' ...
                           'O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.'];
                       data.(fields{k}) = data.(fields{k}) * 44.660/1.429; % O2 density = 1.429 kg/m3
+                      
+                      % Oxyguard dissolved O2 (%)
+                  case 'D_O2', name = 'DOXS';
+                      
+                      % Oxyguard dissolved O2 concentration (ml/l) => (umol/l)
+                  case 'dO2C'
+                      name = 'DOX1';
+                      comment.(fields{k}) = ['Originally expressed in ml/l, ' ...
+                          '1ml/l = 44.660umol/l was assumed.'];
+                      data.(fields{k}) = data.(fields{k}) * 44.660;
               end
               
               if ~isempty(name)
