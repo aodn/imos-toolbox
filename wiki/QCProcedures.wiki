@@ -262,7 +262,7 @@ The test is not performed and a warning is diplayed if there is not enough nomin
 
 === Vertical spike test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosVerticalSpikeQC.m imosVerticalSpikeQC] - Optional === 
 
-imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of samples. This test is mostly useful for CTD profile/cast data and is available at one's discretion who s fully aware of the algorithm and flags used for this test.
+imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of samples. This test is mostly useful for CTD profile/cast data and is available at one's discretion who is fully aware of the algorithm and flags used.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOXY, DOX1, DOX2||1-Good data||3-Bad data that are potentially correctable||
@@ -373,7 +373,7 @@ Adding 2 times the size of a bin to the theoretical contaminated depth enables u
 
 === Workhorse ADCP tests - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosTeledyneSetQC.m imosTeledyneSetQC] - Optional === 
 
-imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertical current velocity *and* quality parameters ECUR(error_sea_water_velocity), ADCP_GOOD(adcp_percentage_good), ABSI(acoustic_backscatter_intensity) and ADCP_CORR(adcp_correlation_magnitude). These parameters are basically provided by all the Workhorse ADCPs manufactured by Teledyne RD Instruments. This test is available at ones discretion who is fully aware of the algorithm used. This powerful test however demands expertise to set relevant thresholds for each dataset.
+imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertical current velocity *and* quality parameters ECUR(error_sea_water_velocity), ADCP_GOOD(adcp_percentage_good), ABSI(acoustic_backscatter_intensity) and ADCP_CORR(adcp_correlation_magnitude). These parameters are basically provided by all the Workhorse ADCPs manufactured by Teledyne RD Instruments. This test is available at ones discretion who is fully aware of the algorithm used. This powerful test however *demands expertise to set relevant thresholds for each dataset*.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
