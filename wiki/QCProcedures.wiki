@@ -33,31 +33,31 @@ These sets of QC procedures have been mainly designed to check physical variable
 
 === Moored time series ===
 
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC imosImpossibleDateQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC imosImpossibleLocationSetQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC imosInOutWaterQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC imosGlobalRangeQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Regional_range_test_-_imosRegionalRangeQC imosRegionalRangeQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_depth_test_-_imosImpossibleDepthQC imosImpossibleDepthQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Rate_of_change_test_-_imosRateOfChangeQC imosRateOfChangeQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Stationarity_test_-_imosStationarityQC imosStationarityQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC imosSalinityFromPTQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Side_lobe_contamination_test_-_imosSideLobeContSetQC imosSideLobeContSetQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Workhorse_ADCP_tests_-_imosTeledyneSetQC imosTeledyneSetQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC imosImpossibleDateQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC imosImpossibleLocationSetQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC imosInOutWaterQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC imosGlobalRangeQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Regional_range_test_-_imosRegionalRangeQC imosRegionalRangeQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_depth_test_-_imosImpossibleDepthQC imosImpossibleDepthQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Rate_of_change_test_-_imosRateOfChangeQC imosRateOfChangeQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Stationarity_test_-_imosStationarityQC imosStationarityQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC imosSalinityFromPTQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Side_lobe_contamination_test_-_imosSideLobeContSetQC imosSideLobeContSetQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Workhorse_ADCP_tests_-_imosTeledyneSetQC imosTeledyneSetQC] (optional)
 
  
 === Profiles ===
 
 In addition to the IMOS [http://imos.org.au/fileadmin/user_upload/shared/IMOS%20General/documents/Facility_manuals/NRS_sampling_Manual_Data_Processing_Guide_Draftv1_5b_IngletonMorris.pdf ANMN standardised profiling CTD data post-processing procedures], IMOS recommends applying the following tests to any CTD profile data which is imported in the toolbox:
 
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC imosImpossibleDateQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC imosImpossibleLocationSetQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC imosInOutWaterQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC imosGlobalRangeQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Regional_range_test_-_imosRegionalRangeQC imosRegionalRangeQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Vertical_spike_test_-_imosVerticalSpikeQC imosVerticalSpikeQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Stationarity_test_-_imosStationarityQC imosStationarityQC]
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC imosSalinityFromPTQC]
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC imosImpossibleDateQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC imosImpossibleLocationSetQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC imosInOutWaterQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC imosGlobalRangeQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Regional_range_test_-_imosRegionalRangeQC imosRegionalRangeQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Vertical_spike_test_-_imosVerticalSpikeQC imosVerticalSpikeQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Stationarity_test_-_imosStationarityQC imosStationarityQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC imosSalinityFromPTQC] (compulsory)
 
 == IMOS procedures descriptions ==
 
@@ -65,7 +65,7 @@ The basis of most of these tests is described in [http://imos-toolbox.googlecode
 
 Variables mentioned below are IMOS parameters code and their definition can be found in [http://code.google.com/p/imos-toolbox/source/browse/trunk/IMOS/imosParameters.txt IMOS\imosParameters.txt].
 
-=== Impossible date test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleDateQC.m imosImpossibleDateQC] === 
+=== Impossible date test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleDateQC.m imosImpossibleDateQC] - Compulsory === 
 
 imosImpossibleDateQC checks that the TIME values are within an acceptable range. Because some instrument files contain the date information in binary format like the datenum Matlab format (decimal days from a specific date and time, where datenum('Jan-01-0000 00:00:00') returns the number 1) it is only possible to set up a generic test that only checks the full date range. Cheking the day, month, hour, minute or second values separately (minimum/maximum valid values for minutes, months, days in February, etc...) is not possible in our case.
 
@@ -86,7 +86,7 @@ By default, if dateMax is left empty then dateMax is the current date at the tim
 
 Since this test is critical, a warning message is displayed if some samples fail the test.
 
-=== Impossible location test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleLocationSetQC.m imosImpossibleLocationSetQC] === 
+=== Impossible location test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleLocationSetQC.m imosImpossibleLocationSetQC] - Compulsory === 
 
 imosImpossibleLocationSetQC checks the LATITUDE and LONGITUDE values against a nominal position and acceptable range for the relevant mooring site. Useful to detect typos in positions documented in the metadata/deployment database.
 
@@ -126,7 +126,7 @@ In this case, positions are expected to be in a square centered on the nominal p
 
 Since this test is critical and can easily be corrected, an error message is triggered if some samples fail the test.
 
-=== In/Out water test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosInOutWaterQC.m imosInOutWaterQC] === 
+=== In/Out water test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosInOutWaterQC.m imosInOutWaterQC] - Compulsory === 
 
 imosInOutWaterQC flags any variable sample which TIME values are not between the first and last time when the instrument is actually in position collecting data for time series purpose. Between these two times, data is deliberately left non QC'd.
 
@@ -149,7 +149,7 @@ The samples that pass the test are the ones which TIME values are verifying `TIM
  # !TimeOnDeck : Time instrument on deck.
  # !TimeSwitchOff : Time instrument is switched off.
 
-=== Global range test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosGlobalRangeQC.m imosGlobalRangeQC] === 
+=== Global range test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosGlobalRangeQC.m imosGlobalRangeQC] - Compulsory === 
 
 imosGlobalRangeQC checks that the parameter's values are within a global valid range. The default list of parameters impacted by this test is found in imosGlobalRangeQC.txt.
 
@@ -198,9 +198,9 @@ WCUR,     1, upward_sea_water_velocity,                                     m s-
 
 If valid ranges are not documented for a parameter or are of same value for Min and Max then the test is not performed.
 
-=== Regional range test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosRegionalRangeQC.m imosRegionalRangeQC] === 
+=== Regional range test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosRegionalRangeQC.m imosRegionalRangeQC] - Optional === 
 
-imosRegionalRangeQC checks that the variables values are within a regional range which is site specific. The default list of sites and variables impacted by this test is found below.
+imosRegionalRangeQC checks that the variables values are within a regional range which is site specific. This test is available at one's discretion who is fully aware of the regional ranges applied to his datasets. The default list of sites and variables impacted by this test is found below.
 
 || *Sites and variables checked* || *Pass test flag* || *Fail test flag* ||
 ||See [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosRegionalRangeQC.txt AutomaticQC/imosRegionalRangeQC.txt]||1-Good data||4-Bad data||
@@ -233,7 +233,7 @@ If regional ranges are not documented for a site and parameter, or are of same v
 
 The test is not performed and a warning message is displayed if the current processed site is not documented in the parameter file.
 
-=== Impossible depth test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleDepthQC.m imosImpossibleDepthQC] === 
+=== Impossible depth test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleDepthQC.m imosImpossibleDepthQC] - Compulsory === 
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/impossibleDepthIllustration.png
 
@@ -260,9 +260,9 @@ If the instrument nominal depth is not documented, then the instrument nominal h
 
 The test is not performed and a warning is diplayed if there is not enough nominal depth/height information provided.
 
-=== Vertical spike test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosVerticalSpikeQC.m imosVerticalSpikeQC] === 
+=== Vertical spike test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosVerticalSpikeQC.m imosVerticalSpikeQC] - Optional === 
 
-imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of samples. This test is mostly useful for CTD profile/cast data.
+imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of samples. This test is mostly useful for CTD profile/cast data and is available at one's discretion who s fully aware of the algorithm and flags used for this test.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOXY, DOX1, DOX2||1-Good data||3-Bad data that are potentially correctable||
@@ -299,9 +299,9 @@ PABIM is equivalent to the following formula :
 
 Threshold values have been set based on suggested values from the following documents : [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/argo-quality-control-manual-V2.7.pdf Argo quality control manual - Version 2.7, 3 January 2012], [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/Recommendations_for_RTQC_procedures_V1_2.pdf EuroGOOS Recommendations for in-situ data Near Real Time Quality Control - Version 1.2, December 2010] and [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/PABIM_white_book_version1.3.pdf PABIM White Book on Oceanic Autonomous Platforms for Biogchemical Studies: Instrumentation and Measure - Version 1.3, February 2010].
 
-=== Rate of change test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosRateOfChangeQC.m imosRateOfChangeQC] === 
+=== Rate of change test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosRateOfChangeQC.m imosRateOfChangeQC] - Optional === 
 
-imosRateOfChangeQC is looking for important changes in values among temporally adjacent triplet (or pair) of samples. This test is mostly useful for time series data.
+imosRateOfChangeQC is looking for important changes in values among temporally adjacent triplet (or pair) of samples. This test is mostly useful for time series data and is available at one's discretion who is fully aware of the algorithm and flags used.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOXY, DOX1, DOX2, UCUR, VCUR, WCUR, CSPD||1-Good data||3-Bad data that are potentially correctable||
@@ -338,9 +338,11 @@ Threshold values have been set based on suggested values from the following docu
 
 By default, the gradient is compared to 2 times the standard deviation observed on the first month of 'Good' data so far (which means taking into account only the data with flags lower or equal to 2 (Probably good) that have been provided by previously performed QC tests).
 
-=== Stationarity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosStationarityQC.m imosStationarityQC] === 
+=== Stationarity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosStationarityQC.m imosStationarityQC] - Optional === 
 
-imosStationarityQC checks that consecutive equal values of a parameter don't exceed a maximum number. The algorithm used is based on the stationarity test from [http://www.jodc.go.jp/info/ioc_doc/Manual/mg26.pdf IOC]. The default list of parameters impacted by this test is found in imosGlobalRangeQC.txt.
+imosStationarityQC checks that consecutive equal values of a parameter don't exceed a maximum number. This test is available at one's discretion who is fully aware of the algorithm and flags used.
+
+The algorithm used is based on the stationarity test from [http://www.jodc.go.jp/info/ioc_doc/Manual/mg26.pdf IOC]. The default list of parameters impacted by this test is found in imosGlobalRangeQC.txt.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOX1, DOX2, UCUR, VCUR, WCUR, CDIR, CSPD||1-Good data||4-Bad data||
@@ -349,14 +351,14 @@ The samples with consecutive equal values that pass the test are the ones verify
 
 It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable).
 
-=== flag inheritance test on Salinity - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosSalinityFromPTQC.m imosSalinityFromPTQC] ===
+=== flag inheritance test on Salinity - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosSalinityFromPTQC.m imosSalinityFromPTQC] - Compulsory ===
 
 imosSalinityFromPTQC checks that any salinity measurement has its flag equals or greater than any pressure/depth and temperature measurements on the same sample. If not, it gives the highest observed flag.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||PSAL||1-Good data||highest flag from temperature, depth and pressure measurements of the same sample||
 
-=== Side lobe contamination test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosSideLobeContSetQC.m imosSideLobeContSetQC] ===
+=== Side lobe contamination test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosSideLobeContSetQC.m imosSideLobeContSetQC] - Compulsory ===
 
 imosSideLobeContSetQC finds for each timestamp what is the HEIGHT_ABOVE_SENSOR from which any data sample is contaminated by side lobes effect (close to the surface). Impacted data samples are then flagged accordingly. This test can be applied on any ADCP data providing we know the beam angle of the ADCP transducer. It is based on Nortek's [http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes documentation].
 
@@ -369,9 +371,9 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/sideLobeEffect.png
 
 Adding 2 times the size of a bin to the theoretical contaminated depth enables us to be conservative in order to make sure that the data in the first bin below the contaminated depth hasn't been computed from any contaminated signal (data in a bin may also come from information found in adjacent bins).
 
-=== Workhorse ADCP tests - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosTeledyneSetQC.m imosTeledyneSetQC] === 
+=== Workhorse ADCP tests - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosTeledyneSetQC.m imosTeledyneSetQC] - Optional === 
 
-imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertical current velocity *and* quality parameters ECUR(error_sea_water_velocity), ADCP_GOOD(adcp_percentage_good), ABSI(acoustic_backscatter_intensity) and ADCP_CORR(adcp_correlation_magnitude). These parameters are basically provided by all the Workhorse ADCPs manufactured by Teledyne RD Instruments.
+imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertical current velocity *and* quality parameters ECUR(error_sea_water_velocity), ADCP_GOOD(adcp_percentage_good), ABSI(acoustic_backscatter_intensity) and ADCP_CORR(adcp_correlation_magnitude). These parameters are basically provided by all the Workhorse ADCPs manufactured by Teledyne RD Instruments. This test is available at ones discretion who is fully aware of the algorithm used. This powerful test however demands expertise to set relevant thresholds for each dataset.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
@@ -406,6 +408,8 @@ hvel      = 2.0
 ea_thresh = 30
 
 }}}
+
+*However relevant thresholds need to be set for each dataset and no default set of thresholds can cover all possible datasets!*
 
 == Other procedures descriptions ==
 
