@@ -79,15 +79,24 @@ function filename = genIMOSFileName( sample_data, suffix )
           filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
       otherwise
           % build the file name
-          filename = [sample_data.naming_authority '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'data_code')     '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'platform_code') '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'file_version')  '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'product_type')  '_'];
-          filename = [filename 'END-' getVal(fileCfg, defCfg, 'end_date')      '_'];
-          filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
+          if strcmpi(suffix, 'png')
+              filename = [sample_data.naming_authority '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'platform_code') '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'file_version')  '_'];
+              filename = [filename        sample_data.meta.site_id                 '_'];
+              filename = [filename 'PLOT-TYPE_PARAM_C-'   getVal(fileCfg, defCfg, 'creation_date')];
+          else
+              filename = [sample_data.naming_authority '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'data_code')     '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'platform_code') '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'file_version')  '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'product_type')  '_'];
+              filename = [filename 'END-' getVal(fileCfg, defCfg, 'end_date')      '_'];
+              filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
+          end
   end
   
   % sanity check - ensure that file name contains 

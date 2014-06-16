@@ -90,7 +90,10 @@ set(ax, 'XTick',        xTickProp.ticks, ...
 cbLabel = imosParameters(var.name, 'uom');
 cbLabel = [var.name ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
-set(get(cb, 'YLabel'), 'String', cbLabel);
+set(get(cb, 'YLabel'), 'String', cbLabel, 'Interpreter', 'none');
+
+% set background to be grey
+set(ax, 'Color', [0.75 0.75 0.75])
 
 labels = {time.name, freq.name};
 

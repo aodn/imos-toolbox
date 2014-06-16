@@ -159,7 +159,7 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     catch e, uom = '';
     end
     xLabel = [labels{1} uom];
-    set(get(graphs(k), 'XLabel'), 'String', strrep(xLabel, '_', ' '));
+    set(get(graphs(k), 'XLabel'), 'String', xLabel, 'Interpreter', 'none');
 
     % set y label
     try      uom = [' (' imosParameters(labels{2}, 'uom') ')'];
@@ -167,7 +167,7 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     end
     yLabel = [labels{2} uom];
     if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
-    set(get(graphs(k), 'YLabel'), 'String', strrep(yLabel, '_', ' '));
+    set(get(graphs(k), 'YLabel'), 'String', yLabel, 'Interpreter', 'none');
     
     if sample_data.meta.level == 1 && strcmp(func2str(plotFunc), 'graphDepthProfileGeneric')
         qcSet     = str2double(readProperty('toolbox.qc_set'));

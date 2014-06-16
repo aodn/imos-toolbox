@@ -108,7 +108,7 @@ function exportManager(dataSets, levelNames, output, auto)
       'DefaultTextInterpreter','none');
   end
   
-  % write out each of the selected data sets
+  % write out each of the selected data sets in the specified format
   for k = 1:length(dataSets)
     
     try
@@ -116,11 +116,10 @@ function exportManager(dataSets, levelNames, output, auto)
         case 'netcdf'
             filenames{end+1} = exportNetCDF(dataSets{k}, exportDir, mode);
         case 'raw'
-          exportRawData(dataSets{k}, exportDir, setNames{k});
-          filenames{end+1} = setNames{k};
+            filenames{end+1} = exportRawData(dataSets{k}, exportDir, setNames{k});
       end
       if ~auto
-        waitbar(k / length(dataSets), progress, ['Exported ' filenames{end}]);
+          waitbar(k / length(dataSets), progress, ['Exported ' filenames{end}]);
       end
       
     catch e
@@ -134,6 +133,12 @@ function exportManager(dataSets, levelNames, output, auto)
       end
       disp(fullError);
     end
+  end
+  
+  % generate plots
+  if any(strcmpi('QC', levelNames)) && strcmpi(mode, 'timeseries')
+      exportPlots(dataSets, exportDir);
+      
   end
   
   if ~auto
@@ -159,28 +164,65 @@ function exportManager(dataSets, levelNames, output, auto)
   end
 end
 
-function exportRawData(sample_data, exportDir, dest)
+function filename = exportRawData(sample_data, exportDir, dest)
 %EXPORTRAWDATA Copies the raw data file for the given sample_data to the
 % given exportDir/dest. Relies upon the existence of the field
-% sample_data.meta.raw_data_file, which must contain a semi-colon separated 
-% string of absolute paths to the raw data files associated with the 
-% sample_data struct. 
+% sample_data.meta.raw_data_file, which must contain a semi-colon separated
+% string of absolute paths to the raw data files associated with the
+% sample_data struct.
+%
+filename = dest;
+rawFiles = sample_data.meta.raw_data_file;
+
+rawFiles = textscan(rawFiles, '%s', 'Delimiter', ';');
+rawFiles = rawFiles{1};
+
+if length(rawFiles) == 1
+    copyfile(rawFiles{1}, [exportDir filesep dest]);
+else
+    for k = 1:length(rawFiles)
+        % ugly hack to follow IMOS convention
+        % for splitting over multiple files
+        d = [dest(1:end-4) '_PART' num2str(k) '.txt'];
+        copyfile(rawFiles{k}, [exportDir filesep dest]);
+    end
+end
+end
+
+function exportPlots(sample_data, exportDir)
+%EXPORTPLOTS plot only parameters that have been QC'd per mooring.
+%
+% Lists all the distinct QC'd variables in every sample_data, for each of the 1D variable of them, 
+% when it is found in multiple sample_data then plot all of them on the same axis.
+% Output PNG file names would be something close to the dataset filename like 
+% IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PARAM]_flags_C-[creation_date].png and 
+% IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PARAM]_good-values_C-[creation_date].png
+% respectively ploting the flag colors on top of the original raw data and
+% only the values of good data (flags 1 or 2).
 %
 
-  rawFiles = sample_data.meta.raw_data_file;
-  
-  rawFiles = textscan(rawFiles, '%s', 'Delimiter', ';');
-  rawFiles = rawFiles{1};
-  
-  if length(rawFiles) == 1, copyfile(rawFiles{1}, [exportDir filesep dest]);
-    
-  else
-    for k = 1:length(rawFiles)
-      
-      % ugly hack to follow IMOS convention 
-      % for splitting over multiple files
-      d = [dest(1:end-4) '_PART' num2str(k) '.txt'];
-      copyfile(rawFiles{k}, [exportDir filesep dest]);
+% get all params from datasets datasets
+lenSampleData = length(sample_data);
+paramsName = {};
+for i=1:lenSampleData
+    lenParamsSample = length(sample_data{i}.variables);
+    for j=1:lenParamsSample
+        if i==1 && j==1
+            flags = sample_data{1}.variables{1}.flags;
+            if all(all(flags ~= 0)), paramsName{1} = sample_data{1}.variables{1}.name; end
+        else
+            flags = sample_data{i}.variables{j}.flags;
+            if all(all(flags ~= 0)), paramsName{end+1} = sample_data{i}.variables{j}.name; end
+        end
     end
-  end
+end
+
+paramsName = unique(paramsName);
+nParams = length(paramsName);
+for i=1:nParams
+    plotMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
+    scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
+    pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
+end
+
 end

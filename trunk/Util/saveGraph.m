@@ -133,6 +133,14 @@ progress = waitbar(0, 'Saving graph', ...
 % figures. What we are doing, then, is copying the provided axis over to a 
 % new, invisible figure, and saving that figure.
 saveFig = figure('Visible', 'off');
+
+% ensure the printed version is the same whatever the screen used.
+set(saveFig, 'PaperPositionMode', 'manual');
+set(saveFig, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
+
+% preserve the color scheme
+set(saveFig, 'InvertHardcopy', 'off');
+
 new_ax = copyobj(ax, saveFig);
 
 % Note that figure properties like the colormap and axes properties are not
@@ -150,6 +158,17 @@ icon = '';
 
 try
   print(saveFig, printSwitches{imgType}, fullfile(exportDir, fileName));
+  
+  % trick to save the image in landscape rather than portrait file
+  image = imread(fullfile(exportDir, fileName));
+  r = image(:,:,1);
+  g = image(:,:,2);
+  b = image(:,:,3);
+  r = rot90(r, 3);
+  g = rot90(g, 3);
+  b = rot90(b, 3);
+  image = cat(3, r, g, b);
+  imwrite(image, fullfile(exportDir, fileName));
   
   msg  = [fileName ' saved successfully'];
   icon = 'none';

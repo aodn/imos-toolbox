@@ -88,10 +88,17 @@ set(ax, 'XTick',        xTickProp.ticks, ...
         'Layer',        'top', ...
         'Tag',          'axis2D');
 
+if all(all(colormap == rkbwr))
+    set(cb, 'YLim', [0 360], 'YTick', [0 90 180 270 360]);
+end
+    
 cbLabel = imosParameters(var.name, 'uom');
-cbLabel = [strrep(var.name, '_', ' ') ' (' cbLabel ')'];
+cbLabel = [var.name ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
-set(get(cb, 'YLabel'), 'String', cbLabel);
+set(get(cb, 'YLabel'), 'String', cbLabel, 'Interpreter', 'none');
+
+% set background to be grey
+set(ax, 'Color', [0.75 0.75 0.75])
 
 labels = {time.name, depth.name};
 

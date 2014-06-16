@@ -94,8 +94,8 @@ function [graphs lines vars] = graphXvY( parent, sample_data, vars )
     lines(k) = line(xdata, ydata);
     
     % set labels
-    set(get(graphs(k), 'XLabel'), 'String', xname);
-    set(get(graphs(k), 'YLabel'), 'String', yname);
+    set(get(graphs(k), 'XLabel'), 'String', xname, 'Interpreter', 'none');
+    set(get(graphs(k), 'YLabel'), 'String', yname, 'Interpreter', 'none');
   end
   
   set(lines(1), 'Color', 'blue');

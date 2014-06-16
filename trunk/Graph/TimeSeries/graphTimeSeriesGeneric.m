@@ -113,6 +113,9 @@ else
 end
 set(ax, 'Position', pos_with_colorbar);
 
+% set background to be grey
+set(ax, 'Color', [0.75 0.75 0.75])
+
 if strncmp(var.name, 'DEPTH', 4)
     set(ax, 'YDir', 'reverse');
 end

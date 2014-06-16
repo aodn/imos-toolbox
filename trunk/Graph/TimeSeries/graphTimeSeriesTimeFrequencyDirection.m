@@ -207,9 +207,12 @@ hMenu = setTimeSerieColorbarContextMenu(myVar);
 set(cb,'uicontextmenu',hMenu);
 
 cbLabel = imosParameters(myVar.name, 'uom');
-cbLabel = [strrep(myVar.name, '_', ' ') ' (' cbLabel ')'];
+cbLabel = [myVar.name ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
-set(get(cb, 'YLabel'), 'String', cbLabel);
+set(get(cb, 'YLabel'), 'String', cbLabel, 'Interpreter', 'none');
+
+% set background to be grey
+set(ax, 'Color', [0.75 0.75 0.75])
 
 labels = {};
 

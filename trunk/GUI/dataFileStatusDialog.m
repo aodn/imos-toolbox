@@ -209,8 +209,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
       case 'open', fileAddCallback(source,ev);
       otherwise
         dep = get(depList, 'Value');
-        set(fileList, 'String', files{dep});
-        set(fileList, 'Value',  1); 
+        set(fileList, 'String', files{dep}, 'Value',  1);
     end
   end
 
@@ -233,9 +232,9 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     if dep == length(deployments)+1, dep = length(deployments); end
     
     % update the deployment and file list and deployment selection
-    set(depList, 'Value',  dep);
-    set(depList, 'String', ...
-      annotateDepDescriptions(deployments, deploymentDescs));
+    set(depList, ...
+        'Value',  dep, ...
+        'String', annotateDepDescriptions(deployments, deploymentDescs));
     depListCallback(source,ev);
   end
 
@@ -248,13 +247,12 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     
     files{dep}(file) = [];
     
-    set(fileList, 'String', files{dep});
-    set(fileList, 'Value', 1);
+    set(fileList, 'String', files{dep}, 'Value', 1);
     
     % update deplist view (the deployment's status may have changed)
-    set(depList, 'Value',  dep);
-    set(depList, 'String', ...
-      annotateDepDescriptions(deployments, deploymentDescs));
+    set(depList, ...
+        'Value',  dep, ...
+        'String', annotateDepDescriptions(deployments, deploymentDescs));
   end
 
   function fileAddCallback(source,ev)
@@ -278,9 +276,9 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     set(fileList, 'String', files{dep});
     
     % update deplist view (the deployment's status may have changed)
-    set(depList, 'Value',  dep);
-    set(depList, 'String', ...
-      annotateDepDescriptions(deployments, deploymentDescs));
+    set(depList, ...
+        'Value',  dep, ...
+        'String', annotateDepDescriptions(deployments, deploymentDescs));
     
     % give focus back to deployment list
     uicontrol(depList);
