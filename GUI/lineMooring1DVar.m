@@ -1,5 +1,5 @@
-function plotMooring1DVar(sample_data, varName, isQC, saveToFile, exportDir)
-%PLOTMOORING1DVAR Opens a new window where the selected 1D
+function lineMooring1DVar(sample_data, varName, isQC, saveToFile, exportDir)
+%LINEMOORING1DVAR Opens a new window where the selected 1D
 % variables collected by all the intruments on the mooring are plotted.
 %
 varTitle = imosParameters(varName, 'long_name');
