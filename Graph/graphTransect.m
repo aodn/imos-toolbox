@@ -98,8 +98,8 @@ function [graphs lines vars] = graphTransect( parent, sample_data, vars )
     [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, vars(k));
     
     % set labels
-    set(get(graphs(k), 'XLabel'), 'String', labels{1});
-    set(get(graphs(k), 'YLabel'), 'String', labels{2});
+    set(get(graphs(k), 'XLabel'), 'String', labels{1}, 'Interpreter', 'none');
+    set(get(graphs(k), 'YLabel'), 'String', labels{2}, 'Interpreter', 'none');
   end
   
   % link axes for panning/zooming

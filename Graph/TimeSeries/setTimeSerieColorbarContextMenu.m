@@ -85,19 +85,19 @@ switch upper(var.name(1:4))
         uimenu(mainItem2, 'Label', 'manual',                                    'Callback', {@cbCLimRange, 'manual', var.data});
         
     case {'CDIR', 'SSWD'} % directions
-        colormap(hsv);
+        colormap(rkbwr);
         cbCLimRange('', '', 'direction [0; 360]', var.data);
         
         % Define a context menu
         hMenu = uicontextmenu;
         
         % Define callbacks for context menu items that change linestyle
-        hcb11 = 'colormap(hsv)';
+        hcb11 = 'colormap(rkbwr)';
         hcb13 = 'colormapeditor';
         
         % Define the context menu items and install their callbacks
         mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
-        uimenu(mainItem1, 'Label', 'hsv (default)', 'Callback', hcb11);
+        uimenu(mainItem1, 'Label', 'rkbwr (default)', 'Callback', hcb11);
         uimenu(mainItem1, 'Label', 'other',         'Callback', hcb13);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
