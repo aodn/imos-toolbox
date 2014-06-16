@@ -425,7 +425,7 @@ function mainWindow(...
   %actual/computed depths from intruments on the mooring are line-plotted.
   %
   
-  plotMooring1DVar(sample_data, 'DEPTH', isQC, false, '');
+  lineMooring1DVar(sample_data, 'DEPTH', isQC, false, '');
 
   end
 
@@ -483,7 +483,7 @@ function mainWindow(...
         varName = paramsName{iSelection};
     end
 
-    plotMooring1DVar(sample_data, varName, isQC, false, '');
+    lineMooring1DVar(sample_data, varName, isQC, false, '');
 
   end
 
