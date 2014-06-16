@@ -220,7 +220,7 @@ end
 paramsName = unique(paramsName);
 nParams = length(paramsName);
 for i=1:nParams
-    plotMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
+    lineMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
     scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
     pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
 end
