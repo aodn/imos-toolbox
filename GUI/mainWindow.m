@@ -254,22 +254,27 @@ function mainWindow(...
   set(hPan, 'ActionPostCallback', @zoomPostCallback);
   
   %set uimenu
-  hToolsMenu            = uimenu(fig, 'label', 'Tools');
-  hToolsDepth           = uimenu(hToolsMenu, 'label', 'Display mooring''s depths');
-  hToolsDepthNonQC      = uimenu(hToolsDepth, 'label', 'non QC');
-  hToolsDepthQC         = uimenu(hToolsDepth, 'label', 'QC');
-  hToolsCommonVar       = uimenu(hToolsMenu, 'label', 'Display mooring''s variables');
-  hToolsCommonVarNonQC  = uimenu(hToolsCommonVar, 'label', 'non QC');
-  hToolsCommonVarQC     = uimenu(hToolsCommonVar, 'label', 'QC');
-  hHelpMenu             = uimenu(fig, 'label', 'Help');
-  hHelpWiki             = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
+  hToolsMenu                    = uimenu(fig, 'label', 'Tools');
+  hToolsLineDepth               = uimenu(hToolsMenu, 'label', 'Line plot mooring''s depths');
+  hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'non QC');
+  hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'QC');
+  hToolsLineCommonVar           = uimenu(hToolsMenu, 'label', 'Line plot mooring''s variables');
+  hToolsLineCommonVarNonQC      = uimenu(hToolsLineCommonVar, 'label', 'non QC');
+  hToolsLineCommonVarQC         = uimenu(hToolsLineCommonVar, 'label', 'QC');
+  hToolsScatterCommonVar        = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s variables VS depth');
+  hToolsScatterCommonVarNonQC   = uimenu(hToolsScatterCommonVar, 'label', 'non QC');
+  hToolsScatterCommonVarQC      = uimenu(hToolsScatterCommonVar, 'label', 'QC');
+  hHelpMenu                     = uimenu(fig, 'label', 'Help');
+  hHelpWiki                     = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
   
   %set menu callbacks
-  set(hToolsDepthNonQC,     'callBack', {@displayMooringDepth, false});
-  set(hToolsDepthQC,        'callBack', {@displayMooringDepth, true});
-  set(hToolsCommonVarNonQC, 'callBack', {@displayMooringVar, false});
-  set(hToolsCommonVarQC,    'callBack', {@displayMooringVar, true});
-  set(hHelpWiki,            'callBack', @openWikiPage);
+  set(hToolsLineDepthNonQC,         'callBack', {@displayLineMooringDepth, false});
+  set(hToolsLineDepthQC,            'callBack', {@displayLineMooringDepth, true});
+  set(hToolsLineCommonVarNonQC,     'callBack', {@displayLineMooringVar, false});
+  set(hToolsLineCommonVarQC,        'callBack', {@displayLineMooringVar, true});
+  set(hToolsScatterCommonVarNonQC,  'callBack', {@displayScatterMooringVar, false});
+  set(hToolsScatterCommonVarQC,     'callBack', {@displayScatterMooringVar, true});
+  set(hHelpWiki,                    'callBack', @openWikiPage);
   
   %% Widget Callbacks
   
@@ -415,256 +420,132 @@ function mainWindow(...
   end
 
   %% Menu callback
-  function displayMooringDepth(source,ev, isQC)
-  %DISPLAYMOORINGDEPTH Opens a new window where all the nominal depths and
-  %actual/computed depths from intruments on the mooring are plotted.
+  function displayLineMooringDepth(source,ev, isQC)
+  %DISPLAYLINEMOORINGDEPTH Opens a new window where all the nominal depths and
+  %actual/computed depths from intruments on the mooring are line-plotted.
   %
-    stringQC = 'non QC';
-    if isQC, stringQC = 'QC'; end
-    
-    lenSampleData = length(sample_data);
-    %plot depth information
-    monitorRec = get(0,'MonitorPosition');
-    xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-    iBigMonitor = xResolution == max(xResolution);
-    if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
-    title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d depths'];
-    hFigMooringDepth = figure(...
-        'Name', title, ...
-        'NumberTitle','off', ...
-        'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
-    hAxMooringDepth = axes('Parent',   hFigMooringDepth, 'YDir', 'reverse');
-    set(get(hAxMooringDepth, 'XLabel'), 'String', 'Time')
-    set(get(hAxMooringDepth, 'YLabel'), 'String', 'Depth (m)')
-    set(get(hAxMooringDepth, 'Title'), 'String', title)
-    hold(hAxMooringDepth, 'on');
-    
-    %sort instruments by depth
-    metaDepth = nan(lenSampleData, 1);
-    xMin = nan(lenSampleData, 1);
-    xMax = nan(lenSampleData, 1);
-    for i=1:lenSampleData
-        if ~isempty(sample_data{i}.meta.depth)
-            metaDepth(i) = sample_data{i}.meta.depth;
-        elseif ~isempty(sample_data{i}.instrument_nominal_depth)
-            metaDepth(i) = sample_data{i}.instrument_nominal_depth;
-        else
-            metaDepth(i) = NaN;
-        end
-        iTime = getVar(sample_data{i}.dimensions, 'TIME');
-        xMin = min(sample_data{i}.dimensions{iTime}.data);
-        xMax = max(sample_data{i}.dimensions{iTime}.data);
-    end
-    [metaDepth, iSort] = sort(metaDepth);
-    xMin = min(xMin);
-    xMax = max(xMax);
-    set(hAxMooringDepth, 'XTick', (xMin:(xMax-xMin)/4:xMax));
-    set(hAxMooringDepth, 'XLim', [xMin, xMax]);
-    
-    % reverse the colorbar as we want surface in red and bottom in blue
-    cMap = colormap(jet(lenSampleData));
-    cMap = flipud(cMap);
-    
-    lineStyle = {'-', '--', ':', '-.'};
-    lenLineStyle = length(lineStyle);
-    instrumentDesc = cell(lenSampleData+1, 1);
-    instrumentDesc{1} = 'Nominal depths';
-    hLineDepth = nan(lenSampleData+1, 1);
-    for i=1:lenSampleData
-        if ~isempty(strtrim(sample_data{iSort(i)}.instrument))
-            instrumentDesc{i+1} = sample_data{iSort(i)}.instrument;
-        elseif ~isempty(sample_data{iSort(i)}.toolbox_input_file)
-            [~, instrumentDesc{i+1}] = fileparts(sample_data{iSort(i)}.toolbox_input_file);
-        end
-        instrumentDesc{i+1} = [strrep(instrumentDesc{i+1}, '_', ' ') ' (' num2str(metaDepth(i)) 'm)'];
-        hLineDepth(1) = line([xMin, xMax], [metaDepth(i), metaDepth(i)], ...
-            'Color', 'black');
-        
-        %look for time and depth variable
-        iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
-        iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
-        
-        if iDepth > 0
-            iGood = true(size(sample_data{iSort(i)}.variables{iDepth}.data));
-            
-            if isQC
-                %get time and depth QC information
-                timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-                depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
-                
-                iGood = (timeFlags == 1 | timeFlags == 2) & (depthFlags == 1 | depthFlags == 2);
-            end
-            
-            if all(~iGood)
-               fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                   ', there is not any data with good flags.']);
-            else
-                hLineDepth(i+1) = line(sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
-                    sample_data{iSort(i)}.variables{iDepth}.data(iGood), ...
-                    'Color', cMap(i, :), 'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
-            end
-        else
-            fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                ', there is no DEPTH variable.']);
-        end
-    end
-    
-    iNan = isnan(hLineDepth);
-    if any(iNan)
-        hLineDepth(iNan) = [];
-        instrumentDesc(iNan) = [];
-    end
-    
-    datetick(hAxMooringDepth, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
-    legend(hLineDepth, instrumentDesc, 'Location', 'NorthEastOutside');
+  
+  plotMooring1DVar(sample_data, 'DEPTH', isQC, false, '');
+
   end
 
-    function displayMooringVar(source,ev, isQC)
-    %DISPLAYMOORINGVAR Opens a new window where all the previously selected
-    % variables collected by intruments on the mooring are plotted.
+  function displayLineMooringVar(source,ev, isQC)
+    %DISPLAYLINEMOORINGVAR Opens a new window where all the previously selected
+    % variables collected by intruments on the mooring are line-plotted.
     %
-        stringQC = 'non QC';
-        if isQC, stringQC = 'QC'; end
-        
-        % get all params that are in common in at least two datasets
-        lenSampleData = length(sample_data);
-        paramsName = {};
-        paramsCount = [];
-        for i=1:lenSampleData
-            lenParamsSample = length(sample_data{i}.variables);
-            for j=1:lenParamsSample
-                if i==1 && j==1
-                    paramsName{1} = sample_data{1}.variables{1}.name;
-                    paramsCount(1) = 1;
-                else
-                    sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
-                    if ~any(sameParam)
-                        paramsName{end+1} = sample_data{i}.variables{j}.name;
-                        paramsCount(end+1) = 1;
-                    else
-                        paramsCount(sameParam) = paramsCount(sameParam)+1;
-                    end
-                end
-            end
-        end
-        
-        iParamsToGetRid = (paramsCount == 1);
-        paramsName(iParamsToGetRid) = [];
-        
-        % we get rid of DEPTH parameter, if necessary user should use the
-        % Depth specific plot
-        iDEPTH = strcmpi(paramsName, 'DEPTH');
-        paramsName(iDEPTH) = [];
-        
-        % by default TEMP is selected
-        iTEMP = find(strcmpi(paramsName, 'TEMP'));
-        
-        [iSelection, ok] = listdlg(...
-            'ListString', paramsName, ...
-            'SelectionMode', 'single', ...
-            'ListSize', [150 150], ...
-            'InitialValue', iTEMP, ...
-            'Name', ['Plot a ' stringQC '''d variable accross all instruments in the mooring'], ...
-            'PromptString', 'Select a variable :');
-        
-        if ok==0
-            return;
-        else
-            varName = paramsName{iSelection};
-        end
-        
-        varTitle = strrep(imosParameters(varName, 'long_name'), '_', ' ');
-        varUnit = imosParameters(varName, 'uom');
-        
-        %plot depth information
-        monitorRec = get(0,'MonitorPosition');
-        xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-        iBigMonitor = xResolution == max(xResolution);
-        if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
-        title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d ' varTitle];
-        hFigMooringTemp = figure(...
-            'Name', title, ...
-            'NumberTitle','off', ...
-            'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
-        hAxMooringTemp = axes('Parent',   hFigMooringTemp);
-        set(get(hAxMooringTemp, 'XLabel'), 'String', 'Time');
-        set(get(hAxMooringTemp, 'YLabel'), 'String', [varName ' (' varUnit ')']);
-        set(get(hAxMooringTemp, 'Title'), 'String', title);
-        hold(hAxMooringTemp, 'on');
-        
-        %sort instruments by depth
-        metaDepth = nan(lenSampleData, 1);
-        xMin = nan(lenSampleData, 1);
-        xMax = nan(lenSampleData, 1);
-        for i=1:lenSampleData
-            if ~isempty(sample_data{i}.meta.depth)
-                metaDepth(i) = sample_data{i}.meta.depth;
-            elseif ~isempty(sample_data{i}.instrument_nominal_depth)
-                metaDepth(i) = sample_data{i}.instrument_nominal_depth;
+    stringQC = 'non QC';
+    if isQC, stringQC = 'QC'; end
+
+    % get all params that are in common in at least two datasets
+    lenSampleData = length(sample_data);
+    paramsName = {};
+    paramsCount = [];
+    for i=1:lenSampleData
+        lenParamsSample = length(sample_data{i}.variables);
+        for j=1:lenParamsSample
+            if i==1 && j==1
+                paramsName{1} = sample_data{1}.variables{1}.name;
+                paramsCount(1) = 1;
             else
-                metaDepth(i) = NaN;
-            end
-            xMin = min(sample_data{i}.dimensions{1}.data);
-            xMax = max(sample_data{i}.dimensions{1}.data);
-        end
-        [metaDepth, iSort] = sort(metaDepth);
-        xMin = min(xMin);
-        xMax = max(xMax);
-        set(hAxMooringTemp, 'XTick', (xMin:(xMax-xMin)/4:xMax));
-        set(hAxMooringTemp, 'XLim', [xMin, xMax]);
-        
-        % reverse the colorbar as we want surface in red and bottom in blue
-        cMap = colormap(jet(lenSampleData));
-        cMap = flipud(cMap);
-    
-        lineStyle = {'-', '--', ':', '-.'};
-        lenLineStyle = length(lineStyle);
-        instrumentDesc = cell(lenSampleData, 1);
-        hLineVar = nan(lenSampleData, 1);
-        for i=1:lenSampleData
-            if ~isempty(strtrim(sample_data{iSort(i)}.instrument))
-                instrumentDesc{i} = sample_data{iSort(i)}.instrument;
-            elseif ~isempty(sample_data{iSort(i)}.toolbox_input_file)
-                [~, instrumentDesc{i}] = fileparts(sample_data{iSort(i)}.toolbox_input_file);
-            end
-            instrumentDesc{i} = [strrep(instrumentDesc{i}, '_', ' ') ' (' num2str(metaDepth(i)) 'm)'];
-            
-            %look for time and relevant variable
-            iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
-            iVar = getVar(sample_data{iSort(i)}.variables, varName);
-            
-            if iVar > 0
-                iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
-                
-                if isQC
-                    %get time and var QC information
-                    timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-                    varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
-                    
-                    iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
-                end
-                
-                if all(~iGood)
-                    fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                        ', there is not any data with good flags.']);
+                sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+                if ~any(sameParam)
+                    paramsName{end+1} = sample_data{i}.variables{j}.name;
+                    paramsCount(end+1) = 1;
                 else
-                    hLineVar(i) = line(sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
-                        sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
-                        'Color', cMap(i, :), ...
-                        'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+                    paramsCount(sameParam) = paramsCount(sameParam)+1;
                 end
             end
         end
-        
-        iNan = isnan(hLineVar);
-        if any(iNan)
-            hLineVar(iNan) = [];
-            instrumentDesc(iNan) = [];
-        end
-        
-        datetick(hAxMooringTemp, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
-        legend(hLineVar, instrumentDesc, 'Location', 'NorthEastOutside');
     end
+
+    iParamsToGetRid = (paramsCount == 1);
+    paramsName(iParamsToGetRid) = [];
+
+    % we get rid of DEPTH parameter, if necessary user should use the
+    % Depth specific plot
+    iDEPTH = strcmpi(paramsName, 'DEPTH');
+    paramsName(iDEPTH) = [];
+
+    % by default TEMP is selected
+    iTEMP = find(strcmpi(paramsName, 'TEMP'));
+
+    [iSelection, ok] = listdlg(...
+        'ListString', paramsName, ...
+        'SelectionMode', 'single', ...
+        'ListSize', [150 150], ...
+        'InitialValue', iTEMP, ...
+        'Name', ['Plot a ' stringQC '''d variable accross all instruments in the mooring'], ...
+        'PromptString', 'Select a variable :');
+
+    if ok==0
+        return;
+    else
+        varName = paramsName{iSelection};
+    end
+
+    plotMooring1DVar(sample_data, varName, isQC, false, '');
+
+  end
+
+function displayScatterMooringVar(source,ev, isQC)
+    %DISPLAYSCATTERMOORINGVAR Opens a new window where all the previously selected
+    % variables collected by intruments on the mooring are scatter-plotted.
+    %
+    stringQC = 'non QC';
+    if isQC, stringQC = 'QC'; end
+
+    % get all params that are in common in at least two datasets
+    lenSampleData = length(sample_data);
+    paramsName = {};
+    paramsCount = [];
+    for i=1:lenSampleData
+        lenParamsSample = length(sample_data{i}.variables);
+        for j=1:lenParamsSample
+            if i==1 && j==1
+                paramsName{1} = sample_data{1}.variables{1}.name;
+                paramsCount(1) = 1;
+            else
+                sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+                if ~any(sameParam)
+                    paramsName{end+1} = sample_data{i}.variables{j}.name;
+                    paramsCount(end+1) = 1;
+                else
+                    paramsCount(sameParam) = paramsCount(sameParam)+1;
+                end
+            end
+        end
+    end
+
+    iParamsToGetRid = (paramsCount == 1);
+    paramsName(iParamsToGetRid) = [];
+
+    % we get rid of DEPTH, PRES and PRES_REL parameters
+    iDEPTH = strcmpi('DEPTH', paramsName);
+    paramsName(iDEPTH) = [];
+    iDEPTH = strcmpi('PRES', paramsName);
+    paramsName(iDEPTH) = [];
+    iDEPTH = strcmpi('PRES_REL', paramsName);
+    paramsName(iDEPTH) = [];
+    % by default TEMP is selected
+    iTEMP = find(strcmpi(paramsName, 'TEMP'));
+
+    [iSelection, ok] = listdlg(...
+        'ListString', paramsName, ...
+        'SelectionMode', 'single', ...
+        'ListSize', [150 150], ...
+        'InitialValue', iTEMP, ...
+        'Name', ['Plot a ' stringQC '''d variable accross all instruments in the mooring'], ...
+        'PromptString', 'Select a variable :');
+
+    if ok==0
+        return;
+    else
+        varName = paramsName{iSelection};
+    end
+
+    scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, false, '');
+
+end
 
   function openWikiPage(source,ev)
   %OPENWIKIPAGE opens a new tab in your web-browser to access the
