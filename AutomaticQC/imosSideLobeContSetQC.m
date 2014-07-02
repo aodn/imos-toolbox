@@ -109,7 +109,8 @@ rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
 BinSize = sample_data.meta.binSize;
 Bins    = sample_data.dimensions{idHeight}.data';
 
-if all(Bins <= 0), return; end % we don't deal with the case of a downward looking ADCP.
+isUpwardLooking = true;
+if all(Bins <= 0), isUpwardLooking = false; end
 
 %BDM - 16/08/2010 - Added if statement below to take into account ADCPs
 %without pressure records. Use mean of nominal water depth minus sensor height.
@@ -159,6 +160,19 @@ if any(~ff)
     end
 end
 
+% by default, in the case of an upward looking ADCP, the distance to
+% surface is the depth of the ADCP
+distanceTransducerToObstacle = depth;
+
+% we handle the case of a downward looking ADCP
+if isempty(sample_data.site_nominal_depth) && ~isUpwardLooking
+    error(['Downward looking ADCP in file ' sample_data.toolbox_input_file ' => Fill site_nominal_depth!']);
+else
+    % the distance between transducer and obstacle is not depth anymore but
+    % (site_nominal_depth - depth)
+    distanceTransducerToObstacle = sample_data.site_nominal_depth - depth;
+end
+
 % calculate contaminated depth
 %
 % http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes
@@ -166,7 +180,11 @@ end
 % substraction of 2*BinSize to the non-contaminated height in order to be
 % conservative and be sure that the first bin below the contaminated depth
 % hasn't been computed from any contaminated signal.
-cDepth = depth - (depth * cos(sample_data.meta.beam_angle*pi/180) - 2*BinSize);
+if isUpwardLooking
+    cDepth = distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - 2*BinSize);
+else
+    cDepth = sample_data.site_nominal_depth - (distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - 2*BinSize));
+end
 
 % calculate bins depth
 binDepth = depth*ones(1,length(Bins)) - ones(length(depth),1)*Bins;
@@ -174,9 +192,16 @@ binDepth = depth*ones(1,length(Bins)) - ones(length(depth),1)*Bins;
 % same flags are given to any variable
 flags = ones(sizeCur, 'int8')*rawFlag;
 
-% test, all bins above the contaminated depth are flagged
-iFail = binDepth <= repmat(cDepth, 1, length(Bins));
-iPass = binDepth > repmat(cDepth, 1, length(Bins));
+% test bins depths against contaminated depth
+if isUpwardLooking
+    % upward looking : all bins above the contaminated depth are flagged
+    iFail = binDepth <= repmat(cDepth, 1, length(Bins));
+    iPass = binDepth > repmat(cDepth, 1, length(Bins));
+else
+    % downward looking : all bins below the contaminated depth are flagged
+    iFail = binDepth >= repmat(cDepth, 1, length(Bins));
+    iPass = binDepth < repmat(cDepth, 1, length(Bins));
+end
 
 %Need to take into account QC from previous algorithms
 allFF = repmat(ff, 1, size(flags, 2));
