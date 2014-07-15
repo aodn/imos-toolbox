@@ -113,7 +113,12 @@ if ~isempty(dataLon) && ~isempty(dataLat)
             paramsLog = ['distanceKmPlusMinusThreshold=' num2str(site.distanceKmPlusMinusThreshold)];
             
             % test each couple of coordinate on a circle area
-            obsDist = WGS84dist(site.latitude, site.longitude, dataLat, dataLon);
+            if (site.latitude == dataLat) && (site.longitude == dataLon)
+                obsDist = 0; % case the actual position is exactly the nominal location!
+            else
+                obsDist = WGS84dist(site.latitude, site.longitude, dataLat, dataLon);
+            end
+            
             iGoodLon = obsDist/1000 <= site.distanceKmPlusMinusThreshold;
             iGoodLat = iGoodLon;
         end
