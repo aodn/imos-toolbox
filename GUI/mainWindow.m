@@ -258,12 +258,15 @@ function mainWindow(...
   hToolsLineDepth               = uimenu(hToolsMenu, 'label', 'Line plot mooring''s depths');
   hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'non QC');
   hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'QC');
-  hToolsLineCommonVar           = uimenu(hToolsMenu, 'label', 'Line plot mooring''s variables');
+  hToolsLineCommonVar           = uimenu(hToolsMenu, 'label', 'Line plot mooring''s 1D variables');
   hToolsLineCommonVarNonQC      = uimenu(hToolsLineCommonVar, 'label', 'non QC');
   hToolsLineCommonVarQC         = uimenu(hToolsLineCommonVar, 'label', 'QC');
-  hToolsScatterCommonVar        = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s variables VS depth');
+  hToolsScatterCommonVar        = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 1D variables VS depth');
   hToolsScatterCommonVarNonQC   = uimenu(hToolsScatterCommonVar, 'label', 'non QC');
   hToolsScatterCommonVarQC      = uimenu(hToolsScatterCommonVar, 'label', 'QC');
+  hToolsScatter2DCommonVar      = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 2D variables VS depth');
+  hToolsScatter2DCommonVarNonQC = uimenu(hToolsScatter2DCommonVar, 'label', 'non QC');
+  hToolsScatter2DCommonVarQC    = uimenu(hToolsScatter2DCommonVar, 'label', 'QC');
   hHelpMenu                     = uimenu(fig, 'label', 'Help');
   hHelpWiki                     = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
   
@@ -272,8 +275,10 @@ function mainWindow(...
   set(hToolsLineDepthQC,            'callBack', {@displayLineMooringDepth, true});
   set(hToolsLineCommonVarNonQC,     'callBack', {@displayLineMooringVar, false});
   set(hToolsLineCommonVarQC,        'callBack', {@displayLineMooringVar, true});
-  set(hToolsScatterCommonVarNonQC,  'callBack', {@displayScatterMooringVar, false});
-  set(hToolsScatterCommonVarQC,     'callBack', {@displayScatterMooringVar, true});
+  set(hToolsScatterCommonVarNonQC,  'callBack', {@displayScatterMooringVar, false, true});
+  set(hToolsScatterCommonVarQC,     'callBack', {@displayScatterMooringVar, true, true});
+  set(hToolsScatter2DCommonVarNonQC,'callBack', {@displayScatterMooringVar, false, false});
+  set(hToolsScatter2DCommonVarQC,   'callBack', {@displayScatterMooringVar, true, false});
   set(hHelpWiki,                    'callBack', @openWikiPage);
   
   %% Widget Callbacks
@@ -487,53 +492,78 @@ function mainWindow(...
 
   end
 
-function displayScatterMooringVar(source,ev, isQC)
+function displayScatterMooringVar(source,ev, isQC, is1D)
     %DISPLAYSCATTERMOORINGVAR Opens a new window where all the previously selected
     % variables collected by intruments on the mooring are scatter-plotted.
     %
     stringQC = 'non QC';
     if isQC, stringQC = 'QC'; end
 
-    % get all params that are in common in at least two datasets
+    % go through all datasets and parameters and count them
     lenSampleData = length(sample_data);
     paramsName = {};
     paramsCount = [];
+    params2D = [];
     for i=1:lenSampleData
         lenParamsSample = length(sample_data{i}.variables);
         for j=1:lenParamsSample
-            if i==1 && j==1
-                paramsName{1} = sample_data{1}.variables{1}.name;
-                paramsCount(1) = 1;
-            else
-                sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
-                if ~any(sameParam)
-                    paramsName{end+1} = sample_data{i}.variables{j}.name;
-                    paramsCount(end+1) = 1;
+            sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+            if ~any(sameParam)
+                paramsName{end+1} = sample_data{i}.variables{j}.name;
+                paramsCount(end+1) = 1;
+                if length(sample_data{i}.variables{j}.dimensions) == 4 && ... % TIME, LATITUDE, LONGITUDE, HEIGHT_ABOVE_SENSOR
+                        size(sample_data{i}.variables{j}.data, 2) > 1 && ...
+                        size(sample_data{i}.variables{j}.data, 3) == 1 % we're only plotting ADCP 2D variables with DEPTH variable.
+                    params2D(end+1) = true;
                 else
-                    paramsCount(sameParam) = paramsCount(sameParam)+1;
+                    params2D(end+1) = false;
                 end
+            else
+                paramsCount(sameParam) = paramsCount(sameParam)+1;
             end
         end
     end
+    
+    if is1D
+        % get only params that are in common in at least two datasets
+        iParamsToGetRid = (paramsCount == 1);
+        paramsName(iParamsToGetRid) = [];
+    
+        % we get rid of DEPTH, PRES and PRES_REL parameters
+        iDEPTH = strcmpi('DEPTH', paramsName);
+        paramsName(iDEPTH) = [];
+        iDEPTH = strcmpi('PRES', paramsName);
+        paramsName(iDEPTH) = [];
+        iDEPTH = strcmpi('PRES_REL', paramsName);
+        paramsName(iDEPTH) = [];
+       
+        % by default TEMP is selected
+        iDefault = find(strcmpi(paramsName, 'TEMP'));
+    else
+        % get only params that are 2D
+        paramsName(~params2D) = [];
+        
+        % we get rid of DEPTH, PRES and PRES_REL parameters
+        iDEPTH = strcmpi('DEPTH', paramsName);
+        paramsName(iDEPTH) = [];
+        iDEPTH = strcmpi('PRES', paramsName);
+        paramsName(iDEPTH) = [];
+        iDEPTH = strcmpi('PRES_REL', paramsName);
+        paramsName(iDEPTH) = [];
+        iHEIGHT = strcmpi('HEIGHT', paramsName);
+        paramsName(iHEIGHT) = [];
+       
+        % by default CDIR is selected
+        iDefault = find(strcmpi(paramsName, 'CDIR'));
+    end
 
-    iParamsToGetRid = (paramsCount == 1);
-    paramsName(iParamsToGetRid) = [];
-
-    % we get rid of DEPTH, PRES and PRES_REL parameters
-    iDEPTH = strcmpi('DEPTH', paramsName);
-    paramsName(iDEPTH) = [];
-    iDEPTH = strcmpi('PRES', paramsName);
-    paramsName(iDEPTH) = [];
-    iDEPTH = strcmpi('PRES_REL', paramsName);
-    paramsName(iDEPTH) = [];
-    % by default TEMP is selected
-    iTEMP = find(strcmpi(paramsName, 'TEMP'));
-
+    if isempty(iDefault), iDefault = 1; end
+    
     [iSelection, ok] = listdlg(...
         'ListString', paramsName, ...
         'SelectionMode', 'single', ...
         'ListSize', [150 150], ...
-        'InitialValue', iTEMP, ...
+        'InitialValue', iDefault, ...
         'Name', ['Plot a ' stringQC '''d variable accross all instruments in the mooring'], ...
         'PromptString', 'Select a variable :');
 
@@ -543,7 +573,11 @@ function displayScatterMooringVar(source,ev, isQC)
         varName = paramsName{iSelection};
     end
 
-    scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, false, '');
+    if is1D
+        scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, false, '');
+    else
+        scatterMooring2DVarAgainstDepth(sample_data, varName, isQC, false, '');
+    end
 
 end
 

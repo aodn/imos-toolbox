@@ -66,7 +66,8 @@ for i=1:lenSampleData
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
     
-    if iVar > 0 && size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 % we're only plotting 1D variables
+    if iVar > 0 && size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 && ... % we're only plotting 1D variables but no current
+            all(~strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD'}))
         if initiateFigure
             fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
             visible = 'on';
@@ -112,19 +113,28 @@ for i=1:lenSampleData
             fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
                 ', there is not any data with good flags.']);
         else
-            hLineVar(i + 1) = line(sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
-                sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
+            xLine = sample_data{iSort(i)}.dimensions{iTime}.data;
+            xLine(~iGood) = NaN;
+            
+            dataVar = sample_data{iSort(i)}.variables{iVar}.data;
+            dataVar(~iGood) = NaN;
+    
+            hLineVar(i + 1) = line(xLine, ...
+                dataVar, ...
                 'Color', cMap(i, :), ...
                 'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+            
+            % Let's redefine properties after pcolor to make sure grid lines appear
+            % above color data and XTick and XTickLabel haven't changed
+            set(hAxMooringVar, ...
+                'XTick',        (xMin:(xMax-xMin)/4:xMax), ...
+                'XGrid',        'on', ...
+                'YGrid',        'on', ...
+                'Layer',        'top');
             
             % set background to be grey
             set(hAxMooringVar, 'Color', [0.75 0.75 0.75])
         end
-        
-        
-    else
-%         fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-%             ', there is no ' varName ' variable.']);
     end
 end
 
@@ -134,6 +144,14 @@ if ~initiateFigure
         hLineVar(iNan) = [];
         instrumentDesc(iNan) = [];
     end
+    
+    % Let's add a fake colorbar to have consistent display with or
+    % without colorbar
+    cb = colorbar('peer', hAxMooringVar);
+    set(get(cb, 'YLabel'), 'String', 'TEST');
+    pos_with_colorbar = get(hAxMooringVar, 'Position');
+    colorbar(cb, 'off');
+    set(hAxMooringVar, 'Position', pos_with_colorbar);
     
     datetick(hAxMooringVar, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
     
@@ -150,8 +168,7 @@ if ~initiateFigure
         pos1 = get(hLegend(1), 'Position');
         pos2 = get(hLegend(2), 'Position');
         maxWidth = max(pos1(3), pos2(3));
-%         set(hLegend(1), 'Position', [pos1(1)-maxWidth/2, pos1(2), pos1(3), pos1(4)]);
-%         set(hLegend(2), 'Position', [pos1(1)+maxWidth/2, pos1(2), pos1(3), pos1(4)]);
+
         set(hLegend(1), 'Position', [0   + 2*maxWidth, pos1(2), pos1(3), pos1(4)]);
         set(hLegend(2), 'Position', [0.5 + 2*maxWidth, pos1(2), pos1(3), pos1(4)]);
         
@@ -160,15 +177,16 @@ if ~initiateFigure
         set(hAxMooringVar, 'Position', posAx);
     else
         hLegend = legend(hAxMooringVar, hLineVar, instrumentDesc, 'Location', 'SouthOutside');
+        
+        % unfortunately we need to do this hack so that we have consistency with
+        % the case above
+        posAx = get(hAxMooringVar, 'Position');
+        set(hAxMooringVar, 'Position', posAx);
     end
     
-    set(hLegend, 'Box', 'off', 'Color', 'none');
+%     set(hLegend, 'Box', 'off', 'Color', 'none');
     
     if saveToFile
-        % the default renderer under windows is opengl; for some reason,
-        % printing pcolor plots fails when using opengl as the renderer
-        set(hFigMooringVar, 'Renderer', 'zbuffer');
-        
         % ensure the printed version is the same whatever the screen used.
         set(hFigMooringVar, 'PaperPositionMode', 'manual');
         set(hFigMooringVar, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
@@ -179,18 +197,13 @@ if ~initiateFigure
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
         
-        print(hFigMooringVar, fullfile(exportDir, fileName), '-dpng');
+        % use hardcopy as a trick to go faster than print.
+        % opengl (hardware or software) should be supported by any platform and go at least just as
+        % fast as zbuffer. With hardware accelaration supported, could even go a
+        % lot faster.
+        imwrite(hardcopy(hFigMooringVar, '-dopengl'), fullfile(exportDir, fileName), 'png');
         
-        % trick to save the image in landscape rather than portrait file
-        image = imread(fullfile(exportDir, fileName), 'png');
-        r = image(:,:,1);
-        g = image(:,:,2);
-        b = image(:,:,3);
-        r = rot90(r, 3);
-        g = rot90(g, 3);
-        b = rot90(b, 3);
-        image = cat(3, r, g, b);
-        imwrite(image, fullfile(exportDir, fileName), 'png');
+        close(hFigMooringVar);
     end
 end
 

@@ -1,7 +1,8 @@
-function scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, saveToFile, exportDir)
-%SCATTERMOORING1DVARAGAINSTDEPTH Opens a new window where the selected
-% variable collected by all the intruments on the mooring are plotted.
+function scatterMooring2DVarAgainstDepth(sample_data, varName, isQC, saveToFile, exportDir)
+%SCATTERMOORING2DVARAGAINSTDEPTH Opens a new window where the selected 2D
+% variables collected by all the intruments on the mooring are plotted.
 %
+
 varTitle = imosParameters(varName, 'long_name');
 varUnit = imosParameters(varName, 'uom');
 
@@ -49,37 +50,84 @@ hScatterVar(1) = 0;
 
 % we need to go through every instruments to figure out the CLim properties
 % on which the subset plots happen below.
-minClim = NaN;
-maxClim = NaN;
+yLimMin = NaN;
+yLimMax = NaN;
 isPlotable = false(1, lenSampleData);
 for i=1:lenSampleData
     %look for time and relevant variable
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
+    iHeight = getVar(sample_data{iSort(i)}.dimensions, 'HEIGHT_ABOVE_SENSOR');
     iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
     
-    if iVar > 0 && iDepth > 0 && ...
-            size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
-            all(~strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD'}))
+    if iVar > 0 && iHeight > 0 && iDepth > 0 && ...
+            size(sample_data{iSort(i)}.variables{iVar}.data, 2) > 1 && ...
+            size(sample_data{iSort(i)}.variables{iVar}.data, 3) == 1 % we're plotting ADCP 2D variables with DEPTH variable.
         isPlotable(i) = true;
         iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
         if isQC
-            %get time, depth and var QC information
+            %get time and var QC information
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2) & (depthFlags == 1 | depthFlags == 2);
+            iGoodDepth = (depthFlags == 1 | depthFlags == 2);
+            iGoodTime = (timeFlags == 1 | timeFlags == 2) & iGoodDepth; % bad depth <=> bad time
+            
+            iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
+            iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
         end
         
-        if any(iGood)
-            minClim = min(minClim, min(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
-            maxClim = max(maxClim, max(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
+        if any(any(iGood))
+            yLimMin = min(yLimMin, min(min(sample_data{iSort(i)}.variables{iVar}.data(iGood))));
+            yLimMax = max(yLimMax, max(max(sample_data{iSort(i)}.variables{iVar}.data(iGood))));
+        end
+        
+    elseif iVar > 0 && iDepth > 0 && ...
+            any(strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD'})) && ...
+            size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 % we're plotting current metre 1D variables with DEPTH variable.
+        isPlotable(i) = true;
+        iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
+        if isQC
+            %get time and var QC information
+            timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
+            depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
+            varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
+            
+            iGoodDepth = (depthFlags == 1 | depthFlags == 2);
+            iGoodTime = (timeFlags == 1 | timeFlags == 2) & iGoodDepth; % bad depth <=> bad time
+            
+            iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
+            iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
+        end
+        
+        if any(any(iGood))
+            yLimMin = min(yLimMin, min(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
+            yLimMax = max(yLimMax, max(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
         end
     end
 end
 
 if any(isPlotable)
+    switch varName
+        case {'UCUR', 'VCUR', 'WCUR'}   % 0 centred parameters
+            cMap = 'r_b';
+            cType = 'centeredOnZero';
+            CLim = [-yLimMax yLimMax];
+        case {'CDIR', 'SSWD'}           % directions [0; 360[
+            cMap = 'rkbwr';
+            cType = 'direction';
+            CLim = [0 360];
+        case {'CSPD'}                   % [0; oo[ paremeters
+            cMap = 'jet';
+            cType = 'positiveFromZero';
+            CLim = [0 yLimMax];
+        otherwise
+            cMap = 'jet';
+            cType = '';
+            CLim = [yLimMin yLimMax];
+    end
+    
     initiateFigure = true;
     for i=1:lenSampleData
         % instrument description
@@ -98,6 +146,7 @@ if any(isPlotable)
         
         %look for time and relevant variable
         iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
+        iHeight = getVar(sample_data{iSort(i)}.dimensions, 'HEIGHT_ABOVE_SENSOR');
         iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
         iVar = getVar(sample_data{iSort(i)}.variables, varName);
         
@@ -108,7 +157,7 @@ if any(isPlotable)
                 if saveToFile, visible = 'off'; end
                 hFigMooringVar = figure(...
                     'Name', title, ...
-                    'NumberTitle','off', ...
+                    'NumberTitle', 'off', ...
                     'Visible', visible, ...
                     'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
                 
@@ -121,7 +170,14 @@ if any(isPlotable)
                 set(hAxMooringVar, 'XLim', [xMin, xMax]);
                 hold(hAxMooringVar, 'on');
                 
-                hCBar = colorbar('peer', hAxMooringVar);
+                hCBar = colorbar('peer', hAxMooringVar, 'YLim', CLim);
+                colormap(hAxMooringVar, cMap);
+                set(hAxMooringVar, 'CLim', CLim);
+                
+                if strcmpi(cType, 'direction')
+                    set(hCBar, 'YTick', [0 90 180 270 360]);
+                end
+                
                 set(get(hCBar, 'Title'), 'String', [varName ' (' varUnit ')'], 'Interpreter', 'none');
                 
                 initiateFigure = false;
@@ -130,49 +186,73 @@ if any(isPlotable)
             iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
             
             if isQC
-                %get time, depth and var QC information
+                %get time and var QC information
                 timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
                 depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
                 varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
                 varValues = sample_data{iSort(i)}.variables{iVar}.data;
                 
-                iGood = (timeFlags == 1 | timeFlags == 2) & ...
-                    (varFlags == 1 | varFlags == 2) & ...
-                    (depthFlags == 1 | depthFlags == 2) & ...
-                    ~isnan(varValues);
+                iGoodDepth = (depthFlags == 1 | depthFlags == 2);
+                iGoodTime = (timeFlags == 1 | timeFlags == 2) & iGoodDepth; % bad depth <=> bad time
+                
+                iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
+                iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(varValues);
+                
+                iGoodHeight = any(iGood, 1);
+                nGoodHeight = sum(iGoodHeight);
+%                 nGoodHeight = nGoodHeight + 1;
+%                 iGoodHeight(nGoodHeight) = 1;
             end
             
             if all(~iGood)
                 fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
                     ', there is not any data with good flags.']);
             else
-                %             hScatterVar(i + 1) = scatter(hAxMooringVar, ...
-                %                 sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
-                %                 sample_data{iSort(i)}.variables{iDepth}.data(iGood), ...
-                %                 5, ...
-                %                 sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
-                %                 markerStyle{mod(i, lenMarkerStyle)+1});
+                xScatter = sample_data{iSort(i)}.dimensions{iTime}.data;
+                xScatter(~iGoodTime) = NaN;
                 
-                % for performance, we use plot (1 single handle object
-                % returned) rather than scatter (as many handles returned as
-                % points to plot). We plot as many subsets of the total amount
-                % of points as we want colors to be displayed. This is
-                % performed by the function plotclr.
+                if iHeight > 0
+                    yScatter = sample_data{iSort(i)}.dimensions{iHeight}.data(iGoodHeight);
+                else
+                    yScatter = 0;
+                end
                 
-                % !!! The result is such that the overlapping of points is dictated by 
-                % the order of plotting the colors and not by the X axis order (from
-                % first to last) of the total points given. We choose an ordering to keep
-                % extreme colors visibles though.
-                h = plotclr(hAxMooringVar, ...
-                    sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
-                    sample_data{iSort(i)}.variables{iDepth}.data(iGood), ...
-                    sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
-                    markerStyle{mod(i, lenMarkerStyle)+1}, ...
-                    [minClim maxClim]);
+                dataDepth = sample_data{iSort(i)}.variables{iDepth}.data;
+                dataDepth(~iGoodTime) = NaN;
                 
-                if ~isempty(h), hScatterVar(i + 1) = h; end
+                dataVar = sample_data{iSort(i)}.variables{iVar}.data;
+                dataVar(~iGood) = NaN;
                 
-                % Let's redefine properties after pcolor to make sure grid lines appear
+                for j=1:nGoodHeight
+%                     hScatterVar(i + 1) = scatter(hAxMooringVar, ...
+%                         xScatter, ...
+%                         dataDepth - yScatter(j), ...
+%                         5, ...
+%                         dataVar(:, j), ...
+%                         markerStyle{mod(i, lenMarkerStyle)+1}, ...
+%                         MarkerFaceColor, 'none');
+
+                    % for performance, we use plot (1 single handle object
+                    % returned) rather than scatter (as many handles returned as
+                    % points to plot). We plot as many subsets of the total amount
+                    % of points as we want colors to be displayed. This is
+                    % performed by the function plotclr.
+
+                    % !!! The result is such that the overlapping of points is dictated by 
+                    % the order of plotting the colors and not by the X axis order (from
+                    % first to last) of the total points given. We choose an ordering to keep
+                    % extreme colors visibles though.
+                    h = plotclr(hAxMooringVar, ...
+                        xScatter, ...
+                        dataDepth - yScatter(j), ...
+                        dataVar(:, j), ...
+                        markerStyle{mod(i, lenMarkerStyle)+1}, ...
+                        CLim);
+                    
+                    if ~isempty(h), hScatterVar(i + 1) = h; end
+                end
+                
+                % Let's redefine properties to make sure grid lines appear
                 % above color data and XTick and XTickLabel haven't changed
                 set(hAxMooringVar, ...
                     'XTick',        (xMin:(xMax-xMin)/4:xMax), ...
@@ -193,10 +273,6 @@ else
     return;
 end
 
-% we need to reset the CLim to a global range rather than the one for the
-% last subset of plot
-set(hAxMooringVar, 'CLim', [minClim maxClim]);
-
 if ~initiateFigure
     iNan = isnan(hScatterVar);
     if any(iNan)
@@ -215,7 +291,7 @@ if ~initiateFigure
         hLegend(2) = multipleLegend(hAxMooringVar, hScatterVar(nLine1+1:nLine),   instrumentDesc(nLine1+1:nLine), 'Location', 'SouthOutside');
         
         posAx = get(hAxMooringVar, 'Position');
-
+        
         pos1 = get(hLegend(1), 'Position');
         pos2 = get(hLegend(2), 'Position');
         maxWidth = max(pos1(3), pos2(3));
@@ -227,11 +303,12 @@ if ~initiateFigure
         % re-initialise it
         set(hAxMooringVar, 'Position', posAx);
     else
-        % doesn't make sense to continue and export to file since seing a
-        % scatter plot in depth only helps to analyse the data in its
-        % context that is to say with nearest similar datasets.
-        close(hFigMooringVar);
-        return;
+        hLegend = legend(hAxMooringVar, hScatterVar, instrumentDesc, 'Location', 'SouthOutside');
+        
+        % unfortunately we need to do this hack so that we have consistency with
+        % the case above
+        posAx = get(hAxMooringVar, 'Position');
+        set(hAxMooringVar, 'Position', posAx);
     end
     
 %     set(hLegend, 'Box', 'off', 'Color', 'none');
@@ -243,7 +320,7 @@ if ~initiateFigure
         
         % preserve the color scheme
         set(hFigMooringVar, 'InvertHardcopy', 'off');
-                
+                    
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_SCATTER_');
         
