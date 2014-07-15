@@ -1,6 +1,6 @@
 function pcolorMooring2DVar(sample_data, varName, isQC, saveToFile, exportDir)
-%PCOLORMOORING2DVAR Opens a new window where the selected 1D
-% variables collected by all the intruments on the mooring are plotted.
+%PCOLORMOORING2DVAR Opens a new window where the selected 2D
+% variables collected by an intrument on the mooring are plotted.
 %
 
 varTitle = imosParameters(varName, 'long_name');
@@ -76,7 +76,6 @@ for i=1:lenSampleData
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
     iHeight = getVar(sample_data{iSort(i)}.dimensions, 'HEIGHT_ABOVE_SENSOR');
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
-    iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
     
     if iVar > 0 && iHeight > 0 && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) > 1 && ...
@@ -126,8 +125,15 @@ for i=1:lenSampleData
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
             iGoodTime = (timeFlags == 1 | timeFlags == 2);
+            nGoodTime = sum(iGoodTime);
+            
             iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
             iGood = iGood & (varFlags == 1 | varFlags == 2);
+            
+            iGoodHeight = any(iGood, 1);
+            nGoodHeight = sum(iGoodHeight);
+            nGoodHeight = nGoodHeight + 1;
+            iGoodHeight(nGoodHeight) = 1;
         end
         
         if all(~iGood)
@@ -135,9 +141,12 @@ for i=1:lenSampleData
                 ', there is not any data with good flags.']);
         else
             xPcolor = sample_data{iSort(i)}.dimensions{iTime}.data(iGoodTime);
-            yPcolor = sample_data{iSort(i)}.dimensions{iHeight}.data;
+            yPcolor = sample_data{iSort(i)}.dimensions{iHeight}.data(iGoodHeight);
             dataVar = sample_data{iSort(i)}.variables{iVar}.data;
             dataVar(~iGood) = NaN;
+            iGoodHeight = repmat(iGoodHeight, nGoodTime, 1);
+            dataVar(~iGoodHeight) = [];
+            dataVar = reshape(dataVar, nGoodTime, nGoodHeight);
             
             hPcolorVar(i) = pcolor(hAxMooringVar, xPcolor, yPcolor, double(dataVar'));
             set(hPcolorVar(i), 'FaceColor', 'flat', 'EdgeColor', 'none');
@@ -174,11 +183,6 @@ for i=1:lenSampleData
             % set background to be grey
             set(hAxMooringVar, 'Color', [0.75 0.75 0.75])
         end
-        
-        
-    else
-%         fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-%             ', there is no ' varName ' variable.']);
     end
 end
 
@@ -195,19 +199,12 @@ if ~initiateFigure
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_PCOLOR_');
         
-        print(hFigMooringVar, fullfile(exportDir, fileName), '-dpng');
+        % use hardcopy as a trick to go faster than print.
+        % opengl (hardware or software) should be supported by any platform and go at least just as
+        % fast as zbuffer. With hardware accelaration supported, could even go a
+        % lot faster.
+        imwrite(hardcopy(hFigMooringVar, '-dopengl'), fullfile(exportDir, fileName), 'png');
         close(hFigMooringVar);
-        
-        % trick to save the image in landscape rather than portrait file
-        image = imread(fullfile(exportDir, fileName), 'png');
-        r = image(:,:,1);
-        g = image(:,:,2);
-        b = image(:,:,3);
-        r = rot90(r, 3);
-        g = rot90(g, 3);
-        b = rot90(b, 3);
-        image = cat(3, r, g, b);
-        imwrite(image, fullfile(exportDir, fileName), 'png');
     end
 end
 

@@ -103,13 +103,14 @@ function exportManager(dataSets, levelNames, output, auto)
   errors    = {};
   
   if ~auto
-    progress = waitbar(0, 'Exporting data', ...
-      'Name',                  'Exporting',...
+    progress = waitbar(0, 'Exporting data files', ...
+      'Name',                  'Exporting files',...
       'DefaultTextInterpreter','none');
   end
   
   % write out each of the selected data sets in the specified format
-  for k = 1:length(dataSets)
+  nDataSets = length(dataSets);
+  for k = 1:nDataSets
     
     try
       switch (output)
@@ -119,7 +120,7 @@ function exportManager(dataSets, levelNames, output, auto)
             filenames{end+1} = exportRawData(dataSets{k}, exportDir, setNames{k});
       end
       if ~auto
-          waitbar(k / length(dataSets), progress, ['Exported ' filenames{end}]);
+          waitbar(k / nDataSets, progress, ['Exported ' filenames{end}]);
       end
       
     catch e
@@ -137,8 +138,7 @@ function exportManager(dataSets, levelNames, output, auto)
   
   % generate plots
   if any(strcmpi('QC', levelNames)) && strcmpi(mode, 'timeseries')
-      exportPlots(dataSets, exportDir);
-      
+      exportPlots(dataSets, exportDir, auto, progress);
   end
   
   if ~auto
@@ -189,16 +189,12 @@ else
 end
 end
 
-function exportPlots(sample_data, exportDir)
+function exportPlots(sample_data, exportDir, auto, progress)
 %EXPORTPLOTS plot only parameters that have been QC'd per mooring.
 %
 % Lists all the distinct QC'd variables in every sample_data, for each of the 1D variable of them, 
 % when it is found in multiple sample_data then plot all of them on the same axis.
-% Output PNG file names would be something close to the dataset filename like 
-% IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PARAM]_flags_C-[creation_date].png and 
-% IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PARAM]_good-values_C-[creation_date].png
-% respectively ploting the flag colors on top of the original raw data and
-% only the values of good data (flags 1 or 2).
+% Output PNG file names are specific and plot only the values of good data (flags 1 or 2).
 %
 
 % get all params from datasets datasets
@@ -217,12 +213,26 @@ for i=1:lenSampleData
     end
 end
 
+if ~auto
+    waitbar(0, progress, 'Exporting plot files');
+end
+
 paramsName = unique(paramsName);
 nParams = length(paramsName);
 for i=1:nParams
-    lineMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
-    scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
-    pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
+    if ~auto
+        waitbar(i / nParams, progress, ['Exporting ' paramsName{i} ' plots']);
+    end
+    
+    try
+        lineMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
+        scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
+%         pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
+        scatterMooring2DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
+    catch e
+        errorString = getErrorString(e);
+        fprintf('%s\n',   ['Error says : ' errorString]);
+    end
 end
 
 end
