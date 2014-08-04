@@ -102,11 +102,11 @@ Assuming that the toolbox is installed in `C:\imos-toolbox`, you must add the fo
     * `C:\imos-toolbox\AutomaticQC`
     * `C:\imos-toolbox\DDB`
     * `C:\imos-toolbox\FlowManager`
-    * `C:\imos-toolbox\Graph`
-      * `C:\imos-toolbox\Graph\TimeSeries`
-      * `C:\imos-toolbox\Graph\DepthProfile`
-      * `C:\imos-toolbox\Graph\Transect`
     * `C:\imos-toolbox\GUI`
+    * `C:\imos-toolbox\Graph`
+      * `C:\imos-toolbox\Graph\DepthProfile`
+      * `C:\imos-toolbox\Graph\TimeSeries`
+      * `C:\imos-toolbox\Graph\Transect`
     * `C:\imos-toolbox\IMOS`
     * `C:\imos-toolbox\NetCDF`
     * `C:\imos-toolbox\Parser`
