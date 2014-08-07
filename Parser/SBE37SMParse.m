@@ -74,29 +74,31 @@ if strcmpi(ext, '.cnv')
     % them out into each of the three sections
     instHeaderLines = {};
     procHeaderLines = {};
-    dataLines       = {};
     try
-        
         fid = fopen(filename, 'rt');
-        line = fgetl(fid);
-        while ischar(line)
-            
-            line = deblank(line);
-            if isempty(line)
-                line = fgetl(fid);
-                continue;
-            end
-            
-            if     line(1) == '*', instHeaderLines{end+1} = line;
-            elseif line(1) == '#', procHeaderLines{end+1} = line;
-            else                   dataLines{      end+1} = line;
-            end
-            
-            line = fgetl(fid);
-        end
-        
+        fileContent = textscan(fid, '%s', 'Delimiter', '', 'Whitespace', '');
         fclose(fid);
         
+        fileContent = fileContent{1};
+        
+        % we assume the instrument header will always come first with '*'
+        iInst = 1;
+        while strcmp('*', fileContent{iInst}(1))
+            instHeaderLines{iInst} = fileContent{iInst};
+            iInst = iInst + 1;
+        end
+        iLastInst = iInst - 1;
+        
+        % and then the proc header with '#'
+        iProc = 1;
+        while strcmp('#', fileContent{iProc + iLastInst}(1))
+            procHeaderLines{iProc} = fileContent{iProc + iLastInst};
+            iProc = iProc + 1;
+        end
+        
+        % and then we assume the data comes after one more '*' line so we
+        % add +1 below
+        dataLines = fileContent(iProc + 1 + iLastInst : end);
     catch e
         if fid ~= -1, fclose(fid); end
         rethrow(e);
@@ -413,8 +415,6 @@ function time = genTimestamps(instHeader, procHeader, data)
 % data - if so, we don't have to do any work
 if isfield(data, 'TIME'), time = data.TIME; return; end
 
-time = [];
-
 % To generate timestamps for the CTD data, we need to know:
 %   - start time
 %   - sample interval
@@ -425,7 +425,6 @@ time = [];
 %
 start    = 0;
 interval = 0.25;
-nSamples = 0;
 
 % figure out number of samples by peeking at the
 % number of values in the first column of 'data'

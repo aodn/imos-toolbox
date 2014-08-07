@@ -89,8 +89,9 @@ function sample_data = NXICBinaryParse( filename, mode )
   
   % the first 220 bytes are the header 
   % section, the rest sample data
-  header  = parseHeader(Mheader);
-  samples = parseSamples(M, header);
+  [~, ~, cpuEndianness] = computer;
+  header  = parseHeader(Mheader, cpuEndianness);
+  samples = parseSamples(M, header, cpuEndianness);
  
  
   % create the sample_data struct
@@ -179,7 +180,7 @@ function sample_data = NXICBinaryParse( filename, mode )
   
 end
 
-function header = parseHeader(mheader)
+function header = parseHeader(mheader, cpuEndianness)
 %PARSEHEADER Parses the NXIC header section from the given data vector.
 %
 % Inputs:
@@ -315,7 +316,7 @@ function header = parseHeader(mheader)
 
   header = struct;
   % data bytes 1-2
-  header.instrument_serial_no = num2str(bytecast(mheader.Data(3:4), 'L', 'uint16'));
+  header.instrument_serial_no = num2str(bytecast(mheader.Data(3:4), 'L', 'uint16', cpuEndianness));
   
   % first Citadel we bought was Mark's 2276 for IS2
   if (header.instrument_serial_no<2276)
@@ -371,7 +372,7 @@ function header = parseHeader(mheader)
   % skip bytes 7-9 (baud rate, channels, mem card)
   
   % Sample frequency in Hz
-  header.sampleRate = bytecast(mheader.Data(10:11),'L','uint16');
+  header.sampleRate = bytecast(mheader.Data(10:11),'L','uint16', cpuEndianness);
   % skip A/D sample rate bytes 12-13
   % and AdrH and AdrL 14-15
   % and spike filter 16-17
@@ -415,49 +416,49 @@ function header = parseHeader(mheader)
   end
   % Calibration Constants;
   % Conductivity
-  Calibration.Conductivity.A1 = bytecast(mheader.Data(35:38),'L','single');
-  Calibration.Conductivity.B1 = bytecast(mheader.Data(39:42),'L','single');
-  Calibration.Conductivity.C1 = bytecast(mheader.Data(43:46),'L','single');
-  Calibration.Conductivity.D1 = bytecast(mheader.Data(47:50),'L','single');
+  Calibration.Conductivity.A1 = bytecast(mheader.Data(35:38),'L','single', cpuEndianness);
+  Calibration.Conductivity.B1 = bytecast(mheader.Data(39:42),'L','single', cpuEndianness);
+  Calibration.Conductivity.C1 = bytecast(mheader.Data(43:46),'L','single', cpuEndianness);
+  Calibration.Conductivity.D1 = bytecast(mheader.Data(47:50),'L','single', cpuEndianness);
   
   % no idea
-  Calibration.Cell.Kfactor = bytecast(mheader.Data(51:54),'L','single');
+  Calibration.Cell.Kfactor = bytecast(mheader.Data(51:54),'L','single', cpuEndianness);
   
   % Temperature
-  Calibration.Temperature.A2 = bytecast(mheader.Data(55:58),'L','single');
-  Calibration.Temperature.B2 = bytecast(mheader.Data(59:62),'L','single');  
-  Calibration.Temperature.C2 = bytecast(mheader.Data(63:66),'L','single');
-  Calibration.Temperature.D2 = bytecast(mheader.Data(67:70),'L','single');  
+  Calibration.Temperature.A2 = bytecast(mheader.Data(55:58),'L','single', cpuEndianness);
+  Calibration.Temperature.B2 = bytecast(mheader.Data(59:62),'L','single', cpuEndianness);  
+  Calibration.Temperature.C2 = bytecast(mheader.Data(63:66),'L','single', cpuEndianness);
+  Calibration.Temperature.D2 = bytecast(mheader.Data(67:70),'L','single', cpuEndianness);  
   
   % Calibration coeffients for analog/digital channels
   % quite often appear to be wrong!
-  Calibration.Analog.A1A = bytecast(mheader.Data(71:74),'L','single');
-  Calibration.Analog.A1B = bytecast(mheader.Data(75:78),'L','single');  
-  Calibration.Analog.A2A = bytecast(mheader.Data(79:82),'L','single');
-  Calibration.Analog.A2B = bytecast(mheader.Data(83:86),'L','single');
-  Calibration.Analog.A3A = bytecast(mheader.Data(87:90),'L','single');  
-  Calibration.Analog.A3B = bytecast(mheader.Data(91:94),'L','single');  
-  Calibration.Analog.A4A = bytecast(mheader.Data(95:98),'L','single');
-  Calibration.Analog.A4B = bytecast(mheader.Data(99:102),'L','single');  
+  Calibration.Analog.A1A = bytecast(mheader.Data(71:74),'L','single', cpuEndianness);
+  Calibration.Analog.A1B = bytecast(mheader.Data(75:78),'L','single', cpuEndianness);  
+  Calibration.Analog.A2A = bytecast(mheader.Data(79:82),'L','single', cpuEndianness);
+  Calibration.Analog.A2B = bytecast(mheader.Data(83:86),'L','single', cpuEndianness);
+  Calibration.Analog.A3A = bytecast(mheader.Data(87:90),'L','single', cpuEndianness);  
+  Calibration.Analog.A3B = bytecast(mheader.Data(91:94),'L','single', cpuEndianness);  
+  Calibration.Analog.A4A = bytecast(mheader.Data(95:98),'L','single', cpuEndianness);
+  Calibration.Analog.A4B = bytecast(mheader.Data(99:102),'L','single', cpuEndianness);  
   
   % Pressure
-  Calibration.Pressure.A03 = bytecast(mheader.Data(103:106),'L','single');
-  Calibration.Pressure.B03 = bytecast(mheader.Data(107:110),'L','single');
-  Calibration.Pressure.C03 = bytecast(mheader.Data(111:114),'L','single');
+  Calibration.Pressure.A03 = bytecast(mheader.Data(103:106),'L','single', cpuEndianness);
+  Calibration.Pressure.B03 = bytecast(mheader.Data(107:110),'L','single', cpuEndianness);
+  Calibration.Pressure.C03 = bytecast(mheader.Data(111:114),'L','single', cpuEndianness);
   
-  Calibration.Pressure.A503 = bytecast(mheader.Data(115:118),'L','single');
-  Calibration.Pressure.B503 = bytecast(mheader.Data(119:122),'L','single');
-  Calibration.Pressure.C503 = bytecast(mheader.Data(123:126),'L','single');
+  Calibration.Pressure.A503 = bytecast(mheader.Data(115:118),'L','single', cpuEndianness);
+  Calibration.Pressure.B503 = bytecast(mheader.Data(119:122),'L','single', cpuEndianness);
+  Calibration.Pressure.C503 = bytecast(mheader.Data(123:126),'L','single', cpuEndianness);
   
-  Calibration.Pressure.A1003 = bytecast(mheader.Data(127:130),'L','single');    
-  Calibration.Pressure.B1003 = bytecast(mheader.Data(131:134),'L','single');
-  Calibration.Pressure.C1003 = bytecast(mheader.Data(135:138),'L','single');
+  Calibration.Pressure.A1003 = bytecast(mheader.Data(127:130),'L','single', cpuEndianness);    
+  Calibration.Pressure.B1003 = bytecast(mheader.Data(131:134),'L','single', cpuEndianness);
+  Calibration.Pressure.C1003 = bytecast(mheader.Data(135:138),'L','single', cpuEndianness);
     
-  Calibration.Pressure.A3 = bytecast(mheader.Data(139:142),'L','single');
+  Calibration.Pressure.A3 = bytecast(mheader.Data(139:142),'L','single', cpuEndianness);
   
-  Calibration.Pressure.PS0      = bytecast(mheader.Data(143:146),'L','single');
-  Calibration.Pressure.PS50     = bytecast(mheader.Data(147:150),'L','single');
-  Calibration.Pressure.PS100    = bytecast(mheader.Data(151:154),'L','single');
+  Calibration.Pressure.PS0      = bytecast(mheader.Data(143:146),'L','single', cpuEndianness);
+  Calibration.Pressure.PS50     = bytecast(mheader.Data(147:150),'L','single', cpuEndianness);
+  Calibration.Pressure.PS100    = bytecast(mheader.Data(151:154),'L','single', cpuEndianness);
 
   header.Calibration = Calibration;
  
@@ -514,7 +515,7 @@ function header = parseHeader(mheader)
   
 end
 
-function sample = parseSamples(M, header)
+function sample = parseSamples(M, header, cpuEndianness)
 %PARSESAMPLES Parses all of the NXIC samples contained in the given data
 % vector.
 %
@@ -553,7 +554,7 @@ time_logic=false(size(msamples.Data));
 time_logic(1:len:end)=true;
 % compute time (UNIX based) at isample intervals
 
-times=index2time(M,time_logic);
+times=index2time(M,time_logic, cpuEndianness);
 
 %calculate sample intervals to look for misaligned data
 dt=diff(times);
@@ -621,7 +622,7 @@ while any(tberror);
         
         % form vector of all possible times starting with the first bad
         % point - just do this once and save result for later
-        reftimes=index2time(M,blockindex);
+        reftimes=index2time(M,blockindex, cpuEndianness);
         
         % build index of bad time stamps
         istart=find(reftimes==tbad);
@@ -650,7 +651,7 @@ while any(tberror);
         end
     end
     % check the new proposed times stamps
-    times=index2time(M,time_logic);
+    times=index2time(M,time_logic, cpuEndianness);
     
     % check for any more errors and repeat routine if necessary to align
     dt=diff(times);
@@ -675,51 +676,51 @@ for i=1:len;
     D(i,:)=msamples.Data(isample+i-1);
 end
 time1 = D(1:4,:);
-t1 = bytecast(time1(:), 'L', 'uint32');
+t1 = bytecast(time1(:), 'L', 'uint32', cpuEndianness);
 t2 = double(D(5,:))/100;
 sample.time = mlstart + (t1(:) + t2(:))/86400;
 
 cond = D(6:9,:);
-sample.conductivity = bytecast(cond(:), 'L', 'single');
+sample.conductivity = bytecast(cond(:), 'L', 'single', cpuEndianness);
 % in units of mmho/cm IMOS needs S/m
 sample.conductivity = sample.conductivity./10;
 
 temp = D(10:13,:);
-sample.temperature = bytecast(temp(:), 'L', 'single');
+sample.temperature = bytecast(temp(:), 'L', 'single', cpuEndianness);
 
 pres = D(14:17,:);
-sample.pressure = bytecast(pres(:), 'L', 'single');
+sample.pressure = bytecast(pres(:), 'L', 'single', cpuEndianness);
 
 sal = D(18:21,:);
-sample.salinity = bytecast(sal(:), 'L', 'single');
+sample.salinity = bytecast(sal(:), 'L', 'single', cpuEndianness);
 
 sspd = D(22:25,:);
-sample.soundSpeed = bytecast(sspd(:), 'L', 'single');
+sample.soundSpeed = bytecast(sspd(:), 'L', 'single', cpuEndianness);
 
 volt = D(26:29,:);
-sample.voltage = bytecast(volt(:), 'L', 'single');
+sample.voltage = bytecast(volt(:), 'L', 'single', cpuEndianness);
 
 a1 = D(30:31,:);  % turbidity if fitted with FLNTU
-sample.analog1 = bytecast(a1(:), 'L', Options.analogUnit).*Options.analogScale;
+sample.analog1 = bytecast(a1(:), 'L', Options.analogUnit, cpuEndianness).*Options.analogScale;
 
 a2 = D(32:33,:);  % fluorescence if fitted with FLNTU
-sample.analog2 = bytecast(a2(:), 'L', Options.analogUnit).*Options.analogScale;
+sample.analog2 = bytecast(a2(:), 'L', Options.analogUnit, cpuEndianness).*Options.analogScale;
 
 a3 = D(34:35,:); % PAR if fitted with Biospherical par sensor
-sample.analog3 = bytecast(a3(:), 'L', Options.analogUnit).*Options.analogScale;
+sample.analog3 = bytecast(a3(:), 'L', Options.analogUnit, cpuEndianness).*Options.analogScale;
 
 ch4 = D(36:37,:); % 
-sample.analog4 = bytecast(ch4(:), 'L', Options.analogUnit).*Options.analogScale;
+sample.analog4 = bytecast(ch4(:), 'L', Options.analogUnit, cpuEndianness).*Options.analogScale;
 
 if len==41
     % if digital channel exists
     dig = D(38:41,:); % may be used by Aanderra Optode
-    sample.digital = bytecast(dig(:), 'L', 'single');
+    sample.digital = bytecast(dig(:), 'L', 'single', cpuEndianness);
 end
 
 end
 
-function times = index2time(M, index)
+function times = index2time(M, index, cpuEndianness)
 % function to extract times in 5 byte FSI format from data file at index
 % points.
 
@@ -746,7 +747,7 @@ times =...
     bytecast(reshape(...
     [M.b0.Data(index) M.b1.Data(index) ...
     M.b2.Data(index) M.b3.Data(index)]'...
-    , N, 1), 'L', 'uint32') + ...
+    , N, 1), 'L', 'uint32', cpuEndianness) + ...
     double(M.b4.Data(index))/100;
 
 end

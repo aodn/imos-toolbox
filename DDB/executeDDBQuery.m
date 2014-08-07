@@ -66,7 +66,7 @@ function result = executeDDBQuery( table, field, value)
   % in order to reduce the number of queries to the ddb (slow, we store 
   % each result in a global structure so that we don't perform twice the 
   % same query.
-  global ddbStruct;
+  persistent ddbStruct;
   if isempty(ddbStruct)
       ddbStruct = struct;
       ddbStruct.table = {};

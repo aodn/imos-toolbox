@@ -360,12 +360,13 @@ function flowManager(toolboxVersion)
   
     data = {};
     names = {};
-    if isempty(autoQCData)
+    if ~isempty(rawData)
       data = {rawData}; 
       names = {'Raw'};
-    else
-      data = {rawData autoQCData};
-      names = {'Raw', 'QC'};
+    end
+    if ~isempty(autoQCData)
+      data = [data {autoQCData}];
+      names = [names, {'QC'}];
     end
     
     exportManager(data, names, 'netcdf');

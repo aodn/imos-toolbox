@@ -75,19 +75,21 @@ if ~isempty(match), short_name(match:end) = ''; end
 path = [pwd filesep 'IMOS'];
 
 fid = -1;
-params = [];
-try
-  fid = fopen([path filesep 'imosParameters.txt'], 'rt');
-  if fid == -1, return; end
-  
-  params = textscan(fid, '%s%d%s%s%s%f%f%f%s', ...
-    'delimiter', ',', 'commentStyle', '%');
-  fclose(fid);
-catch e
-  if fid ~= -1, fclose(fid); end
-  rethrow(e);
-end
+persistent params; % we actually only need to read the parmeters file once and this will improve performances
 
+if isempty(params)
+    try
+        fid = fopen([path filesep 'imosParameters.txt'], 'rt');
+        if fid == -1, return; end
+        
+        params = textscan(fid, '%s%d%s%s%s%f%f%f%s', ...
+            'delimiter', ',', 'commentStyle', '%');
+        fclose(fid);
+    catch e
+        if fid ~= -1, fclose(fid); end
+        rethrow(e);
+    end
+end
 names          = params{1};
 cfCompliance   = params{2};
 standard_names = params{3};

@@ -64,7 +64,10 @@ if ~ischar(temp), error('temp must be a string'); end
 % matlab no-leading-underscore kludge
 if name(end) == '_', name = ['_', name(1:end-1)]; end
 
-t = '';
+persistent global_template;
+persistent var_templates;
+
+isGlobal = false;
 
 if strcmpi(temp, 'global')
     if strcmpi(mode, 'profile')
@@ -72,6 +75,7 @@ if strcmpi(temp, 'global')
     else
         temp = [temp '_attributes_timeSeries.txt'];
     end
+    isGlobal = true;
 else
     % let's handle the case temp is a parameter name and we have multiple 
     % same param distinguished by "_1", "_2", etc...
@@ -85,37 +89,61 @@ else
         end
     end
 
+    var = temp;
     temp = [temp '_attributes.txt'];
 end
 
 filepath = templateDir;
 if isempty(filepath) || ~exist(filepath, 'dir')
-  filepath = fullfile(pwd, 'NetCDF', 'template');
+    filepath = fullfile(pwd, 'NetCDF', 'template');
 end
 
 filepath = fullfile(filepath, temp);
-
-lines = {};
-fid = -1;
-try
-  fid = fopen(filepath, 'rt');
-  
-  if fid == -1, error(['could not open file ' filepath]); end
-  
-  lines = textscan(fid, '%s', 'Delimiter', '', 'CommentStyle', '%', 'BufSize', 12000);
-  lines = lines{1};
-  
-  fclose(fid);
-catch e
-  if fid ~= -1, fclose(fid); end
-  rethrow(e);
+        
+if isGlobal
+    if isempty(global_template)        
+        global_template = readTemplate(filepath);
+    end
+    
+    t = getTemplate(global_template, name);
+else
+    if isempty(var_templates)
+        var_templates.(var) = readTemplate(filepath);
+    else
+        if ~isfield(var_templates, var)
+            var_templates.(var) = readTemplate(filepath);
+        end
+    end
+    
+    t = getTemplate(var_templates.(var), name);
+end
 end
 
-% pull out the type, attribute name and value
-[~, type] = regexp(lines, ['^\s*(.*\S)\s*,\s*(.*' name ')\s*=\s*(.*\S)?\s*$'], 'match', 'tokens');
-type(cellfun('isempty', type)) = [];
-if ~isempty(type)
-    t = type{1}{1}{1};
+function t = getTemplate(template, name)
+    
+    % pull out the type, attribute name and value
+    [~, type] = regexp(template, ['^\s*(.*\S)\s*,\s*(.*' name ')\s*=\s*(.*\S)?\s*$'], 'match', 'tokens');
+    type(cellfun('isempty', type)) = [];
+    if ~isempty(type)
+        t = type{1}{1}{1};
+    else
+        t = '';
+    end
 end
 
-return;
+function lines = readTemplate(filepath)
+    try
+        fid = -1;
+        fid = fopen(filepath, 'rt');
+
+        if fid == -1, error(['could not open file ' filepath]); end
+
+        lines = textscan(fid, '%s', 'Delimiter', '', 'CommentStyle', '%', 'BufSize', 12000);
+        lines = lines{1};
+
+        fclose(fid);
+    catch e
+        if fid ~= -1, fclose(fid); end
+        rethrow(e);
+    end
+end
