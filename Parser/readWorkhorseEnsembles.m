@@ -113,8 +113,9 @@ clear idh ids;
 % every pair matching the ID numbers will be interpreted as an ensemble start;
 
 % number of bytes in ensemble (not including the 2 checksum bytes)
+[~, ~, cpuEndianness] = computer;
 bpe     = [data(idx(:)+2) data(idx(:)+3)]';
-nBytes  = bytecast(bpe(:), 'L', 'uint16');
+nBytes  = bytecast(bpe(:), 'L', 'uint16', cpuEndianness);
 clear bpe;
 % number of bytes in ensemble
 nLen = nBytes + 2;
@@ -128,7 +129,7 @@ nLen(oob)   = [];
 clear oob;
 
 % check sum is in last two bytes
-givenCrc = indexData(data, idx+nLen-2, idx+nLen-1, 'uint16')';
+givenCrc = indexData(data, idx+nLen-2, idx+nLen-1, 'uint16', cpuEndianness)';
 clear nLen;
 
 % could use indexData to recover data between idx and idx+nBytes-1
@@ -225,7 +226,7 @@ end
 nDataTypes = double(data(idx+5));
 
 % in each ensemble bytes 6:2*nDataTypes give offsets to data
-dataOffsets = indexData(data, idx+6, idx+6+2*nDataTypes-1, 'uint16');
+dataOffsets = indexData(data, idx+6, idx+6+2*nDataTypes-1, 'uint16', cpuEndianness);
 [i j] = size(dataOffsets);
 
 % create a big index matrix!
@@ -236,7 +237,7 @@ iNaN = isnan(IDX);
 IDXnoNan = IDX(~iNaN);
 
 % what type of sections do we have in each ensemble;
-sType = indexData(data, IDXnoNan(:), IDXnoNan(:)+1, 'uint16');
+sType = indexData(data, IDXnoNan(:), IDXnoNan(:)+1, 'uint16', cpuEndianness);
 
 iFixedLeader    = IDX(sType == 0);
 iVarLeader      = IDX(sType == 128);
@@ -249,33 +250,33 @@ iBTrack         = IDX(sType == 1536);
 %iMicroCat      = IDX(sType == 2048);
 
 % major change to PM code - ensembles is a scalar structure not cell array
-ensembles.fixedLeader       = parseFixedLeader(data, iFixedLeader);
-ensembles.variableLeader    = parseVariableLeader(data, iVarLeader);
+ensembles.fixedLeader       = parseFixedLeader(data, iFixedLeader, cpuEndianness);
+ensembles.variableLeader    = parseVariableLeader(data, iVarLeader, cpuEndianness);
 
 % subfields contain the vector time series
 nCells = ensembles.fixedLeader.numCells;
 
-ensembles.velocity          = parseVelocity(data, nCells, iVel);
+ensembles.velocity          = parseVelocity(data, nCells, iVel, cpuEndianness);
 
 if ~isempty(iCorr)
-    ensembles.corrMag       = parseX(data, nCells, 'corrMag', iCorr);
+    ensembles.corrMag       = parseX(data, nCells, 'corrMag', iCorr, cpuEndianness);
 end
 
 if ~isempty(iEcho)
-    ensembles.echoIntensity = parseX(data, nCells, 'echoIntensity', iEcho);
+    ensembles.echoIntensity = parseX(data, nCells, 'echoIntensity', iEcho, cpuEndianness);
 end
 
 if ~isempty(iPCgood)
-    ensembles.percentGood   = parseX(data, nCells, 'percentGood', iPCgood);
+    ensembles.percentGood   = parseX(data, nCells, 'percentGood', iPCgood, cpuEndianness);
 end
 
 if ~isempty(iBTrack)
-    ensembles.bottomTrack   = parseBottomTrack(data, iBTrack);
+    ensembles.bottomTrack   = parseBottomTrack(data, iBTrack, cpuEndianness);
 end
 
 end
 
-function dsub = indexData(data, istart, iend, dtype)
+function dsub = indexData(data, istart, iend, dtype, cpuEndianness)
 % function dsub = indexData(data, istart, iend, dtype)
 % vectorized data index algorithm, converts data between istart and iend
 % from binary 8bit data to dtype, where istart and iend can be vectors!
@@ -300,8 +301,8 @@ end
 datatst = data(IND(:));
 datatst(ibad) = 0;
 
-dsub = bytecast(datatst, 'L', dtype);
-ibad = bytecast(uint8(ibad(:)), 'L', dtype);
+dsub = bytecast(datatst, 'L', dtype, cpuEndianness);
+ibad = bytecast(uint8(ibad(:)), 'L', dtype, cpuEndianness);
 
 i = length(istart);
 j = length(dsub)/i;
@@ -313,7 +314,7 @@ dsub(ibad) = nan;
 
 end
 
-function [sect len] = parseFixedLeader( data, idx )
+function [sect len] = parseFixedLeader(data, idx, cpuEndianness)
 %PARSEFIXEDLEADER Parses a fixed leader section from an ADCP ensemble.
 %
 % Inputs:
@@ -332,7 +333,7 @@ idx=idx(1);
   sect = struct;
   len = 59;
   
-  sect.fixedLeaderId       = indexData(data, idx, idx+1, 'uint16')';
+  sect.fixedLeaderId       = indexData(data, idx, idx+1, 'uint16', cpuEndianness)';
   sect.cpuFirmwareVersion  = double(data(idx+2));
   sect.cpuFirmwareRevision = double(data(idx+3));
   LSB = dec2bin(double(data(idx+4)));
@@ -344,7 +345,7 @@ idx=idx(1);
   sect.lagLength           = double(data(idx+7));
   sect.numBeams            = double(data(idx+8));
   sect.numCells            = double(data(idx+9));
-  block                    = indexData(data, idx+10, idx+15, 'uint16')';
+  block                    = indexData(data, idx+10, idx+15, 'uint16', cpuEndianness)';
   sect.pingsPerEnsemble    = block(:,1);
   sect.depthCellLength     = block(:,2);
   sect.blankAfterTransmit  = block(:,3);
@@ -352,32 +353,32 @@ idx=idx(1);
   sect.lowCorrThresh       = double(data(idx+17));
   sect.numCodeReps         = double(data(idx+18));
   sect.gdMinimum           = double(data(idx+19));
-  sect.errVelocityMax      = indexData(data, idx+20, idx+21, 'uint16')';
+  sect.errVelocityMax      = indexData(data, idx+20, idx+21, 'uint16', cpuEndianness)';
   sect.tppMinutes          = double(data(idx+22));
   sect.tppSeconds          = double(data(idx+23));
   sect.tppHundredths       = double(data(idx+24));
   sect.coordinateTransform = double(data(idx+25));
-  block                    = indexData(data, idx+26, idx+29, 'int16')';
+  block                    = indexData(data, idx+26, idx+29, 'int16', cpuEndianness)';
   sect.headingAlignment    = block(:,1);
   sect.headingBias         = block(:,2);
   sect.sensorSource        = double(data(idx+30));
   sect.sensorsAvailable    = double(data(idx+31));
-  block                    = indexData(data, idx+32, idx+35, 'uint16')';
+  block                    = indexData(data, idx+32, idx+35, 'uint16', cpuEndianness)';
   sect.bin1Distance        = block(:,1);
   sect.xmitPulseLength     = block(:,2);
   sect.wpRefLayerAvgStart  = double(data(idx+36));
   sect.wpRefLayerAvgEnd    = double(data(idx+37));
   sect.falseTargetThresh   = double(data(idx+38));
   % byte 40 is spare
-  sect.transmitLagDistance = indexData(data, idx+40, idx+41, 'uint16')';
-  sect.cpuBoardSerialNo    = indexData(data, idx+42, idx+49, 'uint64')';
-  sect.systemBandwidth     = indexData(data, idx+50, idx+51, 'uint16')';
+  sect.transmitLagDistance = indexData(data, idx+40, idx+41, 'uint16', cpuEndianness)';
+  sect.cpuBoardSerialNo    = indexData(data, idx+42, idx+49, 'uint64', cpuEndianness)';
+  sect.systemBandwidth     = indexData(data, idx+50, idx+51, 'uint16', cpuEndianness)';
   sect.systemPower         = double(data(idx+52));
   % byte 54 is spare
   % following two fields are not used for Firmware before 16.30
   
   if (sect.cpuFirmwareVersion >= 16) && (sect.cpuFirmwareRevision >= 30)
-      sect.instSerialNumber    = num2str(uint32(bytecast(data(idx+54:idx+57), 'L', 'uint32')));
+      sect.instSerialNumber    = num2str(uint32(bytecast(data(idx+54:idx+57), 'L', 'uint32', cpuEndianness)));
       sect.beamAngle           = double(data(idx+58));
   else
       sect.instSerialNumber    = '';
@@ -385,7 +386,7 @@ idx=idx(1);
   end
 end
 
-function [sect len] = parseVariableLeader( data, idx )
+function [sect len] = parseVariableLeader( data, idx, cpuEndianness )
 %PARSEVARIABLELEADER Parses a variable leader section from an ADCP ensemble.
 %
 % Inputs:
@@ -400,7 +401,7 @@ function [sect len] = parseVariableLeader( data, idx )
   sect = struct;
   len = 65;
   
-  block                       = indexData(data,idx,idx+3, 'uint16')';
+  block                       = indexData(data,idx,idx+3, 'uint16', cpuEndianness)';
   sect.variableLeaderId       = block(:,1);
   sect.ensembleNumber         = block(:,2);
   sect.rtcYear                = double(data(idx+4));
@@ -411,16 +412,16 @@ function [sect len] = parseVariableLeader( data, idx )
   sect.rtcSecond              = double(data(idx+9));
   sect.rtcHundredths          = double(data(idx+10));
   sect.ensembleMsb            = double(data(idx+11));
-  block                       = indexData(data,idx+12,idx+19, 'uint16')';
+  block                       = indexData(data,idx+12,idx+19, 'uint16', cpuEndianness)';
   sect.bitResult              = block(:,1);
   sect.speedOfSound           = block(:,2);
   sect.depthOfTransducer      = block(:,3);
   sect.heading                = block(:,4);
-  block                       = indexData(data,idx+20,idx+23, 'int16')';
+  block                       = indexData(data,idx+20,idx+23, 'int16', cpuEndianness)';
   sect.pitch                  = block(:,1);
   sect.roll                   = block(:,2);
-  sect.salinity               = indexData(data,idx+24,idx+25, 'uint16')';
-  sect.temperature            = indexData(data,idx+26,idx+27, 'int16')';
+  sect.salinity               = indexData(data,idx+24,idx+25, 'uint16', cpuEndianness)';
+  sect.temperature            = indexData(data,idx+26,idx+27, 'int16', cpuEndianness)';
   sect.mptMinutes             = double(data(idx+28));
   sect.mptSeconds             = double(data(idx+29));
   sect.mptHundredths          = double(data(idx+30));
@@ -435,14 +436,14 @@ function [sect len] = parseVariableLeader( data, idx )
   sect.adcChannel5            = double(data(idx+39));
   sect.adcChannel6            = double(data(idx+40));
   sect.adcChannel7            = double(data(idx+41));
-  sect.errorStatusWord        = indexData(data,idx+42,idx+45, 'uint32')';
+  sect.errorStatusWord        = indexData(data,idx+42,idx+45, 'uint32', cpuEndianness)';
   % bytes 47-48 are spare
   % note pressure is technically supposed to be an unsigned integer so when
   % at surface negative values appear huge ~4 million dbar we'll read it in
   % as signed integer to avoid this but need to be careful if deploying
   % ADCP near centre of earth!
-  sect.pressure               = indexData(data,idx+48,idx+51, 'int32')';
-  sect.pressureSensorVariance = indexData(data,idx+52,idx+55, 'int32')';
+  sect.pressure               = indexData(data,idx+48,idx+51, 'int32', cpuEndianness)';
+  sect.pressureSensorVariance = indexData(data,idx+52,idx+55, 'int32', cpuEndianness)';
   % byte 57 is spare
   sect.y2kCentury             = double(data(idx+57));
   sect.y2kYear                = double(data(idx+58));
@@ -454,7 +455,7 @@ function [sect len] = parseVariableLeader( data, idx )
   sect.y2kHundredth           = double(data(idx+64));
 end
 
-function [sect len] = parseVelocity( data, numCells, idx )
+function [sect len] = parseVelocity( data, numCells, idx, cpuEndianness )
 %PARSEVELOCITY Parses a velocity section from an ADCP ensemble.
 %
 % Inputs:
@@ -471,11 +472,11 @@ function [sect len] = parseVelocity( data, numCells, idx )
   nBeams = 4;
   len = 2 + numCells * nBeams * 2; % 2 bytes per beam
   
-  sect.velocityId = indexData(data,idx,idx+1, 'uint16')';
+  sect.velocityId = indexData(data,idx,idx+1, 'uint16', cpuEndianness)';
   
   idx = idx + 2;
   
-  vels = indexData(data, idx, idx + 2*nBeams*numCells'-1, 'int16')';
+  vels = indexData(data, idx, idx + 2*nBeams*numCells'-1, 'int16', cpuEndianness)';
   s = size(vels);
   
   ibeam = 1:nBeams:s(2);
@@ -487,7 +488,7 @@ function [sect len] = parseVelocity( data, numCells, idx )
   
 end
 
-function [sect len] = parseX( data, numCells, name, idx )
+function [sect len] = parseX( data, numCells, name, idx, cpuEndianness )
 %PARSEX Parses one of the correlation magnitude, echo intensity or percent 
 % good sections from an ADCP ensemble. They all have the same format. 
 %
@@ -508,11 +509,11 @@ sect = struct;
 nBeams = 4;
 len = 2 + numCells * nBeams;
 
-sect.([name 'Id']) = indexData(data,idx,idx+1,'uint16');
+sect.([name 'Id']) = indexData(data,idx,idx+1,'uint16', cpuEndianness);
 
 idx = idx + 2;
 
-fields = indexData(data,idx,idx + nBeams*numCells'-1, 'uint8')';
+fields = indexData(data,idx,idx + nBeams*numCells'-1, 'uint8', cpuEndianness)';
 s = size(fields);
 ibeam = 1:nBeams:s(2);
 
@@ -523,7 +524,7 @@ sect.field4 = fields(:, ibeam+3);
     
 end
 
-function [sect length] = parseBottomTrack( data, idx )
+function [sect length] = parseBottomTrack( data, idx, cpuEndianness )
 %PARSEBOTTOMTRACK Parses a bottom track data section from an ADCP
 % ensemble.
 %
@@ -539,7 +540,7 @@ function [sect length] = parseBottomTrack( data, idx )
   sect = struct;
   length = 85;
   
-  block                       = indexData(data, idx, idx+5, 'uint16')';
+  block                       = indexData(data, idx, idx+5, 'uint16', cpuEndianness)';
   sect.bottomTrackId          = block(:,1);
   sect.btPingsPerEnsemble     = block(:,2);
   sect.btDelayBeforeReacquire = block(:,3);
@@ -547,9 +548,9 @@ function [sect length] = parseBottomTrack( data, idx )
   sect.btEvalAmpMin           = double(data(idx+7));
   sect.btPercentGoodMin       = double(data(idx+8));
   sect.btMode                 = double(data(idx+9));
-  sect.btErrVelMax            = indexData(data, idx+10, idx+11, 'uint16')';
+  sect.btErrVelMax            = indexData(data, idx+10, idx+11, 'uint16', cpuEndianness)';
   % bytes 13-16 are spare
-  block                       = indexData(data, idx+16, idx+31, 'uint16')';
+  block                       = indexData(data, idx+16, idx+31, 'uint16', cpuEndianness)';
   sect.btBeam1Range           = block(:,1);
   sect.btBeam2Range           = block(:,2);
   sect.btBeam3Range           = block(:,3);
@@ -570,11 +571,11 @@ function [sect length] = parseBottomTrack( data, idx )
   sect.btBeam2PercentGood     = double(data(idx+41));
   sect.btBeam3PercentGood     = double(data(idx+42));
   sect.btBeam4PercentGood     = double(data(idx+43));
-  block                       = indexData(data, idx+44, idx+49, 'uint16')';
+  block                       = indexData(data, idx+44, idx+49, 'uint16', cpuEndianness)';
   sect.btRefLayerMin          = block(:,1);
   sect.btRefLayerNear         = block(:,2);
   sect.btRefLayerFar          = block(:,3);
-  block                       = indexData(data, idx+50, idx+57, 'int16')';
+  block                       = indexData(data, idx+50, idx+57, 'int16', cpuEndianness)';
   sect.btBeam1RefLayerVel     = block(:,1);
   sect.btBeam2RefLayerVel     = block(:,2);
   sect.btBeam3RefLayerVel     = block(:,3);
@@ -591,7 +592,7 @@ function [sect length] = parseBottomTrack( data, idx )
   sect.btBeam2RefGood         = double(data(idx+67));
   sect.btBeam3RefGood         = double(data(idx+68));
   sect.btBeam4RefGood         = double(data(idx+69));
-  sect.btMaxDepth             = indexData(data, idx+70, idx+71, 'uint16')';
+  sect.btMaxDepth             = indexData(data, idx+70, idx+71, 'uint16', cpuEndianness)';
   sect.btBeam1RssiAmp         = double(data(idx+72));
   sect.btBeam2RssiAmp         = double(data(idx+73));
   sect.btBeam3RssiAmp         = double(data(idx+74));

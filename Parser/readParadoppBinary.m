@@ -90,19 +90,19 @@ function structures = readParadoppBinary( filename )
   %   user configuration
   %
   structures = {};
-  lastLen = 0;
+  [~, ~, cpuEndianness] = computer;
+  
   while dIdx < dataLen
     
-    [sect len] = readSection(filename, data, dIdx);
-    
-    if ~isempty(sect), structures{end+1} = sect; end
-    if ~isempty(len)
-        dIdx = dIdx + len;
-    else
-        return;
+    [sect, len] = readSection(filename, data, dIdx, cpuEndianness);
+    if ~isempty(sect)
+        structures{end+1} = sect; % no pre-allocation is still faster than allocating more than needed and then removing the excess
     end
-    lastLen = len;
+    
+    dIdx = dIdx + len; % if len is empty, then dIdx is going to be empty and will fail the while test
   end
+
+  return;
 end
 
 %
@@ -110,7 +110,7 @@ end
 % specified in the System integrator Manual.
 %
 
-function [sect off] = readSection(filename, data, idx)
+function [sect, off] = readSection(filename, data, idx, cpuEndianness)
 %READSECTION Reads the next data structure in the data array, starting at
 % the given index.
 %
@@ -125,30 +125,29 @@ function [sect off] = readSection(filename, data, idx)
   end
   
   sectType = data(idx+1);
-  sectLen  = 0;
   
   % read the section in
   switch sectType
-    case 0,   [sect len off] = readUserConfiguration       (data, idx);
-    case 1,   [sect len off] = readAquadoppVelocity        (data, idx);
-    case 2,   [sect len off] = readVectrinoDistance        (data, idx);
-    case 4,   [sect len off] = readHeadConfiguration       (data, idx);
-    case 5,   [sect len off] = readHardwareConfiguration   (data, idx);
-    case 6,   [sect len off] = readAquadoppDiagHeader      (data, idx);
-    case 16,  [sect len off] = readVectorVelocity          (data, idx);
-    case 17,  [sect len off] = readVectorSystem            (data, idx);
-    case 18,  [sect len off] = readVectorVelocityHeader    (data, idx);
-    case 32,  [sect len off] = readAwacVelocityProfile     (data, idx);
-    case 33,  [sect len off] = readAquadoppProfilerVelocity(data, idx);
-    case 36,  [sect len off] = readContinental             (data, idx);
-    case 43,  [sect len off] = readHRAquadoppProfile       (data, idx);
-    case 48,  [sect len off] = readAwacWaveData            (data, idx);
-    case 49,  [sect len off] = readAwacWaveHeader          (data, idx);
-    case 54,  [sect len off] = readAwacWaveData            (data, idx); % from what I've seen in data sets, 54 fits.
-    case 66,  [sect len off] = readAwacStageData           (data, idx);
-    case 80,  [sect len off] = readVectrinoVelocityHeader  (data, idx);
-    case 81,  [sect len off] = readVectrinoVelocity        (data, idx);
-    case 128, [sect len off] = readAquadoppDiagnostics     (data, idx);
+    case 0,   [sect, len, off] = readUserConfiguration       (data, idx, cpuEndianness);
+    case 1,   [sect, len, off] = readAquadoppVelocity        (data, idx, cpuEndianness);
+    case 2,   [sect, len, off] = readVectrinoDistance        (data, idx, cpuEndianness);
+    case 4,   [sect, len, off] = readHeadConfiguration       (data, idx, cpuEndianness);
+    case 5,   [sect, len, off] = readHardwareConfiguration   (data, idx, cpuEndianness);
+    case 6,   [sect, len, off] = readAquadoppDiagHeader      (data, idx, cpuEndianness);
+    case 16,  [sect, len, off] = readVectorVelocity          (data, idx, cpuEndianness);
+    case 17,  [sect, len, off] = readVectorSystem            (data, idx, cpuEndianness);
+    case 18,  [sect, len, off] = readVectorVelocityHeader    (data, idx, cpuEndianness);
+    case 32,  [sect, len, off] = readAwacVelocityProfile     (data, idx, cpuEndianness);
+    case 33,  [sect, len, off] = readAquadoppProfilerVelocity(data, idx, cpuEndianness);
+    case 36,  [sect, len, off] = readContinental             (data, idx, cpuEndianness);
+    case 43,  [sect, len, off] = readHRAquadoppProfile       (data, idx, cpuEndianness);
+    case 48,  [sect, len, off] = readAwacWaveData            (data, idx, cpuEndianness);
+    case 49,  [sect, len, off] = readAwacWaveHeader          (data, idx, cpuEndianness);
+    case 54,  [sect, len, off] = readAwacWaveData            (data, idx, cpuEndianness); % from what I've seen in data sets, 54 fits.
+    case 66,  [sect, len, off] = readAwacStageData           (data, idx, cpuEndianness);
+    case 80,  [sect, len, off] = readVectrinoVelocityHeader  (data, idx, cpuEndianness);
+    case 81,  [sect, len, off] = readVectrinoVelocity        (data, idx, cpuEndianness);
+    case 128, [sect, len, off] = readAquadoppDiagnostics     (data, idx, cpuEndianness);
   end
   
   if isempty(sect), return; end
@@ -169,55 +168,57 @@ function cd = readClockData(data, idx)
 %manual) and returns a matlab serial date.
 % 
 
-  minute = double(...
-    10*bitand(bitshift(data(idx  ), -4), 15) + bitand(data(idx  ), 15));
-  second = double(...
-    10*bitand(bitshift(data(idx+1), -4), 15) + bitand(data(idx+1), 15));
-  day    = double(...
-    10*bitand(bitshift(data(idx+2), -4), 15) + bitand(data(idx+2), 15));
-  hour   = double(...
-    10*bitand(bitshift(data(idx+3), -4), 15) + bitand(data(idx+3), 15));
-  year   = double(...
-    10*bitand(bitshift(data(idx+4), -4), 15) + bitand(data(idx+4), 15));
-  month  = double(...
-    10*bitand(bitshift(data(idx+5), -4), 15) + bitand(data(idx+5), 15));
+  data = data(idx:idx+5);
+  date = double(10*bitand(bitshift(data, -4), 15) + bitand(data, 15));
   
-  % pg 52 of system integrator manual. ugh
+  minute = date(1);
+  second = date(2);
+  day    = date(3);
+  hour   = date(4);
+  year   = date(5);
+  month  = date(6);
+  
+  % pg 52 of system integrator manual
   if year >= 90, year = year + 1900;
   else           year = year + 2000;
   end
   
-  cd = datenum(year, month, day, hour, minute, second);
+%   cd = datenum(year, month, day, hour, minute, second);
+  cd = datenummx(year, month, day, hour, minute, second); % direct access to MEX function, faster
 end
 
-function [sect len off] = readHardwareConfiguration(data, idx)
+function [sect, len, off] = readHardwareConfiguration(data, idx, cpuEndianness)
 %READHARDWARECONFIGURATION Reads a hardware configuration section (pg 29-30
 % of system integrator manual).
 %
   sect = struct;
   len = 48;
   off = len;
-
+  
   sect.Sync       = data(idx);
   sect.Id         = data(idx+1);
-  sect.Size       = bytecast(data(idx+2:idx+3), 'L', 'uint16');
+  sect.Size       = data(idx+2:idx+3); % uint16
   sect.SerialNo   = data(idx+4:idx+17);
   sect.SerialNo   = char(sect.SerialNo(sect.SerialNo ~= 0)');
-  block           = bytecast(data(idx+18:idx+29), 'L', 'uint16');
-  sect.Config     = block(1);
-  sect.Frequency  = block(2);
-  sect.PICversion = block(3);
-  sect.HWrevision = block(4);
-  sect.RecSize    = block(5);
-  sect.Status     = block(6);
+  block           = data(idx+18:idx+29); % uint16
   % bytes 30-41 are free
   sect.FWversion  = data(idx+42:idx+45);
   sect.FWversion  = char(sect.FWversion(sect.FWversion ~= 0)');
-  sect.Checksum   = bytecast(data(idx+46:idx+47), 'L', 'uint16');
-
+  sect.Checksum   = data(idx+46:idx+47); % uint16
+  
+  % let's process uint16s in one call
+  blocks = bytecast([sect.Size; block; sect.Checksum], 'L', 'uint16', cpuEndianness);
+  sect.Size       = blocks(1);
+  sect.Config     = blocks(2);
+  sect.Frequency  = blocks(3);
+  sect.PICversion = blocks(4);
+  sect.HWrevision = blocks(5);
+  sect.RecSize    = blocks(6);
+  sect.Status     = blocks(7);
+  sect.Checksum   = blocks(8);
 end
 
-function [sect len off] = readHeadConfiguration(data, idx)
+function [sect, len, off] = readHeadConfiguration(data, idx, cpuEndianness)
 %READHEADCONFIGURATION Reads a head configuration section (pg 30 of system 
 % integrator manual).
 %
@@ -227,91 +228,98 @@ function [sect len off] = readHeadConfiguration(data, idx)
 
   sect.Sync      = data(idx);
   sect.Id        = data(idx+1);
-  block          = bytecast(data(idx+2:idx+9), 'L', 'uint16');
-  sect.Size      = block(1);
-  sect.Config    = block(2);
-  sect.Frequency = block(3);
-  sect.Type      = block(4);
+  block1         = data(idx+2:idx+9);  % uint16
   sect.SerialNo  = data(idx+10:idx+21);
   sect.SerialNo  = char(sect.SerialNo(sect.SerialNo ~= 0)');
   sect.System    = 0; % 176 bytes; not sure what's in them
   % bytes 198-219 are free
-  block          = bytecast(data(idx+220:idx+223), 'L', 'uint16');
-  sect.NBeams    = block(1);
-  sect.Checksum  = block(2);
-
+  block2         = data(idx+220:idx+223);  % uint16
+  
+  % let's process uint16s in one call
+  blocks = bytecast([block1; block2], 'L', 'uint16', cpuEndianness);
+  sect.Size      = blocks(1);
+  sect.Config    = blocks(2);
+  sect.Frequency = blocks(3);
+  sect.Type      = blocks(4);
+  sect.NBeams    = blocks(5);
+  sect.Checksum  = blocks(6);
+  
 end
 
-function [sect len off] = readUserConfiguration(data, idx)
+function [sect, len, off] = readUserConfiguration(data, idx, cpuEndianness)
 %readUserConfiguration Reads a user configuration section (pg 30-32 of
 % system integrator manual).
 %
   sect = struct;
   len = 512;
   off = len;
-  
+
   sect.Sync           = data(idx);
   sect.Id             = data(idx+1);
-  block               = bytecast(data(idx+2:idx+39), 'L', 'uint16');
-  sect.Size           = block(1);
-  sect.T1             = block(2);
-  sect.T2             = block(3);
-  sect.T3             = block(4);
-  sect.T4             = block(5);
-  sect.T5             = block(6);
-  sect.NPings         = block(7);
-  sect.AvgInterval    = block(8);
-  sect.NBeams         = block(9);
-  sect.TimCtrlReg     = block(10);
-  sect.PwrCtrlReg     = block(11);
-  sect.A1_1           = block(12);
-  sect.B0_1           = block(13);
-  sect.B1_1           = block(14);
-  sect.CompassUpdRate = block(15);
-  sect.CoordSystem    = block(16);
-  sect.NBins          = block(17);
-  sect.BinLength      = block(18);
-  sect.MeasInterval   = block(19);
+  block1              = data(idx+2:idx+39);  % uint16
   sect.DeployName     = data(idx+40:idx+45);
   sect.DeployName     = char(sect.DeployName(sect.DeployName ~= 0)');
-  sect.WrapMode       = bytecast(data(idx+46:idx+47), 'L', 'uint16');
+  sect.WrapMode       = data(idx+46:idx+47);  % uint16
   sect.clockDeploy    = readClockData(data, idx+48);
-  sect.DiagInterval   = bytecast(data(idx+54:idx+57), 'L', 'uint32');
-  block               = bytecast(data(idx+58:idx+73), 'L', 'uint16');
-  sect.Mode           = block(1);
-  sect.AdjSoundSpeed  = block(2);
-  sect.NSampDiag      = block(3);
-  sect.NBeamsCellDiag = block(4);
-  sect.NPingsDiag     = block(5);
-  sect.ModeTest       = block(6);
-  sect.AnalnAddr      = block(7);
-  sect.SWVersion      = block(8);
+  sect.DiagInterval   = bytecast(data(idx+54:idx+57), 'L', 'uint32', cpuEndianness);
+  block2              = data(idx+58:idx+73); % uint16
   % bytes 74-75 are spare
   sect.VelAdjTable    = 0; % 180 bytes; not sure what to do with them
   sect.Comments       = data(idx+256:idx+435);
   sect.Comments       = char(sect.Comments(sect.Comments ~= 0)');
-  block               = bytecast(data(idx+436:idx+463), 'L', 'uint16');
-  sect.WMMode         = block(1);
-  sect.DynPercPos     = block(2);
-  sect.WT1            = block(3);
-  sect.WT2            = block(4);
-  sect.WT3            = block(5);
-  sect.NSamp          = block(6);
-  sect.A1_2           = block(7);
-  sect.B0_2           = block(8);
-  sect.B1_2           = block(9);
-  % bytes 454-455 are spare
-  sect.AnaOutScale    = block(11);
-  sect.CorrThresh     = block(12);
-  % bytes 460-461 are spare
-  sect.TiLag2         = block(14);
+  block3              = data(idx+436:idx+463); % uint16
   % bytes 464-493 are spare
   sect.QualConst      = 0; % 16 bytes
-  sect.Checksum       = bytecast(data(idx+510:idx+511), 'L', 'uint16');
+  sect.Checksum       = data(idx+510:idx+511); % uint16
 
+  % let's process uint16s in one call
+  blocks = bytecast([block1; sect.WrapMode; block2; block3; sect.Checksum], 'L', 'uint16', cpuEndianness);
+  sect.Size           = blocks(1);
+  sect.T1             = blocks(2);
+  sect.T2             = blocks(3);
+  sect.T3             = blocks(4);
+  sect.T4             = blocks(5);
+  sect.T5             = blocks(6);
+  sect.NPings         = blocks(7);
+  sect.AvgInterval    = blocks(8);
+  sect.NBeams         = blocks(9);
+  sect.TimCtrlReg     = blocks(10);
+  sect.PwrCtrlReg     = blocks(11);
+  sect.A1_1           = blocks(12);
+  sect.B0_1           = blocks(13);
+  sect.B1_1           = blocks(14);
+  sect.CompassUpdRate = blocks(15);
+  sect.CoordSystem    = blocks(16);
+  sect.NBins          = blocks(17);
+  sect.BinLength      = blocks(18);
+  sect.MeasInterval   = blocks(19);
+  sect.WrapMode       = blocks(20);
+  sect.Mode           = blocks(21);
+  sect.AdjSoundSpeed  = blocks(22);
+  sect.NSampDiag      = blocks(23);
+  sect.NBeamsCellDiag = blocks(24);
+  sect.NPingsDiag     = blocks(25);
+  sect.ModeTest       = blocks(26);
+  sect.AnalnAddr      = blocks(27);
+  sect.SWVersion      = blocks(28);
+  sect.WMMode         = blocks(29);
+  sect.DynPercPos     = blocks(30);
+  sect.WT1            = blocks(31);
+  sect.WT2            = blocks(32);
+  sect.WT3            = blocks(33);
+  sect.NSamp          = blocks(34);
+  sect.A1_2           = blocks(35);
+  sect.B0_2           = blocks(36);
+  sect.B1_2           = blocks(37);
+  % bytes 454-455 are spare
+  sect.AnaOutScale    = blocks(39);
+  sect.CorrThresh     = blocks(40);
+  % bytes 460-461 are spare
+  sect.TiLag2         = blocks(42);
+  sect.Checksum       = blocks(43);
 end
 
-function [sect len off] = readAquadoppVelocity(data, idx)
+function [sect, len, off] = readAquadoppVelocity(data, idx, cpuEndianness)
 %READAQUADOPPVELOCITY Reads an Aquadopp velocity data section (pg 33 of 
 % system integrator manual).
 %
@@ -321,38 +329,50 @@ function [sect len off] = readAquadoppVelocity(data, idx)
   
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
-  sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
+  sect.Size        = data(idx+2:idx+3); % uint16
   sect.Time        = readClockData(data, idx+4); 
   % !!! Heading, pitch and roll can be negative => signed integer
-  block            = bytecast(data(idx+10:idx+23), 'L', 'int16');
-  sect.Error       = block(1);
-  sect.Analn1      = block(2);
-  sect.Battery     = block(3);
-  sect.Analn2      = block(4);
-  sect.Heading     = block(5);
-  sect.Pitch       = block(6);
-  sect.Roll        = block(7);
+  block2           = data(idx+10:idx+23); % int16
   
-  sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8');
+  sect.PressureMSB = data(idx+24); % uint8
   sect.Status      = data(idx+25);
   
-  block            = bytecast(data(idx+26:idx+29), 'L', 'uint16');
-  sect.PressureLSW = block(1);
-  sect.Temperature = block(2);
+  block1            = data(idx+26:idx+29); % uint16
   % !!! velocity can be negative
-  block            = bytecast(data(idx+30:idx+35), 'L', 'int16');
-  sect.Vel1        = block(1);
-  sect.Vel2        = block(2);
-  sect.Vel3        = block(3);
-  sect.Amp1        = bytecast(data(idx+36), 'L', 'uint8');
-  sect.Amp2        = bytecast(data(idx+37), 'L', 'uint8');
-  sect.Amp3        = bytecast(data(idx+38), 'L', 'uint8');
-  sect.Fill        = bytecast(data(idx+39), 'L', 'uint8');
-  sect.Checksum    = bytecast(data(idx+40:idx+41), 'L', 'uint16');
-
+  block3           = data(idx+30:idx+35); % int16
+  block4           = data(idx+36:idx+39); % uint8
+  sect.Checksum    = data(idx+40:idx+41); % uint16
+  
+  % let's process uint16s in one call
+  blocks = bytecast([sect.Size; block1; sect.Checksum], 'L', 'uint16', cpuEndianness);
+  sect.Size        = blocks(1);
+  sect.PressureLSW = blocks(2);
+  sect.Temperature = blocks(3);
+  sect.Checksum    = blocks(4);
+  
+  % let's process int16s in one call
+  blocks = bytecast([block2; block3], 'L', 'int16', cpuEndianness);
+  sect.Error       = blocks(1);
+  sect.Analn1      = blocks(2);
+  sect.Battery     = blocks(3);
+  sect.Analn2      = blocks(4);
+  sect.Heading     = blocks(5);
+  sect.Pitch       = blocks(6);
+  sect.Roll        = blocks(7);
+  sect.Vel1        = blocks(8);
+  sect.Vel2        = blocks(9);
+  sect.Vel3        = blocks(10);
+  
+  % let's process uint8s in one call
+  blocks = bytecast([sect.PressureMSB; block4], 'L', 'uint8', cpuEndianness);
+  sect.PressureMSB = blocks(1);
+  sect.Amp1        = blocks(2);
+  sect.Amp2        = blocks(3);
+  sect.Amp3        = blocks(4);
+  sect.Fill        = blocks(5);
 end
 
-function [sect len off] = readAquadoppDiagHeader(data, idx)
+function [sect, len, off] = readAquadoppDiagHeader(data, idx, cpuEndianness)
 %READAQUADOPPDIAGHEADER Reads an Aquadopp diagnostics header section (pg 34
 % of system integrator manual).
 %
@@ -362,36 +382,44 @@ function [sect len off] = readAquadoppDiagHeader(data, idx)
   
   sect.Sync      = data(idx);
   sect.Id        = data(idx+1);
-  block          = bytecast(data(idx+2:idx+7), 'L', 'uint16');
-  sect.Size      = block(1);
-  sect.Records   = block(2);
-  sect.Cell      = block(3);
-  sect.Noise1    = bytecast(data(idx+8), 'L', 'uint8');
-  sect.Noise2    = bytecast(data(idx+9), 'L', 'uint8');
-  sect.Noise3    = bytecast(data(idx+10), 'L', 'uint8');
-  sect.Noise4    = bytecast(data(idx+11), 'L', 'uint8');
-  block          = bytecast(data(idx+12:idx+27), 'L', 'uint16');
-  sect.ProcMagn1 = block(1);
-  sect.ProcMagn2 = block(2);
-  sect.ProcMagn3 = block(3);
-  sect.ProcMagn4 = block(4);
-  sect.Distance1 = block(5);
-  sect.Distance2 = block(6);
-  sect.Distance3 = block(7);
-  sect.Distance4 = block(8);
+  block1         = data(idx+2:idx+7); % uint16
+  block3         = data(idx+8:idx+11); % uint8
+  block2         = data(idx+12:idx+27); % uint16
   % bytes 28-33 are spare
-  sect.Checksum  = bytecast(data(idx+34:idx+35), 'L', 'uint16');
+  sect.Checksum  = data(idx+34:idx+35);
+  
+  % let's process uint16s in one call
+  blocks = bytecast([block1; block2; sect.Checksum], 'L', 'uint16', cpuEndianness);
+  sect.Size      = blocks(1);
+  sect.Records   = blocks(2);
+  sect.Cell      = blocks(3);
+  sect.ProcMagn1 = blocks(4);
+  sect.ProcMagn2 = blocks(5);
+  sect.ProcMagn3 = blocks(6);
+  sect.ProcMagn4 = blocks(7);
+  sect.Distance1 = blocks(8);
+  sect.Distance2 = blocks(9);
+  sect.Distance3 = blocks(10);
+  sect.Distance4 = blocks(11);
+  sect.Checksum  = blocks(12);
+  
+  % let's process uint8s in one call
+  blocks = bytecast(block3, 'L', 'uint8', cpuEndianness);
+  sect.Noise1    = blocks(1);
+  sect.Noise2    = blocks(2);
+  sect.Noise3    = blocks(3);
+  sect.Noise4    = blocks(4);
 end
 
-function [sect len off] = readAquadoppDiagnostics(data, idx)
+function [sect, len, off] = readAquadoppDiagnostics(data, idx, cpuEndianness)
 %READAQUADOPPDIAGNOSTICS Reads an Aquadopp diagnostics data section (pg 24
 % of system integrator manual).
 %
   % same structure as velocity section
-  [sect len off] = readAquadoppVelocity(data, idx);
+  [sect, len, off] = readAquadoppVelocity(data, idx, cpuEndianness);
 end
 
-function [sect len off] = readVectorVelocityHeader(data, idx)
+function [sect, len, off] = readVectorVelocityHeader(data, idx, cpuEndianness)
 %READVECTORVELOCITYHEADER Reads a Vector velocity data header section (pg 
 % 35 of system integrator manual).
 %
@@ -401,22 +429,32 @@ function [sect len off] = readVectorVelocityHeader(data, idx)
   
   sect.Sync         = data(idx);
   sect.Id           = data(idx+1);
-  sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16');
+  sect.Size         = data(idx+2:idx+3); % uint16
   sect.Time         = readClockData(data, idx+4);
-  sect.NRecords     = bytecast(data(idx+10:idx+11), 'L', 'uint16');
-  sect.Noise1       = bytecast(data(idx+12), 'L', 'uint8');
-  sect.Noise2       = bytecast(data(idx+13), 'L', 'uint8');
-  sect.Noise3       = bytecast(data(idx+14), 'L', 'uint8');
-  sect.Noise4       = bytecast(data(idx+15), 'L', 'uint8');
-  sect.Correlation1 = bytecast(data(idx+16), 'L', 'uint8');
-  sect.Correlation2 = bytecast(data(idx+17), 'L', 'uint8');
-  sect.Correlation3 = bytecast(data(idx+18), 'L', 'uint8');
-  sect.Correlation4 = bytecast(data(idx+19), 'L', 'uint8');
+  sect.NRecords     = data(idx+10:idx+11); % uint16
+  block             = data(idx+12:idx+19); % uint8
   % bytes 20-39 are spare
-  sect.Checksum     = bytecast(data(idx+40:idx+41), 'L', 'uint16');
+  sect.Checksum     = data(idx+40:idx+41); % uint16
+  
+  % let's process uint16s in one call
+  blocks = bytecast([sect.Size; sect.NRecords; sect.Checksum], 'L', 'uint16', cpuEndianness);
+  sect.Size     = blocks(1);
+  sect.NRecords = blocks(2);
+  sect.Checksum = blocks(3);
+  
+  % let's process uint8s in one call
+  blocks = bytecast(block, 'L', 'uint8', cpuEndianness);
+  sect.Noise1       = blocks(1);
+  sect.Noise2       = blocks(2);
+  sect.Noise3       = blocks(3);
+  sect.Noise4       = blocks(4);
+  sect.Correlation1 = blocks(5);
+  sect.Correlation2 = blocks(6);
+  sect.Correlation3 = blocks(7);
+  sect.Correlation4 = blocks(8);
 end
 
-function [sect len off] = readVectorVelocity(data, idx)
+function [sect, len, off] = readVectorVelocity(data, idx, cpuEndianness)
 %READVECTORVELOCITY Reads a vector velocity data section (pg 35 of system
 % integrator manual).
 %
@@ -426,28 +464,37 @@ function [sect len off] = readVectorVelocity(data, idx)
   
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
-  sect.Analn2LSB   = bytecast(data(idx+2), 'L', 'uint8');
-  sect.Count       = bytecast(data(idx+3), 'L', 'uint8');
-  sect.PressureMSB = bytecast(data(idx+4), 'L', 'uint8');
-  sect.Analn2MSB   = bytecast(data(idx+5), 'L', 'uint8');
-  block            = bytecast(data(idx+6:idx+9), 'L', 'uint16');
-  sect.PressureLSW = block(1);
-  sect.Analn1      = block(2);
+  block1           = data(idx+2:idx+5); % uint8
+  block            = data(idx+6:idx+9); % uint16
   % !!! velocities can be negative
-  block            = bytecast(data(idx+10:idx+15), 'L', 'int16');
-  sect.VelB1       = block(1);
-  sect.VelB2       = block(2);
-  sect.VelB3       = block(3);
-  sect.AmpB1       = bytecast(data(idx+16), 'L', 'uint8');
-  sect.AmpB2       = bytecast(data(idx+17), 'L', 'uint8');
-  sect.AmpB3       = bytecast(data(idx+18), 'L', 'uint8');
-  sect.CorrB1      = bytecast(data(idx+19), 'L', 'uint8');
-  sect.CorrB2      = bytecast(data(idx+20), 'L', 'uint8');
-  sect.CorrB3      = bytecast(data(idx+21), 'L', 'uint8');
-  sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16');
+  block2           = bytecast(data(idx+10:idx+15), 'L', 'int16', cpuEndianness);
+  sect.VelB1       = block2(1);
+  sect.VelB2       = block2(2);
+  sect.VelB3       = block2(3);
+  block3           = data(idx+16:idx+21); % uint8
+  sect.Checksum    = data(idx+22:idx+23); % uint16
+  
+  % let's process uint16s in one call
+  blocks = bytecast([block; sect.Checksum], 'L', 'uint16', cpuEndianness);
+  sect.PressureLSW = blocks(1);
+  sect.Analn1      = blocks(2);
+  sect.Checksum    = blocks(3);
+  
+  % let's process uint8s in one call
+  blocks = bytecast([block1; block3], 'L', 'uint8', cpuEndianness);
+  sect.Analn2LSB   = blocks(1);
+  sect.Count       = blocks(2);
+  sect.PressureMSB = blocks(3);
+  sect.Analn2MSB   = blocks(4);
+  sect.AmpB1       = blocks(5);
+  sect.AmpB2       = blocks(6);
+  sect.AmpB3       = blocks(7);
+  sect.CorrB1      = blocks(8);
+  sect.CorrB2      = blocks(9);
+  sect.CorrB3      = blocks(10);
 end
 
-function [sect len off] = readVectorSystem(data, idx)
+function [sect, len, off] = readVectorSystem(data, idx, cpuEndianness)
 %READVECTORSYSTEM Reads a vector system data section (pg 36 of system
 % integrator manual).
 %
@@ -457,10 +504,10 @@ function [sect len off] = readVectorSystem(data, idx)
   
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
-  sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
+  sect.Size        = data(idx+2:idx+3); % uint16
   sect.Time        = readClockData(data, idx+4);
   % !!! Heading, pitch and roll can be negative
-  block            = bytecast(data(idx+10:idx+21), 'L', 'int16');
+  block            = bytecast(data(idx+10:idx+21), 'L', 'int16', cpuEndianness);
   sect.Battery     = block(1);
   sect.SoundSpeed  = block(2);
   sect.Heading     = block(3);
@@ -469,39 +516,40 @@ function [sect len off] = readVectorSystem(data, idx)
   sect.Temperature = block(6);
   sect.Error       = data(idx+22);
   sect.Status      = data(idx+23);
-  block            = bytecast(data(idx+24:idx+27), 'L', 'uint16');
-  sect.Analn       = block(1);
-  sect.Checksum    = block(2);
+  block            = data(idx+24:idx+27); % uint16
+  
+  % let's process uint16s in one call
+  blocks = bytecast([sect.Size; block], 'L', 'uint16', cpuEndianness);
+  sect.Size        = blocks(1);
+  sect.Analn       = blocks(2);
+  sect.Checksum    = blocks(3);
 end
 
-function [sect len off] = readAquadoppProfilerVelocity(data, idx)
+function [sect, len, off] = readAquadoppProfilerVelocity(data, idx, cpuEndianness)
 %READAQUADOPPPROFILERVELOCITY Reads an Aquadopp Profiler velocity data
 % section (pg 37 of system integrator manual).
 %
   sect = struct;
-  len = 0;       % length is variable; determined later
   
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
-  sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
-  len              = sect.Size * 2;
-  off              = len;
+  sect.Size        = data(idx+2:idx+3); % uint16
   sect.Time        = readClockData(data, idx+4);
   % !!! Heading, pitch and roll can be negative
-  block            = bytecast(data(idx+10:idx+23), 'L', 'int16');
-  sect.Error       = block(1);
-  sect.Analn1      = block(2);
-  sect.Battery     = block(3);
-  sect.Analn2      = block(4);
-  sect.Heading     = block(5);
-  sect.Pitch       = block(6);
-  sect.Roll        = block(7);
+  block1           = data(idx+10:idx+23); % int16
   
-  sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8');
+  sect.PressureMSB = data(idx+24); % uint8
   sect.Status      = data(idx+25);
-  block            = bytecast(data(idx+26:idx+29), 'L', 'uint16');
-  sect.PressureLSW = block(1);
-  sect.Temperature = block(2);
+  block2           = data(idx+26:idx+29); % uint16
+
+  % let's process uint16s in one call
+  blocks = bytecast([sect.Size; block2], 'L', 'uint16', cpuEndianness);
+  sect.Size        = blocks(1);
+  sect.PressureLSW = blocks(2);
+  sect.Temperature = blocks(3);
+  
+  len              = sect.Size * 2;
+  off              = len;
   
   % calculate number of cells from structure size 
   % (* 2 because size is specified in 16 bit words)
@@ -520,52 +568,157 @@ function [sect len off] = readAquadoppProfilerVelocity(data, idx)
   if mod(nCells, 2), csOff = csOff + 1; end
 
   % !!! velocity can be negative
-  sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16');
-  sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16');
-  sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16');
-  sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8');
-  sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8');
-  sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8');
+  block3 = data(vel1Off:vel3Off+nCells*2-1); % int16
+  block4 = data(amp1Off:amp3Off+nCells-1); % uint8
 
-  sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
-
+  sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
+  
+  % let's process int16s in one call
+  blocks = bytecast([block1; block3], 'L', 'int16', cpuEndianness);
+  sect.Error       = blocks(1);
+  sect.Analn1      = blocks(2);
+  sect.Battery     = blocks(3);
+  sect.Analn2      = blocks(4);
+  sect.Heading     = blocks(5);
+  sect.Pitch       = blocks(6);
+  sect.Roll        = blocks(7);
+  sect.Vel1        = blocks(8          :8+nCells  -1);
+  sect.Vel2        = blocks(8+nCells   :8+nCells*2-1);
+  sect.Vel3        = blocks(8+nCells*2 :8+nCells*3-1);
+  
+  % let's process uint8s in one call
+  blocks = bytecast([sect.PressureMSB; block4], 'L', 'uint8', cpuEndianness);
+  sect.PressureMSB = blocks(1);
+  sect.Amp1        = blocks(2           :2+nCells  -1);
+  sect.Amp2        = blocks(2+nCells    :2+nCells*2-1);
+  sect.Amp3        = blocks(2+nCells*2  :2+nCells*3-1);
+  
 end
 
-function [sect len off] = readHRAquadoppProfile(data, idx)
+function [sect, len, off] = readHRAquadoppProfile(data, idx, cpuEndianness)
 %READHRAQUADOPPPROFILERVELOCITY Reads a HR Aquadopp Profile data section
 % (pg 38 of system integrator manual).
 %
   sect = struct;
-  len = 0;
+  
+%   sect.Sync         = data(idx);
+%   sect.Id           = data(idx+1);
+%   sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16');
+%   len               = sect.Size * 2;
+%   off               = len;
+%   sect.Time         = readClockData(data, idx+4);
+%   % !!! Heading, pitch and roll can be negative
+%   block             = bytecast(data(idx+10:idx+23), 'L', 'int16');
+%   sect.Milliseconds = block(1);
+%   sect.Error        = block(2);
+%   sect.Battery      = block(3);
+%   sect.Analn2_1     = block(4);
+%   sect.Heading      = block(5);
+%   sect.Pitch        = block(6);
+%   sect.Roll         = block(7);
+%   sect.PressureMSB  = bytecast(data(idx+24), 'L', 'uint8');
+%   % byte 25 is a fill byte
+%   block             = bytecast(data(idx+26:idx+33), 'L', 'uint16');
+%   sect.PressureLSW  = block(1);
+%   sect.Temperature  = block(2);
+%   sect.Analn1       = block(3);
+%   sect.Analn2_2     = block(4);
+%   sect.Beams        = bytecast(data(idx+34), 'L', 'uint8');
+%   sect.Cells        = bytecast(data(idx+35), 'L', 'uint8');
+%   sect.VelLag2      = bytecast(data(idx+36:idx+41), 'L', 'uint16');
+%   block             = bytecast(data(idx+42:idx+47), 'L', 'uint8');
+%   sect.AmpLag2      = block(1:3);
+%   sect.CorrLag2     = block(4:6);
+%   % bytes 48-53 are spare  
+%   velOff  = idx     + 54;
+%   ampOff  = velOff  + sect.Beams*sect.Cells*2;
+%   corrOff = ampOff  + sect.Beams*sect.Cells;
+%   csOff   = corrOff + sect.Beams*sect.Cells;
+%   
+%   % fill byte if num cells is odd
+%   if mod(nCells, 2), csOff = csOff + 1; end
+%   
+%   % velocity data
+%   for k = 1:sect.Beams
+%     
+%     sOff = velOff + (k-1) * (sect.Cells * 2);
+%     eOff = sOff + (sect.Cells * 2)-1;
+%     % !!! velocity can be negative
+%     sect.(['Vel' num2str(k)]) = ...
+%       bytecast(data(sOff:eOff), 'L', 'int16');
+%   end
+%   
+%   % amplitude data
+%   for k = 1:sect.Beams
+%     
+%     sOff = ampOff + (k-1) * (sect.Cells);
+%     eOff = sOff + (sect.Cells * 2)-1;
+%     
+%     sect.(['Amp' num2str(k)]) = ...
+%       bytecast(data(sOff:eOff), 'L', 'uint8');
+%   end
+%   
+%   % correlation data
+%   for k = 1:sect.Beams
+%     
+%     sOff = corrOff + (k-1) * (sect.Cells);
+%     eOff = sOff + (sect.Cells * 2)-1;
+%     
+%     sect.(['Corr' num2str(k)]) = ...
+%       bytecast(data(sOff:eOff), 'L', 'uint8');
+%   end
+%   
+%   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
 
+  % should be faster this way but need to validate results against previous
+  % algo above
+  
   sect.Sync         = data(idx);
   sect.Id           = data(idx+1);
-  sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16');
-  len               = sect.Size * 2;
-  off               = len;
+  sect.Size         = data(idx+2:idx+3); % uint16
+  
   sect.Time         = readClockData(data, idx+4);
   % !!! Heading, pitch and roll can be negative
-  block             = bytecast(data(idx+10:idx+23), 'L', 'int16');
-  sect.Milliseconds = block(1);
-  sect.Error        = block(2);
-  sect.Battery      = block(3);
-  sect.Analn2_1     = block(4);
-  sect.Heading      = block(5);
-  sect.Pitch        = block(6);
-  sect.Roll         = block(7);
-  sect.PressureMSB  = bytecast(data(idx+24), 'L', 'uint8');
+  block1            = data(idx+10:idx+23); % int16
+  sect.PressureMSB  = data(idx+24); % uint8
   % byte 25 is a fill byte
-  block             = bytecast(data(idx+26:idx+33), 'L', 'uint16');
-  sect.PressureLSW  = block(1);
-  sect.Temperature  = block(2);
-  sect.Analn1       = block(3);
-  sect.Analn2_2     = block(4);
-  sect.Beams        = bytecast(data(idx+34), 'L', 'uint8');
-  sect.Cells        = bytecast(data(idx+35), 'L', 'uint8');
-  sect.VelLag2      = bytecast(data(idx+36:idx+41), 'L', 'uint16');
-  block             = bytecast(data(idx+42:idx+47), 'L', 'uint8');
-  sect.AmpLag2      = block(1:3);
-  sect.CorrLag2     = block(4:6);
+  block2            = data(idx+26:idx+33); % uint16
+  
+  sect.Beams        = data(idx+34); % uint8
+  sect.Cells        = data(idx+35); % uint8
+  sect.VelLag2      = data(idx+36:idx+41); % uint16
+  block3            = data(idx+42:idx+47); % uint8
+
+  % let's process uint16s in one call
+  blocks = bytecast([sect.Size; block2; sect.VelLag2], 'L', 'uint16', cpuEndianness);
+  sect.Size         = blocks(1);
+  sect.PressureLSW  = blocks(2);
+  sect.Temperature  = blocks(3);
+  sect.Analn1       = blocks(4);
+  sect.Analn2_2     = blocks(5);
+  sect.VelLag2      = blocks(6);
+  
+  len              = sect.Size * 2;
+  off              = len;
+  
+  % let's process int16s in one call
+  blocks = bytecast(block1, 'L', 'int16', cpuEndianness);
+  sect.Milliseconds = blocks(1);
+  sect.Error        = blocks(2);
+  sect.Battery      = blocks(3);
+  sect.Analn2_1     = blocks(4);
+  sect.Heading      = blocks(5);
+  sect.Pitch        = blocks(6);
+  sect.Roll         = blocks(7);
+  
+  % let's process uint8s in one call
+  blocks = bytecast([sect.PressureMSB; sect.Beams; sect.Cells; block3], 'L', 'uint8', cpuEndianness);
+  sect.PressureMSB  = blocks(1);
+  sect.Beams        = blocks(2);
+  sect.Cells        = blocks(3);
+  sect.AmpLag2      = blocks(4:6);
+  sect.CorrLag2     = blocks(7:9);
+  
   % bytes 48-53 are spare  
   velOff  = idx     + 54;
   ampOff  = velOff  + sect.Beams*sect.Cells*2;
@@ -574,56 +727,59 @@ function [sect len off] = readHRAquadoppProfile(data, idx)
   
   % fill byte if num cells is odd
   if mod(nCells, 2), csOff = csOff + 1; end
+  sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
   
-  % velocity data
+  cellDataVel = [];
+  cellDataAmp = [];
+  cellDataCor = [];
   for k = 1:sect.Beams
-    
-    sOff = velOff + (k-1) * (sect.Cells * 2);
-    eOff = sOff + (sect.Cells * 2)-1;
+    % velocity data
+    sVelOff = velOff + (k-1) * (sect.Cells * 2);
+    eVelOff = sOff + (sect.Cells * 2)-1;
     % !!! velocity can be negative
-    sect.(['Vel' num2str(k)]) = ...
-      bytecast(data(sOff:eOff), 'L', 'int16');
+    sect.(['Vel' num2str(k)]) = data(sVelOff:eVelOff); % int16
+    
+    % amplitude data
+    sAmpOff = ampOff + (k-1) * (sect.Cells);
+    eAmpOff = sAmpOff + (sect.Cells * 2)-1;
+    
+    sect.(['Amp' num2str(k)]) = data(sAmpOff:eAmpOff); % uint8
+    
+    % correlation data
+    sCorOff = corOff + (k-1) * (sect.Cells);
+    eCorOff = sCorOff + (sect.Cells * 2)-1;
+    
+    sect.(['Corr' num2str(k)]) = data(sCorOff:eCorOff); % uint8
+    
+    cellDataVel = [cellDataVel; sect.(['Vel' num2str(k)])];
+    cellDataAmp = [cellDataAmp; sect.(['Amp' num2str(k)])];
+    cellDataCor = [cellDataCor; sect.(['Corr' num2str(k)])];
   end
   
-  % amplitude data
+  % let's process int16s and uint8s in one call each
+  cellDataVel = bytecast(cellDataVel, 'L', 'int16', cpuEndianness);
+  blocksUint8 = bytecast([cellDataAmp; cellDataCor], 'L', 'uint8', cpuEndianness);
   for k = 1:sect.Beams
-    
-    sOff = ampOff + (k-1) * (sect.Cells);
-    eOff = sOff + (sect.Cells * 2)-1;
-    
-    vel.(['Amp' num2str(k)]) = ...
-      bytecast(data(sOff:eOff), 'L', 'uint8');
+    sect.(['Vel' num2str(k)]) = cellDataVel((k - 1)*sect.Cells + 1:k*sect.Cells);
+    sect.(['Amp' num2str(k)]) = blocksUint8((k - 1)*sect.Cells + 1:k*sect.Cells);
+    sect.(['Corr' num2str(k)]) = blocksUint8(sect.Beams*sect.Cells + 1:(k + sect.Beams)*sect.Cells);
   end
-  
-  % correlation data
-  for k = 1:sect.Beams
-    
-    sOff = corrOff + (k-1) * (sect.Cells);
-    eOff = sOff + (sect.Cells * 2)-1;
-    
-    sect.(['Corr' num2str(k)]) = ...
-      bytecast(data(sOff:eOff), 'L', 'uint8');
-  end
-  
-  sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
-
 end
 
-function [sect len off] = readAwacVelocityProfile(data, idx)
+function [sect, len, off] = readAwacVelocityProfile(data, idx, cpuEndianness)
 %READAWACVELOCITYPROFILE Reads an AWAC Velocity Profile data section (pg 39
 % of the system integrator manual).
 %
   sect = struct;
-  len = 0;
 
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
-  sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
+  sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness); % uint16
   len              = sect.Size * 2;
   off              = len;
   sect.Time        = readClockData(data, idx+4);
   % !!! Heading, pitch and roll can be negative
-  block            = bytecast(data(idx+10:idx+23), 'L', 'int16');
+  block            = bytecast(data(idx+10:idx+23), 'L', 'int16', cpuEndianness); % int16
   sect.Error       = block(1);
   sect.Analn1      = block(2);
   sect.Battery     = block(3);
@@ -631,9 +787,9 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
   sect.Heading     = block(5);
   sect.Pitch       = block(6);
   sect.Roll        = block(7);
-  sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8');
+  sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness);
   sect.Status      = data(idx+25);
-  block            = bytecast(data(idx+ 26:idx+29), 'L', 'uint16');
+  block            = bytecast(data(idx+ 26:idx+29), 'L', 'uint16', cpuEndianness); % uint16
   sect.PressureLSW = block(1);
   sect.Temperature = block(2);
   % bytes 30-117 are spare
@@ -654,104 +810,173 @@ function [sect len off] = readAwacVelocityProfile(data, idx)
   if mod(nCells, 2), csOff = csOff + 1; end
   
   % !!! Velocity can be negative
-  sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16'); %U comp (East)
-  sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16'); %V comp (North)
-  sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16'); %W comp (up)
-  sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8');
-  sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8');
-  sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8');
+  sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16', cpuEndianness); % U comp (East)  % int16
+  sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16', cpuEndianness); % V comp (North) % int16
+  sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16', cpuEndianness); % W comp (up)    % int16
+  sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8', cpuEndianness);
+  sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8', cpuEndianness);
+  sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8', cpuEndianness);
   
-  sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
+  sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
 
+  % variant below is twice slower so we're keeping the original code
+  
+%   sect.Sync        = data(idx);
+%   sect.Id          = data(idx+1);
+%   sect.Size        = data(idx+2:idx+3); % uint16
+%   
+%   sect.Time        = readClockData(data, idx+4);
+%   
+%   sect.Status      = data(idx+25);
+%   block2           = data(idx+ 26:idx+29); % uint16
+%   % bytes 30-117 are spare
+%   
+%   % let's process uint16s in one call
+%   blocks = bytecast([sect.Size; block2], 'L', 'uint16', cpuEndianness);
+%   sect.Size         = blocks(1);
+%   sect.PressureLSW  = blocks(2);
+%   sect.Temperature  = blocks(3);
+%   
+%   len               = sect.Size * 2;
+%   off               = len;
+%   
+%   % !!! Heading, pitch and roll can be negative
+%   block1           = data(idx+10:idx+23); % int16
+%   
+%   sect.PressureMSB = data(idx+24); % uint8
+%   
+%   % calculate number of cells from structure size
+%   % (size is in 16 bit words)
+%   nCells = floor((len - (118 + 2)) / (3*2 + 3));
+%   
+%   vel1Off = idx + 118;
+%   vel2Off = vel1Off + nCells*2;
+%   vel3Off = vel2Off + nCells*2;
+%   amp1Off = vel3Off + nCells*2;
+%   amp2Off = amp1Off + nCells;
+%   amp3Off = amp2Off + nCells;
+%   csOff   = amp3Off + nCells;
+%   
+%   % fill value is included if number of cells is odd
+%   if mod(nCells, 2), csOff = csOff + 1; end
+%   
+%   % !!! Velocity can be negative
+%   sect.Vel1 = data(vel1Off:vel1Off+nCells*2-1); % U comp (East)  % int16
+%   sect.Vel2 = data(vel2Off:vel2Off+nCells*2-1); % V comp (North) % int16
+%   sect.Vel3 = data(vel3Off:vel3Off+nCells*2-1); % W comp (up)    % int16
+%   sect.Amp1 = data(amp1Off:amp1Off+nCells-1);
+%   sect.Amp2 = data(amp2Off:amp2Off+nCells-1);
+%   sect.Amp3 = data(amp3Off:amp3Off+nCells-1);
+%   
+%   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
+%   
+%   % let's process int16s in one call
+%   blocks = bytecast([block1; sect.Vel1; sect.Vel2; sect.Vel3], 'L', 'int16', cpuEndianness);
+%   sect.Error       = blocks(1);
+%   sect.Analn1      = blocks(2);
+%   sect.Battery     = blocks(3);
+%   sect.Analn2      = blocks(4);
+%   sect.Heading     = blocks(5);
+%   sect.Pitch       = blocks(6);
+%   sect.Roll        = blocks(7);
+%   sect.Vel1        = blocks(8            :8 +   nCells - 1);
+%   sect.Vel2        = blocks(8 +   nCells :8 + 2*nCells - 1);
+%   sect.Vel3        = blocks(8 + 2*nCells :8 + 3*nCells - 1);
+%   
+%   % let's process uint8s in one call
+%   blocks = bytecast([sect.PressureMSB; sect.Amp1; sect.Amp2; sect.Amp3], 'L', 'uint8', cpuEndianness);
+%   sect.PressureMSB = blocks(1);
+%   sect.Amp1 = blocks(2              :2 +   nCells - 1);
+%   sect.Amp2 = blocks(2 +   nCells   :2 + 2*nCells - 1);
+%   sect.Amp3 = blocks(2 + 2*nCells   :2 + 3*nCells - 1);
 end
 
-function [sect len off] = readAwacWaveHeader(data, idx)
+function [sect, len, off] = readAwacWaveHeader(data, idx, cpuEndianness)
 %READAWACWAVEHEADER Reads an AWAC wave header section (pg 
 % 40 of system integrator manual).
 %
-  sect = struct;
+  %sect = struct;
   len = 60;
   off = len;
   sect = [];
 %   sect.Sync         = data(idx);
 %   sect.Id           = data(idx+1);
-%   sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16');
+%   sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 %   sect.Time         = readClockData(data, idx+4);
-%   block             = bytecast(data(idx+10:idx+17), 'L', 'uint16');
+%   block             = bytecast(data(idx+10:idx+17), 'L', 'uint16', cpuEndianness);
 %   sect.NRecords     = block(1);
 %   sect.Blanking     = block(2);
 %   sect.Battery      = block(3);
 %   sect.SoundSpeed   = block(4);
-%   block             = bytecast(data(idx+18:idx+23), 'L', 'int16');
+%   block             = bytecast(data(idx+18:idx+23), 'L', 'int16', cpuEndianness);
 %   sect.Heading      = block(1);
 %   sect.Pitch        = block(2);
 %   sect.Roll         = block(3);
-%   block             = bytecast(data(idx+24:idx+31), 'L', 'uint16');
+%   block             = bytecast(data(idx+24:idx+31), 'L', 'uint16', cpuEndianness);
 %   sect.MinPress     = block(1);
 %   sect.HMaxPress    = block(2);
 %   sect.Temperature  = block(3);
 %   sect.CellSize     = block(4);
-%   sect.Noise1       = bytecast(data(idx+32), 'L', 'uint8');
-%   sect.Noise2       = bytecast(data(idx+33), 'L', 'uint8');
-%   sect.Noise3       = bytecast(data(idx+34), 'L', 'uint8');
-%   sect.Noise4       = bytecast(data(idx+35), 'L', 'uint8');
-%   block             = bytecast(data(idx+36:idx+43), 'L', 'uint16');
+%   sect.Noise1       = bytecast(data(idx+32), 'L', 'uint8', cpuEndianness);
+%   sect.Noise2       = bytecast(data(idx+33), 'L', 'uint8', cpuEndianness);
+%   sect.Noise3       = bytecast(data(idx+34), 'L', 'uint8', cpuEndianness);
+%   sect.Noise4       = bytecast(data(idx+35), 'L', 'uint8', cpuEndianness);
+%   block             = bytecast(data(idx+36:idx+43), 'L', 'uint16', cpuEndianness);
 %   sect.ProcMagn1    = block(1);
 %   sect.ProcMagn2    = block(2);
 %   sect.ProcMagn3    = block(3);
 %   sect.ProcMagn4    = block(4);
 %   % bytes 44-57 are spare
-%   sect.Checksum     = bytecast(data(idx+58:idx+59), 'L', 'uint16');
+%   sect.Checksum     = bytecast(data(idx+58:idx+59), 'L', 'uint16', cpuEndianness);
 end
 
-function [sect len off] = readAwacWaveData(data, idx)
+function [sect, len, off] = readAwacWaveData(data, idx, cpuEndianness)
 %READAWACWAVEDATA Reads an AWAC Wave data section (pg 41
 % of the system integrator manual).
 %
-%   sect = struct;
+  %sect = struct;
   len = 24;
   off = len;
   sect = [];
 %   sect.Sync        = data(idx);
 %   sect.Id          = data(idx+1);
-%   sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
-%   block            = bytecast(data(idx+4:idx+9), 'L', 'uint16');
+%   sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
+%   block            = bytecast(data(idx+4:idx+9), 'L', 'uint16', cpuEndianness);
 %   sect.Pressure    = block(1);
 %   sect.Distance    = block(2);
 %   sect.Analn       = block(3);
 %   % !!! velocity can be negative
-%   block            = bytecast(data(idx+10:idx+17), 'L', 'int16');
+%   block            = bytecast(data(idx+10:idx+17), 'L', 'int16', cpuEndianness);
 %   sect.Vel1        = block(1);
 %   sect.Vel2        = block(2);
 %   sect.Vel3        = block(3);
 %   sect.Vel4        = block(4);
-%   sect.Amp1        = bytecast(data(idx+18), 'L', 'uint8');
-%   sect.Amp2        = bytecast(data(idx+19), 'L', 'uint8');
-%   sect.Amp3        = bytecast(data(idx+20), 'L', 'uint8');
-%   sect.Amp4        = bytecast(data(idx+21), 'L', 'uint8');
-%   sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16');
+%   sect.Amp1        = bytecast(data(idx+18), 'L', 'uint8', cpuEndianness);
+%   sect.Amp2        = bytecast(data(idx+19), 'L', 'uint8', cpuEndianness);
+%   sect.Amp3        = bytecast(data(idx+20), 'L', 'uint8', cpuEndianness);
+%   sect.Amp4        = bytecast(data(idx+21), 'L', 'uint8', cpuEndianness);
+%   sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16', cpuEndianness);
 end
 
-function [sect len off] = readAwacStageData(data, idx)
+function [sect, len, off] = readAwacStageData(data, idx, cpuEndianness)
 %READAWACSTAGEDATA Reads an AWAC Stage data section (pg 41
 % of the system integrator manual).
 %
   sect = struct;
-  len = 0;
 
 %   sect.Sync        = data(idx);
 %   sect.Id          = data(idx+1);
-  sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16');
+  sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
   
   len              = sect.Size * 2;
   off              = len;
   sect = [];
-%   sect.Blanking    = bytecast(data(idx+4:idx+5), 'L', 'uint16');
+%   sect.Blanking    = bytecast(data(idx+4:idx+5), 'L', 'uint16', cpuEndianness);
 %   % !!! Heading, pitch and roll can be negative
-%   block            = bytecast(data(idx+6:idx+9), 'L', 'int16');
+%   block            = bytecast(data(idx+6:idx+9), 'L', 'int16', cpuEndianness);
 %   sect.Pitch       = block(1);
 %   sect.Roll        = block(2);
-%   block            = bytecast(data(idx+10:idx+21), 'L', 'uint16');
+%   block            = bytecast(data(idx+10:idx+21), 'L', 'uint16', cpuEndianness);
 %   sect.Pressure    = block(1);
 %   sect.Stage       = block(2);
 %   sect.Quality     = block(3);
@@ -769,21 +994,21 @@ function [sect len off] = readAwacStageData(data, idx)
 %   % fill value is included if number of cells is odd
 %   if mod(nCells, 2), csOff = csOff + 1; end
 %   
-%   sect.Amp = bytecast(data(ampOff:ampOff+nCells-1),   'L', 'uint8');
+%   sect.Amp = bytecast(data(ampOff:ampOff+nCells-1),   'L', 'uint8', cpuEndianness);
 %   
-%   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
+%   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 end
 
-function [sect len off] = readContinental(data, idx)
+function [sect, len, off] = readContinental(data, idx, cpuEndianness)
 %READCONTINENTAL Reads a Continental Data section (pg 42 of the System
 % Integrator Manual).
 %
   % structure is same as awac velocity profile data
-  [sect len off] = readAwacVelocityProfile(data, idx);
+  [sect, len, off] = readAwacVelocityProfile(data, idx, cpuEndianness);
 end
 
 
-function [sect len off] = readVectrinoVelocityHeader(data, idx)
+function [sect, len, off] = readVectrinoVelocityHeader(data, idx, cpuEndianness)
 %READVECTRINOVELOCITYHEADER Reads a Vectrino velocity data header section
 % (pg 42 of system integrator manual).
 %
@@ -793,48 +1018,47 @@ function [sect len off] = readVectrinoVelocityHeader(data, idx)
 
   sect.Sync         = data(idx);
   sect.Id           = data(idx+1);
-  block             = bytecast(data(idx+2:idx+11), 'L', 'uint16');
+  block             = bytecast(data(idx+2:idx+11), 'L', 'uint16', cpuEndianness);
   sect.Size         = block(1);
   sect.Distance     = block(2);
   sect.DistQuality  = block(3);
   sect.Lag1         = block(4);
   sect.Lag2         = block(5);
-  sect.Noise1       = bytecast(data(idx+12), 'L', 'uint8');
-  sect.Noise2       = bytecast(data(idx+13), 'L', 'uint8');
-  sect.Noise3       = bytecast(data(idx+14), 'L', 'uint8');
-  sect.Noise4       = bytecast(data(idx+15), 'L', 'uint8');
-  sect.Correlation1 = bytecast(data(idx+16), 'L', 'uint8');
-  sect.Correlation2 = bytecast(data(idx+17), 'L', 'uint8');
-  sect.Correlation3 = bytecast(data(idx+18), 'L', 'uint8');
-  sect.Correlation4 = bytecast(data(idx+19), 'L', 'uint8');
-  block             = bytecast(data(idx+20:idx+23), 'L', 'uint16');
+  sect.Noise1       = bytecast(data(idx+12), 'L', 'uint8', cpuEndianness);
+  sect.Noise2       = bytecast(data(idx+13), 'L', 'uint8', cpuEndianness);
+  sect.Noise3       = bytecast(data(idx+14), 'L', 'uint8', cpuEndianness);
+  sect.Noise4       = bytecast(data(idx+15), 'L', 'uint8', cpuEndianness);
+  sect.Correlation1 = bytecast(data(idx+16), 'L', 'uint8', cpuEndianness);
+  sect.Correlation2 = bytecast(data(idx+17), 'L', 'uint8', cpuEndianness);
+  sect.Correlation3 = bytecast(data(idx+18), 'L', 'uint8', cpuEndianness);
+  sect.Correlation4 = bytecast(data(idx+19), 'L', 'uint8', cpuEndianness);
+  block             = bytecast(data(idx+20:idx+23), 'L', 'uint16', cpuEndianness);
   sect.Temperature  = block(1);
   sect.SoundSpeed   = block(2);
-  sect.AmpZ01       = bytecast(data(idx+24), 'L', 'uint8');
-  sect.AmpZ02       = bytecast(data(idx+25), 'L', 'uint8');
-  sect.AmpZ03       = bytecast(data(idx+26), 'L', 'uint8');
-  sect.AmpZ04       = bytecast(data(idx+27), 'L', 'uint8');
-  sect.AmpX11       = bytecast(data(idx+28), 'L', 'uint8');
-  sect.AmpX12       = bytecast(data(idx+29), 'L', 'uint8');
-  sect.AmpX13       = bytecast(data(idx+30), 'L', 'uint8');
-  sect.AmpX14       = bytecast(data(idx+31), 'L', 'uint8');
-  sect.AmpZ0PLag11  = bytecast(data(idx+32), 'L', 'uint8');
-  sect.AmpZ0PLag12  = bytecast(data(idx+33), 'L', 'uint8');
-  sect.AmpZ0PLag13  = bytecast(data(idx+34), 'L', 'uint8');
-  sect.AmpZ0PLag14  = bytecast(data(idx+35), 'L', 'uint8');
-  sect.AmpZ0PLag21  = bytecast(data(idx+36), 'L', 'uint8');
-  sect.AmpZ0PLag22  = bytecast(data(idx+37), 'L', 'uint8');
-  sect.AmpZ0PLag23  = bytecast(data(idx+38), 'L', 'uint8');
-  sect.AmpZ0PLag24  = bytecast(data(idx+39), 'L', 'uint8');
-  sect.Checksum     = bytecast(data(idx+40:idx+41), 'L', 'uint16');
+  sect.AmpZ01       = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ02       = bytecast(data(idx+25), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ03       = bytecast(data(idx+26), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ04       = bytecast(data(idx+27), 'L', 'uint8', cpuEndianness);
+  sect.AmpX11       = bytecast(data(idx+28), 'L', 'uint8', cpuEndianness);
+  sect.AmpX12       = bytecast(data(idx+29), 'L', 'uint8', cpuEndianness);
+  sect.AmpX13       = bytecast(data(idx+30), 'L', 'uint8', cpuEndianness);
+  sect.AmpX14       = bytecast(data(idx+31), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ0PLag11  = bytecast(data(idx+32), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ0PLag12  = bytecast(data(idx+33), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ0PLag13  = bytecast(data(idx+34), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ0PLag14  = bytecast(data(idx+35), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ0PLag21  = bytecast(data(idx+36), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ0PLag22  = bytecast(data(idx+37), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ0PLag23  = bytecast(data(idx+38), 'L', 'uint8', cpuEndianness);
+  sect.AmpZ0PLag24  = bytecast(data(idx+39), 'L', 'uint8', cpuEndianness);
+  sect.Checksum     = bytecast(data(idx+40:idx+41), 'L', 'uint16', cpuEndianness);
 end
 
-function [sect len off] = readVectrinoVelocity(data, idx)
+function [sect, len, off] = readVectrinoVelocity(data, idx, cpuEndianness)
 %READVECTRINOVELOCITY Reads a Vectrino Velocity data section (pg 43 of
 % system integrator manual).
 %
   sect = struct;
-  len = 0;
   
   sect.Sync   = data(idx);
   sect.Id     = data(idx+1);
@@ -862,7 +1086,7 @@ function [sect len off] = readVectrinoVelocity(data, idx)
     eOff = sOff + (nCells * 2) - 1;
     % !!! Velocity can be negative
     sect.(['Vel' num2str(k)]) = ...
-      bytecast(data(sOff:eOff), 'L', 'int16');
+      bytecast(data(sOff:eOff), 'L', 'int16', cpuEndianness);
   end
   
   % amplitude
@@ -872,7 +1096,7 @@ function [sect len off] = readVectrinoVelocity(data, idx)
     eOff = sOff + nCells - 1;
     
     sect.(['Amp' num2str(k)]) = ...
-      bytecast(data(sOff:eOff), 'L', 'uint8');
+      bytecast(data(sOff:eOff), 'L', 'uint8', cpuEndianness);
   end
   
   % correlation
@@ -882,14 +1106,14 @@ function [sect len off] = readVectrinoVelocity(data, idx)
     eOff = sOff + nCells - 1;
     
     vel.(['Corr' num2str(k)]) = ...
-      bytecast(data(sOff:eOff), 'L', 'uint8');
+      bytecast(data(sOff:eOff), 'L', 'uint8', cpuEndianness);
   end
   
-  sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16');
+  sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
 end
 
-function [sect len off] = readVectrinoDistance(data, idx)
+function [sect, len, off] = readVectrinoDistance(data, idx, cpuEndianness)
 %READVECTRINODISTANCE Reads a Vectrino distance data section (pg 43 of
 % system integrator manual).
 %
@@ -899,7 +1123,7 @@ function [sect len off] = readVectrinoDistance(data, idx)
   
   sect.Sync        = data(idx);
   sect.Id          = data(idx+1);
-  block            = bytecast(data(idx+2:idx+15), 'L', 'uint16');
+  block            = bytecast(data(idx+2:idx+15), 'L', 'uint16', cpuEndianness);
   sect.Size        = block(1);
   sect.Temperature = block(2);
   sect.SoundSpeed  = block(3);
@@ -914,17 +1138,19 @@ function cs = genChecksum(data, idx, len)
 %GENCHECKSUM Generates a checksum over the given data range. See page 52 of
 %the System integrator manual.
 % 
-  % start checksum value is 0xb58c (== 56476)
+  % start checksum value is 0xb58c (== 46476)
   cs = 46476;
   
   % the checksum routine relies upon uint16 overflow, but matlab's 
   % 'saturation' of out-of-bounds values makes this impossible. 
   % so i'm doing normal addition, then modding the result by 65536, 
   % which will give the same result
-  for k = idx:2:(idx+len-2)
-     cs = cs + double(data(k)) + double(data(k+1))*256;
-  end
+  data = double(data(idx:idx+len-1));
   
+  for k = 1:2:len-1
+     cs = cs + data(k) + data(k+1)*256;
+  end
+
   cs = mod(cs, 65536);
   
 end

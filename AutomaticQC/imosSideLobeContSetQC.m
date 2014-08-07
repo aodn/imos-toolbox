@@ -165,12 +165,14 @@ end
 distanceTransducerToObstacle = depth;
 
 % we handle the case of a downward looking ADCP
-if isempty(sample_data.site_nominal_depth) && ~isUpwardLooking
-    error(['Downward looking ADCP in file ' sample_data.toolbox_input_file ' => Fill site_nominal_depth!']);
-else
-    % the distance between transducer and obstacle is not depth anymore but
-    % (site_nominal_depth - depth)
-    distanceTransducerToObstacle = sample_data.site_nominal_depth - depth;
+if ~isUpwardLooking
+    if isempty(sample_data.site_nominal_depth)
+        error(['Downward looking ADCP in file ' sample_data.toolbox_input_file ' => Fill site_nominal_depth!']);
+    else
+        % the distance between transducer and obstacle is not depth anymore but
+        % (site_nominal_depth - depth)
+        distanceTransducerToObstacle = sample_data.site_nominal_depth - depth;
+    end
 end
 
 % calculate contaminated depth

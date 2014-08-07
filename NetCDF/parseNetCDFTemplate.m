@@ -225,7 +225,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
       % start with an underscore. I'm getting around this problem with a 
       % horrible hack: if the name starts with an underscore, remove the 
       % underscore from the name start, and put it at the name end. We can 
-      %reverse this process when the NetCDF file is exported.
+      % reverse this process when the NetCDF file is exported.
       if name(1) == '_', name = [name(2:end) '_']; end
       template.(name) = parseAttributeValue(val, sample_data, k);
       

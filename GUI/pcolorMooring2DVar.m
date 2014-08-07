@@ -136,9 +136,9 @@ for i=1:lenSampleData
             iGoodHeight(nGoodHeight) = 1;
         end
         
-        if all(~iGood)
+        if all(~iGood) && isQC
             fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                ', there is not any data with good flags.']);
+                ', there is not any ' varName ' data with good flags.']);
         else
             xPcolor = sample_data{iSort(i)}.dimensions{iTime}.data(iGoodTime);
             yPcolor = sample_data{iSort(i)}.dimensions{iHeight}.data(iGoodHeight);

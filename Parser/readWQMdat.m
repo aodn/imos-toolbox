@@ -15,6 +15,7 @@ function sample_data = readWQMdat( filename )
 %   MM/DD/YY            (date - required)
 %   HH:MM:SS            (time - required)
 %   Cond(mmho)          (floating point conductivity, Siemens/metre)
+%   Cond(S/m)           (floating point conductivity, Siemens/metre)
 %   Temp(C)             (floating point temperature, Degrees Celsius)
 %   Pres(dbar)          (floating point pressure, Decibar)
 %   Sal(PSU)            (floating point salinity, PSS)
@@ -24,9 +25,13 @@ function sample_data = readWQMdat( filename )
 %   CHL(ug/l)           (floating point chlorophyll, micrograms/Litre)
 %   CHLa(ug/l)          (floating point chlorophyll, micrograms/Litre)
 %   F-Cal-CHL(ug/l)     (floating point factory coefficient chlorophyll, micrograms/Litre)
+%   Fact-CHL(ug/l))     (floating point factory coefficient chlorophyll, micrograms/Litre)
 %   U-Cal-CHL(ug/l)     (floating point user coefficient chlorophyll, micrograms/Litre)
+%   RawCHL(Counts)      (integer fluorescence in raw counts)
+%   CHLa(Counts)        (integer fluorescence in raw counts)
 %   NTU                 (floating point turbidity, NTU)
 %   NTU(NTU)            (floating point turbidity, NTU)
+%   rho                 (floating point density, kg/metre^3)
 %   PAR(umol_phtn/m2/s) (floating point photosynthetically active radiation, micromole of photon/m2/s)
 %
 % Any other fields which are present in the input file will be ignored.
@@ -51,6 +56,7 @@ function sample_data = readWQMdat( filename )
 %                   Chlorophyll       ('CHLF'): mg/m^3   (factory coefficient)
 %                   Fluorescence      ('FLU2'): raw counts
 %                   Turbidity         ('TURB'): NTU
+%                   Density           ('DENS'): kg/m^3
 %                   Photosynthetically active radiation ('PAR'): umol_phtn/m^2/s
 %                 
 %                 Also contains some metadata fields. The '.dat' output 
@@ -116,7 +122,8 @@ function sample_data = readWQMdat( filename )
   params{end+1} = {'HHMMSS',                {'',     ''}};
   params{end+1} = {'MM/DD/YY',              {'',     ''}};
   params{end+1} = {'HH:MM:SS',              {'',     ''}};
-  params{end+1} = {'Cond(mmho)',            {'CNDC', ''}};
+  params{end+1} = {'Cond(mmho)',            {'CNDC', ''}}; % mmho <=> mS , I think /mm is assumed
+  params{end+1} = {'Cond(S/m)',             {'CNDC', ''}}; 
   params{end+1} = {'Temp(C)',               {'TEMP', ''}};
   params{end+1} = {'Pres(dbar)',            {'PRES_REL', ''}};
   params{end+1} = {'Sal(PSU)',              {'PSAL', ''}};
@@ -141,6 +148,12 @@ function sample_data = readWQMdat( filename )
       'photodetector paired with an optical filter which measures everything '...
       'that fluoresces in the region of 695nm. '...
       'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
+  params{end+1} = {'Fact-CHL(ug/l))',       {'CHLF', 'Artificial chlorophyll data '...
+      'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
+      'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
+      'photodetector paired with an optical filter which measures everything '...
+      'that fluoresces in the region of 695nm. '...
+      'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}}; % v1.26 of Host software
   params{end+1} = {'U-Cal-CHL(ug/l)',       {'CHLU', 'Artificial chlorophyll data '...
       'computed from bio-optical sensor raw counts measurements using user calibration coefficient. The '...
       'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
@@ -148,8 +161,10 @@ function sample_data = readWQMdat( filename )
       'that fluoresces in the region of 695nm. '...
       'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
   params{end+1} = {'RawCHL(Counts)',        {'FLU2', ''}};
+  params{end+1} = {'CHLa(Counts)',          {'FLU2', ''}};
   params{end+1} = {'NTU',                   {'TURB', ''}};
   params{end+1} = {'NTU(NTU)',              {'TURB', ''}};
+  params{end+1} = {'rho',                   {'DENS', ''}};
   params{end+1} = {'PAR(umol_phtn/m2/s)',   {'PAR', ''}};
 
   %

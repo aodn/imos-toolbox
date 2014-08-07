@@ -71,29 +71,31 @@ function sample_data = SBE19Parse( filename, mode )
   % them out into each of the three sections
   instHeaderLines = {};
   procHeaderLines = {};
-  dataLines       = {};
   try 
-    
     fid = fopen(filename, 'rt');
-    line = fgetl(fid);
-    while ischar(line)
-      
-      line = deblank(line);
-      if isempty(line)
-        line = fgetl(fid);
-        continue; 
-      end
-      
-      if     line(1) == '*', instHeaderLines{end+1} = line;
-      elseif line(1) == '#', procHeaderLines{end+1} = line;
-      else                   dataLines{      end+1} = line;
-      end
-      
-      line = fgetl(fid);
-    end
-    
+    fileContent = textscan(fid, '%s', 'Delimiter', '', 'Whitespace', '');
     fclose(fid);
     
+    fileContent = fileContent{1};
+    
+    % we assume the instrument header will always come first with '*'
+    iInst = 1;
+    while strcmp('*', fileContent{iInst}(1))
+        instHeaderLines{iInst} = fileContent{iInst};
+        iInst = iInst + 1;
+    end
+    iLastInst = iInst - 1;
+    
+    % and then the proc header with '#'
+    iProc = 1;
+    while strcmp('#', fileContent{iProc + iLastInst}(1))
+        procHeaderLines{iProc} = fileContent{iProc + iLastInst};
+        iProc = iProc + 1;
+    end
+    
+    % and then we assume the data comes after one more '*' line so we
+    % add +1 below
+    dataLines = fileContent(iProc + 1 + iLastInst : end);
   catch e
     if fid ~= -1, fclose(fid); end
     rethrow(e);
@@ -493,12 +495,20 @@ for k = 1:length(headerLines)
                     header.outputFormat = tkns{1}{1};
                     
                 % cast
-                case 13                    
-                    header.castNumber = str2double(tkns{1}{1});
-                    header.castDate   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
-                    header.castStart  = str2double(tkns{1}{3});
-                    header.castEnd    = str2double(tkns{1}{4});
-                    header.castAvg    = str2double(tkns{1}{5});
+                case 13
+                    if isfield(header, 'castStart')
+                        header.castNumber(end+1) = str2double(tkns{1}{1});
+                        header.castDate(end+1)   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
+                        header.castStart(end+1)  = str2double(tkns{1}{3});
+                        header.castEnd(end+1)    = str2double(tkns{1}{4});
+                        header.castAvg(end+1)    = str2double(tkns{1}{5});
+                    else
+                        header.castNumber = str2double(tkns{1}{1});
+                        header.castDate   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
+                        header.castStart  = str2double(tkns{1}{3});
+                        header.castEnd    = str2double(tkns{1}{4});
+                        header.castAvg    = str2double(tkns{1}{5});
+                    end
                     
                 % cast2
                 case 14                    
@@ -619,12 +629,13 @@ function time = genTimestamps(instHeader, data)
 % have to have a function like this, but the .cnv files do not necessarily 
 % provide timestamps for each sample.
 %
-
+  
   % time may have been present in the sample 
   % data - if so, we don't have to do any work
-  if isfield(data, 'TIME'), time = data.TIME; return; end
-
-  time = [];
+  if isfield(data, 'TIME')
+      time = data.TIME;
+      return;
+  end
   
   % To generate timestamps for the CTD data, we need to know:
   %   - start time
@@ -636,7 +647,6 @@ function time = genTimestamps(instHeader, data)
   %
   start    = 0;
   interval = 0.25;
-  nSamples = 0;
     
   % figure out number of samples by peeking at the 
   % number of values in the first column of 'data'
@@ -648,22 +658,29 @@ function time = genTimestamps(instHeader, data)
     start = instHeader.castDate;
   end
   
+  % if castStart is present then it means we have several cast records
+  if isfield(instHeader, 'castStart')
+      time = NaN(1, instHeader.castEnd(end));
+      for i=1:length(instHeader.castNumber)
+          for j=instHeader.castStart(i):instHeader.castEnd(i)
+              time(j) = instHeader.castDate(i) + (j-instHeader.castStart(i))*instHeader.castAvg(i)/(3600*24);
+          end
+      end
+      return;
+  end
+  
   % if scanAvg field is present, use it to determine the interval
   if isfield(instHeader, 'scanAvg')
-    
     interval = (0.25 * instHeader.scanAvg) / 86400;
   end
   
   % if one of the columns is 'Scan Count', use the 
   % scan count number as the basis for the timestamps 
   if isfield(data, 'ScanCount')
-    
     time = ((data.ScanCount - 1) ./ 345600) + cStart;
-  
   % if scan count is not present, calculate the 
   % timestamps from start, end and interval
   else
-    
     time = (start:interval:start + (nSamples - 1) * interval)';
   end
 end
