@@ -262,8 +262,6 @@ function data = getData(filename, header)
 %
 data = struct;
 
-fileId = fopen(filename);
-
 if strcmpi(header.fieldSep, ' ') || ~header.isDateJoined
     extraColumnTime = '%s';
     nColumnTime = 2;
@@ -281,8 +279,8 @@ for i=3:header.nCol
     end
 end
 
+fileId = fopen(filename);
 DataContent = textscan(fileId, dataFormat, 'Delimiter', header.fieldSep, 'HeaderLines', header.nLines);
-
 fclose(fileId);
 
 % we convert the data
@@ -294,20 +292,20 @@ end
 
 for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
     
-    if header.isReconverted && rem(i, 2) == 1 % first param column
-        iParam = i;
-    elseif header.isReconverted && rem(i, 2) == 0 % second param column
+    if header.isReconverted && rem(i, 2) == 0 % second param column
         iParam = i - 1;
-    else % params are not converted
+    else % first param column or params are not converted
         iParam = i;
     end
     
     iContent = i + nColumnTime;
     
-    switch header.param(iParam).column;
-        case {'Temp(°C)'}
+    switch header.param(iParam).column
+        case 'Temp(ï¿½C)'
             var = 'TEMP';
-            values = str2double(strrep(DataContent{iContent}, ',', '.'));
+            values = strrep(DataContent{iContent}, ',', '.');
+%             values = cellfun(@str2double, values);
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
             comment = '';
             if header.isReconverted
                 if header.isTempCorr
@@ -322,9 +320,10 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).values = values;
             data.(var).comment = comment;
             
-        case 'Temp(°F)' % ([°F] - 32) * 5/9
+        case 'Temp(ï¿½F)' % ([ï¿½F] - 32) * 5/9
             var = 'TEMP';
-            values = str2double(strrep(DataContent{iContent}, ',', '.'));
+            values = strrep(DataContent{iContent}, ',', '.');
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
             comment = 'Originaly expressed in Fahrenheit.';
             if header.isReconverted
                 if header.isTempCorr
@@ -341,7 +340,8 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             
         case 'Pres(dbar)'
             var = 'PRES';
-            values = str2double(strrep(DataContent{iContent}, ',', '.'));
+            values = strrep(DataContent{iContent}, ',', '.');
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
             comment = '';
             applied_offset = [];
             if header.isReconverted
@@ -360,7 +360,8 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             
         case 'Depth(m)'
             var = 'DEPTH';
-            values = str2double(strrep(DataContent{iContent}, ',', '.'));
+            values = strrep(DataContent{iContent}, ',', '.');
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
             comment = '';
             if header.isReconverted
                 if header.isPresCorr
@@ -377,7 +378,8 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             
         case 'Sal(psu)'
             var = 'PSAL';
-            values = str2double(strrep(DataContent{iContent}, ',', '.'));
+            values = strrep(DataContent{iContent}, ',', '.');
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
             comment = '';
             if header.isReconverted
                 if header.isTempCorr || header.isPresCorr

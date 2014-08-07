@@ -52,10 +52,10 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader )
   data = struct;
   comment = struct;
   
-  format = '';
-  
   columns = procHeader.columns;
-  for k = 1:length(columns), format = [format '%n']; end
+  
+  format = '%n';
+  format = repmat(format, 1, length(columns));
   
   dataLines = [dataLines{:}];
   dataLines = textscan(dataLines, format);

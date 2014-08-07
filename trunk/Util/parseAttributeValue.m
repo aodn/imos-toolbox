@@ -62,8 +62,8 @@ function value = parseAttributeValue(line, sample_data, k)
     c = value(sIdx);
     
     % if not the start of a token, move on to the next character
-    if c ~= '[', sIdx = sIdx + 1;
-      
+    if c ~= '['
+        sIdx = sIdx + 1;
     % otherwise parse the token
     else
       

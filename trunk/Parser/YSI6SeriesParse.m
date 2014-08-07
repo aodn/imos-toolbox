@@ -384,6 +384,8 @@ function records = readRecords(header, data)
   rFmt = header.recordFmt;
   rNum = 0;
   
+  [~, ~, cpuEndianness] = computer;
+  
   data = data(rIdx:end);
   
   while ~isempty(data)
@@ -402,8 +404,8 @@ function records = readRecords(header, data)
     end
     
     % read time and element values
-    records.time(rNum) = bytecast(record(2:5),   'L', 'uint32');
-    vals               = bytecast(record(6:end), 'L', 'single');
+    records.time(rNum) = bytecast(record(2:5),   'L', 'uint32', cpuEndianness);
+    vals               = bytecast(record(6:end), 'L', 'single', cpuEndianness);
     
     % save element values to correct data array
     for k = 1:length(rFmt)
