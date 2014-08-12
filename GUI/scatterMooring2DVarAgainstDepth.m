@@ -6,7 +6,9 @@ function scatterMooring2DVarAgainstDepth(sample_data, varName, isQC, saveToFile,
 varTitle = imosParameters(varName, 'long_name');
 varUnit = imosParameters(varName, 'uom');
 
-if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'})), return; end
+if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'}))
+    return;
+end
 
 stringQC = 'non QC';
 if isQC, stringQC = 'QC'; end
@@ -184,6 +186,7 @@ if any(isPlotable)
             end
             
             iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
+            iGoodTime = true(size(sample_data{iSort(i)}.dimensions{iTime}.data));
             
             if isQC
                 %get time and var QC information
@@ -197,14 +200,14 @@ if any(isPlotable)
                 
                 iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
                 iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(varValues);
-                
-                iGoodHeight = any(iGood, 1);
-                nGoodHeight = sum(iGoodHeight);
-%                 nGoodHeight = nGoodHeight + 1;
-%                 iGoodHeight(nGoodHeight) = 1;
             end
             
-            if all(~iGood) && isQC
+            iGoodHeight = any(iGood, 1);
+            nGoodHeight = sum(iGoodHeight);
+%             nGoodHeight = nGoodHeight + 1;
+%             iGoodHeight(nGoodHeight) = 1;
+            
+            if all(all(~iGood)) && isQC
                 fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
                     ', there is not any ' varName ' data with good flags.']);
             else

@@ -136,9 +136,9 @@ function exportManager(dataSets, levelNames, output, auto)
     end
   end
   
-  % generate plots
-  if any(strcmpi('QC', levelNames)) && strcmpi(mode, 'timeseries')
-      exportPlots(dataSets, exportDir, auto, progress);
+  % generate QC'd plots
+  if strcmpi(mode, 'timeseries')
+      exportQCPlots(dataSets, exportDir, auto, progress);
   end
   
   if ~auto
@@ -189,23 +189,40 @@ else
 end
 end
 
-function exportPlots(sample_data, exportDir, auto, progress)
-%EXPORTPLOTS plot only parameters that have been QC'd per mooring.
+function exportQCPlots(sample_data, exportDir, auto, progress)
+%EXPORTQCPLOTS only plot parameters that have been QC'd per mooring.
 %
 % Lists all the distinct QC'd variables in every sample_data, for each of the 1D variable of them, 
 % when it is found in multiple sample_data then plot all of them on the same axis.
 % Output PNG file names are specific and plot only the values of good data (flags 1 or 2).
 %
 
-% get all params from datasets datasets
-lenSampleData = length(sample_data);
+% only keep FV01 sample_data
+nSampleData = length(sample_data);
+for i=1:nSampleData
+    if sample_data{i}.meta.level == 0
+        sample_data{i} = [];
+    end
+end
+
+iEmptySample = cellfun(@isempty, sample_data);
+if any(iEmptySample)
+    sample_data(iEmptySample) = [];
+end
+
+if isempty(sample_data)
+    return;
+end
+
+% get all params from dataset
 paramsName = {};
-for i=1:lenSampleData
+nSampleData = length(sample_data);
+for i=1:nSampleData
     lenParamsSample = length(sample_data{i}.variables);
     for j=1:lenParamsSample
         if i==1 && j==1
-            flags = sample_data{1}.variables{1}.flags;
-            if all(all(flags ~= 0)), paramsName{1} = sample_data{1}.variables{1}.name; end
+            flags = sample_data{i}.variables{1}.flags;
+            if all(all(flags ~= 0)), paramsName{1} = sample_data{i}.variables{1}.name; end
         else
             flags = sample_data{i}.variables{j}.flags;
             if all(all(flags ~= 0)), paramsName{end+1} = sample_data{i}.variables{j}.name; end
