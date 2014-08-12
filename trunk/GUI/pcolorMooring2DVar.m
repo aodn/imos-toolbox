@@ -136,7 +136,7 @@ for i=1:lenSampleData
             iGoodHeight(nGoodHeight) = 1;
         end
         
-        if all(~iGood) && isQC
+        if all(all(~iGood)) && isQC
             fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
                 ', there is not any ' varName ' data with good flags.']);
         else
