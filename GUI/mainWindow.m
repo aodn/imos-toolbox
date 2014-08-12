@@ -552,6 +552,17 @@ function displayScatterMooringVar(source,ev, isQC, is1D)
         paramsName(iDEPTH) = [];
         iHEIGHT = strcmpi('HEIGHT', paramsName);
         paramsName(iHEIGHT) = [];
+        
+        % we get rid of ADCP diagnostic parameters
+        for i=1:4
+            iStr = num2str(i);
+            iABSI = strcmpi(['ABSI' iStr], paramsName);
+            paramsName(iABSI) = [];
+            iCORR = strcmpi(['CMAG' iStr], paramsName);
+            paramsName(iCORR) = [];
+            iPERG = strcmpi(['PERG' iStr], paramsName);
+            paramsName(iPERG) = [];
+        end
        
         % by default CDIR is selected
         iDefault = find(strcmpi(paramsName, 'CDIR'));
