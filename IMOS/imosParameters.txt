@@ -41,9 +41,10 @@ DENS,                1, sea_water_density,                                      
 DEPTH,               1, depth,                                                                          m,                                     Z, 999999.0, -5.0,    12000.0,  float
 DESC,                0, profiling_descent_rate_of_instrument,                                           m s-1,                                 E, 999999.0, 0.0,     5.0,      float
 DEWT,                1, dew_point_temperature,                                                          Celsius,                               M, 999999.0, -50.0,   50.0,     float
-DIR,                 1, direction_of_radial_vector_away_from_instrument,                                Degrees clockwise from true North,     E, 999999.0, 0.0,     360.0,    float
-DIR_MAG,             1, direction_of_radial_vector_away_from_instrument,                                Degrees clockwise from magnetic North, E, 999999.0, 0.0,     360.0,    float
+DIR,                 0, from_direction,                                                                 Degrees clockwise from true North,     E, 999999.0, 0.0,     360.0,    float
+DIR_MAG,             0, from_direction,                                                                 Degrees clockwise from magnetic North, E, 999999.0, 0.0,     360.0,    float
 DIRECTION,           0, direction_of_the_profile,                                                       ,                                      ,  ,         ,        ,         char
+DIRT,                0, to_direction,                                                                   Degrees clockwise from true North,     E, 999999.0, 0.0,     360.0,    float
 DOX1,                1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,                  umol l-1,                              O, 999999.0, 0.0,     900000.0, float
 DOX2,                1, moles_of_oxygen_per_unit_mass_in_sea_water,                                     umol kg-1,                             O, 999999.0, 0.0,     880000.0, float
 DOXS,                1, fractional_saturation_of_oxygen_in_sea_water,                                   percent,                               O, 999999.0, ,        ,         float
@@ -54,6 +55,7 @@ DYNHT,               0, dynamic_height,                                         
 ECUR,                0, error_sea_water_velocity,                                                       m s-1,                                 V, 999999.0, -5.0,    5.0,      float
 FLU2,                0, fluorescence_in_sea_water,                                                      counts,                                B, 999999.0, ,        ,         float
 FREQUENCY,           0, frequency,                                                                      Hz,                                    E, 999999.0, 0.0,     900000.0, float
+GDOP,                0, radar_beam_intersection_angle,                                                  Degrees,                               E, 999999.0, 0.0,     180.0,    float
 HEADING,             1, platform_yaw_angle,                                                             Degrees clockwise from true North,     E, 999999.0, 0.0,     360.0,    float
 HEADING_MAG,         1, platform_yaw_angle,                                                             Degrees clockwise from magnetic North, E, 999999.0, 0.0,     360.0,    float
 HEAT,                0, heat_content,                                                                   10^10 J m-2,                           E, 999999.0, ,        ,         float
