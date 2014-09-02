@@ -246,6 +246,11 @@ if ~isempty(presIdx)
     end
     
     pres = data{presIdx};
+    
+    % we set the 65535 values to NaN
+    iNaN = pres == 65535;
+    pres(iNaN) = NaN;
+    
     %Convert to dbar from bar
     %Added by BDM 08/03/2010
     pres=pres.*10;
@@ -316,7 +321,7 @@ if ~isempty(tempIdx)
 end
 
 % add a pressure variable if present
-if ~isempty(presIdx)
+if ~isempty(presIdx) && any(~isnan(pres))
     sample_data.variables{end+1}.name       = 'PRES';
     sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
     sample_data.variables{end}  .dimensions = [1 2 3];
