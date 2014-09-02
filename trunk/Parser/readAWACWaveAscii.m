@@ -84,7 +84,7 @@ function waveData = readAWACWaveAscii( filename )
 %   .
 %   n   Power Spectrum                   (m^2/Hz)
 %
-% Assumed file layout for power spectra data file (.wdr):
+% Assumed file layout for directional spectra data file (.wdr):
 %
 %       Frequency Vector                 (Hz)
 %   1   Directional Spectrum             (Deg)
