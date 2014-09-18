@@ -197,12 +197,13 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt, mode)
   config.product_type(config.product_type == '_') = '-';
   
   % <end_date>, <creation_date>
-  if isnan(sample_data.time_deployment_end)
+  if isempty(sample_data.time_deployment_end)
       config.end_date    = datestr(sample_data.time_coverage_end, dateFmt);
   else
       config.end_date    = datestr(sample_data.time_deployment_end, dateFmt);
   end
-  config.creation_date = datestr(sample_data.date_created,        dateFmt);
+  
+  config.creation_date = datestr(sample_data.date_created, dateFmt);
 end
 
 function config = readFileNameConfig(sample_data, dateFmt)
