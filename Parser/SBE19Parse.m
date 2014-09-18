@@ -389,6 +389,7 @@ header = struct;
 headerExpr   = '^\*\s*(SBE \S+|SeacatPlus)\s+V\s+(\S+)\s+SERIAL NO.\s+(\d+)';
 %BDM (18/2/2011) - new header expressions to reflect newer SBE header info
 headerExpr2  = '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>';
+headerExpr3  = 'Sea-Bird (\S+) Data File:';
 scanExpr     = 'number of scans to average = (\d+)';
 scanExpr2    = '*\s+ <ScansToAverage>(\d+)</ScansToAverage>';
 memExpr      = 'samples = (\d+), free = (\d+), casts = (\d+)';
@@ -415,7 +416,7 @@ otherExpr    = '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
 firmExpr     ='<FirmwareVersion>(\S+)</FirmwareVersion>';
 
 exprs = {...
-    headerExpr   headerExpr2    scanExpr     ...
+    headerExpr   headerExpr2    headerExpr3    scanExpr     ...
     scanExpr2    memExpr      sampleExpr   ...
     sampleExpr2  profExpr       modeExpr     pressureExpr ...
     voltExpr     outputExpr   ...
@@ -447,55 +448,59 @@ for k = 1:length(headerLines)
                     header.instrument_model     = tkns{1}{1};
                     header.instrument_serial_no = tkns{1}{2};
                     
-                % scan
+                % header3
                 case 3
+                    header.instrument_model     = tkns{1}{1};
+                    
+                % scan
+                case 4
                     header.scanAvg = str2double(tkns{1}{1});
                     
                 % scan2
-                case 4
+                case 5
                     header.scanAvg = str2double(tkns{1}{1});
                     %%ADDED by Loz
                     header.castAvg = header.scanAvg;
                     
                 % mem
-                case 5
+                case 6
                     header.numSamples = str2double(tkns{1}{1});
                     header.freeMem    = str2double(tkns{1}{2});
                     header.numCasts   = str2double(tkns{1}{3});
                     
                 % sample
-                case 6
+                case 7
                     header.sampleInterval        = str2double(tkns{1}{1});
                     header.mesaurementsPerSample = str2double(tkns{1}{2});
                     
                 % sample2
-                case 7
+                case 8
                     header.castEnd = str2double(tkns{1}{1});
                 
                 % profile
-                case 8
+                case 9
                     header.castNumber = str2double(tkns{1}{1});    
                     
                 % mode
-                case 9
+                case 10
                     header.mode = tkns{1}{1};
                     
                 % pressure
-                case 10
+                case 11
                     header.pressureSensor = tkns{1}{1};
                     
                 % volt
-                case 11
+                case 12
                     for n = 1:length(tkns),
                         header.(['ExtVolt' tkns{n}{1}]) = tkns{n}{2};
                     end
                     
                 % output
-                case 12
+                case 13
                     header.outputFormat = tkns{1}{1};
                     
                 % cast
-                case 13
+                case 14
                     if isfield(header, 'castStart')
                         header.castNumber(end+1) = str2double(tkns{1}{1});
                         header.castDate(end+1)   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
@@ -511,34 +516,34 @@ for k = 1:length(headerLines)
                     end
                     
                 % cast2
-                case 14                    
+                case 15                    
                     header.castDate   = datenum(tkns{1}{1}, 'mmm dd yyyy HH:MM:SS');
                     
                 % interval
-                case 15
+                case 16
                     header.resolution = tkns{1}{1};
                     header.interval   = str2double(tkns{1}{2});
                     
                 % sbe38 / gas tension device
-                case 16
+                case 17
                     header.sbe38 = tkns{1}{1};
                     header.gtd   = tkns{1}{2};
                     
                 % optode
-                case 17
+                case 18
                     header.optode = tkns{1}{1};
                     
                 % volt calibration
-                case 18
+                case 19
                     header.(['volt' tkns{1}{1} 'offset']) = str2double(tkns{1}{2});
                     header.(['volt' tkns{1}{1} 'slope'])  = str2double(tkns{1}{3});
                     
                 % name = value
-                case 19
+                case 20
                     header.(genvarname(tkns{1}{1})) = tkns{1}{2};
                     
                 %firmware version
-                case 20
+                case 21
                     header.instrument_firmware  = tkns{1}{1};
                     
             end
