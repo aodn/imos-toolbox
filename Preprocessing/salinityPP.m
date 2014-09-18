@@ -1,11 +1,13 @@
 function sample_data = salinityPP( sample_data, auto )
 %SALINITYPP Adds a salinity variable to the given data sets, if they
-% contain conductivity, temperature and pressure variables. 
+% contain conductivity, temperature pressure and depth variables or nominal depth
+% information. 
 %
 % This function uses the Gibbs-SeaWater toolbox (TEOS-10) to derive salinity
 % data from conductivity, temperature and pressure. It adds the salinity 
 % data as a new variable in the data sets. Data sets which do not contain 
-% conductivity, temperature and pressure variable are left unmodified.
+% conductivity, temperature pressure and depth variables or nominal depth 
+% information are left unmodified.
 %
 % Inputs:
 %   sample_data - cell array of data sets, ideally with conductivity, 
@@ -60,28 +62,65 @@ for k = 1:length(sample_data)
   
   sam = sample_data{k};
   
-  cndcIdx = getVar(sam.variables, 'CNDC');
-  tempIdx = getVar(sam.variables, 'TEMP');
-  presIdx = getVar(sam.variables, 'PRES');
-  presRelIdx = getVar(sam.variables, 'PRES_REL');
+  cndcIdx       = getVar(sam.variables, 'CNDC');
+  tempIdx       = getVar(sam.variables, 'TEMP');
+  depthIdx      = getVar(sam.variables, 'DEPTH');
+  presIdx       = getVar(sam.variables, 'PRES');
+  presRelIdx    = getVar(sam.variables, 'PRES_REL');
   
-  % cndc, temp, or pres/pres_rel not present in data set
-  if ~(cndcIdx && tempIdx && (presIdx || presRelIdx)), continue; end
+  isPresVar = logical(presIdx || presRelIdx);
+  isDepthInfo = false;
+  
+  if isfield(sam, 'instrument_nominal_depth')
+      if ~isempty(sam.instrument_nominal_depth)
+          isDepthInfo = true;
+      end
+  end
+  
+  
+  % cndc, temp, and pres/pres_rel or nominal depth not present in data set
+  if ~(cndcIdx && tempIdx && (isPresVar || isDepthInfo)), continue; end
   
   % data set already contains salinity
   if getVar(sam.variables, 'PSAL'), continue; end
   
   cndc = sam.variables{cndcIdx}.data;
   temp = sam.variables{tempIdx}.data;
-  if presRelIdx > 0
-      presRel = sam.variables{presRelIdx}.data;
-      presName = 'PRES_REL';
+  if isPresVar
+      if presRelIdx > 0
+          presRel = sam.variables{presRelIdx}.data;
+          presName = 'PRES_REL';
+      else
+          % update from a relative pressure like SeaBird computes
+          % it in its processed files, substracting a constant value
+          % 10.1325 dbar for nominal atmospheric pressure
+          presRel = sam.variables{presIdx}.data - gsw_P0/10^4;
+          presName = 'PRES substracting a constant value 10.1325 dbar for nominal atmospheric pressure';
+      end
   else
-      % update from a relative pressure like SeaBird computes
-      % it in its processed files, substracting a constant value
-      % 10.1325 dbar for nominal atmospheric pressure
-      presRel = sam.variables{presIdx}.data - gsw_P0/10^4;
-      presName = 'PRES substracting a constant value 10.1325 dbar for nominal atmospheric pressure';
+      if depthIdx > 0
+          depth = sam.variables{depthIdx}.data;
+          if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
+              % compute depth with Gibbs-SeaWater toolbox
+              % relative_pressure ~= gsw_p_from_z(-depth, latitude)
+              if sam.geospatial_lat_min == sam.geospatial_lat_max
+                  presRel = gsw_p_from_z(-depth, sam.geospatial_lat_min);
+              else
+                  meanLat = sam.geospatial_lat_min + ...
+                      (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
+                  presRel = gsw_p_from_z(-depth, meanLat);
+              end
+              presName = 'DEPTH';
+          else
+              % without latitude information, we assume 1dbar ~= 1m
+              presRel = depth;
+              presName = 'DEPTH (assuming 1 m ~ 1 dbar)';
+          end
+          
+      else
+          presRel = sam.instrument_nominal_depth*ones(size(temp));
+          presName = 'instrument_nominal_depth (assuming 1 m ~ 1 dbar)';
+      end
   end
   
   % calculate C(S,T,P)/C(35,15,0) ratio
