@@ -100,10 +100,11 @@ end
 if ~idMandatory, return; end
 
 
-qcSet = str2double(readProperty('toolbox.qc_set'));
-badFlag  = imosQCFlag('bad',  qcSet, 'flag');
-goodFlag = imosQCFlag('good', qcSet, 'flag');
-rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+qcSet           = str2double(readProperty('toolbox.qc_set'));
+badFlag         = imosQCFlag('bad',             qcSet, 'flag');
+goodFlag        = imosQCFlag('good',            qcSet, 'flag');
+probGoodFlag    = imosQCFlag('probablyGood',    qcSet, 'flag');
+rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
 
 %Pull out horizontal velocities
 % we can afford to run the test only once (if couple of UCUR/VCUR) since u
@@ -151,12 +152,16 @@ flags = ones(sizeCur, 'int8')*rawFlag;
 %Run QC
 % we can afford to run the test only once (if couple of UCUR/VCUR) since u
 % is only tested in absolute value (direction doesn't matter)
-[iPass] = adcpqctest(qcthresh, qc, u, w, erv);
+[iPass, iNaNerv] = adcpqctest(qcthresh, qc, u, w, erv);
 iFail = ~iPass;
 
 %Run QC filter (iFail) on velocity data
 flags(iFail) = badFlag;
-flags(~iFail) = goodFlag;
+flags(iPass) = goodFlag;
+
+% If the cell contains a NaN in the error velocity test, but doesn’t fail
+% any other test, flag the data as level 2 (Probably good data).
+flags(iPass & iNaNerv) = probGoodFlag;
 
 sample_data.variables{idUcur}.flags = flags;
 sample_data.variables{idVcur}.flags = flags;
@@ -179,7 +184,7 @@ end
     
 end
 
-function [iPass] = adcpqctest(qcthresh, qc, u, w, erv)
+function [iPass, iNaNerv] = adcpqctest(qcthresh, qc, u, w, erv)
 %[iPass] = adcpqctest(qcthresh,qc,u,w,erv)
 % Inputs: a structure of thresholds for each of the following:
 %   qcthresh.errvel  :  error velocity
@@ -197,13 +202,15 @@ hvel      = qcthresh.hvel;      %test 5
 ea_thresh = qcthresh.ea_thresh; %test 6
 clear ib* isub* ifb iFail*
 
-%test 1, Error Velocity test
+% Test 1, Error Velocity test
 % measurement of disagreement of measurement estimates of opposite beams.
 % Derived from 2 idpt beams and therefore is 2 indp measures of vertical
 % velocity
+iNaNerv = isnan(erv);
 ib1 = abs(erv) <= err_vel;
+ib1(iNaNerv) = true; % we don't want NaN values to interfer in the tier 2 test
 
-%test 2, Percent Good test on 3 and 4 beam solutions
+% Test 2, Percent Good test on 3 and 4 beam solutions
 % in earth coordinate (!=beam coordinate) configuration, pg(1) is
 % percent good of measurements with 3 beam solution and pg(4) is
 % percent good of measurements with 4 beam solution.
@@ -223,12 +230,18 @@ ib3 = isub_all >= 2;
 clear isub1 isub2 isub3 isub4 isub_all;
 
 % Test 4, Vertical velocity test
+iNaN = isnan(w);
 ib4 = abs(w) <= vvel;
+ib4(iNaN) = true; % we don't want NaN values to interfer in the tier 2 test
+clear iNaN;
 
 % Test 5, Horizontal velocity test
+iNaN = isnan(u);
 ib5 = abs(u) <= hvel;
+ib5(iNaN) = true; % we don't want NaN values to interfer in the tier 2 test
+clear iNaN;
 
-%Test 6, Echo Amplitude test
+% Test 6, Echo Amplitude test
 % this test looks at the difference between consecutive vertical bin values of ea and
 % if the value exceeds the threshold, then the bin fails, and all bins
 % above this are also considered to have failed.
