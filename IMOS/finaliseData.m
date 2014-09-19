@@ -70,7 +70,7 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   sam.meta.raw_data_file = [rawFiles{:}];
   
   if isfield(sam.meta, 'site')
-      sam.meta.site_name     = sam.meta.site.SiteName;
+      if ~isempty(sam.meta.site), sam.meta.site_name = sam.meta.site.SiteName; end
   end
   
   if isfield(sam.meta, 'deployment')
