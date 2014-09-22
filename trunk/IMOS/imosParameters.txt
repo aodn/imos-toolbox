@@ -71,6 +71,7 @@ LW,                  1, surface_downwelling_longwave_flux_in_air,               
 LW_NET,              1, surface_net_upward_longwave_flux,                                               W m-2,                                 F, 999999.0, ,        ,         float
 MASS_NET,            1, upward_mass_flux_of_air,                                                        kg m-2 s-1,                            F, 999999.0, ,        ,         float
 MAXZ,                0, maximum_number_of_samples_in_vertical_profile,                                  ,                                      ,          , ,        ,         int
+NOBS,                0, number_of_observations_considered,                                              ,                                      ,          , ,        ,         byte
 NTRA,                1, mole_concentration_of_nitrate_in_sea_water,                                     umole l-1,                             K, 999999.0, ,        ,         float
 NTR2,                1, moles_of_nitrate_per_unit_mass_in_sea_water,                                    umole kg-1,                            K, 999999.0, ,        ,         float
 OPBS,                0, optical_backscattering_coefficient,                                             ,                                      C, 999999.0, ,        ,         float
@@ -98,10 +99,10 @@ SSPD,                1, speed_of_sound_in_sea_water,                            
 SSS,                 1, sea_surface_salinity,                                                           psu,                                   S, 999999.0, 2.0,     41.0,     float
 SST,                 1, sea_surface_skin_temperature,                                                   Celsius,                               T, 999999.0, ,        ,         float
 SSTI,                1, sea_surface_temperature,                                                        Celsius,                               T, 999999.0, -2.5,    40.0,     float
-SSWD,                0, sea_surface_wave_from_direction_spectral_density,                               Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
-SSWD_MAG,            0, sea_surface_wave_from_direction_spectral_density,                               Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
-SSWDT,               0, sea_surface_wave_to_direction_spectral_density,                                 Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
-SSWST,               0, sea_surface_wave_to_directional_variance_spectral_density,                      m2 deg-1,                              W, 999999.0, ,        ,         float
+SSWD,                0, sea_surface_wave_from_direction_by_frequency,                                   Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
+SSWD_MAG,            0, sea_surface_wave_from_direction_by_frequency,                                   Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
+SSWDT,               0, sea_surface_wave_to_direction_by_frequency,                                     Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
+SSWST,               0, sea_surface_wave_to_directional_variance,                                       m2 deg-1,                              W, 999999.0, ,        ,         float
 SSWV,                1, sea_surface_wave_directional_variance_spectral_density,                         m2 s deg-1,                            W, 999999.0, ,        ,         float
 SSWV_MAG,            0, sea_surface_wave_magnetic_directional_variance_spectral_density,                m2 s deg-1,                            W, 999999.0, ,        ,         float
 SSWVT,               0, sea_surface_wave_to_directional_variance_spectral_density,                      m2 s deg-1,                            W, 999999.0, ,        ,         float
