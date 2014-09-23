@@ -1,5 +1,6 @@
-function sample_data = readECOraw( filename, deviceInfo )
-%READECORAW parses a .raw data file retrieved from a Wetlabs ECO Triplet instrument.
+function sample_data = readWetStarraw( filename, deviceInfo )
+%READWETSARRAW parses a .raw data file retrieved from a Wetlabs WetStar instrument
+%deployed at the Lucinda Jetty.
 %
 %
 % Inputs:
@@ -11,8 +12,6 @@ function sample_data = readECOraw( filename, deviceInfo )
 %                 vector of variable structs, containing sample data.
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
-%
-% See http://www.wetlabs.com/products/eflcombo/triplet.htm
 %
 
 %
@@ -50,12 +49,9 @@ error(nargchk(2, 2, nargin));
 if ~ischar(filename), error('filename must contain a string'); end
 if ~isstruct(deviceInfo), error('deviceInfo must contain a struct'); end
 
-nColumns = length(deviceInfo.columns);
-% we assume the two first columns are always DATE and TIME
-% we first read everything as strings with the expected number of columns
-% but ignoring as many columns as it takes (100 extra columns should be
-% enough)
-format = ['%s%s' repmat('%s', 1, nColumns-2) repmat('%*s', 1, 100)];
+nColumns = 1;
+% we assume the file is a single column
+format = '%s';
 
 % open file, get header and data in columns
 fid     = -1;
@@ -65,127 +61,16 @@ try
     if fid == -1, error(['couldn''t open ' filename 'for reading']); end
     
     % read in the data
-    samples = textscan(fid, format, 'HeaderLines', 1, 'Delimiter', '\t');
+    samples = textscan(fid, format, 'Delimiter', '\t');
     fclose(fid);
 catch e
     if fid ~= -1, fclose(fid); end
     rethrow(e);
 end
 
-% we read everything a second time only looking for a potential extra column as a diagnostic for errors
-formatDiag = ['%*s%*s' repmat('%*s', 1, nColumns-2) '%s' repmat('%*s', 1, 100)];
-
-% open file, get header and data in columns
-fid     = -1;
-samplesDiag = {};
-try
-    fid = fopen(filename, 'rt');
-    if fid == -1, error(['couldn''t open ' filename 'for reading']); end
-    
-    % read in the data
-    samplesDiag = textscan(fid, formatDiag, 'HeaderLines', 1, 'Delimiter', '\t');
-    fclose(fid);
-catch e
-    if fid ~= -1, fclose(fid); end
-    rethrow(e);
-end
-
-% get rid of any line which non expected extra column contains data
-iExtraColumn = ~strcmpi(samplesDiag{1}, '');
-if any(iExtraColumn)
-    for i=1:nColumns
-        samples{i}(iExtraColumn) = [];
-    end
-end
-clear samplesDiag;
-
-% get rid of any line which expected last column doesn't contain data
-iNoLastColumn = strcmpi(samples{nColumns}, '');
-if any(iNoLastColumn)
-    for i=1:nColumns
-        samples{i}(iNoLastColumn) = [];
-    end
-end
-
-% get rid of any line which date is not in the format mm/dd/yy
-control = regexp(samples{1}, '[0-1]\d/[0-3]\d/\d\d', 'match');
-iDateNoGood1 = cellfun('isempty', control);
-if any(iDateNoGood1)
-    for i=1:nColumns
-        samples{i}(iDateNoGood1) = [];
-    end
-end
-clear control iDateNoGood1;
-
-[~, M, D] = datevec(samples{1}, 'mm/dd/yy');
-iMonthNoGood = (M <= 0) & (M > 12);
-iDayNoGood = (D <= 0) & (D > 31);
-iDateNoGood2 = iMonthNoGood | iDayNoGood;
-clear iMonthNoGood iDayNoGood;
-if any(iDateNoGood2)
-    for i=1:nColumns
-        samples{i}(iDateNoGood2) = [];
-    end
-end
-clear iDateNoGood2;
-
-control = cellstr(datestr(datenum(samples{1}, 'mm/dd/yy'), 'mm/dd/yy'));
-iDateNoGood3 = ~strcmpi(samples{1}, control);
-if any(iDateNoGood3)
-    for i=1:nColumns
-        samples{i}(iDateNoGood3) = [];
-    end
-end
-clear iDateNoGood3;
-
-% get rid of any line which time is not in the format HH:MM:SS
-control = regexp(samples{2}, '[0-2]\d:[0-6]\d:[0-6]\d', 'match');
-iTimeNoGood1 = cellfun('isempty', control);
-if any(iTimeNoGood1)
-    for i=1:nColumns
-        samples{i}(iTimeNoGood1) = [];
-    end
-end
-clear control iTimeNoGood1;
-
-[~, ~, ~, H, MN, S] = datevec(samples{2}, 'HH:MM:SS');
-iHourNoGood = (H < 0) & (H > 24);
-iMinuteNoGood = (MN < 0) & (MN > 60);
-iSecondNoGood = (S < 0) & (S > 60);
-iTimeNoGood2 = iHourNoGood | iMinuteNoGood | iSecondNoGood;
-clear iHourNoGood iMinuteNoGood iSecondNoGood;
-if any(iTimeNoGood2)
-    for i=1:nColumns
-        samples{i}(iTimeNoGood2) = [];
-    end
-end
-clear iTimeNoGood2;
-
-% get rid of any line which column other than date or time is not a number
-% (we are being highly conservative)
-iNaN = false(length(samples{1}), nColumns-2);
-for i=3:nColumns
-    iNaN(:, i-2) = isnan(str2double(samples{i}));
-end
-iNaN = any(iNaN, 2);
-for i=1:nColumns
-    samples{i}(iNaN) = [];
-end
-clear iNaN;
-
-% finally we can convert into numbers what is left
-for i=3:nColumns
-    samples{i} = str2double(samples{i});
-end
-
-% count value 4130 and over look like to be the maximum
-% possible count value the instrument can deliver
-maxCount = 4130;
-for i=3:nColumns
-    iMaxCount = samples{i} >= maxCount;
-    samples{i}(iMaxCount) = NaN;
-end
-clear iMaxCount;
+% we can convert into numbers, any input with characters will end up as
+% NaN
+samples{1} = str2double(samples{1});
 
 %fill in sample and cal data
 sample_data            = struct;
@@ -198,11 +83,17 @@ sample_data.meta.instrument_make      = 'WET Labs';
 sample_data.meta.instrument_model     = deviceInfo.instrument;
 sample_data.meta.instrument_serial_no = deviceInfo.serial;
 
-% convert and save the time data
-time = datenum(samples{1}, 'mm/dd/yy') + ...
-    (datenum(samples{2}, 'HH:MM:SS') - datenum(datestr(now, 'yyyy0101'), 'yyyymmdd'));
+% infer time information from start time in filename (already in UTC) and 
+% assuming recording is performed over 60 minutes
+[~, filename, ~] = fileparts(filename);
+underscorePos = strfind(filename, '_');
+time = filename(1:underscorePos(1)+4);
+time = time(end-12:end);
+time = datenum(time, 'yyyymmdd_HHMM');
+nSamples = length(samples{1});
+time = linspace(time, time + 1/24, nSamples);
 
-sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+sample_data.meta.instrument_sample_interval = 1;
 
 % dimensions definition must stay in this order : T, Z, Y, X, others;
 % to be CF compliant
@@ -216,22 +107,20 @@ sample_data.dimensions{3}.name          = 'LONGITUDE';
 sample_data.dimensions{3}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
 sample_data.dimensions{3}.data          = sample_data.dimensions{3}.typeCastFunc(NaN);
 
-for i=1:nColumns
-    [name, comment, data] = getParamDetails(deviceInfo.columns{i}, samples{i});
+[name, comment, data] = getParamDetails(deviceInfo.columns{1}, samples{1});
+
+if ~isempty(data)
+    sample_data.variables{end+1}.dimensions  = [1 2 3];
+    sample_data.variables{end}.comment       = comment;
+    sample_data.variables{end}.name          = name;
+    sample_data.variables{end}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+    sample_data.variables{end}.data          = sample_data.variables{end}.typeCastFunc(data);
     
-    if ~isempty(data)
-        sample_data.variables{end+1}.dimensions  = [1 2 3];
-        sample_data.variables{end}.comment       = comment;
-        sample_data.variables{end}.name          = name;
-        sample_data.variables{end}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-        sample_data.variables{end}.data          = sample_data.variables{end}.typeCastFunc(data);
-        
-        % WQM uses SeaBird pressure sensor
-        if strncmp('PRES_REL', name, 8)
-            % let's document the constant pressure atmosphere offset previously
-            % applied by SeaBird software on the absolute presure measurement
-            sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
-        end
+    % WQM uses SeaBird pressure sensor
+    if strncmp('PRES_REL', name, 8)
+        % let's document the constant pressure atmosphere offset previously
+        % applied by SeaBird software on the absolute presure measurement
+        sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
     end
 end
   

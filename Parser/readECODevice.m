@@ -70,7 +70,15 @@ catch e
     rethrow(e);
 end
 
-deviceInfo.plotHeader = lines{1};
+deviceInfo.plotHeader = strrep(lines{1}, '\t', '');
+dashPos = strfind(deviceInfo.plotHeader, '-');
+deviceInfo.instrument = deviceInfo.plotHeader(1:dashPos-1);
+deviceInfo.serial = deviceInfo.plotHeader(dashPos+1:end);
+
+underscorePos = strfind(deviceInfo.serial, '_');
+if ~isempty(underscorePos)
+    deviceInfo.serial = deviceInfo.serial(1:underscorePos-1);
+end
 
 % we look for the number of columns described
 nLines = length(lines);
@@ -105,7 +113,7 @@ for i=1:nColumns
     type = type{1}(1:end-1);
     
     switch upper(type)
-        case 'N/U'
+        case {'N/U', 'DKDC'}
             % do nothing
             
         % measurements with possible scale, offset and wavelengths infos
