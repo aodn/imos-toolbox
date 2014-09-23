@@ -132,9 +132,17 @@ VDIR,                1, sea_surface_wave_from_direction,                        
 VDIR_MAG,            1, sea_surface_wave_from_direction,                                                Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
 VDIRT,               1, sea_surface_wave_to_direction,                                                  Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 VOLT,                0, voltage,                                                                        V,                                     E, 999999.0, -100.0,  100.0,    float
+VSF412,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_412nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
+VSF440,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_440nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
 VSF470,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_470nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
+VSF488,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_488nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
+VSF510,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_510nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
 VSF532,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_532nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
+VSF595,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_595nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
 VSF650,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_650nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
+VSF660,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_660nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
+VSF676,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_676nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
+VSF715,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_715nm, m-1 sr-1,                              E, 999999.0, ,        ,         float
 VWND,                1, northward_wind,                                                                 m s-1,                                 M, 999999.0, ,        ,         float
 WCUR,                1, upward_sea_water_velocity,                                                      m s-1,                                 V, 999999.0, -5.0,    5.0,      float
 WDIR,                1, wind_to_direction,                                                              Degrees clockwise from true North,     M, 999999.0, 0.0,     360.0,    float
