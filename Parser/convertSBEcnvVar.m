@@ -73,7 +73,9 @@ switch name
     case 'timeJ'
       name = 'TIME';
       if timeOffset == 0; timeOffset = 2010; end % clumsy, may need fixing!
-      data = rem(data, floor(data)) + floor(timeOffset);
+      startYear = str2double(datestr(timeOffset, 'yyyy'));
+      %data = rem(data, floor(data)) + floor(timeOffset);
+      data = data + datenum(startYear-1,12,31);
       comment = '';
     
     % elapsed time (seconds since 01-Jan-2000)
