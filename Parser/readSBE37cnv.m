@@ -65,7 +65,6 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader )
     d = dataLines{k};
     d(d == procHeader.badFlag) = nan;
     
-%     [n, d] = convertData(genvarname(columns{k}), d, instHeader);
     [n, d, c] = convertData(genvarname(columns{k}), d, procHeader);
     
     if isempty(n) || isempty(d), continue; end
@@ -139,128 +138,8 @@ function [name, data, comment] = convertData(name, data, procHeader)
 %This is not used for SBE37SM
 % the cast date, if present, is used for time field offset
 castDate = 0;
-if isfield(procHeader, 'startTime')
-    castDate = procHeader.startTime;
-end
+if isfield(procHeader, 'startTime'); castDate = procHeader.startTime; end
 
-%sort out start year for conversion of Julian days
-startYear=2010;%This is clumsy - may need fixing!!
-if isfield(procHeader,'startTime')
-    startYear=str2double(datestr(procHeader.startTime,'yyyy')); 
-end
+[name, data, comment] = convertSBEcnvVar(name, data, castDate);
 
-switch name
-    
-        % elapsed time (seconds since start)
-    case 'timeS'
-        name = 'TIME';
-        data = data / 86400 + castDate;
-        comment = '';
-        
-        % elapsed time (seconds since 01-Jan-2000)
-    case 'timeK'
-        name = 'TIME';
-        data = data / 86400 + datenum(2000,1,1);
-        comment = '';
-        
-        % elapsed time (minutes since start)
-    case 'timeM'
-        name = 'TIME';
-        data = data / 1440 + castDate;
-        comment = '';
-        
-        % elapsed time (hours since start)
-    case 'timeH'
-        name = 'TIME';
-        data = data / 24  + castDate;
-        comment = '';
-        
-        % elapsed time (days since start of year)
-    case 'timeJ'
-        name = 'TIME';
-        %data = rem(data, floor(data)) + floor(castDate);
-        data = data + datenum(startYear-1,12,31);
-        comment = '';
-        
-        % strain gauge pressure (dbar)
-        %case 'prdM'
-    case {'pr', 'prM', 'prdM'}
-        name = 'PRES_REL';
-        comment = '';
-        
-        % strain gauge pressure (psi)
-        % 1 psi = 0.68948 dBar
-        % 1 dbar = 1.45038 psi
-    case 'prdE'
-        name = 'PRES_REL';
-        data = data .* 0.68948;
-        comment = '';
-        
-        % temperature (deg C)
-        %case 'tv290C'
-    case {'t090C', 'tv290C', 't090'}
-        name = 'TEMP';
-        comment = '';
-        
-        % conductivity (S/m)
-    case {'c0S0x2Fm', 'cond0S0x2Fm'}
-        name = 'CNDC';
-        comment = '';
-        
-        % conductivity (mS/cm)
-        % mS/cm -> S/m
-    case {'c0ms0x2Fcm', 'cond0ms0x2Fcm', 'c0mS0x2Fcm', 'cond0mS0x2Fcm'}
-        name = 'CNDC';
-        data = data ./ 10;
-        comment = '';
-        
-        % conductivity (uS/cm)
-    case {'c0us0x2Fcm', 'cond0us0x2Fcm', 'c0uS0x2Fcm', 'cond0uS0x2Fcm'}
-        name = 'CNDC';
-        data = data ./ 10000;
-        comment = '';
-        
-        % fluorescence (counts)
-    case 'flC'
-        name = 'FLU2';
-        comment = '';
-        
-        % artificial chlorophyll from fluorescence (mg/m3)
-    case 'flECO0x2DAFL'
-        name = 'CHLF';
-        comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements using factory calibration coefficient.';
-        
-        % oxygen (mg/l)
-        % mg/l => umol/l
-    case {'oxsolMg0x2FL', 'oxsatMg0x2FL', 'sbeox0Mg0x2FL'}
-        name = 'DOX1';
-        data = data .* 44.660/1.429; % O2 density = 1.429kg/m3
-        comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
-        
-        % oxygen (umol/Kg)
-        % umol/Kg
-    case {'oxsolMm0x2FKg', 'oxsatMm0x2FKg', 'sbeox0Mm0x2FKg'}
-        name = 'DOX2';
-        comment = '';
-        
-        % salinity (PSU)
-    case 'sal00'
-        name = 'PSAL';
-        comment = '';
-        
-        % turbidity (NTU)
-    case {'obs', 'upoly0'}
-        name = 'TURB';
-        comment = '';
-        
-        % depth (m)
-    case {'depSM', 'depFM'}
-        name = 'DEPTH';
-        comment = '';
-                      
-    otherwise
-        name = '';
-        data = [];
-        comment = '';
-end
 end
