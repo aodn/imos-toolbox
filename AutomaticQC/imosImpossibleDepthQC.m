@@ -188,17 +188,26 @@ if strcmpi(paramName, 'PRES') || ...
         return;
     end
     
+%     paramsLog = [paramsLog ', instrument_nominal_depth=' num2str(instrumentNominalDepth) ', site_nominal_depth=' num2str(siteNominalDepth)];
+    
     % get possible min/max values
     possibleMin = instrumentNominalDepth - zNominalMargin;
+    possibleMax = instrumentNominalDepth + zNominalMargin;
     
-    deltaZ = (siteNominalDepth - (instrumentNominalDepth + zNominalMargin)) * ...
+    % get deltaZ from knock down event. Is greater when closer to surface.
+    deltaZMax = (siteNominalDepth - possibleMin) * ... 
         (1 - cos(maxAngle * pi/180));
-    possibleMax = instrumentNominalDepth + zNominalMargin + deltaZ;
+    
+    % we are considering the possibility of deltaZMax being applied to possibleMax
+    % (should only be relevant in the case of possibleMin but gives broader boundaries)
+    possibleMax = possibleMax + deltaZMax;
+    % cannot be out of water
+    possibleMin = max(0, possibleMin);
     
     % possibleMin shouldn't be above the surface (~global range value)
     % possibleMax cannot be below the site depth
     possibleMin = max(possibleMin, imosParameters('DEPTH', 'valid_min')); % value from global range
-    possibleMax = min(possibleMax, siteNominalDepth + 20*siteNominalDepth/100); % we allow +20% to the site Depth
+    possibleMax = min(possibleMax, siteNominalDepth + 20*siteNominalDepth/100); % we allow +20% to the nominal site depth
     
     if any(strcmpi(paramName, {'PRES', 'PRES_REL'}))
         if ~isempty(sample_data.geospatial_lat_min) && ~isempty(sample_data.geospatial_lat_max)
@@ -233,16 +242,13 @@ if strcmpi(paramName, 'PRES') || ...
     end
     
     paramsLog = [paramsLog ' => min=' num2str(possibleMin) ', max=' num2str(possibleMax)];
-    
+%     disp(paramsLog);
+
     % initially all data is bad
     flags = ones(lenData, 1, 'int8')*failFlag;
     
     iPossible = data <= possibleMax;
-    if (possibleMin < 0) % cannot be out of water
-        iPossible = iPossible & (data >= 0);
-    else
-        iPossible = iPossible & (data >= possibleMin);
-    end
+    iPossible = iPossible & (data >= possibleMin);
     
     if any(iPossible)
         flags(iPossible) = passFlag;
