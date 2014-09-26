@@ -236,31 +236,14 @@ function sample_data = populateMetadata( sample_data )
           if idHeight > 0
               % ADCP
               if all(sample_data.dimensions{idHeight}.data >= 0) % upward looking configuration
-                  % Let's compare this computed depth from pressure
-                  % with the maximum distance the ADCP can measure. Sometimes,
-                  % PRES from ADCP pressure sensor is just wrong
-                  maxDistance = round(max(sample_data.dimensions{idHeight}.data)*100)/100;
-                  diff = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
-                  
+                  maxDistance = round(max(sample_data.dimensions{idHeight}.data)*100)/100; % HEIGHT_ABOVE_SENSOR is positive when upward
                   % update vertical min/max metadata from data
-                  % we assume that data is collected between the
-                  % vertical extremes of surface and sensor depth
+                  % we assume that depth data is reliable
                   if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
-                      sample_data.geospatial_vertical_min = 0;
                       
-                      if diff < 30/100
-                          % Depth from PRES Ok if diff < 30% and latitude
-                          % filled
-                          sample_data.geospatial_vertical_max = computedMedianDepth;
-                          comment  = strrep(computedMedianDepthComment, 'min/', '');
-                      else
-                          % Depth is taken from maxDistance between ADCP and bins
-                          sample_data.geospatial_vertical_max = maxDistance;
-                          comment  = ['Geospatial vertical max '...
-                              'information has been assumed as the distance '...
-                              'between the ADCP''s tranducers and the furthest '...
-                              'bin measured.'];
-                      end
+                      sample_data.geospatial_vertical_min = max(0, computedMedianDepth - maxDistance); % cannot be above surface
+                      sample_data.geospatial_vertical_max = computedMedianDepth;
+                      comment  = strrep(computedMedianDepthComment, 'min/', '');
                       
                       if isempty(sample_data.comment)
                           sample_data.comment = comment;
@@ -271,18 +254,22 @@ function sample_data = populateMetadata( sample_data )
                       metadataChanged = true;
                   end
               else % downward looking configuration
+                  maxDistance = - round(min(sample_data.dimensions{idHeight}.data)*100)/100; % HEIGHT_ABOVE_SENSOR is negative when downward
                   % update vertical min/max metadata from data
-                  % we assume that data is collected between the
-                  % vertical extremes of bottom and sensor depth
+                  % we assume that depth data is reliable
                   if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
-                      sample_data.geospatial_vertical_max = sample_data.site_nominal_depth;
-                      if isempty(sample_data.geospatial_vertical_max)
-                          sample_data.geospatial_vertical_max = sample_data.site_depth_at_deployment;
+                      
+                      sample_data.geospatial_vertical_min = computedMedianDepth;
+                      sample_data.geospatial_vertical_max = computedMedianDepth + maxDistance;
+                      comment  = strrep(computedMedianDepthComment, '/max', '');
+                      
+                      if computedMedianDepth + maxDistance > sample_data.site_nominal_depth; % cannot be below bottom
+                          sample_data.geospatial_vertical_max = sample_data.site_nominal_depth;
                       end
                       
-                      % we haven't any choice but to assume pressure is OK
-                      sample_data.geospatial_vertical_min = computedMedianDepth;
-                      comment  = strrep(computedMedianDepthComment, '/max', '');
+                      if computedMedianDepth + maxDistance > sample_data.site_depth_at_deployment; % cannot be below bottom
+                          sample_data.geospatial_vertical_max = sample_data.site_depth_at_deployment;
+                      end
                       
                       if isempty(sample_data.comment)
                           sample_data.comment = comment;
