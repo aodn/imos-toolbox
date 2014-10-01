@@ -13,6 +13,7 @@ function v = readNetCDFVar(ncid, varid)
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor : Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%               Gordon Keith <gordon.keith@csiro.au>
 
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
@@ -72,5 +73,6 @@ function v = readNetCDFVar(ncid, varid)
   for k = 1:length(attnames), v.(attnames{k}) = atts.(attnames{k}); end
   
   % replace any fill values with matlab's NaN
+  if isfield(atts, 'FillValue_') && iscell(v.data), atts = rmfield(atts, 'FillValue_'); end
   if isfield(atts, 'FillValue_'), v.data(v.data == atts.FillValue_) = v.typeCastFunc(NaN); end
 end
