@@ -13,6 +13,7 @@ function sample_data = netcdfParse( filename, mode )
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor : Laurent Besnard <laurent.besnard@utas.edu.au>
 %               Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%               Gordon Keith <gordon.keith@csiro.au>
 
 %
 % Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
@@ -69,13 +70,12 @@ function sample_data = netcdfParse( filename, mode )
   globals = readNetCDFAtts(ncid, netcdf.getConstant('NC_GLOBAL'));
   
   % transform any time attributes into matlab serial dates
-  timeAtts = {'date_created', 'time_coverage_start', 'time_coverage_end', ...
-      'time_deployment_start', 'time_deployment_end'};
+  timeAtts = getTimeAtts();
   for k = 1:length(timeAtts)
     
     if isfield(globals, timeAtts{k})
       
-      % Aargh, matlab is a steamer. Datenum cannot handle a trailing 'Z',
+      % Aargh, Datenum cannot handle a trailing 'Z',
       % even though it's ISO8601 compliant. Assuming 
       % knowledge of the date format here (dropping the last character).
       newTime = 0;
@@ -185,19 +185,58 @@ function sample_data = netcdfParse( filename, mode )
   sample_data.meta.instrument_serial_no       = '';
   sample_data.meta.instrument_sample_interval = NaN;
   
-  if isfield(sample_data, 'instrument_make')
-      sample_data.meta.instrument_make = sample_data.instrument_make;
-  end
-  
-  if isfield(sample_data, 'instrument_model')
-      sample_data.meta.instrument_model = sample_data.instrument_model;
+  if isfield(sample_data, 'instrument')
+      [sample_data.meta.instrument_make, sample_data.meta.instrument_model] = strtok(sample_data.instrument, ' ');
   end
   
   if isfield(sample_data, 'instrument_serial_no')
       sample_data.meta.instrument_serial_no = sample_data.instrument_serial_no;
   end
   
+  if isfield(sample_data, 'instrument_beam_angle')
+      sample_data.meta.beam_angle = sample_data.instrument_beam_angle;
+  end
+  
   if isfield(sample_data, 'instrument_sample_interval')
       sample_data.meta.instrument_sample_interval = sample_data.instrument_sample_interval;
+  end
+  
+  iHeightAboveSensor = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
+  if iHeightAboveSensor
+      sample_data.meta.binSize = diff(sample_data.dimensions{iHeightAboveSensor}.data(1:2));
+  end
+end
+
+function timeAtts = getTimeAtts()
+  timeAtts = {'date_created', 'time_coverage_start', 'time_coverage_end', ...
+      'time_deployment_start', 'time_deployment_end'};
+
+  fid = -1;
+  try
+      path = readProperty('toolbox.templateDir');
+      if isempty(path) || ~exist(path, 'dir')
+          path = fullfile(pwd, 'NetCDF', 'template');
+      end
+      
+      file = fullfile(path, 'global_attributes.txt');
+      if exist(file,'file') == 2
+          % open file for reading
+          fid = fopen(file, 'rt');
+          if fid == -1, error(['couldn''t open ' file ' for reading']); end
+          
+          tkns = textscan(fid,'%c,%s%*[^\n]', 'Whitespace',' \b\t=', 'CommentStyle', '%');
+          fclose(fid);
+          fid = -1;
+          
+          atts = tkns{2}(tkns{1} == 'D');
+          
+          if ~isempty(atts)
+              timeAtts = atts;
+          end
+          
+      end
+  catch e
+      if fid ~= -1, fclose(fid); end
+      warning(e.message);
   end
 end
