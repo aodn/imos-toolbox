@@ -121,7 +121,9 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   % add IMOS parameters
   sam = makeNetCDFCompliant(sam);
   if isfield(sam, 'instrument_nominal_depth')
-      sam.meta.depth = sam.instrument_nominal_depth;
+      if ~isempty(sam.instrument_nominal_depth)
+          sam.meta.depth = sam.instrument_nominal_depth;
+      end
   end
   
   % populate NetCDF metadata from existing metadata/data if empty
