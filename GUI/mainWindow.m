@@ -185,6 +185,25 @@ function mainWindow(...
   % set window position
   set(fig,        'Position', [0.1,  0.15, 0.8,  0.7 ]);
   
+  % restrict window to primary screen
+  set(fig, 'Units', 'pixels');
+  pos = get(fig, 'OuterPosition');
+  monitors = get(0, 'MonitorPositions');
+  if pos(3) > monitors(1,3)
+      pos(1) = 1;
+      pos(3) = monitors(1,3);
+      set(fig, 'OuterPosition', pos);
+      get(fig, 'Position');
+  end
+  
+  % set widget positions
+  set(sidePanel,  'Position', [0.0,  0.0,  0.15, 0.95]);
+  set(mainPanel,  'Position', [0.15, 0.0,  0.85, 0.95]);
+  set(sampleMenu, 'Position', [0.0,  0.95, 0.75, 0.05]);
+  set(graphMenu,  'Position', [0.75, 0.95, 0.25, 0.05]);
+  
+  set(fig, 'Units', 'normalized');
+
   % set widget positions
 %   set(sidePanel,  'Position', [0.0,  0.0,  0.15, 0.95]);
   set(sidePanel,  'Position', posUi2(fig, 100, 100, 6:100, 1:10, 0));
