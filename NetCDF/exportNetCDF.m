@@ -14,7 +14,8 @@ function filename = exportNetCDF( sample_data, dest, mode )
 %   filename    - String containing the absolute path of the saved NetCDF file.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Contributors: Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%               Gordon Keith <gordon.keith@csiro.au>
 %
 
 %
@@ -122,6 +123,9 @@ function filename = exportNetCDF( sample_data, dest, mode )
         if iscell(dims{m}.data)
             stringlen = ceil(log2(max(cellfun('length', dims{m}.data)))) + 1; %+1 because we need to take into account the case 2^0 = 1
             str(stringlen) = 1; %#ok<AGROW>
+            if isfield(sample_data.dimensions{m}, 'flags')
+                sample_data.dimensions{m} = rmfield(sample_data.dimensions{m}, 'flags');
+            end
         end
         sample_data.dimensions{m}.stringlen = stringlen;
     end
@@ -130,14 +134,17 @@ function filename = exportNetCDF( sample_data, dest, mode )
         if iscell(vars{m}.data)
             stringlen = ceil(log2(max(cellfun('length', vars{m}.data)))) + 1; %+1 because we need to take into account the case 2^0 = 1
             str(stringlen) = 1; %#ok<AGROW>
+            if isfield(sample_data.variables{m}, 'flags')
+                sample_data.variables{m} = rmfield(sample_data.variables{m}, 'flags');
+            end
         end
         sample_data.variables{m}.stringlen = stringlen;
     end
     
-    stringd = zeros(length(str));
+    stringd = nan(size(str));
     for m = 1:length(str)
         if str(m)
-            len = 2 ^ m-1; %-1 because we need to take into account the case 2^0 = 1
+            len = 2 ^ (m-1); %-1 because we need to take into account the case 2^0 = 1
             if len > 1
                 stringd(m) = netcdf.defDim(fid, [ 'STRING' int2str(len) ], len);
             end
@@ -155,7 +162,8 @@ function filename = exportNetCDF( sample_data, dest, mode )
       dims{m}.name = upper(dims{m}.name);
       
       dimAtts = dims{m};
-      dimAtts = rmfield(dimAtts, {'data', 'typeCastFunc'});
+      dimAtts = rmfield(dimAtts, 'data');
+      if isfield(dimAtts, 'typeCastFunc'), dimAtts = rmfield(dimAtts, 'typeCastFunc'); end
       if isfield(dimAtts, 'flags'), dimAtts = rmfield(dimAtts, 'flags'); end
       dimAtts = rmfield(dimAtts, 'stringlen');
       
@@ -233,9 +241,10 @@ function filename = exportNetCDF( sample_data, dest, mode )
           varNetcdfType{m} = 'char';
           if vars{m}.stringlen > 1
               vid = netcdf.defVar(fid, varname, varNetcdfType{m}, ...
-                  [ stringd(vars{m}.stringlen) did ]);
+                  [ stringd(vars{m}.stringlen) dids ]);
+              dimLen = [ 2^(vars{m}.stringlen-1) dimLen];   %#ok<AGROW>
           else
-              vid = netcdf.defVar(fid, varname, varNetcdfType{m}, did);
+              vid = netcdf.defVar(fid, varname, varNetcdfType{m}, dids);
           end
       else
           varNetcdfType{m} = imosParameters(varname, 'type');
@@ -263,6 +272,10 @@ function filename = exportNetCDF( sample_data, dest, mode )
                       any(strncmpi('FREQUENCY', greatDimName, 9)) && ...
                       any(strncmpi('DIR', greatDimName, 3))
                   dimLen(1) = 1; % T dimension always comes first
+              elseif any(strncmpi('TIME', greatDimName, 4)) && ...
+                      any(strncmpi('DEPTH', greatDimName, 5)) && ...
+                      any(strncmpi('CHANNEL', greatDimName, 7))
+                  dimLen(1) = 1; % channel is first after fliplr
               else
                   optimised = false;
               end
@@ -281,11 +294,13 @@ function filename = exportNetCDF( sample_data, dest, mode )
       netcdf.defVarChunking(fid, vid, 'CHUNKED', dimLen);
       
       netcdf.defVarDeflate(fid, vid, true, true, compressionLevel);
-      
+
       varAtts = vars{m};
-      varAtts = rmfield(varAtts, {'data', 'dimensions', 'flags', 'stringlen', 'typeCastFunc'});
+      varAtts = rmfield(varAtts, {'data', 'dimensions', 'stringlen'});
+      if isfield(varAtts, 'typeCastFunc'),  varAtts = rmfield(varAtts, 'typeCastFunc'); end
+      if isfield(varAtts, 'flags'),         varAtts = rmfield(varAtts, 'flags');        end
       
-      if  sample_data.meta.level > 0
+      if isfield(vars{m}, 'flags') && sample_data.meta.level > 0
           % add the QC variable (defined below)
           % to the ancillary variables attribute
           varAtts.ancillary_variables = [varname '_quality_control'];
@@ -294,7 +309,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       % add the attributes
       putAtts(fid, vid, vars{m}, varAtts, 'variable', varNetcdfType{m}, dateFmt, mode);
       
-      if  sample_data.meta.level > 0
+      if isfield(vars{m}, 'flags') && sample_data.meta.level > 0
           % create the ancillary QC variable
           qcvid = addQCVar(...
               fid, sample_data, m, [qcDimId dids], 'variables', qcType, dateFmt, mode);
@@ -342,7 +357,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
           netcdf.putVar(fid, vid, data);
       elseif ischar(data)
           if stringlen > 1
-              netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
+              netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data');
           else
               netcdf.putVar(fid, vid, data);
           end
@@ -392,14 +407,14 @@ function filename = exportNetCDF( sample_data, dest, mode )
           netcdf.putVar(fid, vid, data);
       elseif ischar(data)
           if stringlen > 1
-              netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data);
+              netcdf.putVar(fid, vid, zeros(ndims(data), 1), fliplr(size(data)), data');
           else
               netcdf.putVar(fid, vid, data);
           end
       end
       
       % ancillary QC variable data
-      if  sample_data.meta.level > 0
+      if isfield(vars{m}, 'flags') && sample_data.meta.level > 0
           flags   = vars{m}.flags;
           qcvid   = vars{m}.qcvid;
           typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
@@ -632,7 +647,8 @@ function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mod
     end
     
     switch type
-      case 'D', val = datestr(val, dateFmt);
+      case 'D'
+          val = datestr(val, dateFmt);
     end
     
     % matlab-no-support-leading-underscore kludge
