@@ -221,10 +221,11 @@ function config = readFileNameConfig(sample_data, dateFmt)
   
   fileName = ['IMOS' filesep 'imosFileName.txt'];
   
-  [names values] = listProperties(fileName);
+  [names, values] = listProperties(fileName);
   
   for k = 1:length(names)
-    
-    if ~isempty(values{k}) config.(names{k}) = values{k}; end
+    if ~isempty(values{k})
+        config.(names{k}) = parseAttributeValue(values{k}, sample_data, 1);
+    end
   end
 end
