@@ -110,6 +110,13 @@ function filename = genIMOSFileName( sample_data, suffix )
   % it is assumed that the suffix is valid
   filename = [filename '.'    suffix];
 
+  % we handle the case when the source file is a NetCDF file.
+  if isfield(sample_data.meta, 'file_name') && strcmpi(suffix, 'nc')
+      filename = sample_data.meta.file_name;
+      
+      % we need to update the creation_date
+      filename(end-18:end-3) = getVal(fileCfg, defCfg, 'creation_date');
+  end
 end
 
 function val = getVal(fileCfg, defCfg, fieldName)
