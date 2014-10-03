@@ -97,13 +97,18 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
     end
     
     if any(iMagDataSet == i)
+        % geomag only support computation for haight above sea level
+        % ranging [-1000;600000]
+        height_above_sea_level = -sample_data{i}.instrument_nominal_depth;
+        if height_above_sea_level < -1000; height_above_sea_level = -1000; end
+        
         % we edit the geomag input file for the impacted dataset
         geomagFormat = ['%s D M%f %f %f' endOfLine];
         inputId = fopen(geomagInputFile, geomagInputFilePermission);
         geomagDate = datestr(sample_data{i}.time_coverage_start + ...
             (sample_data{i}.time_coverage_end - sample_data{i}.time_coverage_start)/2, 'yyyy,mm,dd');
         fprintf(inputId, geomagFormat, geomagDate, ...
-            -sample_data{i}.instrument_nominal_depth, ...
+            height_above_sea_level, ...
             sample_data{i}.geospatial_lat_min, sample_data{i}.geospatial_lon_min);
         fclose(inputId);
         
