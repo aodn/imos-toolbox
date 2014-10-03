@@ -102,6 +102,7 @@ function exportManager(dataSets, levelNames, output, auto)
   filenames = {};
   errors    = {};
   
+  progress = [];
   if ~auto
     progress = waitbar(0, 'Exporting data files', ...
       'Name',                  'Exporting files',...
