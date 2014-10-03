@@ -28,6 +28,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%               Gordon Keith <gordon.keith@csiro.au>
 %
 
 %
@@ -75,24 +76,42 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
   globs = rmfield(globs, 'meta');
   globs = rmfield(globs, 'variables');
   globs = rmfield(globs, 'dimensions');
+ 
+  if isfield(sample_data.meta, 'channels')
+      channels = orderfields(sample_data.meta.channels);
+  else
+      channels = [];
+  end
+  lenChans = length(channels);
   
   dims = sample_data.dimensions;
   lenDims = length(dims);
   for k = 1:lenDims
-    dims{k} = orderfields(rmfield(dims{k}, {'data', 'typeCastFunc'}));
     if isfield(dims{k}, 'flags')
-        dims{k} = orderfields(rmfield(dims{k}, 'flags'));
+        dims{k} = rmfield(dims{k}, 'flags');
     end
+    if isfield(dims{k}, 'typeCastFunc')
+        dims{k} = rmfield(dims{k}, 'typeCastFunc');
+    end
+    dims{k} = orderfields(rmfield(dims{k}, 'data'));
   end
   
   vars = sample_data.variables;
   lenVars = length(vars);
   for k = 1:lenVars
-    vars{k} = orderfields(rmfield(vars{k}, {'data', 'dimensions', 'flags', 'typeCastFunc'})); 
+    if isfield(vars{k}, 'typeCastFunc')
+        vars{k} = rmfield(vars{k}, 'typeCastFunc');
+    end
+    vars{k} = orderfields(rmfield(vars{k}, {'data', 'dimensions', 'flags'})); 
   end
   
   % create a cell array containing global attribute data
   globData = [fieldnames(globs) struct2cell(globs)];
+  
+  chanData = cell(lenChans,1);
+  for k=1:lenChans
+      chanData{k} = [fieldnames(channels) struct2cell(channels(k))];
+  end
   
   % create cell array containing dimension 
   % attribute data (one per dimension)
@@ -110,29 +129,37 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
   
   %% create uitables
   % create a uitable for each data set
-  tables = nan(lenVars+lenDims+1, 1);
-  panels = nan(lenVars+lenDims+1, 1);
+  tables = nan(lenVars+lenDims+lenChans+1, 1);
+  panels = nan(lenVars+lenDims+lenChans+1, 1);
   [tables(1) panels(1)] = createTable(globData, '', 'global', dateFmt, mode);
+  
+  for k = 1:lenChans
+     [tables(k+1) panels(k+1)] = createTable(...
+        chanData{k}, ['meta.channels(' num2str(k) ')'], 'global', dateFmt, mode);
+  end
   
   for k = 1:lenDims
 %     [tables(k+1) panels(k+1)] = createTable(...
 %       dimData{k}, ['dimensions{' num2str(k) '}'], lower(dims{k}.name), dateFmt, mode);
-    [tables(k+1) panels(k+1)] = createTable(...
+    [tables(k+lenChans+1) panels(k+lenChans+1)] = createTable(...
         dimData{k}, ['dimensions{' num2str(k) '}'], 'dimension', dateFmt, mode);
   end
   
   for k = 1:lenVars
-    [tables(k+lenDims+1) panels(k+lenDims+1)] = createTable(...
+    [tables(k+lenDims+lenChans+1) panels(k+lenDims+lenChans+1)] = createTable(...
       varData{k}, ['variables{'  num2str(k) '}'], 'variable', dateFmt, mode);
   end
   
-  tableNames =  cell(lenVars+lenDims+1, 1);
+  tableNames =  cell(lenVars+lenDims+lenChans+1, 1);
   tableNames{1} = 'Global attributes';
+  for k = 1:lenChans
+    tableNames{k+1} = [channels(k).name ' channel attributes']; 
+  end
   for k = 1:lenDims
-    tableNames{k+1} = [dims{k}.name ' dimension attributes']; 
+    tableNames{k+lenChans+1} = [dims{k}.name ' dimension attributes']; 
   end
   for k = 1:lenVars
-    tableNames{k+lenDims+1} = [vars{k}.name ' variable attributes'];
+    tableNames{k+lenDims+lenChans+1} = [vars{k}.name ' variable attributes'];
   end
   
   % create a tabbedPane which displays each table in a separate tab.
@@ -144,7 +171,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
     tabPanel = tabbedPane(parent, panels, tableNames, false);
   end
   
-  % matlab is a piece of shit; column widths must be specified 
+  % column widths must be specified 
   % in pixels, so we have to get the table position in pixels 
   % to calculate the desired column width
   for k = 1:lenTables
@@ -221,15 +248,27 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
       'Callback', @repButtonCallback...
     );
     
+%     % create a button for adding metadata fields
+%     addButton = uicontrol(...
+%       'Parent',   panel,... 
+%       'Style',   'pushbutton',...
+%       'String',  'Add',...
+%       'ToolTip', 'Add a new attribute to the current table', ...
+%       'Callback', @addButtonCallback...
+%     );
+
     % position table and button
     set(panel,     'Units', 'normalized');
     set(table,     'Units', 'normalized');
     set(repButton, 'Units', 'normalized');
+%     set(addButton, 'Units', 'normalized');
     
 %     set(table,     'Position', [0.0, 0.0, 0.9, 1.0]);
     set(table,     'Position', posUi2(panel, 1, 10, 1, 1:9, 0));
 %     set(repButton, 'Position', [0.9, 0.8, 0.1, 0.2]);
     set(repButton, 'Position', posUi2(panel, 10, 10, 1:2, 10, 0));
+%    set(addButton, 'Position', [0.9, 0.6, 0.1, 0.2]);
+%     set(addButton, 'Position', posUi2(panel, 10, 10, 3:4, 10, 0));
     
 %     set(table,     'Units', 'pixels');
 %     set(repButton, 'Units', 'pixels');
@@ -281,6 +320,35 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
       % call repCallback
       repCallback(location, names, values);
     end
+    
+%     function addButtonCallback(~, ~)
+%     %ADDBUTTONCALLBACK Called when the user pushes the add button;
+%     % asks the user for the name of a metadata field to add and adds it as
+%     % a string attribute
+%     
+%         name = inputdlg('Name of field to add', 'Add metadata');
+%         if ~isempty(name) && ~isempty(name{1})
+%             % clean name
+%             name = strtrim(name{1});
+%             name(name == ' ') = '_';
+%             valid = isstrprop(name, 'alphanum') | ...
+%                 name == '_';
+%             name = name(valid);
+%             
+%             %check if name exists
+%             dat = get(table, 'Data');
+%             for d = 1:length(dat)
+%                 if strcmp(dat{d,1}, name)
+%                     return;
+%                 end
+%             end
+%             
+%             % add name
+%             dat{end + 1, 1} = name;
+%             dat{end, 2} = '';
+%             set(table, 'Data', dat);
+%         end
+%     end
     
     function cellSelectCallback(source,ev)
     %CELLSELECTCALLBACK Updates the selectedCells variable whenever the
