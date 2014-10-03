@@ -8,16 +8,17 @@
 %
 %   sample_data - The data set for which a filename is being generated.
 %   dateFmt     - Format which should be used for date fields.
+%   ddb and mat tokens can be used like in the NetCDF templates
 %
 % The IMOS NetCDF file naming convention is as follows:
 %
 %   IMOS_<facility_code>_<data_code>_<start_date>_<platform_code>_<file_version>_<product_type>_END<end_date>_C-<creation_date>.nc
 %
-facility_code =
-data_code     =
-start_date    =
-platform_code =
-file_version  =
-product_type  =
-end_date      =
-creation_date =
+facility_code = 
+data_code     = 
+start_date    = 
+platform_code = 
+file_version  = 
+product_type  = 
+end_date      = 
+creation_date = 
