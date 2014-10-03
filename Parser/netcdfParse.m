@@ -180,13 +180,32 @@ function sample_data = netcdfParse( filename, mode )
       sample_data.meta.level = imosFileVersion(sample_data.file_version, 'index');
   end
   
+  [~, sample_data.meta.file_name, ext]        = fileparts(filename);
+  sample_data.meta.file_name                  = [sample_data.meta.file_name, ext];
+  sample_data.meta.site_id                    = '';
+  sample_data.meta.survey                     = '';
+  sample_data.meta.station                    = '';
   sample_data.meta.instrument_make            = '';
   sample_data.meta.instrument_model           = '';
   sample_data.meta.instrument_serial_no       = '';
   sample_data.meta.instrument_sample_interval = NaN;
   
+  if isfield(sample_data, 'deployment_code')
+      sample_data.meta.site_id = sample_data.deployment_code;
+  end
+  
+  if isfield(sample_data, 'cruise')
+      sample_data.meta.survey = sample_data.cruise;
+  end
+  
+  if isfield(sample_data, 'station')
+      sample_data.meta.station = sample_data.station;
+  end
+  
   if isfield(sample_data, 'instrument')
-      [sample_data.meta.instrument_make, sample_data.meta.instrument_model] = strtok(sample_data.instrument, ' ');
+      space = ' ';
+      [sample_data.meta.instrument_make, sample_data.meta.instrument_model] = strtok(sample_data.instrument, space);
+      sample_data.meta.instrument_model = strtrim(sample_data.meta.instrument_model);
   end
   
   if isfield(sample_data, 'instrument_serial_no')
