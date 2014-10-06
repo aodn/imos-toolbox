@@ -165,6 +165,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       dimAtts = rmfield(dimAtts, 'data');
       if isfield(dimAtts, 'typeCastFunc'), dimAtts = rmfield(dimAtts, 'typeCastFunc'); end
       if isfield(dimAtts, 'flags'), dimAtts = rmfield(dimAtts, 'flags'); end
+      if isfield(dimAtts, 'FillValue_'), dimAtts = rmfield(dimAtts, 'FillValue_'); end % _FillValues for dimensions are not CF
       dimAtts = rmfield(dimAtts, 'stringlen');
       
       if isfield(dims{m}, 'flags') && sample_data.meta.level > 0
@@ -347,9 +348,10 @@ function filename = exportNetCDF( sample_data, dest, mode )
           data = data - datenum('1950-01-01 00:00:00');
       end
       
-      if isnumeric(data) && isfield(dims{m}, 'FillValue_')
-          % replace NaN's with fill value
-          data(isnan(data)) = dims{m}.FillValue_;
+      iNaNData = isnan(data);
+      if isnumeric(data) && any(any(iNaNData))
+          fprintf('%s\n', ['Warning : in ' sample_data.toolbox_input_file ...
+                ', there are NaNs in ' dims{m}.name ' dimension (not CF).']);
       end
       
       data = typeCastFunction(data);

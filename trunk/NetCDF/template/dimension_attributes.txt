@@ -3,7 +3,6 @@ S, long_name                 = [mat imosParameters(sample_data.dimensions{k}.nam
 S, units                     = [mat imosParameters(sample_data.dimensions{k}.name, 'uom')]
 N, valid_min                 = [mat imosParameters(sample_data.dimensions{k}.name, 'valid_min')]
 N, valid_max                 = [mat imosParameters(sample_data.dimensions{k}.name, 'valid_max')]
-N, _FillValue                = [mat imosParameters(sample_data.dimensions{k}.name, 'fill_value')]
 N, add_offset                = 
 N, scale_factor              = 
 N, applied_offset            = 
