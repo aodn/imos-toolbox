@@ -78,3 +78,6 @@ saveGraph.noPrompt  = false
 saveGraph.exportDir = 
 saveGraph.imgType   = png
 
+% visual QC plots export properties
+visualQC.export = true
+visualQC.fastScatter = true
