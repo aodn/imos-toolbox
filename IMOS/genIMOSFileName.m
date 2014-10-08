@@ -167,11 +167,7 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt, mode)
   config.data_code = sort(config.data_code);
   
   % <start_date>, <platform_code>, <file_version>
-  if isempty(sample_data.time_deployment_start)
-      config.start_date    = datestr(sample_data.time_coverage_start, dateFmt);
-  else
-      config.start_date    = datestr(sample_data.time_deployment_start, dateFmt);
-  end
+  config.start_date    = datestr(sample_data.time_coverage_start, dateFmt);
   
   switch lower(mode)
       case 'profile'
@@ -204,11 +200,7 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt, mode)
   config.product_type(config.product_type == '_') = '-';
   
   % <end_date>, <creation_date>
-  if isempty(sample_data.time_deployment_end)
-      config.end_date    = datestr(sample_data.time_coverage_end, dateFmt);
-  else
-      config.end_date    = datestr(sample_data.time_deployment_end, dateFmt);
-  end
+  config.end_date    = datestr(sample_data.time_coverage_end, dateFmt);
   
   config.creation_date = datestr(sample_data.date_created, dateFmt);
 end
