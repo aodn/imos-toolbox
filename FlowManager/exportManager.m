@@ -137,9 +137,16 @@ function exportManager(dataSets, levelNames, output, auto)
     end
   end
   
-  % generate QC'd plots
-  if strcmpi(mode, 'timeseries')
-      exportQCPlots(dataSets, exportDir, auto, progress);
+  % retrieve visualQC config
+  try
+      export = eval(readProperty('visualQC.export'));
+  catch e %#ok<NASGU>
+      export = true;
+  end
+  
+  if export
+      % generate QC'd plots
+      exportQCPlots(dataSets, exportDir, mode, auto, progress);
   end
   
   if ~auto
@@ -190,8 +197,8 @@ else
 end
 end
 
-function exportQCPlots(sample_data, exportDir, auto, progress)
-%EXPORTQCPLOTS only plot parameters that have been QC'd per mooring.
+function exportQCPlots(sample_data, exportDir, mode, auto, progress)
+%EXPORTQCPLOTS only plot parameters that have been QC'd.
 %
 % Lists all the distinct QC'd variables in every sample_data, for each of the 1D variable of them, 
 % when it is found in multiple sample_data then plot all of them on the same axis.
@@ -231,6 +238,7 @@ for i=1:nSampleData
     end
 end
 
+
 if ~auto
     waitbar(0, progress, 'Exporting plot files');
 end
@@ -243,10 +251,16 @@ for i=1:nParams
     end
     
     try
-        lineMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
-        scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
-%         pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
-        scatterMooring2DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
+        if strcmpi(mode, 'timeseries')
+            % timeseries specific plots
+            lineMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
+            scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
+            scatterMooring2DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
+            %pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
+        else
+            % profile specific plots
+            
+        end
     catch e
         errorString = getErrorString(e);
         fprintf('%s\n',   ['Error says : ' errorString]);
