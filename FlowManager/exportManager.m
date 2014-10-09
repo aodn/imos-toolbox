@@ -244,27 +244,27 @@ if ~auto
 end
 
 paramsName = unique(paramsName);
-nParams = length(paramsName);
-for i=1:nParams
-    if ~auto
-        waitbar(i / nParams, progress, ['Exporting ' paramsName{i} ' plots']);
-    end
-    
-    try
-        if strcmpi(mode, 'timeseries')
-            % timeseries specific plots
+try
+    if strcmpi(mode, 'timeseries')
+        % timeseries specific plots
+        nParams = length(paramsName);
+        for i=1:nParams
+            if ~auto
+                waitbar(i / nParams, progress, ['Exporting ' paramsName{i} ' plots']);
+            end
+            
             lineMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
             scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
             scatterMooring2DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
             %pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
-        else
-            % profile specific plots
-            
         end
-    catch e
-        errorString = getErrorString(e);
-        fprintf('%s\n',   ['Error says : ' errorString]);
+    else
+        % profile specific plots
+        lineCastVar(sample_data, paramsName, true, true, exportDir);
     end
+catch e
+    errorString = getErrorString(e);
+    fprintf('%s\n',   ['Error says : ' errorString]);
 end
 
 end
