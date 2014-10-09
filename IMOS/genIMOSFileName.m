@@ -69,14 +69,23 @@ function filename = genIMOSFileName( sample_data, suffix )
   switch lower(mode)
       case 'profile'
           % build the file name
-          filename = [sample_data.naming_authority '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'data_code')     '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'platform_code') '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'file_version')  '_'];
-          filename = [filename        getVal(fileCfg, defCfg, 'product_type')  '_'];
-          filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
+          if strcmpi(suffix, 'png')
+              filename = [sample_data.naming_authority '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'site_code')     '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'file_version')  '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];
+              filename = [filename 'PLOT-TYPE_C-'   getVal(fileCfg, defCfg, 'creation_date')];
+          else
+              filename = [sample_data.naming_authority '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'data_code')     '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'start_date')    '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'site_code')     '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'file_version')  '_'];
+              filename = [filename        getVal(fileCfg, defCfg, 'product_type')  '_'];
+              filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
+          end
       otherwise
           % build the file name
           if strcmpi(suffix, 'png')
@@ -159,34 +168,27 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt, mode)
       if strfind(config.data_code, code), continue; end
       config.data_code(end+1) = code;
       
-    catch e
+    catch e %#ok<NASGU>
       continue;
     end
   end
   % let's sort the resulting data code alphabetically
   config.data_code = sort(config.data_code);
   
-  % <start_date>, <platform_code>, <file_version>
+  % <start_date>, <site_code>, <platform_code>, <file_version>
   config.start_date    = datestr(sample_data.time_coverage_start, dateFmt);
   
-  switch lower(mode)
-      case 'profile'
-          config.platform_code = sample_data.site_code;
-          
-      otherwise
-          config.platform_code = sample_data.platform_code;
-  end
+  config.site_code     = sample_data.site_code;
+
+  config.platform_code = sample_data.platform_code;
   
   config.file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
   
   % <product_type>
   switch lower(mode)
       case 'profile'
-          config.product_type  = [...
-              sample_data.meta.survey '-' ...
-              sample_data.meta.station '-' ...
-              sample_data.meta.instrument_model    '-' ...
-              num2str(sample_data.geospatial_vertical_max)];
+          config.product_type  = ['Profile-' ...
+              sample_data.meta.instrument_model];
           
       otherwise
           config.product_type  = [...
