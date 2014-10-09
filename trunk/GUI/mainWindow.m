@@ -273,32 +273,44 @@ function mainWindow(...
   set(hPan, 'ActionPostCallback', @zoomPostCallback);
   
   %set uimenu
-  hToolsMenu                    = uimenu(fig, 'label', 'Tools');
-  hToolsLineDepth               = uimenu(hToolsMenu, 'label', 'Line plot mooring''s depths');
-  hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'non QC');
-  hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'QC');
-  hToolsLineCommonVar           = uimenu(hToolsMenu, 'label', 'Line plot mooring''s 1D variables');
-  hToolsLineCommonVarNonQC      = uimenu(hToolsLineCommonVar, 'label', 'non QC');
-  hToolsLineCommonVarQC         = uimenu(hToolsLineCommonVar, 'label', 'QC');
-  hToolsScatterCommonVar        = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 1D variables VS depth');
-  hToolsScatterCommonVarNonQC   = uimenu(hToolsScatterCommonVar, 'label', 'non QC');
-  hToolsScatterCommonVarQC      = uimenu(hToolsScatterCommonVar, 'label', 'QC');
-  hToolsScatter2DCommonVar      = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 2D variables VS depth');
-  hToolsScatter2DCommonVarNonQC = uimenu(hToolsScatter2DCommonVar, 'label', 'non QC');
-  hToolsScatter2DCommonVarQC    = uimenu(hToolsScatter2DCommonVar, 'label', 'QC');
-  hHelpMenu                     = uimenu(fig, 'label', 'Help');
-  hHelpWiki                     = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
+  hToolsMenu                        = uimenu(fig, 'label', 'Tools');
+  if strcmpi(mode, 'timeseries')
+      hToolsLineDepth               = uimenu(hToolsMenu, 'label', 'Line plot mooring''s depths');
+      hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'non QC');
+      hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'QC');
+      hToolsLineCommonVar           = uimenu(hToolsMenu, 'label', 'Line plot mooring''s 1D variables');
+      hToolsLineCommonVarNonQC      = uimenu(hToolsLineCommonVar, 'label', 'non QC');
+      hToolsLineCommonVarQC         = uimenu(hToolsLineCommonVar, 'label', 'QC');
+      hToolsScatterCommonVar        = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 1D variables VS depth');
+      hToolsScatterCommonVarNonQC   = uimenu(hToolsScatterCommonVar, 'label', 'non QC');
+      hToolsScatterCommonVarQC      = uimenu(hToolsScatterCommonVar, 'label', 'QC');
+      hToolsScatter2DCommonVar      = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 2D variables VS depth');
+      hToolsScatter2DCommonVarNonQC = uimenu(hToolsScatter2DCommonVar, 'label', 'non QC');
+      hToolsScatter2DCommonVarQC    = uimenu(hToolsScatter2DCommonVar, 'label', 'QC');
+      
+      %set menu callbacks
+      set(hToolsLineDepthNonQC,         'callBack', {@displayLineMooringDepth, false});
+      set(hToolsLineDepthQC,            'callBack', {@displayLineMooringDepth, true});
+      set(hToolsLineCommonVarNonQC,     'callBack', {@displayLineMooringVar, false});
+      set(hToolsLineCommonVarQC,        'callBack', {@displayLineMooringVar, true});
+      set(hToolsScatterCommonVarNonQC,  'callBack', {@displayScatterMooringVar, false, true});
+      set(hToolsScatterCommonVarQC,     'callBack', {@displayScatterMooringVar, true, true});
+      set(hToolsScatter2DCommonVarNonQC,'callBack', {@displayScatterMooringVar, false, false});
+      set(hToolsScatter2DCommonVarQC,   'callBack', {@displayScatterMooringVar, true, false});
+  else
+      hToolsLineCastVar             = uimenu(hToolsMenu, 'label', 'Line plot profile variables');
+      hToolsLineCastVarNonQC        = uimenu(hToolsLineCastVar, 'label', 'non QC');
+      hToolsLineCastVarQC           = uimenu(hToolsLineCastVar, 'label', 'QC');
+      
+      %set menu callbacks
+      set(hToolsLineCastVarNonQC,       'callBack', {@displayLineCastVar, false});
+      set(hToolsLineCastVarQC,          'callBack', {@displayLineCastVar, true});
+  end
+  hHelpMenu                         = uimenu(fig, 'label', 'Help');
+  hHelpWiki                         = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
   
   %set menu callbacks
-  set(hToolsLineDepthNonQC,         'callBack', {@displayLineMooringDepth, false});
-  set(hToolsLineDepthQC,            'callBack', {@displayLineMooringDepth, true});
-  set(hToolsLineCommonVarNonQC,     'callBack', {@displayLineMooringVar, false});
-  set(hToolsLineCommonVarQC,        'callBack', {@displayLineMooringVar, true});
-  set(hToolsScatterCommonVarNonQC,  'callBack', {@displayScatterMooringVar, false, true});
-  set(hToolsScatterCommonVarQC,     'callBack', {@displayScatterMooringVar, true, true});
-  set(hToolsScatter2DCommonVarNonQC,'callBack', {@displayScatterMooringVar, false, false});
-  set(hToolsScatter2DCommonVarQC,   'callBack', {@displayScatterMooringVar, true, false});
-  set(hHelpWiki,                    'callBack', @openWikiPage);
+  set(hHelpWiki,                        'callBack', @openWikiPage);
   
   %% Widget Callbacks
   
@@ -508,6 +520,37 @@ function mainWindow(...
     end
 
     lineMooring1DVar(sample_data, varName, isQC, false, '');
+
+  end
+
+function displayLineCastVar(source,ev, isQC)
+    %DISPLAYLINECASTVAR Opens a new window where all the 
+    % variables collected by the CTD cast are line-plotted.
+    %
+    stringQC = 'non QC';
+    if isQC; stringQC = 'QC'; end
+        
+    % get all params names
+    lenSampleData = length(sample_data);
+    paramsName = {};
+    for i=1:lenSampleData
+        lenParamsSample = length(sample_data{i}.variables);
+        for j=1:lenParamsSample
+            isParamQC = any(sample_data{i}.variables{j}.flags == 1) || any(sample_data{i}.variables{j}.flags == 2);
+            if i==1 && j==1
+                paramsName{1} = sample_data{1}.variables{1}.name;
+            else
+                sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+                if ~any(sameParam)
+                    paramsName{end+1} = sample_data{i}.variables{j}.name;
+                end
+            end
+            % get rid of non QC'd params if only intereste in QC
+            if isQC && ~isParamQC; paramsName(end) = []; end
+        end
+    end
+
+    lineCastVar(sample_data, paramsName, isQC, false, '');
 
   end
 
