@@ -169,8 +169,8 @@ if ~initiateFigure
         pos2 = get(hLegend(2), 'Position');
         maxWidth = max(pos1(3), pos2(3));
 
-        set(hLegend(1), 'Position', [0   + 2*maxWidth, pos1(2), pos1(3), pos1(4)]);
-        set(hLegend(2), 'Position', [0.5 + 2*maxWidth, pos1(2), pos1(3), pos1(4)]);
+        set(hLegend(1), 'Position', [posAx(1), pos1(2), pos1(3), pos1(4)]);
+        set(hLegend(2), 'Position', [posAx(3) - maxWidth/2, pos1(2), pos2(3), pos2(4)]);
         
         % set position on legends above modifies position of axis so we
         % re-initialise it
