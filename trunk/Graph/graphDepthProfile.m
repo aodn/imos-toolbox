@@ -62,7 +62,6 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
   lines  = [];
     
   if isempty(vars)
-    warning('no variables to graph');
     return; 
   end
   
@@ -75,7 +74,8 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
           % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH and DEPTH when it's a variable
           p = 5;
       otherwise
-          p = 0;
+          % we don't want to plot LATITUDE, LONGITUDE, NOMINAL_DEPTH
+          p = 3;
   end
   vars = vars + p;
   

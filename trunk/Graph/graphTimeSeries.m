@@ -57,16 +57,30 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   if ~isstruct( sample_data),  error('sample_data must be a struct'); end
   if ~isnumeric(vars),         error('vars must be a numeric');       end
   
+  if isempty(vars)
+    return; 
+  end
+  
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
+  switch mode
+      case 'profile'
+          % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH and DEPTH when it's a variable
+          p = 5;
+      otherwise
+          % we don't want to plot LATITUDE, LONGITUDE, NOMINAL_DEPTH
+          p = 3;
+  end
+  vars = vars + p;
+  
   % get rid of variables that we should ignore
   sample_data.variables = sample_data.variables(vars);
   lenVar = length(sample_data.variables);
   
   graphs = nan(lenVar, 1);
   lines = nan(lenVar, 1);
-  
-  if isempty(vars)
-    return; 
-  end
   
   iTimeDim = getVar(sample_data.dimensions, 'TIME');
   xLimits = [min(sample_data.dimensions{iTimeDim}.data), max(sample_data.dimensions{iTimeDim}.data)];

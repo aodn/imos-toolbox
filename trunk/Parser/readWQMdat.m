@@ -186,7 +186,7 @@ function sample_data = readWQMdat( filename )
     fid = fopen(filename, 'rt');
     if fid == -1, error(['couldn''t open ' filename 'for reading']); end
 
-    [fields format jThere] = getFormat(fid, required, params);
+    [fields, format, jThere] = getFormat(fid, required, params);
 
     % read in the data
     samples = textscan(fid, format);
@@ -251,17 +251,22 @@ function sample_data = readWQMdat( filename )
   sample_data.meta.instrument_burst_interval    = round(median(diff(firstTimeBurst*24*3600)));
   sample_data.meta.instrument_burst_duration    = round(median(durationBurst));
   
-  % dimensions definition must stay in this order : T, Z, Y, X, others;
-  % to be CF compliant
-  sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
-  sample_data.dimensions{1}.data = sample_data.dimensions{1}.typeCastFunc(time);
-  sample_data.dimensions{2}.name = 'LATITUDE';
-  sample_data.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-  sample_data.dimensions{2}.data = sample_data.dimensions{2}.typeCastFunc(NaN);
-  sample_data.dimensions{3}.name = 'LONGITUDE';
-  sample_data.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
-  sample_data.dimensions{3}.data = sample_data.dimensions{3}.typeCastFunc(NaN);
+  sample_data.dimensions{1}.name            = 'TIME';
+  sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
+  sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(time);
+  
+  sample_data.variables{1}.dimensions       = [];
+  sample_data.variables{1}.name             = 'LATITUDE';
+  sample_data.variables{1}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+  sample_data.variables{1}.data             = sample_data.variables{1}.typeCastFunc(NaN);
+  sample_data.variables{2}.dimensions       = [];
+  sample_data.variables{2}.name             = 'LONGITUDE';
+  sample_data.variables{2}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
+  sample_data.variables{2}.data             = sample_data.variables{2}.typeCastFunc(NaN);
+  sample_data.variables{3}.dimensions       = [];
+  sample_data.variables{3}.name             = 'NOMINAL_DEPTH';
+  sample_data.variables{3}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
+  sample_data.variables{3}.data             = sample_data.variables{3}.typeCastFunc(NaN);
 
   % create a variables struct in sample_data for each field in the file
   % start index at 4 to skip serial, date and time
@@ -269,7 +274,7 @@ function sample_data = readWQMdat( filename )
   
   for k = 4:length(fields)
 
-    [name comment] = getParamDetails(fields{k}, params);  
+    [name, comment] = getParamDetails(fields{k}, params);  
     data = samples{k-1};
     
     % some fields are not in IMOS uom - scale them so that they are
@@ -308,17 +313,22 @@ function sample_data = readWQMdat( filename )
         % hopefully it is equivalent.
     end
         
-    sample_data.variables{k-3}.dimensions           = [1 2 3];
-    sample_data.variables{k-3}.comment              = comment;
-    sample_data.variables{k-3}.name                 = name;
-    sample_data.variables{k-3}.typeCastFunc         = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k-3}.name, 'type')));
-    sample_data.variables{k-3}.data                 = sample_data.variables{k-3}.typeCastFunc(data);
+    coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
+    
+    % dimensions definition must stay in this order : T, Z, Y, X, others;
+    % to be CF compliant
+    sample_data.variables{end+1}.dimensions         = 1;
+    sample_data.variables{end}.name                 = name;
+    sample_data.variables{end}.typeCastFunc         = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+    sample_data.variables{end}.data                 = sample_data.variables{end}.typeCastFunc(data);
+    sample_data.variables{end}.coordinates          = coordinates;
+    sample_data.variables{end}.comment              = comment;
     
     % WQM uses SeaBird pressure sensor
     if strncmp('PRES_REL', sample_data.variables{k-3}.name, 8)
         % let's document the constant pressure atmosphere offset previously 
         % applied by SeaBird software on the absolute presure measurement
-        sample_data.variables{k-3}.applied_offset = sample_data.variables{k-3}.typeCastFunc(-14.7*0.689476);
+        sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
     end
   end
   
@@ -379,16 +389,17 @@ function sample_data = readWQMdat( filename )
           % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
           data = data .* 1000.0 ./ dens;
           
-          sample_data.variables{end+1}.dimensions           = [1 2 3];
-          sample_data.variables{end}.comment                = comment;
+          sample_data.variables{end+1}.dimensions           = 1;
           sample_data.variables{end}.name                   = name;
           sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
+          sample_data.variables{end}.coordinates            = coordinates;
+          sample_data.variables{end}.comment                = comment;
       end
   end
 end
 
-function [fields format jThere] = getFormat(fid, required, params)
+function [fields, format, jThere] = getFormat(fid, required, params)
 %GETFORMAT Figures out the format pattern to give to textscan, based on the 
 % list of fields that are present in the file header (tokens contained in 
 % the first line of the file).
@@ -490,7 +501,7 @@ end
 fields(unsupported) = [];
 end
 
-function [name comment] = getParamDetails(field, params)
+function [name, comment] = getParamDetails(field, params)
 %GETPARAMDETAILS Returns the IMOS-compliant name, and an optional comment 
 % for the given WQM field.
 %

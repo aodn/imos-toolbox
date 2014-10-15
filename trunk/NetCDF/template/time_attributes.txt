@@ -5,7 +5,6 @@ S, calendar                  = gregorian
 S, axis                      = T
 N, valid_min                 = [mat imosParameters('TIME', 'valid_min')]
 N, valid_max                 = [mat imosParameters('TIME', 'valid_max')]
-N, _FillValue                = [mat imosParameters('TIME', 'fill_value')]
 N, add_offset                = 
 N, scale_factor              = 
 N, applied_offset            = 

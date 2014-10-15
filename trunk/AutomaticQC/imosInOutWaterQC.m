@@ -68,15 +68,10 @@ if nargin<5, auto=false; end
 paramsLog = [];
 flags     = [];
 
-% this test don't apply on dimensions for timeseries data
-if isfield(sample_data, 'featureType')
-    if strcmpi(sample_data.featureType, 'timeSeries')
-        if ~strcmp(type, 'variables'), return; end
-    end
-else
-    % if doubt we don't allow test on any dimension
-    if ~strcmp(type, 'variables'), return; end
-end
+% this test doesn't apply on dimensions nor LATITUDE, LONGITUDE, nor NOMINAL_DEPTH variables
+if ~strcmp(type, 'variables'), return; end
+if any(strcmp(sample_data.(type){k}.name, {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'})), return; end
+
 
 time_in_water = sample_data.time_deployment_start;
 time_out_water = sample_data.time_deployment_end;

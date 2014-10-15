@@ -130,14 +130,22 @@ for k = 1:length(sample_data)
   % calculate salinity
   psal = gsw_SP_from_R(R, temp, presRel);
   
-  % add salinity data as new variable in data set
   salinityComment = ['salinityPP.m: derived from CNDC, TEMP and ' presName ' using the Gibbs-SeaWater toolbox (TEOS-10) v3.02'];
+  
+  if isfield(sam.variables{tempIdx}, 'coordinates')
+      coordinates = sam.variables{tempIdx}.coordinates;
+  else
+      coordinates = '';
+  end
+    
+  % add salinity data as new variable in data set
   sample_data{k} = addVar(...
     sam, ...
     'PSAL', ...
     psal, ...
     getVar(sam.dimensions, 'TIME'), ...
-    salinityComment);
+    salinityComment, ...
+    coordinates);
 
     history = sample_data{k}.history;
     if isempty(history)

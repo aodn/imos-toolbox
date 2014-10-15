@@ -160,11 +160,11 @@ sample_data            = struct;
 sample_data.meta       = struct;
 sample_data.variables  = {};
 sample_data.dimensions = {};
+varNames               = {};
 temperature            = [];
 conductivity           = [];
 pressure               = [];
 salinity               = [];
-time                   = [];
 
 % booleans used to determine whether to expect 
 % the corresponding variable in the data
@@ -241,13 +241,13 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
       
       read_temp = 1;
       sample_expr = ['%f' sample_expr];
-      sample_data.variables{end+1}.name = TEMPERATURE_NAME;
+      varNames{end+1} = TEMPERATURE_NAME;
       
     elseif strcmp('conductivity', tkn{1}{1})
       
       read_cond = 1;
       sample_expr = ['%f' sample_expr];
-      sample_data.variables{end+1}.name = CONDUCTIVITY_NAME;
+      varNames{end+1} = CONDUCTIVITY_NAME;
       
     end
     
@@ -263,7 +263,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
     
     read_pres = 1;
     sample_expr = ['%f' sample_expr];
-    sample_data.variables{end+1}.name = PRESSURE_NAME;
+    varNames{end+1} = PRESSURE_NAME;
     
     sample_data.meta.pressure_serial_no        = strtrim(tkn{1}{1});
     sample_data.meta.pressure_range_psia       = str2double(tkn{1}{2});
@@ -293,7 +293,7 @@ while isempty(line) || line(1) == '*' || line(1) == 's'
     
     read_sal = 1;
     sample_expr = ['%f' sample_expr];
-    sample_data.variables{end+1}.name = SALINITY_NAME;
+    varNames{end+1} = SALINITY_NAME;
     
   end
 
@@ -321,23 +321,23 @@ if read_temp == 0 && read_cond == 0 && read_pres == 0 && read_sal == 0
         case 3
             read_temp = 1;
             sample_expr = '%f%21c';
-            sample_data.variables{end+1}.name = TEMPERATURE_NAME;
+            varNames{end+1} = TEMPERATURE_NAME;
             
         case 4
             read_temp = 1;
             read_cond = 1;
             sample_expr = '%f%f%21c';
-            sample_data.variables{end+1}.name = TEMPERATURE_NAME;
-            sample_data.variables{end+1}.name = CONDUCTIVITY_NAME;
+            varNames{end+1} = TEMPERATURE_NAME;
+            varNames{end+1} = CONDUCTIVITY_NAME;
             
         case 5
             read_temp = 1;
             read_cond = 1;
             read_pres = 1;
             sample_expr = '%f%f%f%21c';
-            sample_data.variables{end+1}.name = TEMPERATURE_NAME;
-            sample_data.variables{end+1}.name = CONDUCTIVITY_NAME;
-            sample_data.variables{end+1}.name = PRESSURE_NAME;
+            varNames{end+1} = TEMPERATURE_NAME;
+            varNames{end+1} = CONDUCTIVITY_NAME;
+            varNames{end+1} = PRESSURE_NAME;
             
         case 6
             read_temp = 1;
@@ -345,10 +345,10 @@ if read_temp == 0 && read_cond == 0 && read_pres == 0 && read_sal == 0
             read_pres = 1;
             read_sal = 1;
             sample_expr = '%f%f%f%f%21c';
-            sample_data.variables{end+1}.name = TEMPERATURE_NAME;
-            sample_data.variables{end+1}.name = CONDUCTIVITY_NAME;
-            sample_data.variables{end+1}.name = PRESSURE_NAME;
-            sample_data.variables{end+1}.name = SALINITY_NAME;
+            varNames{end+1} = TEMPERATURE_NAME;
+            varNames{end+1} = CONDUCTIVITY_NAME;
+            varNames{end+1} = PRESSURE_NAME;
+            varNames{end+1} = SALINITY_NAME;
             
         otherwise
             error('Not supported file format.');
@@ -445,27 +445,36 @@ end
 
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
 
-% dimensions definition must stay in this order : T, Z, Y, X, others;
-% to be CF compliant
 % copy the data into the sample_data struct
 sample_data.dimensions{1}.name          = TIME_NAME;
 sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
 sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(time);
-sample_data.dimensions{2}.name          = 'LATITUDE';
-sample_data.dimensions{2}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-sample_data.dimensions{2}.data          = sample_data.dimensions{2}.typeCastFunc(NaN);
-sample_data.dimensions{3}.name          = 'LONGITUDE';
-sample_data.dimensions{3}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
-sample_data.dimensions{3}.data          = sample_data.dimensions{3}.typeCastFunc(NaN);
 
-for k = 1:length(sample_data.variables)
+sample_data.variables{1}.dimensions     = [];
+sample_data.variables{1}.name           = 'LATITUDE';
+sample_data.variables{1}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+sample_data.variables{1}.data           = sample_data.variables{1}.typeCastFunc(NaN);
+sample_data.variables{2}.dimensions     = [];
+sample_data.variables{2}.name           = 'LONGITUDE';
+sample_data.variables{2}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
+sample_data.variables{2}.data           = sample_data.variables{2}.typeCastFunc(NaN);
+sample_data.variables{3}.dimensions     = [];
+sample_data.variables{3}.name           = 'NOMINAL_DEPTH';
+sample_data.variables{3}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
+sample_data.variables{3}.data           = sample_data.variables{3}.typeCastFunc(NaN);
+
+for k = 1:length(varNames)
+  % dimensions definition must stay in this order : T, Z, Y, X, others;
+  % to be CF compliant
+  sample_data.variables{end+1}.dimensions = 1;
+  sample_data.variables{end}.name         = varNames{k};
+  sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(varNames{k}, 'type')));
+  sample_data.variables{end}.coordinates  = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
   
-  sample_data.variables{k}.dimensions   = [1 2 3];
-  sample_data.variables{k}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
-  switch sample_data.variables{k}.name
-    case TEMPERATURE_NAME,  sample_data.variables{k}.data = sample_data.variables{k}.typeCastFunc(temperature);
-    case CONDUCTIVITY_NAME, sample_data.variables{k}.data = sample_data.variables{k}.typeCastFunc(conductivity);
-    case PRESSURE_NAME,     sample_data.variables{k}.data = sample_data.variables{k}.typeCastFunc(pressure);
-    case SALINITY_NAME,     sample_data.variables{k}.data = sample_data.variables{k}.typeCastFunc(salinity);
+  switch varNames{k}
+    case TEMPERATURE_NAME,  sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(temperature);
+    case CONDUCTIVITY_NAME, sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(conductivity);
+    case PRESSURE_NAME,     sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(pressure);
+    case SALINITY_NAME,     sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(salinity);
   end
 end

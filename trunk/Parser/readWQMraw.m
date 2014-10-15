@@ -164,25 +164,30 @@ function sample_data = readWQMraw( filename )
   sample_data.meta.instrument_burst_interval    = round(median(diff(firstTimeBurst*24*3600)));
   sample_data.meta.instrument_burst_duration    = round(median(durationBurst));
   
-  % dimensions definition must stay in this order : T, Z, Y, X, others;
-  % to be CF compliant
-  sample_data.dimensions{1}.name = 'TIME';
-  sample_data.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
-  sample_data.dimensions{1}.data = sample_data.dimensions{1}.typeCastFunc(time);
-  sample_data.dimensions{2}.name = 'LATITUDE';
-  sample_data.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-  sample_data.dimensions{2}.data = sample_data.dimensions{1}.typeCastFunc(NaN);
-  sample_data.dimensions{3}.name = 'LONGITUDE';
-  sample_data.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
-  sample_data.dimensions{3}.data = sample_data.dimensions{1}.typeCastFunc(NaN);
-
+  sample_data.dimensions{1}.name            = 'TIME';
+  sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
+  sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(time);
+  
+  sample_data.variables{1}.dimensions       = [];
+  sample_data.variables{1}.name             = 'LATITUDE';
+  sample_data.variables{1}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+  sample_data.variables{1}.data             = sample_data.variables{1}.typeCastFunc(NaN);
+  sample_data.variables{2}.dimensions       = [];
+  sample_data.variables{2}.name             = 'LONGITUDE';
+  sample_data.variables{2}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
+  sample_data.variables{2}.data             = sample_data.variables{2}.typeCastFunc(NaN);
+  sample_data.variables{3}.dimensions       = [];
+  sample_data.variables{3}.name             = 'NOMINAL_DEPTH';
+  sample_data.variables{3}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
+  sample_data.variables{3}.data             = sample_data.variables{3}.typeCastFunc(NaN);
+  
   % create a variables struct in sample_data for each field in the file
   isUmolPerL = false;
   
   varlabel = wqmdata.varlabel;
   for k = 1:length(varlabel)
 
-    [name comment] = getParamDetails(varlabel{k}, params);  
+    [name, comment] = getParamDetails(varlabel{k}, params);  
 
     data = wqmdata.(varlabel{k});
     data(iBadTime) = [];
@@ -228,11 +233,14 @@ function sample_data = readWQMraw( filename )
 
     end
         
-    sample_data.variables{k}.dimensions             = [1 2 3];
-    sample_data.variables{k}.comment                = comment;
-    sample_data.variables{k}.name                   = name;
-    sample_data.variables{k}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
-    sample_data.variables{k}.data                   = sample_data.variables{k}.typeCastFunc(data);
+    % dimensions definition must stay in this order : T, Z, Y, X, others;
+    % to be CF compliant
+    sample_data.variables{end+1}.dimensions           = 1;
+    sample_data.variables{end}.name                   = name;
+    sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+    sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
+    sample_data.variables{end}.coordinates            = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
+    sample_data.variables{end}.comment                = comment;
     
     % WQM uses SeaBird pressure sensor
     if strncmp('PRES_REL', sample_data.variables{k}.name, 8)
@@ -299,16 +307,17 @@ function sample_data = readWQMraw( filename )
           % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
           data = data .* 1000.0 ./ dens;
           
-          sample_data.variables{end+1}.dimensions           = [1 2 3];
+          sample_data.variables{end+1}.dimensions           = 1;
           sample_data.variables{end}.comment                = comment;
           sample_data.variables{end}.name                   = name;
           sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
+          sample_data.variables{end}.coordinates            = 'TIME LATITUDE LONGITUDE';
       end
   end
 end
 
-function [name comment] = getParamDetails(field, params)
+function [name, comment] = getParamDetails(field, params)
 %GETPARAMDETAILS Returns the IMOS-compliant name, and an optional comment 
 % for the given WQM field.
 %
@@ -440,7 +449,7 @@ while ~feof(fid)
         
         if isempty(b{1})
             % let's skip this line or it will get stuck in it
-            line = fgetl(fid);
+            [~] = fgetl(fid);
         end
         
         % get rid of any uncomplete line
@@ -563,7 +572,7 @@ for i=1:nvars-1
     fmt = strcat(fmt, ',%f');
 end
 
-[A, count, errmsg] = sscanf(C, fmt, [nvars s(2)]);
+[A, ~, errmsg] = sscanf(C, fmt, [nvars s(2)]);
 
 % sometimes, when file is corrupted, a value can contain several dots "." 
 % in the same variable value, the whole line cannot be read properly and 
@@ -577,7 +586,7 @@ lenC = size(C, 2);
 nextPosInC = size(A, 2) + 1;
 while ~isempty(errmsg) && nextPosInC <= lenC
     % go to next line
-    [B, newCount, errmsg] = sscanf(C(:, nextPosInC:end), fmt, [nvars s(2)-size(A, 2)]);
+    [B, ~, errmsg] = sscanf(C(:, nextPosInC:end), fmt, [nvars s(2)-size(A, 2)]);
     if ~isempty(errmsg) && ~isempty(B)
         % let's replace any erroneous value by NaN
         B(:, end) = NaN;

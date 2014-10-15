@@ -209,7 +209,7 @@ function [exportDir sets] = exportDialog( ...
       l = 0;
       for m = 1:length(dataSets{1}{k}.variables)
         
-        if any(strcmpi(dataSets{1}{k}.variables{m}.name, {'TIME', 'DIRECTION', 'LATITUDE', 'LONGITUDE'})), continue; end
+        if any(strcmpi(dataSets{1}{k}.variables{m}.name, {'TIME', 'DIRECTION', 'FREQUENCY', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'})), continue; end
         
         l = l + 1;
         varCheckboxes(l) = uicontrol(...
