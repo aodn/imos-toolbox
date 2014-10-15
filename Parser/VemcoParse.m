@@ -65,7 +65,6 @@ filename = filename{1};
 
 % read in every line of header in the file, then big read of data
 procHeaderLines = {};
-dataLines       = {};
 try
     % not sure if Vemco csv files are the same as I only have one 
     % type to test on, so assume that the last line in header region 
@@ -89,7 +88,7 @@ try
     iTime=2;
     iDateTimeCol=[iDate iTime];
     ncolumns=numel(regexp(dataHeaderLine,',','split'));
-    iProcCol=setdiff([1:ncolumns],iDateTimeCol);
+    iProcCol=setdiff(1:ncolumns, iDateTimeCol);
     
     % consruct a format string using %s for date and time, and %f32 for
     % everything else
@@ -155,30 +154,42 @@ end
 sample_data.dimensions = {};
 sample_data.variables  = {};
 
-% dimensions definition must stay in this order : T, Z, Y, X, others;
-% to be CF compliant
 % generate time data from header information
-sample_data.dimensions{1}.name = 'TIME';
-sample_data.dimensions{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
-sample_data.dimensions{1}.data = sample_data.dimensions{1}.typeCastFunc(time);
-sample_data.dimensions{2}.name = 'LATITUDE';
-sample_data.dimensions{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-sample_data.dimensions{2}.data = sample_data.dimensions{2}.typeCastFunc(NaN);
-sample_data.dimensions{3}.name = 'LONGITUDE';
-sample_data.dimensions{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
-sample_data.dimensions{3}.data = sample_data.dimensions{3}.typeCastFunc(NaN);
+sample_data.dimensions{1}.name          = 'TIME';
+sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
+sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(time);
+
+sample_data.variables{1}.dimensions     = [];
+sample_data.variables{1}.name           = 'LATITUDE';
+sample_data.variables{1}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+sample_data.variables{1}.data           = sample_data.variables{1}.typeCastFunc(NaN);
+sample_data.variables{2}.dimensions     = [];
+sample_data.variables{2}.name           = 'LONGITUDE';
+sample_data.variables{2}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
+sample_data.variables{2}.data           = sample_data.variables{2}.typeCastFunc(NaN);
+sample_data.variables{3}.dimensions     = [];
+sample_data.variables{3}.name           = 'NOMINAL_DEPTH';
+sample_data.variables{3}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
+sample_data.variables{3}.data           = sample_data.variables{3}.typeCastFunc(NaN);
 
 % scan through the list of parameters that were read
 % from the file, and create a variable for each
 vars = fieldnames(data);
+coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
+if any(strcmpi('DEPTH', vars))
+    coordinates = [coordinates ' DEPTH'];
+end
 for k = 1:length(vars)
     
     if strncmp('TIME', vars{k}, 4), continue; end
     
-    sample_data.variables{end+1}.dimensions     = [1 2 3];
+    % dimensions definition must stay in this order : T, Z, Y, X, others;
+    % to be CF compliant
+    sample_data.variables{end+1}.dimensions     = 1;
     sample_data.variables{end  }.name           = vars{k};
     sample_data.variables{end  }.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
     sample_data.variables{end  }.data           = sample_data.variables{end}.typeCastFunc(data.(vars{k}));
+    sample_data.variables{end  }.coordinates    = coordinates;
     sample_data.variables{end  }.comment        = comment.(vars{k});
 end
 

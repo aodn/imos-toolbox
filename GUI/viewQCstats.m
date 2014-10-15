@@ -84,8 +84,8 @@ function viewQCstats(parent, sample_data, mode)
               nData   = numel(sample_data.(QCparamTypes{m}){iParam}.data);
               
               procDetails = sample_data.meta.QCres.(procName{k}).(QCparamNames{m}).procDetails;
-              nFlag       = [num2str(sample_data.meta.QCres.(procName{k}).(QCparamNames{m}).nFlag) ...
-                  ' (' num2str(sample_data.meta.QCres.(procName{k}).(QCparamNames{m}).nFlag/nData*100, '%3.2f') '%)'];
+              nFlag       = [num2str(sample_data.meta.QCres.(procName{k}).(QCparamNames{m}).nFlag/nData*100, '%3.0f') '% (' ...
+                  num2str(sample_data.meta.QCres.(procName{k}).(QCparamNames{m}).nFlag) ')'];
               codeFlag    = sample_data.meta.QCres.(procName{k}).(QCparamNames{m}).codeFlag;
               stringFlag  = sample_data.meta.QCres.(procName{k}).(QCparamNames{m}).stringFlag;
               color       = sample_data.meta.QCres.(procName{k}).(QCparamNames{m}).HEXcolor;

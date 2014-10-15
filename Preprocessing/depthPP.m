@@ -455,11 +455,8 @@ for k = 1:length(sample_data)
             continue;
         end
         
-        % variable Depth will be a function of T, Y, and X
-        timeIdx = getVar(curSam.dimensions, 'TIME');
-        latitudeIdx = getVar(curSam.dimensions, 'LATITUDE');
-        longitudeIdx = getVar(curSam.dimensions, 'LONGITUDE');
-        dimensions = [timeIdx latitudeIdx longitudeIdx];
+        % variable Depth will be a function of T
+        dimensions = getVar(curSam.dimensions, 'TIME');
     else
         if presRelIdx == 0
             % update from a relative pressure like SeaBird computes
@@ -555,13 +552,26 @@ for k = 1:length(sample_data)
 %         sample_data{k} = populateMetadata(sample_data{k});
 %     end
 
+    % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
+    % If no value is set then default mode is 'timeSeries'
+    mode = lower(readProperty('toolbox.mode'));
+    
+    switch mode
+        case 'profile'
+            coordinates = '';
+            
+        otherwise
+             coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
+    end
+    
     % add depth data as new variable in data set
     sample_data{k} = addVar(...
         curSam, ...
         'DEPTH', ...
         computedDepth, ...
         dimensions, ...
-        computedDepthComment);
+        computedDepthComment, ...
+        coordinates);
     clear computedDepth;
     
     history = sample_data{k}.history;
@@ -574,22 +584,27 @@ for k = 1:length(sample_data)
     % update the keywords with variable DEPTH
     sample_data{k}.keywords = [sample_data{k}.keywords, ', DEPTH'];
     
-    % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
-    % If no value is set then default mode is 'timeSeries'
-    mode = lower(readProperty('toolbox.mode'));
-    
     switch mode
         case 'profile'
-            %let's redefine the coordinates for each variables
+            %let's redefine the coordinates attribute for each variables
             nVars = length(sample_data{k}.variables);
             for i=1:nVars
-                if all(~strcmpi({'TIME', 'DEPTH', 'LATITUDE', 'LONGITUDE', 'DIRECTION'}, sample_data{k}.variables{i}.name))
-                  sample_data{k}.variables{i}.coordinates = 'TIME DEPTH LATITUDE LONGITUDE';
+                if isfield(sample_data{k}.variables{i}, 'coordinates')
+                  sample_data{k}.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
                 end
             end
             
         otherwise
-            
+            %let's redefine the coordinates attribute for each relevant
+            %variables
+            nVars = length(sample_data{k}.variables);
+            for i=1:nVars
+                if isfield(sample_data{k}.variables{i}, 'coordinates')
+                    if strcmp(sample_data{k}.variables{i}.coordinates, coordinates)
+                        sample_data{k}.variables{i}.coordinates = [coordinates ' DEPTH'];
+                    end
+                end
+            end
     end
     
     % update vertical min/max from new computed DEPTH

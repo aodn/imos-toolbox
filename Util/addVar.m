@@ -1,4 +1,4 @@
-function sam = addVar(sam, name, data, dimensions, comment)
+function sam = addVar(sam, name, data, dimensions, comment, coordinates)
 %ADDVAR Adds a new variable to the given data set.
 %
 % Adds a new variable with the given name, data, dimensions and commment to
@@ -10,11 +10,13 @@ function sam = addVar(sam, name, data, dimensions, comment)
 %   data       - variable data
 %   dimensions - variable dimensions
 %   comment    - variable comment
+%   coordinates- variable coordinates
 %
 % Outputs:
 %   sam        - data set  with the new variable added.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -46,13 +48,14 @@ function sam = addVar(sam, name, data, dimensions, comment)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5, 5, nargin));
+error(nargchk(6, 6, nargin));
 
-if ~isstruct( sam),        error('sam must be a struct');        end
-if ~ischar(   name),       error('name must be a string');       end
-if ~isnumeric(data),       error('data must be a matrix');       end
-if ~isvector( dimensions), error('dimensions must be a vector'); end
-if ~ischar(   comment),    error('comment must be a string');    end
+if ~isstruct(sam),          error('sam must be a struct');        end
+if ~ischar(name),           error('name must be a string');       end
+if ~isnumeric(data),        error('data must be a matrix');       end
+if ~isvector(dimensions),   error('dimensions must be a vector'); end
+if ~ischar(comment),        error('comment must be a string');    end
+if ~ischar(coordinates),    error('coordinates must be a string');end
 
 qcSet   = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
@@ -63,6 +66,9 @@ sam.variables{end  }.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameter
 sam.variables{end  }.dimensions     = dimensions;
 sam.variables{end  }.data           = sam.variables{end  }.typeCastFunc(data);
 clear data;
+if ~isempty(coordinates)
+    sam.variables{end  }.coordinates = coordinates;
+end
 
 % create an empty flags matrix for the new variable
 sam.variables{end}.flags(1:numel(sam.variables{end}.data)) = rawFlag;

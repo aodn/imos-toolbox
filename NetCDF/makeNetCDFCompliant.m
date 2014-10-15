@@ -84,43 +84,43 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % dimensions
   %
   
-  % update dimensions DEPTH, LATITUDE, and LONGITUDE data from global 
-  % attributes if relevant for time or time/depth dependant data
-  idDepth = 0;
+  % update variables LATITUDE, LONGITUDE and NOMINAL_DEPTH data from global 
+  % attributes if relevant for time or time/z dependant data
   idLat = 0;
   idLon = 0;
-  for i=1:length(sample_data.dimensions)
-      if strcmpi(sample_data.dimensions{i}.name, 'DEPTH')
-          idDepth = i;
-      end
-      if strcmpi(sample_data.dimensions{i}.name, 'LATITUDE')
+  idNomDepth = 0;
+  for i=1:length(sample_data.variables)
+      if strcmpi(sample_data.variables{i}.name, 'LATITUDE')
           idLat = i;
       end
-      if strcmpi(sample_data.dimensions{i}.name, 'LONGITUDE')
+      if strcmpi(sample_data.variables{i}.name, 'LONGITUDE')
           idLon = i;
       end
-  end
-  % DEPTH
-  if ~isempty(globAtts.geospatial_vertical_min) && ~isempty(globAtts.geospatial_vertical_max)
-      if globAtts.geospatial_vertical_min == globAtts.geospatial_vertical_max && idDepth > 0
-         if length(sample_data.dimensions{idDepth}.data) == 1
-            sample_data.dimensions{idDepth}.data = sample_data.dimensions{idDepth}.typeCastFunc(globAtts.geospatial_vertical_min);
-         end
+      if strcmpi(sample_data.variables{i}.name, 'NOMINAL_DEPTH')
+          idNomDepth = i;
       end
   end
   % LATITUDE
   if ~isempty(globAtts.geospatial_lat_min) && ~isempty(globAtts.geospatial_lat_max)
       if globAtts.geospatial_lat_min == globAtts.geospatial_lat_max && idLat > 0
-          if length(sample_data.dimensions{idLat}.data) == 1
-              sample_data.dimensions{idLat}.data = sample_data.dimensions{idLat}.typeCastFunc(globAtts.geospatial_lat_min);
+          if length(sample_data.variables{idLat}.data) == 1
+              sample_data.variables{idLat}.data = sample_data.variables{idLat}.typeCastFunc(globAtts.geospatial_lat_min);
           end
       end
   end
   % LONGITUDE
   if ~isempty(globAtts.geospatial_lon_min) && ~isempty(globAtts.geospatial_lon_max)
       if globAtts.geospatial_lon_min == globAtts.geospatial_lon_max && idLon > 0
-          if length(sample_data.dimensions{idLon}.data) == 1
-              sample_data.dimensions{idLon}.data = sample_data.dimensions{idLon}.typeCastFunc(globAtts.geospatial_lon_min);
+          if length(sample_data.variables{idLon}.data) == 1
+              sample_data.variables{idLon}.data = sample_data.variables{idLon}.typeCastFunc(globAtts.geospatial_lon_min);
+          end
+      end
+  end
+  % NOMINAL_DEPTH
+  if ~isempty(globAtts.instrument_nominal_depth)
+      if idNomDepth > 0
+          if length(sample_data.variables{idNomDepth}.data) == 1
+              sample_data.variables{idNomDepth}.data = sample_data.variables{idNomDepth}.typeCastFunc(globAtts.instrument_nominal_depth);
           end
       end
   end
@@ -128,7 +128,6 @@ function sample_data = makeNetCDFCompliant( sample_data )
   %
   % coordinate dimensions
   %
-  existZAxis = false;
   for k = 1:length(sample_data.dimensions)
 
     dim = sample_data.dimensions{k};
@@ -137,14 +136,8 @@ function sample_data = makeNetCDFCompliant( sample_data )
     temp = fullfile(path, [lower(dim.name) '_attributes.txt']);
     if exist(temp, 'file')
         dimAtts = parseNetCDFTemplate(temp, sample_data);
-        
-        % check for existing Z coordinate variable
-        if strcmpi(dimAtts.axis, 'Z')
-            existZAxis = true;
-        end
     else
         temp = fullfile(path, 'dimension_attributes.txt');
-
         dimAtts = parseNetCDFTemplate(temp, sample_data, k);
     end
     
@@ -156,7 +149,6 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % variables
   %
   
-  varAtts = [];
   for k = 1:length(sample_data.variables)
     
     
@@ -165,18 +157,9 @@ function sample_data = makeNetCDFCompliant( sample_data )
     % check for specificly defined variables
     temp = fullfile(path, [lower(var.name) '_attributes.txt']);
     if exist(temp, 'file')
-        varAtts = parseNetCDFTemplate(temp, sample_data, k);
-        
-        % check for existing Z coordinate variable
-        if isfield(varAtts, 'axis')
-            if existZAxis && strcmpi(varAtts.axis, 'Z')
-                % we remove it as it already exists in a dimension
-                varAtts = rmfield(varAtts, 'axis');
-            end
-        end
+        varAtts = parseNetCDFTemplate(temp, sample_data);
     else
         temp = fullfile(path, 'variable_attributes.txt');
-
         varAtts = parseNetCDFTemplate(temp, sample_data, k);
     end
     

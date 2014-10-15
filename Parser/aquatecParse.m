@@ -82,7 +82,6 @@ sample_data.variables  = {};
 fid = -1;
 keys = {};
 meta = {};
-data = '';
 try
     filename = filename{1};
     fid = fopen(filename, 'rt');
@@ -212,7 +211,6 @@ for k = 1:numFields
     end
 end
 
-time = [];
 temp = [];
 pres = [];
 
@@ -262,13 +260,12 @@ end
 if isBurst
     % Only average bursts if not already internally averaged
     % (BDM - 08/03/2010)
-    if ~isAveraged        
-        newTime = [];
+    if ~isAveraged
         newTemp = [];
         newPres = [];
         
         numBursts = length(time) / samplesPerBurst;
-        
+        newTime = NaN(numBurst, 1);
         for k = 1:numBursts
             
             % get indices for the current burst
@@ -303,33 +300,44 @@ end
 sample_data.dimensions{1}.name          = 'TIME';
 sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
 sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(time);
-sample_data.dimensions{2}.name          = 'LATITUDE';
-sample_data.dimensions{2}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-sample_data.dimensions{2}.data          = sample_data.dimensions{2}.typeCastFunc(NaN);
-sample_data.dimensions{3}.name          = 'LONGITUDE';
-sample_data.dimensions{3}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
-sample_data.dimensions{3}.data          = sample_data.dimensions{3}.typeCastFunc(NaN);
+
+sample_data.variables{1}.dimensions     = [];
+sample_data.variables{1}.name           = 'LATITUDE';
+sample_data.variables{1}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+sample_data.variables{1}.data           = sample_data.variables{1}.typeCastFunc(NaN);
+sample_data.variables{2}.dimensions     = [];
+sample_data.variables{2}.name           = 'LONGITUDE';
+sample_data.variables{2}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
+sample_data.variables{2}.data           = sample_data.variables{2}.typeCastFunc(NaN);
+sample_data.variables{3}.dimensions     = [];
+sample_data.variables{3}.name           = 'NOMINAL_DEPTH';
+sample_data.variables{3}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
+sample_data.variables{3}.data           = sample_data.variables{3}.typeCastFunc(NaN);
 
 if isempty(timeIdx), error('time column is missing'); end
+
+coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
 
 % add a temperature variable if present
 if ~isempty(tempIdx)
     sample_data.variables{end+1}.name       = 'TEMP';
     sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-    sample_data.variables{end}  .dimensions = [1 2 3];
-    sample_data.variables{end}  .data       = sample_data.variables{end}.typeCastFunc(temp);
+    sample_data.variables{end}.dimensions   = 1;
+    sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc(temp);
+    sample_data.variables{end}.coordinates  = coordinates;
 end
 
 % add a pressure variable if present
 if ~isempty(presIdx) && any(~isnan(pres))
     sample_data.variables{end+1}.name       = 'PRES';
     sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-    sample_data.variables{end}  .dimensions = [1 2 3];
-    sample_data.variables{end}  .data       = sample_data.variables{end}.typeCastFunc(pres);
+    sample_data.variables{end}.dimensions   = 1;
+    sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc(pres);
+    sample_data.variables{end}.coordinates  = coordinates;
 end
 end
 
-function [match nomatch] = getValues(key, keys, values)
+function [match, nomatch] = getValues(key, keys, values)
 %GETVALUES Returns a cell aray of values for the given key(s), as contained in
 % the given data.
 %

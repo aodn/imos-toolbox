@@ -502,6 +502,14 @@ function mainWindow(...
     iDEPTH = strcmpi(paramsName, 'DEPTH');
     paramsName(iDEPTH) = [];
 
+    % we get rid of LATITUDE, LONGITUDE and NOMINAL_DEPTH parameters
+    iParam = strcmpi(paramsName, 'LATITUDE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'LONGITUDE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'NOMINAL_DEPTH');
+    paramsName(iParam) = [];
+    
     % by default TEMP is selected
     iTEMP = find(strcmpi(paramsName, 'TEMP'));
 
@@ -573,7 +581,7 @@ function displayScatterMooringVar(source,ev, isQC, is1D)
             if ~any(sameParam)
                 paramsName{end+1} = sample_data{i}.variables{j}.name;
                 paramsCount(end+1) = 1;
-                if length(sample_data{i}.variables{j}.dimensions) == 4 && ... % TIME, LATITUDE, LONGITUDE, HEIGHT_ABOVE_SENSOR
+                if length(sample_data{i}.variables{j}.dimensions) == 2 && ... % TIME, HEIGHT_ABOVE_SENSOR
                         size(sample_data{i}.variables{j}.data, 2) > 1 && ...
                         size(sample_data{i}.variables{j}.data, 3) == 1 % we're only plotting ADCP 2D variables with DEPTH variable.
                     params2D(end+1) = true;
@@ -585,12 +593,15 @@ function displayScatterMooringVar(source,ev, isQC, is1D)
             end
         end
     end
-    
+        
     if is1D
         % get only params that are in common in at least two datasets
         iParamsToGetRid = (paramsCount == 1);
         paramsName(iParamsToGetRid) = [];
-    
+        
+        % get only params that are 1D
+        paramsName(params2D) = [];
+        
         % we get rid of DEPTH, PRES and PRES_REL parameters
         iDEPTH = strcmpi('DEPTH', paramsName);
         paramsName(iDEPTH) = [];
@@ -598,7 +609,15 @@ function displayScatterMooringVar(source,ev, isQC, is1D)
         paramsName(iDEPTH) = [];
         iDEPTH = strcmpi('PRES_REL', paramsName);
         paramsName(iDEPTH) = [];
-       
+    
+        % we get rid of LATITUDE, LONGITUDE and NOMINAL_DEPTH parameters
+        iParam = strcmpi(paramsName, 'LATITUDE');
+        paramsName(iParam) = [];
+        iParam = strcmpi(paramsName, 'LONGITUDE');
+        paramsName(iParam) = [];
+        iParam = strcmpi(paramsName, 'NOMINAL_DEPTH');
+        paramsName(iParam) = [];
+        
         % by default TEMP is selected
         iDefault = find(strcmpi(paramsName, 'TEMP'));
     else
@@ -612,6 +631,8 @@ function displayScatterMooringVar(source,ev, isQC, is1D)
         paramsName(iDEPTH) = [];
         iDEPTH = strcmpi('PRES_REL', paramsName);
         paramsName(iDEPTH) = [];
+        
+        % we get rid of HEIGHT parameter
         iHEIGHT = strcmpi('HEIGHT', paramsName);
         paramsName(iHEIGHT) = [];
         
@@ -742,13 +763,14 @@ end
             % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
             p = 5;
             
-            % we don't to plot DEPTH if it's a variable
+            % we don't want to plot DEPTH if it's a variable
             depth = getVar(sam.variables, 'DEPTH');
             if depth ~= 0
                 sam.variables(depth) = [];
             end
         otherwise
-            p = 0;
+            % we don't want to plot LATITUDE, LONGITUDE, NOMINAL_DEPTH
+            p = 3;
     end
     
     % create checkboxes for new data set. The order in which the checkboxes

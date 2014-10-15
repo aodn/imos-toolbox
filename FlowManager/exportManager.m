@@ -246,6 +246,13 @@ end
 paramsName = unique(paramsName);
 try
     if strcmpi(mode, 'timeseries')
+        % we get rid of specific parameters
+        notNeededParams = {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'};
+        for i=1:length(notNeededParams)
+            iNotNeeded = strcmpi(paramsName, notNeededParams{i});
+            paramsName(iNotNeeded) = [];
+        end
+
         % timeseries specific plots
         nParams = length(paramsName);
         for i=1:nParams
