@@ -257,8 +257,14 @@ function sample_data = transformPP( sample_data, auto )
       % update new default for this variable
       writeProperty(sam.variables{m}.name, tfmName, transformFile);
       
+      if isfield(sam.variables{m}, 'coordinates')
+          coordinates = sam.variables{m}.coordinates;
+      else
+          coordinates = '';
+      end
+      
       % replace the old variable with the new variable
-      sam = addVar(sam, name, data, dimensions, comment);
+      sam = addVar(sam, name, data, dimensions, comment, coordinates);
       sam.variables{m} = sam.variables{end};
       sam.variables(end) = [];
       sam.history = history;

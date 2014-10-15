@@ -86,19 +86,24 @@ function sample_data = DR1050Parse( filename, mode )
   
   sample_data.meta.comment                      = header.comment;
   
-  % dimensions definition must stay in this order : T, Z, Y, X, others;
-  % to be CF compliant
   sample_data.dimensions{1}.name            = 'TIME';
   sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
   sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(data.time);
-  sample_data.dimensions{2}.name            = 'LATITUDE';
-  sample_data.dimensions{2}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-  sample_data.dimensions{2}.data            = sample_data.dimensions{2}.typeCastFunc(NaN);
-  sample_data.dimensions{3}.name            = 'LONGITUDE';
-  sample_data.dimensions{3}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
-  sample_data.dimensions{3}.data            = sample_data.dimensions{3}.typeCastFunc(NaN);  
   
-  % copy variable data over
+  sample_data.variables{1}.dimensions       = [];
+  sample_data.variables{1}.name             = 'LATITUDE';
+  sample_data.variables{1}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+  sample_data.variables{1}.data             = sample_data.variables{1}.typeCastFunc(NaN);
+  sample_data.variables{2}.dimensions       = [];
+  sample_data.variables{2}.name             = 'LONGITUDE';
+  sample_data.variables{2}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
+  sample_data.variables{2}.data             = sample_data.variables{2}.typeCastFunc(NaN);
+  sample_data.variables{3}.dimensions       = [];
+  sample_data.variables{3}.name             = 'NOMINAL_DEPTH';
+  sample_data.variables{3}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
+  sample_data.variables{3}.data             = sample_data.variables{3}.typeCastFunc(NaN);
+  
+  % copy other variable data over
   data = rmfield(data, 'time');
   fields = fieldnames(data);
   
@@ -111,10 +116,13 @@ function sample_data = DR1050Parse( filename, mode )
           name = 'PRES';
     end
     
-    sample_data.variables{k}.name           = name;
-    sample_data.variables{k}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{k}.name, 'type')));
-    sample_data.variables{k}.data           = sample_data.variables{k}.typeCastFunc(data.(fields{k}));
-    sample_data.variables{k}.dimensions     = [1 2 3];
+    % dimensions definition must stay in this order : T, Z, Y, X, others;
+    % to be CF compliant
+    sample_data.variables{end+1}.dimensions = 1;
+    sample_data.variables{end}.name         = name;
+    sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+    sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc(data.(fields{k}));
+    sample_data.variables{end}.coordinates  = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
     
   end
 end
@@ -187,10 +195,8 @@ function data = readData(fid, header)
 
   data = struct;
   
-  fmt  = '';
-  
   % figure out number of columns from the number of channels
-  for k = 1:header.channels, fmt = [fmt '%n']; end
+  fmt = repmat('%n', 1, header.channels);
   
   cols = {};
   

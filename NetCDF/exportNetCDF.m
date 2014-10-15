@@ -162,17 +162,18 @@ function filename = exportNetCDF( sample_data, dest, mode )
       dims{m}.name = upper(dims{m}.name);
       
       dimAtts = dims{m};
-      dimAtts = rmfield(dimAtts, 'data');
+      dimAtts = rmfield(dimAtts, {'data', 'name'});
       if isfield(dimAtts, 'typeCastFunc'), dimAtts = rmfield(dimAtts, 'typeCastFunc'); end
       if isfield(dimAtts, 'flags'), dimAtts = rmfield(dimAtts, 'flags'); end
       if isfield(dimAtts, 'FillValue_'), dimAtts = rmfield(dimAtts, 'FillValue_'); end % _FillValues for dimensions are not CF
       dimAtts = rmfield(dimAtts, 'stringlen');
       
-      if isfield(dims{m}, 'flags') && sample_data.meta.level > 0
-          % add the QC variable (defined below)
-          % to the ancillary variables attribute
-          dimAtts.ancillary_variables = [dims{m}.name '_quality_control'];
-      end
+      % ancillary variables for dimensions are not CF
+%       if isfield(dims{m}, 'flags') && sample_data.meta.level > 0
+%           % add the QC variable (defined below)
+%           % to the ancillary variables attribute
+%           dimAtts.ancillary_variables = [dims{m}.name '_quality_control'];
+%       end
 
       % create dimension
       did = netcdf.defDim(fid, dims{m}.name, length(dims{m}.data));
@@ -193,16 +194,17 @@ function filename = exportNetCDF( sample_data, dest, mode )
       sample_data.dimensions{m}.did   = did;
       sample_data.dimensions{m}.vid   = vid;
       
-      if isfield(dims{m}, 'flags') && sample_data.meta.level > 0
-          % create the ancillary QC variable
-          qcvid = addQCVar(...
-              fid, sample_data, m, [qcDimId did], 'dimensions', qcType, dateFmt, mode);
-          sample_data.dimensions{m}.qcvid = qcvid;
-          
-          netcdf.defVarChunking(fid, qcvid, 'CHUNKED', length(dims{m}.flags));
-          
-          netcdf.defVarDeflate(fid, qcvid, true, true, compressionLevel);
-      end
+      % ancillary variables for dimensions are not CF
+%       if isfield(dims{m}, 'flags') && sample_data.meta.level > 0
+%           % create the ancillary QC variable
+%           qcvid = addQCVar(...
+%               fid, sample_data, m, [qcDimId did], 'dimensions', qcType, dateFmt, mode);
+%           sample_data.dimensions{m}.qcvid = qcvid;
+%           
+%           netcdf.defVarChunking(fid, qcvid, 'CHUNKED', length(dims{m}.flags));
+%           
+%           netcdf.defVarDeflate(fid, qcvid, true, true, compressionLevel);
+%       end
     end
     
     
@@ -292,16 +294,17 @@ function filename = exportNetCDF( sample_data, dest, mode )
               ' Please inform eMII.']);
       end
       
-      netcdf.defVarChunking(fid, vid, 'CHUNKED', dimLen);
-      
-      netcdf.defVarDeflate(fid, vid, true, true, compressionLevel);
+      if ~isempty(dimLen)
+          netcdf.defVarChunking(fid, vid, 'CHUNKED', dimLen);
+          netcdf.defVarDeflate(fid, vid, true, true, compressionLevel);
+      end
 
       varAtts = vars{m};
-      varAtts = rmfield(varAtts, {'data', 'dimensions', 'stringlen'});
+      varAtts = rmfield(varAtts, {'data', 'dimensions', 'stringlen', 'name'});
       if isfield(varAtts, 'typeCastFunc'),  varAtts = rmfield(varAtts, 'typeCastFunc'); end
       if isfield(varAtts, 'flags'),         varAtts = rmfield(varAtts, 'flags');        end
       
-      if isfield(vars{m}, 'flags') && sample_data.meta.level > 0
+      if isfield(vars{m}, 'flags') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
           % add the QC variable (defined below)
           % to the ancillary variables attribute
           varAtts.ancillary_variables = [varname '_quality_control'];
@@ -310,14 +313,15 @@ function filename = exportNetCDF( sample_data, dest, mode )
       % add the attributes
       putAtts(fid, vid, vars{m}, varAtts, 'variable', varNetcdfType{m}, dateFmt, mode);
       
-      if isfield(vars{m}, 'flags') && sample_data.meta.level > 0
+      if isfield(vars{m}, 'flags') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
           % create the ancillary QC variable
           qcvid = addQCVar(...
               fid, sample_data, m, [qcDimId dids], 'variables', qcType, dateFmt, mode);
           
-          netcdf.defVarChunking(fid, qcvid, 'CHUNKED', dimLen);
-      
-          netcdf.defVarDeflate(fid, qcvid, true, true, compressionLevel);
+          if ~isempty(dimLen)
+              netcdf.defVarChunking(fid, qcvid, 'CHUNKED', dimLen);
+              netcdf.defVarDeflate(fid, qcvid, true, true, compressionLevel);
+          end
       else
           qcvid = NaN;
       end
@@ -365,14 +369,15 @@ function filename = exportNetCDF( sample_data, dest, mode )
           end
       end
       
-      if isfield(dims{m}, 'flags') && sample_data.meta.level > 0
-          % ancillary QC variable data
-          flags   = dims{m}.flags;
-          qcvid   = dims{m}.qcvid;
-          typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
-          flags = typeCastFunction(flags);
-          netcdf.putVar(fid, qcvid, flags);
-      end
+      % ancillary variables for dimensions are not CF
+%       if isfield(dims{m}, 'flags') && sample_data.meta.level > 0
+%           % ancillary QC variable data
+%           flags   = dims{m}.flags;
+%           qcvid   = dims{m}.qcvid;
+%           typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
+%           flags = typeCastFunction(flags);
+%           netcdf.putVar(fid, qcvid, flags);
+%       end
     end
 
     %
@@ -416,7 +421,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       end
       
       % ancillary QC variable data
-      if isfield(vars{m}, 'flags') && sample_data.meta.level > 0
+      if isfield(vars{m}, 'flags') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
           flags   = vars{m}.flags;
           qcvid   = vars{m}.qcvid;
           typeCastFunction = str2func(netcdf3ToMatlabType(qcType));
@@ -525,7 +530,7 @@ function vid = addQCVar(...
           
       otherwise
           % inOutWater test don't apply on dimensions for timeseries data
-          if ~strcmp(type, 'variables')
+          if ~strcmp(type, 'variables') || any(strcmp(sample_data.(type){varIdx}.name, {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'}))
               iInWater = true(size(sample_data.(type){varIdx}.data));
           else
               tTime = 'dimensions';

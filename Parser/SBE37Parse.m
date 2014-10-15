@@ -65,7 +65,6 @@ if ~ischar(filename), error('filename must contain a string'); end
 [~, ~, ext] = fileparts(filename);
 
 % read first line in the file
-line = '';
 try
     
     fid = fopen(filename, 'rt');
@@ -173,27 +172,39 @@ if strcmpi(ext, '.DAT') && strcmp(line, '//Status Information')
     sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
     % generate time data from header information
     sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(data.TIME);
-    sample_data.dimensions{2}.name          = 'LATITUDE';
-    sample_data.dimensions{2}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-    sample_data.dimensions{2}.data          = sample_data.dimensions{2}.typeCastFunc(NaN);
-    sample_data.dimensions{3}.name          = 'LONGITUDE';
-    sample_data.dimensions{3}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
-    sample_data.dimensions{3}.data          = sample_data.dimensions{3}.typeCastFunc(NaN);
     
+    sample_data.variables{1}.dimensions     = [];
+    sample_data.variables{1}.name           = 'LATITUDE';
+    sample_data.variables{1}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+    sample_data.variables{1}.data           = sample_data.variables{1}.typeCastFunc(NaN);
+    sample_data.variables{2}.dimensions     = [];
+    sample_data.variables{2}.name           = 'LONGITUDE';
+    sample_data.variables{2}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
+    sample_data.variables{2}.data           = sample_data.variables{2}.typeCastFunc(NaN);
+    sample_data.variables{3}.dimensions     = [];
+    sample_data.variables{3}.name           = 'NOMINAL_DEPTH';
+    sample_data.variables{3}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
+    sample_data.variables{3}.data           = sample_data.variables{3}.typeCastFunc(NaN);
+  
     % scan through the list of parameters that were read
     % from the file, and create a variable for each
     vars = fieldnames(data);
+    coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
+    if any(strcmpi('DEPTH', vars))
+        coordinates = [coordinates ' DEPTH'];
+    end
     for k = 1:length(vars)
         
         if strncmp('TIME', vars{k}, 4), continue; end
         
         % dimensions definition must stay in this order : T, Z, Y, X, others;
         % to be CF compliant
-        sample_data.variables{end+1}.dimensions     = [1 2 3];
+        sample_data.variables{end+1}.dimensions     = 1;
         
         sample_data.variables{end  }.name           = vars{k};
         sample_data.variables{end  }.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
         sample_data.variables{end  }.data           = sample_data.variables{end}.typeCastFunc(data.(vars{k}));
+        sample_data.variables{end  }.coordinates    = coordinates;
         
         if strncmp('PRES_REL', vars{k}, 8)
             % let's document the constant pressure atmosphere offset previously

@@ -73,18 +73,16 @@ function sample_data = NXICBinaryParse( filename, mode )
   if isempty(dir(filename)), error([filename ' does not exist']); end
   
   % read in the whole file into 'data'
-  fid = -1;
-  data = [];
   try
-  % predefine some memmapfile objects to help organize headers and data
-    Mheader = memmapfile(filename, 'format', 'uint8', 'repeat', 220);
-    M.b0    = memmapfile(filename, 'format', 'uint8', 'offset', 220);
-    M.b1    = memmapfile(filename, 'format', 'uint8', 'offset', 221);
-    M.b2    = memmapfile(filename, 'format', 'uint8', 'offset', 222);
-    M.b3    = memmapfile(filename, 'format', 'uint8', 'offset', 223);
-    M.b4    = memmapfile(filename, 'format', 'uint8', 'offset', 224);
+      % predefine some memmapfile objects to help organize headers and data
+      Mheader = memmapfile(filename, 'format', 'uint8', 'repeat', 220);
+      M.b0    = memmapfile(filename, 'format', 'uint8', 'offset', 220);
+      M.b1    = memmapfile(filename, 'format', 'uint8', 'offset', 221);
+      M.b2    = memmapfile(filename, 'format', 'uint8', 'offset', 222);
+      M.b3    = memmapfile(filename, 'format', 'uint8', 'offset', 223);
+      M.b4    = memmapfile(filename, 'format', 'uint8', 'offset', 224);
   catch e
-    rethrow(e);
+      rethrow(e);
   end
   
   % the first 220 bytes are the header 
@@ -108,74 +106,67 @@ function sample_data = NXICBinaryParse( filename, mode )
       sample_data.meta.instrument_sample_interval = median(diff(samples.time*24*3600));
   end
   
-  % dimensions definition must stay in this order : T, Z, Y, X, others;
-  % to be CF compliant
   sample_data.dimensions = {};
-  sample_data.dimensions{1}.name            = 'TIME';
-  sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
-  sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(samples.time);
-  sample_data.dimensions{2}.name            = 'LATITUDE';
-  sample_data.dimensions{2}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-  sample_data.dimensions{2}.data            = sample_data.dimensions{2}.typeCastFunc(NaN);
-  sample_data.dimensions{3}.name            = 'LONGITUDE';
-  sample_data.dimensions{3}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{3}.name, 'type')));
-  sample_data.dimensions{3}.data            = sample_data.dimensions{3}.typeCastFunc(NaN);
+  sample_data.variables  = {};
   
-  sample_data.variables = {};
-  sample_data.variables{1}.name = 'TEMP';
-  sample_data.variables{2}.name = 'CNDC';
-  sample_data.variables{3}.name = 'PRES_REL';
-  sample_data.variables{4}.name = 'PSAL';
-  sample_data.variables{5}.name = 'SSPD';
-  sample_data.variables{6}.name = 'VOLT'; % battery voltage
+  sample_data.dimensions{1}.name           = 'TIME';
+  sample_data.dimensions{1}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
+  sample_data.dimensions{1}.data           = sample_data.dimensions{1}.typeCastFunc(samples.time);
+  
+  sample_data.variables{1}.dimensions      = [];
+  sample_data.variables{1}.name            = 'LATITUDE';
+  sample_data.variables{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+  sample_data.variables{1}.data            = sample_data.variables{1}.typeCastFunc(NaN);
+  sample_data.variables{2}.dimensions      = [];
+  sample_data.variables{2}.name            = 'LONGITUDE';
+  sample_data.variables{2}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
+  sample_data.variables{2}.data            = sample_data.variables{2}.typeCastFunc(NaN);
+  sample_data.variables{3}.dimensions      = [];
+  sample_data.variables{3}.name            = 'NOMINAL_DEPTH';
+  sample_data.variables{3}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
+  sample_data.variables{3}.data            = sample_data.variables{3}.typeCastFunc(NaN);
+  
+  sample_data.variables{3}.name = 'TEMP';
+  sample_data.variables{4}.name = 'CNDC';
+  sample_data.variables{5}.name = 'PRES_REL';
+  sample_data.variables{6}.name = 'PSAL';
+  sample_data.variables{7}.name = 'SSPD';
+  sample_data.variables{8}.name = 'VOLT'; % battery voltage
   % these are the analog and digital channels for the external sensors
   % calibration coefficients in header file are unreliable so will need
   % processing into standard units.
-  %sample_data.variables{7}.name = '';
-  %sample_data.variables{8}.name = '';
   %sample_data.variables{9}.name = '';
   %sample_data.variables{10}.name = '';
+  %sample_data.variables{11}.name = '';
+  %sample_data.variables{12}.name = '';
   
-  sample_data.variables{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
-  sample_data.variables{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
-  sample_data.variables{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
-  sample_data.variables{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{4}.name, 'type')));
-  sample_data.variables{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{5}.name, 'type')));
-  sample_data.variables{6}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{6}.name, 'type')));
-%   sample_data.variables{7}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
-%   sample_data.variables{8}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
-%   sample_data.variables{9}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
-%   sample_data.variables{10}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
+  for i=3:8
+      sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{i}.name, 'type')));
+      
+      % dimensions definition must stay in this order : T, Z, Y, X, others;
+      % to be CF compliant
+      sample_data.variables{i}.dimensions = 1;
+      sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
+  end
   
-  sample_data.variables{1}.dimensions = [1 2 3];
-  sample_data.variables{2}.dimensions = [1 2 3];
-  sample_data.variables{3}.dimensions = [1 2 3];
-  sample_data.variables{4}.dimensions = [1 2 3];
-  sample_data.variables{5}.dimensions = [1 2 3];
-  sample_data.variables{6}.dimensions = [1 2 3];
-  %sample_data.variables{7}.dimensions = [1 2 3];
-  %sample_data.variables{8}.dimensions = [1 2 3];
-  %sample_data.variables{9}.dimensions = [1 2 3];
-  %sample_data.variables{10}.dimensions = [1 2 3];
-  
-  sample_data.variables{1}.data = sample_data.variables{1}.typeCastFunc(samples.temperature);
-  sample_data.variables{2}.data = sample_data.variables{2}.typeCastFunc(samples.conductivity);
-  sample_data.variables{3}.data = sample_data.variables{3}.typeCastFunc(samples.pressure);
-  sample_data.variables{3}.applied_offset = sample_data.variables{3}.typeCastFunc(-gsw_P0/10^4); % to be confirmed! (gsw_P0/10^4 = 10.1325 dbar)
-  sample_data.variables{4}.data = sample_data.variables{4}.typeCastFunc(samples.salinity);
-  sample_data.variables{5}.data = sample_data.variables{5}.typeCastFunc(samples.soundSpeed);
-  sample_data.variables{6}.data = sample_data.variables{6}.typeCastFunc(samples.voltage);
-  %sample_data.variables{7}.data = sample_data.variables{7}.typeCastFunc(samples.analog1);  % FLNTU Turbidity
-  %sample_data.variables{8}.data = sample_data.variables{8}.typeCastFunc(samples.analog2);  % FLNTU Fluorescence
-  %sample_data.variables{9}.data = sample_data.variables{9}.typeCastFunc(samples.analog3);  % Biospherical PAR
-  %sample_data.variables{10}.data = sample_data.variables{10}.typeCastFunc(samples.analog4);
+  sample_data.variables{3}.data = sample_data.variables{3}.typeCastFunc(samples.temperature);
+  sample_data.variables{4}.data = sample_data.variables{4}.typeCastFunc(samples.conductivity);
+  sample_data.variables{5}.data = sample_data.variables{5}.typeCastFunc(samples.pressure);
+  sample_data.variables{5}.applied_offset = sample_data.variables{5}.typeCastFunc(-gsw_P0/10^4); % to be confirmed! (gsw_P0/10^4 = 10.1325 dbar)
+  sample_data.variables{6}.data = sample_data.variables{6}.typeCastFunc(samples.salinity);
+  sample_data.variables{7}.data = sample_data.variables{7}.typeCastFunc(samples.soundSpeed);
+  sample_data.variables{8}.data = sample_data.variables{8}.typeCastFunc(samples.voltage);
+  %sample_data.variables{9}.data = sample_data.variables{9}.typeCastFunc(samples.analog1);  % FLNTU Turbidity
+  %sample_data.variables{10}.data = sample_data.variables{10}.typeCastFunc(samples.analog2);  % FLNTU Fluorescence
+  %sample_data.variables{11}.data = sample_data.variables{11}.typeCastFunc(samples.analog3);  % Biospherical PAR
+  %sample_data.variables{12}.data = sample_data.variables{12}.typeCastFunc(samples.analog4);
   
   %if isfield(samples,'digital');
   % not all instruments have a digital channel.
-  %sample_data.variables{11}.name = '';
-  %sample_data.variables{11}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{11}.name, 'type')));
-  %sample_data.variables{11}.dimensions = [1 2 3];
-  %sample_data.variables{11}.data = sample_data.variables{11}.typeCastFunc(samples.digital); % Aanderaa Optode
+  %sample_data.variables{13}.name = '';
+  %sample_data.variables{13}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{13}.name, 'type')));
+  %sample_data.variables{13}.dimensions = [1 2 3];
+  %sample_data.variables{13}.data = sample_data.variables{13}.typeCastFunc(samples.digital); % Aanderaa Optode
   %end;
   
 end
@@ -662,11 +653,11 @@ isample=find(time_logic);
 
 % re-sort for occasional time step reversals (only small ones)
 % change sample order for monotonically increasing time
-[reftimes isort]=sort(times);
+[reftimes, isort]=sort(times);
 isample=isample(isort);
 
 % remove duplicate times
-[reftimes usort]=unique(reftimes,'last');
+[~, usort]=unique(reftimes, 'last');
 isample=isample(usort);
 
 
@@ -752,7 +743,7 @@ times =...
 
 end
 
-function [sampleinterval burstinterval nburst] = getSampleIntervalInfo(t)
+function [sampleinterval, burstinterval, nburst] = getSampleIntervalInfo(t)
 % determines sampling parameters from the actual time data
 
 dt = diff(t);
