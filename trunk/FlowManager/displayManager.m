@@ -379,6 +379,19 @@ function displayManager(windowTitle, sample_data, callbacks)
             % update graph
             if ~isempty(flags), delete(flags(flags ~= 0)); end
             flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
+            
+            % write/update manual QC file for this dataset
+            [mqcPath, mqcFile, ~] = fileparts(sample_data{setIdx}.toolbox_input_file);
+            mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
+            mqc = struct([]);
+            
+            if exist(mqcFile, 'file'), load(mqcFile, '-mat', 'mqc'); end
+            
+            mqc(end+1).nameVar = sample_data{setIdx}.variables{vars(varIdx)}.name;
+            mqc(end).iData = dataIdx;
+            mqc(end).flag = flag;
+            
+            save(mqcFile, 'mqc');
           end
         end
           
