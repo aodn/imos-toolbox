@@ -55,25 +55,10 @@ if ~ishandle(ax),          error('ax must be a graphics handle');        end
 if ~ishandle(highlight),   error('highlight must be a graphics handle'); end
 if ~isnumeric(click),      error('click must be numeric');               end
 
-dataIdx = [];
-
 time = sample_data.variables{var}.dimensions(1);
 time = sample_data.dimensions{time};
 
 highlightX = get(highlight, 'XData');
-highlightY = get(highlight, 'YData');
 
-% figure out if the click was anywhere near the highlight 
-% (within 1% of the current visible range on x and y)
-xError = get(ax, 'XLim');
-xError = abs(xError(1) - xError(2));
-yError = get(ax, 'YLim');
-yError = abs(yError(1) - yError(2));
-
-% was click near highlight?
-if any(abs(click(1)-highlightX) <= xError*0.01)...
-&& any(abs(click(2)-highlightY) <= yError*0.01)
-
-  % find the indices of the selected points
-  dataIdx = find(ismember(time.data, highlightX));
-end
+% find the indices of the selected points
+dataIdx = find(ismember(time.data, highlightX));

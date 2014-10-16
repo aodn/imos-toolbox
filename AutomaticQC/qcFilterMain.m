@@ -121,7 +121,7 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).stringFlag = [];
             sam.meta.QCres.(filterName).(sam.(type{m}){k}.name).HEXcolor = reshape(dec2hex(round(255*imosQCFlag(imosQCFlag('good',  qcSet, 'flag'),  qcSet, 'color')))', 1, 6);
                 
-            if isempty(uFlags)
+            if isempty(uFlags) && ~strcmpi(filterName, 'imosHistoricalManualSetQC') % we don't want manual QC to log when no fail
                 sam.meta.log{end+1} = [filterName '(' flog ')' ...
                         ' did not fail on any ' ...
                         sam.(type{m}){k}.name ' sample.'];
@@ -135,11 +135,18 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
                     nFlag = sum(sum(flagIdxI));
                 
                     if nFlag == 0
-                        sam.meta.log{end+1} = [filterName '(' flog ')' ...
-                            ' did not fail on any ' ...
-                            sam.(type{m}){k}.name ' sample.'];
+                        if ~strcmpi(filterName, 'imosHistoricalManualSetQC') % we don't want manual QC to log when no fail
+                            sam.meta.log{end+1} = [filterName '(' flog ')' ...
+                                ' did not fail on any ' ...
+                                sam.(type{m}){k}.name ' sample.'];
+                        end
                     else
-                        sam.meta.log{end+1} = [filterName '(' flog ')' ...
+                        if strcmpi(filterName, 'imosHistoricalManualSetQC')
+                            tmpFilterName = 'Author manually';
+                        else
+                            tmpFilterName = [filterName '(' flog ')'];
+                        end
+                        sam.meta.log{end+1} = [tmpFilterName ...
                             ' flagged ' num2str(nFlag) ' ' ...
                             sam.(type{m}){k}.name ' samples with flag ' flagString '.'];
                         
