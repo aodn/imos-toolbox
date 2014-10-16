@@ -65,15 +65,9 @@ depth = sample_data.dimensions{depth}.data;
 
 highlightX = get(highlight, 'XData');
 highlightY = get(highlight, 'YData');
-
-% was click within highlight range?
-if click(1) >= min(highlightX) && click(1) <= max(highlightX)...
-&& click(2) >= min(highlightY) && click(2) <= max(highlightY)
-  
-  % turn the highlight into data indices
-  dataIdx = [];
-  
-  for k = 1:length(highlightX)
+ 
+% turn the highlight into data indices
+for k = 1:length(highlightX)
     
     % get the indices, on each dimension, of each point in the highlight
     timeIdx  = find(time  == highlightX(k));
@@ -81,5 +75,4 @@ if click(1) >= min(highlightX) && click(1) <= max(highlightX)...
     
     % 'flatten' those indices
     dataIdx = [dataIdx ((depthIdx - 1) * length(time) + timeIdx)];
-  end
 end
