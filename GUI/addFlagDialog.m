@@ -1,14 +1,17 @@
-function flagVal = addFlagDialog( defaultVal )
+function [returnVars, flagVal] = addFlagDialog( variable, kVar, defaultVal )
 %ADDFLAGDIALOG Dialog which allows user to choose a QC flag to apply to a
-% set of points.
+% set of points of a given variable. Can be extended to other similar variables.
 %
 % Displays a dialog which allows the user to choose a QC flag. Returns the
 % selected flag value, or the empty matrix if the user cancelled.
 %
 % Inputs:
+%   variable   - Variable field structure from sample_data structure
+%   kVar       - index of current variable being manually QC'd
 %   defaultVal - The initial value to use..
 %
 % Outputs:
+%   returnVars - indices of variables for which original manual QC needs to be generalised
 %   flagVal    - The selected value. If the user cancelled the dialog, 
 %                flagVal will be the empty matrix.
 %
@@ -45,7 +48,7 @@ function flagVal = addFlagDialog( defaultVal )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  error(nargchk(3,3,nargin));
 
   flagVal = defaultVal;
 
@@ -74,11 +77,25 @@ function flagVal = addFlagDialog( defaultVal )
                num2str(flagTypes(k)) ': ' flagDescs{k} ...
                '</font></html>'];
   end
+  
+  returnVars = kVar;
+  % retrieve a list of similar variables based on dimensions
+  kVars = [];
+  nameVars = {};
+  currVarDims = variable{kVar}.dimensions;
+  for k = 1:length(variable)
+      if length(variable{k}.dimensions) == length(currVarDims)
+          if all(variable{k}.dimensions == currVarDims)
+              kVars(end+1) = k;
+              nameVars{end+1} = variable{k}.name;
+          end
+      end
+  end
 
   % dialog figure
   f = figure(...
     'Name',        'Select Flag Value', ...
-    'Visible',     'off',...
+    'Visible',     'on',...
     'MenuBar',     'none',...
     'Resize',      'off',...
     'WindowStyle', 'Modal',...
@@ -90,10 +107,14 @@ function flagVal = addFlagDialog( defaultVal )
   if  isempty(listOpt), listOpt = 1; end
   
   optList = uicontrol(...
-    'Style', 'popupmenu',...
-    'String', opts,...
-    'Value', listOpt);
-
+      'Style', 'popupmenu',...
+      'String', opts,...
+      'Value', listOpt);
+  
+  % create a panel for the list of variables
+  setPanel = uipanel(...
+      'BorderType', 'none');
+  
   % ok/cancel buttons
   cancelButton  = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
   confirmButton = uicontrol('Style', 'pushbutton', 'String', 'Ok');
@@ -101,17 +122,68 @@ function flagVal = addFlagDialog( defaultVal )
   % use normalized units for positioning
   set(f,             'Units', 'normalized');
   set(optList,       'Units', 'normalized');
+  set(setPanel,      'Units', 'normalized');
   set(cancelButton,  'Units', 'normalized');
   set(confirmButton, 'Units', 'normalized');
 
-  set(f,             'Position', [0.34, 0.46, 0.28, 0.08]);
-  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.5 ]);
-  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.5 ]);
-  set(optList,       'Position', [0.0,  0.5,  1.0,  0.5 ]);
+  set(f,             'Position', [0.34, 0.46, 0.28, 0.2]);
+  set(optList,       'Position', [0.0,  0.8,  1.0,  0.2]);
+  set(setPanel,      'Position', [0.0,  0.2,  1.0,  0.6]);
+  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.2]);
+  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.2]);
 
+  % populate the panel for variable selection
+  uicontrol(...
+        'Parent',              setPanel, ...
+        'Style',               'text', ...
+        'String',              'Applies to', ...
+        'HorizontalAlignment', 'Left', ...
+        'Units',               'normalized', ...
+        'Position',            [0.0,  0.2,  0.15, 0.7] ...
+      );
+  
+  nVars = length(kVars);
+  numRows = ceil(nVars / 2);
+  vHeight = 0.7 / numRows;
+  varCheckboxes = nan(1, nVars);
+  iVars = false(1, nVars);
+  for k = 1:nVars
+      % default selected variable is the currently QC'd one
+      if strcmpi(nameVars{k}, variable{kVar}.name)
+          value = 1;
+          iVars(k) = true;
+      else
+          value = 0;
+      end
+      
+      % figure out vertical start position of this variable's row
+      vStart = vHeight * mod(k, numRows);
+      if vStart == 0, vStart = vHeight * numRows; end
+      vStart = 0.9 - vStart;
+      
+      hStart = 0.15;
+      
+      % second half of variable list -> second column
+      if k > numRows, hStart = 0.575; end
+      pos = [hStart, vStart, 0.425, vHeight];
+      
+      varCheckboxes(k) = uicontrol(...
+          'Parent',   setPanel, ...
+          'Style',    'checkbox', ...
+          'String',   nameVars{k}, ...
+          'Value',    value, ...
+          'UserData', k, ...
+          'Units',    'normalized', ...
+          'Position', pos ...
+          );
+  end
+  
+  set(varCheckboxes, 'Callback', @varCheckboxCallback);
+  
   % reset back to pixels
   set(f,             'Units', 'pixels');
   set(optList,       'Units', 'pixels');
+  set(setPanel,      'Units', 'pixels');
   set(cancelButton,  'Units', 'pixels');
   set(confirmButton, 'Units', 'pixels');
   
@@ -144,6 +216,14 @@ function flagVal = addFlagDialog( defaultVal )
     
   end
   
+  function varCheckboxCallback(source,ev)
+  %VARCHECKBOXCALLBACK Saves the variable selection for the current data set.
+  %
+    varIdx = get(source, 'UserData');
+    iVars(varIdx) = get(source, 'Value');
+    returnVars = kVars(iVars);
+  end
+
   function cancelCallback(source,ev)
   %CANCELCALLBACK Cancel button callback. Discards user input and closes the 
   % dialog .
