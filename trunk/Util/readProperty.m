@@ -61,20 +61,22 @@ if ~exist('file',  'var'), file  = 'toolboxProperties.txt'; end
 if ~ischar(file),        error('file must be a string');  end
 if ~ischar(prop),        error('prop must be a string');  end
 if ~ischar(delim),       error('delim must be a string'); end
-if ~exist(file, 'file'), error('file must be a file');    end
 
 % propFilePath = pwd;
 [propFilePath, ~, ~] = fileparts(which('imosToolbox.m'));
+file = fullfile(propFilePath, file);
+
+if ~exist(file, 'file'), error('file must be a file');    end
 
 % read in all the name=value pairs
-fid = fopen(fullfile(propFilePath, file), 'rt');
-if fid == -1, error(['could not open ' fullfile(propFilePath, file)]); end
+fid = fopen(file, 'rt');
+if fid == -1, error(['could not open ' file]); end
 
 lines = textscan(fid, '%s%q', 'Delimiter', delim, 'CommentStyle', '%');
 
 fclose(fid);
 
-if isempty(lines), error([fullfile(propFilePath, file) ' is empty']); end
+if isempty(lines), error([file ' is empty']); end
 
 names = lines{1};
 vals  = lines{2};
