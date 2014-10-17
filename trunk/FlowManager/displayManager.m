@@ -117,7 +117,7 @@ function displayManager(windowTitle, sample_data, callbacks)
   rawFlag    = imosQCFlag('raw', qcSet, 'flag');
   
   % define the user options, and create the main window
-  states = {'Import', 'Metadata', 'Raw data', 'QC data', 'QC stats' ...
+  states = {'Import', 'Metadata', 'Raw data', 'QC data', 'QC stats', 'Reset manual QC' ...
             'Export NetCDF', 'Export Raw'};
 
   mainWindow(windowTitle, sample_data, states, 3, @stateSelectCallback);
@@ -149,6 +149,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       case 'Raw data',        rawDataCallback();
       case 'QC data',         qcDataCallback();
       case 'QC stats',        qcStatsCallback();
+      case 'Reset manual QC', resetManQCCallback();
       case 'Export NetCDF',   exportNetCDFCallback();
       case 'Export Raw',      exportRawCallback();
     end
@@ -366,32 +367,35 @@ function displayManager(windowTitle, sample_data, callbacks)
           flag = mode(double(flag));
           
           % popup flag modification dialog
-          flag = addFlagDialog(flag);
+          [kVar, flag] = addFlagDialog(sample_data{setIdx}.variables, vars(varIdx), flag);
           
           % if user didn't cancel, apply the new flag value to the data
           if ~isempty(flag)
-            callbacks.manualQCRequestCallback(setIdx,vars(varIdx),dataIdx,flag);
-            sample_data = callbacks.autoQCRequestCallback(setIdx, true);
-            
-            % update main window with modified data set
-            updateCallback(sample_data{setIdx});
-            
-            % update graph
-            if ~isempty(flags), delete(flags(flags ~= 0)); end
-            flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
-            
-            % write/update manual QC file for this dataset
-            [mqcPath, mqcFile, ~] = fileparts(sample_data{setIdx}.toolbox_input_file);
-            mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
-            mqc = struct([]);
-            
-            if exist(mqcFile, 'file'), load(mqcFile, '-mat', 'mqc'); end
-            
-            mqc(end+1).nameVar = sample_data{setIdx}.variables{vars(varIdx)}.name;
-            mqc(end).iData = dataIdx;
-            mqc(end).flag = flag;
-            
-            save(mqcFile, 'mqc');
+              for i=1:length(kVar)
+                  callbacks.manualQCRequestCallback(setIdx, kVar(i), dataIdx, flag);
+              end
+              sample_data = callbacks.autoQCRequestCallback(setIdx, true);
+              
+              % update main window with modified data set
+              updateCallback(sample_data{setIdx});
+              
+              % update graph
+              if ~isempty(flags), delete(flags(flags ~= 0)); end
+              flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
+              
+              % write/update manual QC file for this dataset
+              [mqcPath, mqcFile, ~] = fileparts(sample_data{setIdx}.toolbox_input_file);
+              mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
+              mqc = struct([]);
+              
+              if exist(mqcFile, 'file'), load(mqcFile, '-mat', 'mqc'); end
+              
+              for i=1:length(kVar)
+                  mqc(end+1).nameVar = sample_data{setIdx}.variables{kVar(i)}.name;
+                  mqc(end).iData = dataIdx;
+                  mqc(end).flag = flag;
+              end
+              save(mqcFile, 'mqc');
           end
         end
           
@@ -422,6 +426,20 @@ function displayManager(windowTitle, sample_data, callbacks)
 %       viewMetadata(panel, sample_data{setIdx}, ...
 %         @metadataUpdateWrapperCallback,...
 %         @metadataRepWrapperCallback, mode);
+    end
+    
+    function resetManQCCallback()
+    %RESETMANQCCALLBACK Deletes any existing .mqc manual qc file associated
+    %to the currently displayed dataset.
+    %
+    
+      [mqcPath, mqcFile, ~] = fileparts(sample_data{setIdx}.toolbox_input_file);
+      mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
+      
+      if exist(mqcFile, 'file')
+          delete(mqcFile);
+      end
+      qcDataCallback();
     end
     
     function exportNetCDFCallback()
