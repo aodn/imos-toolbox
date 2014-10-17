@@ -63,17 +63,18 @@ if ~ischar(prop),        error('prop must be a string');  end
 if ~ischar(delim),       error('delim must be a string'); end
 if ~exist(file, 'file'), error('file must be a file');    end
 
-propFilePath = pwd;
+% propFilePath = pwd;
+[propFilePath, ~, ~] = fileparts(which('imosToolbox.m'));
 
 % read in all the name=value pairs
-fid = fopen([propFilePath filesep file], 'rt');
-if fid == -1, error(['could not open ' file]); end
+fid = fopen(fullfile(propFilePath, file), 'rt');
+if fid == -1, error(['could not open ' fullfile(propFilePath, file)]); end
 
 lines = textscan(fid, '%s%q', 'Delimiter', delim, 'CommentStyle', '%');
 
 fclose(fid);
 
-if isempty(lines), error([file ' is empty']); end
+if isempty(lines), error([fullfile(propFilePath, file) ' is empty']); end
 
 names = lines{1};
 vals  = lines{2};
