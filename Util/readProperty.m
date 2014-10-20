@@ -63,7 +63,9 @@ if ~ischar(prop),        error('prop must be a string');  end
 if ~ischar(delim),       error('delim must be a string'); end
 
 % propFilePath = pwd;
-[propFilePath, ~, ~] = fileparts(which('imosToolbox.m'));
+[propFilePath, ~, ~] = fileparts(which('imosToolbox_Linux64.sh'));
+if isempty(propFilePath), propFilePath = pwd; end
+    
 file = fullfile(propFilePath, file);
 
 if ~exist(file, 'file'), error('file must be a file');    end
