@@ -47,7 +47,10 @@ function routines = listTransformations()
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-path    = [pwd filesep 'Preprocessing' filesep 'Transform'];
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'Preprocessing', 'Transform');
+
 pattern = '^(.+Transform)\.m$';
 
 routines = listFiles(path, pattern);

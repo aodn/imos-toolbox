@@ -97,8 +97,10 @@ function sample_data = echoviewParse( filename, platform, config )
   if nargin == 1 || isempty(platform)
     platform = getPlatform();
   end
+  [path, ~, ~] = fileparts(which('imosToolbox.m'));
+  if isempty(path), path = pwd; end
   sample_data = getAttributes(sample_data, ...
-      fullfile(pwd, 'NetCDF', 'platform', [ platform '_attributes.txt' ] ));
+      fullfile(path, 'NetCDF', 'platform', [ platform '_attributes.txt' ] ));
   
   %
   % map maps CSV columns to sample_data variables and dimensions
@@ -114,7 +116,7 @@ function sample_data = echoviewParse( filename, platform, config )
   end
   
   if isempty(config) || ~exist(config, 'file')
-    config = fullfile(pwd, 'Parser', 'echoview_config.txt');
+    config = fullfile(path, 'Parser', 'echoview_config.txt');
   end
   
  map = getFieldMap(config);
@@ -616,7 +618,10 @@ end
 function platform = getPlatform
 %GETPLATFORM gets a platform code, possibly from the user.
 
-path    = fullfile(pwd, 'NetCDF', 'platform');
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'NetCDF', 'platform');
+
 pattern = '^(.+)_attributes\.txt$';
 
 platforms = listFiles(path, pattern);

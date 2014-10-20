@@ -50,7 +50,11 @@ function graphs = listGraphs()
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-path    = [pwd filesep 'Graph'];
+
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'Graph');
+
 pattern = '^graph(.+)\.m$';
 
 graphs  = listFiles(path, pattern);

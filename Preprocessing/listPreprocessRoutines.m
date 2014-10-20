@@ -47,7 +47,10 @@ function routines = listPreprocessRoutines()
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-path    = [pwd filesep 'Preprocessing'];
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'Preprocessing');
+
 pattern = '^(.+PP)\.m$';
 
 routines = listFiles(path, pattern);

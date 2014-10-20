@@ -67,7 +67,10 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
           return;
   end
   
-  geomagPath        = fullfile('.', 'Geomag', computerDir);
+  [path, ~, ~] = fileparts(which('imosToolbox.m'));
+  if isempty(path), path = pwd; end
+  
+  geomagPath        = fullfile(path, 'Geomag', computerDir);
   geomagExe         = fullfile(geomagPath, 'geomag70.exe');
   geomagModelFile   = fullfile(geomagPath, 'IGRF11.COF');
   geomagInputFile   = fullfile(geomagPath, 'sample_coords.txt');

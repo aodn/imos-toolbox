@@ -234,7 +234,9 @@ function timeAtts = getTimeAtts()
   try
       path = readProperty('toolbox.templateDir');
       if isempty(path) || ~exist(path, 'dir')
-          path = fullfile(pwd, 'NetCDF', 'template');
+          [path, ~, ~] = fileparts(which('imosToolbox.m'));
+          if isempty(path), path = pwd; end
+          path = fullfile(path, 'NetCDF', 'template');
       end
       
       file = fullfile(path, 'global_attributes.txt');

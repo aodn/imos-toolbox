@@ -52,7 +52,9 @@ if ~ischar(make),   error('make must be a string');   end
 if ~ischar(model),  error('model must be a string');  end
 if ~ischar(parser), error('parser must be a string'); end
 
-path = [pwd filesep 'Parser'];
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'Parser');
 
 fid = -1;
 try

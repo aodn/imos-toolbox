@@ -72,7 +72,9 @@ if ~isempty(match), short_name(match:end) = ''; end
 
 % get the location of this m-file, which is 
 % also the location of imosParamaters.txt
-path = [pwd filesep 'IMOS'];
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'IMOS');
 
 fid = -1;
 persistent params; % we actually only need to read the parmeters file once and this will improve performances

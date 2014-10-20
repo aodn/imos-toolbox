@@ -61,6 +61,8 @@ if ~ischar(delim),       error('delim must be a string'); end
 if ~exist(file, 'file'), error('file must be a file');    end
 
 propFilePath = pwd;
+[propFilePath, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(propFilePath), propFilePath = pwd; end
 
 % read in all the name=value pairs
 fid = fopen([propFilePath filesep file], 'rt');
