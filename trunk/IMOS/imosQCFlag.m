@@ -82,7 +82,9 @@ value = '';
 
 % open the IMOSQCFlag file - it should be 
 % in the same directory as this m-file
-path = [pwd filesep 'IMOS'];
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'IMOS');
 
 fid = -1;
 flags = [];

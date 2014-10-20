@@ -47,7 +47,10 @@ function routines = listAutoQCRoutines()
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-path    = [pwd filesep 'AutomaticQC'];
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'AutomaticQC');
+
 pattern = '^(.+QC)\.m$';
 
 routines = listFiles(path, pattern);

@@ -93,7 +93,9 @@ match = regexp(var, '_\d$');
 if ~isempty(match), var(match:end) = ''; end
 
 % get path to graph directory (e.g. 'Graph')
-graphDir = [pwd filesep 'Graph'];
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+graphDir = fullfile(path, 'Graph');
 
 % check that the directory exists
 if isempty(dir(graphDir))

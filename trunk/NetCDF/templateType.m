@@ -93,12 +93,14 @@ else
     temp = [temp '_attributes.txt'];
 end
 
-filepath = templateDir;
-if isempty(filepath) || ~exist(filepath, 'dir')
-    filepath = fullfile(pwd, 'NetCDF', 'template');
+path = templateDir;
+if isempty(path) || ~exist(path, 'dir')
+    [path, ~, ~] = fileparts(which('imosToolbox.m'));
+    if isempty(path), path = pwd; end
+    path = fullfile(path, 'NetCDF', 'template');
 end
 
-filepath = fullfile(filepath, temp);
+filepath = fullfile(path, temp);
         
 if isGlobal
     if isempty(global_template)        

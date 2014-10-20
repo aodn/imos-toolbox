@@ -62,13 +62,12 @@ if ~ischar(file),        error('file must be a string');  end
 if ~ischar(prop),        error('prop must be a string');  end
 if ~ischar(delim),       error('delim must be a string'); end
 
-% propFilePath = pwd;
-[propFilePath, ~, ~] = fileparts(which('imosToolbox_Linux64.sh'));
+[propFilePath, ~, ~] = fileparts(which('imosToolbox.m'));
 if isempty(propFilePath), propFilePath = pwd; end
     
 file = fullfile(propFilePath, file);
 
-if ~exist(file, 'file'), error('file must be a file');    end
+if ~exist(file, 'file'), error(['file ' file ' must be a file']);    end
 
 % read in all the name=value pairs
 fid = fopen(file, 'rt');

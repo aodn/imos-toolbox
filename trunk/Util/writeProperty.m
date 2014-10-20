@@ -68,6 +68,8 @@ if ~ischar(delim),       error('delim must be a string'); end
 if ~exist(file, 'file'), error('file must be a file');    end
 
 propFilePath = pwd;
+[propFilePath, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(propFilePath), propFilePath = pwd; end
 
 [filePath fileName fileExt] = fileparts(file);
 

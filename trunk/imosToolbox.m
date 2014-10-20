@@ -54,7 +54,9 @@ toolboxVersion = ['2.4 beta (testing purpose only) - ' computer];
 
 % we must dynamically add the ddb.jar java library to the classpath
 % as well as any other .jar library and jdbc drivers
-jars = fsearch('.jar', fullfile(pwd, 'Java'), 'files');
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+jars = fsearch('.jar', fullfile(path, 'Java'), 'files');
 for j = 1 : length(jars)
     javaaddpath(jars{j});
 end

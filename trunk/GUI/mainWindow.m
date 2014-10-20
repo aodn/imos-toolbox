@@ -596,11 +596,11 @@ function displayScatterMooringVar(source,ev, isQC, is1D)
         
     if is1D
         % get only params that are in common in at least two datasets
-        iParamsToGetRid = (paramsCount == 1);
-        paramsName(iParamsToGetRid) = [];
-        
+        iParamsNotInCommon = (paramsCount == 1);
         % get only params that are 1D
-        paramsName(params2D) = [];
+        iParamsToGetRid = params2D | iParamsNotInCommon;
+        
+        paramsName(iParamsToGetRid) = [];
         
         % we get rid of DEPTH, PRES and PRES_REL parameters
         iDEPTH = strcmpi('DEPTH', paramsName);
