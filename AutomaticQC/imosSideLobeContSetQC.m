@@ -101,9 +101,16 @@ idMandatory = idHeight & (idUcur | idVcur | idWcur | idCspd | idCdir);
 if ~idMandatory, return; end
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
-badFlag  = imosQCFlag('bad',  qcSet, 'flag');
-goodFlag = imosQCFlag('good', qcSet, 'flag');
-rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+badFlag         = imosQCFlag('bad',             qcSet, 'flag');
+goodFlag        = imosQCFlag('good',            qcSet, 'flag');
+probGoodFlag    = imosQCFlag('probablyGood',    qcSet, 'flag');
+rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
+
+% read in filter parameters
+propFile = fullfile('AutomaticQC', 'imosSideLobeContSetQC.txt');
+qcthresh.nBinSize   = str2double(readProperty('nBinSize',   propFile));
+
+paramsLog = ['nBinSize=' num2str(qcthresh.nBinSize)];
 
 %Pull out ADCP bin details
 BinSize = sample_data.meta.binSize;
@@ -131,12 +138,14 @@ if idPres == 0 && idPresRel == 0 && idDepth == 0
 elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
         ff = (sample_data.variables{idPres}.flags == rawFlag) | ...
-            (sample_data.variables{idPres}.flags == goodFlag);
+            (sample_data.variables{idDepth}.flags == goodFlag) | ...
+            (sample_data.variables{idDepth}.flags == probGoodFlag);
         % relative pressure is used to compute depth (10.1325 dbar = gsw_P0/10^4)
         pressure = sample_data.variables{idPres}.data - gsw_P0/10^4;
     else
         ff = (sample_data.variables{idPresRel}.flags == rawFlag) | ...
-            (sample_data.variables{idPresRel}.flags == goodFlag);
+            (sample_data.variables{idDepth}.flags == goodFlag) | ...
+            (sample_data.variables{idDepth}.flags == probGoodFlag);
         pressure = sample_data.variables{idPresRel}.data;
     end
 end
@@ -146,17 +155,28 @@ if idDepth == 0
     depth = pressure;
 else
     ff = (sample_data.variables{idDepth}.flags == rawFlag) | ...
-        (sample_data.variables{idDepth}.flags == goodFlag);
+        (sample_data.variables{idDepth}.flags == goodFlag) | ...
+        (sample_data.variables{idDepth}.flags == probGoodFlag);
     depth = sample_data.variables{idDepth}.data;
 end
 
 % let's take into account QC information
-if any(~ff)
+if all(~ff)
+    % all depth/pressure data is not good
     if isempty(sample_data.instrument_nominal_depth)
         error(['Bad pressure/depth data in file ' sample_data.toolbox_input_file ' => Fill instrument_nominal_depth!']);
     else
         depth(~ff) = sample_data.instrument_nominal_depth;
-        disp(['Info : imosSideLobeContSetQC uses nominal depth instead of pressure/depth data flagged as not ''good'' in file ' sample_data.toolbox_input_file]);
+        disp(['Info : imosSideLobeContSetQC uses nominal depth ' num2str(sample_data.instrument_nominal_depth) 'm instead of actual pressure/depth data (not one has been flagged not ''bad'' in file ' sample_data.toolbox_input_file ')']);
+    end
+else
+    if any(~ff)
+        % let's have a look at the median good depth/pressure value
+        % which will give us the distance for which there
+        % is no contaminated depth.
+        medianDepth = median(depth(ff));
+        depth(~ff) = medianDepth;
+        disp(['Info : imosSideLobeContSetQC uses median good depth ' num2str(medianDepth, '%.1f') 'm over deployment instead of actual pressure/depth data flagged as not ''good'' in file ' sample_data.toolbox_input_file]);
     end
 end
 
@@ -179,13 +199,13 @@ end
 %
 % http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes
 %
-% substraction of 2*BinSize to the non-contaminated height in order to be
+% by default substraction of 2*BinSize to the non-contaminated height in order to be
 % conservative and be sure that the first bin below the contaminated depth
 % hasn't been computed from any contaminated signal.
 if isUpwardLooking
-    cDepth = distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - 2*BinSize);
+    cDepth = distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - nBinSize*BinSize);
 else
-    cDepth = sample_data.site_nominal_depth - (distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - 2*BinSize));
+    cDepth = sample_data.site_nominal_depth - (distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - nBinSize*BinSize));
 end
 
 % calculate bins depth
