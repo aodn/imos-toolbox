@@ -57,7 +57,9 @@ value = '';
 
 % get the location of this m-file, which is 
 % also the location of imosFileVersion.txt
-path = [pwd filesep 'IMOS'];
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'IMOS');
 
 fid = -1;
 params = [];

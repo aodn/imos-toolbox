@@ -57,7 +57,9 @@ if ~ischar(model), error('model must be a string'); end
 
 parser = 0;
 
-path = [pwd filesep 'Parser'];
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'Parser');
 
 % read in all the lines of the file
 lines = {};

@@ -39,7 +39,11 @@ function parsers = listParsers ()
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-path    = [pwd filesep 'Parser'];
+
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'Parser');
+
 pattern = '^(.+)Parse\.m$';
 
 parsers = listFiles(path, pattern);

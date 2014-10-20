@@ -56,7 +56,9 @@ regionalRangeMin = NaN;
 regionalRangeMax = NaN;
 isSite = false;
 
-path = [pwd filesep 'AutomaticQC'];
+[path, ~, ~] = fileparts(which('imosToolbox.m'));
+if isempty(path), path = pwd; end
+path = fullfile(path, 'AutomaticQC');
 
 fid = -1;
 regRange = [];
