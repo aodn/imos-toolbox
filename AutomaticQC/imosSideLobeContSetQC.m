@@ -108,9 +108,9 @@ rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
 
 % read in filter parameters
 propFile = fullfile('AutomaticQC', 'imosSideLobeContSetQC.txt');
-qcthresh.nBinSize   = str2double(readProperty('nBinSize',   propFile));
+nBinSize = str2double(readProperty('nBinSize',   propFile));
 
-paramsLog = ['nBinSize=' num2str(qcthresh.nBinSize)];
+paramsLog = ['nBinSize=' num2str(nBinSize)];
 
 %Pull out ADCP bin details
 BinSize = sample_data.meta.binSize;
