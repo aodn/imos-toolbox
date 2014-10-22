@@ -31,7 +31,6 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Gordon Keith <gordon.keith@csiro.au>
-%   -bug fixes
 %               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
@@ -216,9 +215,9 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   while true
       switch mode
           case 'profile'
-              [fieldTrip deps sits dataDir] = getCTDs(auto);
+              [fieldTrip deps sits dataDir] = getCTDs(auto); % one entry is one CTD profile instrument file
           otherwise
-              [fieldTrip deps sits dataDir] = getDeployments(auto);
+              [fieldTrip deps sits dataDir] = getDeployments(auto); % one entry is one moored instrument file
       end
       
       if isempty(fieldTrip), return; end
@@ -233,7 +232,31 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
         return;
     end
 
-    % find physical files for each deployment
+    if isfield(sits, 'Site')
+        % find the distinct sites involved
+        siteId = unique({sits.Site}');
+        siteDesc = unique({sits.Description}');
+        
+        [siteId, orderSites] = sort(siteId);
+        siteDesc = siteDesc(orderSites);
+        
+        nSite = length(siteId);
+        if nSite > 1 && ~auto
+            % we display an intermediate siteDialog
+            siteId = siteDialog(siteId, siteDesc);
+            
+            if ~isempty(siteId)
+                % we remove the non-selected sites from the list
+                iSelectedSite = strcmpi(siteId, {sits.Site});
+                sits(~iSelectedSite) = [];
+                deps(~iSelectedSite) = [];
+            else
+                continue;
+            end
+        end
+    end
+    
+    % find physical files for each deployed instrument
     allFiles = cell(size(deps));
     for k = 1:length(deps)
 
