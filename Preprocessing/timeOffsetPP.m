@@ -193,7 +193,7 @@ function sample_data = timeOffsetPP(sample_data, auto)
           signOffset = '-';
       end
       
-      timeOffsetComment = ['timeOffsetPP: TIME dimension and time_coverage_start/end global attributes have been '...
+      timeOffsetComment = ['timeOffsetPP: TIME values and time_coverage_start/end global attributes have been '...
           'applied the following offset : ' signOffset num2str(abs(offsets(k))) ' hours.'];
       
       % otherwise apply the offset
