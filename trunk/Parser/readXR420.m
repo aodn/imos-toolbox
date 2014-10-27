@@ -131,9 +131,6 @@ function sample_data = readXR420( filename, mode )
           dNaN = nan(MAXZ-nD, 1);
           aNaN = nan(MAXZ-nA, 1);
           
-          sample_data.dimensions{2}.name                = 'INSTANCE';
-          sample_data.dimensions{2}.typeCastFunc        = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-          sample_data.dimensions{2}.cf_role             = 'profile_id';
           if nA == 0
               sample_data.dimensions{1}.name            = 'DEPTH';
               sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
@@ -141,19 +138,20 @@ function sample_data = readXR420( filename, mode )
               sample_data.dimensions{1}.comment         = depthComment;
               sample_data.dimensions{1}.axis            = 'Z';
               sample_data.dimensions{1}.positive        = 'down';
-              
-              sample_data.dimensions{2}.data            = sample_data.dimensions{2}.typeCastFunc(1);
           else
               sample_data.dimensions{1}.name            = 'MAXZ';
               sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
               sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(1:1:MAXZ);
               
+              sample_data.dimensions{2}.name            = 'INSTANCE';
+              sample_data.dimensions{2}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
+              sample_data.dimensions{2}.cf_role         = 'profile_id';
               sample_data.dimensions{2}.data            = sample_data.dimensions{2}.typeCastFunc([1, 2]);
+              
               disp(['Warning : ' sample_data.toolbox_input_file ...
                   ' is not IMOS CTD profile compliant. See ' ...
-                  'http://imos.org.au/fileadmin/user_upload/shared/' ...
-                  'IMOS%20General/documents/Facility_manuals/' ...
-                  'NRS_sampling_Manual_Data_Processing_Guide_Draftv1_5b_IngletonMorris.pdf']);
+                  'http://help.aodn.org.au/help/sites/help.aodn.org.au/' ...
+                  'files/ANMN%20CTD%20Processing%20Procedures.pdf']);
           end
           
           % Add TIME, DIRECTION and POSITION infos
@@ -162,18 +160,20 @@ function sample_data = readXR420( filename, mode )
           
           if nA == 0
               ascendingTime = [];
+              dimensions = [];
           else
               ascendingTime = data.time(~iD);
               ascendingTime = ascendingTime(1);
+              dimensions = 2;
           end
           
-          sample_data.variables{1}.dimensions   = 2;
+          sample_data.variables{1}.dimensions   = dimensions;
           sample_data.variables{1}.name         = 'TIME';
           sample_data.variables{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
           sample_data.variables{1}.data         = sample_data.variables{1}.typeCastFunc([descendingTime, ascendingTime]);
           sample_data.variables{1}.comment      = 'First value over profile measurement';
           
-          sample_data.variables{2}.dimensions   = 2;
+          sample_data.variables{2}.dimensions   = dimensions;
           sample_data.variables{2}.name         = 'DIRECTION';
           sample_data.variables{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
           if nA == 0
@@ -182,7 +182,7 @@ function sample_data = readXR420( filename, mode )
               sample_data.variables{2}.data     = {'D', 'A'};
           end
           
-          sample_data.variables{3}.dimensions   = 2;
+          sample_data.variables{3}.dimensions   = dimensions;
           sample_data.variables{3}.name         = 'LATITUDE';
           sample_data.variables{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
           if nA == 0
@@ -191,7 +191,7 @@ function sample_data = readXR420( filename, mode )
               sample_data.variables{3}.data     = sample_data.variables{3}.typeCastFunc([NaN, NaN]);
           end
           
-          sample_data.variables{4}.dimensions   = 2;
+          sample_data.variables{4}.dimensions   = dimensions;
           sample_data.variables{4}.name         = 'LONGITUDE';
           sample_data.variables{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{4}.name, 'type')));
           if nA == 0
@@ -200,7 +200,7 @@ function sample_data = readXR420( filename, mode )
               sample_data.variables{4}.data     = sample_data.variables{4}.typeCastFunc([NaN, NaN]);
           end
           
-          sample_data.variables{5}.dimensions   = 2;
+          sample_data.variables{5}.dimensions   = dimensions;
           sample_data.variables{5}.name         = 'BOT_DEPTH';
           sample_data.variables{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{5}.name, 'type')));
           if nA == 0
@@ -233,7 +233,7 @@ function sample_data = readXR420( filename, mode )
               if strcmpi('TIME', vars{k}), continue; end
               if strcmpi('DEPTH', vars{k}) && (nA == 0), continue; end
               
-              sample_data.variables{end+1}.dimensions = [1 2];
+              sample_data.variables{end+1}.dimensions = [1 dimensions];
               
               comment.(vars{k}) = '';
               switch vars{k}
