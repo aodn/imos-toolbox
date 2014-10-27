@@ -58,8 +58,9 @@ function sample_data = variableOffsetPP( sample_data, auto )
   if nargin<2, auto=false; end
   
   % generate descriptions for each data set
-  descs = {};
-  for k = 1:length(sample_data)
+  nSampleData = length(sample_data);
+  descs = cell(1, nSampleData);
+  for k = 1:nSampleData
     descs{k} = genSampleDataDesc(sample_data{k});
   end
   
@@ -69,8 +70,8 @@ function sample_data = variableOffsetPP( sample_data, auto )
   % offsets/scales to  be applied to each variable 
   % in each data set; populated when the panels for 
   % each data set are populated
-  offsets = {};
-  scales  = {};
+  offsets = cell(1, nSampleData);
+  scales  = cell(1, nSampleData);
   
   if ~auto
       % dialog figure
@@ -112,9 +113,8 @@ function sample_data = variableOffsetPP( sample_data, auto )
       set(tabPanel,      'Units', 'pixels');
       
       % create a panel for each data set
-      setPanels = [];
-      for k = 1:length(sample_data)
-          
+      setPanels = nan(1, nSampleData);
+      for k = 1:nSampleData
           setPanels(k) = uipanel('BorderType', 'none','UserData', k);
       end
       
@@ -122,7 +122,7 @@ function sample_data = variableOffsetPP( sample_data, auto )
       tabbedPane(tabPanel, setPanels, descs, false);
       
       % populate the data set panels
-      for k = 1:length(sample_data)
+      for k = 1:nSampleData
           
           nVars = length(sample_data{k}.variables);
           rh    = 0.95 / (nVars + 1);
@@ -169,6 +169,10 @@ function sample_data = variableOffsetPP( sample_data, auto )
           for m = 1:nVars
               
               v = sample_data{k}.variables{m};
+              
+              notRelevantParams = {'DIRECTION'};
+              if any(strcmpi(v.name, notRelevantParams)), continue; end
+              
               try
                   str              = readProperty(v.name, offsetFile);
                   [offsetVal, str] = strtok(str, ',');
@@ -243,7 +247,7 @@ function sample_data = variableOffsetPP( sample_data, auto )
       set(f, 'Visible', 'on');
       uiwait(f);
   else
-      for k = 1:length(sample_data)
+      for k = 1:nSampleData
           
           nVars = length(sample_data{k}.variables);
           offsets{k} = zeros(nVars,1);
@@ -271,7 +275,7 @@ function sample_data = variableOffsetPP( sample_data, auto )
   if isempty(offsets) ||  isempty(scales), return; end
   
   % otherwise, apply the offsets/scales
-  for k = 1:length(sample_data)
+  for k = 1:nSampleData
     
     history = sample_data{k}.history;
       
@@ -298,12 +302,12 @@ function sample_data = variableOffsetPP( sample_data, auto )
           
           str = sprintf('%0.6f,%0.6f', offsets{k}(m), scales{k}(m));
           writeProperty(vars{m}.name, str, offsetFile);
-      end
-      
-      if isempty(history)
-          history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
-      else
-          history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
+          
+          if isempty(history)
+              history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
+          else
+              history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
+          end
       end
     end
     sample_data{k}.variables = vars;

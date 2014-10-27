@@ -143,35 +143,44 @@ function sample_data = timeStartPP( sample_data, auto )
     % this set has been deselected
     if ~sets(k), continue; end
     
-    % no time dimension in this dataset
-    timeIdx = getVar(sample_data{k}.dimensions, 'TIME');
+    % look time through dimensions
+    type = 'dimensions';
+    timeIdx = getVar(sample_data{k}.(type), 'TIME');
+    
+    if timeIdx == 0
+        % look time through variables
+        type = 'variables';
+        timeIdx = getVar(sample_data{k}.(type), 'TIME');
+    end
+    
+    % no time dimension nor variable in this dataset
     if timeIdx == 0, continue; end
     
-    oldStart = sample_data{k}.dimensions{timeIdx}.data(1);
+    oldStart = sample_data{k}.(type){timeIdx}.data(1);
     newStart = startTimes(k);
     
     if oldStart == newStart, continue; end
     
-    timeStartComment = ['timeStartPP: TIME dimension and time_coverage_start/end global attributes have been '...
+    timeStartComment = ['timeStartPP: TIME values and time_coverage_start/end global attributes have been '...
           'changed applying a new start time ' datestr(newStart, 'dd-mm-yyyy HH:MM:SS') ', the former being ' ...
           datestr(oldStart, 'dd-mm-yyyy HH:MM:SS') '.'];
       
     % apply the new start time to the data
-    sample_data{k}.dimensions{timeIdx}.data = ...
-      sample_data{k}.dimensions{timeIdx}.data - oldStart;
-    sample_data{k}.dimensions{timeIdx}.data = ...
-      sample_data{k}.dimensions{timeIdx}.data + newStart;
+    sample_data{k}.(type){timeIdx}.data = ...
+      sample_data{k}.(type){timeIdx}.data - oldStart;
+    sample_data{k}.(type){timeIdx}.data = ...
+      sample_data{k}.(type){timeIdx}.data + newStart;
     
     % and to the time coverage atttributes
     sample_data{k}.time_coverage_start = newStart;
     sample_data{k}.time_coverage_end = ...
-      sample_data{k}.dimensions{timeIdx}.data(end);
+      sample_data{k}.(type){timeIdx}.data(end);
   
-    comment = sample_data{k}.dimensions{timeIdx}.comment;
+    comment = sample_data{k}.(type){timeIdx}.comment;
     if isempty(comment)
-        sample_data{k}.dimensions{timeIdx}.comment = timeStartComment;
+        sample_data{k}.(type){timeIdx}.comment = timeStartComment;
     else
-        sample_data{k}.dimensions{timeIdx}.comment = [comment ' ' timeStartComment];
+        sample_data{k}.(type){timeIdx}.comment = [comment ' ' timeStartComment];
     end
     
     history = sample_data{k}.history;
