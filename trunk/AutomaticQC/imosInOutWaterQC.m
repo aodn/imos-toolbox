@@ -72,12 +72,16 @@ flags     = [];
 if ~strcmp(type, 'variables'), return; end
 if any(strcmp(sample_data.(type){k}.name, {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'})), return; end
 
-
 time_in_water = sample_data.time_deployment_start;
 time_out_water = sample_data.time_deployment_end;
 
-if isempty(time_in_water), return; end
-if isempty(time_out_water), return; end
+if isempty(time_in_water) || isempty(time_out_water)
+    fprintf('%s\n', ['Warning : ' 'Not enough deployment dates ' ...
+        'metadata found to perform in/out water QC test.']);
+    fprintf('%s\n', ['Please make sure global_attributes ' ...
+        'time_deployment_start and time_deployment_end are documented.']);
+    return;
+end
 
 tTime = 'dimensions';
 iTime = getVar(sample_data.(tTime), 'TIME');
@@ -88,27 +92,47 @@ if iTime == 0
 end
 time = sample_data.(tTime){iTime}.data;
 
-qcSet     = str2double(readProperty('toolbox.qc_set'));
-rawFlag   = imosQCFlag('raw', qcSet, 'flag');
-failFlag  = imosQCFlag('bad', qcSet, 'flag');
+% get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+% If no value is set then default mode is 'timeSeries'
+mode = lower(readProperty('toolbox.mode'));
 
-paramsLog = ['in=' datestr(time_in_water, 'dd/mm/yy HH:MM:SS') ...
-    ', out=' datestr(time_out_water, 'dd/mm/yy HH:MM:SS')];
-
-lenData = length(time);
-
-% initially all data is bad
-flags = ones(lenData, 1, 'int8')*failFlag;
-
-% find samples which were taken before in water
-iGood = time >= time_in_water;
-iGood = iGood & time <= time_out_water;
-
-if any(iGood)
-    flags(iGood) = rawFlag;
+switch mode
+    case 'profile'
+        % in this case we mainly aim at checking that TIME is not 
+        % significantly out against the ddb station time (check for 
+        % instrument clock not properly set or typos in the database)
+        if ~strcmpi(sample_data.(type){k}.name, 'TIME'), return; end
+        
+        if time < time_in_water - 1
+            error('TIME value is lower by 24h than time_deployment_start => Check ddb station time values against data file time values!');
+        end
+        if time > time_out_water + 1
+            error('TIME value is greater by 24h than time_deployment_end => Check ddb station time values against data file time values!');
+        end
+        
+    otherwise % 'timeSeries'
+        qcSet     = str2double(readProperty('toolbox.qc_set'));
+        rawFlag   = imosQCFlag('raw', qcSet, 'flag');
+        failFlag  = imosQCFlag('bad', qcSet, 'flag');
+        
+        paramsLog = ['in=' datestr(time_in_water, 'dd/mm/yy HH:MM:SS') ...
+            ', out=' datestr(time_out_water, 'dd/mm/yy HH:MM:SS')];
+        
+        lenData = length(time);
+        
+        % initially all data is bad
+        flags = ones(lenData, 1, 'int8')*failFlag;
+        
+        % find samples which were taken before in water
+        iGood = time >= time_in_water;
+        iGood = iGood & time <= time_out_water;
+        
+        if any(iGood)
+            flags(iGood) = rawFlag;
+        end
+        
+        % transform flags to the appropriate output shape
+        sizeData = size(data);
+        sizeData(sizeData == lenData) = 1;
+        flags = repmat(flags, sizeData);
 end
-
-% transform flags to the appropriate output shape
-sizeData = size(data);
-sizeData(sizeData == lenData) = 1;
-flags = repmat(flags, sizeData);
