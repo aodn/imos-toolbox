@@ -100,7 +100,7 @@ function [name, data, comment] = convertData(name, data, procHeader)
 switch name
     
     %'Temperature (�C)'
-    case 'Temperature0x280xFFFDC0x29';
+    case {'Temperature0x280xFFFDC0x29', 'Temperature0x280xB0C0x29'};
         name = 'TEMP';
         comment = '';
         

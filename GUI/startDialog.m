@@ -373,9 +373,9 @@ function descs = genFieldTripDescs(fieldTrips, dateFmt)
 %GENFIELDTRIPDESCS Generate descriptions of the given field trips for use
 %in the dialog's field trip menu.
 %
-  descs = {};
-  
-  for k = 1:length(fieldTrips)
+  nFieldTrips = length(fieldTrips);  
+  descs = cell(1, nFieldTrips);
+  for k = 1:nFieldTrips
     
     f = fieldTrips(k);
     if isempty(f.DateStart), startDate = '';
@@ -388,9 +388,14 @@ function descs = genFieldTripDescs(fieldTrips, dateFmt)
     
     dateRange = [startDate  ' - ' endDate];
     
-    desc = [f.FieldTripID ' (' dateRange ') ' f.FieldDescription];
+    if isempty(f.FieldDescription)
+        fieldDesc = 'No Description';
+    else
+        fieldDesc = regexprep(f.FieldDescription, '[\n\r\t].', '; ');
+    end
+    desc = [f.FieldTripID ' (' dateRange ') ' fieldDesc];
     
-    descs{end+1} = desc;
+    descs{k} = desc;
   end
 end
 
