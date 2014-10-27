@@ -111,4 +111,7 @@ if ~isempty(dataTime)
     if any(~iGoodTime)
         disp(['Warning : ' num2str(sum(~iGoodTime)) ' points failed Impossible date QC test in file ' sample_data.toolbox_input_file]);
     end
+    if all(~iGoodTime)
+        error('All points failed');
+    end
 end
