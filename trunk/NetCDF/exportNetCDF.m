@@ -213,11 +213,19 @@ function filename = exportNetCDF( sample_data, dest, mode )
     %
     dims = sample_data.dimensions;
     vars = sample_data.variables;
-    nVars = length(vars);
-    varNetcdfType = cell(nVars, 1);
-    for m = 1:nVars
+    varNetcdfType = {};
+    iVarToRemove = [];
+    for m = 1:length(vars)
 
       varname = vars{m}.name;
+      
+      % we don't want to output any variable that doesn't have a standard
+      % IMOS parameter code in the NetCDF file
+      longname = imosParameters(varname, 'long_name');
+      if strcmp(longname, varname) % by default IMOS parameter code without existing entry has its code for long_name
+          iVarToRemove(end+1) = m;
+          continue;
+      end
       
       % get the dimensions for this variable
       dimIdxs = vars{m}.dimensions;
@@ -241,17 +249,17 @@ function filename = exportNetCDF( sample_data, dest, mode )
       
       % create the variable
       if iscell(vars{m}.data)
-          varNetcdfType{m} = 'char';
+          varNetcdfType{end+1} = 'char';
           if vars{m}.stringlen > 1
-              vid = netcdf.defVar(fid, varname, varNetcdfType{m}, ...
+              vid = netcdf.defVar(fid, varname, varNetcdfType{end}, ...
                   [ stringd(vars{m}.stringlen) dids ]);
               dimLen = [ 2^(vars{m}.stringlen-1) dimLen];   %#ok<AGROW>
           else
-              vid = netcdf.defVar(fid, varname, varNetcdfType{m}, dids);
+              vid = netcdf.defVar(fid, varname, varNetcdfType{end}, dids);
           end
       else
-          varNetcdfType{m} = imosParameters(varname, 'type');
-          vid = netcdf.defVar(fid, varname, varNetcdfType{m}, dids);
+          varNetcdfType{end+1} = imosParameters(varname, 'type');
+          vid = netcdf.defVar(fid, varname, varNetcdfType{end}, dids);
       end
       
       % Setting the chunks as big as possible is optimum for most use
@@ -311,7 +319,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       end
 
       % add the attributes
-      putAtts(fid, vid, vars{m}, varAtts, 'variable', varNetcdfType{m}, dateFmt, mode);
+      putAtts(fid, vid, vars{m}, varAtts, 'variable', varNetcdfType{end}, dateFmt, mode);
       
       if isfield(vars{m}, 'flags') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
           % create the ancillary QC variable
@@ -334,6 +342,9 @@ function filename = exportNetCDF( sample_data, dest, mode )
     % we're finished defining dimensions/attributes/variables
     netcdf.endDef(fid);
 
+    % we remove the variables we don't want to output in NetCDF
+    sample_data.variables(iVarToRemove) = [];
+    
     %
     % coordinate variable (and ancillary variable) data
     %
