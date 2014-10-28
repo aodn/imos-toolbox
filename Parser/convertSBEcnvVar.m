@@ -168,7 +168,7 @@ switch name
       comment = '';
       
     % turbidity (NTU)
-    case {'obs', 'turbWETntu0', 'upoly0'}
+    case {'obs', 'obs30x2B', 'turbWETntu0', 'upoly0'}
       name = 'TURB';
       comment = '';
       
@@ -192,6 +192,19 @@ switch name
       origName = name;
       name = ['ANA' origName(end)];
       comment = getVoltageComment(origName, procHeader);
+      
+    case 'f1'
+        name = 'CNDC_FREQ';
+        comment = 'Conductivity Frequency in Hz (added for minCondFreq detection)';
+        
+    case 'flag'
+        name = 'SBE_FLAG';
+        comment = 'SBE Processing Flag (added for binning)';
+        
+    case 'scan'
+        name = 'ETIME';
+        data = data/4;
+        comment = 'Elapsed time in seconds (basically number of scan divided by 4Hz, added for surface soak)';
         
     otherwise 
       name = '';
