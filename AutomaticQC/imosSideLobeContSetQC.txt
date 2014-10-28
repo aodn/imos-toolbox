@@ -1,0 +1,1 @@
+nBinSize   = 2
