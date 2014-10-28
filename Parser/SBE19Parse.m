@@ -414,7 +414,7 @@ sampleExpr   = ['sample interval = (\d+) (\w+), ' ...
     'number of measurements per sample = (\d+)'];
 sampleExpr2  ='*\s+ <Samples>(\d+)</Samples>';
 profExpr     = '*\s+ <Profiles>(\d+)</Profiles>';
-modeExpr     = 'mode = (\w+)';
+modeExpr     = 'mode = (\w+), minimum cond freq = (\d*), pump delay = (\d*)';
 pressureExpr = 'pressure sensor = (strain gauge|quartz)';
 voltExpr     = 'Ext Volt ?(\d+) = (yes|no)';
 outputExpr   = 'output format = (.*)$';
@@ -500,7 +500,9 @@ for k = 1:length(headerLines)
                     
                 % mode
                 case 10
-                    header.mode = tkns{1}{1};
+                    header.mode         = tkns{1}{1};
+                    header.minCondFreq  = str2double(tkns{1}{2});
+                    header.pumpDelay    = str2double(tkns{1}{3});
                     
                 % pressure
                 case 11
