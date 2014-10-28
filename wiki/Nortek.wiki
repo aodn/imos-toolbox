@@ -18,7 +18,7 @@ The toolbox is able to parse raw binary data from the following Nortek instrumen
  * Continental (`.cpr` files) using the *continental* parser.
  * AWAC (`.wpr` files) using the *awac* parser.
 
-For the Aquadopp Profiler and Continental, only the raw binary file is required. For reading wave data from an AWAC, you must use QuickWave or Storm Nortek softwares to generate the processed wave data files (`.whd`, `.wap`, `.wdr`, `.was` and `.wds`), as the AWAC binary file only contains raw wave data.
+For the Aquadopp Profiler and Continental, only the raw binary file is required. For reading wave data from an AWAC/AWACAST, use the AWAC/AWACAST program to perform a data conversion and select "wave" output to create .whd and .wad file. Then use !QuickWave or Storm software to generate the processed wave data files (.wap, .wdr, .was and .wds).
 
 For the Aquadopp Profiler, Continental and AWAC, the following data is extracted:
 
