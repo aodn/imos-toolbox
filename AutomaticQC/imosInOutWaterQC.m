@@ -129,6 +129,8 @@ switch mode
         
         if any(iGood)
             flags(iGood) = rawFlag;
+        else
+            error(['All points failed In/Out water QC test in file ' sample_data.toolbox_input_file]);
         end
         
         % transform flags to the appropriate output shape
