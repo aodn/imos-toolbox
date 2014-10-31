@@ -233,9 +233,18 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
     end
 
     if isfield(sits, 'Site')
+        % in order to use unique on cell arrays of strings we need to replace any [] by ''
+        Sites = {sits.Site}';
+        Descs = {sits.Description}';
+        
+        iEmpty = cellfun('isempty', Sites);
+        if any(iEmpty), Sites(iEmpty) = {''}; end
+        iEmpty = cellfun('isempty', Descs);
+        if any(iEmpty), Descs(iEmpty) = {''}; end
+        
         % find the distinct sites involved
-        siteId = unique({sits.Site}');
-        siteDesc = unique({sits.Description}');
+        [siteId, iUnique] = unique(Sites);
+        siteDesc = Descs(iUnique);
         
         [siteId, orderSites] = sort(siteId);
         siteDesc = siteDesc(orderSites);
