@@ -184,7 +184,7 @@ distinctMooring = unique(moorings);
 lenMooring = length(distinctMooring);
 
 for i=1:lenMooring
-    fprintf('%s\n', ['Importing mooring set of deployments ' distinctMooring{i} ' : ']);
+    fprintf('%s\n', ['Importing ' mode ' set of deployments ' distinctMooring{i} ' : ']);
     iMooring = strcmpi(distinctMooring(i), moorings);
     
     sample_data   = importManager(toolboxVersion, true, iMooring);
