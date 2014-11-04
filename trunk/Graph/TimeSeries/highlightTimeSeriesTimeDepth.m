@@ -62,8 +62,8 @@ if ~ischar(type),       error('type must be a string');          end
 xdata = get(data, 'XData');
 ydata = get(data, 'YData');
 
-Xdata = repmat(xdata, 1, size(ydata));
-Ydata = repmat(ydata', size(xdata), 1);
+Xdata = repmat(xdata, [1, size(ydata)]);
+Ydata = repmat(ydata', [size(xdata), 1]);
 clear xdata ydata;
 
 % figure out indices of all data points within the range

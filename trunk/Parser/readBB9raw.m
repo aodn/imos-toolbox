@@ -51,7 +51,7 @@ if ~isstruct(deviceInfo), error('deviceInfo must contain a struct'); end
 
 nColumns = length(deviceInfo.columns);
 % we assume the first column is a string while all the next are numbers.
-format = ['%s' repmat('%s', 1, nColumns-1)];
+format = ['%s' repmat('%s', [1, nColumns-1])];
 
 % open file, get header and data in columns
 fid     = -1;

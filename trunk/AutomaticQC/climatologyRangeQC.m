@@ -308,9 +308,9 @@ if isVar
     
     climDepth = clim.dimensions{iClimDepth}.data';
     lenClimDepth = length(climDepth);
-    distClimData = abs(repmat(climDepth, lenData, 1) - repmat(dataDepth, 1, lenClimDepth));
+    distClimData = abs(repmat(climDepth, lenData, 1) - repmat(dataDepth, [1, lenClimDepth]));
     minDistClimData = min(distClimData, [], 2);
-    iClimDepth = repmat(minDistClimData, 1, lenClimDepth) == distClimData;
+    iClimDepth = repmat(minDistClimData, [1, lenClimDepth]) == distClimData;
     clear dataDepth distClimData;
     
     % let's find data having more than 1 clim depth and filter

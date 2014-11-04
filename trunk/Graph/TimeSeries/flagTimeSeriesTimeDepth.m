@@ -88,9 +88,9 @@ for m = 1:lenFlag
     fc = imosQCFlag(flagTypes(m), qcSet, 'color');
     fn = strrep(imosQCFlag(flagTypes(m),  qcSet, 'desc'), '_', ' ');
     
-    fx = repmat(time.data, 1, size(depth.data));
+    fx = repmat(time.data, [1, size(depth.data)]);
     fx = fx(f);
-    fy = repmat(depth.data', size(time.data), 1);
+    fy = repmat(depth.data', [size(time.data), 1]);
     fy = fy(f);
     
     flags(m) = line(fx, fy,...

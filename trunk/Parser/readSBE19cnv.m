@@ -56,7 +56,7 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader, mode
   columns = procHeader.columns;
   
   format = '%n';
-  format = repmat(format, 1, length(columns));
+  format = repmat(format, [1, length(columns)]);
   
   dataLines = [dataLines{:}];
   dataLines = textscan(dataLines, format);
