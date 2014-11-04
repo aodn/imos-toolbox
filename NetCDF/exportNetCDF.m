@@ -563,10 +563,10 @@ function vid = addQCVar(...
                   iInWater = sample_data.(tTime){iTime}.data >= sample_data.time_deployment_start & ...
                       sample_data.(tTime){iTime}.data <= sample_data.time_deployment_end;
                   if size(sample_data.(type){varIdx}.data, 1) > 1 && size(sample_data.(type){varIdx}.data, 2) > 1
-                      iInWater = repmat(iInWater, 1, size(sample_data.(type){varIdx}.data, 2));
+                      iInWater = repmat(iInWater, [1, size(sample_data.(type){varIdx}.data, 2)]);
                   end
                   if size(sample_data.(type){varIdx}.data, 3) > 1
-                      iInWater = repmat(iInWater, [1 1 size(sample_data.(type){varIdx}.data, 3)]);
+                      iInWater = repmat(iInWater, [1, 1, size(sample_data.(type){varIdx}.data, 3)]);
                   end
               end
           end

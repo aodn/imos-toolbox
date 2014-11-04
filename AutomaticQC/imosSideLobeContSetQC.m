@@ -217,16 +217,16 @@ flags = ones(sizeCur, 'int8')*rawFlag;
 % test bins depths against contaminated depth
 if isUpwardLooking
     % upward looking : all bins above the contaminated depth are flagged
-    iFail = binDepth <= repmat(cDepth, 1, length(Bins));
-    iPass = binDepth > repmat(cDepth, 1, length(Bins));
+    iFail = binDepth <= repmat(cDepth, [1, length(Bins)]);
+    iPass = binDepth > repmat(cDepth, [1, length(Bins)]);
 else
     % downward looking : all bins below the contaminated depth are flagged
-    iFail = binDepth >= repmat(cDepth, 1, length(Bins));
-    iPass = binDepth < repmat(cDepth, 1, length(Bins));
+    iFail = binDepth >= repmat(cDepth, [1, length(Bins)]);
+    iPass = binDepth < repmat(cDepth, [1, length(Bins)]);
 end
 
 %Need to take into account QC from previous algorithms
-allFF = repmat(ff, 1, size(flags, 2));
+allFF = repmat(ff, [1, size(flags, 2)]);
 iFail = allFF & iFail;
 
 flags(iPass) = goodFlag;

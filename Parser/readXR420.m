@@ -430,7 +430,7 @@ function data = readData(fid, header)
   end
   
   % read in the sample data
-  fmt = repmat('%n',[1 numel(cols)]);
+  fmt = repmat('%n', [1, numel(cols)]);
   samples = textscan(fid, fmt);
   
   % save sample data into the data struct, 

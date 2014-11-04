@@ -55,7 +55,7 @@ nColumns = length(deviceInfo.columns);
 % we first read everything as strings with the expected number of columns
 % but ignoring as many columns as it takes (100 extra columns should be
 % enough)
-format = ['%s%s' repmat('%s', 1, nColumns-2) repmat('%*s', 1, 100)];
+format = ['%s%s' repmat('%s', 1, nColumns-2) repmat('%*s', [1, 100])];
 
 % open file, get header and data in columns
 fid     = -1;
@@ -72,7 +72,7 @@ catch e
 end
 
 % we read everything a second time only looking for a potential extra column as a diagnostic for errors
-formatDiag = ['%*s%*s' repmat('%*s', 1, nColumns-2) '%s' repmat('%*s', 1, 100)];
+formatDiag = ['%*s%*s' repmat('%*s', 1, nColumns-2) '%s' repmat('%*s', [1, 100])];
 
 % open file, get header and data in columns
 fid     = -1;

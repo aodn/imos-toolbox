@@ -845,7 +845,7 @@ function data = readData(fid, header)
   fmt  = '%s %s';
   
   % figure out number of columns from the number of channels
-  fmt = [fmt repmat(' %f', 1, length(cols)-1)];
+  fmt = [fmt repmat(' %f', [1, length(cols)-1])];
   
   % read in the sample data
   samples = textscan(fid, fmt);

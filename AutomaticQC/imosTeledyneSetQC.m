@@ -261,7 +261,7 @@ ib = ib >= 3;
 ib = [true(lenTime, 1), ib];
  
 % however, any good bin further than a bad one should have stayed bad
-jkf = repmat(single(1:1:lenBin), lenTime, 1);
+jkf = repmat(single(1:1:lenBin), [lenTime, 1]);
 
 iii = single(~ib).*jkf;
 clear ib;
@@ -273,7 +273,7 @@ iifNotNan = ~isnan(iif);
 ib6 = true(lenTime, lenBin);
 if any(iifNotNan)
     % all bins further than the first bad one is reset to bad
-    ib6(jkf >= repmat(iif, 1, lenBin)) = false;
+    ib6(jkf >= repmat(iif, [1, lenBin])) = false;
 end
 clear iifNotNan iif jkf;
 
