@@ -30,3 +30,34 @@ NORTEK, 		ADCP - AQUAPRO, 												aquadoppProfiler
 RDI, 			ADCP-Workhorse, 												workhorse
 AQUATEC, 		AQUALOGGER, 													aquatec
 SEABIRD, 		CTD - SBE19Plus, 												SBE19
+Seabird        , SBE39 [600m] temp only, SBE39
+RDI, ADCP300 Sentinel, workhorse
+RBR, DR1050P, DR1050
+Seabird        , SBE39 [600m] temp & press., SBE39
+RDI, WHS600, workhorse
+Seabird, SBE19plus, SBE19
+Sea-Bird Electronics, SBE19plusV2, SBE19
+FSI, FSI, NXICBinary
+WET Labs, WQM, WQM
+Weblabs, WQM, WQM
+Nortek      , ADCP 190kHz, continental
+RBR, XR-420, XR
+SEABIRD, CTD - SBE 9 Plus, SBE19
+SEABIRD, SBE37SM - MicroCAT C-T Recorder with RS-232 Interface, NIWA
+RDI, WHS300-I-UG306, workhorse
+Sea-Bird Electronics, SBE37SM, SBE37SM
+RDI, WHLS150-I-2, workhorse
+Nortek, Aquadopp DW, aquadoppVelocity
+Star Oddi, Starmon mini, StarmonMini
+Sea-Bird Electronics, SBE39, SBE39
+RDI, ADCP - WORKHORSE SENTINEL NEMO, workhorse
+RBR, TWR-2050, XR
+BRANCKER, TEMPERATURE PRESSURE - TDR-2050, XR
+BRANCKER, TEMPERATURE LOGGER TR-1060P, XR
+SEABIRD, SBE16 - CONDUCTIVITY TEMPERATURE LOGGER, SBE19
+SEABIRD, CTD - SBE19PLUS V2 SEACAT, SBE19
+REEFNET, SENSUS ULTRA, sensusUltra
+RDI, ADCP-WORKHORSE-SENTINEL, workhorse
+AQUATEC, AQUALOGGER MODEL 520, aquatec
+FSI, NXIC-CTD-BIO, NXICBinary
+NORTEK, ADCP - AWAC AST, awac

@@ -60,8 +60,8 @@ if ~exist('file',  'var'), file  = 'toolboxProperties.txt'; end
 if ~ischar(delim),       error('delim must be a string'); end
 if ~exist(file, 'file'), error('file must be a file');    end
 
-propFilePath = pwd;
-[propFilePath, ~, ~] = fileparts(which('imosToolbox.m'));
+propFilePath = '';
+if ~isdeployed, [propFilePath, ~, ~] = fileparts(which('imosToolbox.m')); end
 if isempty(propFilePath), propFilePath = pwd; end
 
 % read in all the name=value pairs

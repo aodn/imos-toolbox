@@ -93,7 +93,8 @@ match = regexp(var, '_\d$');
 if ~isempty(match), var(match:end) = ''; end
 
 % get path to graph directory (e.g. 'Graph')
-[path, ~, ~] = fileparts(which('imosToolbox.m'));
+path = '';
+if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
 if isempty(path), path = pwd; end
 graphDir = fullfile(path, 'Graph');
 

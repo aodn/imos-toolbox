@@ -72,7 +72,8 @@ if ~isempty(match), short_name(match:end) = ''; end
 
 % get the location of this m-file, which is 
 % also the location of imosParamaters.txt
-[path, ~, ~] = fileparts(which('imosToolbox.m'));
+path = '';
+if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
 if isempty(path), path = pwd; end
 path = fullfile(path, 'IMOS');
 

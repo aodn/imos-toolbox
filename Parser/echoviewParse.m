@@ -97,7 +97,9 @@ function sample_data = echoviewParse( filename, platform, config )
   if nargin == 1 || isempty(platform)
     platform = getPlatform();
   end
-  [path, ~, ~] = fileparts(which('imosToolbox.m'));
+  
+  path = '';
+  if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
   if isempty(path), path = pwd; end
   sample_data = getAttributes(sample_data, ...
       fullfile(path, 'NetCDF', 'platform', [ platform '_attributes.txt' ] ));
@@ -618,7 +620,8 @@ end
 function platform = getPlatform
 %GETPLATFORM gets a platform code, possibly from the user.
 
-[path, ~, ~] = fileparts(which('imosToolbox.m'));
+path = '';
+if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
 if isempty(path), path = pwd; end
 path = fullfile(path, 'NetCDF', 'platform');
 
