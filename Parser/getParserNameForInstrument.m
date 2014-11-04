@@ -57,7 +57,8 @@ if ~ischar(model), error('model must be a string'); end
 
 parser = 0;
 
-[path, ~, ~] = fileparts(which('imosToolbox.m'));
+path = '';
+if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
 if isempty(path), path = pwd; end
 path = fullfile(path, 'Parser');
 

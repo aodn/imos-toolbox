@@ -102,7 +102,8 @@ function updateViewMetadata(parent, sample_data, mode)
   % get path to templates subdirectory
   path = readProperty('toolbox.templateDir');
   if isempty(path) || ~exist(path, 'dir')
-    [path, ~, ~] = fileparts(which('imosToolbox.m'));
+    path = '';
+    if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
     if isempty(path), path = pwd; end
     path = fullfile(path, 'NetCDF', 'template');
   end
