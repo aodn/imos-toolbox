@@ -1,2 +1,0 @@
-rangeMin = min(mean - 6*stdDev, mini-2*stdDev)
-rangeMax = max(mean + 6*stdDev, maxi+2*stdDev)
