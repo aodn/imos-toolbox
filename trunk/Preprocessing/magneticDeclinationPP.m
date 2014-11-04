@@ -67,7 +67,8 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
           return;
   end
   
-  [path, ~, ~] = fileparts(which('imosToolbox.m'));
+  path = '';
+  if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
   if isempty(path), path = pwd; end
   
   geomagPath        = fullfile(path, 'Geomag', computerDir);

@@ -52,7 +52,8 @@ if ~ischar(make),   error('make must be a string');   end
 if ~ischar(model),  error('model must be a string');  end
 if ~ischar(parser), error('parser must be a string'); end
 
-[path, ~, ~] = fileparts(which('imosToolbox.m'));
+path = '';
+if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
 if isempty(path), path = pwd; end
 path = fullfile(path, 'Parser');
 
