@@ -169,7 +169,7 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     col = get(graphs(k), 'ColorOrder');
     
     % we get rid of the red color
-    iRed = (col == repmat([1 0 0], size(col, 1), 1));
+    iRed = (col == repmat([1 0 0], [size(col, 1), 1]));
     iRed = sum(iRed, 2);
     iRed = iRed == 3;
     col(iRed, :) = [];

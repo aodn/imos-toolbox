@@ -144,7 +144,7 @@ for i=1:lenSampleData
             yPcolor = sample_data{iSort(i)}.dimensions{iHeight}.data(iGoodHeight);
             dataVar = sample_data{iSort(i)}.variables{iVar}.data;
             dataVar(~iGood) = NaN;
-            iGoodHeight = repmat(iGoodHeight, nGoodTime, 1);
+            iGoodHeight = repmat(iGoodHeight, [nGoodTime, 1]);
             dataVar(~iGoodHeight) = [];
             dataVar = reshape(dataVar, nGoodTime, nGoodHeight);
             

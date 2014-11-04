@@ -196,7 +196,7 @@ function data = readData(fid, header)
   data = struct;
   
   % figure out number of columns from the number of channels
-  fmt = repmat('%n', 1, header.channels);
+  fmt = repmat('%n', [1, header.channels]);
   
   cols = {};
   

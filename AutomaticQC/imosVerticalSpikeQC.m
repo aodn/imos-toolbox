@@ -156,7 +156,7 @@ if any(iParam)
     
     size2 = size(iBadData, 2);
     if size2 > 1
-        time = repmat(time, 1, size2);
+        time = repmat(time, [1, size2]);
     end
     
     time(iBadData) = [];
