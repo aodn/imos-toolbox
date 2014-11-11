@@ -1,0 +1,16 @@
+%
+% A list of all supported QC sets. The set numbers/descriptions have been copied 
+% verbatim from section 6.2 of the IMOS NetCDF User's Manual.
+%
+% This file contains all supported IMOS QC sets, in the following format:
+% 
+%   id, description, list_of_values, output_type, fill_value
+%
+% where list_of_values is a space separated list of the different flag values
+% in the set, and output_type is the NetCDF type in which the flag values 
+% should be output (e.g. 'char' for the BOM flags).
+%
+
+1, IMOS standard set using the IODE flags,                 0 1 2 3 4 5 6 7 8 9,       byte, 99
+2, ARGO quality control procedure,                         0 1 2 3 4 5 6 7 8 9,       byte, 99
+3, BOM quality control procedure (SST and Air-Sea fluxes), B C D E F G H L T U V X Z, char, 0
