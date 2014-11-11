@@ -1,18 +1,9 @@
 %
-% A list of all supported QC sets, and the possible flag values for each. The 
+% A list of all the possible flag values for each supported QC set. The 
 % set numbers/descriptions, and flag values/descriptions have been copied 
 % verbatim from section 6.2 of the IMOS NetCDF User's Manual.
 %
-% This file is divided into two sections; the first section contains all 
-% supported IMOS QC sets, in the following format:
-% 
-%   id, description, list_of_values, output_type, fill_value
-%
-% where list_of_values is a space separated list of the different flag values
-% in the set, and output_type is the NetCDF type in which the flag values 
-% should be output (e.g. 'char' for the BOM flags).
-%
-% The second section contains lists of the flag values for each of the QC
+% This file contains lists of the flag values for each of the supported QC
 % sets, in the following format:
 %
 %   qc_id, flag_value, description, colour, class [class ...]
@@ -46,27 +37,6 @@
 % be applied to data without knowledge of which QC set is in use. This section
 % provides the mapping between these classes, and between actual flag values
 % for each set.
-%
-
-%
-% section the first - all supported QC sets
-%
-
-1, IMOS standard set using the IODE flags,                 0 1 2 3 4 5 6 7 8 9,       byte, 99
-2, ARGO quality control procedure,                         0 1 2 3 4 5 6 7 8 9,       byte, 99
-3, BOM quality control procedure (SST and Air-Sea fluxes), B C D E F G H L T U V X Z, char, 0
-
-%
-% the hyphen below is used as a divider between the QC 
-% set definitions, and their contents - do not remove it
-%
-%-------------------------------------------------------------------------------
--
-%-------------------------------------------------------------------------------
-%
-
-%
-% section the second - flag values for each QC set
 %
 
 1, 0, No_QC_performed,                           [0   0   0  ], raw

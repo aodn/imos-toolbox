@@ -4,8 +4,8 @@ function value = imosQCFlag( qcClass, qcSet, field )
 % the given qcClass (String), using the given qcSet (integer).
 %
 % The QC sets definitions, descriptions, output types, and valid flag values 
-% for each, are maintained in the file  'imosQCFlag.txt' which is stored  in 
-% the same directory as this m-file.
+% for each, are maintained in the files 'imosQCSet.txt' and 'imosQCFlag.txt'
+% which are stored  in the same directory as this m-file.
 %
 % The value returned by this function is one of:
 %   - the appropriate QC flag value to use for flagging data when using the 
@@ -28,7 +28,7 @@ function value = imosQCFlag( qcClass, qcSet, field )
 %
 %   qcSet    - must be an integer identifier to one of the supported QC sets. 
 %              If it does not map to a supported QC set, it is assumed to be 
-%              the first qc set defined in the imosQCFlag.txt file.
+%              the first qc set defined in the imosQCSet.txt file.
 %
 %   field    - String which defines what the return value is. Must be one
 %              of 'flag', 'desc', 'set_desc', 'type', 'values' 'min', 'max',
@@ -87,20 +87,24 @@ if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
 if isempty(path), path = pwd; end
 path = fullfile(path, 'IMOS');
 
-fid = -1;
-flags = [];
-sets = [];
+fidS = -1;
+fidF = -1;
 try
-  fid = fopen([path filesep 'imosQCFlag.txt'], 'rt');
-  if fid == -1, return; end
-
-  % read in the QC sets and flag values for each set
-  sets  = textscan(fid, '%f%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
-  flags = textscan(fid, '%f%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
-  fclose(fid);
+  % read in the QC sets
+  fidS = fopen([path filesep 'imosQCSet.txt'], 'rt');
+  if fidS == -1, return; end
+  sets  = textscan(fidS, '%f%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
+  fclose(fidS);
+  
+  % read in the QC flag values for each set
+  fidF = fopen([path filesep 'imosQCFlag.txt'], 'rt');
+  if fidF == -1, return; end
+  flags = textscan(fidF, '%f%s%s%s%s', 'delimiter', ',', 'commentStyle', '%');
+  fclose(fidF);
 
 catch e
-  if fid ~= -1, fclose(fid); end
+  if fidS ~= -1, fclose(fidS); end
+  if fidF ~= -1, fclose(fidF); end
   rethrow(e);
 end
 
