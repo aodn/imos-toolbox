@@ -1,5 +1,5 @@
 function dataIdx = getSelectedTimeSeriesGeneric( ...
-  sample_data, var, ax, highlight, click )
+  sample_data, var, ax, highlight )
 %GETSELECTEDTIMESERIESGENERIC Returns the indices of the currently selected 
 % (highlighted) data on the given axis.
 %
@@ -8,14 +8,14 @@ function dataIdx = getSelectedTimeSeriesGeneric( ...
 %   var         - Variable in question (index into sample_data.variables).
 %   ax          - Axis in question.
 %   highlight   - Handle to the highlight object.
-%   click       - Where the user clicked the mouse.
 %   
 %
 % Outputs:
 %   dataIdx     - Vector of indices into the data, defining the indices
 %                 which are selected (and which were clicked on).
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -47,13 +47,12 @@ function dataIdx = getSelectedTimeSeriesGeneric( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5, 5, nargin));
+error(nargchk(4, 4, nargin));
 
 if ~isstruct(sample_data), error('sample_data must be a struct');        end
 if ~isnumeric(var),        error('var must be numeric');                 end
 if ~ishandle(ax),          error('ax must be a graphics handle');        end
 if ~ishandle(highlight),   error('highlight must be a graphics handle'); end
-if ~isnumeric(click),      error('click must be numeric');               end
 
 time = sample_data.variables{var}.dimensions(1);
 time = sample_data.dimensions{time};

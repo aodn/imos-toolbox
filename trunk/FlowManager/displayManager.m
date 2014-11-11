@@ -112,9 +112,8 @@ function displayManager(windowTitle, sample_data, callbacks)
   
   lastState  = '';
   lastSetIdx = [];
-  lastVars   = [];
   qcSet      = str2double(readProperty('toolbox.qc_set'));
-  rawFlag    = imosQCFlag('raw', qcSet, 'flag');
+  badFlag    = imosQCFlag('bad', qcSet, 'flag');
   
   % define the user options, and create the main window
   states = {'Import', 'Metadata', 'Raw data', 'QC data', 'QC stats', 'Reset manual QC' ...
@@ -311,9 +310,16 @@ function displayManager(windowTitle, sample_data, callbacks)
       selectFunc = getGraphFunc(graphType, 'select', '');
       selectFunc(@dataSelectCallback, @dataClickCallback);
 
+      %DATACLICKCALLBACK Called when the user clicks on a region of data.
+      function dataClickCallback(ax, type, range)
+          % do nothing
+      end
+      
       function dataSelectCallback(ax, type, range)
       %DATASELECTCALLBACK Called when the user selects a region of data.
-      % Highlights the selected region.
+      % Highlights the selected region. If points are this region, displays 
+      % a dialog allowing the user to add/modify QC flags for that region. 
+      % Otherwise, the highlighted region is cleared.
       %
         % line handles are stored in the axis userdata
         ud = get(ax, 'UserData');
@@ -332,13 +338,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           sample_data{setIdx}.variables{vars(varIdx)}.name);
         highlight = highlightFunc(...
           range, handle, sample_data{setIdx}.variables{vars(varIdx)}, type);
-      end
-      
-      function dataClickCallback(ax, type, point)
-      %DATACLICKCALLBACK On a click, if on a highlighted region, displays 
-      % a dialog allowing the user to add/modify QC flags for that region. 
-      % Otherwise, the highlighted region is cleared. 
-      %
+
         if isempty(highlight), return; end
 
         % line/flag handles are stored in the axis userdata
@@ -348,23 +348,20 @@ function displayManager(windowTitle, sample_data, callbacks)
         % variable is on the axis in question
         varIdx = ud{2};
         
-        % get the click point
-        point = get(ax, 'CurrentPoint');
-        point = point([1 3]);
-        
-        % get the indices of the data which was clicked on
+        % get the indices of the data which was highlighted
         getSelectedFunc = getGraphFunc(graphType, 'getSelected', ...
           sample_data{setIdx}.variables{vars(varIdx)}.name);
         dataIdx = getSelectedFunc(...
-          sample_data{setIdx}, vars(varIdx), ax, highlight, point);
+          sample_data{setIdx}, vars(varIdx), ax, highlight);
 
-        % is there data to flag?
+        % is there any data point to flag?
         if ~isempty(dataIdx)
 
           % find the most frequently occuring flag value to 
           % pass to the flag dialog (to use as the default)
-          flag = sample_data{setIdx}.variables{vars(varIdx)}.flags(dataIdx);
-          flag = mode(double(flag));
+%           flag = sample_data{setIdx}.variables{vars(varIdx)}.flags(dataIdx);
+%           flag = mode(double(flag));
+          flag = badFlag;
           
           % popup flag modification dialog
           [kVar, flag] = addFlagDialog(sample_data{setIdx}.variables, vars(varIdx), flag);
