@@ -75,12 +75,12 @@ function sample_data = NXICBinaryParse( filename, mode )
   % read in the whole file into 'data'
   try
       % predefine some memmapfile objects to help organize headers and data
-      Mheader = memmapfile(filename, 'format', 'uint8', 'repeat', 220);
-      M.b0    = memmapfile(filename, 'format', 'uint8', 'offset', 220);
-      M.b1    = memmapfile(filename, 'format', 'uint8', 'offset', 221);
-      M.b2    = memmapfile(filename, 'format', 'uint8', 'offset', 222);
-      M.b3    = memmapfile(filename, 'format', 'uint8', 'offset', 223);
-      M.b4    = memmapfile(filename, 'format', 'uint8', 'offset', 224);
+      M.mheader = memmapfile(filename, 'format', 'uint8', 'repeat', 220);
+      M.b0      = memmapfile(filename, 'format', 'uint8', 'offset', 220);
+      M.b1      = memmapfile(filename, 'format', 'uint8', 'offset', 221);
+      M.b2      = memmapfile(filename, 'format', 'uint8', 'offset', 222);
+      M.b3      = memmapfile(filename, 'format', 'uint8', 'offset', 223);
+      M.b4      = memmapfile(filename, 'format', 'uint8', 'offset', 224);
   catch e
       rethrow(e);
   end
@@ -88,7 +88,10 @@ function sample_data = NXICBinaryParse( filename, mode )
   % the first 220 bytes are the header 
   % section, the rest sample data
   [~, ~, cpuEndianness] = computer;
-  header  = parseHeader(Mheader, cpuEndianness);
+  header = parseHeader(M.mheader, cpuEndianness, filename);
+  header = checkSampleLength(M, header, cpuEndianness);
+  header.interval_override = false;
+  
   samples = parseSamples(M, header, cpuEndianness);
  
  
@@ -126,21 +129,21 @@ function sample_data = NXICBinaryParse( filename, mode )
   sample_data.variables{3}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
   sample_data.variables{3}.data            = sample_data.variables{3}.typeCastFunc(NaN);
   
-  sample_data.variables{3}.name = 'TEMP';
-  sample_data.variables{4}.name = 'CNDC';
-  sample_data.variables{5}.name = 'PRES_REL';
-  sample_data.variables{6}.name = 'PSAL';
-  sample_data.variables{7}.name = 'SSPD';
-  sample_data.variables{8}.name = 'VOLT'; % battery voltage
+  sample_data.variables{4}.name = 'TEMP';
+  sample_data.variables{5}.name = 'CNDC';
+  sample_data.variables{6}.name = 'PRES_REL';
+  sample_data.variables{7}.name = 'PSAL';
+  sample_data.variables{8}.name = 'SSPD';
+  sample_data.variables{9}.name = 'VOLT'; % battery voltage
   % these are the analog and digital channels for the external sensors
   % calibration coefficients in header file are unreliable so will need
   % processing into standard units.
-  %sample_data.variables{9}.name = '';
   %sample_data.variables{10}.name = '';
   %sample_data.variables{11}.name = '';
   %sample_data.variables{12}.name = '';
+  %sample_data.variables{13}.name = '';
   
-  for i=3:8
+  for i=4:9
       sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{i}.name, 'type')));
       
       % dimensions definition must stay in this order : T, Z, Y, X, others;
@@ -149,29 +152,29 @@ function sample_data = NXICBinaryParse( filename, mode )
       sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
   end
   
-  sample_data.variables{3}.data = sample_data.variables{3}.typeCastFunc(samples.temperature);
-  sample_data.variables{4}.data = sample_data.variables{4}.typeCastFunc(samples.conductivity);
-  sample_data.variables{5}.data = sample_data.variables{5}.typeCastFunc(samples.pressure);
-  sample_data.variables{5}.applied_offset = sample_data.variables{5}.typeCastFunc(-gsw_P0/10^4); % to be confirmed! (gsw_P0/10^4 = 10.1325 dbar)
-  sample_data.variables{6}.data = sample_data.variables{6}.typeCastFunc(samples.salinity);
-  sample_data.variables{7}.data = sample_data.variables{7}.typeCastFunc(samples.soundSpeed);
-  sample_data.variables{8}.data = sample_data.variables{8}.typeCastFunc(samples.voltage);
-  %sample_data.variables{9}.data = sample_data.variables{9}.typeCastFunc(samples.analog1);  % FLNTU Turbidity
-  %sample_data.variables{10}.data = sample_data.variables{10}.typeCastFunc(samples.analog2);  % FLNTU Fluorescence
-  %sample_data.variables{11}.data = sample_data.variables{11}.typeCastFunc(samples.analog3);  % Biospherical PAR
-  %sample_data.variables{12}.data = sample_data.variables{12}.typeCastFunc(samples.analog4);
+  sample_data.variables{4}.data = sample_data.variables{4}.typeCastFunc(samples.temperature);
+  sample_data.variables{5}.data = sample_data.variables{5}.typeCastFunc(samples.conductivity);
+  sample_data.variables{6}.data = sample_data.variables{6}.typeCastFunc(samples.pressure);
+  sample_data.variables{6}.applied_offset = sample_data.variables{6}.typeCastFunc(-gsw_P0/10^4); % to be confirmed! (gsw_P0/10^4 = 10.1325 dbar)
+  sample_data.variables{7}.data = sample_data.variables{7}.typeCastFunc(samples.salinity);
+  sample_data.variables{8}.data = sample_data.variables{8}.typeCastFunc(samples.soundSpeed);
+  sample_data.variables{9}.data = sample_data.variables{9}.typeCastFunc(samples.voltage);
+  %sample_data.variables{10}.data = sample_data.variables{10}.typeCastFunc(samples.analog1);  % FLNTU Turbidity
+  %sample_data.variables{11}.data = sample_data.variables{11}.typeCastFunc(samples.analog2);  % FLNTU Fluorescence
+  %sample_data.variables{12}.data = sample_data.variables{12}.typeCastFunc(samples.analog3);  % Biospherical PAR
+  %sample_data.variables{13}.data = sample_data.variables{13}.typeCastFunc(samples.analog4);
   
   %if isfield(samples,'digital');
   % not all instruments have a digital channel.
-  %sample_data.variables{13}.name = '';
-  %sample_data.variables{13}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{13}.name, 'type')));
-  %sample_data.variables{13}.dimensions = [1 2 3];
-  %sample_data.variables{13}.data = sample_data.variables{13}.typeCastFunc(samples.digital); % Aanderaa Optode
+  %sample_data.variables{14}.name = '';
+  %sample_data.variables{14}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{14}.name, 'type')));
+  %sample_data.variables{14}.dimensions = 1;
+  %sample_data.variables{14}.data = sample_data.variables{14}.typeCastFunc(samples.digital); % Aanderaa Optode
   %end;
   
 end
 
-function header = parseHeader(mheader, cpuEndianness)
+function header = parseHeader(mheader, cpuEndianness, filename)
 %PARSEHEADER Parses the NXIC header section from the given data vector.
 %
 % Inputs:
@@ -453,10 +456,10 @@ function header = parseHeader(mheader, cpuEndianness)
 
   header.Calibration = Calibration;
  
- % test checksum (don't know what to do if fails, warn I suppose)
+ % test checksum
   isgood = bitand(sum(mheader.Data(1:154)),255) == mheader.Data(155);
   if ~isgood
-      fprintf('%s\n', ['Warning : ' filename ' header checksum failed']);
+      error([filename ' header checksum failed']); % we don't bother continuing any further
       header.checksum = false;
   else
       header.checksum = true;
@@ -552,7 +555,7 @@ dt=diff(times);
 
 % double check header.interval (it has been wrong on an instrument)
 sampleinterval=getSampleIntervalInfo(times);
-if sampleinterval>0;
+if (~header.interval_override)&&(sampleinterval>0);
     interval=sampleinterval;
 else
     % only other option - just hope it's right!
@@ -589,9 +592,10 @@ while any(tberror);
     % probably the sample that glitched
     ibad=find(tberror,1);
     tbad=times(ibad);
+    tind=find(time_logic);
     
     % start first block at first error
-    blockstart=ibad;
+    blockstart=tind(ibad);
     % try to find new valid sample time in block
     % 5 data bytes required for conversion to time
     
@@ -660,9 +664,9 @@ isample=isample(isort);
 [~, usort]=unique(reftimes, 'last');
 isample=isample(usort);
 
-
 % map data to uniform grid each row contains data channel, each column is a
 % observation.
+D=uint8(zeros(len,length(isample)));
 for i=1:len;
     D(i,:)=msamples.Data(isample+i-1);
 end
@@ -709,6 +713,11 @@ if len==41
     sample.digital = bytecast(dig(:), 'L', 'single', cpuEndianness);
 end
 
+[sampleinterval, burstinterval, nburst]=getSampleIntervalInfo(sample.time);
+sample.interval=sampleinterval;
+sample.duration=nburst*burstinterval;
+sample.frequency=1./burstinterval;
+
 end
 
 function times = index2time(M, index, cpuEndianness)
@@ -734,39 +743,76 @@ end
 
 % This now forms the times from the 5 consecutive bytes formed from the
 % offset memmapfile objects
-times =...
-    bytecast(reshape(...
-    [M.b0.Data(index) M.b1.Data(index) ...
-    M.b2.Data(index) M.b3.Data(index)]'...
-    , N, 1), 'L', 'uint32', cpuEndianness) + ...
-    double(M.b4.Data(index))/100;
+times = reshape([M.b0.Data(index) M.b1.Data(index) M.b2.Data(index) M.b3.Data(index)]', N, 1);
+times = bytecast(times, 'L', 'uint32', cpuEndianness) + double(M.b4.Data(index))/100;
 
 end
 
 function [sampleinterval, burstinterval, nburst] = getSampleIntervalInfo(t)
 % determines sampling parameters from the actual time data
+% for this routine to work the first 10% of the time samples need
+% to be ok
 
-dt = diff(t);
+n10=round(length(t)./10);
+t=t(1:n10);
+
+% for a perfect sequence there should only be two time intervals - the
+% burst interval and the interval between the last burst and the next
+% sample - in practice there is usually some variation so allow for up to
+% 25 values around each interval (50 total)
+ndts=50;
+
+dt=diff(t);
 
 % if averaging time is less than record time there will be multiple dt
 % how many time differences are there?
-dt = dt(:)';
-dts = sort(dt);
-dts = [dts(diff(dts) > 0) dts(end)];
+dt=dt(:)';
+dts=sort(dt);
+dts=[dts(diff(dts)>0) dts(end)];
 
-if length(dts) > 200;
-    % data is probably not aligned yet so we can't calculate this
-    burstinterval = -1;
-    nburst = -1;
-    sampleinterval = -1;
+if length(dts)>ndts;
+    % data is probably very badly aligned yet so we can't calculate this
+    burstinterval=-1;
+    nburst=-1;
+    sampleinterval=-1;
 else
     % find a mid point between bursts and records
-    mid = mean(dts);
+    mid=mean(dts);
     
-    burstinterval = median(dt(dt < mid));
-    recinterval = median(dt(dt > mid));
-    nburst = median(diff(find(dt > mid)));
-    sampleinterval = recinterval + burstinterval*(nburst-1);
+    burstinterval=median(dt(dt<mid));
+    recinterval=median(dt(dt>mid));
+    nburst=median(diff(find(dt>mid)));
+    sampleinterval=recinterval+burstinterval*(nburst-1);
 end
+
+end
+
+function H=checkSampleLength(M,H,cpuEndianness)
+
+% length check 
+% check first 5 samples
+sampleLengths=[37 38 39 40 41 42];
+dtest=NaN(length(sampleLengths),1);
+for i=1:length(sampleLengths);
+    test_logic=false(size(1:sampleLengths(i)+1));
+    test_logic(1:sampleLengths(i):end)=true;
+    test_t=index2time(M,test_logic,cpuEndianness);
+    dtest(i)=diff(test_t);
+end
+
+% can't go backwards
+dtest(dtest<0)=inf;
+% interval can't be too big
+dtest(dtest>10*H.interval)=inf;
+
+
+indmin=(dtest==min(dtest));
+if (dtest(indmin)<=H.interval)
+   if H.sampleLength~=sampleLengths(indmin);
+       H.sampleLength_fromHeader=H.sampleLength;
+       H.sampleLength=sampleLengths(indmin);
+   end
+end
+    
 
 end

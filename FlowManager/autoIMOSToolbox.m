@@ -147,7 +147,7 @@ end
 % validate and save export dir
 if nargin > 5
     if ~ischar(exportDir),       error('exportDir must be a string');    end
-    if ~exist(exportDir, 'dir'), error('exportDir must be a directory'); end
+    if ~exist(exportDir, 'dir'), mkdir(exportDir); end
     
     writeProperty('exportDialog.defaultDir', exportDir);
 else
