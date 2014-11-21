@@ -138,14 +138,14 @@ if idPres == 0 && idPresRel == 0 && idDepth == 0
 elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
         ff = (sample_data.variables{idPres}.flags == rawFlag) | ...
-            (sample_data.variables{idDepth}.flags == goodFlag) | ...
-            (sample_data.variables{idDepth}.flags == probGoodFlag);
+            (sample_data.variables{idPres}.flags == goodFlag) | ...
+            (sample_data.variables{idPres}.flags == probGoodFlag);
         % relative pressure is used to compute depth (10.1325 dbar = gsw_P0/10^4)
         pressure = sample_data.variables{idPres}.data - gsw_P0/10^4;
     else
         ff = (sample_data.variables{idPresRel}.flags == rawFlag) | ...
-            (sample_data.variables{idDepth}.flags == goodFlag) | ...
-            (sample_data.variables{idDepth}.flags == probGoodFlag);
+            (sample_data.variables{idPresRel}.flags == goodFlag) | ...
+            (sample_data.variables{idPresRel}.flags == probGoodFlag);
         pressure = sample_data.variables{idPresRel}.data;
     end
 end
@@ -224,10 +224,6 @@ else
     iFail = binDepth >= repmat(cDepth, [1, length(Bins)]);
     iPass = binDepth < repmat(cDepth, [1, length(Bins)]);
 end
-
-%Need to take into account QC from previous algorithms
-allFF = repmat(ff, [1, size(flags, 2)]);
-iFail = allFF & iFail;
 
 flags(iPass) = goodFlag;
 flags(iFail) = badFlag;

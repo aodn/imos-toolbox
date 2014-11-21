@@ -180,7 +180,7 @@ WSPD,                1, wind_speed,                                             
 WSPD_AVG,            1, wind_speed,                                                                             m s-1,                                 M, 999999.0, ,        ,         float
 WSPD_MIN,            1, wind_speed,                                                                             m s-1,                                 M, 999999.0, ,        ,         float
 WSPD_MAX,            1, wind_speed,                                                                             m s-1,                                 M, 999999.0, ,        ,         float
-WWAV,                1, sea_surface_wind_wave_to_direction                                                      Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
+WWAV,                1, sea_surface_wind_wave_to_direction,                                                     Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 WWDS,                0, sea_surface_wind_wave_directional_spread,                                               Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 WWPD,                0, sea_surface_wind_wave_from_direction_at_variance_spectral_density_maximum,              Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 WWPD_MAG,            0, sea_surface_wind_wave_from_direction_at_variance_spectral_density_maximum,              Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
