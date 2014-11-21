@@ -57,10 +57,12 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
   switch computer
       case 'GLNXA64'
           computerDir = 'linux';
+          stdOutRedirection = '>/dev/null'; % we don't want standard output to be output in console (useless)
           endOfLine = '\n';
           
       case {'PCWIN', 'PCWIN64'}
           computerDir = 'windows';
+          stdOutRedirection = '>NUL';
           endOfLine = '\r\n';
           
       otherwise
@@ -125,7 +127,7 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
   
   if isMagDecToBeCompute
       % we run the geomag program and read its output
-      geomagCmd = sprintf('%s %s f %s %s', geomagExe, geomagModelFile, geomagInputFile, geomagOutputFile);
+      geomagCmd = sprintf('%s %s f %s %s %s', geomagExe, geomagModelFile, geomagInputFile, geomagOutputFile, stdOutRedirection);
       system(geomagCmd);
       
       geomagFormat = ['%s D M%f %f %f %fd %fm ' ...

@@ -73,9 +73,8 @@ function [fieldTrip dataDir] = startDialog()
   
   if isempty(fieldTrips), error('No field trip entries in DDB'); end
   
-  [uu newOrder] = sort({fieldTrips(:).FieldTripID});
+  [~, newOrder] = sort(str2double({fieldTrips(:).FieldTripID}));
   fieldTrips = fieldTrips(newOrder);
-  clear uu;
   
   % generate field trip descriptions - we don't want to do it every time
   % the field trip list is regenerated, as it results in poor performance
@@ -87,7 +86,7 @@ function [fieldTrip dataDir] = startDialog()
   % generate initial field trip list; after the first 
   % time, this is handled by the dateStartCallback and
   % dateEndCallback functions
-  [filteredFieldTrips filteredFieldTripDescs] = ...
+  [filteredFieldTrips, filteredFieldTripDescs] = ...
     filterFieldTrips(fieldTrips, fieldTripDescs, lowDate, highDate);
   
   
@@ -209,8 +208,8 @@ function [fieldTrip dataDir] = startDialog()
   % user to enter a date, then updates the field trip list so that it only
   % displays field trips with a start date after the entered date. 
   % 
-    [y m d] = datevec(lowDate);
-    [y m d] = datePromptDialog(y,m,d);
+    [y, m, d] = datevec(lowDate);
+    [y, m, d] = datePromptDialog(y,m,d);
     newLowDate = datenum(y,m,d);
     
     if newLowDate == lowDate, return; end
@@ -221,7 +220,7 @@ function [fieldTrip dataDir] = startDialog()
     set(dateStartButton, 'String', datestr(lowDate, dateFmt));
     
     % update field trip list
-    [filteredFieldTrips filteredFieldTripDescs] = ...
+    [filteredFieldTrips, filteredFieldTripDescs] = ...
       filterFieldTrips(fieldTrips, fieldTripDescs, lowDate, highDate);
     set(fidList, 'Value', 1);
     set(fidList, 'String', filteredFieldTripDescs);
@@ -236,8 +235,8 @@ function [fieldTrip dataDir] = startDialog()
   % user to enter a date, then updates the field trip list so that it only
   % displays field trips with an end date before the entered date. 
   % 
-    [y m d] = datevec(highDate);
-    [y m d] = datePromptDialog(y,m,d);
+    [y, m, d] = datevec(highDate);
+    [y, m, d] = datePromptDialog(y,m,d);
     newHighDate = datenum(y,m,d);
     
     if newHighDate == highDate, return; end
@@ -248,7 +247,7 @@ function [fieldTrip dataDir] = startDialog()
     set(dateEndButton, 'String', datestr(highDate, dateFmt));
     
     % update field trip list
-    [filteredFieldTrips filteredFieldTripDescs] = ...
+    [filteredFieldTrips, filteredFieldTripDescs] = ...
       filterFieldTrips(fieldTrips, fieldTripDescs, lowDate, highDate);
     set(fidList, 'Value', 1);
     set(fidList, 'String', filteredFieldTripDescs);
@@ -328,7 +327,7 @@ function [fieldTrip dataDir] = startDialog()
   
 end
 
-function [fieldTrips fieldTripDescs] = ...
+function [fieldTrips, fieldTripDescs] = ...
   filterFieldTrips(fieldTrips, fieldTripDescs, lowDate, highDate)
 %FILTERFIELDTRIPS Filters the given field trip structs. returning those
 % which have an end date after the given low date, or which have a start

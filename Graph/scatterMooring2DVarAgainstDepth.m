@@ -2,6 +2,57 @@ function scatterMooring2DVarAgainstDepth(sample_data, varName, isQC, saveToFile,
 %SCATTERMOORING2DVARAGAINSTDEPTH Opens a new window where the selected 2D
 % variables collected by all the intruments on the mooring are plotted.
 %
+% Inputs:
+%   sample_data - cell array of structs containing the entire data set and dimension data.
+%
+%   varName     - string containing the IMOS code for requested parameter.
+%
+%   isQC        - logical to plot only good data or not.
+%
+%   saveToFile  - logical to save the plot on disk or not.
+%
+%   exportDir   - string containing the destination folder to where the
+%               plot is saved on disk.
+%
+% Author: Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%
+
+%
+% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Marine Observing System (IMOS).
+% All rights reserved.
+% 
+% Redistribution and use in source and binary forms, with or without 
+% modification, are permitted provided that the following conditions are met:
+% 
+%     * Redistributions of source code must retain the above copyright notice, 
+%       this list of conditions and the following disclaimer.
+%     * Redistributions in binary form must reproduce the above copyright 
+%       notice, this list of conditions and the following disclaimer in the 
+%       documentation and/or other materials provided with the distribution.
+%     * Neither the name of the eMII/IMOS nor the names of its contributors 
+%       may be used to endorse or promote products derived from this software 
+%       without specific prior written permission.
+% 
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+% POSSIBILITY OF SUCH DAMAGE.
+%
+error(nargchk(5,5,nargin));
+
+if ~iscell(sample_data),    error('sample_data must be a cell array');  end
+if ~ischar(varName),        error('varName must be a string');          end
+if ~islogical(isQC),        error('isQC must be a logical');            end
+if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
+if ~ischar(exportDir),      error('exportDir must be a string');        end
 
 varTitle = imosParameters(varName, 'long_name');
 varUnit = imosParameters(varName, 'uom');
@@ -54,7 +105,7 @@ hScatterVar(1) = 0;
 % on which the subset plots happen below.
 yLimMin = NaN;
 yLimMax = NaN;
-isPlotable = false(1, lenSampleData);
+isPlottable = false(1, lenSampleData);
 for i=1:lenSampleData
     %look for time and relevant variable
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
@@ -65,16 +116,15 @@ for i=1:lenSampleData
     if iVar > 0 && iHeight > 0 && iDepth > 0 && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) > 1 && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 3) == 1 % we're plotting ADCP 2D variables with DEPTH variable.
-        isPlotable(i) = true;
+        isPlottable(i) = true;
         iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
         if isQC
             %get time and var QC information
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-            depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
+
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGoodDepth = (depthFlags == 1 | depthFlags == 2);
-            iGoodTime = (timeFlags == 1 | timeFlags == 2) & iGoodDepth; % bad depth <=> bad time
+            iGoodTime = (timeFlags == 1 | timeFlags == 2);
             
             iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
             iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
@@ -88,29 +138,27 @@ for i=1:lenSampleData
     elseif iVar > 0 && iDepth > 0 && ...
             any(strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD'})) && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 % we're plotting current metre 1D variables with DEPTH variable.
-        isPlotable(i) = true;
         iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
         if isQC
             %get time and var QC information
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-            depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGoodDepth = (depthFlags == 1 | depthFlags == 2);
-            iGoodTime = (timeFlags == 1 | timeFlags == 2) & iGoodDepth; % bad depth <=> bad time
+            iGoodTime = (timeFlags == 1 | timeFlags == 2);
             
             iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
             iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
         end
         
         if any(any(iGood))
+            isPlottable(i) = true;
             yLimMin = min(yLimMin, min(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
             yLimMax = max(yLimMax, max(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
         end
     end
 end
 
-if any(isPlotable)
+if any(isPlottable)
     % collect visualQC config
     try
         fastScatter = eval(readProperty('visualQC.fastScatter'));
@@ -160,7 +208,7 @@ if any(isPlotable)
         iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
         iVar = getVar(sample_data{iSort(i)}.variables, varName);
         
-        if isPlotable(i)
+        if isPlottable(i)
             if initiateFigure
                 fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
                 visible = 'on';
@@ -195,6 +243,7 @@ if any(isPlotable)
             
             iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
             iGoodTime = true(size(sample_data{iSort(i)}.dimensions{iTime}.data));
+            iGoodDepth = iGoodTime;
             
             if isQC
                 %get time and var QC information
@@ -204,7 +253,7 @@ if any(isPlotable)
                 varValues = sample_data{iSort(i)}.variables{iVar}.data;
                 
                 iGoodDepth = (depthFlags == 1 | depthFlags == 2);
-                iGoodTime = (timeFlags == 1 | timeFlags == 2) & iGoodDepth; % bad depth <=> bad time
+                iGoodTime = (timeFlags == 1 | timeFlags == 2);
                 
                 iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
                 iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(varValues);
@@ -218,6 +267,7 @@ if any(isPlotable)
             if all(all(~iGood)) && isQC
                 fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
                     ', there is not any ' varName ' data with good flags.']);
+                continue;
             else
                 xScatter = sample_data{iSort(i)}.dimensions{iTime}.data;
                 xScatter(~iGoodTime) = NaN;
@@ -230,6 +280,7 @@ if any(isPlotable)
                 
                 dataDepth = sample_data{iSort(i)}.variables{iDepth}.data;
                 dataDepth(~iGoodTime) = NaN;
+                dataDepth(~iGoodDepth) = metaDepth(i);
                 
                 dataVar = sample_data{iSort(i)}.variables{iVar}.data;
                 dataVar(~iGood) = NaN;

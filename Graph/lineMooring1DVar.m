@@ -2,6 +2,58 @@ function lineMooring1DVar(sample_data, varName, isQC, saveToFile, exportDir)
 %LINEMOORING1DVAR Opens a new window where the selected 1D
 % variables collected by all the intruments on the mooring are plotted.
 %
+% Inputs:
+%   sample_data - cell array of structs containing the entire data set and dimension data.
+%
+%   varName     - string containing the IMOS code for requested parameter.
+%
+%   isQC        - logical to plot only good data or not.
+%
+%   saveToFile  - logical to save the plot on disk or not.
+%
+%   exportDir   - string containing the destination folder to where the
+%               plot is saved on disk.
+%
+% Author: Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%
+
+%
+% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Marine Observing System (IMOS).
+% All rights reserved.
+% 
+% Redistribution and use in source and binary forms, with or without 
+% modification, are permitted provided that the following conditions are met:
+% 
+%     * Redistributions of source code must retain the above copyright notice, 
+%       this list of conditions and the following disclaimer.
+%     * Redistributions in binary form must reproduce the above copyright 
+%       notice, this list of conditions and the following disclaimer in the 
+%       documentation and/or other materials provided with the distribution.
+%     * Neither the name of the eMII/IMOS nor the names of its contributors 
+%       may be used to endorse or promote products derived from this software 
+%       without specific prior written permission.
+% 
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+% POSSIBILITY OF SUCH DAMAGE.
+%
+error(nargchk(5,5,nargin));
+
+if ~iscell(sample_data),    error('sample_data must be a cell array');  end
+if ~ischar(varName),        error('varName must be a string');          end
+if ~islogical(isQC),        error('isQC must be a logical');            end
+if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
+if ~ischar(exportDir),      error('exportDir must be a string');        end
+
 varTitle = imosParameters(varName, 'long_name');
 varUnit = imosParameters(varName, 'uom');
 
@@ -46,6 +98,7 @@ instrumentDesc{1} = 'Make Model (nominal depth - instrument SN)';
 hLineVar(1) = 0;
 
 initiateFigure = true;
+isPlottable = false;
 
 for i=1:lenSampleData
     % instrument description
@@ -112,7 +165,10 @@ for i=1:lenSampleData
         if all(~iGood) && isQC
             fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
                 ', there is not any ' varName ' data with good flags.']);
+            continue;
         else
+            isPlottable = true;
+            
             xLine = sample_data{iSort(i)}.dimensions{iTime}.data;
             xLine(~iGood) = NaN;
             
@@ -138,7 +194,7 @@ for i=1:lenSampleData
     end
 end
 
-if ~initiateFigure
+if ~initiateFigure && isPlottable
     iNan = isnan(hLineVar);
     if any(iNan)
         hLineVar(iNan) = [];
@@ -202,7 +258,6 @@ if ~initiateFigure
         % fast as zbuffer. With hardware accelaration supported, could even go a
         % lot faster.
         imwrite(hardcopy(hFigMooringVar, '-dopengl'), fullfile(exportDir, fileName), 'png');
-        
         close(hFigMooringVar);
     end
 end
