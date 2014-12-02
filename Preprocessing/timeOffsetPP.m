@@ -78,13 +78,18 @@ function sample_data = timeOffsetPP(sample_data, auto)
     timezones{k} = sample_data{k}.meta.timezone;
     
     if isnan(str2double(timezones{k}))
-      try 
-        offsets(k) = str2double(readProperty(timezones{k}, offsetFile, ','));
-      catch
-        offsets(k) = nan;
-      end
+        try
+            offsets(k) = str2double(readProperty(timezones{k}, offsetFile, ','));
+        catch
+            if strncmpi(timezones{k}, 'UTC', 3)
+                offsetStr = timezones{k}(4:end);
+                offsets(k) = str2double(offsetStr)*(-1);
+            else
+                offsets(k) = NaN;
+            end
+        end
     else
-      offsets(k) = str2double(timezones{k});
+        offsets(k) = str2double(timezones{k});
     end
     
     if isnan(offsets(k)), offsets(k) = 0; end
