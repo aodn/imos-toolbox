@@ -65,6 +65,7 @@ monitorRec = get(0,'MonitorPosition');
 xResolution = monitorRec(:, 3)-monitorRec(:, 1);
 iBigMonitor = xResolution == max(xResolution);
 if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+
 title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
 
 %sort instruments by depth
@@ -216,8 +217,14 @@ if ~initiateFigure && isPlottable
     if nLine > 2
         nLine1 = ceil(nLine/2);
         
-        hLegend(1) = multipleLegend(hAxMooringVar, hLineVar(1:nLine1),         instrumentDesc(1:nLine1),       'Location', 'SouthOutside');
-        hLegend(2) = multipleLegend(hAxMooringVar, hLineVar(nLine1+1:nLine),   instrumentDesc(nLine1+1:nLine), 'Location', 'SouthOutside');
+        hLegend(1) = multipleLegend(hAxMooringVar, ...
+            hLineVar(1:nLine1), instrumentDesc(1:nLine1), ...
+            'Interpreter',      'none', ...
+            'Location',         'SouthOutside');
+        hLegend(2) = multipleLegend(hAxMooringVar, ...
+            hLineVar(nLine1+1:nLine),   instrumentDesc(nLine1+1:nLine), ...
+            'Interpreter',              'none', ...
+            'Location',                 'SouthOutside');
         
         posAx = get(hAxMooringVar, 'Position');
         
@@ -232,7 +239,10 @@ if ~initiateFigure && isPlottable
         % re-initialise it
         set(hAxMooringVar, 'Position', posAx);
     else
-        hLegend = legend(hAxMooringVar, hLineVar, instrumentDesc, 'Location', 'SouthOutside');
+        hLegend = legend(hAxMooringVar, ...
+            hLineVar,       instrumentDesc, ...
+            'Interpreter',  'none', ...
+            'Location',     'SouthOutside');
         
         % unfortunately we need to do this hack so that we have consistency with
         % the case above

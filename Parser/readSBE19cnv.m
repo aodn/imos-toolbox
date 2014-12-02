@@ -64,6 +64,8 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader, mode
   for k = 1:length(columns)
     
     d = dataLines{k};
+    
+    % any flagged bad data is set to NaN (even flag value itself)
     d(d == procHeader.badFlag) = nan;
     
     [n, d, c] = convertData(genvarname(columns{k}), d, instHeader, procHeader);

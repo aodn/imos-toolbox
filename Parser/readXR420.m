@@ -121,7 +121,7 @@ function sample_data = readXR420( filename, mode )
           % let's distinguish descending/ascending parts of the profile
           nData = length(data.(vars{iVarZ}));
           zMax = max(data.(vars{iVarZ}));
-          posZMax = find(data.(vars{iVarZ}) == zMax);
+          posZMax = find(data.(vars{iVarZ}) == zMax, 1, 'last'); % in case there are many times the max value
           iD = [true(posZMax, 1); false(nData-posZMax, 1)];
           
           nD = sum(iD);
@@ -202,6 +202,7 @@ function sample_data = readXR420( filename, mode )
           
           sample_data.variables{5}.dimensions   = dimensions;
           sample_data.variables{5}.name         = 'BOT_DEPTH';
+          sample_data.variables{5}.comment      = 'Bottom depth measured by ship-based acoustic sounder at time of CTD cast.';
           sample_data.variables{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{5}.name, 'type')));
           if nA == 0
               sample_data.variables{5}.data     = sample_data.variables{5}.typeCastFunc(NaN);

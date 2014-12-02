@@ -1,0 +1,2 @@
+% This file Bins CTD to bin_size intervals (m) 
+bin_size,   1
