@@ -171,17 +171,31 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     
     if sample_data.meta.level == 1 && strcmp(func2str(plotFunc), 'graphDepthProfileGeneric')
         qcSet     = str2double(readProperty('toolbox.qc_set'));
-        goodFlag  = imosQCFlag('good',  qcSet, 'flag');
-        rawFlag   = imosQCFlag('raw',  qcSet, 'flag');
         
-        % set x and y limits so that axis are optimised for good data only
+        % set x and y limits so that axis are optimised for data below surface only
         curData = sample_data.variables{vars(k)}.data;
         curDepth = depth.data;
         curFlag = sample_data.variables{vars(k)}.flags;
-        iGood = curFlag == goodFlag;
-        iGood = iGood | (curFlag == rawFlag);
+        iGood = curDepth>=0;
+
         yLimits = [floor(min(curDepth(iGood))), ceil(max(curDepth(iGood)))];
-        xLimits = [floor(min(curData(iGood))), ceil(max(curData(iGood)))];
+        xLimits = [floor(min(curData(iGood))),  ceil(max(curData(iGood)))];
+        
+        %check for my surface soak flags - and set xLimits to flag range
+        if ismember(name,{'tempSoakStatus','cndSoakStatus','oxSoakStatus'})
+            xLimits=[min(imosQCFlag('flag',qcSet,'values')) max(imosQCFlag('flag',qcSet,'values'))];
+        end
+        
+        %check for xLimits max=min
+        if diff(xLimits)==0;
+            if xLimits(1) == 0
+                xLimits = [-1, 1];
+            else
+                eps=0.01*xLimits(1);
+                xLimits=[xLimits(1)-eps, xLimits(1)+eps];
+            end
+        end
+        
         if any(iGood)
             set(graphs(k), 'YLim', yLimits);
             set(graphs(k), 'XLim', xLimits);

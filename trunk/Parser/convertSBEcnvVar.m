@@ -199,7 +199,7 @@ switch name
         
     case 'flag'
         name = 'SBE_FLAG';
-        comment = 'SBE Processing Flag (added for binning)';
+        comment = 'SBE Processing Flag (added for binning). 0 is good, anything else bad.';
         
     case 'scan'
         name = 'ETIME';

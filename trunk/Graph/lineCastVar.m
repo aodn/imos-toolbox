@@ -67,6 +67,8 @@ xResolution = monitorRec(:, 3)-monitorRec(:, 1);
 iBigMonitor = xResolution == max(xResolution);
 if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
 
+title = [sample_data{1}.site_code ' profile on ' datestr(sample_data{1}.time_coverage_start, 'yyyy-mm-dd UTC')];
+
 lineStyle = {'-', '--', ':', '-.'};
 lenLineStyle = length(lineStyle);
 
@@ -78,8 +80,6 @@ for k=1:lenVarNames
     
     varTitle = imosParameters(varName, 'long_name');
     varUnit = imosParameters(varName, 'uom');
-    
-    platform = sample_data{1}.platform_code;
     
     lenSampleData = length(sample_data);
     yMin = nan(lenSampleData, 1);
@@ -94,8 +94,10 @@ for k=1:lenVarNames
     
     instrumentDesc = cell(lenSampleData + 1, 1);
     hLineVar = nan(lenSampleData + 1, 1);
+    flagDesc = cell(4, 1);
+    hLineFlag = ones(4, 1);
     
-    instrumentDesc{1} = 'Make Model (platform - cast date - instrument SN)';
+    instrumentDesc{1} = 'Make Model (instrument SN - cast time)';
     hLineVar(1) = 0;
     
     for i=1:lenSampleData
@@ -111,7 +113,7 @@ for k=1:lenVarNames
             instrumentSN = sample_data{i}.instrument_serial_number;
         end
         
-        instrumentDesc{i + 1} = [strrep(instrumentDesc{i + 1}, '_', ' ') ' (' platform ' - ' datestr(sample_data{i}.time_coverage_start, 'yyyy-mm-dd HH:MM') ' - ' instrumentSN ')'];
+        instrumentDesc{i + 1} = [strrep(instrumentDesc{i + 1}, '_', ' ') ' (' instrumentSN ' - ' datestr(sample_data{i}.time_coverage_start, 'yyyy-mm-dd HH:MM UTC') ')'];
         
         %look for depth and relevant variable
         iDepth = getVar(sample_data{i}.dimensions, 'DEPTH');
@@ -123,7 +125,7 @@ for k=1:lenVarNames
                 visible = 'on';
                 if saveToFile, visible = 'off'; end
                 hFigCastVar = figure(...
-                    'Name', 'CTD cast visual QC', ...
+                    'Name', title, ...
                     'NumberTitle','off', ...
                     'Visible', visible, ...
                     'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
@@ -134,7 +136,7 @@ for k=1:lenVarNames
             if i==1
                 hAxCastVar = subplot(1, lenVarNames, k);
                 set(hAxCastVar, 'YDir', 'reverse');
-%                 set(get(hAxCastVar, 'Title'), 'String', varName, 'Interpreter', 'none');
+                set(get(hAxCastVar, 'Title'), 'String', title, 'Interpreter', 'none');
                 set(get(hAxCastVar, 'XLabel'), 'String', varName, 'Interpreter', 'none');
 %                 if mod(k, 2) == 0 % even
 %                     set(get(hAxCastVar, 'XLabel'), 'String', [varTitle ' (' varUnit ')'], 'Interpreter', 'none');
@@ -192,9 +194,16 @@ for k=1:lenVarNames
                     ', there is not any ' varName ' data with good flags.']);
             end
             
+            flagDesc{1} = imosQCFlag(flagGood, qcSet, 'desc');
+            fc = imosQCFlag(flagGood, qcSet, 'color');
+            hLineFlag(1) =  line(NaN, NaN, ...
+                    'LineStyle', 'none', ...
+                    'Marker', 'o', ...
+                    'MarkerFaceColor', fc, ...
+                    'MarkerEdgeColor', 'none', ...
+                    'Visible', 'off'); % this is to make sure all flags are properly displayed within legend
             if any(iGood)
-                fc = imosQCFlag(flagGood, qcSet, 'color');
-                line(dataVar(iGood), ...
+                hLineFlag(1) = line(dataVar(iGood), ...
                     yLine(iGood), ...
                     'LineStyle', 'none', ...
                     'Marker', 'o', ...
@@ -202,9 +211,16 @@ for k=1:lenVarNames
                     'MarkerEdgeColor', 'none');
             end
             
+            flagDesc{2} = imosQCFlag(flagPGood, qcSet, 'desc');
+            fc = imosQCFlag(flagPGood, qcSet, 'color');
+            hLineFlag(2) =  line(NaN, NaN, ...
+                    'LineStyle', 'none', ...
+                    'Marker', 'o', ...
+                    'MarkerFaceColor', fc, ...
+                    'MarkerEdgeColor', 'none', ...
+                    'Visible', 'off');
             if any(iProbablyGood)
-                fc = imosQCFlag(flagPGood, qcSet, 'color');
-                line(dataVar(iProbablyGood), ...
+                hLineFlag(2) = line(dataVar(iProbablyGood), ...
                     yLine(iProbablyGood), ...
                     'LineStyle', 'none', ...
                     'Marker', 'o', ...
@@ -212,9 +228,16 @@ for k=1:lenVarNames
                     'MarkerEdgeColor', 'none');
             end
             
+            flagDesc{3} = imosQCFlag(flagPBad, qcSet, 'desc');
+            fc = imosQCFlag(flagPBad, qcSet, 'color');
+            hLineFlag(3) =  line(NaN, NaN, ...
+                    'LineStyle', 'none', ...
+                    'Marker', 'o', ...
+                    'MarkerFaceColor', fc, ...
+                    'MarkerEdgeColor', 'none', ...
+                    'Visible', 'off');
             if any(iProbablyBad)
-                fc = imosQCFlag(flagPBad, qcSet, 'color');
-                line(dataVar(iProbablyBad), ...
+                hLineFlag(3) = line(dataVar(iProbablyBad), ...
                     yLine(iProbablyBad), ...
                     'LineStyle', 'none', ...
                     'Marker', 'o', ...
@@ -222,9 +245,16 @@ for k=1:lenVarNames
                     'MarkerEdgeColor', 'none');
             end
             
+            flagDesc{4} = imosQCFlag(flagBad, qcSet, 'desc');
+            fc = imosQCFlag(flagBad, qcSet, 'color');
+            hLineFlag(4) =  line(NaN, NaN, ...
+                    'LineStyle', 'none', ...
+                    'Marker', 'o', ...
+                    'MarkerFaceColor', fc, ...
+                    'MarkerEdgeColor', 'none', ...
+                    'Visible', 'off');
             if any(iBad)
-                fc = imosQCFlag(flagBad, qcSet, 'color');
-                line(dataVar(iBad), ...
+                hLineFlag(4) = line(dataVar(iBad), ...
                     yLine(iBad), ...
                     'LineStyle', 'none', ...
                     'Marker', 'o', ...
@@ -243,7 +273,7 @@ for k=1:lenVarNames
             set(hAxCastVar, 'Color', [0.75 0.75 0.75])
         end
     end
-    
+        
     if ~initiateFigure
         iNan = isnan(hLineVar);
         if any(iNan)
@@ -251,11 +281,18 @@ for k=1:lenVarNames
             instrumentDesc(iNan) = [];
         end
         
-        hLegend = legend(hAxCastVar, hLineVar, instrumentDesc, 'Location', 'NorthOutside');
+        hLineVar = [hLineVar; hLineFlag];
+        instrumentDesc = [instrumentDesc; flagDesc];
+        
+        hLegend = legend(hAxCastVar, ...
+            hLineVar,       instrumentDesc, ...
+            'Interpreter',  'none', ...
+            'Location',     'SouthOutside');
         
         %     set(hLegend, 'Box', 'off', 'Color', 'none');
         if k <= lenVarNames/2 || k > lenVarNames/2 + 1
             set(hLegend, 'Visible', 'off');
+            set(get(hAxCastVar, 'Title'), 'String', '', 'Interpreter', 'none');
         end
     end
     

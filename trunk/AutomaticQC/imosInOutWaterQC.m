@@ -103,11 +103,11 @@ switch mode
         % instrument clock not properly set or typos in the database)
         if ~strcmpi(sample_data.(type){k}.name, 'TIME'), return; end
         
-        if time < time_in_water - 1
-            error('TIME value is lower by 24h than time_deployment_start => Check ddb station time values against data file time values!');
+        if time < time_in_water
+            error('TIME value is lower than time_deployment_start => Check ddb station time values against data file time values!');
         end
-        if time > time_out_water + 1
-            error('TIME value is greater by 24h than time_deployment_end => Check ddb station time values against data file time values!');
+        if time > time_out_water
+            error('TIME value is greater than time_deployment_end => Check ddb station time values against data file time values!');
         end
         
     otherwise % 'timeSeries'
