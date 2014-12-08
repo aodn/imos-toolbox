@@ -131,7 +131,7 @@ if any(iParam)
     Ip1 = [false; I(1:end-1)];
     Im1 = [I(2:end); false];
     
-    % testval(1) and testval(end) are left to NaN on pupose so that QC is
+    % testval(1) and testval(end) are left to NaN on purpose so that QC is
     % raw for those two points. Indeed the test cannot be performed.
     data1 = dataTested(Im1);
     data2 = dataTested(I);
@@ -140,38 +140,30 @@ if any(iParam)
     testval(I) = abs(data2 - (data3 + data1)/2) ...
         - abs((data3 - data1)/2);
     
-    % let's consider time in seconds
-    tTime = 'dimensions';
-    iTime = getVar(sample_data.(tTime), 'TIME');
-    if iTime == 0
-        tTime = 'variables';
-        iTime = getVar(sample_data.(tTime), 'TIME');
-        if iTime == 0, return; end
+    % let's read DEPTH data
+    tDepth = 'dimensions';
+    iDepth = getVar(sample_data.(tDepth), 'DEPTH');
+    if iDepth == 0
+        tDepth = 'variables';
+        iDepth = getVar(sample_data.(tDepth), 'DEPTH');
+        if iDepth == 0, return; end
     end
-    time = sample_data.(tTime){iTime}.data * 24 * 3600;
-    if size(time, 1) == 1
-        % if time is a row, let's have a column instead
-        time = time';
+    depth = sample_data.(tDepth){iDepth}.data;
+    if size(depth, 1) == 1
+        % if depth is a row, let's have a column instead
+        depth = depth';
     end
     
     size2 = size(iBadData, 2);
     if size2 > 1
-        time = repmat(time, [1, size2]);
+        depth = repmat(depth, [1, size2]);
     end
     
-    time(iBadData) = [];
-    if size(time, 1) == 1
-        % if time is a row, let's have a column instead
-        time = time';
+    depth(iBadData) = [];
+    if size(depth, 1) == 1
+        % if depth is a row, let's have a column instead
+        depth = depth';
     end
-    
-    % if the time period between a point and its previous is greater than 1h, then the
-    % test is cancelled leaving the test value to NaN so that QC will be set to Raw for
-    % current and previous points.
-    diffTime = diff(time);
-    iGreater = diffTime > 3600;
-    iGreater = [iGreater; false] | [false; iGreater];
-    testval(iGreater) = nan;
     
     if strcmpi(thresholdExpr{iParam}, 'PABIM')
         % we execute the suggested PABIM white book v1.3 threshold value
