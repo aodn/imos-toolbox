@@ -161,6 +161,8 @@ switch mode
             if any(data > botDepth)
                 error(['Some ' sample_data.(type){k}.name ' values are below the bottom +20% ' ...
                     '=> Check ddb site_nominal_depth or site_depth_at_station']);
+%                 fprintf('%s\n', ['Warning : ' 'Some ' sample_data.(type){k}.name ' values are below the bottom +20% ' ...
+%                     '=> Check ddb site_nominal_depth or site_depth_at_station.']);
             end
         else
             % we deal with variables that have ancillary QC variables.
