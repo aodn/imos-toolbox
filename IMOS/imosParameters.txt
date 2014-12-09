@@ -28,6 +28,7 @@ PERG4,               0, percentage_of_good_four_beam_solutions,                 
 AIRT,                1, air_temperature,                                                                        Celsius,                               M, 999999.0, -50.0,   50.0,     float
 ATMP,                1, air_pressure,                                                                           Pascal,                                M, 999999.0, 90000.0, 110000.0, float
 ATMS,                1, air_pressure_at_sea_level,                                                              Pascal,                                M, 999999.0, 90000.0, 110000.0, float
+BAT,                 1, volume_beam_attenuation_coefficient_of_radiative_flux_in_sea_water,                     m-1,                                   E, 999999.0, ,        ,         float
 BOT_DEPTH,           1, sea_floor_depth_below_sea_surface,                                                      m,                                     E, 999999.0, 0.0,     12000.0,  float
 CDIR,                1, direction_of_sea_water_velocity,                                                        Degrees clockwise from true North,     V, 999999.0, 0.0,     360.0,    float
 CDIR_MAG,            1, direction_of_sea_water_velocity,                                                        Degrees clockwise from magnetic North, V, 999999.0, 0.0,     360.0,    float
@@ -79,6 +80,7 @@ NTRA,                1, mole_concentration_of_nitrate_in_sea_water,             
 NTR2,                1, moles_of_nitrate_per_unit_mass_in_sea_water,                                            umole kg-1,                            K, 999999.0, ,        ,         float
 OPBS,                0, optical_backscattering_coefficient,                                                     ,                                      C, 999999.0, ,        ,         float
 PAR,                 1, downwelling_photosynthetic_photon_flux_in_sea_water,                                    umole m-2 s-1,                         F, 999999.0, ,        ,         float
+CPAR,                0, downwelling_corrected_photosynthetic_photon_flux_in_sea_water,                          percent,                               F, 999999.0, 0,       100,      float
 PCO2,                1, surface_partial_pressure_of_carbon_dioxide_in_air,                                      Pascal,                                K, 999999.0, ,        ,         float
 PHOS,                1, moles_of_phosphate_per_unit_mass_in_sea_water,                                          umole kg-1,                            K, 999999.0, ,        ,         float
 PHO2,                1, mole_concentration_of_phosphate_in_sea_water,                                           umole l-1,                             K, 999999.0, ,        ,         float
