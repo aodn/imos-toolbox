@@ -167,6 +167,16 @@ switch name
       name = 'PAR';
       comment = '';
       
+    % CPAR/Corrected Irradiance [%]
+    case 'cpar'
+      name = 'CPAR';
+      comment = '';
+      
+    % Beam Attenuation, Chelsea/Seatech [1/m]
+    case 'bat'
+      name = 'BAT';
+      comment = '';
+      
     % turbidity (NTU)
     case {'obs', 'obs30x2B', 'turbWETntu0', 'upoly0'}
       name = 'TURB';
