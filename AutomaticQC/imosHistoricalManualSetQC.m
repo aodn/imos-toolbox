@@ -70,11 +70,24 @@ nmqc = length(mqc);
 varChecked = cell(1, nmqc);
 
 for i=1:nmqc
-    idVar = getVar(sample_data.variables, mqc(i).nameVar);
+    idVar   = getVar(sample_data.variables, mqc(i).nameVar);
     dataIdx = mqc(i).iData;
-    flag = mqc(i).flag;
+    flag    = mqc(i).flag;
+    comment = mqc(i).comment;
     
     sample_data.variables{idVar}.flags(dataIdx) = flag;
+    if ~isempty(comment)
+        if ~isfield(sample_data.variables{idVar}, 'ancillary_comment')
+            sample_data.variables{idVar}.ancillary_comment = comment;
+        else
+            if isempty(sample_data.variables{idVar}.ancillary_comment)
+                sample_data.variables{idVar}.ancillary_comment = comment;
+            else
+                sample_data.variables{idVar}.ancillary_comment = strrep([sample_data.variables{idVar}.ancillary_comment, '. ', comment], '.. ', '. ');
+            end
+        end
+    end
+    
     varChecked{i} = mqc(i).nameVar;
 end
 

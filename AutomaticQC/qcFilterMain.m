@@ -106,6 +106,11 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             sam.(type{m}){k}.flags(probBadIdx)  = fsam.(type{m}){k}.flags(probBadIdx);
             sam.(type{m}){k}.flags(badIdx)      = fsam.(type{m}){k}.flags(badIdx);
             
+            % update ancillary variable attribute comment
+            if isfield(fsam.(type{m}){k}, 'ancillary_comment')
+                sam.(type{m}){k}.ancillary_comment = fsam.(type{m}){k}.ancillary_comment;
+            end
+            
             % add a log entry
             qcSet    = str2double(readProperty('toolbox.qc_set'));
                 

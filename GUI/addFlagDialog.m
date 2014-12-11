@@ -1,4 +1,4 @@
-function [returnVars, flagVal] = addFlagDialog( variable, kVar, defaultVal )
+function [returnVars, flagVal, commentText] = addFlagDialog( variable, kVar, defaultVal )
 %ADDFLAGDIALOG Dialog which allows user to choose a QC flag to apply to a
 % set of points of a given variable. Can be extended to other similar variables.
 %
@@ -11,9 +11,11 @@ function [returnVars, flagVal] = addFlagDialog( variable, kVar, defaultVal )
 %   defaultVal - The initial value to use..
 %
 % Outputs:
-%   returnVars - indices of variables for which original manual QC needs to be generalised
+%   returnVars - Indices of variables for which original manual QC needs to
+%                be generalised.
 %   flagVal    - The selected value. If the user cancelled the dialog, 
 %                flagVal will be the empty matrix.
+%   commentText- The input comment text.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
@@ -51,7 +53,8 @@ function [returnVars, flagVal] = addFlagDialog( variable, kVar, defaultVal )
   error(nargchk(3,3,nargin));
 
   flagVal = defaultVal;
-
+  commentText = '';
+  
   qcSet = str2double(readProperty('toolbox.qc_set'));
 
   flagTypes  = imosQCFlag('', qcSet, 'values');
@@ -115,6 +118,10 @@ function [returnVars, flagVal] = addFlagDialog( variable, kVar, defaultVal )
   setPanel = uipanel(...
       'BorderType', 'none');
   
+  % create a panel for the comment
+  commentPanel = uipanel(...
+      'BorderType', 'none');
+  
   % ok/cancel buttons
   cancelButton  = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
   confirmButton = uicontrol('Style', 'pushbutton', 'String', 'Ok');
@@ -123,20 +130,23 @@ function [returnVars, flagVal] = addFlagDialog( variable, kVar, defaultVal )
   set(f,             'Units', 'normalized');
   set(optList,       'Units', 'normalized');
   set(setPanel,      'Units', 'normalized');
+  set(commentPanel,  'Units', 'normalized');
   set(cancelButton,  'Units', 'normalized');
   set(confirmButton, 'Units', 'normalized');
 
-  set(f,             'Position', [0.34, 0.46, 0.28, 0.2]);
-  set(optList,       'Position', [0.0,  0.8,  1.0,  0.2]);
-  set(setPanel,      'Position', [0.0,  0.2,  1.0,  0.6]);
-  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.2]);
-  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.2]);
+%   set(f,             'Position', [0.34, 0.46, 0.28, 0.2]);
+  set(f,             'Position', [0.34, 0.46, 0.28, 0.4]);
+  set(optList,       'Position', [0.0,  0.9,  1.0,  0.1]);
+  set(setPanel,      'Position', [0.0,  0.5,  1.0,  0.4]);
+  set(commentPanel,  'Position', [0.0,  0.1,  1.0,  0.4]);
+  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.1]);
+  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.1]);
 
   % populate the panel for variable selection
   uicontrol(...
         'Parent',              setPanel, ...
         'Style',               'text', ...
-        'String',              'Applies to', ...
+        'String',              'Applies to:', ...
         'HorizontalAlignment', 'Left', ...
         'Units',               'normalized', ...
         'Position',            [0.0,  0.2,  0.15, 0.7] ...
@@ -180,10 +190,30 @@ function [returnVars, flagVal] = addFlagDialog( variable, kVar, defaultVal )
   
   set(varCheckboxes, 'Callback', @varCheckboxCallback);
   
+  % populate the panel for variable selection
+  uicontrol(...
+        'Parent',              commentPanel, ...
+        'Style',               'text', ...
+        'String',              'Comment:', ...
+        'HorizontalAlignment', 'Left', ...
+        'Units',               'normalized', ...
+        'Position',            [0.0,  0.1,  0.15, 0.7] ...
+      );
+  
+  comment = uicontrol(...
+        'Parent',              commentPanel, ...
+        'Style',               'edit', ...
+        'BackgroundColor',     'w', ...
+        'HorizontalAlignment', 'Left', ...
+        'Units',               'normalized', ...
+        'Position',            [0.15,  0.1,  0.8, 0.7] ...
+      );
+  
   % reset back to pixels
   set(f,             'Units', 'pixels');
   set(optList,       'Units', 'pixels');
   set(setPanel,      'Units', 'pixels');
+  set(commentPanel,  'Units', 'pixels');
   set(cancelButton,  'Units', 'pixels');
   set(confirmButton, 'Units', 'pixels');
   
@@ -235,6 +265,7 @@ function [returnVars, flagVal] = addFlagDialog( variable, kVar, defaultVal )
   function confirmCallback(source,ev)
   % CONFIRMCALLBACK. Confirm button callback. Closes the dialog.
   %
+    commentText = get(comment, 'String');
     delete(f);
   end
 end
