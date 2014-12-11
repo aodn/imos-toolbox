@@ -326,18 +326,20 @@ function flowManager(toolboxVersion)
     sample_data = autoQCData;
   end
 
-  function manualQCRequestCallback(setIdx, varIdx, dataIdx, flag)
+  function manualQCRequestCallback(setIdx, varIdx, dataIdx, flag, manualQcComment)
   %MANUALQCREQUESTCALLBACK Called on a request to manually
   % modify/add/delete flags on a portion of a data set.
   %
   % Inputs:
-  %   setIdx  - 
-  %   varIdx  - 
-  %   dataIdx -
-  %   flag    -
+  %   setIdx  - index of sample_data
+  %   varIdx  - index of variable
+  %   dataIdx - indices of data
+  %   flag    - flag values to be assigned for the indices of data
+  %   manualQcComment - Author manual QC comment
   %
     if isempty(autoQCData), return; end
     
+    % we update the flags values
     autoQCData{setIdx}.variables{varIdx}.flags(dataIdx) = flag;
     
     qcSet = str2double(readProperty('toolbox.qc_set'));
@@ -345,11 +347,26 @@ function flowManager(toolboxVersion)
     
     % add a log entry if the user has added flags
     if ~isempty(dataIdx) && flag ~= rawFlag
-      
-      autoQCData{setIdx}.meta.log{end+1} = ...
-        ['Author manually flagged ' num2str(length(dataIdx)) ...
-         ' ' autoQCData{setIdx}.variables{varIdx}.name ...
-         ' samples with flag ' imosQCFlag(flag,  qcSet, 'desc')];
+        
+        % add an attribute comment to the ancillary variable if the user has added
+        % a comment
+        if ~isempty(manualQcComment)
+            % merge with previous comments
+            if isfield(autoQCData{setIdx}.variables{varIdx}, 'ancillary_comment')
+                if ~isempty(autoQCData{setIdx}.variables{varIdx}.ancillary_comment)
+                    autoQCData{setIdx}.variables{varIdx}.ancillary_comment = strrep([autoQCData{setIdx}.variables{varIdx}.ancillary_comment, '. ', manualQcComment], '.. ', '. ');
+                else
+                    autoQCData{setIdx}.variables{varIdx}.ancillary_comment = manualQcComment;
+                end
+            else
+                autoQCData{setIdx}.variables{varIdx}.ancillary_comment = manualQcComment;
+            end
+        end
+        
+        autoQCData{setIdx}.meta.log{end+1} = ...
+            ['Author manually flagged ' num2str(length(dataIdx)) ...
+            ' ' autoQCData{setIdx}.variables{varIdx}.name ...
+            ' samples with flag ' imosQCFlag(flag,  qcSet, 'desc')];
     end
   end
 

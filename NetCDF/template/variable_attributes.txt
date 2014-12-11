@@ -11,6 +11,7 @@ S, original_units            =
 S, original_name             = 
 S, sensor_serial_number      = 
 S, comment                   = 
+S, ancillary_comment         = 
 S, history                   = 
 S, references                = 
 S, ancillary_variables       = 

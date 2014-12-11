@@ -309,8 +309,9 @@ function filename = exportNetCDF( sample_data, dest, mode )
 
       varAtts = vars{m};
       varAtts = rmfield(varAtts, {'data', 'dimensions', 'stringlen', 'name'});
-      if isfield(varAtts, 'typeCastFunc'),  varAtts = rmfield(varAtts, 'typeCastFunc'); end
-      if isfield(varAtts, 'flags'),         varAtts = rmfield(varAtts, 'flags');        end
+      if isfield(varAtts, 'typeCastFunc'),      varAtts = rmfield(varAtts, 'typeCastFunc');     end
+      if isfield(varAtts, 'flags'),             varAtts = rmfield(varAtts, 'flags');            end
+      if isfield(varAtts, 'ancillary_comment'), varAtts = rmfield(varAtts, 'ancillary_comment');end
       
       if isfield(vars{m}, 'flags') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
           % add the QC variable (defined below)

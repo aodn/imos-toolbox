@@ -364,12 +364,33 @@ function displayManager(windowTitle, sample_data, callbacks)
           flag = badFlag;
           
           % popup flag modification dialog
-          [kVar, flag] = addFlagDialog(sample_data{setIdx}.variables, vars(varIdx), flag);
+          [kVar, flag, comment] = addFlagDialog(sample_data{setIdx}.variables, vars(varIdx), flag);
           
           % if user didn't cancel, apply the new flag value to the data
           if ~isempty(flag)
+              flagStr = imosQCFlag(flag,  qcSet, 'desc');
               for i=1:length(kVar)
-                  callbacks.manualQCRequestCallback(setIdx, kVar(i), dataIdx, flag);
+                  % add an attribute comment to the ancillary variable if the user has added
+                  % a comment
+                  manualQcComment = '';
+                  if ~isempty(comment)
+                      % we get the first dimension (either TIME or DEPTH for timeSeries or
+                      % profile)
+                      iDim = sample_data{setIdx}.variables{kVar(i)}.dimensions(1);
+                      nameDim = sample_data{setIdx}.dimensions{iDim}.name;
+                      dataDim = sample_data{setIdx}.dimensions{iDim}.data(dataIdx);
+                      startDim = dataDim(1);
+                      endDim = dataDim(end);
+                      clear dataDim;
+                      
+                      % retrieve TIME or DEPTH range for which data has been manually flagged
+                      if strcmpi(nameDim, 'TIME')
+                          manualQcComment = ['Data values at TIME from ', datestr(startDim, 'yyyy/mm/dd HH:MM:SS'), ' UTC to ', datestr(endDim, 'yyyy/mm/dd HH:MM:SS'), ' UTC manually flagged as ', flagStr, ' : ', comment];
+                      else
+                          manualQcComment = ['Data values at DEPTH from ', num2str(startDim), ' to ', num2str(endDim), 'm manually flagged as ', flagStr, ' : ', comment];
+                      end
+                  end
+                  callbacks.manualQCRequestCallback(setIdx, kVar(i), dataIdx, flag, manualQcComment);
               end
               sample_data = callbacks.autoQCRequestCallback(setIdx, true);
               
@@ -391,6 +412,7 @@ function displayManager(windowTitle, sample_data, callbacks)
                   mqc(end+1).nameVar = sample_data{setIdx}.variables{kVar(i)}.name;
                   mqc(end).iData = dataIdx;
                   mqc(end).flag = flag;
+                  mqc(end).comment = manualQcComment;
               end
               save(mqcFile, 'mqc');
           end
@@ -427,8 +449,13 @@ function displayManager(windowTitle, sample_data, callbacks)
     
     function resetManQCCallback()
     %RESETMANQCCALLBACK Deletes any existing .mqc manual qc file associated
-    %to the currently displayed dataset.
+    %to the currently displayed dataset and resets the ancillary variable attribute comment.
     %
+      for i=1:length(sample_data{setIdx}.variables)
+          if isfield(sample_data{setIdx}.variables(i), 'ancillary_comment')
+              sample_data{setIdx}.variables(i) = rmfield(sample_data{setIdx}.variables(i), 'ancillary_comment');
+          end
+      end
     
       [mqcPath, mqcFile, ~] = fileparts(sample_data{setIdx}.toolbox_input_file);
       mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
