@@ -2,11 +2,11 @@
 S, project                      = Integrated Marine Observing System (IMOS)
 S, Conventions                  = CF-1.6,IMOS-1.3
 S, standard_name_vocabulary     = CF-1.6
-S, title                        = [ddb Comment]
-S, institution                  = [mat setAIMSmetadata('[ddb Site]','institution')]
+S, title                        = 
+S, institution                  = 
 D, date_created                 = [mat now_utc]
 D, date_modified                = 
-S, abstract                     = The Queensland and Northern Australia mooring sub-facility is based at the Australian Institute for Marine Science in Townsville.  The sub-facility is responsible for moorings in two geographic regions: Queensland Great Barrier Reef, where four pairs of regional moorings and one National Reference Station are maintained; and Northern Australia, where a National Reference Station and transect of the Timor Sea comprising four regional moorings, are maintained.
+S, abstract                     = 
 S, comment                      = [ddb Comment]
 S, source                       = CTD profile
 S, instrument                   = [ddb InstrumentID Instruments Make] [ddb InstrumentID Instruments Model]
@@ -16,8 +16,8 @@ S, netcdf_version               = 4.1.3
 N, quality_control_set          = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
 S, cruise                       = [ddb FieldTrip]
 S, station                      = [ddb Station]
-S, site_code                    = [mat strtok('[ddb Site]', '-')]
-S, platform_code                = [mat strtok('[ddb Site]', '-')]-BGC
+S, site_code                    = 
+S, platform_code                = 
 S, deployment_code              = 
 S, featureType                  = profile
 S, naming_authority             = IMOS
@@ -41,7 +41,7 @@ N, geospatial_lon_max           = [ddb Longitude]
 N, instrument_nominal_height    = 
 N, instrument_nominal_depth     = 
 N, site_nominal_depth           = 
-N, site_depth_at_station        = [ddb SiteDepth]
+N, site_depth_at_station        = 
 
 % if left empty, these fields are automatically populated upon import 
 % when DEPTH variable exist (if not use depthPP pre-processing routine)
@@ -63,18 +63,15 @@ D, time_coverage_end            =
 % who
 S, data_centre                  = eMarine Information Infrastructure (eMII)
 S, data_centre_email            = info@emii.org.au
-S, author_email                 = adc@aims.gov.au
-%S, author                       = Australian Institute of Marine Science
-S, author                       = Spagnol, Simon
-%S, principal_investigator       = [mat setAIMSmetadata('[ddb Site]','principal_investigator')]
-%S, principal_investigator_email = imos@imos.gov.au
-S, principal_investigator       = Steinberg, Craig
-S, principal_investigator_email = adc@aims.gov.au
-S, institution_references       = http://www.aims.gov.au/imosmoorings/, http://www.imos.org.au/emii.html
+S, author_email                 = 
+S, author                       = 
+S, principal_investigator       = 
+S, principal_investigator_email = 
+S, institution_references       = http://www.imos.org.au/emii.html
 
 % how
 S, lineage                      = Data were processed according to standard ANMN-NRS procedures before conversion to NetCDF. See link for details : http://help.aodn.org.au/help/sites/help.aodn.org.au/files/ANMN%20CTD%20Processing%20Procedures.pdf
 S, citation                     = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-URL], accessed [date-of-access].".
 S, acknowledgement              = Any users of IMOS data are required to clearly acknowledge the source of the material in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is supported by the Australian Government through the National Collaborative Research Infrastructure Strategy and the Super Science Initiative." If relevant, also credit other organisations involved in collection of this particular datastream (as listed in 'credit' in the metadata record).
 S, distribution_statement       = Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
-S, project_acknowledgement = [mat setAIMSmetadata('[ddb Site]','project_acknowledgement')]
+S, project_acknowledgement      = The collection of this data was funded by IMOS
