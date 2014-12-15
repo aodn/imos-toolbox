@@ -125,7 +125,13 @@ for i=1:lenSampleData
     
     %look for time and relevant variable
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
-    iHeight = getVar(sample_data{iSort(i)}.dimensions, 'HEIGHT_ABOVE_SENSOR');
+    nameHeight = 'HEIGHT_ABOVE_SENSOR';
+    iHeight = getVar(sample_data{iSort(i)}.dimensions, nameHeight);
+    if iHeight == 0
+        nameHeight = 'DIST_ALONG_BEAMS';
+        % is equivalent when tilt is negligeable
+        iHeight = getVar(sample_data{iSort(i)}.dimensions, nameHeight);
+    end
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
     
     if iVar > 0 && iHeight > 0 && ...
@@ -156,7 +162,7 @@ for i=1:lenSampleData
             
             hAxMooringVar = axes('Parent',   hFigMooringVar);
             set(get(hAxMooringVar, 'XLabel'), 'String', 'Time');
-            set(get(hAxMooringVar, 'YLabel'), 'String', 'HEIGHT_ABOVE_SENSOR (m)', 'Interpreter', 'none');
+            set(get(hAxMooringVar, 'YLabel'), 'String', [nameHeight ' (m)'], 'Interpreter', 'none');
             set(get(hAxMooringVar, 'Title'), 'String', sprintf('%s\n%s', title, instrumentDesc{i}), 'Interpreter', 'none');
             set(hAxMooringVar, 'XTick', (xMin:(xMax-xMin)/4:xMax));
             set(hAxMooringVar, 'XLim', [xMin, xMax]);

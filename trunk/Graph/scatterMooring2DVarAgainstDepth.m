@@ -110,6 +110,7 @@ for i=1:lenSampleData
     %look for time and relevant variable
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
     iHeight = getVar(sample_data{iSort(i)}.dimensions, 'HEIGHT_ABOVE_SENSOR');
+    if iHeight == 0, iHeight = getVar(sample_data{iSort(i)}.dimensions, 'DIST_ALONG_BEAMS'); end % is equivalent when tilt is negligeable
     iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
     
@@ -205,6 +206,7 @@ if any(isPlottable)
         %look for time and relevant variable
         iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
         iHeight = getVar(sample_data{iSort(i)}.dimensions, 'HEIGHT_ABOVE_SENSOR');
+        if iHeight == 0, iHeight = getVar(sample_data{iSort(i)}.dimensions, 'DIST_ALONG_BEAMS'); end % is equivalent when tilt is negligeable
         iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
         iVar = getVar(sample_data{iSort(i)}.variables, varName);
         

@@ -3,7 +3,7 @@ function sample_data = populateMetadata( sample_data )
 % given the content of existing metadata and data.
 %
 % Mainly populates depth metadata according to PRES, PRES_REL, DEPTH or 
-% HEIGHT_ABOVE_SENSOR / DEPTH_BELOW_SENSOR data from moored/profiling CTD or moored ADCP.
+% HEIGHT_ABOVE_SENSOR/DIST_ALONG_BEAMS data from moored/profiling CTD or moored ADCP.
 %
 % Inputs:
 %   sample_data - a struct containing sample data.
@@ -59,6 +59,10 @@ function sample_data = populateMetadata( sample_data )
           idDepth = i;
       end
       if strcmpi(sample_data.dimensions{i}.name, 'HEIGHT_ABOVE_SENSOR')
+          idHeight = i;
+      end
+      % is equivalent to HEIGHT_ABOVE_SENSOR in the case of a non-tilted ADCP
+      if strcmpi(sample_data.dimensions{i}.name, 'DIST_ALONG_BEAMS')
           idHeight = i;
       end
   end
