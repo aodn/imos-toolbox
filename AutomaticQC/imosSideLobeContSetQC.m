@@ -16,7 +16,7 @@ function [sample_data, varChecked, paramsLog] = imosSideLobeContSetQC( sample_da
 % lobe (having a 20 degree angle for RDI and 25 for Nortek) reaches the
 % height above the sensor corresponding to: depth*cos(beam angle).
 %
-% See also RDI documentation : 
+% See also Nortek documentation : 
 % http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes
 %
 % Inputs:
@@ -73,6 +73,7 @@ paramsLog  = [];
 
 % get all necessary dimensions and variables id in sample_data struct
 idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
+if idHeight == 0, idHeight = getVar(sample_data.dimensions, 'DIST_ALONG_BEAMS'); end % is equivalent when tilt is negligeable
 idPres = 0;
 idPresRel = 0;
 idDepth = 0;
@@ -186,12 +187,18 @@ distanceTransducerToObstacle = depth;
 
 % we handle the case of a downward looking ADCP
 if ~isUpwardLooking
-    if isempty(sample_data.site_nominal_depth)
-        error(['Downward looking ADCP in file ' sample_data.toolbox_input_file ' => Fill site_nominal_depth!']);
+    if isempty(sample_data.site_nominal_depth) && isempty(sample_data.site_depth_at_deployment)
+        error(['Downward looking ADCP in file ' sample_data.toolbox_input_file ' => Fill site_nominal_depth or site_depth_at_deployment!']);
     else
         % the distance between transducer and obstacle is not depth anymore but
         % (site_nominal_depth - depth)
-        distanceTransducerToObstacle = sample_data.site_nominal_depth - depth;
+        if ~isempty(sample_data.site_nominal_depth)
+        	site_nominal_depth = sample_data.site_nominal_depth;
+        end
+        if ~isempty(sample_data.site_depth_at_deployment)
+        	site_nominal_depth = sample_data.site_depth_at_deployment;
+        end
+        distanceTransducerToObstacle = site_nominal_depth - depth;
     end
 end
 
@@ -205,7 +212,7 @@ end
 if isUpwardLooking
     cDepth = distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - nBinSize*BinSize);
 else
-    cDepth = sample_data.site_nominal_depth - (distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - nBinSize*BinSize));
+    cDepth = site_nominal_depth - (distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - nBinSize*BinSize));
 end
 
 % calculate bins depth

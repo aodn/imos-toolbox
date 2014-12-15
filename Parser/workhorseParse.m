@@ -226,8 +226,8 @@ error(nargchk(1, 2, nargin));
   % add dimensions with their data mapped
   if fixed.systemConfiguration(1) == '0', distance = -distance; end % case of a downward looking ADCP -> negative values
   dims = {
-      'TIME',                   time(:); ...
-      'HEIGHT_ABOVE_SENSOR',    distance(:)
+      'TIME',                   time(:),     ''; ...
+      'HEIGHT_ABOVE_SENSOR',    distance(:), 'Data in cells has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.'
       };
   clear time distance;
   
@@ -235,6 +235,7 @@ error(nargchk(1, 2, nargin));
       sample_data.dimensions{i}.name         = dims{i, 1};
       sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
       sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
+      sample_data.dimensions{i}.comment      = sample_data.dimensions{i}.typeCastFunc(dims{i, 3});
   end
   clear dims;
   
