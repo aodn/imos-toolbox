@@ -46,6 +46,7 @@ DIR,                 0, from_direction,                                         
 DIR_MAG,             0, from_direction,                                                                         Degrees clockwise from magnetic North, E, 999999.0, 0.0,     360.0,    float
 DIRECTION,           0, direction_of_the_profile,                                                               ,                                      ,  ,         ,        ,         char
 DIRT,                0, to_direction,                                                                           Degrees clockwise from true North,     E, 999999.0, 0.0,     360.0,    float
+DIST_ALONG_BEAMS,    0, dist_along_beams,                                                                       m,                                     Z, 999999.0, -12000.0,12000.0,  float
 DOX1,                1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,                          umol l-1,                              O, 999999.0, 0.0,     900000.0, float
 DOX2,                1, moles_of_oxygen_per_unit_mass_in_sea_water,                                             umol kg-1,                             O, 999999.0, 0.0,     880000.0, float
 DOXS,                1, fractional_saturation_of_oxygen_in_sea_water,                                           percent,                               O, 999999.0, ,        ,         float

@@ -175,8 +175,8 @@ sample_data.meta.beam_angle                 = 25;   % http://www.hydro-internati
 
 % add dimensions with their data mapped
 dims = {
-    'TIME',                   time; ...
-    'HEIGHT_ABOVE_SENSOR',    distance
+    'TIME',             time,       ''; ...
+    'DIST_ALONG_BEAMS', distance,   'Nortek instrument data is not vertically bin mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
     };
 clear time distance;
 
@@ -184,6 +184,7 @@ for i=1:size(dims, 1)
     sample_data.dimensions{i}.name         = dims{i, 1};
     sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
     sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
+    sample_data.dimensions{i}.comment      = sample_data.dimensions{i}.typeCastFunc(dims{i, 3});
 end
 clear dims;
 
@@ -216,7 +217,7 @@ for i=1:size(vars, 1)
     sample_data.variables{i}.dimensions   = vars{i, 2};
     if ~any(strcmpi(vars{i, 1}, {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'})) % we don't want this for LATITUDE, LONGITUDE and NOMINAL_DEPTH
         if length(sample_data.variables{i}.dimensions) == 2
-            sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE HEIGHT_ABOVE_SENSOR';
+            sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE DIST_ALONG_BEAMS';
         else
             sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
         end

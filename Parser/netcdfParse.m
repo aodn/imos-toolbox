@@ -224,6 +224,11 @@ function sample_data = netcdfParse( filename, mode )
   if iHeightAboveSensor
       sample_data.meta.binSize = diff(sample_data.dimensions{iHeightAboveSensor}.data(1:2));
   end
+  
+  iDistAlongBeams = getVar(sample_data.dimensions, 'DIST_ALONG_BEAMS');
+  if iDistAlongBeams
+      sample_data.meta.binSize = diff(sample_data.dimensions{iDistAlongBeams}.data(1:2));
+  end
 end
 
 function timeAtts = getTimeAtts()
