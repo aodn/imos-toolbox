@@ -183,7 +183,7 @@ sample_data.meta.beam_angle                 = 25;   % http://www.hydro-internati
 % add dimensions with their data mapped
 dims = {
     'TIME',             time,       ''; ...
-    'DIST_ALONG_BEAMS', distance,   'Nortek instrument data is not vertically bin mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
+    'DIST_ALONG_BEAMS', distance,   'Nortek instrument data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
     };
 clear time distance;
 
@@ -191,7 +191,7 @@ for i=1:size(dims, 1)
     sample_data.dimensions{i}.name         = dims{i, 1};
     sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
     sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
-    sample_data.dimensions{i}.comment      = sample_data.dimensions{i}.typeCastFunc(dims{i, 3});
+    sample_data.dimensions{i}.comment      = dims{i, 3};
 end
 clear dims;
 

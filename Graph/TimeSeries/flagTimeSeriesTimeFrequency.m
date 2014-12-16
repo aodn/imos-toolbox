@@ -57,7 +57,7 @@ qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
 time  = sample_data.variables{var}.dimensions(1);
-freq  = sample_data.variables{var}.dimensions(4);
+freq  = sample_data.variables{var}.dimensions(2);
 
 time = sample_data.dimensions{time};
 freq = sample_data.dimensions{freq};
