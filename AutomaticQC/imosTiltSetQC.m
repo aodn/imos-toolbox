@@ -90,14 +90,28 @@ if ~idMandatory, return; end
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
 badFlag         = imosQCFlag('bad',             qcSet, 'flag');
+probBadFlag     = imosQCFlag('probablyBad',     qcSet, 'flag');
 goodFlag        = imosQCFlag('good',            qcSet, 'flag');
 rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
 
-% read in filter parameters
-propFile = fullfile('AutomaticQC', 'imosTiltSetQC.txt');
-maxTilt = str2double(readProperty('maxTilt',   propFile));
+probBadTilt = [];
+badTilt     = [];
 
-paramsLog = ['maxTilt=' num2str(maxTilt)];
+% we try to find out which kind of ADCP we're dealing with
+if ~isempty(strfind(sample_data.instrument, 'RDI')) || ~isempty(strfind(lower(sample_data.instrument), 'workhorse'))
+    probBadTilt = 15;
+    badTilt     = 20;
+end
+if ~isempty(strfind(lower(sample_data.instrument), 'nortek'))
+    probBadTilt = 20;
+    badTilt     = 30;
+end
+
+if isempty(probBadTilt)
+    error(['Impossible to determine whether ' sample_data.toolbox_input_file ' is RDI or Nortek => Fill instrument!']);
+end
+
+paramsLog = ['probBadTilt=' num2str(probBadTilt) ', badTilt=' num2str(badTilt)];
 
 pitch = sample_data.variables{idPitch}.data;
 roll  = sample_data.variables{idRoll}.data;
@@ -109,8 +123,10 @@ sizeCur = size(sample_data.variables{idWcur}.flags);
 flags = ones(sizeCur, 'int8')*badFlag;
 
 % tilt test
-iPass = tilt < maxTilt;
+iPass = tilt < badTilt;
+flags(iPass,:) = probBadFlag;
 
+iPass = tilt < probBadTilt;
 flags(iPass,:) = goodFlag;
 
 if idWcur
