@@ -95,7 +95,7 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     name = sample_data.variables{k}.name;
     dims = sample_data.variables{k}.dimensions;
     
-    if length(dims) == 3
+    if length(dims) == 1
         % 1D display
         plotFunc = @graphTimeSeriesGeneric;
     else
@@ -126,7 +126,7 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
                 ceil(max(sample_data.dimensions{iZDim}.data)*10)/10];
             
         case 'graphTimeSeriesTimeFrequency'
-            iFDim = sample_data.variables{k}.dimensions(4);
+            iFDim = sample_data.variables{k}.dimensions(2);
             yLimits = [floor(min(sample_data.dimensions{iFDim}.data)*10)/10, ...
                 ceil(max(sample_data.dimensions{iFDim}.data)*10)/10];
             

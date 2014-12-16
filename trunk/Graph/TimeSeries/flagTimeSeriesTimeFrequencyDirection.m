@@ -55,8 +55,8 @@ if ~isnumeric(var),        error('var must be numeric');          end
 qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
-freq = sample_data.variables{var}.dimensions(4);
-dir  = sample_data.variables{var}.dimensions(5);
+freq = sample_data.variables{var}.dimensions(2);
+dir  = sample_data.variables{var}.dimensions(3);
 
 dirData   = sample_data.dimensions{dir}.data;
 freqData  = sample_data.dimensions{freq}.data;

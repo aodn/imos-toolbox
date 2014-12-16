@@ -72,7 +72,7 @@ for k = 1:lenVar
     name = sample_data.variables{k}.name;
     dims = sample_data.variables{k}.dimensions;
     
-    if length(dims) == 3
+    if length(dims) == 1
         % 1D display
         flagFunc = @flagTimeSeriesGeneric;
     else

@@ -62,8 +62,8 @@ end
 function [h, labels] = polarPcolor(ax, sample_data, var)
 
 time = sample_data.variables{var}.dimensions(1);
-freq = sample_data.variables{var}.dimensions(4);
-dir  = sample_data.variables{var}.dimensions(5);
+freq = sample_data.variables{var}.dimensions(2);
+dir  = sample_data.variables{var}.dimensions(3);
 
 timeData  = sample_data.dimensions{time}.data;
 dirData   = sample_data.dimensions{dir}.data;
