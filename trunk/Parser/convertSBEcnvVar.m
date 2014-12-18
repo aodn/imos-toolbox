@@ -1,4 +1,4 @@
-function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset)
+function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, mode)
 %CONVERTSBECNVVAR Processes data from a SeaBird .cnv file.
 %
 % This function is able to convert data retrieved from a CNV SeaBird 
@@ -9,6 +9,7 @@ function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset)
 %   name        - SeaBird parameter name.
 %   data        - data in SeaBird file.
 %   timeOffset  - offset to be applied to time value in SeaBird file.
+%   mode       - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   name       - IMOS parameter code.
@@ -204,17 +205,35 @@ switch name
       comment = getVoltageComment(origName, procHeader);
       
     case 'f1'
-        name = 'CNDC_FREQ';
-        comment = 'Conductivity Frequency in Hz (added for minCondFreq detection)';
+        if strcmpi(mode, 'profile')
+            name = 'CNDC_FREQ';
+            comment = 'Conductivity Frequency in Hz (added for minCondFreq detection)';
+        else
+            name = '';
+            data = [];
+            comment = '';
+        end
         
     case 'flag'
-        name = 'SBE_FLAG';
-        comment = 'SBE Processing Flag (added for binning). 0 is good, anything else bad.';
+        if strcmpi(mode, 'profile')
+            name = 'SBE_FLAG';
+            comment = 'SBE Processing Flag (added for binning). 0 is good, anything else bad.';
+        else
+            name = '';
+            data = [];
+            comment = '';
+        end
         
     case 'scan'
-        name = 'ETIME';
-        data = data/4;
-        comment = 'Elapsed time in seconds (basically number of scan divided by 4Hz, added for surface soak)';
+        if strcmpi(mode, 'profile')
+            name = 'ETIME';
+            data = data/4;
+            comment = 'Elapsed time in seconds (basically number of scan divided by 4Hz, added for surface soak)';
+        else
+            name = '';
+            data = [];
+            comment = '';
+        end
         
     otherwise 
       name = '';

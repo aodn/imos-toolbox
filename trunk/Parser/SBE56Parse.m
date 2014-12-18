@@ -102,7 +102,7 @@ instHeader = parseInstrumentHeader(instHeaderLines);
 procHeader = parseProcessedHeader( procHeaderLines);
 
 % use SBE37 specific cnv reader function
-[data, comment] = readSBE37cnv(dataLines, instHeader, procHeader);
+[data, comment] = readSBE37cnv(dataLines, instHeader, procHeader, mode);
 
 % create sample data struct,
 % and copy all the data in
