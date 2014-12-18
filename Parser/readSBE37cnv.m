@@ -1,4 +1,4 @@
-function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader )
+function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader, mode )
 %READSBE37CNV Processes data from a Seabird .cnv file.
 %
 % This function is able to process data retrieved from a converted (.cnv) 
@@ -9,6 +9,7 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader )
 %   dataLines  - Cell array of strings, the data lines in the original file.
 %   instHeader - Struct containing instrument header.
 %   procHeader - Struct containing processed header.
+%   mode       - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   data       - Struct containing variable data.
@@ -65,7 +66,7 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader )
     d = dataLines{k};
     d(d == procHeader.badFlag) = nan;
     
-    [n, d, c] = convertData(genvarname(columns{k}), d, procHeader);
+    [n, d, c] = convertData(genvarname(columns{k}), d, procHeader, mode);
     
     if isempty(n) || isempty(d), continue; end
     
@@ -126,7 +127,7 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader )
   end
 end
 
-function [name, data, comment] = convertData(name, data, procHeader)
+function [name, data, comment] = convertData(name, data, procHeader, mode)
 %CONVERTDATA The .cnv file provides data in a bunch of different units of
 % measurement. This function is just a big switch statement which takes
 % SBE17SM data as input, and attempts to convert it to IMOS compliant name and
@@ -140,6 +141,6 @@ function [name, data, comment] = convertData(name, data, procHeader)
 castDate = 0;
 if isfield(procHeader, 'startTime'); castDate = procHeader.startTime; end
 
-[name, data, comment] = convertSBEcnvVar(name, data, castDate);
+[name, data, comment] = convertSBEcnvVar(name, data, castDate, mode);
 
 end

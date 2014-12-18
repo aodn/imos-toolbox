@@ -109,7 +109,7 @@ if strcmpi(ext, '.cnv')
     procHeader = parseProcessedHeader( procHeaderLines);
     
     %BDM (18/2/2011) Use new SBE37 specific cnv reader function
-    [data, comment] = readSBE37cnv(dataLines, instHeader, procHeader);
+    [data, comment] = readSBE37cnv(dataLines, instHeader, procHeader, mode);
     
     % create sample data struct,
     % and copy all the data in
