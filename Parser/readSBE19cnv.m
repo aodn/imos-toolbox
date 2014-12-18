@@ -68,7 +68,7 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader, mode
     % any flagged bad data is set to NaN (even flag value itself)
     d(d == procHeader.badFlag) = nan;
     
-    [n, d, c] = convertData(genvarname(columns{k}), d, instHeader, procHeader);
+    [n, d, c] = convertData(genvarname(columns{k}), d, instHeader, procHeader, mode);
     
     if isempty(n) || isempty(d), continue; end
     
@@ -131,13 +131,13 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader, mode
           % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
           data.DOX2 = data.DOX1 .* 1000.0 ./ dens;
           comment.DOX2 = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
-          'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
+              'and using density computed from Temperature, Salinity and Pressure '...
+              'with the CSIRO SeaWater library (EOS-80) v1.1.'];
       end
   end
 end
 
-function [name, data, comment] = convertData(name, data, instHeader, procHeader) 
+function [name, data, comment] = convertData(name, data, instHeader, procHeader, mode) 
 %CONVERTDATA The .cnv file provides data in a bunch of different units of
 % measurement. This function is just a big switch statement which takes
 % SBE19 data as input, and attempts to convert it to IMOS compliant name and 
@@ -150,5 +150,5 @@ function [name, data, comment] = convertData(name, data, instHeader, procHeader)
   if isfield(instHeader, 'castDate'), castDate = instHeader.castDate; end
   if isfield(procHeader, 'startTime'), castDate = procHeader.startTime; end
   
-  [name, data, comment] = convertSBEcnvVar(name, data, castDate);
+  [name, data, comment] = convertSBEcnvVar(name, data, castDate, mode);
 end
