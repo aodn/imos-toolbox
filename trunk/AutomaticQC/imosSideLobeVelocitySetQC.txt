@@ -1,1 +1,1 @@
-nBinSize   = 1
+nBinSize   = 0.5
