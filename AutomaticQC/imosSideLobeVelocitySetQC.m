@@ -206,7 +206,7 @@ end
 %
 % http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes
 %
-% by default substraction of 2*BinSize to the non-contaminated height in order to be
+% by default substraction of 1/2*BinSize to the non-contaminated height in order to be
 % conservative and be sure that the first bin below the contaminated depth
 % hasn't been computed from any contaminated signal.
 if isUpwardLooking

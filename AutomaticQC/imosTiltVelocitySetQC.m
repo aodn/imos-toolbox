@@ -1,5 +1,5 @@
-function [sample_data, varChecked, paramsLog] = imosTiltSetQC( sample_data, auto )
-%IMOSTILTSETQC Quality control procedure for ADCP instrument data against their tilt.
+function [sample_data, varChecked, paramsLog] = imosTiltVelocitySetQC( sample_data, auto )
+%IMOSTILTVELOCITYSETQC Quality control procedure for ADCP instrument data against their tilt.
 %
 % Quality control ADCP velocity data, assessing the tilt of the instrument.
 %
@@ -188,7 +188,7 @@ if ~isempty(strfind(lower(sample_data.instrument), 'monitor'))
     probBadTilt = 15; % compass is affected
     badTilt     = 22; % compass, coordinates transform and bin-mapping are affected
 end
-if ~isempty(strfind(lower(sample_data.instrument), 'long ranger'))
+if ~isempty(strfind(lower(sample_data.instrument), 'longranger'))
     probBadTilt = 15; % compass is affected
     badTilt     = 50; % compass, coordinates transform and bin-mapping are affected
 end
@@ -203,7 +203,7 @@ if ~isempty(strfind(lower(sample_data.instrument), 'nortek'))
 end
 
 if isempty(probBadTilt)
-    error(['Impossible to determine whether ' sample_data.toolbox_input_file ' is from a RDI workhorse/long ranger or a Nortek => Fill instrument global attribute!']);
+    error(['Impossible to determine from which ADCP model is ' sample_data.toolbox_input_file ' => Fill instrument global attribute with sentinel, monitor, longranger or quartermaster model information for RDI or Nortek make!']);
 end
 
 paramsLog = ['probBadTilt=' num2str(probBadTilt) ', badTilt=' num2str(badTilt)];
