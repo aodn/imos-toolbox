@@ -1,5 +1,5 @@
-function [sample_data, varChecked, paramsLog] = imosSideLobeContSetQC( sample_data, auto )
-%IMOSSIDELOBECONTSETQC Quality control procedure for ADCP instrument data.
+function [sample_data, varChecked, paramsLog] = imosSideLobeVelocitySetQC( sample_data, auto )
+%IMOSSIDELOBEVELOCITYSETQC Quality control procedure for ADCP instrument data.
 %
 % Quality control ADCP instrument data, assessing the side lobe effects on 
 % the cells close to the surface.
@@ -108,7 +108,7 @@ probGoodFlag    = imosQCFlag('probablyGood',    qcSet, 'flag');
 rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
 
 % read in filter parameters
-propFile = fullfile('AutomaticQC', 'imosSideLobeContSetQC.txt');
+propFile = fullfile('AutomaticQC', 'imosSideLobeVelocitySetQC.txt');
 nBinSize = str2double(readProperty('nBinSize',   propFile));
 
 paramsLog = ['nBinSize=' num2str(nBinSize)];

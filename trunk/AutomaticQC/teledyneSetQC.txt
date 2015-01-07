@@ -1,6 +1,6 @@
 err_vel   = 0.15
 pgood     = 50
-cmag      = 110
+cmag      = 64
 vvel      = 0.2
 hvel      = 2.0
 ea_thresh = 30

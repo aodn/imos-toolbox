@@ -1,9 +1,6 @@
-function [sample_data, varChecked, paramsLog] = imosTeledyneSetQC( sample_data, auto )
-%IMOSTELEDYNESETQC Quality control procedure for Teledyne Workhorse (and similar)
+function [sample_data, varChecked, paramsLog] = teledyneSetQC( sample_data, auto )
+%TELEDYNESETQC Quality control procedure for Teledyne Workhorse (and similar)
 % ADCP instrument data.
-%
-% Quality control procedure for Teledyne Workhorse (and similar) ADCP
-% instrument data.
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
@@ -99,7 +96,6 @@ for j=1:4
 end
 if ~idMandatory, return; end
 
-
 qcSet           = str2double(readProperty('toolbox.qc_set'));
 badFlag         = imosQCFlag('bad',             qcSet, 'flag');
 goodFlag        = imosQCFlag('good',            qcSet, 'flag');
@@ -132,7 +128,7 @@ for j=1:4;
 end
 
 % read in filter parameters
-propFile = fullfile('AutomaticQC', 'imosTeledyneSetQC.txt');
+propFile = fullfile('AutomaticQC', 'teledyneSetQC.txt');
 qcthresh.err_vel   = str2double(readProperty('err_vel',   propFile));
 qcthresh.pgood     = str2double(readProperty('pgood',     propFile));
 qcthresh.cmag      = str2double(readProperty('cmag',      propFile));
