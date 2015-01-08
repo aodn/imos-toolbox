@@ -73,9 +73,12 @@ function hits = fsearch(pattern, root, restriction)
   
   entries = dir(root);
   
-  for k = 3:length(entries) % we ignore . and ..
+  for k = 1:length(entries)
     
     d = entries(k);
+    
+    % we ignore . and ..
+    if any(strcmpi(d.name, {'.', '..'})), continue; end
     
     % compare file and directory names against pattern. doing 
     % string comparisons here is inefficient; better way would 
