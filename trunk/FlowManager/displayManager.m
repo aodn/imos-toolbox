@@ -261,9 +261,12 @@ function displayManager(windowTitle, sample_data, callbacks)
     
       % update qc data on state change
       if strcmp(event, 'state')
-          
+        stateChanged = ~strcmp(lastState,state);
+        if strcmpi(state, 'Reset Manual QC')
+            stateChanged = false; % we override stateChanged so that QC is re ran as soon as we hit the button
+        end
         sample_data = ...
-          callbacks.autoQCRequestCallback(setIdx, ~strcmp(lastState,state));
+          callbacks.autoQCRequestCallback(setIdx, stateChanged);
 
         % update GUI with QC'd data set
         for k = 1:length(sample_data), updateCallback(sample_data{k}); end
@@ -447,24 +450,47 @@ function displayManager(windowTitle, sample_data, callbacks)
 %         @metadataRepWrapperCallback, mode);
     end
     
-    function resetManQCCallback()
-    %RESETMANQCCALLBACK Deletes any existing .mqc manual qc file associated
-    %to the currently displayed dataset and resets the ancillary variable attribute comment.
-    %
-      for i=1:length(sample_data{setIdx}.variables)
-          if isfield(sample_data{setIdx}.variables(i), 'ancillary_comment')
-              sample_data{setIdx}.variables(i) = rmfield(sample_data{setIdx}.variables(i), 'ancillary_comment');
+      function resetManQCCallback()
+      %RESETMANQCCALLBACK Deletes any existing .mqc manual qc file associated
+      %to the currently displayed (or all) dataset(s) and resets the(ir) ancillary variable attribute comment.
+      %
+          
+          response = questdlg(...
+              ['Reset manual QC flags '...
+              '(existing manually QC''d flags will be discarded)?'],...
+              'Reset manual QC flags?', ...
+              'No', ...
+              'Reset for this data set',...
+              'Reset for all data sets',...
+              'No');
+          
+          resetIdx = setIdx;
+          
+          if ~strncmp(response, 'Reset', 5)
+              resetIdx = [];
           end
+          
+          if strcmp(response, 'Reset for all data sets')
+              resetIdx = 1:length(sample_data);
+          end
+          
+          for j=1:length(resetIdx)
+              for i=1:length(sample_data{resetIdx(j)}.variables)
+                  if isfield(sample_data{resetIdx(j)}.variables(i), 'ancillary_comment')
+                      sample_data{resetIdx(j)}.variables(i) = rmfield(sample_data{resetIdx(j)}.variables(i), 'ancillary_comment');
+                  end
+              end
+              
+              [mqcPath, mqcFile, ~] = fileparts(sample_data{resetIdx(j)}.toolbox_input_file);
+              mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
+              
+              if exist(mqcFile, 'file')
+                  delete(mqcFile);
+              end
+          end
+          
+          qcDataCallback();
       end
-    
-      [mqcPath, mqcFile, ~] = fileparts(sample_data{setIdx}.toolbox_input_file);
-      mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
-      
-      if exist(mqcFile, 'file')
-          delete(mqcFile);
-      end
-      qcDataCallback();
-    end
     
     function exportNetCDFCallback()
     %EXPORTNETCDFCALLBACK Called when the user clicks on the 'Export NetCDF' 
