@@ -187,6 +187,7 @@ function [fieldTrip dataDir] = startDialog()
   set(f, 'WindowKeyPressFcn', @keyPressCallback);
 
   % display the dialog and wait for user input
+  uicontrol(fidList);
   set(f, 'Visible', 'on');
   uiwait(f);
   
