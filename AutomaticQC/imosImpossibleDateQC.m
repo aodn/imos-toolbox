@@ -87,7 +87,7 @@ if ~isempty(dataTime)
     % initially all data is bad
     flags = ones(lenData, 1, 'int8')*failFlag;
     
-    % read site name from imosImpossibleDateQC properties file
+    % read date bounderies from imosImpossibleDateQC parameters file
     dateMin = readProperty('dateMin', fullfile('AutomaticQC', 'imosImpossibleDateQC.txt'));
     dateMax = readProperty('dateMax', fullfile('AutomaticQC', 'imosImpossibleDateQC.txt'));
     
@@ -97,6 +97,12 @@ if ~isempty(dataTime)
     else
         dateMax = datenum(dateMax, 'dd/mm/yyyy');
     end
+    
+    % read dataset QC parameters if exist and override previous 
+    % parameters file
+    currentQCtest = mfilename;
+    dateMin = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'dateMin', dateMin);
+    dateMax = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'dateMax', dateMax);
     
     paramsLog = ['dateMin=' datestr(dateMin, 'dd/mm/yyyy') ...
         ', dateMax=' datestr(dateMax, 'dd/mm/yyyy')];
@@ -114,4 +120,8 @@ if ~isempty(dataTime)
     if all(~iGoodTime)
         error('All points failed');
     end
+    
+    % write/update dataset QC parameters
+    writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'dateMin', dateMin);
+    writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'dateMax', dateMax);
 end
