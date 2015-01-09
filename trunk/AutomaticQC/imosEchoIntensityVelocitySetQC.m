@@ -107,6 +107,11 @@ end
 propFile  = fullfile('AutomaticQC', 'imosEchoIntensityVelocitySetQC.txt');
 ea_thresh = str2double(readProperty('ea_thresh',   propFile));
 
+% read dataset QC parameters if exist and override previous 
+% parameters file
+currentQCtest = mfilename;
+ea_thresh = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
+
 paramsLog = ['ea_thresh=' num2str(ea_thresh)];
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
@@ -173,5 +178,8 @@ if idCspd
     sample_data.variables{idCspd}.flags = flags;
     varChecked = [varChecked, {sample_data.variables{idCspd}.name}];
 end
-    
+
+% write/update dataset QC parameters
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
+
 end

@@ -136,6 +136,16 @@ qcthresh.vvel      = str2double(readProperty('vvel',      propFile));
 qcthresh.hvel      = str2double(readProperty('hvel',      propFile));
 qcthresh.ea_thresh = str2double(readProperty('ea_thresh', propFile));
 
+% read dataset QC parameters if exist and override previous 
+% parameters file
+currentQCtest   = mfilename;
+qcthresh.err_vel    = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel',     qcthresh.err_vel);
+qcthresh.pgood      = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'pgood',       qcthresh.pgood);
+qcthresh.cmag       = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'cmag',        qcthresh.cmag);
+qcthresh.vvel       = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'vvel',        qcthresh.vvel);
+qcthresh.hvel       = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'hvel',        qcthresh.hvel);
+qcthresh.ea_thresh  = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh',   qcthresh.ea_thresh);
+
 paramsLog = ['err_vel=' num2str(qcthresh.err_vel) ', pgood=' num2str(qcthresh.pgood) ...
     ', cmag=' num2str(qcthresh.cmag) ', vvel=' num2str(qcthresh.vvel) ...
     ', hvel=' num2str(qcthresh.hvel) ', ea_thresh=' num2str(qcthresh.ea_thresh)];
@@ -177,7 +187,15 @@ if idCspd
     sample_data.variables{idCspd}.flags = flags;
     varChecked = [varChecked, {sample_data.variables{idCspd}.name}];
 end
-    
+
+% write/update dataset QC parameters
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel',  qcthresh.err_vel);
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'pgood',    qcthresh.pgood);
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'cmag',     qcthresh.cmag);
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'vvel',     qcthresh.vvel);
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'hvel',     qcthresh.hvel);
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh',qcthresh.ea_thresh);
+        
 end
 
 function [iPass, iNaNerv] = adcpqctest(qcthresh, qc, u, w, erv)

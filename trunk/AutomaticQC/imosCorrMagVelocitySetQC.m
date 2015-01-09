@@ -102,6 +102,11 @@ end
 propFile = fullfile('AutomaticQC', 'imosCorrMagVelocitySetQC.txt');
 cmag     = str2double(readProperty('cmag',   propFile));
 
+% read dataset QC parameters if exist and override previous 
+% parameters file
+currentQCtest = mfilename;
+cmag = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'cmag', cmag);
+
 paramsLog = ['cmag=' num2str(cmag)];
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
@@ -145,5 +150,8 @@ if idCspd
     sample_data.variables{idCspd}.flags = flags;
     varChecked = [varChecked, {sample_data.variables{idCspd}.name}];
 end
-    
+
+% write/update dataset QC parameters
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'cmag', cmag);
+
 end

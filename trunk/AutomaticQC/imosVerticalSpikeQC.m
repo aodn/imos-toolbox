@@ -73,6 +73,12 @@ flags     = [];
 
 % read all values from imosSpikeQC properties file
 values = readProperty('*', fullfile('AutomaticQC', 'imosVerticalSpikeQC.txt'));
+
+% read dataset QC parameters if exist and override previous 
+% parameters file
+currentQCtest = mfilename;
+values = readQCparameter(sample_data.toolbox_input_file, currentQCtest, '*', values);
+
 param = strtrim(values{1});
 thresholdExpr = strtrim(values{2});
 
@@ -212,5 +218,10 @@ if any(iParam)
         % we fold the vector back into a matrix
         data = reshape(data, [len1, len2, len3]);
         flags = reshape(flags, [len1, len2, len3]);
+    end
+    
+    % write/update dataset QC parameters
+    for i=1:length(param)
+        writeQCparameter(sample_data.toolbox_input_file, currentQCtest, param{i}, thresholdExpr{i});
     end
 end

@@ -8,8 +8,8 @@ function [data, flags, paramsLog] = imosRateOfChangeQC( sample_data, data, k, ty
 % ascribed to the current data point of the set.
 % 
 % Action: PARAMETER values are flagged if
-% |Vi – Vi-1| + |Vi – Vi+1| > 2×(threshold)
-% where Vi is the current value of the parameter, Vi–1
+% |Vi ï¿½ Vi-1| + |Vi ï¿½ Vi+1| > 2ï¿½(threshold)
+% where Vi is the current value of the parameter, Viï¿½1
 % is the previous and Vi+1 the next one. If
 % the one parameter is missing, the relative part of
 % the formula is omitted and the comparison term
@@ -87,6 +87,12 @@ if ~strcmp(type, 'variables'), return; end
 
 % read all values from imosRateOfChangeQC properties file
 values = readProperty('*', fullfile('AutomaticQC', 'imosRateOfChangeQC.txt'));
+
+% read dataset QC parameters if exist and override previous 
+% parameters file
+currentQCtest = mfilename;
+values = readQCparameter(sample_data.toolbox_input_file, currentQCtest, '*', values);
+
 param = strtrim(values{1});
 thresholdExpr = strtrim(values{2});
 
@@ -215,5 +221,10 @@ if any(iParam)
             flags(:,i) = lineFlags;
         end
         clear iGoodGrad iBadGrad iBadData flagsTested lineFlags
+    end
+    
+    % write/update dataset QC parameters
+    for i=1:length(param)
+        writeQCparameter(sample_data.toolbox_input_file, currentQCtest, param{i}, thresholdExpr{i});
     end
 end
