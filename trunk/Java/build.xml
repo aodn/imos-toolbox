@@ -14,10 +14,10 @@
 	<path id="classpath">
 		<pathelement path="${targetdir}" />
 		<pathelement path="${basedir}" />
-		<fileset dir="UCanAccess">
+		<fileset dir="UCanAccess-2.0.9.2-bin">
 			<include name="**/*.jar"/>
 		</fileset>
-		<fileset dir="UCanAccess/lib">
+		<fileset dir="UCanAccess-2.0.9.2-bin/lib">
 			<include name="**/*.jar"/>
 		</fileset>
 	</path>
