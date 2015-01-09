@@ -68,7 +68,7 @@ public class Test {
     
     //String odbcArgs = "imos-ddb_bmorris";
     //String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/NSW-IMOS_DeploymentDatabase2.0.mdb";
-    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Cristian_Munoz/OceanDB/OceanDB.mdb";
+    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
 
     String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
     String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Cristian_Munoz/OceanDB/OceanDB.mdb";
@@ -93,11 +93,11 @@ public class Test {
     
     try {
 
-    	List<FieldTrip> trips = mdb.executeQuery("FieldTrip", null, null);
-    	for (FieldTrip t : trips) printObj(t);
+//    	List<FieldTrip> trips = mdb.executeQuery("FieldTrip", null, null);
+//    	for (FieldTrip t : trips) printObj(t);
     	
-    	//List<DeploymentData> deps = mdb.executeQuery("DeploymentData", null, null);
-    	//for (DeploymentData d : deps) printObj(d);
+    	List<DeploymentData> deps = mdb.executeQuery("DeploymentData", null, null);
+    	for (DeploymentData d : deps) printObj(d);
 //
 //
 //    	List<Sites> capeSites = mdb.executeQuery("Sites", "ResearchActivity", "NW Cape 2002");
