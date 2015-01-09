@@ -90,6 +90,11 @@ clear u v;
 propFile = fullfile('AutomaticQC', 'imosHorizontalVelocitySetQC.txt');
 hvel     = str2double(readProperty('hvel',      propFile));
 
+% read dataset QC parameters if exist and override previous 
+% parameters file
+currentQCtest = mfilename;
+hvel = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'hvel', hvel);
+
 paramsLog = ['hvel=' num2str(hvel)];
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
@@ -120,5 +125,8 @@ if idCspd
     sample_data.variables{idCspd}.flags = flags;
     varChecked = [varChecked, {sample_data.variables{idCspd}.name}];
 end
-    
+
+% write/update dataset QC parameters
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'hvel', hvel);
+
 end

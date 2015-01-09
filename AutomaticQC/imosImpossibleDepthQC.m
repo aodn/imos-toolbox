@@ -249,10 +249,16 @@ switch mode
         zNominalMargin  = readProperty('zNominalMargin',    fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
         maxAngle        = readProperty('maxAngle',          fullfile('AutomaticQC', 'imosImpossibleDepthQC.txt'));
         
-        paramsLog = ['zNominalMargin=' zNominalMargin ', maxAngle=' maxAngle];
+        zNominalMargin  = str2double(zNominalMargin);
+        maxAngle        = str2double(maxAngle);
         
-        zNominalMargin = str2double(zNominalMargin);
-        maxAngle    = str2double(maxAngle);
+        % read dataset QC parameters if exist and override previous 
+        % parameters file
+        currentQCtest   = mfilename;
+        zNominalMargin  = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'zNominalMargin', zNominalMargin);
+        maxAngle        = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'maxAngle', maxAngle);
+        
+        paramsLog = ['zNominalMargin=' num2str(zNominalMargin) ', maxAngle=' num2str(maxAngle)];
         
         % get nominal depths information
         instrumentNominalDepth = [];
@@ -358,6 +364,10 @@ switch mode
             data = reshape(data, [len1, len2, len3]);
             flags = reshape(flags, [len1, len2, len3]);
         end
+        
+        % write/update dataset QC parameters
+        writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'zNominalMargin', zNominalMargin);
+        writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'maxAngle', maxAngle);
         
         % update climatologyRange info for display
         climatologyRange(p).(['range' paramName]) = [instrumentNominalDepth; instrumentNominalDepth];

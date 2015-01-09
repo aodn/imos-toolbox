@@ -106,6 +106,11 @@ end
 propFile = fullfile('AutomaticQC', 'imosPercentGoodVelocitySetQC.txt');
 pgood    = str2double(readProperty('pgood',   propFile));
 
+% read dataset QC parameters if exist and override previous 
+% parameters file
+currentQCtest = mfilename;
+pgood = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'pgood', pgood);
+
 paramsLog = ['pgood=' num2str(pgood)];
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
@@ -141,5 +146,8 @@ if idCspd
     sample_data.variables{idCspd}.flags = flags;
     varChecked = [varChecked, {sample_data.variables{idCspd}.name}];
 end
-    
+
+% write/update dataset QC parameters
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'pgood', pgood);
+
 end

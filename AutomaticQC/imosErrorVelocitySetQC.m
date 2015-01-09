@@ -94,6 +94,11 @@ erv = sample_data.variables{idEcur}.data;
 propFile = fullfile('AutomaticQC', 'imosErrorVelocitySetQC.txt');
 err_vel  = str2double(readProperty('err_vel',   propFile));
 
+% read dataset QC parameters if exist and override previous 
+% parameters file
+currentQCtest = mfilename;
+err_vel = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel', err_vel);
+
 paramsLog = ['err_vel=' num2str(err_vel)];
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
@@ -134,5 +139,8 @@ if idCspd
     sample_data.variables{idCspd}.flags = flags;
     varChecked = [varChecked, {sample_data.variables{idCspd}.name}];
 end
-    
+
+% write/update dataset QC parameters
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel', err_vel);
+
 end

@@ -263,8 +263,11 @@ function displayManager(windowTitle, sample_data, callbacks)
       if strcmp(event, 'state')
         stateChanged = ~strcmp(lastState,state);
         if strcmpi(state, 'Reset Manual QC')
-            stateChanged = false; % we override stateChanged so that QC is re ran as soon as we hit the button
+            stateChanged = false; % we override stateChanged so that QC is re-ran as soon as we hit the button
         end
+        
+        if ~stateChanged, resetPropQCCallback(); end % since QC is going to be re-ran, suggest to reset QC properties
+        
         sample_data = ...
           callbacks.autoQCRequestCallback(setIdx, stateChanged);
 
@@ -433,10 +436,12 @@ function displayManager(windowTitle, sample_data, callbacks)
     %
     
       % update qc data on state change
-      if strcmp(event, 'state')
-        
-        sample_data = ...
-            callbacks.autoQCRequestCallback(setIdx, ~strcmp(lastState,state));
+      if strcmp(event, 'state')  
+          stateChanged = ~strcmp(lastState,state);
+          if ~stateChanged, resetPropQCCallback(); end % since QC is going to be re-ran, suggest to reset QC properties
+          
+          sample_data = ...
+              callbacks.autoQCRequestCallback(setIdx, stateChanged);
       end
       
       % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
@@ -492,6 +497,46 @@ function displayManager(windowTitle, sample_data, callbacks)
           qcDataCallback();
       end
     
+      function resetPropQCCallback()
+      %RESETPROPQCCALLBACK Deletes any existing .pqc qc properties file associated
+      %to the currently displayed (or all) dataset(s).
+      %
+          
+          response = questdlg(...
+              ['Reset previous QC properties '...
+              '(existing QC properties recorded for this dataset will be reset)?'],...
+              'Reset previous QC properties?', ...
+              'No', ...
+              'Reset for this data set',...
+              'Reset for all data sets',...
+              'No');
+          
+          resetIdx = setIdx;
+          
+          if ~strncmp(response, 'Reset', 5)
+              resetIdx = [];
+          end
+          
+          if strcmp(response, 'Reset for all data sets')
+              resetIdx = 1:length(sample_data);
+          end
+          
+          for j=1:length(resetIdx)
+              for i=1:length(sample_data{resetIdx(j)}.variables)
+                  if isfield(sample_data{resetIdx(j)}.variables(i), 'ancillary_comment')
+                      sample_data{resetIdx(j)}.variables(i) = rmfield(sample_data{resetIdx(j)}.variables(i), 'ancillary_comment');
+                  end
+              end
+              
+              [pqcPath, pqcFile, ~] = fileparts(sample_data{resetIdx(j)}.toolbox_input_file);
+              pqcFile = fullfile(pqcPath, [pqcFile, '.pqc']);
+              
+              if exist(pqcFile, 'file')
+                  delete(pqcFile);
+              end
+          end
+      end
+      
     function exportNetCDFCallback()
     %EXPORTNETCDFCALLBACK Called when the user clicks on the 'Export NetCDF' 
     % button. Delegates to the exportNetCDFRequestCallback function.

@@ -111,6 +111,11 @@ rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
 propFile = fullfile('AutomaticQC', 'imosSideLobeVelocitySetQC.txt');
 nBinSize = str2double(readProperty('nBinSize',   propFile));
 
+% read dataset QC parameters if exist and override previous 
+% parameters file
+currentQCtest = mfilename;
+nBinSize = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'nBinSize', nBinSize);
+    
 paramsLog = ['nBinSize=' num2str(nBinSize)];
 
 %Pull out ADCP bin details
@@ -256,4 +261,8 @@ if idCdir
     sample_data.variables{idCdir}.flags = flags;
     varChecked = [varChecked, {sample_data.variables{idCdir}.name}];
 end
+
+% write/update dataset QC parameters
+writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'nBinSize', nBinSize);
+        
 end
