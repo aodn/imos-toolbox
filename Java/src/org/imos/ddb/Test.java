@@ -35,7 +35,6 @@ import java.util.List;
 
 import org.imos.ddb.schema.DeploymentData;
 import org.imos.ddb.schema.FieldTrip;
-import org.imos.ddb.schema.Personnel;
 import org.imos.ddb.schema.Sites;
 
 /**
@@ -63,7 +62,7 @@ public class Test {
    */
   public static void main(String[] args) {
 
-    long startFreeMem, endFreeMem;
+    long startFreeMem, connectFreeMem, endFreeMem;
     DDB mdb = null;
     
     //String odbcArgs = "imos-ddb_bmorris";
@@ -71,7 +70,8 @@ public class Test {
     String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
 
     String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
-    String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Cristian_Munoz/OceanDB/OceanDB.mdb";
+    String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
+    //String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener;SingleConnection=true";
     String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener";
     String user = "";
     String password = "";
@@ -81,6 +81,12 @@ public class Test {
     jdbcArgs[2] = user;
     jdbcArgs[3] = password;
     
+    long startTime = System.currentTimeMillis();
+//    startFreeMem = Runtime.getRuntime().totalMemory();
+//    System.out.println("free mem: " + startFreeMem/1000000 + "Mb");
+    long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+    System.out.println("used mem: " + usedMem/1000000 + "Mb");
+    
     try {
     	mdb = DDB.getDDB(odbcArgs);}
     	//mdb = DDB.getDDB(jdbcArgs[0], jdbcArgs[1], jdbcArgs[2], jdbcArgs[3]);}
@@ -88,8 +94,15 @@ public class Test {
       e.printStackTrace();
       System.exit(1);
     }
+ 
+    long connectTime = System.currentTimeMillis();
+    System.out.println("Connection created in " + (connectTime - startTime)/1000 + " seconds.");
     
-    startFreeMem = Runtime.getRuntime().freeMemory();
+//    connectFreeMem = Runtime.getRuntime().totalMemory();
+//    System.out.println("free mem: " + connectFreeMem/1000000 + "Mb");
+//    System.out.println("lost mem: " + (startFreeMem - connectFreeMem)/1000000 + "Mb");
+    usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+    System.out.println("used mem: " + usedMem/1000000 + "Mb");
     
     try {
 
@@ -97,18 +110,20 @@ public class Test {
 //    	for (FieldTrip t : trips) printObj(t);
     	
     	List<DeploymentData> deps = mdb.executeQuery("DeploymentData", null, null);
-    	for (DeploymentData d : deps) printObj(d);
-//
-//
-//    	List<Sites> capeSites = mdb.executeQuery("Sites", "ResearchActivity", "NW Cape 2002");
+    	//for (DeploymentData d : deps) printObj(d);
+
+//    	List<Sites> capeSites = mdb.executeQuery("Sites", null, null);
 //    	for (Sites s : capeSites) printObj(s);
     }
     catch (Exception e) {e.printStackTrace();}
     
-    endFreeMem = Runtime.getRuntime().freeMemory();
+    long stopTime = System.currentTimeMillis();
+    System.out.println("Query performed in " + (stopTime - connectTime)/1000 + " seconds.");
     
-    System.out.println("free mem at start: " + startFreeMem);
-    System.out.println("free mem at end:   " + endFreeMem);
-    System.out.println("lost mem:          " + (startFreeMem - endFreeMem));
+//    endFreeMem = Runtime.getRuntime().totalMemory();
+//    System.out.println("free mem: " + endFreeMem/1000000 + "Mb");
+//    System.out.println("lost mem: " + (connectFreeMem - endFreeMem)/1000000 + "Mb");
+    usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+    System.out.println("used mem: " + usedMem/1000000 + "Mb");
   }
 }
