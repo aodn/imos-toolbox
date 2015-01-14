@@ -96,6 +96,12 @@ for j=1:4
 end
 if ~idMandatory, return; end
 
+% let's get the associated vertical dimension
+idVertDim = sample_data.variables{idCMAG{1}}.dimensions(2);
+if strcmpi(sample_data.dimensions{idVertDim}.name, 'DIST_ALONG_BEAMS')
+    disp(['Warning : teledyneSetQC applied with non tilt-corrected CMAGn and ABSIn (no bin mapping) on dataset ' sample_data.toolbox_input_file]);
+end
+
 qcSet           = str2double(readProperty('toolbox.qc_set'));
 badFlag         = imosQCFlag('bad',             qcSet, 'flag');
 goodFlag        = imosQCFlag('good',            qcSet, 'flag');

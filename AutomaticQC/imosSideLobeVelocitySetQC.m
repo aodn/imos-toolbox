@@ -73,7 +73,12 @@ paramsLog  = [];
 
 % get all necessary dimensions and variables id in sample_data struct
 idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
-if idHeight == 0, idHeight = getVar(sample_data.dimensions, 'DIST_ALONG_BEAMS'); end % is equivalent when tilt is negligeable
+if idHeight == 0
+    idHeight = getVar(sample_data.dimensions, 'DIST_ALONG_BEAMS'); % is equivalent when tilt is negligeable
+    if idHeight ~= 0
+        disp(['Warning : imosSideLobeVelocitySetQC applied on a non tilt-corrected (no bin mapping) dataset ' sample_data.toolbox_input_file]);
+    end
+end
 idPres = 0;
 idPresRel = 0;
 idDepth = 0;
@@ -139,7 +144,7 @@ if idPres == 0 && idPresRel == 0 && idDepth == 0
         error(['No pressure data in file ' sample_data.toolbox_input_file ' => Fill instrument_nominal_depth!']);
     else
         pressure = ones(lenData, 1).*(sample_data.instrument_nominal_depth);
-        disp(['Info : imosSideLobeContSetQC uses nominal depth because no pressure data in file ' sample_data.toolbox_input_file]);
+        disp(['Info : imosSideLobeVelocitySetQC uses nominal depth because no pressure data in file ' sample_data.toolbox_input_file]);
     end
 elseif idPres ~= 0 || idPresRel ~= 0
     if idPresRel == 0
@@ -173,7 +178,7 @@ if all(~ff)
         error(['Bad pressure/depth data in file ' sample_data.toolbox_input_file ' => Fill instrument_nominal_depth!']);
     else
         depth(~ff) = sample_data.instrument_nominal_depth;
-        disp(['Info : imosSideLobeContSetQC uses nominal depth ' num2str(sample_data.instrument_nominal_depth) 'm instead of actual pressure/depth data (not one has been flagged not ''bad'' in file ' sample_data.toolbox_input_file ')']);
+        disp(['Info : imosSideLobeVelocitySetQC uses nominal depth ' num2str(sample_data.instrument_nominal_depth) 'm instead of actual pressure/depth data (not one has been flagged not ''bad'' in file ' sample_data.toolbox_input_file ')']);
     end
 else
     if any(~ff)
@@ -182,7 +187,7 @@ else
         % is no contaminated depth.
         medianDepth = median(depth(ff));
         depth(~ff) = medianDepth;
-        disp(['Info : imosSideLobeContSetQC uses median good depth ' num2str(medianDepth, '%.1f') 'm over deployment instead of actual pressure/depth data flagged as not ''good'' in file ' sample_data.toolbox_input_file]);
+        disp(['Info : imosSideLobeVelocitySetQC uses median good depth ' num2str(medianDepth, '%.1f') 'm over deployment instead of actual pressure/depth data flagged as not ''good'' in file ' sample_data.toolbox_input_file]);
     end
 end
 
