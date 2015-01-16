@@ -1,4 +1,4 @@
-function sample_data = transformPP( sample_data, auto )
+function sample_data = transformPP( sample_data, qcLevel, auto )
 %TRANSFORMPP Prompts the user to select from a list of transformation 
 % functions for the variables in the given data sets.
 %
@@ -28,7 +28,8 @@ function sample_data = transformPP( sample_data, auto )
 %
 % Inputs:
 %   sample_data - cell array of sample_data structs.
-%   auto - logical, run pre-processing in batch mode
+%   qcLevel     - string, 'raw' or 'qc'. Some pp not applied when 'raw'.
+%   auto        - logical, run pre-processing in batch mode.
 %
 % Outputs:
 %   sample_data - cell array of sample_data structs.
@@ -66,13 +67,15 @@ function sample_data = transformPP( sample_data, auto )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,2,nargin));
+  error(nargchk(2,3,nargin));
 
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
   
   % auto logical in input to enable running under batch processing
-  if nargin<2, auto=false; end
+  if nargin<3, auto=false; end
+  
+  if strcmpi(qcLevel, 'raw'), return; end
   
   % generate descriptions for each data set
   descs = {};

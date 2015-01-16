@@ -1,4 +1,4 @@
-function sample_data = preprocessManager( sample_data,auto)
+function sample_data = preprocessManager( sample_data, qcLevel, auto )
 %PREPROCESSMANAGER Runs preprocessing filters over the given sample data 
 % structs.
 %
@@ -7,6 +7,8 @@ function sample_data = preprocessManager( sample_data,auto)
 %
 % Inputs:
 %   sample_data - cell array of sample_data structs.
+%   qcLevel     - string, 'raw' or 'qc'. Some pp not applied when 'raw'.
+%   auto        - logical, check if pre-processing in batch mode.
 %
 % Outputs:
 %   sample_data - same as input, potentially with preprocessing
@@ -46,11 +48,11 @@ function sample_data = preprocessManager( sample_data,auto)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,2,nargin));
+  error(nargchk(2,3,nargin));
 
   %BDM - 12/08/2010 - added auto logical in input to enable running under
   %batch processing
-  if nargin < 2, auto = false; end
+  if nargin < 3, auto = false; end
     
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
 
@@ -114,11 +116,11 @@ function sample_data = preprocessManager( sample_data,auto)
     else
         allPpChain = [allPpChain ' ' ppChain{k}];
     end
-    sample_data = ppFunc(sample_data, auto);
+    sample_data = ppFunc(sample_data, qcLevel, auto);
   end
   %BDM - 17/08/2010 - Added disp to let user know what is going on in
   %batch mode
-  if auto
+  if auto && strcmpi(qcLevel, 'raw')
       fprintf('%s\n', ['Preprocessing using : ' allPpChain]);
   end
 

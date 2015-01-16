@@ -1,5 +1,5 @@
 function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
-  sample_data, var, ax, highlight, click )
+  sample_data, var, ax, highlight )
 %GETSELECTEDTIMESERIESTIMEFREQUENCY Returns the currently selected data on the 
 % given time/frequency axis.
 %
@@ -8,7 +8,6 @@ function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
 %   var         - Variable in question (index into sample_data.variables).
 %   ax          - Axis in question.
 %   highlight   - Handle to the highlight object.
-%   click       - Where the user clicked the mouse.
 % 
 % Outputs:
 %   dataIdx     - Vector of indices into the data, defining the indices
@@ -47,13 +46,12 @@ function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5, 5, nargin));
+error(nargchk(4, 4, nargin));
 
 if ~isstruct(sample_data), error('sample_data must be a struct');        end
 if ~isnumeric(var),        error('var must be numeric');                 end
 if ~ishandle(ax),          error('ax must be a graphics handle');        end
 if ~ishandle(highlight),   error('highlight must be a graphics handle'); end
-if ~isnumeric(click),      error('click must be numeric');               end
 
 dataIdx = [];
 
