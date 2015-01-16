@@ -1,11 +1,12 @@
-function sample_data = pressureRelPP( sample_data, auto )
+function sample_data = pressureRelPP( sample_data, qcLevel, auto )
 %PRESSURERELPP Adds a PRES_REL variable to the given data sets, if not
 % already exist and if they contain a PRES variable.
 %
 %
 % Inputs:
 %   sample_data - cell array of data sets, ideally with PRES variables.
-%   auto - logical, run pre-processing in batch mode
+%   qcLevel     - string, 'raw' or 'qc'. Some pp not applied when 'raw'.
+%   auto        - logical, run pre-processing in batch mode.
 %
 % Outputs:
 %   sample_data - the same data sets, with PRES_REL variables added.
@@ -42,13 +43,15 @@ function sample_data = pressureRelPP( sample_data, auto )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 2, nargin));
+error(nargchk(2, 3, nargin));
 
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
 
 % auto logical in input to enable running under batch processing
-if nargin<2, auto=false; end
+if nargin<3, auto=false; end
+
+if strcmpi(qcLevel, 'raw'), return; end
 
 pressureRelFile = ['Preprocessing' filesep 'pressureRelPP.txt'];
 lenSam = length(sample_data);

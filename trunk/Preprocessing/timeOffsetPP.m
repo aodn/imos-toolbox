@@ -1,4 +1,4 @@
-function sample_data = timeOffsetPP(sample_data, auto)
+function sample_data = timeOffsetPP(sample_data, qcLevel, auto)
 %TIMEOFFSETPP Prompts the user to apply time correction to the given data 
 % sets.
 %
@@ -14,15 +14,17 @@ function sample_data = timeOffsetPP(sample_data, auto)
 % Inputs:
 %   sample_data - cell array of structs, the data sets to which time
 %                 correction should be applied.
-%   auto - logical, run pre-processing in batch mode
+%   qcLevel     - string, 'raw' or 'qc'. Some pp not applied when 'raw'.
+%   auto        - logical, run pre-processing in batch mode.
 %
 % Outputs:
 %   sample_data - same as input, with time correction applied.
 %
 
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor: Brad Morris <b.morris@unsw.edu.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Brad Morris <b.morris@unsw.edu.au>
+%               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -55,13 +57,13 @@ function sample_data = timeOffsetPP(sample_data, auto)
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-  error(nargchk(1,2,nargin));
+  error(nargchk(2,3,nargin));
   
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
   
   % auto logical in input to enable running under batch processing
-  if nargin<2, auto=false; end
+  if nargin<3, auto=false; end
       
   offsetFile = ['Preprocessing' filesep 'timeOffsetPP.txt'];
 

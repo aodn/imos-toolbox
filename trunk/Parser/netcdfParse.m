@@ -93,6 +93,10 @@ function sample_data = netcdfParse( filename, mode )
     end
   end
     
+  % update date_created attribute so that the newly exported file has a
+  % different creation date
+  globals.date_created = now_utc;
+  
   % get dimensions
   k = 0;
   try

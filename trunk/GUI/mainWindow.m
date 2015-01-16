@@ -93,7 +93,7 @@ function mainWindow(...
   if ~isnumeric(startState), error('initialState must be a numeric');       end
   if ~isa(selectionCallback,... 
          'function_handle'), error('selectionCallback must be a function'); end
-  
+ 
   currentState = states{startState};
   
   % sample menu entries (1-1 mapping to sample_data structs)
@@ -248,7 +248,7 @@ function mainWindow(...
   set(graphButton,  'Callback', @graphButtonCallback);
   
   set(fig, 'Visible', 'on');
-  createVarPanel(sample_data{1});
+  createVarPanel(sample_data{1}, []);
   selectionChange('state');
   
   tb      = findall(fig, 'Type', 'uitoolbar');
@@ -349,7 +349,7 @@ function mainWindow(...
   % menu. Updates the variables panel, then delegates to selectionChange.
   % 
     sam = getSelectedData();
-    createVarPanel(sam);
+    createVarPanel(sam, []);
     selectionChange('set');
   end
 
@@ -367,6 +367,11 @@ function mainWindow(...
 
     currentState = get(source, 'String');
     selectionChange('state');
+    
+    % reset varPanel
+    sam = getSelectedData();
+    vars = getSelectedVars();
+    createVarPanel(sam, vars);
   end
 
   function graphButtonCallback(source, ev)
@@ -749,7 +754,7 @@ end
 
   %% Miscellaneous
   
-  function createVarPanel(sam)
+  function createVarPanel(sam, vars)
   %CREATEVARPANEL Creates the variable selection panel. Called when the
   % selected dataset changes. The panel allows users to select which
   % variables should be displayed.
@@ -762,7 +767,7 @@ end
         case 'profile'
             % we don't want to plot TIME, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
             p = 5;
-            
+                
             % we don't want to plot DEPTH if it's a variable
             depth = getVar(sam.variables, 'DEPTH');
             if depth ~= 0
@@ -772,19 +777,27 @@ end
             % we don't want to plot LATITUDE, LONGITUDE, NOMINAL_DEPTH
             p = 3;
     end
-    
+        
     % create checkboxes for new data set. The order in which the checkboxes
     % are created is the same as the order of the variables - this is
-    % important, as the getSelectedParams function assumes that the indices 
+    % important, as the getSelectedParams function assumes that the indices
     % line up.
     checkboxes(:) = [];
     n = length(sam.variables);
     for m = 1+p:n
-      % enable at most 3 variables initially, 
-      % otherwise the graph will be cluttered
-      val = 1;
-      if m-p > 3, val = 0; end
-      
+        if isempty(vars)
+            % enable at most 3 variables initially,
+            % otherwise the graph will be cluttered
+            val = 1;
+            if m-p > 3, val = 0; end
+        else
+            if any(m-p == vars)
+                val = 1;
+            else
+                val = 0;
+            end
+        end
+
 %       checkboxes(m) = uicontrol(...
 %         'Parent',   varPanel,...
 %         'Style',    'checkbox',...
@@ -807,7 +820,7 @@ end
     end
 %     set(checkboxes, 'Units', 'pixels');
     
-    % the checkboxes are saved in UserData field to make them 
+    % the checkboxes are saved in UserData field to make them
     % easy to retrieve in the getSelectedVars function
     set(varPanel, 'UserData', checkboxes);
   end

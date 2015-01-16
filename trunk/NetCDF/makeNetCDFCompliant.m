@@ -189,10 +189,9 @@ function target = mergeAtts ( target, atts )
   
   for m = 1:length(fields)
     
-    % only overwrite existing empty fields in the target except from
-    % date_created
+    % only overwrite existing empty fields in the target
     if isfield(target, fields{m})
-        if ~isempty(target.(fields{m})) && ~strcmpi(fields{m}, 'date_created'), continue; end;
+        if ~isempty(target.(fields{m})), continue; end;
     end
     
     target.(fields{m}) = atts.(fields{m});

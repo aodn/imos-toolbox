@@ -187,19 +187,20 @@ for i=1:lenMooring
     fprintf('%s\n', ['Importing ' mode ' set of deployments ' distinctMooring{i} ' : ']);
     iMooring = strcmpi(distinctMooring(i), moorings);
     
-    sample_data   = importManager(toolboxVersion, true, iMooring);
+    sample_data = importManager(toolboxVersion, true, iMooring);
     
     if isempty(sample_data), continue; end
     
-    sample_data   = preprocessManager(sample_data, true);
-    
-    qc_data       = autoQCManager(sample_data, true);
+    raw_data = preprocessManager(sample_data, 'raw', true);
+    qc_data  = preprocessManager(sample_data, 'qc', true);
+    clear sample_data;
+    qc_data  = autoQCManager(qc_data, true);
     
     [~, targetFolder] = fileparts(exportDir);
     fprintf('%s', ['Writing ' distinctMooring{i} ' to folder ' targetFolder ' : '])
 
-    exportManager({sample_data}, {'raw'}, 'netcdf', true);
-    clear sample_data; % important, otherwise memory leak leads to crash
+    exportManager({raw_data}, {'raw'}, 'netcdf', true);
+    clear raw_data; % important, otherwise memory leak leads to crash
     if qc_data{1}.meta.level == 1
         exportManager({qc_data}, {'QC'}, 'netcdf', true);
         clear qc_data; % important, otherwise memory leak leads to crash
