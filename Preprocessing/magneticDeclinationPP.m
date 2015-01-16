@@ -1,4 +1,4 @@
-function sample_data = magneticDeclinationPP( sample_data, auto )
+function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
 %MAGNETICDECLINATIONPP computes and applies the relevant magnetic 
 % declination correction to the datasets.
 %
@@ -11,7 +11,8 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
 %   sample_data - cell array of structs, the data sets for which a magnetic
 %                 measurement (ex. magnetic compass) dependent data (ex.
 %                 ADCP current direction) should be modified.
-%   auto - logical, check if pre-processing in batch mode
+%   qcLevel     - string, 'raw' or 'qc'. Some pp not applied when 'raw'.
+%   auto        - logical, check if pre-processing in batch mode.
 %
 % Outputs:
 %   sample_data - same as input, with data parameters referring to true 
@@ -49,10 +50,12 @@ function sample_data = magneticDeclinationPP( sample_data, auto )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1, 2, nargin));
+  error(nargchk(2, 3, nargin));
 
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
+  
+  if strcmpi(qcLevel, 'raw'), return; end
   
   switch computer
       case 'GLNXA64'

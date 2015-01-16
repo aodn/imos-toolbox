@@ -1,4 +1,4 @@
-function sample_data = soakStatusPP( sample_data, auto )
+function sample_data = soakStatusPP( sample_data, qcLevel, auto )
 %binCTDpressPP( sample_data, auto)
 %
 % Checks surface depth at which pump
@@ -7,7 +7,9 @@ function sample_data = soakStatusPP( sample_data, auto )
 %
 % Inputs:
 %   sample_data - cell array of data sets, ideally with pressure variables.
-%   auto - logical, run pre-processing in batch mode
+%   qcLevel     - string, 'raw' or 'qc'. Some pp not applied when 'raw'.
+%   auto        - logical, run pre-processing in batch mode.
+%
 %   From soakStatusPP:
 %           SoakDelay1:  Minimum Soak Time (default 1min)
 %           SoakDelay2:  Optimal Soak Time (default 2min)
@@ -23,6 +25,7 @@ function sample_data = soakStatusPP( sample_data, auto )
 %                       from sensors are probably OK
 %            2:  Pump On and Optimal Soak Interval has passed - data from
 %                       all sensors assumed to be good.
+%
 % Author:       Charles James (charles.james@sa.gov.au)
 %
 
@@ -55,13 +58,15 @@ function sample_data = soakStatusPP( sample_data, auto )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 2, nargin));
+error(nargchk(2, 3, nargin));
 
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
 
 % auto logical in input to enable running under batch processing
-if nargin<2, auto=false; end
+if nargin<3, auto=false; end
+
+if strcmpi(qcLevel, 'raw'), return; end
 
 % read options from parameter file  Minimum Soak Delay: SoakDelay1 (sec.)
 %                                   Optimal Soak Delay: SoakDelay2 (sec.)

@@ -1,4 +1,4 @@
-function sample_data = depthPP( sample_data, auto )
+function sample_data = depthPP( sample_data, qcLevel, auto )
 %DEPTHPP Adds a depth variable to the given data sets, if they contain a
 % pressure variable.
 %
@@ -15,7 +15,8 @@ function sample_data = depthPP( sample_data, auto )
 %
 % Inputs:
 %   sample_data - cell array of data sets, ideally with pressure variables.
-%   auto - logical, run pre-processing in batch mode
+%   qcLevel     - string, 'raw' or 'qc'. Some pp not applied when 'raw'.
+%   auto        - logical, run pre-processing in batch mode.
 %
 % Outputs:
 %   sample_data - the same data sets, with depth variables added.
@@ -53,13 +54,15 @@ function sample_data = depthPP( sample_data, auto )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 2, nargin));
+error(nargchk(2, 3, nargin));
 
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
 
 % auto logical in input to enable running under batch processing
-if nargin<2, auto=false; end
+if nargin<3, auto=false; end
+
+if strcmpi(qcLevel, 'raw'), return; end
 
 % read options from parameter file
 depthFile       = ['Preprocessing' filesep 'depthPP.txt'];

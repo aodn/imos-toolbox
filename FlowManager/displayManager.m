@@ -115,6 +115,10 @@ function displayManager(windowTitle, sample_data, callbacks)
   qcSet      = str2double(readProperty('toolbox.qc_set'));
   badFlag    = imosQCFlag('bad', qcSet, 'flag');
   
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
   % define the user options, and create the main window
   states = {'Import', 'Metadata', 'Raw data', 'QC data', 'QC stats', 'Reset manual QC' ...
             'Export NetCDF', 'Export Raw'};
@@ -183,10 +187,6 @@ function displayManager(windowTitle, sample_data, callbacks)
     % data set.
     %
     
-      % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
-      % If no value is set then default mode is 'timeSeries'
-      mode = lower(readProperty('toolbox.mode'));
-    
       % display metadata viewer, allowing user to modify metadata
       viewMetadata(panel, sample_data{setIdx}, ...
         @metadataUpdateWrapperCallback,...
@@ -233,8 +233,18 @@ function displayManager(windowTitle, sample_data, callbacks)
 
         % update GUI with raw data set
         for k = 1:length(sample_data), updateCallback(sample_data{k}); end
+
       end
 
+      % we remove potentially variables that don't exist from qc to raw
+      switch mode
+          case 'profile'
+              nVar = length(sample_data{setIdx}.variables) - 5;
+          otherwise
+              nVar = length(sample_data{setIdx}.variables) - 3;
+      end
+      vars(vars > nVar) = [];
+    
       % display selected raw data
       try
         graphFunc = getGraphFunc(graphType, 'graph', '');
@@ -273,6 +283,7 @@ function displayManager(windowTitle, sample_data, callbacks)
 
         % update GUI with QC'd data set
         for k = 1:length(sample_data), updateCallback(sample_data{k}); end
+
       end
 
       % redisplay the data
@@ -443,10 +454,6 @@ function displayManager(windowTitle, sample_data, callbacks)
           sample_data = ...
               callbacks.autoQCRequestCallback(setIdx, stateChanged);
       end
-      
-      % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
-      % If no value is set then default mode is 'timeSeries'
-      mode = lower(readProperty('toolbox.mode'));
     
       % display QC stats viewer
       viewQCstats(panel, sample_data{setIdx}, mode);

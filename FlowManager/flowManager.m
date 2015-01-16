@@ -44,16 +44,18 @@ function flowManager(toolboxVersion)
   lastAutoQCSetIdx = 0;
   
   % import data
-  rawData = importManager(toolboxVersion);
+  nonUTCRawData = importManager(toolboxVersion);
   
-  if isempty(rawData), return; end
+  if isempty(nonUTCRawData), return; end
   
   % add an index field to each data struct
-  for k = 1:length(rawData), rawData{k}.meta.index = k; end
+  for k = 1:length(nonUTCRawData), nonUTCRawData{k}.meta.index = k; end
   
   % preprocess data
-  rawData = preprocessManager(rawData);
-
+  rawData       = preprocessManager(nonUTCRawData, 'raw', false); % only apply TIME to UTC pre-processing routines
+  autoQCData    = preprocessManager(nonUTCRawData, 'qc',  true);  % auto is true so that GUI only appears once
+  clear nonUTCRawData;
+  
   % display data
   callbacks.importRequestCallback       = @importRequestCallback;
   callbacks.metadataUpdateCallback      = @metadataUpdateCallback;
@@ -102,14 +104,17 @@ function flowManager(toolboxVersion)
     end
     
     % preprocess new data
-    importedData = preprocessManager(importedData);
+    importedRawData = preprocessManager(importedData, 'raw');
+    importedQCData  = preprocessManager(importedData, 'qc');
     
     % insert the new data into the rawData array, and run QC if necessary
     startIdx = (length(rawData)+1);
     endIdx   = startIdx + length(importedData) - 1;
-    rawData = [rawData importedData];
+    rawData     = [rawData importedRawData];
+    autoQCData  = [autoQCData importedQCData];
+    clear importedRawData importedQCData;
     
-    if ~isempty(autoQCData)
+    if autoQCData{end}.meta.level == 1 % previously imported datasets have been QC'd already
       autoQCRequestCallback(startIdx:endIdx, 0); 
       
       % if user cancelled auto QC process, the autoQCData and rawData arrays
@@ -127,7 +132,7 @@ function flowManager(toolboxVersion)
         end
       end
     end
-  
+    clear importedData;
   end
               
   function metadataUpdateCallback(sample_data)
@@ -142,6 +147,7 @@ function flowManager(toolboxVersion)
     if ~isempty(autoQCData)
       autoQCData{idx} = sync(sample_data, autoQCData{idx}); 
     end
+    clear sample_data;
     
     function updatedTarget = sync(source, target)
 
@@ -254,7 +260,7 @@ function flowManager(toolboxVersion)
   function sample_data = rawDataRequestCallback()
   %RAWDATAREQUESTCALLBACK Called when raw data is needed. Returns the raw
   %data set.
-  
+  %
     sample_data = rawData;
   end
   
@@ -275,10 +281,9 @@ function flowManager(toolboxVersion)
     lastAutoQCSetIdx = setIdx;
 
     % if QC has not been run before, run QC over every data set
-    if isempty(autoQCData)
+    if autoQCData{1}.meta.level == 0
       
-      setIdx = 1:length(rawData);
-      sample_data = rawData;
+      setIdx = 1:length(sample_data);
     
     % if just a state  change, return previous QC data
     elseif stateChange, return;
@@ -300,11 +305,11 @@ function flowManager(toolboxVersion)
       if ~strncmp(response, 'Re-run', 6), return; end
       
       if strcmp(response, 'Re-run for all data sets')
-        setIdx = 1:length(rawData);
+        setIdx = 1:length(sample_data);
       end
     
     % otherwise if no new data sets, return the existing auto QC data
-    elseif ~any(setIdx > length(autoQCData))
+    elseif ~any(setIdx > length(sample_data))
         return;
     end
     
@@ -312,13 +317,11 @@ function flowManager(toolboxVersion)
     lastSetIdx = setIdx;
 
     % run QC routines over raw data
-    aqc = autoQCManager(rawData(setIdx));
+    aqc = autoQCManager(sample_data(setIdx));
     
-    % if user interrupted process, return either raw data or old QC data
+    % if user interrupted process, return either pre-processed data (if no QC performed yet) or old QC data
     if isempty(aqc)
-      if isempty(autoQCData), aqc = rawData; 
-      else                    return; 
-      end
+      aqc = autoQCData(setIdx);
     end
         
     % otherwise return new QC data
@@ -381,7 +384,7 @@ function flowManager(toolboxVersion)
       data = {rawData}; 
       names = {'Raw'};
     end
-    if ~isempty(autoQCData)
+    if autoQCData{1}.meta.level == 1
       data = [data {autoQCData}];
       names = [names, {'QC'}];
     end

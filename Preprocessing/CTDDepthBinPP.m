@@ -1,11 +1,13 @@
-function sample_data = CTDDepthBinPP( sample_data, auto )
+function sample_data = CTDDepthBinPP( sample_data, qcLevel, auto )
 %CTDDepthBinPP( sample_data, auto)
 %
 % Bins vertical depths
 %
 % Inputs:
 %   sample_data - cell array of data sets, ideally with depth variable.
-%   auto - logical, run pre-processing in batch mode
+%   qcLevel     - string, 'raw' or 'qc'. Some pp not applied when 'raw'.
+%   auto        - logical, run pre-processing in batch mode.
+%
 %   From CTDPresBinPP.txt:
 %           Bin Size:    Bin Size for vertical binning (default 1m)
 %
@@ -44,13 +46,15 @@ function sample_data = CTDDepthBinPP( sample_data, auto )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 2, nargin));
+error(nargchk(2, 3, nargin));
 
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
 
 % auto logical in input to enable running under batch processing
-if nargin<2, auto=false; end
+if nargin<3, auto=false; end
+
+if strcmpi(qcLevel, 'raw'), return; end
 
 % read options from parameter file  Minimum Soak Delay: SoakDelay1 (sec.)
 %                                   Optimal Soak Delay: SoakDelay2 (sec.)
@@ -125,9 +129,17 @@ for k=1:length(sample_data) % going through different casts
        
        % redefine current ctd cast
        sample_data{k} = curSam;
+       
+       CTDDepthBinComment = 'CTDDepthBinPP: Every variable function of DEPTH has been vertically binned with a bin size of 1m.';
+       
+       history = sample_data{k}.history;
+       if isempty(history)
+           sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), CTDDepthBinComment);
+       else
+           sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), CTDDepthBinComment);
+       end
     end
 end
 
-% setUserData(sample_data);
 
 end
