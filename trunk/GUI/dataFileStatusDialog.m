@@ -261,9 +261,20 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   % deployment.
   %
   
-    [newFile path] = uigetfile('*', 'Select Data File',...
-                               readProperty('startDialog.dataDir'),...
+    % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
+    % If no value is set then default mode is 'timeSeries'
+    mode = lower(readProperty('toolbox.mode'));
+
+    switch mode
+        case 'profile'
+            [newFile path] = uigetfile('*', 'Select Data File',...
+                               readProperty('startDialog.dataDir.profile'),...
                                'MultiSelect', 'on');
+        otherwise
+            [newFile path] = uigetfile('*', 'Select Data File',...
+                               readProperty('startDialog.dataDir.timeSeries'),...
+                               'MultiSelect', 'on');
+    end
     
     % user cancelled dialog
     if newFile == 0, return; end

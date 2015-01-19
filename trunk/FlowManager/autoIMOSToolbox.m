@@ -65,13 +65,27 @@ function autoIMOSToolbox(toolboxVersion, fieldTrip, dataDir, ppChain, qcChain, e
 %
 error(nargchk(1, 6, nargin));
 
+% get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+% If no value is set then default mode is 'timeSeries'
+mode = lower(readProperty('toolbox.mode'));
+    
 % validate and save field trip
 if nargin > 1
     if isnumeric(fieldTrip), error('field trip must be a string'); end
-    writeProperty('startDialog.fieldTrip', fieldTrip);
+    switch mode
+        case 'profile'
+            writeProperty('startDialog.fieldTrip.profile', fieldTrip);
+        otherwise
+            writeProperty('startDialog.fieldTrip.timeSeries', fieldTrip);
+    end
 else
     try
-        fieldTrip = readProperty('startDialog.fieldTrip');
+        switch mode
+            case 'profile'
+                fieldTrip = readProperty('startDialog.fieldTrip.profile');
+            otherwise
+                fieldTrip = readProperty('startDialog.fieldTrip.timeSeries');
+        end
     catch e
     end
 end
@@ -80,11 +94,21 @@ end
 if nargin > 2
     if ~ischar(dataDir),       error('dataDir must be a string');    end
     if ~exist(dataDir, 'dir'), error('dataDir must be a directory'); end
-    
-    writeProperty('startDialog.dataDir', dataDir);
+
+    switch mode
+        case 'profile'
+            writeProperty('startDialog.dataDir.profile', dataDir);
+        otherwise
+            writeProperty('startDialog.dataDir.timeSeries', dataDir);
+    end
 else
     try
-        dataDir = readProperty('startDialog.dataDir');
+        switch mode
+            case 'profile'
+                dataDir = readProperty('startDialog.dataDir.profile');
+            otherwise
+                dataDir = readProperty('startDialog.dataDir.timeSeries');
+        end
     catch e
     end
 end
@@ -109,7 +133,13 @@ if nargin > 3
     else
         ppChainStr = '';
     end
-    writeProperty('preprocessManager.preprocessChain', ppChainStr);
+    
+    switch mode
+        case 'profile'
+            writeProperty('preprocessManager.preprocessChain.profile', ppChainStr);
+        otherwise
+            writeProperty('preprocessManager.preprocessChain.timeSeries', ppChainStr);
+    end
 end
 
 % validate and save qc chain
@@ -133,9 +163,6 @@ if nargin > 4
         qcChainStr = '';
     end
     
-    % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-    % If no value is set then default mode is 'timeSeries'
-    mode = lower(readProperty('toolbox.mode'));
     switch mode
         case 'profile'
             writeProperty('autoQCManager.autoQCChain.profile', qcChainStr);
@@ -191,8 +218,8 @@ for i=1:lenMooring
     
     if isempty(sample_data), continue; end
     
-    raw_data = preprocessManager(sample_data, 'raw', true);
-    qc_data  = preprocessManager(sample_data, 'qc', true);
+    raw_data = preprocessManager(sample_data, 'raw', mode, true);
+    qc_data  = preprocessManager(sample_data, 'qc', mode, true);
     clear sample_data;
     qc_data  = autoQCManager(qc_data, true);
     

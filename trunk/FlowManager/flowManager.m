@@ -43,6 +43,10 @@ function flowManager(toolboxVersion)
   
   lastAutoQCSetIdx = 0;
   
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
   % import data
   nonUTCRawData = importManager(toolboxVersion);
   
@@ -52,8 +56,8 @@ function flowManager(toolboxVersion)
   for k = 1:length(nonUTCRawData), nonUTCRawData{k}.meta.index = k; end
   
   % preprocess data
-  rawData       = preprocessManager(nonUTCRawData, 'raw', false); % only apply TIME to UTC pre-processing routines
-  autoQCData    = preprocessManager(nonUTCRawData, 'qc',  true);  % auto is true so that GUI only appears once
+  rawData       = preprocessManager(nonUTCRawData, 'raw', mode, false); % only apply TIME to UTC pre-processing routines
+  autoQCData    = preprocessManager(nonUTCRawData, 'qc',  mode, true);  % auto is true so that GUI only appears once
   clear nonUTCRawData;
   
   % display data
@@ -104,8 +108,8 @@ function flowManager(toolboxVersion)
     end
     
     % preprocess new data
-    importedRawData = preprocessManager(importedData, 'raw');
-    importedQCData  = preprocessManager(importedData, 'qc');
+    importedRawData = preprocessManager(importedData, mode, 'raw');
+    importedQCData  = preprocessManager(importedData, mode, 'qc');
     
     % insert the new data into the rawData array, and run QC if necessary
     startIdx = (length(rawData)+1);
