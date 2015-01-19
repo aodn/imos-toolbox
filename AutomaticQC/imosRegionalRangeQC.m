@@ -177,3 +177,60 @@ else
 end
 
 end
+
+function [regionalRangeMin, regionalRangeMax, isSite] = getImosRegionalRange(siteName, paramName)
+%GETIMOSREGIONALRANGE Returns the regionalRangeMin, regionalRangeMax thresholds 
+% to QC data with the regional range QC test. 
+%
+% These thresholds values were taken from an histogram distribution
+% analysis either from historical water samples or in-situ sensor data. If
+% no threshold value is found then NaN is returned.
+%
+% Inputs:
+%   siteName  - siteName of the required site. 
+%   paramName - paramName of the required IMOS parameter. 
+%
+% Outputs:
+%   regionalRangeMin - lower threshold value for the regional range test
+%   regionalRangeMax - upper threshold value for the regional range test
+%   isSite           - boolean true if site is found in the list
+%
+
+error(nargchk(2, 2, nargin));
+if ~ischar(siteName),    error('siteName must be a string'); end
+if ~ischar(paramName),   error('paramName must be a string'); end
+
+regionalRangeMin = NaN;
+regionalRangeMax = NaN;
+isSite = false;
+
+path = '';
+if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
+if isempty(path), path = pwd; end
+path = fullfile(path, 'AutomaticQC');
+
+fid = -1;
+regRange = [];
+try
+  fid = fopen([path filesep 'imosRegionalRangeQC.txt'], 'rt');
+  if fid == -1, return; end
+  
+  regRange = textscan(fid, '%s%s%f%f', 'delimiter', ',', 'commentStyle', '%');
+  fclose(fid);
+catch e
+  if fid ~= -1, fclose(fid); end
+  rethrow(e);
+end
+
+% look for a site and parameter match
+iSite  = strcmpi(siteName,  regRange{1});
+iParam = strcmpi(paramName, regRange{2});
+iLine = iSite & iParam;
+
+if any(iSite), isSite = true; end
+
+if any(iLine)
+    regionalRangeMin = regRange{3}(iLine);
+    regionalRangeMax = regRange{4}(iLine);
+end
+end
