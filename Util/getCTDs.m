@@ -54,14 +54,14 @@ sites = struct;
 % prompt the user to select a field trip and
 % directory which contains raw data files
 if ~auto
-    [fieldTrip dataDir] = startDialog();
+    [fieldTrip dataDir] = startDialog('profile');
     % if automatic, just get the defaults from toolboxProperties.txt
 else
-    dataDir   = readProperty('startDialog.dataDir');
-    fieldTrip = readProperty('startDialog.fieldTrip');
+    dataDir   = readProperty('startDialog.dataDir.profile');
+    fieldTrip = readProperty('startDialog.fieldTrip.profile');
     
-    if isempty(dataDir), error('startDialog.dataDir is not set');   end
-    if isnan(fieldTrip), error('startDialog.fieldTrip is not set'); end
+    if isempty(dataDir), error('startDialog.dataDir.profile is not set');   end
+    if isnan(fieldTrip), error('startDialog.fieldTrip.profile is not set'); end
     
     fieldTrip = executeDDBQuery('FieldTrip', 'FieldTripID', fieldTrip);
 end

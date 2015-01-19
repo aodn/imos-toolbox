@@ -1,4 +1,4 @@
-function sample_data = preprocessManager( sample_data, qcLevel, auto )
+function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
 %PREPROCESSMANAGER Runs preprocessing filters over the given sample data 
 % structs.
 %
@@ -8,6 +8,7 @@ function sample_data = preprocessManager( sample_data, qcLevel, auto )
 % Inputs:
 %   sample_data - cell array of sample_data structs.
 %   qcLevel     - string, 'raw' or 'qc'. Some pp not applied when 'raw'.
+%   mode        - string, 'timeSerie' or 'profile'.
 %   auto        - logical, check if pre-processing in batch mode.
 %
 % Outputs:
@@ -48,11 +49,11 @@ function sample_data = preprocessManager( sample_data, qcLevel, auto )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,3,nargin));
+  error(nargchk(3,4,nargin));
 
   %BDM - 12/08/2010 - added auto logical in input to enable running under
   %batch processing
-  if nargin < 3, auto = false; end
+  if nargin < 4, auto = false; end
     
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
 
@@ -73,9 +74,15 @@ function sample_data = preprocessManager( sample_data, qcLevel, auto )
   
   % get default filter chain if there is one
   try
-    ppChain = ...
-      textscan(readProperty('preprocessManager.preprocessChain'), '%s');
-    ppChain = ppChain{1};
+      switch mode
+          case 'profile'
+              ppChain = ...
+                  textscan(readProperty('preprocessManager.preprocessChain.profile'), '%s');
+          otherwise
+              ppChain = ...
+                  textscan(readProperty('preprocessManager.preprocessChain.timeSeries'), '%s');
+      end
+      ppChain = ppChain{1};
   catch e
   end
 
@@ -102,8 +109,14 @@ function sample_data = preprocessManager( sample_data, qcLevel, auto )
       % save user's latest selection for next time - turn the ppChain
       % cell array into a space-separated string of the names
       ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
-      writeProperty('preprocessManager.preprocessChain', ...
-          deblank([ppChainStr{:}]));
+      switch mode
+          case 'profile'
+              writeProperty('preprocessManager.preprocessChain.profile', ...
+                  deblank([ppChainStr{:}]));
+          otherwise
+              writeProperty('preprocessManager.preprocessChain.timeSeries', ...
+                  deblank([ppChainStr{:}]));
+      end
   end
   
   allPpChain = '';

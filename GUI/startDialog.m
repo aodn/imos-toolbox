@@ -1,4 +1,4 @@
-function [fieldTrip dataDir] = startDialog()
+function [fieldTrip dataDir] = startDialog(mode)
 %STARTDIALOG Displays a dialog prompting the user to select a Field Trip 
 % and a directory which contains raw data files.
 %
@@ -8,6 +8,10 @@ function [fieldTrip dataDir] = startDialog()
 % directory are returned. If the user cancels the dialog, both the 
 % fieldTrip and dataDir return values will be empty matrices.
 %
+% Input:
+%
+%   mode - String, toolox execution mode can be 'profile' or 'timeSeries'.
+%   
 % Outputs:
 %
 %   fieldTrip - struct containing information about the field trip selected
@@ -48,7 +52,7 @@ function [fieldTrip dataDir] = startDialog()
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(0,0,nargin));
+  error(nargchk(1,1,nargin));
   
   dataDir     = pwd;
   fieldTripId = '1';
@@ -58,10 +62,18 @@ function [fieldTrip dataDir] = startDialog()
     
   % if default values exist for data dir and field trip, use them
   try 
-    dataDir     =            readProperty('startDialog.dataDir'); 
-    fieldTripId =            readProperty('startDialog.fieldTrip');
-    lowDate     = str2double(readProperty('startDialog.lowDate'));
-    highDate    = str2double(readProperty('startDialog.highDate'));
+      switch mode
+          case 'profile'
+              dataDir     =            readProperty('startDialog.dataDir.profile');
+              fieldTripId =            readProperty('startDialog.fieldTrip.profile');
+              lowDate     = str2double(readProperty('startDialog.lowDate.profile'));
+              highDate    = str2double(readProperty('startDialog.highDate.profile'));
+          otherwise
+              dataDir     =            readProperty('startDialog.dataDir.timeSeries');
+              fieldTripId =            readProperty('startDialog.fieldTrip.timeSeries');
+              lowDate     = str2double(readProperty('startDialog.lowDate.timeSeries'));
+              highDate    = str2double(readProperty('startDialog.highDate.timeSeries'));
+      end
   catch
   end
 
@@ -321,10 +333,18 @@ function [fieldTrip dataDir] = startDialog()
   if isempty(dataDir) || isempty(fieldTrip), return; end
   
   % persist the user's directory and field trip selection
-  writeProperty('startDialog.dataDir',   dataDir);
-  writeProperty('startDialog.fieldTrip', fieldTrip.FieldTripID);
-  writeProperty('startDialog.lowDate',   num2str(lowDate));
-  writeProperty('startDialog.highDate',  num2str(highDate));
+  switch mode
+      case 'profile'
+          writeProperty('startDialog.dataDir.profile',   dataDir);
+          writeProperty('startDialog.fieldTrip.profile', fieldTrip.FieldTripID);
+          writeProperty('startDialog.lowDate.profile',   num2str(lowDate));
+          writeProperty('startDialog.highDate.profile',  num2str(highDate));
+      otherwise
+          writeProperty('startDialog.dataDir.timeSeries',   dataDir);
+          writeProperty('startDialog.fieldTrip.timeSeries', fieldTrip.FieldTripID);
+          writeProperty('startDialog.lowDate.timeSeries',   num2str(lowDate));
+          writeProperty('startDialog.highDate.timeSeries',  num2str(highDate));
+  end
   
 end
 
