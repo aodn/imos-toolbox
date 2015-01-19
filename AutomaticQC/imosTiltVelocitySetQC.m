@@ -171,57 +171,31 @@ idMandatory = idPitch & idRoll & (idUcur | idVcur | idWcur | idCspd | idCdir);
 if ~idMandatory, return; end
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
-badFlag         = imosQCFlag('bad',             qcSet, 'flag');
-probBadFlag     = imosQCFlag('probablyBad',     qcSet, 'flag');
-goodFlag        = imosQCFlag('good',            qcSet, 'flag');
-rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
-
-probBadTilt = [];
-badTilt     = [];
+goodFlag = imosQCFlag('good', qcSet, 'flag');
 
 % we try to find out which kind of ADCP we're dealing with
-if ~isempty(strfind(lower(sample_data.instrument), 'sentinel')) % careful when IMOS starts using Sentinel V ADCPs?
-    probBadTilt = 15; % compass is affected
-    badTilt     = 22; % compass, coordinates transform and bin-mapping are affected
-end
-if ~isempty(strfind(lower(sample_data.instrument), 'monitor'))
-    probBadTilt = 15; % compass is affected
-    badTilt     = 22; % compass, coordinates transform and bin-mapping are affected
-end
-if ~isempty(strfind(lower(sample_data.instrument), 'longranger'))
-    probBadTilt = 15; % compass is affected
-    badTilt     = 50; % compass, coordinates transform and bin-mapping are affected
-end
-if ~isempty(strfind(lower(sample_data.instrument), 'quartermaster'))
-    probBadTilt = 15; % compass is affected
-    badTilt     = 50; % compass, coordinates transform and bin-mapping are affected
-end
-if ~isempty(strfind(lower(sample_data.instrument), 'nortek'))
-    % from Principle of Operation document, Nortek.
-    probBadTilt = 20; % velocity data accuracy fails to meet specifications
-    badTilt     = 30; % velocity data is unreliable
+[firstTiltThreshold, secondTiltThreshold, firstFlagThreshold, secondFlagThreshold] = getTiltThresholds(sample_data.instrument);
+
+if isempty(firstTiltThreshold)
+    error(['Impossible to determine from which ADCP make/model is ' sample_data.toolbox_input_file ' => Fill instrument global attribute and/or imosTiltVelositySetQC.txt with relevant make/model information!']);
 end
 
-if isempty(probBadTilt)
-    error(['Impossible to determine from which ADCP model is ' sample_data.toolbox_input_file ' => Fill instrument global attribute with sentinel, monitor, longranger or quartermaster model information for RDI or Nortek make!']);
-end
-
-paramsLog = ['probBadTilt=' num2str(probBadTilt) ', badTilt=' num2str(badTilt)];
+paramsLog = ['firstTiltThreshold=' num2str(firstTiltThreshold) ', secondTiltThreshold=' num2str(secondTiltThreshold)];
 
 pitch = sample_data.variables{idPitch}.data;
 roll  = sample_data.variables{idRoll}.data;
 
 tilt = acos(sqrt(1 - sin(roll*pi/180).^2 - sin(pitch*pi/180).^2))*180/pi;
 
-% initially everything is bad
+% initially everything is failing the tests
 sizeCur = size(sample_data.variables{idWcur}.flags);
-flags = ones(sizeCur, 'int8')*badFlag;
+flags = ones(sizeCur, 'int8')*secondFlagThreshold;
 
 % tilt test
-iPass = tilt < badTilt;
-flags(iPass,:) = probBadFlag;
+iPass = tilt < secondTiltThreshold;
+flags(iPass,:) = firstFlagThreshold;
 
-iPass = tilt < probBadTilt;
+iPass = tilt < firstTiltThreshold;
 flags(iPass,:) = goodFlag;
 
 if idWcur
@@ -245,4 +219,45 @@ if idCdir
     sample_data.variables{idCdir}.flags = flags;
     varChecked = [varChecked, {sample_data.variables{idCdir}.name}];
 end
+end
+
+function [firstTiltThreshold, secondTiltThreshold, firstTiltflag, secondTiltflag] = getTiltThresholds(instrument)
+%GETTILTTHRESHOLDS Returns the 2-level ADCP tilt thresholds  and their
+% associated flags according to the global attribute instrument provided.
+%
+
+firstTiltThreshold  = [];
+secondTiltThreshold = [];
+firstTiltflag  = [];
+secondTiltflag = [];
+
+path = '';
+if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
+if isempty(path), path = pwd; end
+path = fullfile(path, 'AutomaticQC');
+
+fid = -1;
+params = [];
+try
+  fid = fopen([path filesep 'imosTiltVelocitySetQC.txt'], 'rt');
+  if fid == -1, return; end
+  
+  params = textscan(fid, '%s%f%f%d8%d8', 'delimiter', ',', 'commentStyle', '%');
+  fclose(fid);
+catch e
+  if fid ~= -1, fclose(fid); end
+  rethrow(e);
+end
+
+% look for an instrument match
+for i=1:length(params{1})
+    if ~isempty(strfind(lower(instrument), lower(params{1}{i})))
+        firstTiltThreshold  = params{2}(i);
+        secondTiltThreshold = params{3}(i);
+        firstTiltflag  = params{4}(i);
+        secondTiltflag = params{5}(i);
+        return;
+    end
+end
+
 end
