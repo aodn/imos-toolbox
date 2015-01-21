@@ -209,6 +209,7 @@ error(nargchk(1, 2, nargin));
   
   % fill in the sample_data struct
   sample_data.toolbox_input_file        = filename;
+  sample_data.meta.featureType          = 'timeSeriesProfile';
   sample_data.meta.fixedLeader          = fixed;
   sample_data.meta.binSize              = fixed.depthCellLength/100;
   sample_data.meta.instrument_make      = 'Teledyne RDI';
