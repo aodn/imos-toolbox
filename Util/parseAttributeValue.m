@@ -85,6 +85,11 @@ function value = parseAttributeValue(line, sample_data, k)
       % valid token found, so parse it
       tknResult = parseToken(value(sIdx:eIdx), sample_data, k);
       
+      % need to deal with error mesage from non existent fields in struct
+      if any(strfind(tknResult, 'Reference to non-existent field'))
+          tknResult = [];
+      end
+      
       % replace the token with the interpreted value
       value = [value(1:sIdx-1) tknResult value(eIdx+1:end)];
       

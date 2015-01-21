@@ -169,6 +169,7 @@ backscatter3 = backscatter3 * 0.45;
 sample_data = struct;
 
 sample_data.toolbox_input_file              = filename;
+sample_data.meta.featureType                = 'timeSeriesProfile';
 sample_data.meta.head                       = head;
 sample_data.meta.hardware                   = hardware;
 sample_data.meta.user                       = user;
