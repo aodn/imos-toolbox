@@ -30,64 +30,9 @@
 
 package org.imos.ddb.schema;
 
-import java.util.Date;
-
-public class DeploymentData {
+public class FieldTripPersonnel {
   
-  public String  DeploymentId;
-  public String  StartFieldTrip;
-  public String  EndFieldTrip;
-  public String  Site;
-  public String  EndSite;
-  public String  Station;
-  public String  DeploymentType;
-  public String  InstrumentID;
-  public String  SensorID;
-  public String  Sampling;
-  public Boolean MagVarCor;
-  public String  Sampletype;
-  public String  Capability;
-  public String  FileName;
-  public String  PersonnelSetup;
-  public String  PersonnelDownload;
-  public Date    TimeSwitchOn;
-  public Date    TimeFirstWet;
-  public Date    TimeFirstInPos;
-  public Date    TimeEstimatedRetrieval;
-  public Date    TimeLastInPos;
-  public Date    TimeOnDeck;
-  public Date    TimeSwitchOff;
-  public Date    TimeFirstGoodData;
-  public Date    TimeLastGoodData;
-  public Date    TimeDriftGPS;
-  public Date    TimeDriftInstrument;
-  public String  TimeZone;
-  public Double  InstrumentDepth;
-  public String  DepthTxt;
-  public String  ImageFile;
-  public String  PlotFile;
-  public String  LinkFile1;
-  public String  LinkFile2;
-  public String  Comment;
-  public Double  DataRecovery;
-  public Double  FileSize;
-  public String  FileSizeUnit;
-  public Date    Modified;
-  public Boolean Complete;
-  public String  DataStatus;
-  public String  ModifiedBy;
-
-  public boolean equals(Object o) {
-
-    if (o == null || !(o instanceof DeploymentData)) return false;
-    return DeploymentId.equals(((DeploymentData)o).DeploymentId);
-  }
-
-  public int hashCode() {
-
-    return DeploymentId == null
-      ? 0
-      : DeploymentId.hashCode();
-  }
+  public String FieldTripID;
+  public String StaffID;
+  public String Comment;
 }
-

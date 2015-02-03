@@ -46,4 +46,5 @@ public class Sensors {
   public String  Image;
   public String  Document;
   public Date    Modified;
+  public String  ModifiedBy;
 }

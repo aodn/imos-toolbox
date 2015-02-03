@@ -48,7 +48,9 @@ public class Instruments {
   public String  Description;
   public String  Capability;
   public Boolean Status;
+  public String  Project;
   public String  Image;
   public String  Comment;
   public Date    Modified;
+  public String  ModifiedBy;
 }
