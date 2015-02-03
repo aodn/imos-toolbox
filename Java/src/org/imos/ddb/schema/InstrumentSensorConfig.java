@@ -37,6 +37,8 @@ public class InstrumentSensorConfig {
   public String  InstrumentID;
   public String  SensorID;
   public Date    DateModified;
+  public Date    StartConfig;
+  public Date    EndConfig;
   public Boolean CurrentConfig;
   public String  Comment;
 }

@@ -50,4 +50,5 @@ public class Sites {
   public Boolean Completed;
   public String  Comment;
   public Date    Modified;
+  public String  ModifiedBy;
 }
