@@ -146,31 +146,6 @@ if any(iParam)
     testval(I) = abs(data2 - (data3 + data1)/2) ...
         - abs((data3 - data1)/2);
     
-    % let's read DEPTH data
-    tDepth = 'dimensions';
-    iDepth = getVar(sample_data.(tDepth), 'DEPTH');
-    if iDepth == 0
-        tDepth = 'variables';
-        iDepth = getVar(sample_data.(tDepth), 'DEPTH');
-        if iDepth == 0, return; end
-    end
-    depth = sample_data.(tDepth){iDepth}.data;
-    if size(depth, 1) == 1
-        % if depth is a row, let's have a column instead
-        depth = depth';
-    end
-    
-    size2 = size(iBadData, 2);
-    if size2 > 1
-        depth = repmat(depth, [1, size2]);
-    end
-    
-    depth(iBadData) = [];
-    if size(depth, 1) == 1
-        % if depth is a row, let's have a column instead
-        depth = depth';
-    end
-    
     if strcmpi(thresholdExpr{iParam}, 'PABIM')
         % we execute the suggested PABIM white book v1.3 threshold value
         % for 'Flurorescence like' data (p.44):
