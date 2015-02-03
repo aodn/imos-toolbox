@@ -5,7 +5,7 @@ function [sample_data, varChecked, paramsLog] = imosEchoIntensityVelocitySetQC( 
 % Echo Amplitude test :
 % this test looks at the difference between consecutive vertical bin values of ea and
 % if the value exceeds the threshold, then the bin fails, and all bins
-% above it are also considered to have failed. This test is designed to get 
+% above/below it are also considered to have failed. This test is designed to get 
 % rid of above/below surface/bottom bins.
 %
 % Inputs:
