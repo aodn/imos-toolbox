@@ -33,9 +33,7 @@ package org.imos.ddb;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import org.imos.ddb.schema.DeploymentData;
-import org.imos.ddb.schema.FieldTrip;
-import org.imos.ddb.schema.Sites;
+import org.imos.ddb.schema.*;
 
 /**
  * Simple test case for DDB access.
@@ -66,8 +64,9 @@ public class Test {
     DDB mdb = null;
     
     //String odbcArgs = "imos-ddb_bmorris";
-    //String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/NSW-IMOS_DeploymentDatabase2.0.mdb";
-    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
+    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/OceanDB2015.mdb";
+//    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
+//    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/new_ddb/OceanDB_Unreplicated.mdb";
 
     String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
     String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
@@ -106,14 +105,26 @@ public class Test {
     
     try {
 
-//    	List<FieldTrip> trips = mdb.executeQuery("FieldTrip", null, null);
-//    	for (FieldTrip t : trips) printObj(t);
+    	List<FieldTrip> trips = mdb.executeQuery("FieldTrip", null, null);
+    	for (FieldTrip t : trips) printObj(t);
     	
     	List<DeploymentData> deps = mdb.executeQuery("DeploymentData", null, null);
-    	//for (DeploymentData d : deps) printObj(d);
-
-//    	List<Sites> capeSites = mdb.executeQuery("Sites", null, null);
-//    	for (Sites s : capeSites) printObj(s);
+    	for (DeploymentData d : deps) printObj(d);
+    	
+    	List<Sites> capeSites = mdb.executeQuery("Sites", null, null);
+    	for (Sites s : capeSites) printObj(s);
+    	
+    	List<CTDData> casts = mdb.executeQuery("CTDData", null, null);
+    	for (CTDData d : casts) printObj(d);
+    	
+    	List<Instruments> inst = mdb.executeQuery("Instruments", null, null);
+    	for (Instruments d : inst) printObj(d);
+    	
+    	List<Sensors> sens = mdb.executeQuery("Sensors", null, null);
+    	for (Sensors d : sens) printObj(d);
+    	
+    	List<InstrumentSensorConfig> instSens = mdb.executeQuery("InstrumentSensorConfig", null, null);
+    	for (InstrumentSensorConfig d : instSens) printObj(d);
     }
     catch (Exception e) {e.printStackTrace();}
     
