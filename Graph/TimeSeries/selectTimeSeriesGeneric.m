@@ -159,13 +159,15 @@ function selectTimeSeriesGeneric( selectCallback, clickCallback )
     click = false;
     if startPoint == endPoint, click = true; end
     
+    point = startPoint;
+    
     startPoint = [];
     endPoint   = [];
     drag       = false;
     delete(rect);
     rect       = [];
     
-    if click, clickCallback( gca, type, startPoint);
+    if click, clickCallback( gca, type, point);
     else      selectCallback(gca, type, range);
     end
   end

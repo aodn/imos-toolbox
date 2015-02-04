@@ -327,9 +327,22 @@ function displayManager(windowTitle, sample_data, callbacks)
       selectFunc = getGraphFunc(graphType, 'select', '');
       selectFunc(@dataSelectCallback, @dataClickCallback);
 
+      function dataClickCallback(ax, type, point)
       %DATACLICKCALLBACK Called when the user clicks on a region of data.
-      function dataClickCallback(ax, type, range)
-          % do nothing
+      %
+          if ~strcmpi(type, 'normal'), return; end
+          
+          % line handles are stored in the axis userdata
+          ud = get(ax, 'UserData');
+
+          varIdx = ud{2};
+          
+          varName = sample_data{setIdx}.variables{vars(varIdx)}.name;
+          
+          graphFunc = getGraphFunc(graphType, 'graph', varName);
+          if strcmpi(func2str(graphFunc), 'graphTimeSeriesTimeDepth')
+              lineMooring2DVarSection(sample_data{1}, varName, point(1), true, false, '')
+          end
       end
       
       function dataSelectCallback(ax, type, range)
