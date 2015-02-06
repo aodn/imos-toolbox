@@ -53,6 +53,7 @@ Supported variable titles in file are as follow :
 
  * Cond
  * Temp
+ * temp02
  * Pres
  * !FlCa
  * FlC
@@ -65,4 +66,6 @@ Supported variable titles in file are as follow :
  * !DensAnom
  * SoSUN
  * rdO2C
+ * D_O2
+ * dO2C
 

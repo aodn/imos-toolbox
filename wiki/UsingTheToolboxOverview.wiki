@@ -13,16 +13,16 @@ Before starting the toolbox, keep in mind that you will need to [ToolboxConfigur
 
 === Interactive execution ===
 
- * The standalone version of the toolbox is started by double clicking on the relevant `.bat` or `.sh` file depending on your operating system.
+ * The standalone version of the toolbox is started by double clicking on the relevant `.bat` or `.sh` file depending on your operating system. These files are preferred to the `.exe` or `.bin` since they will keep the console open at the end of any crash so that you can read any error message.
 
  * If you are using the toolbox within Matlab, the toolbox is started via the `imosToolbox` function:
 {{{
 >> imosToolbox
 }}}
 
-=== Automatic execution ===
+=== Automated/Batch execution ===
 
-The toolbox can be executed in an automatic manner, by passing some arguments to the `imosToolbox` function. A deployment database must be present in order to run the toolbox automatically. When you pass the string `'auto'` to the `imosToolbox` function, the toolbox will import all of the files specified in the deployment database, using the field trip and data directory specified in `toolboxProperties.txt`, run the data sets through the default set of automatic pre-processing and QC routines, and export the data sets as NetCDF to the default export directory :
+The toolbox can be executed in a fully automated manner, by passing some arguments to the `imosToolbox` function. A deployment database must be present in order to run the toolbox automatically. When you pass the string `'auto'` to the `imosToolbox` function, the toolbox will import all of the files specified in the deployment database, using the field trip and data directory specified in `toolboxProperties.txt` for its current mode (profile or timeSeries), run the data sets through the default set of pre-processing and QC routines, and export the data sets as NetCDF to the default export directory :
 
  * For example using the standalone Windows 32bit version, you can use the `imosToolboxBatch_Win32.bat` file which contains the default following code :
 {{{
@@ -41,19 +41,24 @@ Alternatively, you can specify the field trip, data directory, pre-processing ro
  * For example using the standalone Windows 32bit version, edit the `imosToolboxBatch_Win32.bat` file so that it includes something like :
 
 {{{
-imosToolbox_Win32.exe auto "4788" "C:\Raw Data\" "{'depthPP' 'salinityPP' 'magneticDeclinationPP'}" "{'imosImpossibleDateQC' 'imosImpossibleLocationSetQC' 'imosInOutWaterQC' 'imosGlobalRangeQC' 'imosRegionalRangeQC' 'imosImpossibleDepthQC' 'imosRateOfChangeQC' 'imosStationarityQC' 'imosSalinityFromPTQC' 'imosSideLobeContSetQC' 'imosTeledyneSetQC'}" "C:\NetCDF\"
+imosToolbox_Win32.exe auto "4788" "C:\Raw Data\4788\" "{'depthPP' 'salinityPP' 'magneticDeclinationPP'}" "{'imosImpossibleDateQC' 'imosImpossibleLocationSetQC' 'imosInOutWaterQC' 'imosGlobalRangeQC' 'imosImpossibleDepthQC' 'imosSalinityFromPTQC' 'imosSideLobeVelocitySetQC' 'imosTiltVelocitySetQC' 'imosHorizontalVelocitySetQC' 'imosVerticalVelocityQC' 'imosCorrMagVelocitySetQC' 'imosHistoricalManualSetQC'}" "C:\NetCDF\4788\"
 pause
 }}}
 
-You can add as many lines in the `imosToolboxBatch_Win32.bat` file as mooring deployments that need to be processed sequentially.
+You can add as many lines in this `imosToolboxBatch_Win32.bat` file as mooring deployments that need to be processed sequentially.
 
  * Using the source code within MATLAB just type as follow :
 
 {{{
->> imosToolbox auto '4788' 'C:\Raw Data\' {'depthPP' 'salinityPP' 'magneticDeclinationPP'} {'imosImpossibleDateQC' 'imosImpossibleLocationSetQC' 'imosInOutWaterQC' 'imosGlobalRangeQC' 'imosRegionalRangeQC' 'imosImpossibleDepthQC' 'imosRateOfChangeQC' 'imosStationarityQC' 'imosSalinityFromPTQC' 'imosSideLobeContSetQC' 'imosTeledyneSetQC'} 'C:\NetCDF\'
+>> imosToolbox auto '4788' 'C:\Raw Data\4788\' {'depthPP' 'salinityPP' 'magneticDeclinationPP'} {'imosImpossibleDateQC' 'imosImpossibleLocationSetQC' 'imosInOutWaterQC' 'imosGlobalRangeQC' 'imosImpossibleDepthQC' 'imosSalinityFromPTQC' 'imosSideLobeVelocitySetQC' 'imosTiltVelocitySetQC' 'imosHorizontalVelocitySetQC' 'imosVerticalVelocityQC' 'imosCorrMagVelocitySetQC' 'imosHistoricalManualSetQC'} 'C:\NetCDF\4788\'
 }}}
 
 If no pre-processing or quality control routine should be performed then provide an empty cell array `{}`.
+
+Also, bear in mind that while any QC test is performed : 
+
+ * if any .mqc file exists next to the data file then using the imosHistoricalManualSetQC test will set previously manually flagged data.
+ * if any .pqc file exists next to the data file then any set parameter for a specific QC test (for example imosSideLobeVelocitySetQC) will be used instead of the default parameter values found in the relevant .txt parameter file (for example here in imosSideLobeVelocitySetQC.txt).
 
 == Importing data ==
 
@@ -75,7 +80,11 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/gui_startDialog.png
 
 Choose the field trip in which you are interested, and the directory which contains the raw data related to that field trip. You can use the top buttons to select a date range over which to filter the list of field trips to choose from.
 
-Once you have selected a field trip and data directory, the toolbox will attempt to match up deployments with raw data files. You will then be presented with the following dialog:
+Once you have selected a field trip and a data directory, if there are more than one site involved then you will be asked to chose which one you would like to process with the following dialog:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_siteStatusDialog.png
+
+Finally the toolbox will attempt to match up deployments with raw data files found in the data directory. You will then be presented with the following dialog:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_dataFileStatusDialog.png
 
@@ -85,7 +94,7 @@ Some of the deployments are highlighed:
 
  * A <font color="red">red deployment</font> indicates that the information in the ddb was invalid.
  * A *bold deployment* indicates that the toolbox could not find any files related to that deployment.
- * An _italicised deployment_ indicates that multiple files were found for that deployment. This will be the norm for instruments which store their data over multiple files. For other instruments this may indicate an error in the ddb, or in the data file naming scheme.
+ * An _italicised deployment_ indicates that multiple files with the same name but at different location were found for that deployment. The user can choose which one should be loaded but best is to clean the directory content so that only one file with the relevant name is found.
 
 The dialog allows you to resolve any discrepancies between the information in ddb and the raw data files, by removing deployments, and adding/removing files to/from deployments.
 
@@ -117,6 +126,10 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/gui_colorbar_ranges.png
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_colorbar_ranges_dialog.png
 
+If one of the displayed parameter has 2 dimensions (like UCUR) then after you ran the QC procedures you can left-click anywhere on the 2D plot so that it will generate in a new window a cross section plot over the 2nd dimension at the TIME value you clicked:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/2DVarSectionPlot.png
+
 If your data set has a depth dimension or variable, you can view the data as a depth profile, by selecting '!DepthProfile' (default view in profile mode) from the graph list at the top right of the window:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_depth_profile.png
@@ -137,9 +150,15 @@ http://imos-toolbox.googlecode.com/svn/wiki/images/gui_metadata_list_atttributes
 
 == Quality Control ==
 
-By clicking on the 'QC data' button, you can choose to run the data through a set of automatic QC filters, which will automatically flag the data sets. The flags will be overlaid on the graphs:
+=== Semi-automated ===
 
-http://imos-toolbox.googlecode.com/svn/wiki/images/gui_QC_dialog.png
+By clicking on the 'QC data' button, you can choose to run the data through a set of automatic QC filters, which will automatically flag the data sets. Some of these QC tests can be parameterised by modifying their associated parameter .txt file either manually (open the parameter file with a text editor) or for some directly via the GUI by clicking on the 'Configure' button. Below is n example on how to modify the imosImpossibleDepthSetQC.txt parameter file via the GUI:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_configureImpossibleDepthQcDialog.png
+
+Then the data plotted is the one that has been potentially modified by any pre-processing routine (unlike the data plotted when clicking on the 'Raw data' button) and the QC flags will be overlaid on the graphs:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_qc_dialog.png
 
 You can see that a few data points have been flagged. 
 
@@ -149,16 +168,6 @@ You can display the actual label associated with the overlaying color of the fla
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_QC_labels.png
 
-To manually QC some data samples, you can use click+drag a box to select them. Use the left mouse button to select all data points, and the right mouse button to select already-flagged data points. The selected data points are highlighted in white.
-
-Clicking on a set of selected data points will bring up a dialog, allowing you to set the QC flag on those points. The options will be different depending on which QC set you are using.
-
-http://imos-toolbox.googlecode.com/svn/wiki/images/gui_manual_QC_dialog.png
-
-When you confirm the flag dialog, you will see that the flag values for the selected data points have changed.
-
-http://imos-toolbox.googlecode.com/svn/wiki/images/gui_manual_QC_result.png
-
 By clicking on the 'QC stats' button, you can access the details of each QC procedure result on each parameter data set per dataset:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_QC_stats.png
@@ -167,13 +176,37 @@ Clicking on a specific cell in the QC stat table displays the full details, proc
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_main_window_QC_stats_infos.png
 
+The different parameters in parameter files are recorded for each dataset in a .pqc file created next to the data file with the same root name. The first time a QC is ran, parameters are read from the .txt parameter files but then they will be read from the .pqc files so that specific parameters can be set and kept on a dataset basis for future re-processing.
+
+When running the QC again, a dialog window will pop up to ask the user whether he wants to reset these .pqc files or not before runing the QC:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_resetQcPropertiesDialog.png
+
+And then another pop up dialog to ask whether QC should be ran again or not. This is useful for tuning parameters on a specific dataset:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_rerunQcTestsDialog.png
+
+=== Manual ===
+
+To manually QC some data samples, you can use click+drag a box to select them. Use the left mouse button to select all data points, and the right mouse button to select already-flagged data points. The selected data points are highlighted in white and a dialog, pops up allowing you to set the QC flag on those points, choose to apply these flags to additional parameters in the same dataset, and add some comment information on the reasons why a manual QC was necessary.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_manual_QC_dialog.png
+
+When you confirm the flag dialog, you will see that the flag values for the selected data points have changed.
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_manual_QC_result.png
+
+The flags for each set of points are recorded for each dataset in a .mqc file created next to the data filw with the same root name. This is useful when re-processing so that the user don't have to manually QC again the data, instead the imosHistoricalManualSetQC test will read this file and set the flags where relevant. One can reset previous manual QC by deleting these .mqc files via the 'Reset manual QC' button:
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_resetManualQcDialog.png
+
 == Menu features ==
 
 The menu panel can give you access to this google wiki page to look for help:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_menu_help.png
 
-You can also plot a common variable to some data sets on the same figure:
+You can also plot a common variable accross all data sets of a mooring deployment on the same figure:
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_menu_mooring_variables.png
 
@@ -182,6 +215,10 @@ useful to monitor instruments measurements against each others:
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mooring_instruments_depth.png
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mooring_instruments_temperature.png
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mooring_instruments_scatter_temperature.png
+
+http://imos-toolbox.googlecode.com/svn/wiki/images/gui_mooring_instruments_scatter_current_direction.png
 
 == Export ==
 

@@ -5,7 +5,7 @@
 
 = Pre-processing routines =
 
-The following routines are available in the Toolbox since version 2.3 :
+The following routines are available in the Toolbox since version 2.4 :
 
 == Data time start redefinition - timeStartPP == 
 
@@ -52,6 +52,8 @@ AEDT,    -11.0
 NZST,    -12.0
 NZDT,    -13.0
 }}}
+
+timeOffsetPP also supports any timezone with the following notation : UTC+4, UTC-10, etc...
 
 In addition, do not forget to document the global attribute local_time_zone (= +10 for EST timezone for example) so that users easily know which offset to apply to be back in local time. Actually if your data is in local time and consistent with the local time where the instrument is deployed, then you can even use the deployment database field !TimeZone in the table !DeploymentData to automatically document this attribute in your global_atributes.txt configuration file :
 
@@ -175,13 +177,41 @@ exclude,       ADCP
 
 == Salinity calculation - salinityPP == 
 
-salinityPP adds a salinity variable to the given data sets, if they contain conductivity, temperature and pressure variables.
+salinityPP adds a salinity variable to the given data sets, if they contain conductivity, temperature and pressure/depth variables.
 
-This function uses the [http://www.teos-10.org/ Gibbs-SeaWater toolbox (TEOS-10)] to derive salinity data from conductivity, temperature and pressure. It adds the salinity data as a new variable in the data sets. Data sets which do not contain conductivity, temperature and pressure variable or already contain a salinity variable are left unmodified.
+This function uses the [http://www.teos-10.org/ Gibbs-SeaWater toolbox (TEOS-10)] to derive salinity data from conductivity, temperature and pressure. It adds the salinity data as a new variable in the data sets. Data sets which do not contain conductivity, temperature and pressure/depth variables or which already contain a salinity variable are left unmodified.
 
 == Correction for magnetic declination - magneticDeclinationPP == 
 
-magneticDeclinationPP computes a theoretical magnetic declination, for any data set relying on a magnetic compass, using NOAA's [http://www.ngdc.noaa.gov/geomag/models.shtml Geomag] v7.0 software and the [http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html IGRF11] model. The actual location of the mooring, the instrument nominal depth and the date in the middle of the time_coverage_start and time_coverage_end of the dataset (it is assumed that the declination variation which occurs during the deployment time period is negligeable compared to the angular resolution of the data) are considered as inputs for Geomag. This computed magnetic declination is documented in a global attribute and a correction from it is applied to any data relying on a magnetic compass when it still refers to magnetic North so that it finally refers to true North.
+magneticDeclinationPP computes a theoretical magnetic declination, for any data set relying on a magnetic compass, using NOAA's [http://www.ngdc.noaa.gov/geomag/models.shtml Geomag] v7.0 software and the [http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html IGRF11] model. The actual location of the mooring, the instrument nominal depth (if deeper than 1000m, 1000m depth is considereed instead) and the date in the middle of the time_coverage_start and time_coverage_end of the dataset (it is assumed that the declination variation which occurs during the deployment time period is negligeable compared to the angular resolution of the data) are considered as inputs for Geomag. This computed magnetic declination is documented in a global attribute and a correction from it is applied to any data relying on a magnetic compass when it still refers to magnetic North so that it finally refers to true North.
+
+== vertical bin mapping of ADCP data - binMappingVelocityPP == 
+
+binMappingVelocityPP performs a vertical bin-mapping on any ADCP variable that is a function of DIST_ALONG_BEAM so that it becomes a function of HEIGHT_ABOVE_SENSOR. Tilt information is computed from pitch and roll measurements and used to map bins along the beams towards vertical bins (case when tilt is 0). When more than one bin is mapped to the same bin then the mean is computed over those bins.
+
+== Assess CTD cast surface soak - soakStatusPP == 
+
+soakStatusPP adds distinct diagnostic variables for tempreature, conductivity and dissolved oxygen which will help assessing the quality of the surface soak performed before the CTD was lowered. The depth, elapsed time and conductivity frequency are used to infer when the actual surface soak starts and diagnostic variables are created based on the elapsed time. This pre-processing routine is especially useful in conjunction with the CTDDepthBinPP pre-processing routine and the CTDSurfaceSoakQC test for CTD casts that might have not respected a minimum 3min surface soak (most of the early casts in South Australia for example).
+
+This pre-processing routine is for use in profile mode only with .cnv files that haven't been vertically binned by SeaBird software. Indeed, vertically binned files don't have an elapsed time information anymore.
+
+Diagnostic variables have 4-level values:
+
+ * -1: No Soak Status determined (usually elapsed time missing).
+ *  0: Pump Off and/or Minimum Soak Interval has not passed - data from sensor supplied by pump.
+ *  1: Pump On and first Minimum Soak Interval has passed - data from sensor are probably OK.
+ *  2: Pump On and Optimal Soak Interval has passed - data from sensor assumed to be good.
+
+The following default minimum and optimal soak time values for each parameter can be modified by editing the soakStatusPP.txt:
+
+|| Parameter || Minimum soak time in sec || Optimal soak time in sec ||
+|| Temperature || 60 || 70 ||
+|| Conductivity || 70 || 90 ||
+|| Oxygen || 150 || 180 ||
+
+== CTD cast vertical binning - CTDDepthBinPP == 
+
+CTDDepthBinPP averages the data which lies on vertical bins of size 1m (default value configurable via the CTDDepthBinPP.txt file). Only data with previous surface soak diagnostic variables of values >= 1 and SBE flag 'good' are considered during the averaging process. Diagnostic variables are also binned by considering the worst value in the bin.
 
 == Variable transformation - transformPP == 
 

@@ -9,21 +9,22 @@ This document intends to outline a set of 'use cases' for the IMOS Toolbox softw
 
 = Use Case: Data Processing =
 
-This use case describes the likely most common usage scenario of the Toolbox. This is the process followed when a user has a data set for which he/she wishes to generate IMOS compliant NetCDF files for submission to eMII.
+This use case describes the most likely common usage scenario of the Toolbox. This is the process followed when a user has a data set for which he/she wishes to generate IMOS compliant NetCDF files for submission to eMII.
 
  # User loads instruments data files into the Toolbox using the deployment database.
  # User runs pre-processing routines over data sets.
- # User visually inspects the data using the toolbox display features data set by data set and by ploting common variables across data sets.
+ # User visually inspects the data using the toolbox display features data set by data set and by ploting common variables across data sets via the menu tools.
  # User runs automatic QC procedures over data sets.
- # User visually inspects QC results over data sets using the toolbox display features and the detailed QC results via the QC stats table.
- # After visual inspection, user re-runs automatic QC procedures with a finer parameters configuration over data sets if necessary and/or performs some manual QC as needed.
+ # User visually inspects QC results per and accross data sets using the toolbox display features, the menu tools and the detailed QC results via the QC stats table.
+ # After visual inspection, if necessary user re-runs automatic QC procedures with a finer parameters configuration over data sets.
+ # After visual inspection, if necessary user performs some manual QC over data sets.
  # User exports data to NetCDF file(s).
- # User checks NetCDF file(s) name and content.
+ # User checks NetCDF file(s) name and content (data + metadata) using tools like ncdump and ncBrowse.
  # User submits file(s) to eMII.
 
 = Use Case: Data verification =
 
 This use case describes a usage scenario which may arise during instrument retrieval, when the user wishes to quickly verify that the data downloaded from the instrument is valid and complete.
 
- # User loads instrument data files into Toolbox.
+ # User loads instrument data files straight into the Toolbox without using any deployment database.
  # User visually verifies that the data looks correct.

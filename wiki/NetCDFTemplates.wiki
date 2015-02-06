@@ -12,9 +12,11 @@ NetCDF metadata attributes are automatically populated from a set of template fi
 ||`dimension_attributes.txt`||Any dimension attributes||
 ||`variable_attributes.txt`||Any variable attributes||
 ||`time_attributes.txt`||TIME coordinate variable attributes||
-||`longitude_attributes.txt`||LONGITUDE coordinate variable attributes||
-||`latitude_attributes.txt`||LATITUDE coordinate variable attributes||
-||`depth_attributes.txt`||DEPTH coordinate variable attributes||
+||`longitude_attributes.txt`||LONGITUDE scalar variable attributes||
+||`latitude_attributes.txt`||LATITUDE scalar variable attributes||
+||`depth_attributes.txt`||DEPTH scalar variable attributes||
+||`nominal_depth_attributes.txt`||NOMINAL_DEPTH scalar variable attributes||
+||`dist_along_beams_attributes.txt`||DIST_ALONG_BEAMS coordinate variable attributes||
 ||`height_above_sensor_attributes.txt`||HEIGHT_ABOVE_SENSOR coordinate variable attributes||
 ||`instance_attributes.txt`||INSTANCE coordinate variable attributes||
 ||`maxz_attributes.txt`||MAXZ coordinate variable attributes||

@@ -4,34 +4,38 @@
 
 = Toolbox Configuration =
 
-The toolbox contains a number of configuration files, allowing for customisation of the toolbox display and behaviour, and of NetCDF output. This page provides an overview of the different configuration files.
+The toolbox contains a number of configuration files, allowing for customisation of the toolbox display and behaviour, and of NetCDF output. 
 
-== `toolboxProperties.txt` ==
+*IMPORTANT*: when migrating from one toolbox version to another, it is important to manually copy paste the relevant content of each configuration file when and were needed rather than overwritting the configuration files!
+
+This page provides an overview of the different configuration files.
+
+== [http://code.google.com/p/imos-toolbox/source/browse/trunk/toolboxProperties.txt `toolboxProperties.txt`] ==
 
 This file contains general toolbox configuration settings. Many of the settings in this file are related to previous selections for e.g. the selected import/export directory; these settings are automatically updated every time the selection changes, meaning that the toolbox will always remember your most recent selection. In most circumstances, the only settings that you will need to change in this file are the `toolbox.ddb` settings, which tells the toolbox where the deployment database lives, and the `toolbox.mode` setting, which defines the data mode in use between timeSeries (default) and profile.
 
-== `IMOS/imosParameters.txt` ==
+== [http://code.google.com/p/imos-toolbox/source/browse/trunk/IMOS/imosParameters.txt `IMOS/imosParameters.txt`] ==
 
 This file contains specifications for all of the IMOS parameters (see the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.3.pdf IMOS NetCDF User Manual]). For each parameter (e.g. 'TEMP'), the file contains the IMOS standard name, units of measurement, NetCDF fill value, valid minimum/maximum values and the required data type to be used in the NetCDF file. All of these fields are used to populate the NetCDF metadata. Additionally, the minimum/maximum values are used by the [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC imosGlobalRangeQC] procedure to flag outliers.
 
-== `IMOS/imosQCFlag.txt` ==
+== [http://code.google.com/p/imos-toolbox/source/browse/trunk/IMOS/imosQCFlag.txt `IMOS/imosQCFlag.txt`] ==
 
 This file contains specifications for all of the IMOS quality control sets. In this file, you are able to define new QC sets and change the colours in which the different flag types are displayed on graphs.
 
-== `IMOS/imosFileVersion.txt` ==
+== [http://code.google.com/p/imos-toolbox/source/browse/trunk/IMOS/imosFileVersion.txt `IMOS/imosFileVersion.txt`] ==
 
 This file contains definitions for the IMOS file versions (e.g. level 0 - non QC'd data). The information in this file is used to populate NetCDF metadata. You would probably never need to modify this file.
 
-== `IMOS/imosFileName.txt` ==
+== [http://code.google.com/p/imos-toolbox/source/browse/trunk/IMOS/imosFileName.txt `IMOS/imosFileName.txt`] ==
 
 This file allows customisation of NetCDF filenames; it contains definitions for the fields which make up an IMOS file name (see the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_filenaming_convention_v1.4.pdf IMOS File Naming Convention]).
 
-== `Parser/instruments.txt` ==
+== [http://code.google.com/p/imos-toolbox/source/browse/trunk/Parser/instruments.txt `Parser/instruments.txt`] ==
 
 This file contains mappings between deployment database instrument entries and parsers. When importing data for a deployment, the toolbox looks up the `Make` and `Model` fields from the relevant entry in the `Instruments` table. If a parser mapping exists in `Parser/instruments.txt` for the instrument, that parser is used to import the data. This means that, if you follow a consistent conventions for entering instrument metadata into the deployment database, you won't need to manually select which parser to use for a given deployment.
 
 If a parser mapping for a given instrument does not exist, upon import you will be prompted to select a parser from a drop down list. The parser that you select will then be added to `Parser/instruments.txt`, so that the next time you import data from the same instrument (or from an instrument of the same make/model), you will not need to manually select the parser to use.
 
-== `NetCDF/template/` ==
+== [http://code.google.com/p/imos-toolbox/source/browse/trunk/NetCDF/template/ `NetCDF/template/*.txt`] ==
 
 NetCDF attributes are automatically generated from a set of template files, which live in the `NetCDF/template/` subdirectory. See [NetCDFTemplates here] for an overview on how to configure the NetCDF template files.

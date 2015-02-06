@@ -5,7 +5,7 @@
 
 = Automatic quality control procedures =
 
-The following automatic quality control policy and procedures are available in the Toolbox version 2.3. 
+The following automatic quality control policy and procedures are available in the Toolbox version 2.4. 
 
 == Flag management policy ==
 
@@ -16,7 +16,10 @@ At the moment, the flag management policy is as follow :
 -For each procedure, all flags are first initialised to "Raw". Then, usually when the test starts they are all initialised to the relevant "fail" flag and only the "pass" test is then performed so that "pass" flags are finally provided to the successfull samples. When relevant the "fail" test is performed instead of intialising everything with "fail" flag first, so that samples which neither fail or pass the test are provided with the "Raw" flag.<br>
 -If a procedure testing a data sample uses a formula involving neighbours then the considered neighbours are the nearest ones which don't already have a flag "Bad".<Br>
 <br>
--QC procedures, parameters used and results are detailed in the global attribute history. They can also be displayed in a table via the 'QC stats' button on the main panel. QC procedure details can be queried when clicking on any cell from the table.<Br>
+-QC procedures, parameters used and results are detailed in the global attribute history. They can also be displayed in a table via the 'QC stats' button on the main panel. QC procedure details can be queried when clicking on any cell from the table.
+-QC parameters used are stored in a .pqc file created/updated at the same location as the input file and has the same radical name. This is so that batch re-processing can be performed with dataset specific QC parameters for each QC procedure when necessary. When a QC procedure is ran, it will try to read any existing .pqc dataset QC parameter file before the .txt generic QC parameter file. In addition, before re-running any QC set of tests, the user is asked whether to reset the different .pqc files before running the tests.
+
+imosHistoricalManualSetQC QC procedure reads any existing .mqc file so that any manual QC is automatically re-applied.<Br>
 <br>
 -Any QC test which relies on depth information takes into account the associated depth flags. If depth has been flagged not "Good", then nominal depth information is prefered to continue current QC test.<Br>
 <br>
@@ -29,43 +32,52 @@ This "official IMOS standard set of procedures" and their suggested parameters w
 
 IMOS recommends that processed data files sent to eMII data centre should only be QC'd with official IMOS standard sets of procedures. These tests are identified by the prefix "imos". Other unofficial procedures may be available for test purpose only.
 
-These sets of QC procedures have been mainly designed to check physical variables such as temperature, salinity and pressure/depth collected either on moorings (time series) or while performing CTD profiles/casts from a boat at a specific station. In order to have consistency over processed data files and to make results easier to interpret, we recommend these tests should always been performed following the suggested order.
+These sets of QC procedures have been mainly designed to check physical variables such as temperature, salinity, velocity and pressure/depth collected either on moorings (time series) or while performing CTD profiles/casts from a boat at a specific station. Some are identified as compulsory while others are optional and should only been used when the data processor has checked that they improve the result of the QC.
+
+In order to have consistency over processed data files and to make results easier to interpret, we recommend these tests should always been performed following the suggested order.
 
 === Moored time series ===
 
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC imosImpossibleDateQC] (compulsory)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC imosImpossibleLocationSetQC] (compulsory)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC imosInOutWaterQC] (compulsory)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC imosGlobalRangeQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC *imosImpossibleDateQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC *imosImpossibleLocationSetQC)] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC *imosInOutWaterQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC *imosGlobalRangeQC*] (compulsory)
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Regional_range_test_-_imosRegionalRangeQC imosRegionalRangeQC] (optional)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_depth_test_-_imosImpossibleDepthQC imosImpossibleDepthQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_depth_test_-_imosImpossibleDepthQC *imosImpossibleDepthQC*] (compulsory)
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Rate_of_change_test_-_imosRateOfChangeQC imosRateOfChangeQC] (optional)
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Stationarity_test_-_imosStationarityQC imosStationarityQC] (optional)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC imosSalinityFromPTQC] (compulsory)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Side_lobe_contamination_test_-_imosSideLobeContSetQC imosSideLobeContSetQC] (compulsory)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Workhorse_ADCP_tests_-_imosTeledyneSetQC imosTeledyneSetQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC *imosSalinityFromPTQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#ADCP_side_lobe_contamination_test_-_imosSideLobeVelocitySetQC *imosSideLobeVelocitySetQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#ADCP_tilt_test_-_imosTiltVelocitySetQC *imosTiltVelocitySetQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Horizontal_velocity_test_-_imosHorizontalVelocitySetQC *imosHorizontalVelocitySetQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Vertical_velocity_test_-_imosVerticalVelocityQC *imosVerticalVelocityQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#ADCP_echo_intensity_vertical_difference_test_-_imosEchoIntensityVelocitySetQC imosEchoIntensityVelocitySetQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#ADCP_correlation_magnitude_test_-_imosCorrMagVelocitySetQC *imosCorrMagVelocitySetQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#ADCP_percent_good_velocity_test_-_imosPercentGoodVelocitySetQC imosPercentGoodVelocitySetQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#ADCP_error_velocity_test_-_imosErrorVelocitySetQC imosErrorVelocitySetQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#ADCP_tier_2_profile_test_-_imosTier2ProfileVelocitySetQC imosTier2ProfileVelocitySetQC] (optional)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Historical_manual_QC_test_-_imosHistoricalManualSetQC *imosHistoricalManualSetQC*] (compulsory)
 
- 
 === Profiles ===
 
 In addition to the IMOS [http://imos.org.au/fileadmin/user_upload/shared/IMOS%20General/documents/Facility_manuals/NRS_sampling_Manual_Data_Processing_Guide_Draftv1_5b_IngletonMorris.pdf ANMN standardised profiling CTD data post-processing procedures], IMOS recommends applying the following tests to any CTD profile data which is imported in the toolbox:
 
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC imosImpossibleDateQC] (compulsory)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC imosImpossibleLocationSetQC] (compulsory)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC imosInOutWaterQC] (compulsory)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC imosGlobalRangeQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_date_test_-_imosImpossibleDateQC *imosImpossibleDateQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC *imosImpossibleLocationSetQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC *imosInOutWaterQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC *imosGlobalRangeQC*] (compulsory)
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Regional_range_test_-_imosRegionalRangeQC imosRegionalRangeQC] (optional)
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Vertical_spike_test_-_imosVerticalSpikeQC imosVerticalSpikeQC] (optional)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Stationarity_test_-_imosStationarityQC imosStationarityQC] (optional)
- # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC imosSalinityFromPTQC] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC *imosSalinityFromPTQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Historical_manual_QC_test_-_imosHistoricalManualSetQC *imosHistoricalManualSetQC*] (compulsory)
 
 == IMOS procedures descriptions ==
 
-The basis of most of these tests is described in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/Morello_et_al_2011.pdf Morello et al. 2011 paper]. A new paper is being written to be submitted soon.
+The basis of most of these tests is described in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/Morello_et_al_2011.pdf Morello et al. 2011 paper], [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/Morello_et_al_2014_QC_paper_MIO.pdf Morello et al. 2014 paper] and [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/CTD/ADCP_report2_26november2014_withpressure_v2.docx Mantovanelli report November 2014].
 
 Variables mentioned below are IMOS parameters code and their definition can be found in [http://code.google.com/p/imos-toolbox/source/browse/trunk/IMOS/imosParameters.txt IMOS\imosParameters.txt].
 
-=== Impossible date test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleDateQC.m imosImpossibleDateQC] - Compulsory === 
+=== Impossible date test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleDateQC.m imosImpossibleDateQC] - Compulsory ===
 
 imosImpossibleDateQC checks that the TIME values are within an acceptable range. Because some instrument files contain the date information in binary format like the datenum Matlab format (decimal days from a specific date and time, where datenum('Jan-01-0000 00:00:00') returns the number 1) it is only possible to set up a generic test that only checks the full date range. Cheking the day, month, hour, minute or second values separately (minimum/maximum valid values for minutes, months, days in February, etc...) is not possible in our case.
 
@@ -84,7 +96,7 @@ dateMax =
 
 By default, if dateMax is left empty then dateMax is the current date at the time of test.
 
-Since this test is critical, a warning message is displayed if some samples fail the test.
+Since this test is critical, a warning message is displayed if some samples fail the test and an error message is raised when all points fail the test.
 
 === Impossible location test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleLocationSetQC.m imosImpossibleLocationSetQC] - Compulsory === 
 
@@ -128,6 +140,8 @@ Since this test is critical and can easily be corrected, an error message is tri
 
 === In/Out water test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosInOutWaterQC.m imosInOutWaterQC] - Compulsory === 
 
+==== timeSeries mode: ====
+
 imosInOutWaterQC flags any variable sample which TIME values are not between the first and last time when the instrument is actually in position collecting data for time series purpose. Between these two times, data is deliberately left non QC'd.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
@@ -148,6 +162,10 @@ The samples that pass the test are the ones which TIME values are verifying `TIM
  # !TimeLastInPos : Time instrument last in position.
  # !TimeOnDeck : Time instrument on deck.
  # !TimeSwitchOff : Time instrument is switched off.
+
+==== profile mode: ====
+
+imosInOutWaterQC test raises an error if time values are significantly out against the deployment database station times. In that case, the data processor needs to check and correct one or the other.
 
 === Global range test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosGlobalRangeQC.m imosGlobalRangeQC] - Compulsory === 
 
@@ -235,6 +253,8 @@ The test is not performed and a warning message is displayed if the current proc
 
 === Impossible depth test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosImpossibleDepthQC.m imosImpossibleDepthQC] - Compulsory === 
 
+==== timeSeries mode: ====
+
 http://imos-toolbox.googlecode.com/svn/wiki/images/impossibleDepthIllustration.png
 
 imosImpossibleDepthQC checks that the pressure/depth data are given within an acceptable range. Basically, the test checks that the instrument is close to its nominal depth, allowing enough flexibility to cope with possible mismatch between nominal and actual depth when deployed, and knock down events related to strong current events.
@@ -260,9 +280,13 @@ If the instrument nominal depth is not documented, then the instrument nominal h
 
 The test is not performed and a warning is diplayed if there is not enough nominal depth/height information provided.
 
+==== profile mode: ====
+
+imosImpossibleDepthQC checks that the depth/pressure values are between 0 and BOT_DEPTH + 20%. If dealing with a dimension an error message is raised (CTD processing and/or site_nominal_depth / site_depth_at_station need to be checked), otherwise the usual flagging is performed.
+
 === Vertical spike test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosVerticalSpikeQC.m imosVerticalSpikeQC] - Optional === 
 
-imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of samples. This test is mostly useful for CTD profile/cast data and is available at one's discretion who is fully aware of the algorithm and flags used.
+imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of samples. *This test is for profile mode only* and is available at one's discretion who is fully aware of the algorithm and flags used.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||TEMP, PSAL, PRES, PRES_REL, DEPTH, CPHL, CHLU, CHLF, DOXY, DOX1, DOX2||1-Good data||3-Bad data that are potentially correctable||
@@ -270,8 +294,6 @@ imosVerticalSpikeQC is looking for spikes among vertically adjacent triplet of s
 The algorithm used here is the same used by the Australian National Mooring Facility Ocean Gliders ([http://www2.sese.uwa.edu.au/~hollings/anfog/index.php ANFOG]) and ARGO's spike test.
 
 The samples that pass the test are the ones with parameter's value Vn verifying the test `|Vn - (Vn+1 + Vn-1)/2| - |(Vn+1 - Vn-1)/2| <= threshold`.
-
-It is only considering adjacent samples with flags lower or equal to 3 (Bad data that are potentially correctable). If the test involves consecutive samples with a time period greater than 1h between them then the test is cancelled for this triplet.
 
 The provided failing flag is deliberately set to 3 (Bad data that are potentially correctable). This kind of test cannot be right in any case so we want to use another flag than the 4 (Bad data) to attract the user's attention on specific areas in the profile that need a closer look and investigation before use.
 
@@ -358,64 +380,184 @@ imosSalinityFromPTQC checks that any salinity measurement has its flag equals or
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||PSAL||1-Good data||highest flag from temperature, depth and pressure measurements of the same sample||
 
-=== Side lobe contamination test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosSideLobeContSetQC.m imosSideLobeContSetQC] - Compulsory ===
+=== ADCP side lobe contamination test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosSideLobeVelocitySetQC.m imosSideLobeVelocitySetQC] - Compulsory ===
 
-imosSideLobeContSetQC finds for each timestamp what is the HEIGHT_ABOVE_SENSOR from which any data sample is contaminated by side lobes effect (close to the surface). Impacted data samples are then flagged accordingly. This test can be applied on any ADCP data providing we know the beam angle of the ADCP transducer. It is based on Nortek's [http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes documentation].
+imosSideLobeVelocitySetQC finds for each timestamp what is the HEIGHT_ABOVE_SENSOR from which any data sample is contaminated by side lobes effect (close to the surface or bottom). Impacted data samples are then flagged accordingly. This test can be applied on any ADCP data providing we know the beam angle of the ADCP transducer. It is based on Nortek's [http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes documentation].
+
+In the case of upward looking ADCPs, the measured depth at the instrument is the distance to surface, while with downward looking ones the distance to surface is global attribute site_nominal_depth or site_depth_at_deployment - measured depth at the instrument.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
 ||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
 
-The samples that pass the test are the ones with HEIGHT_ABOVE_SENSOR values verifying `depth of bin > (instrument depth * cos(beam angle) + 2 * bin size)`. The following figure illustrates the case of an ADCP set on the sea bottom :
+The samples that pass the test are the ones with HEIGHT_ABOVE_SENSOR values verifying `depth of bin > (instrument depth * cos(beam angle) + 1/2 * bin size)`. The following figure illustrates the case of an ADCP set on the sea bottom :
 
 http://imos-toolbox.googlecode.com/svn/wiki/images/sideLobeEffect.png
 
-Adding 2 times the size of a bin to the theoretical contaminated depth enables us to be conservative in order to make sure that the data in the first bin below the contaminated depth hasn't been computed from any contaminated signal (data in a bin may also come from information found in adjacent bins).
+Adding 1/2 of the size of a bin to the theoretical contaminated depth enables us to be conservative in order to make sure that the data in the first bin below the contaminated depth hasn't been computed from any contaminated signal.
 
-=== Workhorse ADCP tests - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosTeledyneSetQC.m imosTeledyneSetQC] - Optional === 
+=== ADCP tilt test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosTiltVelocitySetQC.m imosTiltVelocitySetQC] - Compulsory ===
 
-imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertical current velocity *and* quality parameters ECUR(error_sea_water_velocity), ADCP_GOOD(adcp_percentage_good), ABSI(acoustic_backscatter_intensity) and ADCP_CORR(adcp_correlation_magnitude). These parameters are basically provided by all the Workhorse ADCPs manufactured by Teledyne RD Instruments. This test is available at ones discretion who is fully aware of the algorithm used. This powerful test however *demands expertise to set relevant thresholds for each dataset*.
+imosTiltVelocitySetQC is a two-level test which flags velocity data depending on the tilt values. Most ADCPs see their performance degraded with increasing tilt.
+
+For RDI ADCPs, compass measurements are affected and fail to meet specifications when a first tilt threshold is exceeded. When the second threshold is exceeded coordinates transform and bin-mapping operations are also affected.
+
+For Nortek ADCPs, velocity data accuracy fails to meet specifications when the first tilt threshold is exceeded. When the second is exceeded then velocity data becomes unreliable.
 
 || *Parameters checked* || *Pass test flag* || *Fail test flag* ||
-||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
+||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||two-level flag||
 
-This test can be decomposed in the 6 following sub-tests.
+For each sample, the tilt is computed using the following formula : `TILT = acos(sqrt(1 - sin(ROLL)^2 - sin(PITCH)^2))`
 
-The bin samples that pass the test are the ones passing the 6 sub-tests and which belong to a profile which has less than 50% of its bins failing the 5 first sub-tests : 
+A whole profile is then flagged with the relevant flag any time the tilt is greater than one of the two identified thresholds.
 
- # `|ECUR| 										<=  err_vel`
- # `PERG1 + PERG4 								> pgood` (performed on the 1st and 4th value only: represents the percentage good of 3 and 4 beam solutions in earth coordinates configuration)
- # `CMAGn 								>  cmag` (performed on the 4 beams, at least 2 must be greater than cmag in order to pass to the test)
- # `|WCUR| 										<  vvel`
- # `|UCUR + i*VCUR| 							<  hvel`
- # `ABSIn(current bin)-ABSIn(previous bin) 	<= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. At least 3 beams differences must be less than ea_thresh in order to pass the test. When a bin is flagged bad, then all the bins above it are flagged bad as well.).
+Default thresholds have been identified based on RDI and Nortek documentation as well as on communications with RDI technicians, and are stored in imosTiltVelocitySetQC.txt for the following instruments :
 
-It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
+|| *Make/Model* || *First tilt treshold* || *Second tilt Threshold* || *First flag* || *Second flag* ||
+||sentinel||15||22||2||3||
+||monitor||15||22||2||3||
+||longranger||15||50||2||3||
+||quartermaster||15||50||2||3||
+||nortek||20||30||2||3||
 
-However, thanks to Rebecca Cowley (CSIRO Hobart) this procedure has been corrected from a mis-interpretation, putting more faith into the original document from RDI [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/ADCP_Data_QA-QC_App_Note.pdf Darryl R Symonds (2006)].
+=== Horizontal velocity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosHorizontalVelocitySetQC.m imosHorizontalVelocitySetQC] - Compulsory ===
+
+imosHorizontalVelocitySetQC checks horizontal velocity values against a maximum threshold.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||UCUR, VCUR, CSPD||1-Good data||4-Bad data||
+
+Samples that pass the test are the ones verifying `|UCUR + i*VCUR| <= hvel`.
+
+With `hvel` default value of 2.0m.s-1 stored in imosHorizontalVelocitySetQC.txt.
+
+This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
 
 This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
 
 http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
 
-The teledyneSetQC.txt parameter file allows the user to change these parameters (speeds are in m/s). By default, chosen parameters are those which have been determined by Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. See example below :
+=== Vertical velocity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosVerticalVelocityQC.m imosVerticalVelocityQC] - Compulsory ===
 
-{{{
-err_vel   = 0.15
-pgood     = 50
-cmag      = 110
-vvel      = 0.2
-hvel      = 2.0
-ea_thresh = 30
+imosVerticalVelocityQC checks vertical velocity values against a maximum threshold.
 
-}}}
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||WCUR||1-Good data||4-Bad data||
 
-*However relevant thresholds need to be set for each dataset and no default set of thresholds can cover all possible datasets!*
+Samples that pass the test are the ones verifying `|WCUR| <= vvel`.
+
+With `vvel` default value of 0.2m.s-1 stored in imosVerticalVelocityQC.txt.
+
+This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
+
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
+
+http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+
+=== ADCP echo intensity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosEchoIntensityVelocitySetQC.m imosEchoIntensityVelocitySetQC] - Optional ===
+
+imosEchoIntensityVelocitySetQC looks at the difference in echo intensity between adjacent vertical bins. When this difference is greater than a certain threshold for at least 3 beams, this means an obstacle (surface or bottom) is detected and from there, any further bin is flagged bad. This test is available at ones discretion who is fully aware of the algorithm and *demands expertise to set relevant thresholds for each dataset*.
+
+This test raises a warning if applied without ABSIn being vertically bin-mapped.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
+
+ # `ABSIn(current bin)-ABSIn(previous bin) 	<= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. At least 3 beams differences must be less than ea_thresh in order to pass the test. When a bin is flagged bad, then all the bins further it are flagged bad as well.).
+
+With `ea_thresh` default value of 30 counts suggested by Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. *However relevant threshold value needs to be set for each dataset!* It is stored in imosEchoIntensityVelocitySetQC.txt.
+
+This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
+
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
+
+http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+
+=== ADCP correlation magnitude test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosCorrMagVelocitySetQC.m imosCorrMagVelocitySetQC] - Compulsory ===
+
+imosCorrMagVelocitySetQC test checks that there is sufficient signal to noise ratio to obtain good quality data via the measure of a pulse-to-pulse correlation in a ping. At each bin, if at least 2 beams see their correlation value greater than a threshold value then the sample at that bin passes the test.
+
+This test raises a warning if applied without CMAGn being vertically bin-mapped.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
+
+ # `CMAGn 								>  cmag` (performed on the 4 beams, at least 2 must be greater than cmag in order to pass to the test)
+
+With `cmag` default value of 64 suggested by [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/Alessandra_Mantovanelli/ADCP_report2_26november2014_withpressure_v2.docx Alessandra Mantovanelli's report]. *However, relevant threshold value might need to be set for each dataset.* It is stored in imosCorrMagVelocitySetQC.txt.
+
+This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
+
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
+
+http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+
+=== ADCP percent good test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosPercentGoodVelocitySetQC.m imosPercentGoodVelocitySetQC] - Optional ===
+
+imosPercentGoodVelocitySetQC test checks that the percentage of good 3 beams and 4 beams solutions is greater than a certain threshold. A percentage of bad solution is based on low correlation and fish detection. This test is available at ones discretion who is fully aware of the algorithm and *demands expertise to set relevant thresholds for each dataset*.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
+
+ # `PERG1 + PERG4 								> pgood` (performed on the 1st and 4th value only: represents the percentage good of 3 and 4 beam solutions in earth coordinates configuration)
+
+With `pgood` default value of 50% suggested Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. *However relevant threshold value needs to be set for each dataset!* It is stored in imosPercentGoodVelocitySetQC.txt.
+
+This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)]. Thanks to Rebecca Cowley (CSIRO Hobart) this procedure has been corrected from a mis-interpretation, putting more faith into the original document from RDI [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/ADCP_Data_QA-QC_App_Note.pdf Darryl R Symonds (2006)].
+
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
+
+http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+
+=== ADCP error velocity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosErrorVelocitySetQC.m imosErrorVelocitySetQC] - Optional ===
+
+imosErrorVelocitySetQC test checks that the horizontal error velocity (difference between two independant estimates, basically two pair of beams) is smaller than a certain threshold so that the assumption of hozontal flow homogeneity is reasonable. This test is only available in 4 beams solution and shouldn't flag as bad any 3 beam solution. This test is available at ones discretion who is fully aware of the algorithm and *demands expertise to set relevant thresholds for each dataset*.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data or 2-Probably good data if ECUR is NaN||4-Bad data||
+
+ # `|ECUR| 										<=  err_vel` (NaNs means 3 beam solution only and should not fail this test but gain a probably good flag instead)
+
+With `err_vel` default value of 0.15m.s-1 suggested Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. *However relevant threshold value needs to be set for each dataset!* It is stored in imosErrorVelocitySetQC.txt.
+
+This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
+
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
+
+http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+
+=== ADCP tier 2 profile test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosTier2ProfileVelocitySetQC.m imosTier2ProfileVelocitySetQC] - Optional ===
+
+imosTier2ProfileVelocitySetQC test checks that more than 50% of the bins in the water column (imosEchoIntensityVelocitySetQC test gives where the surface/bottom starts) in a profile have passed all of the 5 other velocity tests otherwise the entire profile fails. This test is available at ones discretion who is fully aware of the algorithm and *demands expertise to set relevant thresholds for each dataset*.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data||4-Bad data||
+
+The bin samples that pass the test are the ones passing the 5 sub-tests and which belong to a profile which has less than 50% of its bins failing the 5 sub-tests : 
+
+ # imosHorizontalVelocitySetQC
+ # imosVerticalVelocityQC
+ # imosErrorVelocitySetQC
+ # imosPercentGoodVelocitySetQC
+ # imosCorrMagVelocitySetQC
+
+This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)]. Thanks to Rebecca Cowley (CSIRO Hobart) this procedure has been corrected from a mis-interpretation, putting more faith into the original document from RDI [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/ADCP_Data_QA-QC_App_Note.pdf Darryl R Symonds (2006)].
+
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
+
+http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+
+=== Historical manual QC test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosHistoricalManualSetQC.m imosHistoricalManualSetQC] - Compulsory ===
+
+Anytime a manual QC is performed, a .mqc file is created/updated with a new information about what has been flagged where and with with which flag and comment. The file is at the same location as the input file and has the same radical name.
+
+imosHistoricalManualSetQC QC procedure reads any existing .mqc file so that any manual QC is automatically re-applied.
 
 == Other procedures descriptions ==
 
 These QC procedures are still under development/validation and should only be used with full knowledge for test purpose. IMOS do not recommend these tests to be performed on data files that will be sent to eMII data centre.
 
 # climatologyRangeQC
+# teledyneSetQC
 
 === Climatology range test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/climatologyRangeQC.m climatologyRangeQC] === 
 
@@ -448,3 +590,45 @@ The provided failing flag is deliberately set to 3 (Bad data that are potentiall
 If the site information is not documented in the metadata, the data set doesn't contain any depth variable or the according climatology file is not found then test is not performed and a warning is displayed.
 
 If a sample has its depth value further than the closest depth in the climatology + 2 times the vertical resolution of this climatology then this sample won't be QC'd.
+
+=== Teledyne ADCP tests - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/teledyneSetQC.m teledyneSetQC] - Optional === 
+
+imosTeledyneSetQC works for any 4 beam ADCP which provides horizontal and vertical current velocity *and* quality parameters ECUR(error_sea_water_velocity), ADCP_GOOD(adcp_percentage_good), ABSI(acoustic_backscatter_intensity) and ADCP_CORR(adcp_correlation_magnitude). These parameters are basically provided by all the Workhorse ADCPs manufactured by Teledyne RD Instruments. This test is available at ones discretion who is fully aware of the algorithm used. This powerful test however *demands expertise to set relevant thresholds for each dataset*.
+
+|| *Parameters checked* || *Pass test flag* || *Fail test flag* ||
+||UCUR, VCUR, WCUR, CSPD, CDIR||1-Good data or 2-Probably good data if ECUR is NaN||4-Bad data||
+
+This test can be decomposed in the 6 following sub-tests.
+
+The bin samples that pass the test are the ones passing the 6 sub-tests and which belong to a profile which has less than 50% of its bins failing the 5 first sub-tests : 
+
+ # `|ECUR| 										<=  err_vel` (NaNs means 3 beam solution only and should not fail this test but gain a probably good flag instead)
+ # `PERG1 + PERG4 								> pgood` (performed on the 1st and 4th value only: represents the percentage good of 3 and 4 beam solutions in earth coordinates configuration)
+ # `CMAGn 								>  cmag` (performed on the 4 beams, at least 2 must be greater than cmag in order to pass to the test)
+ # `|WCUR| 										<  vvel` (NaNs are not failing this test, they should be flagged anyway by the global range test)
+ # `|UCUR + i*VCUR| 							<  hvel` (NaNs are not failing this test, they should be flagged anyway by the global range test)
+ # `ABSIn(current bin)-ABSIn(previous bin) 	<= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. At least 3 beams differences must be less than ea_thresh in order to pass the test. When a bin is flagged bad, then all the bins above it are flagged bad as well.).
+
+It is based on a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
+
+However, thanks to Rebecca Cowley (CSIRO Hobart) this procedure has been corrected from a mis-interpretation, putting more faith into the original document from RDI [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/ADCP_Data_QA-QC_App_Note.pdf Darryl R Symonds (2006)].
+
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
+
+http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+
+The teledyneSetQC.txt parameter file allows the user to change these parameters (speeds are in m/s). By default, chosen parameters are those which have been determined by Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. See example below :
+
+{{{
+err_vel   = 0.15
+pgood     = 50
+cmag      = 110
+vvel      = 0.2
+hvel      = 2.0
+ea_thresh = 30
+
+}}}
+
+*However relevant thresholds need to be set for each dataset and no default set of thresholds can cover all possible datasets!*
+
+This test raises a warning if applied without CMAGn and ABSIn being vertically bin-mapped.

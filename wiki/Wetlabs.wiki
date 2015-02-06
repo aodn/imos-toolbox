@@ -15,29 +15,34 @@ Although the toolbox is able to parse both .raw (instrument file) and .dat (proc
 
 The '.dat' data file format, i.e. raw data which has been processed by the WQM Host software, is a tab-delimited format. WQM Host allows a wide range of fields to be included in the output file; the following are supported by the toolbox:
 
- * `WQM`             		(literal 'WQM')
- * `SN`              		(serial number - required)
- * `MMDDYY`          		(date - required)
- * `HHMMSS`          		(time - required)
- * `WQM-SN`		            (serial number - required)
- * `MM/DD/YY`	            (date - required)
- * `HH:MM:SS`	            (time - required)
- * `Cond(mmho)`      		(floating point conductivity, milliSiemens/metre)
- * `Temp(C)`         		(floating point temperature, Degrees Celsius)
- * `Pres(dbar)`      		(floating point pressure, Decibar)
- * `Sal(PSU)`        		(floating point salinity, Practical Salinity Unit)
- * `DO(mg/l)`        		(floating point dissolved oxygen, milligrams/Litre)
- * `DO(ml/l)`        		(floating point dissolved oxygen, millilitres/Litre)
- * `DO(mmol/m^3)`    		(floating point dissolved oxygen, millimole/metre^3)
- * `CHL(ug/l)`       		(floating point chlorophyll, micrograms/Litre)
- * `CHLa(ug/l)`		        (floating point chlorophyll, micrograms/Litre)
- * `F-Cal-CHL(ug/l)` 		(floating point factory coefficient chlorophyll, micrograms/Litre)
- * `U-Cal-CHL(ug/l)` 		(floating point user coefficient chlorophyll, micrograms/Litre)
- * `NTU`             		(floating point turbidity, NTU)
- * `NTU(NTU)`	            (floating point turbidity, NTU)
- * `PAR(umol_phtn/m2/s)`	(floating point photosynthetically active radiation, micromole of photon/m2/s)
+ * `WQM`                 (literal 'WQM')
+ * `SN`                  (serial number - required)
+ * `MMDDYY`              (date - required)
+ * `HHMMSS`              (time - required)
+ * `WQM-SN`              (serial number - required)
+ * `MM/DD/YY`            (date - required)
+ * `HH:MM:SS`            (time - required)
+ * `Cond(mmho)`          (floating point conductivity, milliSiemens/metre)
+ * `Cond(S/m)`           (floating point conductivity, Siemens/metre)
+ * `Temp(C)`             (floating point temperature, Degrees Celsius)
+ * `Pres(dbar)`          (floating point pressure, Decibar)
+ * `Sal(PSU)`            (floating point salinity, Practical Salinity Unit)
+ * `DO(mg/l)`            (floating point dissolved oxygen, milligrams/Litre)
+ * `DO(ml/l)`            (floating point dissolved oxygen, millilitres/Litre)
+ * `DO(mmol/m^3)`        (floating point dissolved oxygen, millimole/metre^3)
+ * `CHL(ug/l)`           (floating point chlorophyll, micrograms/Litre)
+ * `CHLa(ug/l)`          (floating point chlorophyll, micrograms/Litre)
+ * `F-Cal-CHL(ug/l)`     (floating point factory coefficient chlorophyll, micrograms/Litre)
+ * `Fact-CHL(ug/l))`     (floating point factory coefficient chlorophyll, micrograms/Litre)
+ * `U-Cal-CHL(ug/l)`     (floating point user coefficient chlorophyll, micrograms/Litre)
+ * `RawCHL(Counts)`      (integer fluorescence in raw counts)
+ * `CHLa(Counts)`        (integer fluorescence in raw counts)
+ * `NTU`                 (floating point turbidity, NTU)
+ * `NTU(NTU)`            (floating point turbidity, NTU)
+ * `rho`                 (floating point density, kg/metre^3)
+ * `PAR(umol_phtn/m2/s)` (floating point photosynthetically active radiation, micromole of photon/m2/s)
 
-Any other fields which are present in the input file will be ignored.
+Any other field which is present in the input file will be ignored.
 
 From WQM Host version 1.54, a header is included by default and is supported.
 
@@ -84,3 +89,25 @@ In the .raw file, date and time formats as well as the number of columns are che
  
 Any other column with significant data is going to be displayed "as is" by the toolbox but won't be output in the NetCDF file.
 
+== ECO BB9 ==
+
+The toolbox is able to parse a .RAW data file retrieved from a Wetlabs ECO BB9 instrument from the Lucinda jetty using the *ECOBB9* parser. Like for ECO Triplet, the device file associated must have the same root filename as the .raw file but with the .dev extension and in the same folder.
+
+The same device file format as above for ECO Triplet is supported to parse the .RAW file and convert count values in engineering units.
+
+In the .RAW file, the number of columns are checked to cope with possible corruption. TIME information is inferred from start time in filename (already in UTC) and assuming the sampling rate is 1Hz. The following columns are supported by the toolbox:
+
+ * `CHL`       				(floating point chlorophyll, micrograms/Litre)
+ * `CDOM`		        	(floating point colored dissolved organic matter, ppb)
+ * `NTU`             		(floating point turbidity, NTU)
+ * `LAMBDA`    				(floating point volume scattering function of radiative flux, m-1.sr-1)
+ 
+Any other column with significant data is going to be displayed "as is" by the toolbox but won't be output in the NetCDF file.
+
+== WetStar ==
+
+The toolbox is able to parse a .RAW data file retrieved from a Wetlabs WetStar instrument from the Lucinda jetty using the *WetStar9* parser. Like for ECO Triplet, the device file associated must have the same root filename as the .raw file but with the .dev extension and in the same folder.
+
+The same device file format as above for ECO Triplet is supported to parse the .RAW file and convert count values in engineering units.
+
+In the .RAW file, the number of columns are checked to cope with possible corruption. TIME information is inferred from start time in filename (already in UTC) and assuming recording is performed over 60 minutes. The supported columns by the toolbox are the same as the ones for ECOBB9 above.

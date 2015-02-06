@@ -13,6 +13,8 @@ The toolbox is able to parse current and wave data files retrieved from a Teledy
 
 *IMPORTANT:* The heading bias information accounting for electrical/magnetic bias (usually magnetic declination) found in the PD0 file Fixed Leader Data (see Current data below) and set up by a technician prior to the deployment or during post-processing with RDI's softwares is taken into account to decide whether the current and wave data is referring to magnetic North (heading bias is found to be 0) or true North (heading bias is found to be different from 0).
 
+*IMPORTANT:* LSB bit 7 from the system configuration field in the fixed leader data format of a PD0 file is taken into account to tell whether the ADCP is upward or downward looking.
+
 === Current data ===
 
 Current data raw files are read in the PD0 format (see the Workhorse H-ADCP Operation manual available [http://imos-toolbox.googlecode.com/svn/wiki/documents/Instruments/RDI/Workhorse_Quartermaster_ADCP/WorkHorse_Commands_and_Output_Data_Format_Nov07.pdf here] for a description of the format as it stands at November 2007). As the toolbox works from raw binary files, pre-processing with RDI software is not required.
@@ -23,8 +25,8 @@ A raw Workhorse current data file consists of a set of 'ensembles'. Each ensembl
  * *Fixed Leader Data*: ADCP configuration, serial number etc. Always present
  * *Variable Leader Data*: Time, temperature, salinity etc. Always present.
  * *Velocity*: Current velocities for each depth (a.k.a 'bins' or 'cells').
- * *Correlation Magnitude*: 'Magnitude of the normalized echo autocorrelation at the lag used for estimating the Doppler phase change'. 
- * *Echo Intensity*: Echo intensity data. 
+ * *Correlation Magnitude*: 'Magnitude of the normalized echo autocorrelation at the lag used for estimating the Doppler phase change'. This information is not vertically bin-mapped.
+ * *Echo Intensity*: Echo intensity data. This information is not vertically bin-mapped.
  * *Percent Good*: Percentage of good data for each depth cell.
  * *Bottom Track Data*: Bottom track data. 
 
@@ -37,8 +39,8 @@ The toolbox reads in all of the ensembles and extracts the following:
  * Eastward velocity (at each time and depth)
  * Water speed (at each time and depth, derived from northward/eastward velocities)
  * Water direction (at each time and depth, derived from northward/eastward velocities)
- * Acoustic backscatter intensity (at each time and depth, a separate variable for each beam)
- * Particle distribution correlation magnitude (at each time and depth, a separate variable for each beam)
+ * Acoustic backscatter intensity (at each time and depth, a separate variable for each beam, this information is not vertically bin-mapped)
+ * Particle distribution correlation magnitude (at each time and depth, a separate variable for each beam, this information is not vertically bin-mapped)
  * Percentage of good three beam solutions (at each time and depth)
  * Percentage of good transformations (at each time and depth)
  * Percentage of measurements with more than one beam bad (at each time and depth)

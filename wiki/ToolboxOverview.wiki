@@ -21,7 +21,7 @@ Typical usage of the Toolbox would proceed as follows:
  # User performs pre-processing routines over data set, such as depth calculation for each sensor, time offset to UTC time...
  # User executes semi-automatic QC procedures over data set, such as time and location checks, in/out of water flagging, range checks, spike detection, stationarity checks...
  # User performs manual QC over data via interactive display.
- # Toolbox generates eMII/IMOS compatible NetCDF files containing metadata and data at non QC'd and QC'd levels.
+ # Toolbox generates eMII/IMOS compatible NetCDF files containing metadata and data at non QC'd and QC'd levels, along with plots of the data in png format.
 
 While the Toolbox will be designed to execute with minimal user intervention (apart from semi-automatic QC procedures configuration and manual quality control), the Matlab source will be available for users who wish to [ContributeToTheCode contribute] to the existing code with new features, have more fine grained control over the execution flow, or who wish to integrate the Toolbox into an existing Matlab codebase. The Toolbox will be made available to all.
 
@@ -31,7 +31,7 @@ System requirements for using the Toolbox are as follows:
 
  * Windows (XP from Seven either in 32bit or 64bit) or Linux 64bit operating system
  * Java Runtime Environment 1.6
- * Matlab from R2010b to R2012b (Optional, a self-contained executable version is available)
+ * Matlab from R2012b (Optional, a self-contained executable version is available but requires installing the Matlab Component Runtime)
  * A local deployment database (Optional)
  * Microsoft Access 32bit if you use a 32bit operating system / Matlab, 64bit if you use a 64bit one (Optional, can be bypassed with UCanAccess, especially when using Linux)
  
@@ -71,7 +71,7 @@ Global and variables attributes can be automatically documented via [NetCDFTempl
 
 The following levels of processed data will be saved as separate NetCDF files:
 
- * Level 0: Non QC'd data
- * Level 1: QC'd data
+ * Level 0: Unmodified (except TIME fom local time to UTC) data without any QC flag
+ * Level 1: Possibly added and/or modified data with QC flags
 
 These [ProcessLevelsAndQC#ProcessLevels levels] (and the output files) map directly to the Processed Data levels defined in the [http://imos-toolbox.googlecode.com/svn/wiki/documents/IMOS_netCDF_usermanual_v1.3.pdf IMOS NetCDF User's Manual].

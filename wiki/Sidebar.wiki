@@ -36,5 +36,3 @@
   * GraphingInMatlab
   * [NXICBinaryFormat]
   * [YSIBinaryFormat]
-
- 

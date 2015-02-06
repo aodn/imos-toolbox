@@ -5,6 +5,19 @@
 
 = Troubleshooting =
 
+== java.lang.OutOfMemoryError: Java heap space ==
+
+{{{
+Error using executeDDBQuery (line 106)
+Java exception occurred:
+net.ucanaccess.jdbc.UcanaccessSQLException: java.lang.OutOfMemoryError: Java heap space
+}}}
+
+This is because UCanAccess creates a whole image of your deployment database in memory and can happen when the database becomes significantly important. The easiest fix is to tell Java to allocate sufficient heap space memory when the Java Virtual Machine starts up and this can be done in two ways:
+
+ * In Matlab, via Preferences, in General -> Java Heap Memory and then set it to the maximum (2Gb is a minimum for AIMS database for example).
+ * Add a java.opts file in the root directory of the toolbox, that is to say next to imosToolbox.m, which includes (without the double quotes) : "-Xmx2g". This way we're telling Java to allocate 2Gb of Heap memory. Then start either Matlab or any standalone binary executable from the root directory of the toolbox. This is the preferred method for use in standalone.
+
 == Invalid graphics handle ==
 
 If, while viewing a data set, you enable/disable parameters too quickly, you may be presented with the following dialog:
