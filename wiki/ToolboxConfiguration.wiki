@@ -10,7 +10,7 @@ The toolbox contains a number of configuration files, allowing for customisation
 
 This page provides an overview of the different configuration files.
 
-== [http://code.google.com/p/imos-toolbox/source/browse/trunk/toolboxProperties.txt toolboxProperties.txt] ==
+== ./[http://code.google.com/p/imos-toolbox/source/browse/trunk/toolboxProperties.txt toolboxProperties.txt] ==
 
 This file contains general toolbox configuration settings. Many of the settings in this file are related to previous selections for e.g. the selected import/export directory; these settings are automatically updated every time the selection changes, meaning that the toolbox will always remember your most recent selection. In most circumstances, the only settings that you will need to change in this file are the `toolbox.ddb` settings, which tells the toolbox where the deployment database lives, and the `toolbox.mode` setting, which defines the data mode in use between timeSeries (default) and profile.
 
