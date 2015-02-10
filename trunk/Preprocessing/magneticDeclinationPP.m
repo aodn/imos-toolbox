@@ -97,7 +97,7 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
   for i = 1:nDataSet
     nVar = length(sample_data{i}.variables);
     for j = 1:nVar
-        % not corrected from magnetic declination
+        % needs correction from magnetic declination
         if any(strcmpi(sample_data{i}.variables{j}.name, magParam))
             if ~any(iMagDataSet == i)
                 iMagDataSet = [iMagDataSet i];
