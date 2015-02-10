@@ -406,15 +406,25 @@ function displayManager(windowTitle, sample_data, callbacks)
                   if ~isempty(comment)
                       % we get the first dimension (either TIME or DEPTH for timeSeries or
                       % profile)
-                      iDim = sample_data{setIdx}.variables{kVar(i)}.dimensions(1);
-                      nameDim = sample_data{setIdx}.dimensions{iDim}.name;
-                      dataDim = sample_data{setIdx}.dimensions{iDim}.data(dataIdx);
-                      startDim = dataDim(1);
-                      endDim = dataDim(end);
+                      iDim1 = sample_data{setIdx}.variables{kVar(i)}.dimensions(1);
+                      nameDim1 = sample_data{setIdx}.dimensions{iDim1}.name;
+                      dataDim1 = sample_data{setIdx}.dimensions{iDim1}.data;
+                      
+                      if length(sample_data{setIdx}.variables{kVar(i)}.dimensions) > 1
+                          iDim2 = sample_data{setIdx}.variables{kVar(i)}.dimensions(2);
+                          nDim2 = length(sample_data{setIdx}.dimensions{iDim2}.data);
+                          
+                          dataDim1 = repmat(dataDim1, nDim2, 1);
+                      end
+                      
+                      dataDim1 = dataDim1(dataIdx);
+                      
+                      startDim = dataDim1(1);
+                      endDim = dataDim1(end);
                       clear dataDim;
                       
                       % retrieve TIME or DEPTH range for which data has been manually flagged
-                      if strcmpi(nameDim, 'TIME')
+                      if strcmpi(nameDim1, 'TIME')
                           manualQcComment = ['Data values at TIME from ', datestr(startDim, 'yyyy/mm/dd HH:MM:SS'), ' UTC to ', datestr(endDim, 'yyyy/mm/dd HH:MM:SS'), ' UTC manually flagged as ', flagStr, ' : ', comment];
                       else
                           manualQcComment = ['Data values at DEPTH from ', num2str(startDim), ' to ', num2str(endDim), 'm manually flagged as ', flagStr, ' : ', comment];
