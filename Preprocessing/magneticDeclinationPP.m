@@ -92,7 +92,7 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
   
   nDataSet = length(sample_data);
   iMagDataSet = [];
-  isMagDecToBeCompute = false;
+  isMagDecToBeComputed = false;
   geomagInputFilePermission = 'w';
   for i = 1:nDataSet
     nVar = length(sample_data{i}.variables);
@@ -106,7 +106,11 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
     end
     
     if any(iMagDataSet == i)
-        % geomag only support computation for haight above sea level
+        if isempty(sample_data{i}.instrument_nominal_depth)
+            disp(['Warning : no instrument_nominal_depth documented for magneticDeclinationPP to be applied on ' sample_data{i}.toolbox_input_file]);
+            continue;
+        end
+        % geomag only support computation for height above sea level
         % ranging [-1000;600000]
         height_above_sea_level = -sample_data{i}.instrument_nominal_depth;
         if height_above_sea_level < -1000; height_above_sea_level = -1000; end
@@ -121,14 +125,14 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
             sample_data{i}.geospatial_lat_min, sample_data{i}.geospatial_lon_min);
         fclose(inputId);
         
-        if ~isMagDecToBeCompute
-            isMagDecToBeCompute = true;
+        if ~isMagDecToBeComputed
+            isMagDecToBeComputed = true;
             geomagInputFilePermission = 'a';
         end
     end
   end
   
-  if isMagDecToBeCompute
+  if isMagDecToBeComputed
       % we run the geomag program and read its output
       geomagCmd = sprintf('%s %s f %s %s %s', geomagExe, geomagModelFile, geomagInputFile, geomagOutputFile, stdOutRedirection);
       system(geomagCmd);
