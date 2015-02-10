@@ -11,4 +11,4 @@ The development schedule is as follows:
 || November 9^th^ 2011 || Toolbox version 2.1b released to community. || ||
 || December 20^th^ 2012 || Toolbox version 2.2 released to community. || ||
 || November 6^th^ 2013 || Toolbox version 2.3b released to community. || ||
-|| February 9^th^ 2015 || [http://data.aodn.org.au/IMOS/public/eMII/softwares/imos-toolbox/ Toolbox version 2.4] released to community. || ||
+|| February 10^th^ 2015 || [http://data.aodn.org.au/IMOS/public/eMII/softwares/imos-toolbox/ Toolbox version 2.4] released to community. || ||

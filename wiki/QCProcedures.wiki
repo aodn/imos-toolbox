@@ -428,13 +428,11 @@ imosHorizontalVelocitySetQC checks horizontal velocity values against a maximum 
 
 Samples that pass the test are the ones verifying `|UCUR + i*VCUR| <= hvel`.
 
-With `hvel` default value of 2.0m.s-1 stored in imosHorizontalVelocitySetQC.txt.
+With *`hvel` default value of 2.0m.s-1* stored in imosHorizontalVelocitySetQC.txt.
 
 This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
 
-This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
-
-http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). Its result specified the default parameters values used in the QC procedure.
 
 === Vertical velocity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosVerticalVelocityQC.m imosVerticalVelocityQC] - Compulsory ===
 
@@ -445,13 +443,11 @@ imosVerticalVelocityQC checks vertical velocity values against a maximum thresho
 
 Samples that pass the test are the ones verifying `|WCUR| <= vvel`.
 
-With `vvel` default value of 0.2m.s-1 stored in imosVerticalVelocityQC.txt.
+With *`vvel` default value of 0.2m.s-1* stored in imosVerticalVelocityQC.txt.
 
 This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
 
-This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
-
-http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). Its result specified the default parameters values used in the QC procedure.
 
 === ADCP echo intensity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosEchoIntensityVelocitySetQC.m imosEchoIntensityVelocitySetQC] - Optional ===
 
@@ -464,13 +460,11 @@ This test raises a warning if applied without ABSIn being vertically bin-mapped.
 
  # `ABSIn(current bin)-ABSIn(previous bin) 	<= ea_thresh` (performed on the 4 beams, we look at the difference in amplitude between vertically consecutive pair of bins. At least 3 beams differences must be less than ea_thresh in order to pass the test. When a bin is flagged bad, then all the bins further it are flagged bad as well.).
 
-With `ea_thresh` default value of 30 counts suggested by Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. *However relevant threshold value needs to be set for each dataset!* It is stored in imosEchoIntensityVelocitySetQC.txt.
+With *`ea_thresh` default value of 30 counts* suggested by Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. *However relevant threshold value needs to be set for each dataset!* It is stored in imosEchoIntensityVelocitySetQC.txt.
 
 This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
 
-This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
-
-http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). Its result specified the default parameters values used in the QC procedure.
 
 === ADCP correlation magnitude test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosCorrMagVelocitySetQC.m imosCorrMagVelocitySetQC] - Compulsory ===
 
@@ -483,13 +477,11 @@ This test raises a warning if applied without CMAGn being vertically bin-mapped.
 
  # `CMAGn 								>  cmag` (performed on the 4 beams, at least 2 must be greater than cmag in order to pass to the test)
 
-With `cmag` default value of 64 suggested by [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/Alessandra_Mantovanelli/ADCP_report2_26november2014_withpressure_v2.docx Alessandra Mantovanelli's report]. *However, relevant threshold value might need to be set for each dataset.* It is stored in imosCorrMagVelocitySetQC.txt.
+With *`cmag` default value of 64* suggested by [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/Alessandra_Mantovanelli/ADCP_report2_26november2014_withpressure_v2.docx Alessandra Mantovanelli's report]. *However, relevant threshold value might need to be set for each dataset.* It is stored in imosCorrMagVelocitySetQC.txt.
 
 This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
 
-This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
-
-http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). Its result specified the default parameters values used in the QC procedure.
 
 === ADCP percent good test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosPercentGoodVelocitySetQC.m imosPercentGoodVelocitySetQC] - Optional ===
 
@@ -500,13 +492,11 @@ imosPercentGoodVelocitySetQC test checks that the percentage of good 3 beams and
 
  # `PERG1 + PERG4 								> pgood` (performed on the 1st and 4th value only: represents the percentage good of 3 and 4 beam solutions in earth coordinates configuration)
 
-With `pgood` default value of 50% suggested Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. *However relevant threshold value needs to be set for each dataset!* It is stored in imosPercentGoodVelocitySetQC.txt.
+With *`pgood` default value of 50%* suggested Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. *However relevant threshold value needs to be set for each dataset!* It is stored in imosPercentGoodVelocitySetQC.txt.
 
 This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)]. Thanks to Rebecca Cowley (CSIRO Hobart) this procedure has been corrected from a mis-interpretation, putting more faith into the original document from RDI [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/ADCP_Data_QA-QC_App_Note.pdf Darryl R Symonds (2006)].
 
-This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
-
-http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). Its result specified the default parameters values used in the QC procedure.
 
 === ADCP error velocity test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosErrorVelocitySetQC.m imosErrorVelocitySetQC] - Optional ===
 
@@ -517,13 +507,11 @@ imosErrorVelocitySetQC test checks that the horizontal error velocity (differenc
 
  # `|ECUR| 										<=  err_vel` (NaNs means 3 beam solution only and should not fail this test but gain a probably good flag instead)
 
-With `err_vel` default value of 0.15m.s-1 suggested Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. *However relevant threshold value needs to be set for each dataset!* It is stored in imosErrorVelocitySetQC.txt.
+With *`err_vel` default value of 0.15m.s-1* suggested Janet Sprintal for the RDI Workhorse Quatermaster ADCP 300kHz. *However relevant threshold value needs to be set for each dataset!* It is stored in imosErrorVelocitySetQC.txt.
 
 This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)].
 
-This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
-
-http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
+This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). Its result specified the default parameters values used in the QC procedure.
 
 === ADCP tier 2 profile test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosTier2ProfileVelocitySetQC.m imosTier2ProfileVelocitySetQC] - Optional ===
 
@@ -541,10 +529,6 @@ The bin samples that pass the test are the ones passing the 5 sub-tests and whic
  # imosCorrMagVelocitySetQC
 
 This test is part of a procedure implemented by the U.S. National Data Buoy Center, MI, and detailed in [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/adcp_qc.pdf Crout et al. (2005)]. Thanks to Rebecca Cowley (CSIRO Hobart) this procedure has been corrected from a mis-interpretation, putting more faith into the original document from RDI [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/ADCP_Data_QA-QC_App_Note.pdf Darryl R Symonds (2006)].
-
-This same methodology has been applied for the Quality Control of the mooring data collected during the INSTANT (International Nusantara STratification ANd Transport program) deployments in the outflow straits - Lombok Strait and Timor Passage. In addition, the determination of the parameters used in this methodology has been described by Janet Sprintal (2007) in this [http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/INSTANTdataQC_v5.pdf document] (see Appendix 2). The result is as follow and specifies the default parameters values used in the QC procedure :
-
-http://imos-toolbox.googlecode.com/svn/wiki/documents/QC/ADCP/QC_tests_RDI.png
 
 === Historical manual QC test - [http://code.google.com/p/imos-toolbox/source/browse/trunk/AutomaticQC/imosHistoricalManualSetQC.m imosHistoricalManualSetQC] - Compulsory ===
 
