@@ -83,8 +83,8 @@ for i=1:lenSampleData
         metaDepth(i) = NaN;
     end
     iTime = getVar(sample_data{i}.dimensions, 'TIME');
-    xMin = min(sample_data{i}.dimensions{iTime}.data);
-    xMax = max(sample_data{i}.dimensions{iTime}.data);
+    xMin(i) = min(sample_data{i}.dimensions{iTime}.data);
+    xMax(i) = max(sample_data{i}.dimensions{iTime}.data);
 end
 [metaDepth, iSort] = sort(metaDepth);
 xMin = min(xMin);
