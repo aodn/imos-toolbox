@@ -133,6 +133,12 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
   end
   
   if isMagDecToBeComputed
+      % geomag is limited to path length of 92 characters
+      if length(geomagOutputFile) > 92
+          error(['magneticDeclinationPP cannot be applied on ' sample_data{i}.toolbox_input_file ...
+              '. Change your toolbox location so that ' geomagOutputFile ' is shorter than 92 characters long (Geomag limitation).']);
+      end
+      
       % we run the geomag program and read its output
       geomagCmd = sprintf('%s %s f %s %s %s', geomagExe, geomagModelFile, geomagInputFile, geomagOutputFile, stdOutRedirection);
       system(geomagCmd);
