@@ -322,7 +322,11 @@ function [fieldTrip dataDir] = startDialog(mode)
   function confirmCallback(source,ev)
   % CONFIRMCALLBACK. Confirm button callback. Closes the dialog.
   %
-    delete(f);
+    if isempty(dataDir)
+        uiwait(msgbox('Please set a data directory.', 'Import', 'error', 'modal'));
+    else
+        delete(f);
+    end
   end
 
 
