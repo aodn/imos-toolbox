@@ -389,7 +389,11 @@ function [exportDir sets] = exportDialog( ...
   function confirmButtonCallback(source,ev)
   %CONFIRMBUTTONCALLBACK Closes the dialog.
   % 
-    delete(f);
+    if isempty(exportDir)
+        uiwait(msgbox('Please set an export directory.', 'Export', 'error', 'modal'));
+    else
+        delete(f);
+    end
   end
 
   function varCheckboxCallback(source,ev)
