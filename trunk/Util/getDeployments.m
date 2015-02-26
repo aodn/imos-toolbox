@@ -68,7 +68,7 @@ else
 end
 
 % user cancelled start dialog
-if isempty(fieldTrip) || isempty(dataDir), return; end
+if isempty(fieldTrip) && isempty(dataDir), return; end
 
 fId = fieldTrip.FieldTripID;
 

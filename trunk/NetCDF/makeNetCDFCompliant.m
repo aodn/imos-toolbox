@@ -213,18 +213,20 @@ InstrumentSensorConfig = executeDDBQuery('InstrumentSensorConfig', 'InstrumentID
 lenConfig = length(InstrumentSensorConfig);
 % only consider relevant config based on timeFirstSample
 for i=1:lenConfig
-    if InstrumentSensorConfig(i).StartConfig <= timeFirstSample && InstrumentSensorConfig(i).EndConfig > timeFirstSample
-        % query the ddb for each sensor
-        Sensors = executeDDBQuery('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
-        if ~isempty(Sensors)
-           % check if this sensor is associated to the current IMOS parameter
-           parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
-           if ~isempty(parameters)
-               parameters = parameters{1};
-               if any(strcmpi(IMOSParam, parameters))
-                   target = Sensors.SerialNumber;
-               end
-           end
+    if ~isempty(InstrumentSensorConfig(i).StartConfig) && ~isempty(InstrumentSensorConfig(i).EndConfig)
+        if InstrumentSensorConfig(i).StartConfig <= timeFirstSample && InstrumentSensorConfig(i).EndConfig > timeFirstSample
+            % query the ddb for each sensor
+            Sensors = executeDDBQuery('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
+            if ~isempty(Sensors)
+                % check if this sensor is associated to the current IMOS parameter
+                parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
+                if ~isempty(parameters)
+                    parameters = parameters{1};
+                    if any(strcmpi(IMOSParam, parameters))
+                        target = Sensors.SerialNumber;
+                    end
+                end
+            end
         end
     end
 end

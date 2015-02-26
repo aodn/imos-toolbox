@@ -75,10 +75,9 @@ error(nargchk(1, 2, nargin));
   waveFile      = fullfile(filePath, [fileRadName '.WVS']);
   
   isWaveData = false;
-  if exist(currentFile, 'file') && exist(currentFile, 'file')
+  if exist(currentFile, 'file') && exist(waveFile, 'file')
       % we process current and wave files
       isWaveData = true;
-      filename = currentFile;
   end
   
   ensembles = readWorkhorseEnsembles( filename );

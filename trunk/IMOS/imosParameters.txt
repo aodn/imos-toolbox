@@ -17,14 +17,6 @@ ABSI1,               0, backscatter_intensity_from_acoustic_beam_1,             
 ABSI2,               0, backscatter_intensity_from_acoustic_beam_2,                                             decibel,                               A, 999999.0, 0.0,     150.0,    float
 ABSI3,               0, backscatter_intensity_from_acoustic_beam_3,                                             decibel,                               A, 999999.0, 0.0,     150.0,    float
 ABSI4,               0, backscatter_intensity_from_acoustic_beam_4,                                             decibel,                               A, 999999.0, 0.0,     150.0,    float
-CMAG1,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_1,                       ,                                      E, 999999.0, 0.0,     250.0,    float
-CMAG2,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_2,                       ,                                      E, 999999.0, 0.0,     250.0,    float
-CMAG3,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_3,                       ,                                      E, 999999.0, 0.0,     250.0,    float
-CMAG4,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_4,                       ,                                      E, 999999.0, 0.0,     250.0,    float
-PERG1,               0, percentage_of_good_three_beam_solutions,                                                percent,                               E, 999999.0, 0.0,     100.0,    float
-PERG2,               0, percentage_of_transformations_rejected,                                                 percent,                               E, 999999.0, 0.0,     100.0,    float
-PERG3,               0, percentage_of_measurements_with_more_than_one_beam_bad,                                 percent,                               E, 999999.0, 0.0,     100.0,    float
-PERG4,               0, percentage_of_good_four_beam_solutions,                                                 percent,                               E, 999999.0, 0.0,     100.0,    float
 AIRT,                1, air_temperature,                                                                        Celsius,                               M, 999999.0, -50.0,   50.0,     float
 ATMP,                1, air_pressure,                                                                           Pascal,                                M, 999999.0, 90000.0, 110000.0, float
 ATMS,                1, air_pressure_at_sea_level,                                                              Pascal,                                M, 999999.0, 90000.0, 110000.0, float
@@ -33,10 +25,15 @@ BOT_DEPTH,           1, sea_floor_depth_below_sea_surface,                      
 CDIR,                1, direction_of_sea_water_velocity,                                                        Degrees clockwise from true North,     V, 999999.0, 0.0,     360.0,    float
 CDIR_MAG,            1, direction_of_sea_water_velocity,                                                        Degrees clockwise from magnetic North, V, 999999.0, 0.0,     360.0,    float
 CDOM,                0, concentration_of_coloured_dissolved_organic_matter,                                     ppb,                                   K, 999999.0, ,        ,         float
+CMAG1,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_1,                       ,                                      E, 999999.0, 0.0,     250.0,    float
+CMAG2,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_2,                       ,                                      E, 999999.0, 0.0,     250.0,    float
+CMAG3,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_3,                       ,                                      E, 999999.0, 0.0,     250.0,    float
+CMAG4,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_4,                       ,                                      E, 999999.0, 0.0,     250.0,    float
 CNDC,                1, sea_water_electrical_conductivity,                                                      S m-1,                                 C, 999999.0, 0.0,     50000.0,  float
-CPHL,                0, mass_concentration_of_inferred_chlorophyll_from_relative_fluorescence_units_in_sea_water, mg m-3,                              K, 999999.0, 0.0,     100.0,    float
 CHLF,                0, mass_concentration_of_inferred_chlorophyll_from_relative_fluorescence_units_in_sea_water, mg m-3,                              K, 999999.0, 0.0,     100.0,    float
 CHLU,                0, mass_concentration_of_inferred_chlorophyll_from_relative_fluorescence_units_in_sea_water, mg m-3,                              K, 999999.0, 0.0,     100.0,    float
+CPAR,                0, downwelling_corrected_photosynthetic_photon_flux_in_sea_water,                          percent,                               F, 999999.0, 0,       100,      float
+CPHL,                0, mass_concentration_of_inferred_chlorophyll_from_relative_fluorescence_units_in_sea_water, mg m-3,                              K, 999999.0, 0.0,     100.0,    float
 CSPD,                1, sea_water_speed,                                                                        m s-1,                                 V, 999999.0, 0.0,     10.0,     float
 DENS,                1, sea_water_density,                                                                      kg m-3,                                D, 999999.0, ,        ,         float
 DEPTH,               1, depth,                                                                                  m,                                     Z, 999999.0, -5.0,    12000.0,  float
@@ -46,7 +43,7 @@ DIR,                 0, from_direction,                                         
 DIR_MAG,             0, from_direction,                                                                         Degrees clockwise from magnetic North, E, 999999.0, 0.0,     360.0,    float
 DIRECTION,           0, direction_of_the_profile,                                                               ,                                      ,  ,         ,        ,         char
 DIRT,                0, to_direction,                                                                           Degrees clockwise from true North,     E, 999999.0, 0.0,     360.0,    float
-DIST_ALONG_BEAMS,    0, dist_along_beams,                                                                       m,                                     Z, 999999.0, -12000.0,12000.0,  float
+DIST_ALONG_BEAMS,    0, distance_along_acoustic_beams_from_transducer_to_cell,                                  m,                                     Z, 999999.0, -12000.0,12000.0,  float
 DOX1,                1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,                          umol l-1,                              O, 999999.0, 0.0,     900000.0, float
 DOX2,                1, moles_of_oxygen_per_unit_mass_in_sea_water,                                             umol kg-1,                             O, 999999.0, 0.0,     880000.0, float
 DOXS,                1, fractional_saturation_of_oxygen_in_sea_water,                                           percent,                               O, 999999.0, ,        ,         float
@@ -71,18 +68,21 @@ LATITUDE,            1, latitude,                                               
 LONGITUDE,           1, longitude,                                                                              degrees east,                          ,  999999.0, -180.0,  180.0,    double
 LW,                  1, surface_downwelling_longwave_flux_in_air,                                               W m-2,                                 F, 999999.0, ,        ,         float
 LW_NET,              1, surface_net_upward_longwave_flux,                                                       W m-2,                                 F, 999999.0, ,        ,         float
-MASS_NET,            1, upward_mass_flux_of_air,                                                                kg m-2 s-1,                            F, 999999.0, ,        ,         float
-MAXZ,                0, maximum_number_of_samples_in_vertical_profile,                                          ,                                      ,          , ,        ,         int
 mean_depth,          0, mean_cell_depth,                                                                        m,                                     E, 9999.0,   0.0,     10000,    float
 mean_height,         0, mean_cell_height,                                                                       m,                                     E, 9999.0,   0.0,     100,      float
+MASS_NET,            1, upward_mass_flux_of_air,                                                                kg m-2 s-1,                            F, 999999.0, ,        ,         float
+MAXZ,                0, maximum_number_of_samples_in_vertical_profile,                                          ,                                      ,          , ,        ,         int
 NOBS,                0, number_of_observations_considered,                                                      ,                                      ,          , ,        ,         byte
 NOMINAL_DEPTH,       1, depth,                                                                                  m,                                     Z, 999999.0, -5.0,    12000.0,  float
 NTRA,                1, mole_concentration_of_nitrate_in_sea_water,                                             umole l-1,                             K, 999999.0, ,        ,         float
 NTR2,                1, moles_of_nitrate_per_unit_mass_in_sea_water,                                            umole kg-1,                            K, 999999.0, ,        ,         float
 OPBS,                0, optical_backscattering_coefficient,                                                     ,                                      C, 999999.0, ,        ,         float
 PAR,                 1, downwelling_photosynthetic_photon_flux_in_sea_water,                                    umole m-2 s-1,                         F, 999999.0, ,        ,         float
-CPAR,                0, downwelling_corrected_photosynthetic_photon_flux_in_sea_water,                          percent,                               F, 999999.0, 0,       100,      float
 PCO2,                1, surface_partial_pressure_of_carbon_dioxide_in_air,                                      Pascal,                                K, 999999.0, ,        ,         float
+PERG1,               0, percentage_of_good_three_beam_solutions,                                                percent,                               E, 999999.0, 0.0,     100.0,    float
+PERG2,               0, percentage_of_transformations_rejected,                                                 percent,                               E, 999999.0, 0.0,     100.0,    float
+PERG3,               0, percentage_of_measurements_with_more_than_one_beam_bad,                                 percent,                               E, 999999.0, 0.0,     100.0,    float
+PERG4,               0, percentage_of_good_four_beam_solutions,                                                 percent,                               E, 999999.0, 0.0,     100.0,    float
 PHOS,                1, moles_of_phosphate_per_unit_mass_in_sea_water,                                          umole kg-1,                            K, 999999.0, ,        ,         float
 PHO2,                1, mole_concentration_of_phosphate_in_sea_water,                                           umole l-1,                             K, 999999.0, ,        ,         float
 PITCH,               1, platform_pitch_angle,                                                                   Degrees,                               E, 999999.0, -180.0,  180.0,    float
@@ -108,6 +108,7 @@ SSTI,                1, sea_surface_temperature,                                
 SSWD,                0, sea_surface_wave_from_direction_by_frequency,                                           Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 SSWD_MAG,            0, sea_surface_wave_from_direction_by_frequency,                                           Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
 SSWDT,               0, sea_surface_wave_to_direction_by_frequency,                                             Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
+SSWP,                1, sea_surface_swell_wave_period,                                                          Second,                                W, 999999.0, 0.0,     100.0,    float
 SSWST,               0, sea_surface_wave_to_directional_variance,                                               m2 deg-1,                              W, 999999.0, ,        ,         float
 SSWV,                1, sea_surface_wave_directional_variance_spectral_density,                                 m2 s deg-1,                            W, 999999.0, ,        ,         float
 SSWV_MAG,            0, sea_surface_wave_magnetic_directional_variance_spectral_density,                        m2 s deg-1,                            W, 999999.0, ,        ,         float
@@ -165,11 +166,6 @@ WDIR,                1, wind_to_direction,                                      
 WDIRF_AVG,           1, wind_from_direction,                                                                    Degrees clockwise from true North,     M, 999999.0, 0.0,     360.0,    float
 WHTE,                0, sea_surface_wave_significant_height_of_largest_tenth,                                   m,                                     W, 999999.0, 0.0,     100.0,    float
 WHTH,                0, sea_surface_wave_significant_height_of_largest_third,                                   m,                                     W, 999999.0, 0.0,     100.0,    float
-WPFM,                1, sea_surface_wave_mean_period_from_variance_spectral_density_first_frequency_moment,     Second,                                W, 999999.0, 0.0,     100.0,    float
-WPMH,                0, sea_surface_wave_period_at_mean_significant_wave_height,                                Second,                                W, 999999.0, 0.0,     100.0,    float
-WPSM,                1, sea_surface_wave_mean_period_from_variance_spectral_density_second_frequency_moment,    Second,                                W, 999999.0, 0.0,     100.0,    float
-WPTE,                0, sea_surface_wave_period_at_largest_tenth_peak_wave_height,                              Second,                                W, 999999.0, 0.0,     100.0,    float
-WPTH,                0, sea_surface_wave_period_at_largest_third_peak_wave_height,                              Second,                                W, 999999.0, 0.0,     100.0,    float
 WMPD,                0, sea_surface_wave_from_mean_direction_at_variance_spectral_density_maximum,              Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 WMPD_MAG,            0, sea_surface_wave_from_mean_direction_at_variance_spectral_density_maximum,              Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
 WMPP,                0, sea_surface_wave_maximum_period_at_variance_spectral_density_maximum,                   Second,                                W, 999999.0, 0.0,     100.0,    float
@@ -178,11 +174,16 @@ WMXH,                0, sea_surface_wave_maximum_height,                        
 WPDI,                0, sea_surface_wave_from_direction_at_variance_spectral_density_maximum,                   Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 WPDI_MAG,            0, sea_surface_wave_from_direction_at_variance_spectral_density_maximum,                   Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
 WPDIT,               0, sea_surface_wave_to_direction_at_variance_spectral_density_maximum,                     Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
+WPFM,                1, sea_surface_wave_mean_period_from_variance_spectral_density_first_frequency_moment,     Second,                                W, 999999.0, 0.0,     100.0,    float
+WPMH,                0, sea_surface_wave_period_at_mean_significant_wave_height,                                Second,                                W, 999999.0, 0.0,     100.0,    float
 WPPE,                1, sea_surface_wave_period_at_variance_spectral_density_maximum,                           Second,                                W, 999999.0, 0.0,     100.0,    float
+WPSM,                1, sea_surface_wave_mean_period_from_variance_spectral_density_second_frequency_moment,    Second,                                W, 999999.0, 0.0,     100.0,    float
+WPTE,                0, sea_surface_wave_period_at_largest_tenth_peak_wave_height,                              Second,                                W, 999999.0, 0.0,     100.0,    float
+WPTH,                0, sea_surface_wave_period_at_largest_third_peak_wave_height,                              Second,                                W, 999999.0, 0.0,     100.0,    float
 WSPD,                1, wind_speed,                                                                             m s-1,                                 M, 999999.0, ,        ,         float
 WSPD_AVG,            1, wind_speed,                                                                             m s-1,                                 M, 999999.0, ,        ,         float
-WSPD_MIN,            1, wind_speed,                                                                             m s-1,                                 M, 999999.0, ,        ,         float
-WSPD_MAX,            1, wind_speed,                                                                             m s-1,                                 M, 999999.0, ,        ,         float
+WSPD_MIN,            0, minimum_wind_speed,                                                                     m s-1,                                 M, 999999.0, ,        ,         float
+WSPD_MAX,            0, maximum_wind_speed,                                                                     m s-1,                                 M, 999999.0, ,        ,         float
 WWAV,                1, sea_surface_wind_wave_to_direction,                                                     Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 WWDS,                0, sea_surface_wind_wave_directional_spread,                                               Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 WWPD,                0, sea_surface_wind_wave_from_direction_at_variance_spectral_density_maximum,              Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float

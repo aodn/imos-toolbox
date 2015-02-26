@@ -106,7 +106,7 @@ if any(iNoLastColumn)
 end
 
 % get rid of any line which date is not in the format mm/dd/yy
-control = regexp(samples{1}, '[0-1]\d/[0-3]\d/\d\d', 'match');
+control = regexp(samples{1}, '^[0-1]\d/[0-3]\d/\d\d', 'match');
 iDateNoGood1 = cellfun('isempty', control);
 if any(iDateNoGood1)
     for i=1:nColumns
@@ -137,7 +137,7 @@ end
 clear iDateNoGood3;
 
 % get rid of any line which time is not in the format HH:MM:SS
-control = regexp(samples{2}, '[0-2]\d:[0-6]\d:[0-6]\d', 'match');
+control = regexp(strtrim(samples{2}), '^[0-2]\d:[0-6]\d:[0-6]\d', 'match');
 iTimeNoGood1 = cellfun('isempty', control);
 if any(iTimeNoGood1)
     for i=1:nColumns
