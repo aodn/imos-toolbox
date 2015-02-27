@@ -154,10 +154,20 @@ switch name
     
     % oxygen (umol/Kg)
     % umol/Kg
-    case {'oxsolMm0x2FKg', 'oxsatMm0x2FKg', 'sbeox0Mm0x2FKg'}
+    case {'oxsolMm0x2FKg', 'oxsatMm0x2FKg', 'sbeox0Mm0x2FKg', 'sbeopoxMm0x2FKg'}
       name = 'DOX2';
       comment = '';
     
+    % Oxygen, SBE 63 [% saturation]
+    case 'sbeopoxPS'
+        name = 'DOXS';
+        comment = '';
+       
+    % Oxygen Temperature, SBE 63 [ITS-90, deg C]
+    case 'sbeoxTC'
+        name = 'DOXY_TEMP';
+        comment = '';
+      
     % salinity (PSU)
     case 'sal00'
       name = 'PSAL';
