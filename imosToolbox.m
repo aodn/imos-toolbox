@@ -50,7 +50,7 @@ function imosToolbox(auto, varargin)
 if nargin == 0, auto = 'manual'; end
 
 % Set current toolbox version
-toolboxVersion = ['2.4 - ' computer];
+toolboxVersion = ['2.5 beta (testing purpose only) - ' computer];
 
 % we must dynamically add the ddb.jar java library to the classpath
 % as well as any other .jar library and jdbc drivers
