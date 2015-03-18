@@ -87,12 +87,12 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
       if ~isfield(sam.meta, 'site_name'); sam.meta.site_name  = 'UNKNOWN';  end
       if ~isfield(sam.meta, 'site_id');   sam.meta.site_id    = 'UNKNOWN';  end
       if ~isfield(sam.meta, 'timezone');  sam.meta.timezone   = 'UTC';      end
+      if ~isfield(sam.meta, 'depth');     sam.meta.depth      = NaN;        end
       
       switch mode
           case 'profile'
               if ~isfield(sam.meta, 'survey');    sam.meta.survey     = 'UNKNOWN';  end
               if ~isfield(sam.meta, 'station');   sam.meta.station    = NaN;        end
-              if ~isfield(sam.meta, 'depth');     sam.meta.depth      = NaN;        end
               
       end
   end
