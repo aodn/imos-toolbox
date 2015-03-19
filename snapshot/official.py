@@ -25,7 +25,7 @@ project = 'imos-toolbox'
 def submit(archive):
 
   user     = 'ggalibert'
-  server   = '5-nsp-mel.emii.org.au'
+  server   = '10-nsp-mel.emii.org.au'
   dir      = '/mnt/imos-t4/IMOS/public/eMII/softwares/imos-toolbox'
   http_url = 'http://data.aodn.org.au/IMOS/public/eMII/softwares/imos-toolbox/'
 
