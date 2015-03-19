@@ -254,7 +254,8 @@ ensembles.fixedLeader       = parseFixedLeader(data, iFixedLeader, cpuEndianness
 ensembles.variableLeader    = parseVariableLeader(data, iVarLeader, cpuEndianness);
 
 % subfields contain the vector time series
-nCells = ensembles.fixedLeader.numCells;
+% we set a static value for nCells to the most frequent value found
+nCells = mode(ensembles.fixedLeader.numCells);
 
 ensembles.velocity          = parseVelocity(data, nCells, iVel, cpuEndianness);
 
@@ -327,9 +328,6 @@ function [sect len] = parseFixedLeader(data, idx, cpuEndianness)
 %   len  - number of bytes that were parsed.
 %
 
-% assume that fixed means fixed and only store fixed data from first frame!
-idx=idx(1);
-
   sect = struct;
   len = 59;
   
@@ -338,8 +336,8 @@ idx=idx(1);
   sect.cpuFirmwareRevision = double(data(idx+3));
   LSB = dec2bin(double(data(idx+4)));
   MSB = dec2bin(double(data(idx+5)));
-  while(length(LSB) < 8), LSB = ['0' LSB]; end
-  while(length(MSB) < 8), MSB = ['0' MSB]; end
+  while(size(LSB, 2) < 8), LSB = [repmat('0', size(LSB, 1), 1) LSB]; end
+  while(size(MSB, 2) < 8), MSB = [repmat('0', size(MSB, 1), 1) MSB]; end
   sect.systemConfiguration = [LSB MSB];
   sect.realSimFlag         = double(data(idx+6));
   sect.lagLength           = double(data(idx+7));
@@ -361,8 +359,10 @@ idx=idx(1);
   block                    = indexData(data, idx+26, idx+29, 'int16', cpuEndianness)';
   sect.headingAlignment    = block(:,1);
   sect.headingBias         = block(:,2);
-  sect.sensorSource        = double(data(idx+30));
-  sect.sensorsAvailable    = double(data(idx+31));
+  sect.sensorSource        = dec2bin(double(data(idx+30)));
+  while(size(sect.sensorSource, 2) < 8), sect.sensorSource = [repmat('0', size(sect.sensorSource, 1), 1) sect.sensorSource]; end
+  sect.sensorsAvailable    = dec2bin(double(data(idx+31)));
+  while(size(sect.sensorsAvailable, 2) < 8), sect.sensorsAvailable = [repmat('0', size(sect.sensorsAvailable, 1), 1) sect.sensorsAvailable]; end
   block                    = indexData(data, idx+32, idx+35, 'uint16', cpuEndianness)';
   sect.bin1Distance        = block(:,1);
   sect.xmitPulseLength     = block(:,2);
@@ -377,12 +377,13 @@ idx=idx(1);
   % byte 54 is spare
   % following two fields are not used for Firmware before 16.30
   
-  if (sect.cpuFirmwareVersion >= 16) && (sect.cpuFirmwareRevision >= 30)
-      sect.instSerialNumber    = num2str(uint32(bytecast(data(idx+54:idx+57), 'L', 'uint32', cpuEndianness)));
+  if all(sect.cpuFirmwareVersion >= 16) && all(sect.cpuFirmwareRevision >= 30)
+      sect.instSerialNumber    = indexData(data, idx+54, idx+57, 'uint32', cpuEndianness)';
       sect.beamAngle           = double(data(idx+58));
   else
-      sect.instSerialNumber    = '';
-      sect.beamAngle           = NaN;
+      nEnsemble = length(idx);
+      sect.instSerialNumber    = NaN(nEnsemble, 1);
+      sect.beamAngle           = NaN(nEnsemble, 1);
   end
 end
 

@@ -312,7 +312,7 @@ function sample_data = readWQMraw( filename )
           sample_data.variables{end}.name                   = name;
           sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
-          sample_data.variables{end}.coordinates            = 'TIME LATITUDE LONGITUDE';
+          sample_data.variables{end}.coordinates            = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
       end
   end
 end

@@ -559,14 +559,6 @@ for k = 1:length(sample_data)
     % If no value is set then default mode is 'timeSeries'
     mode = lower(readProperty('toolbox.mode'));
     
-    switch mode
-        case 'profile'
-            coordinates = '';
-            
-        otherwise
-             coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
-    end
-    
     % add depth data as new variable in data set
     sample_data{k} = addVar(...
         curSam, ...
@@ -574,7 +566,7 @@ for k = 1:length(sample_data)
         computedDepth, ...
         dimensions, ...
         computedDepthComment, ...
-        coordinates);
+        '');
     clear computedDepth;
     
     history = sample_data{k}.history;
@@ -593,7 +585,7 @@ for k = 1:length(sample_data)
             nVars = length(sample_data{k}.variables);
             for i=1:nVars
                 if isfield(sample_data{k}.variables{i}, 'coordinates')
-                  sample_data{k}.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
+                  sample_data{k}.variables{i}.coordinates = [sample_data{k}.variables{i}.coordinates ' DEPTH'];
                 end
             end
             
@@ -603,8 +595,8 @@ for k = 1:length(sample_data)
             nVars = length(sample_data{k}.variables);
             for i=1:nVars
                 if isfield(sample_data{k}.variables{i}, 'coordinates')
-                    if strcmp(sample_data{k}.variables{i}.coordinates, coordinates)
-                        sample_data{k}.variables{i}.coordinates = [coordinates ' DEPTH'];
+                    if strcmp(sample_data{k}.variables{i}.coordinates, 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH')
+                        sample_data{k}.variables{i}.coordinates = [sample_data{k}.variables{i}.coordinates ' DEPTH'];
                     end
                 end
             end
