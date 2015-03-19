@@ -226,7 +226,9 @@ function sample_data = YSI6SeriesParse( filename, mode )
           ['Dissolved oxygen from ROX optical sensor originally expressed '...
           'in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.'];
     end
-    sample_data.variables{end}.coordinates = coordinates;
+    if ~strcmpi(sample_data.variables{end}.name, 'DEPTH')
+        sample_data.variables{end}.coordinates = coordinates;
+    end
   end
   
   % Let's add DOX1/DOX2 if PSAL/CNDC, TEMP and DOXS are present and DOX1 not

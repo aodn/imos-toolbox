@@ -569,7 +569,9 @@ function sample_data = readXR620( filename, mode )
                   sample_data.variables{end}.name         = name;
                   sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
                   sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc(data.(fields{k}));
-                  sample_data.variables{end}.coordinates  = coordinates;
+                  if ~strcmpi(name, 'DEPTH')
+                      sample_data.variables{end}.coordinates  = coordinates;
+                  end
                   sample_data.variables{end}.comment      = comment.(fields{k});
               end
           end
