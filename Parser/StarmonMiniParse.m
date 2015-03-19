@@ -112,7 +112,9 @@ for k = 1:length(vars)
     sample_data.variables{end  }.name           = vars{k};
     sample_data.variables{end  }.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
     sample_data.variables{end  }.data           = sample_data.variables{end  }.typeCastFunc(data.(vars{k}).values);
-    sample_data.variables{end  }.coordinates    = coordinates;
+    if ~strcmpi(vars{k}, 'DEPTH')
+        sample_data.variables{end  }.coordinates    = coordinates;
+    end
     sample_data.variables{end  }.comment        = data.(vars{k}).comment;
     
     if isfield(data.(vars{k}), 'applied_offset')
