@@ -310,7 +310,7 @@ sect.NBins          = blocks(17);
 sect.BinLength      = blocks(18);
 sect.MeasInterval   = blocks(19);
 sect.WrapMode       = blocks(20);
-sect.Mode           = blocks(21);
+sect.Mode           = sprintf('%08s', dec2bin(blocks(21)));
 sect.AdjSoundSpeed  = blocks(22);
 sect.NSampDiag      = blocks(23);
 sect.NBeamsCellDiag = blocks(24);
@@ -531,7 +531,7 @@ sect.Pitch       = block(4);
 sect.Roll        = block(5);
 sect.Temperature = block(6);
 sect.Error       = data(idx+22);
-sect.Status      = data(idx+23);
+sect.Status      = sprintf('%08s', dec2bin(data(idx+23)));
 block            = data(idx+24:idx+27); % uint16
 
 % let's process uint16s in one call
@@ -1087,7 +1087,7 @@ sect = struct;
 sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = 0;           % no size field in spec
-sect.Status = data(idx+2);
+sect.Status = sprintf('%08s', dec2bin(data(idx+2)));
 sect.Count  = data(idx+3);
 
 % number of cells/beams is in status byte
