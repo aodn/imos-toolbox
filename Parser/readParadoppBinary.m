@@ -158,7 +158,7 @@ switch sectType
 	% unknown 0x6A
     case 101, [sect, len, off] = read0x65(data, idx, cpuEndianness);
     case 106, [sect, len, off] = read0x6A(data, idx, cpuEndianness);
-        %
+    %
     case 128, [sect, len, off] = readAquadoppDiagnostics     (data, idx, cpuEndianness);
     otherwise
 %        disp('Unknown sector type');
@@ -825,17 +825,24 @@ csOff   = amp3Off + nCells;
 % fill value is included if number of cells is odd
 if mod(nCells, 2), csOff = csOff + 1; end
 
-% !!! Velocity can be negative
-sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16', cpuEndianness); % U comp (East)  % int16
-sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16', cpuEndianness); % V comp (North) % int16
-sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16', cpuEndianness); % W comp (up)    % int16
-sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8', cpuEndianness);
-sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8', cpuEndianness);
-sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8', cpuEndianness);
-
-sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
-
 lastIdx = csOff+2;
+
+if lastIdx <= length(data) % sometimes dataset are cut before being properly ended?
+    % !!! Velocity can be negative
+    sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16', cpuEndianness); % U comp (East)  % int16
+    sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16', cpuEndianness); % V comp (North) % int16
+    sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16', cpuEndianness); % W comp (up)    % int16
+    sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8', cpuEndianness);
+    sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8', cpuEndianness);
+    sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8', cpuEndianness);
+    
+    sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
+else
+    fprintf('%s\n', ['Warning : readAwacVelocityProfile bad end of file with ' ...
+        'expected last index greater than file size. Give up reading this ensemble.']);
+    sect = [];
+    return;
+end
 if lastIdx < length(data) 
 if data(lastIdx) ~= 165 % hex a5
     fprintf('%s\n', ['Warning : readAwacVelocityProfile bad end sync (idx '...
