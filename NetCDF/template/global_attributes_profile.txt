@@ -12,7 +12,6 @@ S, source                       = CTD profile
 S, instrument                   = [ddb InstrumentID Instruments Make] [ddb InstrumentID Instruments Model]
 S, keywords                     = [ddb InstrumentID Instruments Model], [mat cellStructCons(sample_data.dimensions, 'name', ', ')], [mat cellStructCons(sample_data.variables, 'name', ', ')]
 S, references                   = http://www.imos.org.au
-S, netcdf_version               = netCDF-4
 N, quality_control_set          = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
 S, cruise                       = [ddb FieldTrip]
 S, station                      = [ddb Station]

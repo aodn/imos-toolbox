@@ -266,7 +266,7 @@ function mainWindow(...
   delete(buttons);
   
   %set zoom/pan post-callback
-  zoom v6 off;
+  %zoom v6 off; % undocumented Matlab to make sure zoom function prior to R14 is not used. Seems to not be supported from R2015a.
   hZoom = zoom(fig);
   hPan = pan(fig);
   set(hZoom, 'ActionPostCallback', @zoomPostCallback);
