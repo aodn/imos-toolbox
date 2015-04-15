@@ -136,7 +136,7 @@ function qc_data = autoQCManager( sample_data, auto )
           %batch mode
           qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
           fprintf('%s\n', ['Quality control using : ' qcChainStr{:}]);
-          progress = nan;
+          progress = [];
       end
   end
 

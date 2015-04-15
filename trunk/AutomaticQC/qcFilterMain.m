@@ -180,7 +180,7 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             initFlags = flags;
             
             % user cancelled
-            if ~isnan(cancel) && getappdata(cancel, 'cancel'), return; end
+            if ~isempty(cancel) && getappdata(cancel, 'cancel'), return; end
             
             % log entries and any data changes that the routine generates
             % are currently discarded; only the flags are retained.
