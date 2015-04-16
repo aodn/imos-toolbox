@@ -232,36 +232,38 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
         return;
     end
 
-    if isfield(sits, 'Site')
-        % in order to use unique on cell arrays of strings we need to replace any [] by ''
-        Sites = {sits.Site}';
+    Sites = {deps.Site}';
+    if isfield(sits, 'Description')
         Descs = {sits.Description}';
+    else
+        Descs = cell(size(Sites)); % no description for CTD casts without entry in Site table
+    end
         
-        iEmpty = cellfun('isempty', Sites);
-        if any(iEmpty), Sites(iEmpty) = {''}; end
-        iEmpty = cellfun('isempty', Descs);
-        if any(iEmpty), Descs(iEmpty) = {''}; end
+    % in order to use unique on cell arrays of strings we need to replace any [] by ''
+    iEmpty = cellfun('isempty', Sites);
+    if any(iEmpty), Sites(iEmpty) = {''}; end
+    iEmpty = cellfun('isempty', Descs);
+    if any(iEmpty), Descs(iEmpty) = {''}; end
+    
+    % find the distinct sites involved
+    [siteId, iUnique] = unique(Sites);
+    siteDesc = Descs(iUnique);
+    
+    [siteId, orderSites] = sort(siteId);
+    siteDesc = siteDesc(orderSites);
+    
+    nSite = length(siteId);
+    if nSite > 1 && ~auto
+        % we display an intermediate siteDialog
+        siteId = siteDialog(siteId, siteDesc);
         
-        % find the distinct sites involved
-        [siteId, iUnique] = unique(Sites);
-        siteDesc = Descs(iUnique);
-        
-        [siteId, orderSites] = sort(siteId);
-        siteDesc = siteDesc(orderSites);
-        
-        nSite = length(siteId);
-        if nSite > 1 && ~auto
-            % we display an intermediate siteDialog
-            siteId = siteDialog(siteId, siteDesc);
-            
-            if ~isempty(siteId)
-                % we remove the non-selected sites from the list
-                iSelectedSite = strcmpi(siteId, {sits.Site});
-                sits(~iSelectedSite) = [];
-                deps(~iSelectedSite) = [];
-            else
-                continue;
-            end
+        if ~isempty(siteId)
+            % we remove the non-selected sites from the list
+            iSelectedSite = strcmpi(siteId, {deps.Site});
+            sits(~iSelectedSite) = [];
+            deps(~iSelectedSite) = [];
+        else
+            continue;
         end
     end
     
