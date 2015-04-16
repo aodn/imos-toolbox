@@ -104,10 +104,10 @@ switch mode
         if ~strcmpi(sample_data.(type){k}.name, 'TIME'), return; end
         
         if time < time_in_water
-            error('TIME value is lower than time_deployment_start => Check ddb station time values against data file time values!');
+            error(['TIME value ' datestr(time, 'yyyy-mm-dd HH:MM:SS') ' is lower than time_deployment_start ' datestr(time_in_water, 'yyyy-mm-dd HH:MM:SS') ' => Check ddb station time values against data file time values!']);
         end
         if time > time_out_water
-            error('TIME value is greater than time_deployment_end => Check ddb station time values against data file time values!');
+            error(['TIME value ' datestr(time, 'yyyy-mm-dd HH:MM:SS') ' is greater than time_deployment_end ' datestr(time_out_water, 'yyyy-mm-dd HH:MM:SS') ' => Check ddb station time values against data file time values!']);
         end
         
     otherwise % 'timeSeries'
