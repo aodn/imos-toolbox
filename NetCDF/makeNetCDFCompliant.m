@@ -214,7 +214,13 @@ lenConfig = length(InstrumentSensorConfig);
 % only consider relevant config based on timeFirstSample
 for i=1:lenConfig
     if ~isempty(InstrumentSensorConfig(i).StartConfig) && (~isempty(InstrumentSensorConfig(i).EndConfig) || InstrumentSensorConfig(i).CurrentConfig)
-        if InstrumentSensorConfig(i).StartConfig <= timeFirstSample && (InstrumentSensorConfig(i).EndConfig > timeFirstSample || InstrumentSensorConfig(i).CurrentConfig)
+        firstTest = InstrumentSensorConfig(i).StartConfig <= timeFirstSample;
+        if isempty(InstrumentSensorConfig(i).EndConfig)
+            secondTest = InstrumentSensorConfig(i).CurrentConfig;
+        else
+            secondTest = InstrumentSensorConfig(i).EndConfig > timeFirstSample;
+        end
+        if firstTest && secondTest
             % query the ddb for each sensor
             Sensors = executeDDBQuery('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
             if ~isempty(Sensors)
