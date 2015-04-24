@@ -265,7 +265,7 @@ if isBurst
         newPres = [];
         
         numBursts = length(time) / samplesPerBurst;
-        newTime = NaN(numBurst, 1);
+        newTime = NaN(numBursts, 1);
         for k = 1:numBursts
             
             % get indices for the current burst

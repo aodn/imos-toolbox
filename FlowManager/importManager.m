@@ -233,10 +233,18 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
     end
 
     Sites = {deps.Site}';
+    Descs = cell(size(Sites)); % no description for CTD casts without entry in Site table
     if isfield(sits, 'Description')
-        Descs = {sits.Description}';
-    else
-        Descs = cell(size(Sites)); % no description for CTD casts without entry in Site table
+        [SitesWithDesc, u] = unique({sits.Site}');
+        uniqueDescs = {sits.Description}';
+        uniqueDescs = uniqueDescs(u);
+        nSitesWithDesc = length(SitesWithDesc);
+        for i=1:nSitesWithDesc
+            iWithDesc = strcmpi(SitesWithDesc(i), Sites);
+            if any(iWithDesc)
+                Descs(iWithDesc) = uniqueDescs(i);
+            end
+        end
     end
         
     % in order to use unique on cell arrays of strings we need to replace any [] by ''
@@ -260,8 +268,14 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
         if ~isempty(siteId)
             % we remove the non-selected sites from the list
             iSelectedSite = strcmpi(siteId, {deps.Site});
-            sits(~iSelectedSite) = [];
-            deps(~iSelectedSite) = [];
+            
+            switch mode
+                case 'profile'
+                    deps(~iSelectedSite) = [];
+                otherwise
+                    deps(~iSelectedSite) = [];
+                    sits(~iSelectedSite) = [];
+            end
         else
             continue;
         end
@@ -338,9 +352,8 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
                     sample_data{end}{m}.meta.profile = deps(k);
                 otherwise
                     sample_data{end}{m}.meta.deployment = deps(k);
+                    sample_data{end}{m}.meta.site = sits(k);
             end
-          
-            sample_data{end}{m}.meta.site = sits(k);
         end
         
       else
@@ -349,9 +362,8 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
                   sample_data{end}.meta.profile = deps(k);
               otherwise
                   sample_data{end}.meta.deployment = deps(k);
+                  sample_data{end}.meta.site = sits(k);
           end
-        
-          sample_data{end}.meta.site = sits(k);
       end
     
       if auto
@@ -364,7 +376,6 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
             case 'profile'
                 fprintf('%s\n',   ['Warning : skipping ' deps(k).FileName]);
                 fprintf('\t%s\n', ['FieldTrip = ' deps(k).FieldTrip]);
-                fprintf('\t%s\n', ['SiteName = ' sits(k).SiteName]);
                 fprintf('\t%s\n', ['Site = ' deps(k).Site]);
                 fprintf('\t%s\n', ['Station = ' deps(k).Station]);
                 fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
