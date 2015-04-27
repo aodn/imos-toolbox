@@ -231,31 +231,40 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
         fprintf('%s\n', ['Warning : ' 'No entry found in ' mode ' table.']);
         return;
     end
-
-    Sites = {deps.Site}';
-    Descs = cell(size(Sites)); % no description for CTD casts without entry in Site table
+    
+    dSites = {deps.Site}';
+    dDescs = cell(size(dSites)); % no description for CTD casts without entry in Site table
     if isfield(sits, 'Description')
-        [SitesWithDesc, u] = unique({sits.Site}');
-        uniqueDescs = {sits.Description}';
+        sSites = {sits.Site}';
+        sDescs = {sits.Description}';
+        
+        % in order to use unique on cell arrays of strings we need to replace any [] by ''
+        iEmpty = cellfun('isempty', sSites);
+        if any(iEmpty), sSites(iEmpty) = {''}; end
+        iEmpty = cellfun('isempty', sDescs);
+        if any(iEmpty), sDescs(iEmpty) = {''}; end
+    
+        [SitesWithDesc, u] = unique(sSites);
+        uniqueDescs = sDescs;
         uniqueDescs = uniqueDescs(u);
         nSitesWithDesc = length(SitesWithDesc);
         for i=1:nSitesWithDesc
-            iWithDesc = strcmpi(SitesWithDesc(i), Sites);
+            iWithDesc = strcmpi(SitesWithDesc(i), dSites);
             if any(iWithDesc)
-                Descs(iWithDesc) = uniqueDescs(i);
+                dDescs(iWithDesc) = uniqueDescs(i);
             end
         end
     end
         
     % in order to use unique on cell arrays of strings we need to replace any [] by ''
-    iEmpty = cellfun('isempty', Sites);
-    if any(iEmpty), Sites(iEmpty) = {''}; end
-    iEmpty = cellfun('isempty', Descs);
-    if any(iEmpty), Descs(iEmpty) = {''}; end
+    iEmpty = cellfun('isempty', dSites);
+    if any(iEmpty), dSites(iEmpty) = {''}; end
+    iEmpty = cellfun('isempty', dDescs);
+    if any(iEmpty), dDescs(iEmpty) = {''}; end
     
     % find the distinct sites involved
-    [siteId, iUnique] = unique(Sites);
-    siteDesc = Descs(iUnique);
+    [siteId, iUnique] = unique(dSites);
+    siteDesc = dDescs(iUnique);
     
     [siteId, orderSites] = sort(siteId);
     siteDesc = siteDesc(orderSites);
