@@ -243,7 +243,7 @@ function sample_data = readXR620( filename, mode )
                   case {'Temp', 'temp02'}, name = 'TEMP';
                       
                       %Pressure (dBar)
-                  case 'Pres', name = 'PRES';
+                  case {'Pres', 'pres08'}, name = 'PRES';
                       
                       %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlC'
@@ -264,7 +264,7 @@ function sample_data = readXR620( filename, mode )
                   case 'R_D_O2', name = 'DOXS';
                       
                       %Depth (m)
-                  case 'Depth', name = 'DEPTH';
+                  case {'Depth', 'dpth01'}, name = 'DEPTH';
                       
                       %Salinity (PSU)
                   case 'Salin', name = 'PSAL';
@@ -507,7 +507,7 @@ function sample_data = readXR620( filename, mode )
                   case 'Temp', name = 'TEMP';
                       
                       %Pressure (dBar)
-                  case 'Pres', name = 'PRES';
+                  case {'Pres', 'pres08'}, name = 'PRES';
                       
                       %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlC'
@@ -528,7 +528,7 @@ function sample_data = readXR620( filename, mode )
                   case 'R_D_O2', name = 'DOXS';
                       
                       %Depth (m)
-                  case 'Depth', name = 'DEPTH';
+                  case {'Depth', 'dpth01'}, name = 'DEPTH';
                       
                       %Salinity (PSU)
                   case 'Salin', name = 'PSAL';
@@ -851,7 +851,7 @@ function data = readData(fid, header)
   fmt = [fmt repmat(' %f', [1, length(cols)-1])];
   
   % read in the sample data
-  samples = textscan(fid, fmt);
+  samples = textscan(fid, fmt, 'treatAsEmpty', {'null'});
   
   for k = 1:length(cols)
       % check that all columns have the same length. If not correct it.
