@@ -742,7 +742,7 @@ corrOff = ampOff  + sect.Beams*sect.Cells;
 csOff   = corrOff + sect.Beams*sect.Cells;
 
 % fill byte if num cells is odd
-if mod(nCells, 2), csOff = csOff + 1; end
+if mod(sect.Cells, 2), csOff = csOff + 1; end
 sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
 
 cellDataVel = [];
@@ -762,7 +762,7 @@ for k = 1:sect.Beams
     sect.(['Amp' num2str(k)]) = data(sAmpOff:eAmpOff); % uint8
     
     % correlation data
-    sCorOff = corOff + (k-1) * (sect.Cells);
+    sCorOff = corrOff + (k-1) * (sect.Cells);
     eCorOff = sCorOff + (sect.Cells * 2)-1;
     
     sect.(['Corr' num2str(k)]) = data(sCorOff:eCorOff); % uint8
