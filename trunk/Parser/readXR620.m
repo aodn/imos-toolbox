@@ -243,7 +243,10 @@ function sample_data = readXR620( filename, mode )
                   case {'Temp', 'temp02'}, name = 'TEMP';
                       
                       %Pressure (dBar)
-                  case {'Pres', 'pres08'}, name = 'PRES';
+                  case {'Pres', 'pres20'}, name = 'PRES';
+                      
+                      %Relative Pressure (dBar)
+                  case {'pres08'}, name = 'PRES_REL';
                       
                       %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlC'
