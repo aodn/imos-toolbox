@@ -117,22 +117,23 @@ distance = distance + cellLength;
 for k = 1:nsamples
   
   st = structures{k};
-  
-  time(k)           = st.Time;
-  analn1(k)         = st.Analn1;
-  battery(k)        = st.Battery;
-  analn2(k)         = st.Analn2;
-  heading(k)        = st.Heading;
-  pitch(k)          = st.Pitch;
-  roll(k)           = st.Roll;
-  pressure(k)       = st.PressureMSB*65536 + st.PressureLSW;
-  temperature(k)    = st.Temperature;
-  velocity1(k,:)    = st.Vel1;
-  velocity2(k,:)    = st.Vel2;
-  velocity3(k,:)    = st.Vel3;
-  backscatter1(k,:) = st.Amp1;
-  backscatter2(k,:) = st.Amp2;
-  backscatter3(k,:) = st.Amp3;
+  if ~isempty(st)
+      time(k)           = st.Time;
+      analn1(k)         = st.Analn1;
+      battery(k)        = st.Battery;
+      analn2(k)         = st.Analn2;
+      heading(k)        = st.Heading;
+      pitch(k)          = st.Pitch;
+      roll(k)           = st.Roll;
+      pressure(k)       = st.PressureMSB*65536 + st.PressureLSW;
+      temperature(k)    = st.Temperature;
+      velocity1(k,:)    = st.Vel1;
+      velocity2(k,:)    = st.Vel2;
+      velocity3(k,:)    = st.Vel3;
+      backscatter1(k,:) = st.Amp1;
+      backscatter2(k,:) = st.Amp2;
+      backscatter3(k,:) = st.Amp3;
+  end
 end
 
 % battery     / 10.0   (0.1 V    -> V)
