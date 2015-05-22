@@ -66,6 +66,7 @@ In addition to the IMOS [http://imos.org.au/fileadmin/user_upload/shared/IMOS%20
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_location_test_-_imosImpossibleLocationSetQC *imosImpossibleLocationSetQC*] (compulsory)
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#In/Out_water_test_-_imosInOutWaterQC *imosInOutWaterQC*] (compulsory)
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Global_range_test_-_imosGlobalRangeQC *imosGlobalRangeQC*] (compulsory)
+ # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Impossible_depth_test_-_imosImpossibleDepthQC *imosImpossibleDepthQC*] (compulsory)
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Regional_range_test_-_imosRegionalRangeQC imosRegionalRangeQC] (optional)
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#Vertical_spike_test_-_imosVerticalSpikeQC imosVerticalSpikeQC] (optional)
  # [http://code.google.com/p/imos-toolbox/wiki/QCProcedures#flag_inheritance_test_on_Salinity_-_imosSalinityFromPTQC *imosSalinityFromPTQC*] (compulsory)
