@@ -147,8 +147,11 @@ function [name, data, comment] = convertData(name, data, instHeader, procHeader,
 
   % the cast date, if present, is used for time field offset
   castDate = 0;
-  if isfield(instHeader, 'castDate'), castDate = instHeader.castDate; end
-  if isfield(procHeader, 'startTime'), castDate = procHeader.startTime; end
+  if isfield(instHeader, 'castDate')
+      castDate = instHeader.castDate;
+  else
+      if isfield(procHeader, 'startTime'), castDate = procHeader.startTime; end
+  end
   
   [name, data, comment] = convertSBEcnvVar(name, data, castDate, mode);
 end
