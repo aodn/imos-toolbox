@@ -433,7 +433,9 @@ sbe38Expr    = 'SBE 38 = (yes|no), Gas Tension Device = (yes|no)';
 optodeExpr   = 'OPTODE = (yes|no)';
 voltCalExpr  = 'volt (\d): offset = (\S+), slope = (\S+)';
 otherExpr    = '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
-firmExpr     ='<FirmwareVersion>(\S+)</FirmwareVersion>';
+firmExpr     = '<FirmwareVersion>(\S+)</FirmwareVersion>';
+sensorId     = '<Sensor id=''(.*\S+.*)''>';
+sensorType   = '<[tT]ype>(.*\S+.*)</[tT]ype>';
 
 exprs = {...
     headerExpr   headerExpr2    headerExpr3    scanExpr     ...
@@ -443,7 +445,7 @@ exprs = {...
     castExpr     castExpr2   intervalExpr ...
     sbe38Expr    optodeExpr   ...
     voltCalExpr  otherExpr ...
-    firmExpr};
+    firmExpr     sensorId   sensorType};
 
 for k = 1:length(headerLines)
     
@@ -567,7 +569,20 @@ for k = 1:length(headerLines)
                 %firmware version
                 case 21
                     header.instrument_firmware  = tkns{1}{1};
+                
+                %sensor id
+                case 22
+                    if ~isfield(header, 'sensorIds')
+                        header.sensorIds = {};
+                    end
+                    header.sensorIds{end+1}  = tkns{1}{1};
                     
+                %sensor type
+                case 23
+                    if ~isfield(header, 'sensorTypes')
+                        header.sensorTypes = {};
+                    end
+                    header.sensorTypes{end+1}  = tkns{1}{1};
             end
             break;
         end

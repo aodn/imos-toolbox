@@ -1,4 +1,4 @@
-function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, mode)
+function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, instHeader, procHeader, mode)
 %CONVERTSBECNVVAR Processes data from a SeaBird .cnv file.
 %
 % This function is able to convert data retrieved from a CNV SeaBird 
@@ -9,7 +9,9 @@ function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, mode)
 %   name        - SeaBird parameter name.
 %   data        - data in SeaBird file.
 %   timeOffset  - offset to be applied to time value in SeaBird file.
-%   mode       - Toolbox data type mode ('profile' or 'timeSeries').
+%   instHeader  - Struct containing instrument header.
+%   procHeader  - Struct containing processed header.
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   name       - IMOS parameter code.
@@ -48,7 +50,7 @@ function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, mode)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(4, 4, nargin));
+error(nargchk(6, 6, nargin));
 
 switch name
     
@@ -208,10 +210,10 @@ switch name
       name = 'DEPTH';
       comment = '';
     
-    % A/D counts to volts (sensor_analog_output 0 to 2)
-    case {'v0', 'v1', 'v2'}
+    % A/D counts to volts (sensor_analog_output 0 to 7)
+    case {'v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'}
       origName = name;
-      name = ['ANA' origName(end)];
+      name = [origName, '_', getVoltageName(origName, instHeader)];
       comment = getVoltageComment(origName, procHeader);
       
     case 'f1'
@@ -263,7 +265,56 @@ switch name
         if isfield(header, 'volt1Expr'), comment = header.volt1Expr; end
     case 'v2'
         if isfield(header, 'volt2Expr'), comment = header.volt2Expr; end
-        
+	case 'v3'
+        if isfield(header, 'volt3Expr'), comment = header.volt3Expr; end
+    case 'v4'
+        if isfield(header, 'volt4Expr'), comment = header.volt4Expr; end
+    case 'v5'
+        if isfield(header, 'volt5Expr'), comment = header.volt5Expr; end
+	case 'v6'
+        if isfield(header, 'volt6Expr'), comment = header.volt6Expr; end
+    case 'v7'
+        if isfield(header, 'volt7Expr'), comment = header.volt7Expr; end
+end
+
+end
+
+function name = getVoltageName(origName, header)
+
+name = '';
+switch origName
+    case 'v0'
+        if isfield(header, 'sensorIds') && isfield(header, 'sensorTypes')
+            name = header.sensorTypes{strcmpi(header.sensorIds, 'volt 0')};
+        end
+    case 'v1'
+        if isfield(header, 'sensorIds') && isfield(header, 'sensorTypes')
+            name = header.sensorTypes{strcmpi(header.sensorIds, 'volt 1')};
+        end
+    case 'v2'
+        if isfield(header, 'sensorIds') && isfield(header, 'sensorTypes')
+            name = header.sensorTypes{strcmpi(header.sensorIds, 'volt 2')};
+        end
+	case 'v3'
+        if isfield(header, 'sensorIds') && isfield(header, 'sensorTypes')
+            name = header.sensorTypes{strcmpi(header.sensorIds, 'volt 3')};
+        end
+    case 'v4'
+        if isfield(header, 'sensorIds') && isfield(header, 'sensorTypes')
+            name = header.sensorTypes{strcmpi(header.sensorIds, 'volt 4')};
+        end
+    case 'v5'
+        if isfield(header, 'sensorIds') && isfield(header, 'sensorTypes')
+            name = header.sensorTypes{strcmpi(header.sensorIds, 'volt 5')};
+        end
+	case 'v6'
+        if isfield(header, 'sensorIds') && isfield(header, 'sensorTypes')
+            name = header.sensorTypes{strcmpi(header.sensorIds, 'volt 6')};
+        end
+    case 'v7'
+        if isfield(header, 'sensorIds') && isfield(header, 'sensorTypes')
+            name = header.sensorTypes{strcmpi(header.sensorIds, 'volt 7')};
+        end
 end
 
 end
