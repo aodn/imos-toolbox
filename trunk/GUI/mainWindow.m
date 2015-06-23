@@ -558,7 +558,7 @@ function displayLineCastVar(source,ev, isQC)
                     paramsName{end+1} = sample_data{i}.variables{j}.name;
                 end
             end
-            % get rid of non QC'd params if only intereste in QC
+            % get rid of non QC'd params if only interested in QC
             if isQC && ~isParamQC; paramsName(end) = []; end
         end
     end
