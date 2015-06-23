@@ -153,5 +153,5 @@ function [name, data, comment] = convertData(name, data, instHeader, procHeader,
       if isfield(procHeader, 'startTime'), castDate = procHeader.startTime; end
   end
   
-  [name, data, comment] = convertSBEcnvVar(name, data, castDate, mode);
+  [name, data, comment] = convertSBEcnvVar(name, data, castDate, instHeader, procHeader, mode);
 end
