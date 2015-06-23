@@ -66,7 +66,7 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader, mode
     d = dataLines{k};
     d(d == procHeader.badFlag) = nan;
     
-    [n, d, c] = convertData(genvarname(columns{k}), d, procHeader, mode);
+    [n, d, c] = convertData(genvarname(columns{k}), d, instHeader, procHeader, mode);
     
     if isempty(n) || isempty(d), continue; end
     
@@ -127,7 +127,7 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader, mode
   end
 end
 
-function [name, data, comment] = convertData(name, data, procHeader, mode)
+function [name, data, comment] = convertData(name, data, instHeader, procHeader, mode)
 %CONVERTDATA The .cnv file provides data in a bunch of different units of
 % measurement. This function is just a big switch statement which takes
 % SBE17SM data as input, and attempts to convert it to IMOS compliant name and
@@ -141,6 +141,6 @@ function [name, data, comment] = convertData(name, data, procHeader, mode)
 castDate = 0;
 if isfield(procHeader, 'startTime'); castDate = procHeader.startTime; end
 
-[name, data, comment] = convertSBEcnvVar(name, data, castDate, mode);
+[name, data, comment] = convertSBEcnvVar(name, data, castDate, instHeader, procHeader, mode);
 
 end
