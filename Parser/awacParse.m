@@ -67,12 +67,12 @@ filename = filename{1};
 structures = readParadoppBinary(filename);
 
 % first three sections are header, head and user configuration
-hardware = structures{1};
-head     = structures{2};
-user     = structures{3};
+hardware = structures.Id5;
+head     = structures.Id4;
+user     = structures.Id0;
 
 % the rest of the sections are awac data
-nsamples = length(structures) - 3;
+nsamples = length(structures.Id32);
 ncells   = user.NBins;
 
 % preallocate memory for all sample data
@@ -121,24 +121,22 @@ distance(:) = (cellStart):  ...
 % See http://www.nortek-bv.nl/en/knowledge-center/forum/current-profilers-and-current-meters/579860330
 distance = distance + cellLength;
 
-for k = 1:nsamples
-  time(k)           = structures{3 + k}.Time;
-  analn1(k)         = structures{3 + k}.Analn1;
-  battery(k)        = structures{3 + k}.Battery;
-  analn2(k)         = structures{3 + k}.Analn2;
-  heading(k)        = structures{3 + k}.Heading;
-  pitch(k)          = structures{3 + k}.Pitch;
-  roll(k)           = structures{3 + k}.Roll;
-  pressure(k)       = structures{3 + k}.PressureMSB*65536 + ...
-                        structures{3 + k}.PressureLSW;
-  temperature(k)    = structures{3 + k}.Temperature;
-  velocity1(k,:)    = structures{3 + k}.Vel1;
-  velocity2(k,:)    = structures{3 + k}.Vel2;
-  velocity3(k,:)    = structures{3 + k}.Vel3;
-  backscatter1(k,:) = structures{3 + k}.Amp1;
-  backscatter2(k,:) = structures{3 + k}.Amp2;
-  backscatter3(k,:) = structures{3 + k}.Amp3;
-end
+% retrieve sample data
+time            = structures.Id32.Time';
+analn1          = structures.Id32.Analn1';
+battery         = structures.Id32.Battery';
+analn2          = structures.Id32.Analn2';
+heading         = structures.Id32.Heading';
+pitch           = structures.Id32.Pitch';
+roll            = structures.Id32.Roll';
+pressure        = structures.Id32.PressureMSB'*65536 + structures.Id32.PressureLSW';
+temperature     = structures.Id32.Temperature';
+velocity1       = structures.Id32.Vel1';
+velocity2       = structures.Id32.Vel2';
+velocity3       = structures.Id32.Vel3';
+backscatter1    = structures.Id32.Amp1';
+backscatter2    = structures.Id32.Amp2';
+backscatter3    = structures.Id32.Amp3';
 clear structures;
 
 % battery     / 10.0   (0.1 V    -> V)

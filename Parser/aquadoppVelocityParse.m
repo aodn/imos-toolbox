@@ -4,7 +4,7 @@ function sample_data = aquadoppVelocityParse( filename, mode )
 %
 %
 % Inputs:
-%   filename    - Cell array containing the name of the raw aquadopp profiler 
+%   filename    - Cell array containing the name of the raw aquadopp velocity 
 %                 file to parse.
 %   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 % 
@@ -54,15 +54,13 @@ filename = filename{1};
 structures = readParadoppBinary(filename);
 
 % first three sections are header, head and user configuration
-hardware = structures{1};
-head     = structures{2};
-user     = structures{3};
+hardware = structures.Id5;
+head     = structures.Id4;
+user     = structures.Id0;
 
 % the rest of the sections are aquadopp velocity data, diagnostic header
 % and diagnostic data. We will only keep the velocity data (Id == 1) .
-iIdVelocityData = cellfun(@(x) x.Id, structures) == 1;
-structures = structures(iIdVelocityData);
-nsamples = length(structures);
+nsamples = length(structures.Id1);
 ncells   = user.NBins;
 
 % preallocate memory for all sample data
@@ -114,27 +112,22 @@ distance(:) = (cellStart):  ...
 distance = distance + cellLength;
        
 % retrieve sample data
-for k = 1:nsamples
-  
-  st = structures{k};
-  if ~isempty(st)
-      time(k)           = st.Time;
-      analn1(k)         = st.Analn1;
-      battery(k)        = st.Battery;
-      analn2(k)         = st.Analn2;
-      heading(k)        = st.Heading;
-      pitch(k)          = st.Pitch;
-      roll(k)           = st.Roll;
-      pressure(k)       = st.PressureMSB*65536 + st.PressureLSW;
-      temperature(k)    = st.Temperature;
-      velocity1(k,:)    = st.Vel1;
-      velocity2(k,:)    = st.Vel2;
-      velocity3(k,:)    = st.Vel3;
-      backscatter1(k,:) = st.Amp1;
-      backscatter2(k,:) = st.Amp2;
-      backscatter3(k,:) = st.Amp3;
-  end
-end
+time         = structures.Id1.Time';
+analn1       = structures.Id1.Analn1';
+battery      = structures.Id1.Battery';
+analn2       = structures.Id1.Analn2';
+heading      = structures.Id1.Heading';
+pitch        = structures.Id1.Pitch';
+roll         = structures.Id1.Roll';
+pressure     = structures.Id1.PressureMSB'*65536 + structures.Id1.PressureLSW';
+temperature  = structures.Id1.Temperature';
+velocity1    = structures.Id1.Vel1';
+velocity2    = structures.Id1.Vel2';
+velocity3    = structures.Id1.Vel3';
+backscatter1 = structures.Id1.Amp1';
+backscatter2 = structures.Id1.Amp2';
+backscatter3 = structures.Id1.Amp3';
+clear structures;
 
 % battery     / 10.0   (0.1 V    -> V)
 % heading     / 10.0   (0.1 deg  -> deg)

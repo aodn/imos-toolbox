@@ -56,14 +56,14 @@ filename = filename{1};
 structures = readParadoppBinary(filename);
 
 % first three sections are header, head and user configuration
-hardware = structures{1};
-head     = structures{2};
-user     = structures{3};
+hardware = structures.Id5;
+head     = structures.Id4;
+user     = structures.Id0;
 
 % the rest of the sections are continental data (which have 
 % the same structure as awac velocity profile data sections).
 
-nsamples = length(structures) - 3;
+nsamples = length(structures.Id36);
 ncells   = user.NBins;
 
 % preallocate memory for all sample data
@@ -124,26 +124,22 @@ distance(:) = (cellStart):  ...
 distance = distance + cellLength;
 
 % retrieve sample data
-for k = 1:nsamples
-  
-  st = structures{k+3};
-  
-  time(k)           = st.Time;
-  analn1(k)         = st.Analn1;
-  battery(k)        = st.Battery;
-  analn2(k)         = st.Analn2;
-  heading(k)        = st.Heading;
-  pitch(k)          = st.Pitch;
-  roll(k)           = st.Roll;
-  pressure(k)       = st.PressureMSB*65536 + st.PressureLSW;
-  temperature(k)    = st.Temperature;
-  velocity1(k,:)    = st.Vel1;
-  velocity2(k,:)    = st.Vel2;
-  velocity3(k,:)    = st.Vel3;
-  backscatter1(k,:) = st.Amp1;
-  backscatter2(k,:) = st.Amp2;
-  backscatter3(k,:) = st.Amp3;
-end
+time            = structures.Id36.Time';
+analn1          = structures.Id36.Analn1';
+battery         = structures.Id36.Battery';
+analn2          = structures.Id36.Analn2';
+heading         = structures.Id36.Heading';
+pitch           = structures.Id36.Pitch';
+roll            = structures.Id36.Roll';
+pressure        = structures.Id36.PressureMSB'*65536 + structures.Id36.PressureLSW';
+temperature     = structures.Id36.Temperature';
+velocity1       = structures.Id36.Vel1';
+velocity2       = structures.Id36.Vel2';
+velocity3       = structures.Id36.Vel3';
+backscatter1    = structures.Id36.Amp1';
+backscatter2    = structures.Id36.Amp2';
+backscatter3    = structures.Id36.Amp3';
+clear structures;
 
 % battery     / 10.0   (0.1 V    -> V)
 % heading     / 10.0   (0.1 deg  -> deg)

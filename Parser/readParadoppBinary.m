@@ -90,14 +90,23 @@ dIdx    = 1;
 %   head configuration
 %   user configuration
 %
-structures = {};
+structures = struct;
 [~, ~, cpuEndianness] = computer;
 
 while dIdx < dataLen
     
     [sect, len] = readSection(filename, data, dIdx, cpuEndianness);
     if ~isempty(sect)
-        structures{end+1} = sect; % no pre-allocation is still faster than allocating more than needed and then removing the excess
+        curField = ['Id' sprintf('%d', sect.Id)];
+        if ~isfield(structures, curField)
+            structures.(curField) = sect;
+        else
+            fieldNames = fieldnames(structures.(curField));
+            nField = length(fieldNames);
+            for i=1:nField
+                structures.(curField).(fieldNames{i})(:, end+1) = sect.(fieldNames{i}); % no pre-allocation is still faster than allocating more than needed and then removing the excess
+            end
+        end
     end
     
     dIdx = dIdx + len; % if len is empty, then dIdx is going to be empty and will fail the while test
@@ -674,7 +683,7 @@ sect = struct;
 %     sOff = velOff + (k-1) * (sect.Cells * 2);
 %     eOff = sOff + (sect.Cells * 2)-1;
 %     % !!! velocity can be negative
-%     sect.(['Vel' num2str(k)]) = ...
+%     sect.(['Vel' sprintf('%d', k)]) = ...
 %       bytecast(data(sOff:eOff), 'L', 'int16', cpuEndianness);
 %   end
 % 
@@ -684,7 +693,7 @@ sect = struct;
 %     sOff = ampOff + (k-1) * (sect.Cells);
 %     eOff = sOff + (sect.Cells * 2)-1;
 % 
-%     sect.(['Amp' num2str(k)]) = ...
+%     sect.(['Amp' sprintf('%d', k)]) = ...
 %       bytecast(data(sOff:eOff), 'L', 'uint8', cpuEndianness);
 %   end
 % 
@@ -694,7 +703,7 @@ sect = struct;
 %     sOff = corrOff + (k-1) * (sect.Cells);
 %     eOff = sOff + (sect.Cells * 2)-1;
 % 
-%     sect.(['Corr' num2str(k)]) = ...
+%     sect.(['Corr' sprintf('%d', k)]) = ...
 %       bytecast(data(sOff:eOff), 'L', 'uint8', cpuEndianness);
 %   end
 % 
@@ -773,49 +782,49 @@ sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % u
 %     sVelOff = velOff + (k-1) * (sect.Cells * 2);
 %     eVelOff = sVelOff + (sect.Cells * 2)-1;
 %     % !!! velocity can be negative
-%     sect.(['Vel' num2str(k)]) = data(sVelOff:eVelOff); % int16
+%     sect.(['Vel' sprintf('%d', k)]) = data(sVelOff:eVelOff); % int16
 %     
 %     % amplitude data
 %     sAmpOff = ampOff + (k-1) * (sect.Cells);
 %     eAmpOff = sAmpOff + sect.Cells - 1;
 %     
-%     sect.(['Amp' num2str(k)]) = data(sAmpOff:eAmpOff); % uint8
+%     sect.(['Amp' sprintf('%d', k)]) = data(sAmpOff:eAmpOff); % uint8
 %     
 %     % correlation data
 %     sCorOff = corrOff + (k-1) * (sect.Cells);
 %     eCorOff = sCorOff + sect.Cells - 1;
 %     
-%     sect.(['Corr' num2str(k)]) = data(sCorOff:eCorOff); % uint8
+%     sect.(['Corr' sprintf('%d', k)]) = data(sCorOff:eCorOff); % uint8
 %     
-%     cellDataVel = [cellDataVel; sect.(['Vel' num2str(k)])];
-%     cellDataAmp = [cellDataAmp; sect.(['Amp' num2str(k)])];
-%     cellDataCor = [cellDataCor; sect.(['Corr' num2str(k)])];
+%     cellDataVel = [cellDataVel; sect.(['Vel' sprintf('%d', k)])];
+%     cellDataAmp = [cellDataAmp; sect.(['Amp' sprintf('%d', k)])];
+%     cellDataCor = [cellDataCor; sect.(['Corr' sprintf('%d', k)])];
 % end
 % 
 % % let's process int16s and uint8s in one call each
 % cellDataVel = bytecast(cellDataVel, 'L', 'int16', cpuEndianness);
 % blocksUint8 = bytecast([cellDataAmp; cellDataCor], 'L', 'uint8', cpuEndianness);
 % for k = 1:sect.Beams
-%     sect.(['Vel' num2str(k)]) = cellDataVel((k - 1)*sect.Cells + 1:k*sect.Cells);
-%     sect.(['Amp' num2str(k)]) = blocksUint8((k - 1)*sect.Cells + 1:k*sect.Cells);
-%     sect.(['Corr' num2str(k)]) = blocksUint8(sect.Beams*sect.Cells + 1:(k + sect.Beams)*sect.Cells);
+%     sect.(['Vel' sprintf('%d', k)]) = cellDataVel((k - 1)*sect.Cells + 1:k*sect.Cells);
+%     sect.(['Amp' sprintf('%d', k)]) = blocksUint8((k - 1)*sect.Cells + 1:k*sect.Cells);
+%     sect.(['Corr' sprintf('%d', k)]) = blocksUint8(sect.Beams*sect.Cells + 1:(k + sect.Beams)*sect.Cells);
 % end
 
 for k = 1:sect.Beams
     % velocity data, velocity can be negative, int16
     sVelOff = velOff + (k-1) * (sect.Cells * 2);
     eVelOff = sVelOff + (sect.Cells * 2)-1;
-    sect.(['Vel' num2str(k)]) = bytecast(data(sVelOff:eVelOff), 'L', 'int16', cpuEndianness); % int16
+    sect.(['Vel' sprintf('%d', k)]) = bytecast(data(sVelOff:eVelOff), 'L', 'int16', cpuEndianness); % int16
     
     % amplitude data, uint8
     sAmpOff = ampOff + (k-1) * (sect.Cells);
     eAmpOff = sAmpOff + sect.Cells - 1;
-    sect.(['Amp' num2str(k)]) = bytecast(data(sAmpOff:eAmpOff), 'L', 'uint8', cpuEndianness); % uint8
+    sect.(['Amp' sprintf('%d', k)]) = bytecast(data(sAmpOff:eAmpOff), 'L', 'uint8', cpuEndianness); % uint8
     
     % correlation data, uint8
     sCorOff = corrOff + (k-1) * (sect.Cells);
     eCorOff = sCorOff + sect.Cells - 1;
-    sect.(['Corr' num2str(k)]) = bytecast(data(sCorOff:eCorOff), 'L', 'uint8', cpuEndianness); % uint8
+    sect.(['Corr' sprintf('%d', k)]) = bytecast(data(sCorOff:eCorOff), 'L', 'uint8', cpuEndianness); % uint8
 end
 
 end
@@ -1189,7 +1198,7 @@ for k = 1:nBeams
     sOff = velOff + (k-1) * (nCells * 2);
     eOff = sOff + (nCells * 2) - 1;
     % !!! Velocity can be negative
-    sect.(['Vel' num2str(k)]) = ...
+    sect.(['Vel' sprintf('%d', k)]) = ...
         bytecast(data(sOff:eOff), 'L', 'int16', cpuEndianness);
 end
 
@@ -1199,7 +1208,7 @@ for k = 1:nBeams
     sOff = ampOff + (k-1) * nCells;
     eOff = sOff + nCells - 1;
     
-    sect.(['Amp' num2str(k)]) = ...
+    sect.(['Amp' sprintf('%d', k)]) = ...
         bytecast(data(sOff:eOff), 'L', 'uint8', cpuEndianness);
 end
 
@@ -1209,7 +1218,7 @@ for k = 1:nBeams
     sOff = corrOff + (k-1) * nCells;
     eOff = sOff + nCells - 1;
     
-    vel.(['Corr' num2str(k)]) = ...
+    vel.(['Corr' sprintf('%d', k)]) = ...
         bytecast(data(sOff:eOff), 'L', 'uint8', cpuEndianness);
 end
 
@@ -1432,9 +1441,10 @@ cs = 46476;
 % which will give the same result
 data = double(data(idx:idx+len-1));
 
-for k = 1:2:len-1
-    cs = cs + data(k) + data(k+1)*256;
-end
+dataO = data(1:2:len-1);
+dataE = data(2:2:len);
+
+cs = cs + sum(dataO) + sum(dataE)*256;
 
 cs = mod(cs, 65536);
 

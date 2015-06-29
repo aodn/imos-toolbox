@@ -56,13 +56,19 @@ filename = filename{1};
 structures = readParadoppBinary(filename);
 
 % first three sections are header, head and user configuration
-hardware = structures{1};
-head     = structures{2};
-user     = structures{3};
+hardware = structures.Id5;
+head     = structures.Id4;
+user     = structures.Id0;
 
 % the rest of the sections are aquadopp profiler velocity data 
-
-nsamples = length(structures) - 3;
+if isfield(structures, 'Id42')
+    % this is a HR profiler velocity data
+    profilerType = 'Id42';
+else
+    % this is a plain profiler velocity data
+    profilerType = 'Id33';
+end
+nsamples = length(structures.(profilerType).Id);
 ncells   = user.NBins;
 
 % preallocate memory for all sample data
@@ -115,27 +121,22 @@ distance(:) = (cellStart):  ...
 distance = distance + cellLength;
        
 % retrieve sample data
-for k = 1:nsamples
-  
-  st = structures{k+3};
-  if ~isempty(st)
-      time(k)           = st.Time;
-      analn1(k)         = st.Analn1;
-      battery(k)        = st.Battery;
-      analn2(k)         = st.Analn2;
-      heading(k)        = st.Heading;
-      pitch(k)          = st.Pitch;
-      roll(k)           = st.Roll;
-      pressure(k)       = st.PressureMSB*65536 + st.PressureLSW;
-      temperature(k)    = st.Temperature;
-      velocity1(k,:)    = st.Vel1;
-      velocity2(k,:)    = st.Vel2;
-      velocity3(k,:)    = st.Vel3;
-      backscatter1(k,:) = st.Amp1;
-      backscatter2(k,:) = st.Amp2;
-      backscatter3(k,:) = st.Amp3;
-  end
-end
+time            = structures.(profilerType).Time';
+analn1          = structures.(profilerType).Analn1';
+battery         = structures.(profilerType).Battery';
+analn2          = structures.(profilerType).Analn2';
+heading         = structures.(profilerType).Heading';
+pitch           = structures.(profilerType).Pitch';
+roll            = structures.(profilerType).Roll';
+pressure        = structures.(profilerType).PressureMSB'*65536 + structures.(profilerType).PressureLSW';
+temperature     = structures.(profilerType).Temperature';
+velocity1       = structures.(profilerType).Vel1';
+velocity2       = structures.(profilerType).Vel2';
+velocity3       = structures.(profilerType).Vel3';
+backscatter1    = structures.(profilerType).Amp1';
+backscatter2    = structures.(profilerType).Amp2';
+backscatter3    = structures.(profilerType).Amp3';
+clear structures;
 
 % battery     / 10.0   (0.1 V    -> V)
 % heading     / 10.0   (0.1 deg  -> deg)
