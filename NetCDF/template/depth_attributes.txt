@@ -2,6 +2,7 @@ S, standard_name             = depth
 S, long_name                 = actual depth
 S, units                     = metres
 S, reference_datum           = sea surface
+S, positive                  = down
 N, valid_min                 = [mat imosParameters('DEPTH', 'valid_min')]
 N, valid_max                 = [mat imosParameters('DEPTH', 'valid_max')]
 N, _FillValue                = [mat imosParameters('DEPTH', 'fill_value')]
