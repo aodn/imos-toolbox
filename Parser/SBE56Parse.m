@@ -164,9 +164,6 @@ sample_data.variables{3}.data                   = sample_data.variables{3}.typeC
 % from the file, and create a variable for each
 vars = fieldnames(data);
 coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
-if any(strcmpi('DEPTH', vars))
-    coordinates = [coordinates ' DEPTH'];
-end
 for k = 1:length(vars)
     
     if strncmp('TIME', vars{k}, 4), continue; end
@@ -177,9 +174,7 @@ for k = 1:length(vars)
     sample_data.variables{end  }.name           = vars{k};
     sample_data.variables{end  }.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
     sample_data.variables{end  }.data           = sample_data.variables{end}.typeCastFunc(data.(vars{k}));
-    if ~strcmpi(vars{k}, 'DEPTH')
-        sample_data.variables{end  }.coordinates    = coordinates;
-    end
+    sample_data.variables{end  }.coordinates    = coordinates;
     sample_data.variables{end  }.comment        = comment.(vars{k});
     
     if strncmp('PRES_REL', vars{k}, 8)

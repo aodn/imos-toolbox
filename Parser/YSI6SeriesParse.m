@@ -107,9 +107,6 @@ function sample_data = YSI6SeriesParse( filename, mode )
   
   fields = fieldnames(rmfield(records, 'time'));
   coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
-  if any(strcmpi('depth', fields))
-      coordinates = [coordinates ' DEPTH'];
-  end
   
   % copy all the data types across to the sample_data struct
   sample_data.variables = cell(length(fields), 1);
@@ -226,9 +223,7 @@ function sample_data = YSI6SeriesParse( filename, mode )
           ['Dissolved oxygen from ROX optical sensor originally expressed '...
           'in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.'];
     end
-    if ~strcmpi(sample_data.variables{end}.name, 'DEPTH')
-        sample_data.variables{end}.coordinates = coordinates;
-    end
+    sample_data.variables{end}.coordinates = coordinates;
   end
   
   % Let's add DOX1/DOX2 if PSAL/CNDC, TEMP and DOXS are present and DOX1 not

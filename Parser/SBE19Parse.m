@@ -359,9 +359,6 @@ function sample_data = SBE19Parse( filename, mode )
           % from the file, and create a variable for each
           vars = fieldnames(data);
           coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
-          if any(strcmpi('DEPTH', vars))
-              coordinates = [coordinates ' DEPTH'];
-          end
           for k = 1:length(vars)
               
               if strncmp('TIME', vars{k}, 4), continue; end
@@ -374,9 +371,7 @@ function sample_data = SBE19Parse( filename, mode )
               sample_data.variables{end  }.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
               sample_data.variables{end  }.data         = sample_data.variables{end}.typeCastFunc(data.(vars{k}));
               sample_data.variables{end  }.comment      = comment.(vars{k});
-              if ~strcmpi(vars{k}, 'DEPTH')
-                  sample_data.variables{end}.coordinates = coordinates;
-              end
+              sample_data.variables{end}.coordinates    = coordinates;
               
               if strncmp('PRES_REL', vars{k}, 8)
                   % let's document the constant pressure atmosphere offset previously

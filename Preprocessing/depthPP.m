@@ -589,17 +589,6 @@ for k = 1:length(sample_data)
                 end
             end
             
-        otherwise
-            %let's redefine the coordinates attribute for each relevant
-            %variables
-            nVars = length(sample_data{k}.variables);
-            for i=1:nVars
-                if isfield(sample_data{k}.variables{i}, 'coordinates')
-                    if strcmp(sample_data{k}.variables{i}.coordinates, 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH')
-                        sample_data{k}.variables{i}.coordinates = [sample_data{k}.variables{i}.coordinates ' DEPTH'];
-                    end
-                end
-            end
     end
     
     % update vertical min/max from new computed DEPTH

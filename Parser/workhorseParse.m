@@ -439,7 +439,7 @@ error(nargchk(1, 2, nargin));
           sample_data{2}.variables{i}.dimensions   = vars{i, 2};
           if ~any(strcmpi(vars{i, 1}, {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'})) % we don't want this for LATITUDE, LONGITUDE and NOMINAL_DEPTH
               if strcmpi(vars{i, 1}, 'DEPTH')
-                  sample_data{2}.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH DEPTH';
+                  sample_data{2}.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
               else
                   sample_data{2}.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE'; % data at the surface, can be inferred from standard/long names
               end

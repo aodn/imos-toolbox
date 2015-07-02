@@ -299,9 +299,6 @@ function sample_data = readXR420( filename, mode )
           data = rmfield(data, 'time');
           fields = fieldnames(data);
           coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
-          if any(strcmpi('Depth', fields))
-              coordinates = [coordinates ' DEPTH'];
-          end
           
           for k = 1:length(fields)
               comment.(fields{k}) = '';
@@ -335,9 +332,7 @@ function sample_data = readXR420( filename, mode )
               sample_data.variables{end}.name         = name;
               sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
               sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc(data.(fields{k}));
-              if ~strcmpi(name, 'DEPTH')
-                  sample_data.variables{end}.coordinates  = coordinates;
-              end
+              sample_data.variables{end}.coordinates  = coordinates;
               sample_data.variables{end}.comment      = comment.(fields{k});
           end
   end
