@@ -34,23 +34,22 @@ def submit(archive):
   
   os.system(cmd)
 
-url        = 'http://%s.googlecode.com/svn/trunk' % project
+url        = 'https://github.com/aodn/%s.git' % project
 exportDir  = 'export'
 stdArchive = '%04i-%02i-%02i_unstable_snapshot.zip' % (lt[0], lt[1], lt[2])
 
 compilerLog = './%s/log.txt' % exportDir
 
 #
-# export from SVN
+# export from git
 #
 print('\n--exporting tree from %s to %s' % (url, exportDir))
-os.system('svn export %s %s' % (url, exportDir))
+os.system('git clone %s %s' % (url, exportDir))
 
 #
-# remove Tests and snapshot directories
+# remove snapshot directory
 #
-print('\n--removing Tests and snapshot')
-shutil.rmtree('%s/Tests' % exportDir)
+print('\n--removing snapshot')
 shutil.rmtree('%s/snapshot' % exportDir)
 
 #
@@ -68,6 +67,6 @@ try:
 except:
   print('\n--Snapshot upload error. Check script, fix and then delete previous files before running new snapshot')
 
-print('\n--removing local SVN tree and archives')
+print('\n--removing local git tree and archives')
 shutil.rmtree('%s' % exportDir)
 os.remove(stdArchive)

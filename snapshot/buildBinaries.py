@@ -12,7 +12,7 @@ import shutil
 # 
 # Both of these files are copied to the relevant directory and commited to SVN.
 #
-# python, svn (SlikSvn), javac, ant and matlab must be on PATH
+# python, git, javac, ant and matlab must be on PATH
 # JAVA_HOME must be set
 #
 
@@ -20,7 +20,7 @@ lt = time.localtime()
 
 project = 'imos-toolbox'
 
-url        = 'http://%s.googlecode.com/svn/trunk' % project
+url        = 'https://github.com/aodn/%s.git' % project
 exportDir  = 'export'
 
 compilerLog = '.\%s\log.txt' % exportDir
@@ -29,13 +29,12 @@ compilerLog = '.\%s\log.txt' % exportDir
 # export from SVN
 #
 print('\n--exporting tree from %s to %s' % (url, exportDir))
-os.system('svn export %s %s' % (url, exportDir))
+os.system('git clone %s %s' % (url, exportDir))
 
 #
-# remove Tests and snapshot directories
+# remove snapshot directory
 #
-print('\n--removing Tests and snapshot')
-shutil.rmtree('%s/Tests' % exportDir)
+print('\n--removing snapshot')
 shutil.rmtree('%s/snapshot' % exportDir)
 
 #
@@ -56,5 +55,5 @@ matlabOpts = '-nodisplay -nojvm -wait -logfile "%s"' % compilerLog
 matlabCmd = "addpath('Util'); try, imosCompile(); exit(); catch e, disp(e.message); end;"
 os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 
-print('\n--removing local SVN tree')
+print('\n--removing local git tree')
 shutil.rmtree('%s' % exportDir)
