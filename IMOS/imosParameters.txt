@@ -32,7 +32,7 @@ BAT,                 1, volume_beam_attenuation_coefficient_of_radiative_flux_in
 BOT_DEPTH,           1, sea_floor_depth_below_sea_surface,                                                      m,                                     E, 999999.0, 0.0,     12000.0,  float
 CDIR,                1, direction_of_sea_water_velocity,                                                        Degrees clockwise from true North,     V, 999999.0, 0.0,     360.0,    float
 CDIR_MAG,            1, direction_of_sea_water_velocity,                                                        Degrees clockwise from magnetic North, V, 999999.0, 0.0,     360.0,    float
-CDOM,                0, concentration_of_coloured_dissolved_organic_matter,                                     ppb,                                   K, 999999.0, 0.0,     375.0,    float
+CDOM,                0, concentration_of_coloured_dissolved_organic_matter,                                     1e-9,                                  K, 999999.0, 0.0,     375.0,    float
 CNDC,                1, sea_water_electrical_conductivity,                                                      S m-1,                                 C, 999999.0, 0.0,     50000.0,  float
 CPHL,                0, mass_concentration_of_inferred_chlorophyll_from_relative_fluorescence_units_in_sea_water, mg m-3,                              K, 999999.0, 0.0,     100.0,    float
 CHLF,                0, mass_concentration_of_inferred_chlorophyll_from_relative_fluorescence_units_in_sea_water, mg m-3,                              K, 999999.0, 0.0,     100.0,    float
