@@ -1,7 +1,5 @@
 S, long_name                            = quality flag for [mat imosParameters(sample_data.variables{k}.name, 'long_name')]
 S, standard_name                        = [mat regexprep(strcat(imosParameters(sample_data.variables{k}.name, 'standard_name'), ' status_flag'),  '^ .*', '')]
-Q, valid_min                            = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'min')]
-Q, valid_max                            = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'max')]
 Q, _FillValue                           = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'fill_value')]
 N, add_offset                           = 
 N, scale_factor                         = 
