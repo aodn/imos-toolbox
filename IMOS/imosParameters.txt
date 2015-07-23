@@ -57,7 +57,7 @@ DYNHT,               0, dynamic_height,                                         
 ECUR,                0, error_sea_water_velocity,                                                               m s-1,                                 V, 999999.0, -5.0,    5.0,      float
 FLU2,                0, fluorescence_in_sea_water,                                                              counts,                                B, 999999.0, ,        ,         float
 FREQUENCY,           0, frequency,                                                                              Hz,                                    E, 999999.0, 0.0,     900000.0, float
-GDOP,                0, radar_beam_intersection_angle,                                                          Degrees,                               E, 999999.0, 0.0,     180.0,    float
+GDOP,                0, radar_beam_intersection_angle,                                                          degree,                                E, 999999.0, 0.0,     180.0,    float
 HEADING,             1, platform_yaw_angle,                                                                     Degrees clockwise from true North,     E, 999999.0, 0.0,     360.0,    float
 HEADING_MAG,         1, platform_yaw_angle,                                                                     Degrees clockwise from magnetic North, E, 999999.0, 0.0,     360.0,    float
 HEAT,                0, heat_content,                                                                           10^10 J m-2,                           E, 999999.0, ,        ,         float
@@ -85,7 +85,7 @@ CPAR,                0, downwelling_corrected_photosynthetic_photon_flux_in_sea_
 PCO2,                1, surface_partial_pressure_of_carbon_dioxide_in_air,                                      Pascal,                                K, 999999.0, ,        ,         float
 PHOS,                1, moles_of_phosphate_per_unit_mass_in_sea_water,                                          umole kg-1,                            K, 999999.0, ,        ,         float
 PHO2,                1, mole_concentration_of_phosphate_in_sea_water,                                           umole l-1,                             K, 999999.0, ,        ,         float
-PITCH,               1, platform_pitch_angle,                                                                   Degrees,                               E, 999999.0, -180.0,  180.0,    float
+PITCH,               1, platform_pitch_angle,                                                                   degree,                                E, 999999.0, -180.0,  180.0,    float
 PRES,                1, sea_water_pressure,                                                                     dbar,                                  Z, 999999.0, -5.0,    12000.0,  float
 PRES_REL,            1, sea_water_pressure_due_to_sea_water,                                                    dbar,                                  Z, 999999.0, -15.0,   12000.0,  float
 PSAL,                1, sea_water_salinity,                                                                     1e-3,                                  S, 999999.0, 2.0,     41.0,     float
@@ -93,7 +93,7 @@ Q,                   1, specific_humidity,                                      
 RRATE,               1, rainfall_rate,                                                                          mm s-1,                                M, 999999.0, ,        ,         float
 RAIN_AMOUNT,         1, thickness_of_rainfall_amount,                                                           mm,                                    M, 999999.0, ,        ,         float
 RELH,                1, relative_humidity,                                                                      percent,                               M, 999999.0, 0.0,     150.0,    float
-ROLL,                1, platform_roll_angle,                                                                    Degrees,                               E, 999999.0, -180.0,  180.0,    float
+ROLL,                1, platform_roll_angle,                                                                    degree,                                E, 999999.0, -180.0,  180.0,    float
 SLCA,                1, mole_concentration_of_silicate_in_sea_water,                                            umole l-1,                             K, 999999.0, ,        ,         float
 SLC2,                1, moles_of_silicate_per_unit_mass_in_sea_water,                                           umole kg-1,                            K, 999999.0, ,        ,         float
 SPCT,                0, awac_spectra_calculation_method,                                                        ,                                      ,          , ,        ,         byte
@@ -108,10 +108,10 @@ SSTI,                1, sea_surface_temperature,                                
 SSWD,                0, sea_surface_wave_from_direction_by_frequency,                                           Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
 SSWD_MAG,            0, sea_surface_wave_from_direction_by_frequency,                                           Degrees clockwise from magnetic North, W, 999999.0, 0.0,     360.0,    float
 SSWDT,               0, sea_surface_wave_to_direction_by_frequency,                                             Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float
-SSWST,               0, sea_surface_wave_to_directional_variance,                                               m2 deg-1,                              W, 999999.0, ,        ,         float
-SSWV,                1, sea_surface_wave_directional_variance_spectral_density,                                 m2 s deg-1,                            W, 999999.0, ,        ,         float
-SSWV_MAG,            0, sea_surface_wave_magnetic_directional_variance_spectral_density,                        m2 s deg-1,                            W, 999999.0, ,        ,         float
-SSWVT,               0, sea_surface_wave_to_directional_variance_spectral_density,                              m2 s deg-1,                            W, 999999.0, ,        ,         float
+SSWST,               0, sea_surface_wave_to_directional_variance,                                               m2 degree-1,                           W, 999999.0, ,        ,         float
+SSWV,                1, sea_surface_wave_directional_variance_spectral_density,                                 m2 s degree-1,                         W, 999999.0, ,        ,         float
+SSWV_MAG,            0, sea_surface_wave_magnetic_directional_variance_spectral_density,                        m2 s degree-1,                         W, 999999.0, ,        ,         float
+SSWVT,               0, sea_surface_wave_to_directional_variance_spectral_density,                              m2 s degree-1,                         W, 999999.0, ,        ,         float
 Sv,                  0, mean_volume_backscatter_coefficient,                                                    m-1,                                   A, 9999.0,   0.0,     1.0,      float
 SV_mean,             0, mean_volume_backscatter,                                                                decibel,                               A, 999999.0, -128.0,  0.0,      float
 Sv_kurt,             0, kurtosis_volume_backscatter,                                                            m-1,                                   A, 9999.0,   0.0,     1.0,      float
