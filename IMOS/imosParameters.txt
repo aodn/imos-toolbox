@@ -44,7 +44,7 @@ DESC,                0, profiling_descent_rate_of_instrument,                   
 DEWT,                1, dew_point_temperature,                                                                  Celsius,                               M, 999999.0, -50.0,   50.0,     float
 DIR,                 0, from_direction,                                                                         Degrees clockwise from true North,     E, 999999.0, 0.0,     360.0,    float
 DIR_MAG,             0, from_direction,                                                                         Degrees clockwise from magnetic North, E, 999999.0, 0.0,     360.0,    float
-DIRECTION,           0, direction_of_the_profile,                                                               1,                                     ,  ,         ,        ,         char
+DIRECTION,           0, direction_of_the_profile,                                                               ,                                      ,  ,         ,        ,         char
 DIRT,                0, to_direction,                                                                           Degrees clockwise from true North,     E, 999999.0, 0.0,     360.0,    float
 DIST_ALONG_BEAMS,    0, dist_along_beams,                                                                       m,                                     Z, 999999.0, -12000.0,12000.0,  float
 DOX1,                1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,                          umol l-1,                              O, 999999.0, 0.0,     900000.0, float
@@ -65,14 +65,14 @@ HEAT_NET,            1, upward_heat_flux_in_air,                                
 HEIGHT_ABOVE_SENSOR, 0, height_above_sensor,                                                                    m,                                     Z, 999999.0, -12000.0,12000.0,  float
 HL,                  1, surface_upward_latent_heat_flux,                                                        W m-2,                                 F, 999999.0, ,        ,         float
 HS,                  1, surface_upward_sensible_heat_flux,                                                      W m-2,                                 F, 999999.0, ,        ,         float
-INSTANCE,            0, instance_of_vertical_profiles_in_data_file,                                             1,                                     ,          , ,        ,         int
+INSTANCE,            0, instance_of_vertical_profiles_in_data_file,                                             ,                                      ,          , ,        ,         int
 ISO17,               1, depth_of_isosurface_of_sea_water_potential_temperature,                                 m,                                     E, 999999.0, ,        ,         float
 LATITUDE,            1, latitude,                                                                               degrees_north,                         ,  999999.0, -90.0,   90.0,     double
 LONGITUDE,           1, longitude,                                                                              degrees_east,                          ,  999999.0, -180.0,  180.0,    double
 LW,                  1, surface_downwelling_longwave_flux_in_air,                                               W m-2,                                 F, 999999.0, ,        ,         float
 LW_NET,              1, surface_net_upward_longwave_flux,                                                       W m-2,                                 F, 999999.0, ,        ,         float
 MASS_NET,            1, upward_mass_flux_of_air,                                                                kg m-2 s-1,                            F, 999999.0, ,        ,         float
-MAXZ,                0, maximum_number_of_samples_in_vertical_profile,                                          1,                                     ,          , ,        ,         int
+MAXZ,                0, maximum_number_of_samples_in_vertical_profile,                                          ,                                      ,          , ,        ,         int
 mean_depth,          0, mean_cell_depth,                                                                        m,                                     E, 9999.0,   0.0,     10000,    float
 mean_height,         0, mean_cell_height,                                                                       m,                                     E, 9999.0,   0.0,     100,      float
 NOBS,                0, number_of_observations_considered,                                                      1,                                     ,          , ,        ,         byte
@@ -96,7 +96,7 @@ RELH,                1, relative_humidity,                                      
 ROLL,                1, platform_roll_angle,                                                                    degree,                                E, 999999.0, -180.0,  180.0,    float
 SLCA,                1, mole_concentration_of_silicate_in_sea_water,                                            umole l-1,                             K, 999999.0, ,        ,         float
 SLC2,                1, moles_of_silicate_per_unit_mass_in_sea_water,                                           umole kg-1,                            K, 999999.0, ,        ,         float
-SPCT,                0, awac_spectra_calculation_method,                                                        1,                                     ,          , ,        ,         byte
+SPCT,                0, awac_spectra_calculation_method,                                                        ,                                      ,          , ,        ,         char
 SPEC_CNDC,           0, sea_water_specific_electrical_conductivity,                                             S m-1,                                 C, 999999.0, 0.0,     50000.0,  float
 SRAD,                1, isotropic_shortwave_radiance_in_air,                                                    W m-1 sr-1,                            F, 999999.0, ,        ,         float
 SSDS,                0, sea_surface_wave_directional_spread,                                                    Degrees clockwise from true North,     W, 999999.0, 0.0,     360.0,    float

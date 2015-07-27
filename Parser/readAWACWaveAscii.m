@@ -222,7 +222,7 @@ try
     waveData.Temperature(iHeader) = header(:,17);
     clear header iHeader;
     
-    waveData.SpectraType            = nan(nTime, 1);
+    waveData.SpectraType            = num2str(zeros(nTime, 1, 'uint16'));
     waveData.SignificantHeight      = nan(nTime, 1);
     waveData.MeanZeroCrossingPeriod = nan(nTime, 1);
     waveData.PeakPeriod             = nan(nTime, 1);
@@ -232,7 +232,7 @@ try
     waveData.MeanPressure           = nan(nTime, 1);
     waveData.UnidirectivityIndex    = nan(nTime, 1);
     
-    waveData.SpectraType(iWave)            = wave(:,7);
+    waveData.SpectraType(iWave)            = num2str(wave(:,7));
     waveData.SignificantHeight(iWave)      = wave(:,8);
     waveData.PeakPeriod(iWave)             = wave(:,14);
     waveData.MeanZeroCrossingPeriod(iWave) = wave(:,15);

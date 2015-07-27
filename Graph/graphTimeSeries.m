@@ -104,8 +104,13 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     end
     switch func2str(plotFunc)
         case 'graphTimeSeriesGeneric'
-            yLimits = [floor(min(sample_data.variables{k}.data)*10)/10, ...
-                ceil(max(sample_data.variables{k}.data)*10)/10];
+            varData = sample_data.variables{k}.data;
+            if ischar(varData), varData = str2num(varData); end % we assume data is an array of one single character
+            
+            minData = min(varData);
+            maxData = max(varData);
+            yLimits = [floor(minData*10)/10, ...
+                ceil(maxData*10)/10];
             
             if sample_data.meta.level == 1
                 qcSet     = str2double(readProperty('toolbox.qc_set'));
@@ -116,8 +121,13 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
                 iGood = sample_data.variables{k}.flags == goodFlag;
                 iGood = iGood | (sample_data.variables{k}.flags == rawFlag);
                 if any(iGood)
-                    yLimits = [floor(min(sample_data.variables{k}.data(iGood))*10)/10, ...
-                        ceil(max(sample_data.variables{k}.data(iGood))*10)/10];
+                    varData = sample_data.variables{k}.data(iGood);
+                    if ischar(varData), varData = str2num(varData); end % we assume data is an array of one single character
+                    
+                    minData = min(varData);
+                    maxData = max(varData);
+                    yLimits = [floor(minData*10)/10, ...
+                        ceil(maxData*10)/10];
                 end
             end
         case 'graphTimeSeriesTimeDepth'

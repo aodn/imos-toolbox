@@ -59,6 +59,8 @@ time = sample_data.variables{var}.dimensions(1);
 time = sample_data.dimensions{time};
 var  = sample_data.variables {var};
 
+if ischar(var.data), var.data = str2num(var.data); end % we assume data is an array of one single character
+
 h    = line(time.data, var.data, 'Parent', ax, 'Color', color);
 set(ax, 'Tag', 'axis1D');
 
