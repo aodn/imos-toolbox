@@ -111,7 +111,7 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   for k = 1:length(sam.dimensions)
     
     if isfield(sam.dimensions{k}, 'flags'), continue; end
-    if any(strcmpi(sam.dimensions{k}.name, {'INSTANCE', 'MAXZ'})), continue; end
+    if any(strcmpi(sam.dimensions{k}.name, {'PROFILE', 'MAXZ'})), continue; end
     
     sam.dimensions{k}.flags(1:numel(sam.dimensions{k}.data)) = flagVal;
     sam.dimensions{k}.flags = reshape(...

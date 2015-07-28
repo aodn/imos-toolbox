@@ -192,8 +192,8 @@ for k = 1:length(sample_data)
     end
     
     DepthIdx    = getVar(curSam.dimensions, 'DEPTH');
-    InstanceIdx = getVar(curSam.dimensions, 'INSTANCE');
-    dimensions  = [DepthIdx InstanceIdx];
+    ProfileIdx = getVar(curSam.dimensions, 'PROFILE');
+    dimensions  = [DepthIdx ProfileIdx];
     coordinates = '';
     flagComments = 'flags: fail = pump off, pBad before min soak, pGood after min but before optimal, good after optimal.';
     

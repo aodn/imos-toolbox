@@ -143,9 +143,8 @@ function sample_data = readXR420( filename, mode )
               sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
               sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(1:1:MAXZ);
               
-              sample_data.dimensions{2}.name            = 'INSTANCE';
+              sample_data.dimensions{2}.name            = 'PROFILE';
               sample_data.dimensions{2}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{2}.name, 'type')));
-              sample_data.dimensions{2}.cf_role         = 'profile_id';
               sample_data.dimensions{2}.data            = sample_data.dimensions{2}.typeCastFunc([1, 2]);
               
               disp(['Warning : ' sample_data.toolbox_input_file ...

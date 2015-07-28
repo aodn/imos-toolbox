@@ -1,5 +1,6 @@
 S, standard_name             = 
-S, long_name                 = instance_of_vertical_profiles_in_data_file
+S, long_name                 = unique_identifier_for_each_timeseries_feature_instance
+S, cf_role                   = timeseries_id
 S, units                     = 
 S, calendar                  = 
 S, axis                      = 
