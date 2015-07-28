@@ -460,6 +460,9 @@ for k = 1:length(sample_data)
         
         % variable Depth will be a function of T
         dimensions = getVar(curSam.dimensions, 'TIME');
+        
+        % hopefully the last variable in the file is a data variable
+        coordinates = curSam.variables{end}.coordinates;
     else
         if presRelIdx == 0
             % update from a relative pressure like SeaBird computes
@@ -509,51 +512,12 @@ for k = 1:length(sample_data)
         
         if presRelIdx == 0
             dimensions = curSam.variables{presIdx}.dimensions;
+            coordinates = curSam.variables{presIdx}.coordinates;
         else
             dimensions = curSam.variables{presRelIdx}.dimensions;
+            coordinates = curSam.variables{presRelIdx}.coordinates;
         end
     end
-    
-% This is a test not to add computed depth from bad pressure data in ADCPs    
-%     computedMedianDepth   = round(median(computedDepth)*100)/100;
-%     
-%     idHeight = getVar(curSam.dimensions, 'HEIGHT_ABOVE_SENSOR');
-%     if idHeight > 0
-%         % ADCP
-%         % Let's compare this computed depth from pressure
-%         % with the maximum distance the ADCP can measure. Sometimes,
-%         % PRES from ADCP pressure sensor is just wrong
-%         maxDistance = round(max(curSam.dimensions{idHeight}.data)*100)/100;
-%         diffPresDist = abs(maxDistance - computedMedianDepth)/max(maxDistance, computedMedianDepth);
-%         
-%         if diffPresDist < 30/100
-%             % Depth from PRES Ok if diff < 30%
-%             % add depth data as new variable in data set
-%             sample_data{k} = addVar(...
-%                 curSam, ...
-%                 'DEPTH', ...
-%                 computedDepth, ...
-%                 dimensions, ...
-%                 computedDepthComment);
-%             clear computedDepth;
-%         else
-%             fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ' computed '...
-%                 'depth won''t be added to dataset as it is too far from the '...
-%                 'instrument nominal depth value']);
-%         end
-%     else
-%         % add depth data as new variable in data set
-%         sample_data{k} = addVar(...
-%             curSam, ...
-%             'DEPTH', ...
-%             computedDepth, ...
-%             dimensions, ...
-%             computedDepthComment);
-%         clear computedDepth;
-%         
-%         % update vertical min/max from new computed DEPTH
-%         sample_data{k} = populateMetadata(sample_data{k});
-%     end
 
     % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
     % If no value is set then default mode is 'timeSeries'
@@ -566,7 +530,7 @@ for k = 1:length(sample_data)
         computedDepth, ...
         dimensions, ...
         computedDepthComment, ...
-        '');
+        coordinates);
     clear computedDepth;
     
     history = sample_data{k}.history;
