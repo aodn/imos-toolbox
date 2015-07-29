@@ -124,7 +124,7 @@ if any(iParam)
         end
         iParam = strcmpi(paramName, paramNames);
         if any(iParam)
-            flags = max(flags, sample_data.(type){i}.flags);
+            flags = max(flags, sample_data.(type){i}.flags(:));
         end
     end
     

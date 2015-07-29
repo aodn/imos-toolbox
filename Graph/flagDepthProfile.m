@@ -57,8 +57,15 @@ flags = [];
 
 if isempty(vars), return; end
 
-depth = getVar(sample_data.dimensions, 'DEPTH');
-if depth == 0, error('data set contains no depth dimension'); end
+% make sure the data set contains depth
+% data, either a dimension or a variable
+depth = getVar(sample_data.variables, 'DEPTH');
+
+if depth == 0
+    depth = getVar(sample_data.dimensions, 'DEPTH');
+    
+    if depth == 0, error('data set contains no depth data'); end
+end
 
 vars(vars == depth) = [];
 if isempty(vars), return; end

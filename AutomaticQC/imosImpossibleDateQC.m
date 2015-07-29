@@ -82,10 +82,10 @@ passFlag = imosQCFlag('good',           qcSet, 'flag');
 failFlag = imosQCFlag('probablyBad',    qcSet, 'flag');
 
 if ~isempty(dataTime)
-    lenData = length(dataTime);
+    sizeData = size(dataTime);
     
     % initially all data is bad
-    flags = ones(lenData, 1, 'int8')*failFlag;
+    flags = ones(sizeData, 'int8')*failFlag;
     
     % read date bounderies from imosImpossibleDateQC parameters file
     dateMin = readProperty('dateMin', fullfile('AutomaticQC', 'imosImpossibleDateQC.txt'));
