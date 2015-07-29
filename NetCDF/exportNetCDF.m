@@ -545,7 +545,7 @@ function vid = addQCVar(...
           
       otherwise
           % inOutWater test don't apply on dimensions for timeseries data
-          if ~strcmp(type, 'variables') || any(strcmp(sample_data.(type){varIdx}.name, {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'}))
+          if ~strcmp(type, 'variables') || any(strcmp(sample_data.(type){varIdx}.name, {'TIMESERIES', 'PROFILE', 'TRAJECTORY', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'}))
               iInWater = true(size(sample_data.(type){varIdx}.data));
           else
               tTime = 'dimensions';

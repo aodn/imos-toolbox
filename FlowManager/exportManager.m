@@ -247,7 +247,7 @@ paramsName = unique(paramsName);
 
 if strcmpi(mode, 'timeseries')
     % we get rid of specific parameters
-    notNeededParams = {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'};
+    notNeededParams = {'TIMESERIES', 'PROFILE', 'TRAJECTORY', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'};
     for i=1:length(notNeededParams)
         iNotNeeded = strcmpi(paramsName, notNeededParams{i});
         paramsName(iNotNeeded) = [];

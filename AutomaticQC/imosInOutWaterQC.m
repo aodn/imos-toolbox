@@ -68,9 +68,9 @@ if nargin<5, auto=false; end
 paramsLog = [];
 flags     = [];
 
-% this test doesn't apply on dimensions nor LATITUDE, LONGITUDE, nor NOMINAL_DEPTH variables
+% this test doesn't apply on dimensions nor TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE, nor NOMINAL_DEPTH variables
 if ~strcmp(type, 'variables'), return; end
-if any(strcmp(sample_data.(type){k}.name, {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'})), return; end
+if any(strcmp(sample_data.(type){k}.name, {'TIMESERIES', 'PROFILE', 'TRAJECTORY', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'})), return; end
 
 time_in_water = sample_data.time_deployment_start;
 time_out_water = sample_data.time_deployment_end;

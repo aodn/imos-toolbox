@@ -93,7 +93,7 @@ iOSS = getVar(sample_data.variables, 'oxSoakStatus');
 % only concerned here with pumped sensors or variables derived from pumped
 % observations
 pumpedVar = {'TEMP', 'CNDC', 'DOX1', 'DOX2', 'PSAL', 'DENS'};
-ignoreVar = {'TIME', 'DIRECTION', 'LATITUDE', 'LONGITUDE', 'BOT_DEPTH', 'ETIME'};
+ignoreVar = {'TIME', 'PROFILE', 'DIRECTION', 'LATITUDE', 'LONGITUDE', 'BOT_DEPTH', 'ETIME'};
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag  = imosQCFlag('raw', qcSet, 'flag');

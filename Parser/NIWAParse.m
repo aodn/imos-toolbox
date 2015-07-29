@@ -159,18 +159,22 @@ sample_data.dimensions{1}.name          = 'TIME';
 sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
 sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(data.TIME);
 
-sample_data.variables{1}.dimensions     = [];
-sample_data.variables{1}.name           = 'LATITUDE';
-sample_data.variables{1}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
-sample_data.variables{1}.data           = sample_data.variables{1}.typeCastFunc(NaN);
-sample_data.variables{2}.dimensions     = [];
-sample_data.variables{2}.name           = 'LONGITUDE';
-sample_data.variables{2}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
-sample_data.variables{2}.data           = sample_data.variables{2}.typeCastFunc(NaN);
-sample_data.variables{3}.dimensions     = [];
-sample_data.variables{3}.name           = 'NOMINAL_DEPTH';
-sample_data.variables{3}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
-sample_data.variables{3}.data           = sample_data.variables{3}.typeCastFunc(NaN);
+sample_data.variables{end+1}.name           = 'TIMESERIES';
+sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+sample_data.variables{end}.data             = sample_data.variables{end}.typeCastFunc(1);
+sample_data.variables{end}.dimensions       = [];
+sample_data.variables{end+1}.name           = 'LATITUDE';
+sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+sample_data.variables{end}.data             = sample_data.variables{end}.typeCastFunc(NaN);
+sample_data.variables{end}.dimensions       = [];
+sample_data.variables{end+1}.name           = 'LONGITUDE';
+sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+sample_data.variables{end}.data             = sample_data.variables{end}.typeCastFunc(NaN);
+sample_data.variables{end}.dimensions       = [];
+sample_data.variables{end+1}.name           = 'NOMINAL_DEPTH';
+sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+sample_data.variables{end}.data             = sample_data.variables{end}.typeCastFunc(NaN);
+sample_data.variables{end}.dimensions       = [];
 
 % scan through the list of parameters that were read
 % from the file, and create a variable for each

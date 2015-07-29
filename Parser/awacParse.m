@@ -193,6 +193,7 @@ clear dims;
 % add variables with their dimensions and data mapped.
 % we assume no correction for magnetic declination has been applied
 vars = {
+    'TIMESERIES',       [],    1; ...
     'LATITUDE',         [],    NaN; ...
     'LONGITUDE',        [],    NaN; ...
     'NOMINAL_DEPTH',    [],    NaN; ...
@@ -217,7 +218,7 @@ for i=1:size(vars, 1)
     sample_data.variables{i}.name         = vars{i, 1};
     sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
     sample_data.variables{i}.dimensions   = vars{i, 2};
-    if ~any(strcmpi(vars{i, 1}, {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'})) % we don't want this for LATITUDE, LONGITUDE and NOMINAL_DEPTH
+    if ~isempty(vars{i, 2}) % we don't want this for scalar variables
         if length(sample_data.variables{i}.dimensions) == 2
             sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE DIST_ALONG_BEAMS';
         else
@@ -276,6 +277,7 @@ clear dims;
 
 % add variables with their dimensions and data mapped
 vars = {
+    'TIMESERIES',   [],      1; ...
     'LATITUDE',     [],      NaN; ...
     'LONGITUDE',    [],      NaN; ...
     'NOMINAL_DEPTH',[],      NaN; ...
@@ -300,7 +302,7 @@ for i=1:size(vars, 1)
     sample_data{2}.variables{i}.name         = vars{i, 1};
     sample_data{2}.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
     sample_data{2}.variables{i}.dimensions   = vars{i, 2};
-    if ~any(strcmpi(vars{i, 1}, {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH', 'SPCT'})) % we don't want this for LATITUDE, LONGITUDE, NOMINAL_DEPTH and SPCT
+    if ~isempty(vars{i, 2}) && ~strcmpi(vars{i, 1}, 'SPCT') % we don't want this for scalar variables nor SPCT
         if any(strcmpi(vars{i, 1}, {'VDEN', 'SSWD_MAG', 'VAVH', 'VAVT', 'VDIR_MAG', 'SSDS_MAG', 'SSWV_MAG'}))
             sample_data{2}.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE'; % data at the surface, can be inferred from standard/long names
         else

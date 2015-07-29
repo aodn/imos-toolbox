@@ -180,6 +180,7 @@ clear dims;
 % add variables with their dimensions and data mapped.
 % we assume no correction for magnetic declination has been applied
 vars = {
+    'TIMESERIES',       [], 1;...
     'LATITUDE',         [], NaN; ...
     'LONGITUDE',        [], NaN; ...
     'NOMINAL_DEPTH',    [], NaN; ...
@@ -204,7 +205,7 @@ for i=1:size(vars, 1)
     sample_data.variables{i}.name         = vars{i, 1};
     sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
     sample_data.variables{i}.dimensions   = vars{i, 2};
-    if ~any(strcmpi(vars{i, 1}, {'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'})) % we don't want this for LATITUDE, LONGITUDE and NOMINAL_DEPTH
+    if ~isempty(vars{i, 2}) % we don't want this for scalar variables
         sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
     end
     sample_data.variables{i}.data         = sample_data.variables{i}.typeCastFunc(vars{i, 3});

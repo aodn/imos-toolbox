@@ -55,7 +55,7 @@ if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
 if ~ischar(exportDir),      error('exportDir must be a string');        end
 
 % we get rid of specific parameters
-notNeededParams = {'TIME', 'DIRECTION', 'LATITUDE', 'LONGITUDE', 'BOT_DEPTH', 'PRES', 'PRES_REL', 'DEPTH'};
+notNeededParams = {'TIME', 'PROFILE', 'DIRECTION', 'LATITUDE', 'LONGITUDE', 'BOT_DEPTH', 'PRES', 'PRES_REL', 'DEPTH'};
 for i=1:length(notNeededParams)
     iNotNeeded = strcmpi(varNames, notNeededParams{i});
     varNames(iNotNeeded) = [];
@@ -85,9 +85,14 @@ for k=1:lenVarNames
     yMin = nan(lenSampleData, 1);
     yMax = nan(lenSampleData, 1);
     for i=1:lenSampleData
-        iDepth = getVar(sample_data{i}.dimensions, 'DEPTH');
-        yMin(i) = min(sample_data{i}.dimensions{iDepth}.data);
-        yMax(i) = max(sample_data{i}.dimensions{iDepth}.data);
+        type = 'dimensions';
+        iDepth = getVar(sample_data{i}.(type), 'DEPTH');
+        if iDepth == 0
+            type = 'variables';
+            iDepth = getVar(sample_data{i}.(type), 'DEPTH');
+        end
+        yMin(i) = min(sample_data{i}.(type){iDepth}.data);
+        yMax(i) = max(sample_data{i}.(type){iDepth}.data);
     end
     yMin = min(yMin);
     yMax = max(yMax);
@@ -116,7 +121,12 @@ for k=1:lenVarNames
         instrumentDesc{i + 1} = [strrep(instrumentDesc{i + 1}, '_', ' ') ' (' instrumentSN ' - ' datestr(sample_data{i}.time_coverage_start, 'yyyy-mm-dd HH:MM UTC') ')'];
         
         %look for depth and relevant variable
-        iDepth = getVar(sample_data{i}.dimensions, 'DEPTH');
+        type = 'dimensions';
+        iDepth = getVar(sample_data{i}.(type), 'DEPTH');
+        if iDepth == 0
+            type = 'variables';
+            iDepth = getVar(sample_data{i}.(type), 'DEPTH');
+        end
         iVar = getVar(sample_data{i}.variables, varName);
         
         if iVar > 0
@@ -156,7 +166,7 @@ for k=1:lenVarNames
                 cMap = flipud(cMap);
             end
             
-            yLine = sample_data{i}.dimensions{iDepth}.data;
+            yLine = sample_data{i}.(type){iDepth}.data;
             dataVar = sample_data{i}.variables{iVar}.data;
             
             hLineVar(i + 1) = line(dataVar, ...

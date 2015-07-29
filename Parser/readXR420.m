@@ -78,6 +78,9 @@ function sample_data = readXR420( filename, mode )
   if isfield(header, 'averaging_time_period'),  sample_data.meta.averaging_time_period  = header.averaging_time_period; end
   if isfield(header, 'burst_sample_rate'),      sample_data.meta.burst_sample_rate      = header.burst_sample_rate; end
   
+  sample_data.dimensions = {};  
+  sample_data.variables  = {};
+  
   switch mode
       case 'profile'
           % dimensions creation
@@ -138,6 +141,11 @@ function sample_data = readXR420( filename, mode )
               sample_data.dimensions{1}.comment         = depthComment;
               sample_data.dimensions{1}.axis            = 'Z';
               sample_data.dimensions{1}.positive        = 'down';
+              
+              sample_data.variables{end+1}.name         = 'PROFILE';
+              sample_data.variables{end}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+              sample_data.variables{end}.data           = sample_data.variables{end}.typeCastFunc(1);
+              sample_data.variables{end}.dimensions     = [];
           else
               sample_data.dimensions{1}.name            = 'MAXZ';
               sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
@@ -166,47 +174,47 @@ function sample_data = readXR420( filename, mode )
               dimensions = 2;
           end
           
-          sample_data.variables{1}.dimensions   = dimensions;
-          sample_data.variables{1}.name         = 'TIME';
-          sample_data.variables{1}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
-          sample_data.variables{1}.data         = sample_data.variables{1}.typeCastFunc([descendingTime, ascendingTime]);
-          sample_data.variables{1}.comment      = 'First value over profile measurement';
+          sample_data.variables{end+1}.dimensions   = dimensions;
+          sample_data.variables{end}.name         = 'TIME';
+          sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+          sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc([descendingTime, ascendingTime]);
+          sample_data.variables{end}.comment      = 'First value over profile measurement';
           
-          sample_data.variables{2}.dimensions   = dimensions;
-          sample_data.variables{2}.name         = 'DIRECTION';
-          sample_data.variables{2}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
+          sample_data.variables{end+1}.dimensions = dimensions;
+          sample_data.variables{end}.name         = 'DIRECTION';
+          sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           if nA == 0
-              sample_data.variables{2}.data     = {'D'};
+              sample_data.variables{end}.data     = {'D'};
           else
-              sample_data.variables{2}.data     = {'D', 'A'};
+              sample_data.variables{end}.data     = {'D', 'A'};
           end
           
-          sample_data.variables{3}.dimensions   = dimensions;
-          sample_data.variables{3}.name         = 'LATITUDE';
-          sample_data.variables{3}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
+          sample_data.variables{end+1}.dimensions = dimensions;
+          sample_data.variables{end}.name         = 'LATITUDE';
+          sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           if nA == 0
-              sample_data.variables{3}.data     = sample_data.variables{3}.typeCastFunc(NaN);
+              sample_data.variables{end}.data     = sample_data.variables{end}.typeCastFunc(NaN);
           else
-              sample_data.variables{3}.data     = sample_data.variables{3}.typeCastFunc([NaN, NaN]);
+              sample_data.variables{end}.data     = sample_data.variables{end}.typeCastFunc([NaN, NaN]);
           end
           
-          sample_data.variables{4}.dimensions   = dimensions;
-          sample_data.variables{4}.name         = 'LONGITUDE';
-          sample_data.variables{4}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{4}.name, 'type')));
+          sample_data.variables{end+1}.dimensions = dimensions;
+          sample_data.variables{end}.name         = 'LONGITUDE';
+          sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           if nA == 0
-              sample_data.variables{4}.data     = sample_data.variables{4}.typeCastFunc(NaN);
+              sample_data.variables{end}.data     = sample_data.variables{end}.typeCastFunc(NaN);
           else
-              sample_data.variables{4}.data     = sample_data.variables{4}.typeCastFunc([NaN, NaN]);
+              sample_data.variables{end}.data     = sample_data.variables{end}.typeCastFunc([NaN, NaN]);
           end
           
-          sample_data.variables{5}.dimensions   = dimensions;
-          sample_data.variables{5}.name         = 'BOT_DEPTH';
-          sample_data.variables{5}.comment      = 'Bottom depth measured by ship-based acoustic sounder at time of CTD cast.';
-          sample_data.variables{5}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{5}.name, 'type')));
+          sample_data.variables{end+1}.dimensions = dimensions;
+          sample_data.variables{end}.name         = 'BOT_DEPTH';
+          sample_data.variables{end}.comment      = 'Bottom depth measured by ship-based acoustic sounder at time of CTD cast.';
+          sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           if nA == 0
-              sample_data.variables{5}.data     = sample_data.variables{5}.typeCastFunc(NaN);
+              sample_data.variables{end}.data     = sample_data.variables{end}.typeCastFunc(NaN);
           else
-              sample_data.variables{5}.data     = sample_data.variables{5}.typeCastFunc([NaN, NaN]);
+              sample_data.variables{end}.data     = sample_data.variables{end}.typeCastFunc([NaN, NaN]);
           end
           
           % Manually add variable DEPTH if multiprofile and doesn't exit
@@ -271,7 +279,7 @@ function sample_data = readXR420( filename, mode )
               end
               sample_data.variables{end  }.comment    = comment.(vars{k});
               
-              if all(~strcmpi({'TIME', 'DEPTH'}, vars{k}))
+              if ~any(strcmpi(vars{k}, {'TIME', 'DEPTH'}))
                   sample_data.variables{end  }.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
               end
           end
@@ -281,18 +289,22 @@ function sample_data = readXR420( filename, mode )
           sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
           sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(data.time);
           
-          sample_data.variables{1}.dimensions       = [];
-          sample_data.variables{1}.name             = 'LATITUDE';
-          sample_data.variables{1}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{1}.name, 'type')));
-          sample_data.variables{1}.data             = sample_data.variables{1}.typeCastFunc(NaN);
-          sample_data.variables{2}.dimensions       = [];
-          sample_data.variables{2}.name             = 'LONGITUDE';
-          sample_data.variables{2}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{2}.name, 'type')));
-          sample_data.variables{2}.data             = sample_data.variables{2}.typeCastFunc(NaN);
-          sample_data.variables{3}.dimensions       = [];
-          sample_data.variables{3}.name             = 'NOMINAL_DEPTH';
-          sample_data.variables{3}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{3}.name, 'type')));
-          sample_data.variables{3}.data             = sample_data.variables{3}.typeCastFunc(NaN);
+          sample_data.variables{end+1}.name           = 'TIMESERIES';
+          sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+          sample_data.variables{end}.data             = sample_data.variables{end}.typeCastFunc(1);
+          sample_data.variables{end}.dimensions       = [];
+          sample_data.variables{end+1}.name           = 'LATITUDE';
+          sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+          sample_data.variables{end}.data             = sample_data.variables{end}.typeCastFunc(NaN);
+          sample_data.variables{end}.dimensions       = [];
+          sample_data.variables{end+1}.name           = 'LONGITUDE';
+          sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+          sample_data.variables{end}.data             = sample_data.variables{end}.typeCastFunc(NaN);
+          sample_data.variables{end}.dimensions       = [];
+          sample_data.variables{end+1}.name           = 'NOMINAL_DEPTH';
+          sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+          sample_data.variables{end}.data             = sample_data.variables{end}.typeCastFunc(NaN);
+          sample_data.variables{end}.dimensions       = [];
 
           % copy variable data over
           data = rmfield(data, 'time');
