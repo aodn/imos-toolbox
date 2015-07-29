@@ -1,8 +1,8 @@
-S, standard_name             = latitude
-S, long_name                 = latitude
-S, units                     = degrees_north
+S, standard_name             = [mat imosParameters('LATITUDE', 'standard_name')]
+S, long_name                 = [mat imosParameters('LATITUDE', 'long_name')]
+S, units                     = [mat imosParameters('LATITUDE', 'uom')]
 S, axis                      = Y
-S, reference_datum           = geographical coordinates, WGS84 projection
+S, reference_datum           = geographical coordinates, WGS84 coordinate reference system
 N, valid_min                 = [mat imosParameters('LATITUDE', 'valid_min')]
 N, valid_max                 = [mat imosParameters('LATITUDE', 'valid_max')]
 N, add_offset                = 

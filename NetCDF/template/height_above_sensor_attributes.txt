@@ -1,6 +1,6 @@
 S, standard_name             = 
-S, long_name                 = height_above_sensor
-S, units                     = metres
+S, long_name                 = [mat imosParameters('HEIGHT_ABOVE_SENSOR', 'long_name')]
+S, units                     = [mat imosParameters('HEIGHT_ABOVE_SENSOR', 'uom')]
 S, axis                      = Z
 S, positive                  = up
 S, reference_datum           = sensor

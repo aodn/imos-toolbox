@@ -1,5 +1,5 @@
 S, standard_name             = 
-S, long_name                 = awac_spectra_calculation_method
+S, long_name                 = [mat imosParameters('SPCT', 'long_name')]
 S, units                     = 
 S, calendar                  = 
 S, axis                      = 

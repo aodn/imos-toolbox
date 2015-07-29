@@ -1,6 +1,6 @@
 S, standard_name             = 
-S, long_name                 = dist_along_beams
-S, units                     = metres
+S, long_name                 = [mat imosParameters('DIST_ALONG_BEAMS', 'long_name')]
+S, units                     = [mat imosParameters('DIST_ALONG_BEAMS', 'uom')]
 S, reference_datum           = sensor
 N, valid_min                 = [mat imosParameters('DIST_ALONG_BEAMS', 'valid_min')]
 N, valid_max                 = [mat imosParameters('DIST_ALONG_BEAMS', 'valid_max')]

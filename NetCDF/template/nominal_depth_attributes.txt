@@ -1,6 +1,6 @@
-S, standard_name             = depth
+S, standard_name             = [mat imosParameters('NOMINAL_DEPTH', 'standard_name')]
 S, long_name                 = nominal depth
-S, units                     = metres
+S, units                     = [mat imosParameters('NOMINAL_DEPTH', 'uom')]
 S, axis                      = Z
 S, positive                  = down
 S, reference_datum           = sea surface

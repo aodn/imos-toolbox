@@ -1,5 +1,5 @@
 S, standard_name             = 
-S, long_name                 = unique_identifier_for_each_trajectory_feature_instance_in_this_file
+S, long_name                 = [mat imosParameters('TRAJECTORY', 'long_name')]
 S, cf_role                   = trajectory_id
 S, units                     = 
 S, calendar                  = 

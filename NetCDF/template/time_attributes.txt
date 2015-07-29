@@ -1,6 +1,6 @@
-S, standard_name             = time
-S, long_name                 = time
-S, units                     = days since 1950-01-01 00:00:00 UTC
+S, standard_name             = [mat imosParameters('TIME', 'standard_name')]
+S, long_name                 = [mat imosParameters('TIME', 'long_name')]
+S, units                     = [mat imosParameters('TIME', 'uom')]
 S, calendar                  = gregorian
 S, axis                      = T
 N, valid_min                 = [mat imosParameters('TIME', 'valid_min')]

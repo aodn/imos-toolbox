@@ -1,5 +1,5 @@
 S, standard_name             = 
-S, long_name                 = maximum_number_of_samples_in_vertical_profile
+S, long_name                 = [mat imosParameters('MAXZ', 'long_name')]
 S, units                     = 
 S, calendar                  = 
 S, axis                      = 

@@ -1,5 +1,5 @@
 S, standard_name             = 
-S, long_name                 = direction_of_the_profile
+S, long_name                 = [mat imosParameters('DIRECTION', 'long_name')]
 S, units                     = 
 S, conventions               = A: Ascending profile, D: descending profile
 S, calendar                  = 
