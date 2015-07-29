@@ -136,7 +136,6 @@ function sample_data = readXR620( filename, mode )
               sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(depthData);
               sample_data.dimensions{1}.comment         = depthComment;
               sample_data.dimensions{1}.axis            = 'Z';
-              sample_data.dimensions{1}.positive        = 'down';
               
               sample_data.variables{end+1}.name         = 'PROFILE';
               sample_data.variables{end}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
@@ -227,7 +226,6 @@ function sample_data = readXR620( filename, mode )
               
               sample_data.variables{end}.comment      = depthComment;
               sample_data.variables{end}.axis         = 'Z';
-              sample_data.variables{end}.positive     = 'down';
           end
           
           % scan through the list of parameters that were read
