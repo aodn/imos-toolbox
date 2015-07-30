@@ -18,11 +18,11 @@ function value = imosParameters( short_name, field )
 %
 % Inputs:
 %   short_name  the IMOS parameter name
-%   field      - either 'standard_name', 'long_name', 'uom', 'data_code',
+%   field      - either 'standard_name', 'long_name', 'uom', 'positive', 'reference_datum', 'data_code',
 %                'fill_value', 'valid_min', 'valid_max' or 'type',
 %
 % Outputs:
-%   value      - the IMOS standard name, unit of measurement, data code, 
+%   value      - the IMOS standard name, unit of measurement, direction positive, reference datum, data code, 
 %                fill value, valid min/max value or type, whichever was requested.
 %
 % Author:           Paul McCarthy <paul.mccarthy@csiro.au>
@@ -85,7 +85,7 @@ if isempty(params)
         fid = fopen([path filesep 'imosParameters.txt'], 'rt');
         if fid == -1, return; end
         
-        params = textscan(fid, '%s%d%s%s%s%f%f%f%s', ...
+        params = textscan(fid, '%s%d%s%s%s%s%s%f%f%f%s', ...
             'delimiter', ',', 'commentStyle', '%');
         fclose(fid);
     catch e
@@ -97,11 +97,13 @@ names          = params{1};
 cfCompliance   = params{2};
 standard_names = params{3};
 uoms           = params{4};
-data_codes     = params{5};
-fillValues     = params{6};
-validMins      = params{7};
-validMaxs      = params{8};
-varType        = params{9};
+positives      = params{5};
+datums         = params{6};
+data_codes     = params{7};
+fillValues     = params{8};
+validMins      = params{9};
+validMaxs      = params{10};
+varType        = params{11};
 
 iMatchName = strcmpi(short_name, names);
 if any(iMatchName)
@@ -112,15 +114,17 @@ if any(iMatchName)
             else
                 value = standard_names{iMatchName};
             end
-        case 'long_name',   value = standard_names{iMatchName};
+        case 'long_name',       value = standard_names{iMatchName};
         case 'uom'
             value = uoms{iMatchName};
             if strcmpi(value, 'percent'), value = '%'; end
-        case 'data_code',   value = data_codes    {iMatchName};
-        case 'fill_value',  value = fillValues    (iMatchName);
-        case 'valid_min',   value = validMins     (iMatchName);
-        case 'valid_max',   value = validMaxs     (iMatchName);
-        case 'type',        value = varType       {iMatchName};
+        case 'positive',        value = positives     {iMatchName};
+        case 'reference_datum', value = datums        {iMatchName};
+        case 'data_code',       value = data_codes    {iMatchName};
+        case 'fill_value',      value = fillValues    (iMatchName);
+        case 'valid_min',       value = validMins     (iMatchName);
+        case 'valid_max',       value = validMaxs     (iMatchName);
+        case 'type',            value = varType       {iMatchName};
     end
 end
 
@@ -130,6 +134,8 @@ if isnan(value)
         case 'standard_name',  value = '';
         case 'long_name',      value = short_name;
         case 'uom',            value = '?';
+        case 'positive',       value = '';
+        case 'reference_datum',value = '';
         case 'data_code',      value = '';
         case 'fill_value',     value = 999999.0;
         case 'valid_min',      value = [];
