@@ -242,14 +242,20 @@ function sample_data = readWQMdat( filename )
   durationBurst = zeros(nBurst, 1);
   for i=1:nBurst
       timeBurst = time(iBurst(i):iBurst(i+1)-1);
-      sampleIntervalInBurst(i) = median(diff(timeBurst*24*3600));
-      firstTimeBurst(i) = timeBurst(1);
-      durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600;
+      if numel(timeBurst)>1 % deals with the case of a file with a single sample in a single burst
+          sampleIntervalInBurst(i) = median(diff(timeBurst*24*3600));
+          firstTimeBurst(i) = timeBurst(1);
+          durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600;
+      end
   end
   
   sample_data.meta.instrument_sample_interval   = round(median(sampleIntervalInBurst));
   sample_data.meta.instrument_burst_interval    = round(median(diff(firstTimeBurst*24*3600)));
   sample_data.meta.instrument_burst_duration    = round(median(durationBurst));
+  
+  if sample_data.meta.instrument_sample_interval == 0, sample_data.meta.instrument_sample_interval = NaN; end
+  if sample_data.meta.instrument_burst_interval  == 0, sample_data.meta.instrument_burst_interval  = NaN; end
+  if sample_data.meta.instrument_burst_duration  == 0, sample_data.meta.instrument_burst_duration  = NaN; end
   
   sample_data.dimensions{1}.name            = 'TIME';
   sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
