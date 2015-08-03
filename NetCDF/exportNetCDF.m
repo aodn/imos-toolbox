@@ -325,7 +325,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       if isfield(vars{m}, 'flags') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
           % create the ancillary QC variable
           qcvid = addQCVar(...
-              fid, sample_data, m, [qcDimId dids], 'variables', qcType, dateFmt, mode);
+              fid, sample_data, m, [qcDimId dids], 'variables', qcType, qcSet, dateFmt, mode);
           
           if ~isempty(dimLen)
               netcdf.defVarChunking(fid, qcvid, 'CHUNKED', dimLen);
@@ -459,7 +459,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
 end
 
 function vid = addQCVar(...
-  fid, sample_data, varIdx, dims, type, netcdfType, dateFmt, mode)
+  fid, sample_data, varIdx, dims, type, netcdfType, qcSet, dateFmt, mode)
 %ADDQCVAR Adds an ancillary variable for the variable with the given index.
 %
 % Inputs:
@@ -503,14 +503,14 @@ function vid = addQCVar(...
     fullfile(path, [template '_attributes.txt']), sample_data, varIdx);
   
   % get qc flag values
-  qcFlags = imosQCFlag('', sample_data.quality_control_set, 'values');
+  qcFlags = imosQCFlag('', qcSet, 'values');
   nQcFlags = length(qcFlags);
   qcDescs = cell(nQcFlags, 1);
   
   % get flag descriptions
   for k = 1:nQcFlags
     qcDescs{k} = ...
-      imosQCFlag(qcFlags(k), sample_data.quality_control_set, 'desc');
+      imosQCFlag(qcFlags(k), qcSet, 'desc');
   end
   
   % if the flag values are characters, turn the flag values 
@@ -532,11 +532,11 @@ function vid = addQCVar(...
   % Argo reference table 2a conventions from 
   % http://www.argodatamgt.org/content/download/12096/80327/file/argo-dm-user-manual.pdf
   % p.57
-  goodFlags = [imosQCFlag('good', sample_data.quality_control_set, 'flag'), ...
-      imosQCFlag('probablyGood', sample_data.quality_control_set, 'flag'), ...
-      imosQCFlag('changed', sample_data.quality_control_set, 'flag')];
-  notUsedFlags = imosQCFlag('missing', sample_data.quality_control_set, 'flag');
-  rawFlags = imosQCFlag('raw', sample_data.quality_control_set, 'flag');
+  goodFlags = [imosQCFlag('good', qcSet, 'flag'), ...
+      imosQCFlag('probablyGood', qcSet, 'flag'), ...
+      imosQCFlag('changed', qcSet, 'flag')];
+  notUsedFlags = imosQCFlag('missing', qcSet, 'flag');
+  rawFlags = imosQCFlag('raw', qcSet, 'flag');
   
   % we only want to consider flags when data has been collected in position
   switch mode
