@@ -6,7 +6,6 @@ N, scale_factor                         =
 S, comment                              = [mat sample_data.variables{k}.ancillary_comment]
 S, history                              = 
 S, references                           = 
-N, quality_control_set                  = [mat readProperty('toolbox.qc_set', 'toolboxProperties.txt')]
 S, quality_control_conventions          = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'set_desc')]
 
 % these fields are automatically populated upon NetCDF export
