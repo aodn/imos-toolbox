@@ -73,4 +73,5 @@ S, institution_references       = http://www.imos.org.au/emii.html
 S, lineage                 = Data were processed according to standard ANMN-NRS procedures before conversion to NetCDF. See link for details : http://help.aodn.org.au/help/sites/help.aodn.org.au/files/ANMN%20CTD%20Processing%20Procedures.pdf
 S, citation                = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-URL], accessed [date-of-access].".
 S, acknowledgement         = Any users of IMOS data (including re-packagers) are required to clearly acknowledge the source of the material in this format: "Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is supported by the Australian Government through the National Collaborative Research Infrastructure Strategy and the Super Science Initiative".
-S, distribution_statement  = Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
+S, use_limitation          = Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
+S, license                 = http://creativecommons.org/licenses/by/4.0/
