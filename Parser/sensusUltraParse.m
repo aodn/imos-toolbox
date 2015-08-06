@@ -73,6 +73,9 @@ if ~ischar(filename), error('filename must contain a string'); end
   sample_data.meta.instrument_serial_no = data.serial{1};
   sample_data.meta.instrument_sample_interval = median(diff(data.time*24*3600));
   
+  sample_data.dimensions = {};
+  sample_data.variables  = {};
+
   sample_data.dimensions{1}.name            = 'TIME';
   sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
   sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(data.time);
