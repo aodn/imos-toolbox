@@ -125,7 +125,9 @@ function sample_data = echoviewParse( filename, platform, config )
   
   % open the file, and read in the header and data
   try 
-    
+    sample_data.dimensions = {};
+    sample_data.variables  = {};
+  
     fid    = fopen(filename, 'rt');
     
     %
