@@ -130,7 +130,7 @@ for k=1:length(sample_data) % going through different casts
        % redefine current ctd cast
        sample_data{k} = curSam;
        
-       CTDDepthBinComment = 'CTDDepthBinPP: Every variable function of DEPTH has been vertically binned with a bin size of 1m.';
+       CTDDepthBinComment = ['CTDDepthBinPP: Every variable function of DEPTH has been vertically binned with a bin size of ' num2str(bin_size) 'm.'];
        
        history = sample_data{k}.history;
        if isempty(history)
