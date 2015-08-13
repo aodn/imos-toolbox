@@ -67,19 +67,25 @@ for k = 1:length(sample_data)
   
   cndcIdx       = getVar(sam.variables, 'CNDC');
   tempIdx       = getVar(sam.variables, 'TEMP');
-  depthIdx      = getVar(sam.variables, 'DEPTH');
+  
   presIdx       = getVar(sam.variables, 'PRES');
   presRelIdx    = getVar(sam.variables, 'PRES_REL');
+  isPresVar     = logical(presIdx || presRelIdx);
   
-  isPresVar = logical(presIdx || presRelIdx);
-  isDepthInfo = false;
+  isDepthInfo   = false;
+  depthType     = 'variables';
+  depthIdx      = getVar(sam.(depthType), 'DEPTH');
+  if depthIdx == 0
+      depthType     = 'dimensions';
+      depthIdx      = getVar(sam.(depthType), 'DEPTH');
+  end
+  if depthIdx > 0, isDepthInfo = true; end
   
   if isfield(sam, 'instrument_nominal_depth')
       if ~isempty(sam.instrument_nominal_depth)
           isDepthInfo = true;
       end
   end
-  
   
   % cndc, temp, and pres/pres_rel or nominal depth not present in data set
   if ~(cndcIdx && tempIdx && (isPresVar || isDepthInfo)), continue; end
@@ -102,7 +108,7 @@ for k = 1:length(sample_data)
       end
   else
       if depthIdx > 0
-          depth = sam.variables{depthIdx}.data;
+          depth = sam.(depthType){depthIdx}.data;
           if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
               % compute depth with Gibbs-SeaWater toolbox
               % relative_pressure ~= gsw_p_from_z(-depth, latitude)
