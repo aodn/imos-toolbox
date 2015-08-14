@@ -213,7 +213,7 @@ switch name
     % A/D counts to volts (sensor_analog_output 0 to 7)
     case {'v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'}
       origName = name;
-      name = [origName, '_', getVoltageName(origName, instHeader)];
+      name = ['volt_', getVoltageName(origName, instHeader)];
       comment = getVoltageComment(origName, procHeader);
       
     case 'f1'
