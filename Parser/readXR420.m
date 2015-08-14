@@ -333,6 +333,14 @@ function sample_data = readXR420( filename, mode )
                       comment.(fields{k}) = ['Artificial chlorophyll data computed from ' ...
                           'fluorometry sensor raw counts measurements. Originally ' ...
                           'expressed in ug/l, 1l = 0.001m3 was assumed.'];
+                      
+                  %DO (%)
+                  case 'D_O2', name = 'DOXS';
+                      
+                  %Turb-a (NTU)
+                  case 'Turba', name = 'TURB';
+                      
+                  otherwise, name = fields{k};
               end
               
               % dimensions definition must stay in this order : T, Z, Y, X, others;
@@ -430,7 +438,7 @@ function data = readData(fid, header)
   [col, colLine] = strtok(colLine);
   while ~isempty(colLine)
       %rename FlC-a to FlCa because Matlbal doesn't understand - whitin a structure name
-      strrep(col, '-', '')
+      col = strrep(col, '-', '');
       
       cols           = [cols col];
       [col, colLine] = strtok(colLine);
