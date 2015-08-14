@@ -1,0 +1,3 @@
+% This file includes the relevant G and H coefficients for Rinko DO sensor
+G, 0.0362
+H, 1.0143
