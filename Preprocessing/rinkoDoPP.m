@@ -132,23 +132,22 @@ for k = 1:length(sample_data)
   end
   
   % define Temp DO coefficients
-  A = -5.015006;
-  B = 16.78886;
-  C = -2.211178;
-  D = 0.4738992;
+  A = str2double(readProperty('aTempDO', ParamFile, ','));
+  B = str2double(readProperty('bTempDO', ParamFile, ','));
+  C = str2double(readProperty('cTempDO', ParamFile, ','));
+  D = str2double(readProperty('dTempDO', ParamFile, ','));
   
   tempDO = A + B*voltTempDO + C*voltTempDO.^2 + D*voltTempDO.^3;
   
   % define DO coefficients
-  A = -43.32265;
-  B = 144.4138;
-  C = -0.3548429;
-  D = 0.0105;
-  E = 0.0053;
-  F = 0;
-
-  G = str2double(readProperty('G', ParamFile, ','));
-  H = str2double(readProperty('H', ParamFile, ','));
+  A = str2double(readProperty('aDO', ParamFile, ','));
+  B = str2double(readProperty('bDO', ParamFile, ','));
+  C = str2double(readProperty('cDO', ParamFile, ','));
+  D = str2double(readProperty('dDO', ParamFile, ','));
+  E = str2double(readProperty('eDO', ParamFile, ','));
+  F = str2double(readProperty('fDO', ParamFile, ','));
+  G = str2double(readProperty('gDO', ParamFile, ','));
+  H = str2double(readProperty('hDO', ParamFile, ','));
   
   % RINKO III correction formulae on temperature
   DO = A/(1 + D*(tempDO - 25)) + B/((voltDO - F).*(1 + D*(tempDO - 25)) + C + F);
