@@ -56,12 +56,16 @@ if strcmpi(qcLevel, 'raw'), return; end
 % auto logical in input to enable running under batch processing
 if nargin<3, auto=false; end
 
+ParamFile = ['Preprocessing' filesep 'rinkoDoPP.txt'];
+voltDOLabel     = readProperty('voltDO', ParamFile, ',');
+voltTempDOLabel = readProperty('voltTempDO', ParamFile, ',');
+
 for k = 1:length(sample_data)
   
   sam = sample_data{k};
   
-  rinko01Idx    = getVar(sam.variables, 'volt_RINKO1');
-  rinko02Idx    = getVar(sam.variables, 'volt_RINKO2');
+  voltDOIdx     = getVar(sam.variables, ['volt_' voltDOLabel]);
+  voltTempDOIdx = getVar(sam.variables, ['volt_' voltTempDOLabel]);
   
   presIdx       = getVar(sam.variables, 'PRES');
   presRelIdx    = getVar(sam.variables, 'PRES_REL');
@@ -83,13 +87,13 @@ for k = 1:length(sample_data)
   end
   
   % volt do, volt do temp, and pres/pres_rel or nominal depth not present in data set
-  if ~(rinko01Idx && rinko02Idx && (isPresVar || isDepthInfo)), continue; end
+  if ~(voltDOIdx && voltTempDOIdx && (isPresVar || isDepthInfo)), continue; end
   
   % data set already contains DOXS
   if getVar(sam.variables, 'DOXS'), continue; end
   
-  voltDO = sam.variables{rinko01Idx}.data;
-  voltTempDO = sam.variables{rinko02Idx}.data;
+  voltDO = sam.variables{voltDOIdx}.data;
+  voltTempDO = sam.variables{voltTempDOIdx}.data;
   if isPresVar
       if presRelIdx > 0
           presRel = sam.variables{presRelIdx}.data;
@@ -142,8 +146,7 @@ for k = 1:length(sample_data)
   D = 0.0105;
   E = 0.0053;
   F = 0;
-  
-  ParamFile = ['Preprocessing' filesep 'rinkoDoPP.txt'];
+
   G = str2double(readProperty('G', ParamFile, ','));
   H = str2double(readProperty('H', ParamFile, ','));
   
@@ -160,12 +163,12 @@ for k = 1:length(sample_data)
   DO(DO<0) = NaN;
   DO(DO>1) = NaN;
   
-  dimensions = sam.variables{rinko01Idx}.dimensions;
+  dimensions = sam.variables{voltDOIdx}.dimensions;
   doComment = ['rinkoDoPP.m: dissolved oxygen derived from rinko dissolved oxygen and temperature voltages and ' presName ' using the RINKO III Correction method on Temperature and Pressure with G=' num2str(G) ' and H=' num2str(H) '.'];
   tempDoComment = 'rinkoDoPP.m: temperature for dissolved oxygen sensor derived from rinko temperature voltages.';
   
-  if isfield(sam.variables{rinko01Idx}, 'coordinates')
-      coordinates = sam.variables{rinko01Idx}.coordinates;
+  if isfield(sam.variables{voltDOIdx}, 'coordinates')
+      coordinates = sam.variables{voltDOIdx}.coordinates;
   else
       coordinates = '';
   end

@@ -1,3 +1,5 @@
-% This file includes the relevant G and H coefficients for Rinko DO sensor
+% This file includes the relevant output labels used for DO and Temp, plus the G and H coefficients for Rinko DO sensor
+voltDO, RINKO1
+voltTempDO, RINKO2
 G, 0.0362
 H, 1.0143
