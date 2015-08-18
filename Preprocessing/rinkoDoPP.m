@@ -1,13 +1,9 @@
-function sample_data = salinityPP( sample_data, qcLevel, auto )
-%SALINITYPP Adds a salinity variable to the given data sets, if they
-% contain conductivity, temperature pressure and depth variables or nominal depth
-% information. 
+function sample_data = rinkoDoPP( sample_data, qcLevel, auto )
+%RINKODOPP Adds a disolved oxygen variable to the given data sets, if they
+% contain analog voltages from Rinko temperature and DO sensors.
 %
-% This function uses the Gibbs-SeaWater toolbox (TEOS-10) to derive salinity
-% data from conductivity, temperature and pressure. It adds the salinity 
-% data as a new variable in the data sets. Data sets which do not contain 
-% conductivity, temperature pressure and depth variables or nominal depth 
-% information are left unmodified.
+% This function uses the Rinko formula + coefficients calibration and
+% atmospheric pressure at the time of calibration.
 %
 % Inputs:
 %   sample_data - cell array of data sets, ideally with conductivity, 
@@ -16,10 +12,9 @@ function sample_data = salinityPP( sample_data, qcLevel, auto )
 %   auto        - logical, run pre-processing in batch mode.
 %
 % Outputs:
-%   sample_data - the same data sets, with salinity variables added.
+%   sample_data - the same data sets, with dissolved oxygen variables added.
 %
-% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -61,12 +56,16 @@ if strcmpi(qcLevel, 'raw'), return; end
 % auto logical in input to enable running under batch processing
 if nargin<3, auto=false; end
 
+ParamFile = ['Preprocessing' filesep 'rinkoDoPP.txt'];
+voltDOLabel     = readProperty('voltDO', ParamFile, ',');
+voltTempDOLabel = readProperty('voltTempDO', ParamFile, ',');
+
 for k = 1:length(sample_data)
   
   sam = sample_data{k};
   
-  cndcIdx       = getVar(sam.variables, 'CNDC');
-  tempIdx       = getVar(sam.variables, 'TEMP');
+  voltDOIdx     = getVar(sam.variables, ['volt_' voltDOLabel]);
+  voltTempDOIdx = getVar(sam.variables, ['volt_' voltTempDOLabel]);
   
   presIdx       = getVar(sam.variables, 'PRES');
   presRelIdx    = getVar(sam.variables, 'PRES_REL');
@@ -87,14 +86,14 @@ for k = 1:length(sample_data)
       end
   end
   
-  % cndc, temp, and pres/pres_rel or nominal depth not present in data set
-  if ~(cndcIdx && tempIdx && (isPresVar || isDepthInfo)), continue; end
+  % volt do, volt do temp, and pres/pres_rel or nominal depth not present in data set
+  if ~(voltDOIdx && voltTempDOIdx && (isPresVar || isDepthInfo)), continue; end
   
-  % data set already contains salinity
-  if getVar(sam.variables, 'PSAL'), continue; end
+  % data set already contains DOXS
+  if getVar(sam.variables, 'DOXS'), continue; end
   
-  cndc = sam.variables{cndcIdx}.data;
-  temp = sam.variables{tempIdx}.data;
+  voltDO = sam.variables{voltDOIdx}.data;
+  voltTempDO = sam.variables{voltTempDOIdx}.data;
   if isPresVar
       if presRelIdx > 0
           presRel = sam.variables{presRelIdx}.data;
@@ -132,35 +131,70 @@ for k = 1:length(sample_data)
       end
   end
   
-  % calculate C(S,T,P)/C(35,15,0) ratio
-  % conductivity is in S/m and gsw_C3515 in mS/cm
-  R = 10*cndc ./ gsw_C3515;
+  % define Temp DO coefficients
+  A = str2double(readProperty('aTempDO', ParamFile, ','));
+  B = str2double(readProperty('bTempDO', ParamFile, ','));
+  C = str2double(readProperty('cTempDO', ParamFile, ','));
+  D = str2double(readProperty('dTempDO', ParamFile, ','));
   
-  % calculate salinity
-  psal = gsw_SP_from_R(R, temp, presRel);
+  tempDO = A + B*voltTempDO + C*voltTempDO.^2 + D*voltTempDO.^3;
   
-  dimensions = sam.variables{tempIdx}.dimensions;
-  salinityComment = ['salinityPP.m: derived from CNDC, TEMP and ' presName ' using the Gibbs-SeaWater toolbox (TEOS-10) v3.02'];
+  % define DO coefficients
+  A = str2double(readProperty('aDO', ParamFile, ','));
+  B = str2double(readProperty('bDO', ParamFile, ','));
+  C = str2double(readProperty('cDO', ParamFile, ','));
+  D = str2double(readProperty('dDO', ParamFile, ','));
+  E = str2double(readProperty('eDO', ParamFile, ','));
+  F = str2double(readProperty('fDO', ParamFile, ','));
+  G = str2double(readProperty('gDO', ParamFile, ','));
+  H = str2double(readProperty('hDO', ParamFile, ','));
   
-  if isfield(sam.variables{tempIdx}, 'coordinates')
-      coordinates = sam.variables{tempIdx}.coordinates;
+  % RINKO III correction formulae on temperature
+  DO = A/(1 + D*(tempDO - 25)) + B/((voltDO - F).*(1 + D*(tempDO - 25)) + C + F);
+  
+  % correction for the ageing sensing foil
+  DO = G + H*DO';
+  
+  % correction for pressure
+  DO = DO.*(1 + E*presRel);
+  
+  % must be between 0 and 1
+  DO(DO<0) = NaN;
+  DO(DO>1) = NaN;
+  
+  dimensions = sam.variables{voltDOIdx}.dimensions;
+  doComment = ['rinkoDoPP.m: dissolved oxygen derived from rinko dissolved oxygen and temperature voltages and ' presName ' using the RINKO III Correction method on Temperature and Pressure with G=' num2str(G) ' and H=' num2str(H) '.'];
+  tempDoComment = 'rinkoDoPP.m: temperature for dissolved oxygen sensor derived from rinko temperature voltages.';
+  
+  if isfield(sam.variables{voltDOIdx}, 'coordinates')
+      coordinates = sam.variables{voltDOIdx}.coordinates;
   else
       coordinates = '';
   end
     
-  % add salinity data as new variable in data set
+  % add DO data as new variable in data set
   sample_data{k} = addVar(...
     sam, ...
-    'PSAL', ...
-    psal, ...
+    'DOXS', ...
+    DO*100, ... % percentage
     dimensions, ...
-    salinityComment, ...
+    doComment, ...
+    coordinates);
+
+  sample_data{k} = addVar(...
+    sample_data{k}, ...
+    'DOXY_TEMP', ...
+    tempDO, ...
+    dimensions, ...
+    tempDoComment, ...
     coordinates);
 
     history = sample_data{k}.history;
     if isempty(history)
-        sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), salinityComment);
+        sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), doComment);
+        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), tempDoComment);
     else
-        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), salinityComment);
+        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), doComment);
+        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), tempDoComment);
     end
 end

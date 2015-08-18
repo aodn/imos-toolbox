@@ -66,7 +66,7 @@ if strcmpi(qcLevel, 'raw'), return; end
 
 % read options from parameter file
 depthFile       = ['Preprocessing' filesep 'depthPP.txt'];
-same_family    = readProperty('same_family', depthFile, ',');
+same_family     = readProperty('same_family', depthFile, ',');
 include         = readProperty('include', depthFile, ',');
 exclude         = readProperty('exclude', depthFile, ',');
 

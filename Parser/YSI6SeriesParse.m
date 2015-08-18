@@ -82,6 +82,9 @@ function sample_data = YSI6SeriesParse( filename, mode )
   sample_data.meta.instrument_serial_no         = '';
   sample_data.meta.instrument_sample_interval   = median(diff(records.time*24*3600));
   
+  sample_data.dimensions = {};
+  sample_data.variables  = {};
+
   sample_data.dimensions{1}.name          = 'TIME';
   sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
   sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(records.time');

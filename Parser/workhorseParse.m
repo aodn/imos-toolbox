@@ -246,7 +246,9 @@ error(nargchk(1, 2, nargin));
       };
   clear time distance;
   
-  for i=1:size(dims, 1)
+  nDims = size(dims, 1);
+  sample_data.dimensions = cell(nDims, 1);
+  for i=1:nDims
       sample_data.dimensions{i}.name         = dims{i, 1};
       sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
       sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
@@ -298,7 +300,9 @@ error(nargchk(1, 2, nargin));
       percentGood1 percentGood2 percentGood3 percentGood4 pitch roll ...
       heading;
   
-  for i=1:size(vars, 1)
+  nVars = size(vars, 1);
+  sample_data.variables = cell(nVars, 1);
+  for i=1:nVars
       sample_data.variables{i}.name         = vars{i, 1};
       sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
       sample_data.variables{i}.dimensions   = vars{i, 2};
@@ -389,7 +393,9 @@ error(nargchk(1, 2, nargin));
           ['DIR' magExt],           waveData.Dspec.dir
           };
       
-      for i=1:size(dims, 1)
+      nDims = size(dims, 1);
+      sample_data{2}.dimensions = cell(nDims, 1);
+      for i=1:nDims
           sample_data{2}.dimensions{i}.name         = dims{i, 1};
           sample_data{2}.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
           sample_data{2}.dimensions{i}.data         = sample_data{2}.dimensions{i}.typeCastFunc(dims{i, 2});
@@ -435,7 +441,9 @@ error(nargchk(1, 2, nargin));
           };
       clear waveData;
       
-      for i=1:size(vars, 1)
+      nVars = size(vars, 1);
+      sample_data{2}.variables = cell(nVars, 1);
+      for i=1:nVars
           sample_data{2}.variables{i}.name         = vars{i, 1};
           sample_data{2}.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
           sample_data{2}.variables{i}.dimensions   = vars{i, 2};

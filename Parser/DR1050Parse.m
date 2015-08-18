@@ -86,6 +86,9 @@ function sample_data = DR1050Parse( filename, mode )
   
   sample_data.meta.comment                      = header.comment;
   
+  sample_data.dimensions = {};
+  sample_data.variables  = {};
+  
   sample_data.dimensions{1}.name            = 'TIME';
   sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
   sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(data.time);

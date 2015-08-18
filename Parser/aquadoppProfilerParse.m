@@ -183,7 +183,9 @@ dims = {
     };
 clear time distance;
 
-for i=1:size(dims, 1)
+nDims = size(dims, 1);
+sample_data.dimensions = cell(nDims, 1);
+for i=1:nDims
     sample_data.dimensions{i}.name         = dims{i, 1};
     sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
     sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
@@ -215,7 +217,9 @@ clear analn1 analn2 time distance velocity1 velocity2 velocity3 ...
     backscatter1 backscatter2 backscatter3 ...
     temperature pressure battery pitch roll heading;
 
-for i=1:size(vars, 1)
+nVars = size(vars, 1);
+sample_data.variables = cell(nVars, 1);
+for i=1:nVars
     sample_data.variables{i}.name         = vars{i, 1};
     sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
     sample_data.variables{i}.dimensions   = vars{i, 2};
