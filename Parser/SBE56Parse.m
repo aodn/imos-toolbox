@@ -3,8 +3,8 @@ function sample_data = SBE56Parse( filename, mode )
 % CTD recorder.
 %
 % This function is able to read in a .cnv data file retrieved
-% from a Seabird SBE56 Temperature Logger. It reads specific instrument header 
-% format and makes use of a lower level function readSBE37cnv to read the data. 
+% from a Seabird SBE56 Temperature Logger. It reads specific instrument header
+% format and makes use of a lower level function readSBE37cnv to read the data.
 % The files consist of up to three sections:
 %
 %   - instrument header - header information as retrieved from the instrument.
@@ -65,44 +65,54 @@ end
 % only one file supported currently
 filename = filename{1};
 
-% read in every line in the file, separating
-% them out into each of the three sections
-instHeaderLines = {};
-procHeaderLines = {};
-dataLines       = {};
-try
-    
-    fid = fopen(filename, 'rt');
-    line = fgetl(fid);
-    while ischar(line)
+[~, ~, ext] = fileparts(filename);
+if strcmp(upper(ext),'CNV')
+    % read in every line in the file, separating
+    % them out into each of the three sections
+    instHeaderLines = {};
+    procHeaderLines = {};
+    dataLines       = {};
+    try
         
-        line = deblank(line);
-        if isempty(line)
-            line = fgetl(fid);
-            continue;
-        end
-        
-        if     line(1) == '*', instHeaderLines{end+1} = line;
-        elseif line(1) == '#', procHeaderLines{end+1} = line;
-        else                   dataLines{      end+1} = line;
-        end
-        
+        fid = fopen(filename, 'rt');
         line = fgetl(fid);
+        while ischar(line)
+            
+            line = deblank(line);
+            if isempty(line)
+                line = fgetl(fid);
+                continue;
+            end
+            
+            if     line(1) == '*', instHeaderLines{end+1} = line;
+            elseif line(1) == '#', procHeaderLines{end+1} = line;
+            else                   dataLines{      end+1} = line;
+            end
+            
+            line = fgetl(fid);
+        end
+        
+        fclose(fid);
+        
+    catch e
+        if fid ~= -1, fclose(fid); end
+        rethrow(e);
     end
     
-    fclose(fid);
+    % cnv file
+    % read in the raw instrument header
+    instHeader = parseInstrumentHeader(instHeaderLines);
+    procHeader = parseProcessedHeader( procHeaderLines);
     
-catch e
-    if fid ~= -1, fclose(fid); end
-    rethrow(e);
+    % use SBE37 specific cnv reader function
+    [data, comment] = readSBE37cnv(dataLines, instHeader, procHeader, mode);
+else
+    % have csv file
+    % use SBE56 specific csv data reader function
+    [data, comment, csvHeaderLines] = readSBE56csv(filename, mode);
+    instHeader = parseInstrumentHeader(csvHeaderLines);
+    procHeader = struct;
 end
-
-% read in the raw instrument header
-instHeader = parseInstrumentHeader(instHeaderLines);
-procHeader = parseProcessedHeader( procHeaderLines);
-
-% use SBE37 specific cnv reader function
-[data, comment] = readSBE37cnv(dataLines, instHeader, procHeader, mode);
 
 % create sample data struct,
 % and copy all the data in
@@ -211,11 +221,15 @@ headerExpr   = '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>';
 memExpr      = '<MemorySummary>';
 sampleExpr   = 'samplePeriod=''(\d+)''';
 firmExpr     = '<FirmwareVersion>([\w .]+)</FirmwareVersion>';
+modelCsvExpr  = '% Instrument type = (\S+)';
+serialCsvExpr = '% Serial Number = (\d+)';
+firmCsvExpr   = '% Firmware Version = ([\w .]+)';
 
 exprs = {...
     headerExpr     ...
     memExpr      sampleExpr   ...
-    firmExpr};
+    firmExpr ...
+    modelCsvExpr serialCsvExpr firmCsvExpr};
 
 for k = 1:length(headerLines)
     
@@ -253,6 +267,18 @@ for k = 1:length(headerLines)
                 case 4
                     header.instrument_firmware  = tkns{1}{1};
                     
+                    % csv model
+                case 5
+                    header.instrument_model     = tkns{1}{1};
+                    
+                    % csv serial
+                case 6
+                    header.instrument_serial_no = tkns{1}{1};
+                    
+                    % csv firmware
+                case 7
+                    header.instrument_firmware  = tkns{1}{1};
+                    
             end
             break;
         end
@@ -262,11 +288,11 @@ end
 
 function header = parseProcessedHeader(headerLines)
 %PARSEPROCESSEDHEADER Parses the data contained in the header added by SBE
-% Data Processing. This includes the column layout of the data in the .cnv 
-% file. 
+% Data Processing. This includes the column layout of the data in the .cnv
+% file.
 %
 % Inputs:
-%   headerLines - Cell array of strings, the lines in the processed header 
+%   headerLines - Cell array of strings, the lines in the processed header
 %                 section.
 %
 % Outputs:
@@ -274,94 +300,205 @@ function header = parseProcessedHeader(headerLines)
 %                 processed header section.
 %
 
-  header = struct;
-  header.columns = {};
-  
-  nameExpr = 'name \d+ = (.+):';
-  nvalExpr = 'nvalues = (\d+)';
-  badExpr  = 'bad_flag = (.*)$';
-  startExpr = 'start_time = (.+)';
-  
-  for k = 1:length(headerLines)
+header = struct;
+header.columns = {};
+
+nameExpr = 'name \d+ = (.+):';
+nvalExpr = 'nvalues = (\d+)';
+badExpr  = 'bad_flag = (.*)$';
+startExpr = 'start_time = (.+)';
+
+for k = 1:length(headerLines)
     
     % try name expr
     tkns = regexp(headerLines{k}, nameExpr, 'tokens');
     if ~isempty(tkns)
-      header.columns{end+1} = tkns{1}{1};
-      continue; 
+        header.columns{end+1} = tkns{1}{1};
+        continue;
     end
     
     % then try nvalues expr
     tkns = regexp(headerLines{k}, nvalExpr, 'tokens');
     if ~isempty(tkns)
-      header.nValues = str2double(tkns{1}{1});
-      continue;
+        header.nValues = str2double(tkns{1}{1});
+        continue;
     end
     
     % then try bad flag expr
     tkns = regexp(headerLines{k}, badExpr, 'tokens');
     if ~isempty(tkns)
-      header.badFlag = str2double(tkns{1}{1});
-      continue;
+        header.badFlag = str2double(tkns{1}{1});
+        continue;
     end
     
     %BDM (18/02/2011) - added to get start time
     % then try startTime expr
     tkns = regexp(headerLines{k}, startExpr, 'tokens');
     if ~isempty(tkns)
-      header.startTime = datenum(tkns{1}{1});
-      continue;
+        header.startTime = datenum(tkns{1}{1});
+        continue;
     end
-  end
+end
 end
 
 function time = genTimestamps(instHeader, data)
-%GENTIMESTAMPS Generates timestamps for the data. Horribly ugly. I shouldn't 
-% have to have a function like this, but the .cnv files do not necessarily 
+%GENTIMESTAMPS Generates timestamps for the data. Horribly ugly. I shouldn't
+% have to have a function like this, but the .cnv files do not necessarily
 % provide timestamps for each sample.
 %
 
-  % time may have been present in the sample 
-  % data - if so, we don't have to do any work
-  if isfield(data, 'TIME'), time = data.TIME; return; end
-  
-  % To generate timestamps for the CTD data, we need to know:
-  %   - start time
-  %   - sample interval
-  %   - number of samples
-  %
-  % The SBE19 header information does not necessarily provide all, or any
-  % of this information. .
-  %
-  start    = 0;
-  interval = 0.25;
-    
-  % figure out number of samples by peeking at the 
-  % number of values in the first column of 'data'
-  f = fieldnames(data);
-  nSamples = length(data.(f{1}));
-  
-  % try and find a start date - use castDate if present
-  if isfield(instHeader, 'castDate')
+% time may have been present in the sample
+% data - if so, we don't have to do any work
+if isfield(data, 'TIME'), time = data.TIME; return; end
+
+% To generate timestamps for the CTD data, we need to know:
+%   - start time
+%   - sample interval
+%   - number of samples
+%
+% The SBE19 header information does not necessarily provide all, or any
+% of this information. .
+%
+start    = 0;
+interval = 0.25;
+
+% figure out number of samples by peeking at the
+% number of values in the first column of 'data'
+f = fieldnames(data);
+nSamples = length(data.(f{1}));
+
+% try and find a start date - use castDate if present
+if isfield(instHeader, 'castDate')
     start = instHeader.castDate;
-  end
-  
-  % if scanAvg field is present, use it to determine the interval
-  if isfield(instHeader, 'scanAvg')
+end
+
+% if scanAvg field is present, use it to determine the interval
+if isfield(instHeader, 'scanAvg')
     
     interval = (0.25 * instHeader.scanAvg) / 86400;
-  end
-  
-  % if one of the columns is 'Scan Count', use the 
-  % scan count number as the basis for the timestamps 
-  if isfield(data, 'ScanCount')
+end
+
+% if one of the columns is 'Scan Count', use the
+% scan count number as the basis for the timestamps
+if isfield(data, 'ScanCount')
     
     time = ((data.ScanCount - 1) ./ 345600) + cStart;
-  
-  % if scan count is not present, calculate the 
-  % timestamps from start, end and interval
-  else
+    
+    % if scan count is not present, calculate the
+    % timestamps from start, end and interval
+else
     
     time = (start:interval:start + (nSamples - 1) * interval)';
-  end
+end
+end
+
+%%
+function [data, comment, csvHeaderLines] = readSBE56csv(filename, mode)
+%READSBE56CSV
+
+% So far a typical SBE56 csv file has a number of header lines with '%' as
+% first character, the a column label line (in double quotes), then data
+% (also in double quotes). Sample number is an optional output, and there
+% are several date formats but this function currently only support
+% 'yyyy-mm-dd'
+% An short example csv is
+% % Instrument type = SBE56
+% % Serial Number = 05600674
+% % Firmware Version = SBE56 V0.96
+% % Conversion Date = 2015-08-14
+% % Source file = D:\Data\SBE56\SBE05600674_2015-04-27.xml
+% % Calibration Date = 2014-09-09
+% % Coefficients: 
+% %       A0 = -1.118136E-3
+% %       A1 = 3.269029E-4
+% %       A2 = -5.503897E-6
+% %       A3 = 1.792613E-7
+% "Sample Number","Date","Time","Temperature"
+% "1","2015-04-10","14:00:00","23.3373"
+% "2","2015-04-10","14:00:00.5","23.3341"
+% "3","2015-04-10","14:00:01","23.3281"
+% "4","2015-04-10","14:00:01.5","23.3229"
+% "5","2015-04-10","14:00:02","23.3197"
+% "6","2015-04-10","14:00:02.5","23.3193"
+% "7","2015-04-10","14:00:03","23.3206"
+% "8","2015-04-10","14:00:03.5","23.3239"
+% "9","2015-04-10","14:00:04","23.3268"
+% "10","2015-04-10","14:00:04.5","23.3280"
+
+csvHeaderLines = {};
+try
+    fid = fopen(filename, 'rt');
+    line = strtrim(fgetl(fid));
+    while strcmp(line(1),'%')
+        csvHeaderLines{end+1} = line;
+        line = fgetl(fid);
+    end
+    %fclose(fid);
+    
+catch e
+    if fid ~= -1, fclose(fid); end
+    rethrow(e);
+end
+
+% process first line of dataLines which is a columnn header labels
+% typically "Sample Number","Date","Time","Temperature"
+% grab all text within double quotes,uppercase and genvarname them for safety
+expr='"(.*?)"'; %
+tokens = regexp(line, expr, 'tokens');
+tokens = upper(cellfun(@genvarname, tokens));
+nCols = numel(tokens);
+
+% possible labels are 'SAMPLENUMBER', 'DATE', 'TIME' and 'TEMPERATURE' but
+% we should only need to handle 'DATE', 'TIME' and 'TEMPERATURE'
+% find index column number of a label in original file (LOCB)
+labels = {'DATE' 'TIME' 'TEMPERATURE'};
+
+% so when read data ignoring unknown labels what are the labels column
+% index,  note LHS deal statement the indices same order and number as labels
+[LIA,LOCB] = ismember(tokens, labels);
+LOCB(LOCB==0) = [];
+iTokens = num2cell(LOCB);
+[iDate, iTime, iTemp]=deal(iTokens{:});
+
+
+% make up format string ignoring everything but labels
+format = cell(nCols,1);
+for ii=1:nCols
+    format{ii}='%*q';
+end
+format(ismember(tokens, labels)) = {'%q'};
+format=[format{:}];
+
+dataCells = textscan(fid, format, 'Delimiter', ',');
+fclose(fid);
+
+data = struct;
+comment = struct;
+
+% can't imagine what conditions you would have a csv file without
+% date,time and temperature
+haveDateTime = false;
+if ~isempty(iDate) && ~isempty(iTime)
+    % datenum('2015-04-10T14:00:00.5', 'yyyy-mm-ddTHH:MM:SS.FFF') will work
+    % datenum('2015-04-10T14:00:01', 'yyyy-mm-ddTHH:MM:SS.FFF') will fail
+    % so split time and rewrite seconds as SS.FFF
+    timeFFF = cellfun(@(x) sprintf('%2.2d:%2.2d:%06.3f',str2double(x)), regexp(dataCells{iTime},':','split'), 'UniformOutput', false);
+    data.TIME = datenum(strcat(dataCells{iDate},'T',timeFFF),'yyyy-mm-ddTHH:MM:SS.FFF');
+    comment.TIME = '';
+    haveDateTime = true;
+end
+
+
+haveTemp = false;
+if ~isempty(iTemp)
+    data.TEMP = str2double(dataCells{iTemp});
+    comment.TEMP = '';
+    haveTemp = true;
+end
+
+
+if ~haveDateTime & ~haveTemp
+    error('readSBE56csv could not convert data');
+end
+
 end
