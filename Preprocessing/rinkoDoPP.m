@@ -89,9 +89,6 @@ for k = 1:length(sample_data)
   % volt do, volt do temp, and pres/pres_rel or nominal depth not present in data set
   if ~(voltDOIdx && voltTempDOIdx && (isPresVar || isDepthInfo)), continue; end
   
-  % data set already contains DOXS
-  if getVar(sam.variables, 'DOXS'), continue; end
-  
   voltDO = sam.variables{voltDOIdx}.data;
   voltTempDO = sam.variables{voltTempDOIdx}.data;
   if isPresVar
@@ -150,20 +147,22 @@ for k = 1:length(sample_data)
   H = str2double(readProperty('hDO', ParamFile, ','));
   
   % RINKO III correction formulae on temperature
-  DO = A/(1 + D*(tempDO - 25)) + B/((voltDO - F).*(1 + D*(tempDO - 25)) + C + F);
+  DO = A./(1 + D*(tempDO - 25)) + B./((voltDO - F).*(1 + D*(tempDO - 25)) + C + F);
   
   % correction for the ageing sensing foil
-  DO = G + H*DO';
+  DO = G + H*DO;
   
   % correction for pressure
-  DO = DO.*(1 + E*presRel);
+  DO = DO.*(1 + E*presRel); % DO is in % of dissolved oxygen during calibration at this stage
   
-  % must be between 0 and 1
-  DO(DO<0) = NaN;
-  DO(DO>1) = NaN;
+  % conversion in concentration during calibration
+  concentCalDO = str2double(readProperty('concentDO', ParamFile, ','));
+  concentDO = concentCalDO*DO/100; % in mg/l
+  concentDO = concentDO*44.660/1.429; % in umol/l. O2 density = 1.429 kg/m3. 1ml/l = 44.660 umol/l.
   
   dimensions = sam.variables{voltDOIdx}.dimensions;
-  doComment = ['rinkoDoPP.m: dissolved oxygen derived from rinko dissolved oxygen and temperature voltages and ' presName ' using the RINKO III Correction method on Temperature and Pressure with G=' num2str(G) ' and H=' num2str(H) '.'];
+  doComment = ['rinkoDoPP.m: dissolved oxygen derived from rinko dissolved oxygen and temperature voltages and ' presName ' using the RINKO III Correction method on Temperature and Pressure with instrument and calibration coefficients.'];
+  concentDoComment = [doComment ' DO concentration during calibration has been applied to convert into mg/l. Then O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed to convert into umol/l'];
   tempDoComment = 'rinkoDoPP.m: temperature for dissolved oxygen sensor derived from rinko temperature voltages.';
   
   if isfield(sam.variables{voltDOIdx}, 'coordinates')
@@ -176,9 +175,17 @@ for k = 1:length(sample_data)
   sample_data{k} = addVar(...
     sam, ...
     'DOXS', ...
-    DO*100, ... % percentage
+    DO, ...
     dimensions, ...
     doComment, ...
+    coordinates);
+
+  sample_data{k} = addVar(...
+    sample_data{k}, ...
+    'DOX1', ...
+    concentDO, ...
+    dimensions, ...
+    concentDoComment, ...
     coordinates);
 
   sample_data{k} = addVar(...
@@ -192,9 +199,11 @@ for k = 1:length(sample_data)
     history = sample_data{k}.history;
     if isempty(history)
         sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), doComment);
+        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), concentDoComment);
         sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), tempDoComment);
     else
         sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), doComment);
+        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), concentDoComment);
         sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), tempDoComment);
     end
 end

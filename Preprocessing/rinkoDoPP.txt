@@ -8,6 +8,7 @@ eDO, 0.0053
 fDO, 0
 gDO, 0.0362
 hDO, 1.0143
+concentDO, 8.92
 voltTempDO, RINKO2
 aTempDO, -5.015006
 bTempDO, 16.78886
