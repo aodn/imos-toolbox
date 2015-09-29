@@ -141,11 +141,7 @@ function lines = readTemplate(filepath)
 
         if fid == -1, error(['could not open file ' filepath]); end
 
-        if verLessThan('matlab', '8.4')
-            lines = textscan(fid, '%s', 'Delimiter', '', 'CommentStyle', '%', 'BufSize', 12000);
-        else
-            lines = textscan(fid, '%s', 'Delimiter', '', 'CommentStyle', '%');
-        end
+        lines = textscan(fid, '%s', 'Delimiter', '', 'CommentStyle', '%');
         lines = lines{1};
 
         fclose(fid);
