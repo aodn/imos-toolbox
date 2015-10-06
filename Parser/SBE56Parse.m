@@ -66,7 +66,7 @@ end
 filename = filename{1};
 
 [~, ~, ext] = fileparts(filename);
-if strcmp(upper(ext),'.CNV')
+if strcmpi(ext, '.CNV')
     % read in every line in the file, separating
     % them out into each of the three sections
     instHeaderLines = {};
