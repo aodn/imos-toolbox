@@ -204,7 +204,7 @@ for i=1:header.nLines
         case 9 % channel 1 info
             channelInfo = textscan(headerContent{3}{i}, '%s%s%d%d%*s', 'Delimiter', '\t');
             header.param(1).axis = channelInfo{1}{1};
-            header.param(1).column = channelInfo{2}{1};
+            header.param(1).column = genvarname(channelInfo{2}{1});
             header.param(1).nDec = channelInfo{3};
             if channelInfo{4} == 1
                 header.param(1).isPositiveUp = true;
@@ -215,7 +215,7 @@ for i=1:header.nLines
         case 10 % channel 2 info
             channelInfo = textscan(headerContent{3}{i}, '%s%s%d%d%*s', 'Delimiter', '\t');
             header.param(2).axis = channelInfo{1}{1};
-            header.param(2).column = channelInfo{2}{1};
+            header.param(2).column = genvarname(channelInfo{2}{1});
             header.param(2).nDec = channelInfo{3};
             if channelInfo{4} == 1
                 header.param(2).isPositiveUp = true;
@@ -314,7 +314,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
     iContent = i + nColumnTime;
     
     switch header.param(iParam).column
-        case 'Temp(�C)'
+        case 'Temp0x280xB0C0x29' %degrees C
             var = 'TEMP';
             values = strrep(DataContent{iContent}, ',', '.');
 %             values = cellfun(@str2double, values);
@@ -333,7 +333,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).values = values;
             data.(var).comment = comment;
             
-        case 'Temp(�F)' % ([�F] - 32) * 5/9
+        case 'Temp0x280xB0F0x29' % ([degreesF] - 32) * 5/9
             var = 'TEMP';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
