@@ -1,4 +1,5 @@
 % This file includes the relevant output labels used for aquatracka sensor and their relevant scale factors and offsets
+
 voltCHL, CHL
 scaleFactorCHL, 0.007908
 offsetCHL, -0.010173
