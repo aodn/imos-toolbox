@@ -208,7 +208,7 @@ end
 % Callback function for CLim range
 function cbCLimRange(src,eventdata, cLimMode, data)
 
-Clim = NaN(1, 2);
+CLim = NaN(1, 2);
 
 switch cLimMode
     case 'full'
@@ -279,6 +279,8 @@ switch cLimMode
         return;
         
 end
+
+if CLim(1) == CLim(2), CLim(2) = CLim(1) + 1; end % CLim must be increasing
 
 set(gca, 'CLim', CLim);
 
