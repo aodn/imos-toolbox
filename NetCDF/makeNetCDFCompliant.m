@@ -206,10 +206,14 @@ function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSamp
 %
 
 target = '';
+ddb = readProperty('toolbox.ddb');
 
 % query the ddb for all sensor config related to this instrument ID
-InstrumentSensorConfig = executeDDBQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
-
+if strcmp('csv',ddb)
+    InstrumentSensorConfig = executeCSVQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
+else
+    InstrumentSensorConfig = executeDDBQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
+end
 lenConfig = length(InstrumentSensorConfig);
 % only consider relevant config based on timeFirstSample
 for i=1:lenConfig

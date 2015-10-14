@@ -206,7 +206,11 @@ function value = parseDDBToken(token, sample_data, k)
   % a foreign key, so our only choice is to give up
   if isempty(field_value), return; end
   
-  result = executeDDBQuery(related_table, related_pkey, field_value);
+  if strcmp('csv',ddb)
+      result = executeCSVQuery(related_table, related_pkey, field_value);
+  else
+      result = executeDDBQuery(related_table, related_pkey, field_value);
+  end
   if length(result) ~= 1, return; end
 
   value = result.(related_field);

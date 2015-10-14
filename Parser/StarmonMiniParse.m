@@ -314,7 +314,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
     iContent = i + nColumnTime;
     
     switch header.param(iParam).column
-        case 'Temp0x280xB0C0x29' %degrees C
+        case {'Temp0x280xB0C0x29', 'Temp0x280xFFFDC0x29'} %degrees C
             var = 'TEMP';
             values = strrep(DataContent{iContent}, ',', '.');
 %             values = cellfun(@str2double, values);
@@ -333,7 +333,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).values = values;
             data.(var).comment = comment;
             
-        case 'Temp0x280xB0F0x29' % ([degreesF] - 32) * 5/9
+        case {'Temp0x280xB0F0x29', 'Temp0x280xFFFDF0x29'} % ([degreesF] - 32) * 5/9
             var = 'TEMP';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
