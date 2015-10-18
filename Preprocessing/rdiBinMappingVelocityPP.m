@@ -1,15 +1,13 @@
-function sample_data = binMappingVelocityPP( sample_data, qcLevel, auto )
-%BINMAPPINGVELOCITYPP bin-maps any variable not expressed in beams coordinates
-%that is function of DIST_ALONG_BEAMS into a HEIGHT_ABOVE_SENSOR dimension.
+function sample_data = rdiBinMappingVelocityPP( sample_data, qcLevel, auto )
+%RDIBINMAPPINGVELOCITYPP bin-maps any RDI variable expressed in 4 beams coordinates 
+%and which is function of DIST_ALONG_BEAMS into a HEIGHT_ABOVE_SENSOR dimension.
 %
-% The tilt is infered from pitch and roll measurement and used to map bins
-% along the beams towards vertical bins (case when tilt is 0). When more
-% than one bin is mapped to the same bin then the mean is computed.
-% 
-% !!!WARNING!!! This function provides OK results for small tilt angles. When
-% tilt is important enough for same cells of distinct beams not being in the same
-% vertical plane, it is recommended to perform specific bin mapping with data expressed 
-% in beam coordinates.
+% It is assumed that the beams are in such configuration such as when pitch
+% is positive beam 3 is closer to the surface while beam 4 gets further
+% away. When roll is positive beam 2 is closer to the surface while beam 1
+% gets further away. For each beam, the bins are mapped to their nearest
+% vertical bin. When more than one bin is mapped to the same vertical bin 
+% then the mean is computed. Beams are 20degrees from the vertical axis. 
 %
 % Inputs:
 %   sample_data - cell array of data sets, ideally with DIST_ALONG_BEAMS dimension.
@@ -63,7 +61,9 @@ if nargin<3, auto=false; end
 if strcmpi(qcLevel, 'raw'), return; end
 
 for k = 1:length(sample_data)
-  
+    % do not process if not RDI
+    if ~strcmpi(sample_data{k}.meta.instrument_make, 'Teledyne RDI'), continue; end
+    
     heightAboveSensorIdx = getVar(sample_data{k}.dimensions, 'HEIGHT_ABOVE_SENSOR');
     distAlongBeamsIdx = getVar(sample_data{k}.dimensions, 'DIST_ALONG_BEAMS');
     pitchIdx = getVar(sample_data{k}.variables, 'PITCH');
@@ -73,32 +73,57 @@ for k = 1:length(sample_data)
     if ~(distAlongBeamsIdx && pitchIdx && rollIdx), continue; end
   
     distAlongBeams = sample_data{k}.dimensions{distAlongBeamsIdx}.data;
-    pitch = sample_data{k}.variables{pitchIdx}.data;
-    roll  = sample_data{k}.variables{rollIdx}.data;
+    pitch = sample_data{k}.variables{pitchIdx}.data*pi/180;
+    roll  = sample_data{k}.variables{rollIdx}.data*pi/180;
     
-    tilt = acos(sqrt(1 - sin(roll*pi/180).^2 - sin(pitch*pi/180).^2));
-    
+    beamAngle = sample_data{k}.meta.beam_angle*pi/180;
     binSize = sample_data{k}.meta.binSize;
     nBins = length(distAlongBeams);
     heightAboveSensorUp   = distAlongBeams + binSize/2;
     heightAboveSensorDown = distAlongBeams - binSize/2;
-    nonMappedHeightAboveSensor = cos(tilt)*distAlongBeams';
+    nonMappedHeightAboveSensorBeam4 = (cos(beamAngle + pitch)/cos(beamAngle))*distAlongBeams';
+    nonMappedHeightAboveSensorBeam3 = (cos(beamAngle - pitch)/cos(beamAngle))*distAlongBeams';
+    nonMappedHeightAboveSensorBeam1 = (cos(beamAngle + roll)/cos(beamAngle))*distAlongBeams';
+    nonMappedHeightAboveSensorBeam2 = (cos(beamAngle - roll)/cos(beamAngle))*distAlongBeams';
     
-    % bin-mapping one bin at a time
-    mappedHeightAboveSensor = NaN(size(nonMappedHeightAboveSensor));
+    % bin-mapping one bin at a time for each beam
+    sizeMappedAboveSensorBeam = size(nonMappedHeightAboveSensorBeam4);
+    mappedHeightAboveSensorBeam4 = NaN(sizeMappedAboveSensorBeam);
+    mappedHeightAboveSensorBeam3 = NaN(sizeMappedAboveSensorBeam);
+    mappedHeightAboveSensorBeam1 = NaN(sizeMappedAboveSensorBeam);
+    mappedHeightAboveSensorBeam2 = NaN(sizeMappedAboveSensorBeam);
     for i=1:nBins
-        iNonMappedCurrentBin = (nonMappedHeightAboveSensor >= heightAboveSensorDown(i)) & (nonMappedHeightAboveSensor < heightAboveSensorUp(i));
-        mappedHeightAboveSensor(iNonMappedCurrentBin) = i;
+        iNonMappedCurrentBin4 = (nonMappedHeightAboveSensorBeam4 >= heightAboveSensorDown(i)) & (nonMappedHeightAboveSensorBeam4 < heightAboveSensorUp(i));
+        iNonMappedCurrentBin3 = (nonMappedHeightAboveSensorBeam3 >= heightAboveSensorDown(i)) & (nonMappedHeightAboveSensorBeam3 < heightAboveSensorUp(i));
+        iNonMappedCurrentBin1 = (nonMappedHeightAboveSensorBeam1 >= heightAboveSensorDown(i)) & (nonMappedHeightAboveSensorBeam1 < heightAboveSensorUp(i));
+        iNonMappedCurrentBin2 = (nonMappedHeightAboveSensorBeam2 >= heightAboveSensorDown(i)) & (nonMappedHeightAboveSensorBeam2 < heightAboveSensorUp(i));
+        mappedHeightAboveSensorBeam4(iNonMappedCurrentBin4) = i;
+        mappedHeightAboveSensorBeam3(iNonMappedCurrentBin3) = i;
+        mappedHeightAboveSensorBeam1(iNonMappedCurrentBin1) = i;
+        mappedHeightAboveSensorBeam2(iNonMappedCurrentBin2) = i;
     end
   
     % now we can average mapped values per bin when needed for each
     % impacted parameter
     isBinMapApplied = false;
     for j=1:length(sample_data{k}.variables)
-        isBeamCoordinates = any(strcmpi(sample_data{k}.variables{j}.name(end), {'1', '2', '3', '4'}));
-        if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx & ~isBeamCoordinates)
+        beamNumber = sample_data{k}.variables{j}.name(end);
+        switch beamNumber
+            case '1'
+                mappedHeightAboveSensor = mappedHeightAboveSensorBeam1;
+            case '2'
+                mappedHeightAboveSensor = mappedHeightAboveSensorBeam2;
+            case '3'
+                mappedHeightAboveSensor = mappedHeightAboveSensorBeam3;
+            case '4'
+                mappedHeightAboveSensor = mappedHeightAboveSensorBeam4;
+            otherwise
+                % do not process if not in beam coordinates
+                continue;
+        end
+        
+        if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx)
             % only process variables that are function of DIST_ALONG_BEAMS
-            % and not expressed in beams coordinates
             isBinMapApplied = true;
             
             nonMappedData = sample_data{k}.variables{j}.data;
@@ -110,21 +135,18 @@ for k = 1:length(sample_data)
                 mappedData(:, i) = nanmean(tmpNonMappedData, 2);
             end
             
-            binMappingComment = 'binMappingVelocityPP.m: data originally referenced to DISTANCE_ALONG_BEAMS has been vertically bin-mapped to HEIGHT_ABOVE_SENSOR using tilt information.';
-            if ~heightAboveSensorIdx
-                % we create the necessary dimension
-                sample_data{k}.dimensions{end+1} = sample_data{k}.dimensions{distAlongBeamsIdx};
-                sample_data{k}.dimensions{end}.name = 'HEIGHT_ABOVE_SENSOR';
-                sample_data{k}.dimensions{end}.long_name = 'height_above_sensor';
-                sample_data{k}.dimensions{end}.axis = 'Z';
-                sample_data{k}.dimensions{end}.positive = 'up';
-                sample_data{k}.dimensions{end}.comment = 'Data has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.';
-                
-                heightAboveSensorIdx = getVar(sample_data{k}.dimensions, 'HEIGHT_ABOVE_SENSOR');
+            binMappingComment = 'rdiBinMappingVelocityPP.m: data originally referenced to DISTANCE_ALONG_BEAMS has been vertically bin-mapped to HEIGHT_ABOVE_SENSOR using tilt information.';
+            if heightAboveSensorIdx
+                % we re-assign the parameter to this dimension
+                sample_data{k}.variables{j}.dimensions(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx) = heightAboveSensorIdx;
+            else
+                % we update the dimension information
+                sample_data{k}.dimensions{distAlongBeamsIdx}.name = 'HEIGHT_ABOVE_SENSOR';
+                sample_data{k}.dimensions{distAlongBeamsIdx}.long_name = 'height_above_sensor';
+                sample_data{k}.dimensions{distAlongBeamsIdx}.axis = 'Z';
+                sample_data{k}.dimensions{distAlongBeamsIdx}.positive = 'up';
+                sample_data{k}.dimensions{distAlongBeamsIdx}.comment = 'Data has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.';
             end
-            % we re-assign the parameter to HEIGHT_ABOVE_SENSOR dimension
-            sample_data{k}.variables{j}.dimensions(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx) = heightAboveSensorIdx;
-            
             sample_data{k}.variables{j}.data = mappedData;
             
             comment = sample_data{k}.variables{j}.comment;
@@ -136,6 +158,11 @@ for k = 1:length(sample_data)
             
             sample_data{k}.variables{j}.coordinates = 'TIME LATITUDE LONGITUDE HEIGHT_ABOVE_SENSOR';
         end
+    end
+    
+    % we need to remove DIST_ALONG_BEAMS if still exists
+    if heightAboveSensorIdx && distAlongBeamsIdx
+        sample_data{k}.dimensions(distAlongBeamsIdx) = [];
     end
 
     if isBinMapApplied
