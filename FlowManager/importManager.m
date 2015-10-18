@@ -349,9 +349,6 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
           fileDisplay = fileDisplay(3:end);
           waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
       end
-      if k == 22
-          keyboard
-      end
       % import data
       sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt, mode);
       rawFiles{   end+1} = allFiles{k};

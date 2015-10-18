@@ -154,7 +154,8 @@ end
 timeFmt     = readProperty('toolbox.timeFormat');
 idate = cellfun(@isempty,strfind(lower(header),'time'));
 idateTZ = cellfun(@isempty,strfind(lower(header),'timezone'));
-idate = find(~idate & idateTZ);
+idateTD = cellfun(@isempty,strfind(lower(header),'timedriftinstrument'));
+idate = find(~idate & idateTZ & idateTD);
 for a = idate
     iempty = cellfun(@isempty, data(:,a));
     data(~iempty,a) = cellfun(@(x) datenum(x,timeFmt), data(~iempty,a), 'Uniform', false);
