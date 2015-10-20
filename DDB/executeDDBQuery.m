@@ -172,7 +172,7 @@ function strs = java2struct(list)
           strs(k+1).(field) = int32(val.intValue());
         case 'java.lang.Boolean',
           strs(k+1).(field) = double(val.booleanValue());
-        case {'java.util.Date','java.sql.Date','java.sql.TimeStamp'}
+        case {'java.util.Date','java.sql.Date','java.sql.Timestamp'}
           cal = java.util.Calendar.getInstance();
           cal.setTime(val);
           strs(k+1).(field) = datenum(...
