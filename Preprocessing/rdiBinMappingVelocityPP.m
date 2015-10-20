@@ -5,9 +5,8 @@ function sample_data = rdiBinMappingVelocityPP( sample_data, qcLevel, auto )
 % It is assumed that the beams are in such configuration such as when pitch
 % is positive beam 3 is closer to the surface while beam 4 gets further
 % away. When roll is positive beam 2 is closer to the surface while beam 1
-% gets further away. For each beam, the bins are mapped to their nearest
-% vertical bin. When more than one bin is mapped to the same vertical bin 
-% then the mean is computed. Beams are 20degrees from the vertical axis. 
+% gets further away. For each beam, the data values at the nominal vertical
+% bin heights are obtained by interpolation.
 %
 % Inputs:
 %   sample_data - cell array of data sets, ideally with DIST_ALONG_BEAMS dimension.
@@ -77,46 +76,29 @@ for k = 1:length(sample_data)
     roll  = sample_data{k}.variables{rollIdx}.data*pi/180;
     
     beamAngle = sample_data{k}.meta.beam_angle*pi/180;
-    binSize = sample_data{k}.meta.binSize;
     nBins = length(distAlongBeams);
-    heightAboveSensorUp   = distAlongBeams + binSize/2;
-    heightAboveSensorDown = distAlongBeams - binSize/2;
     nonMappedHeightAboveSensorBeam4 = (cos(beamAngle + pitch)/cos(beamAngle))*distAlongBeams';
     nonMappedHeightAboveSensorBeam3 = (cos(beamAngle - pitch)/cos(beamAngle))*distAlongBeams';
     nonMappedHeightAboveSensorBeam1 = (cos(beamAngle + roll)/cos(beamAngle))*distAlongBeams';
     nonMappedHeightAboveSensorBeam2 = (cos(beamAngle - roll)/cos(beamAngle))*distAlongBeams';
     
-    % bin-mapping one bin at a time for each beam
-    sizeMappedAboveSensorBeam = size(nonMappedHeightAboveSensorBeam4);
-    mappedHeightAboveSensorBeam4 = NaN(sizeMappedAboveSensorBeam);
-    mappedHeightAboveSensorBeam3 = NaN(sizeMappedAboveSensorBeam);
-    mappedHeightAboveSensorBeam1 = NaN(sizeMappedAboveSensorBeam);
-    mappedHeightAboveSensorBeam2 = NaN(sizeMappedAboveSensorBeam);
-    for i=1:nBins
-        iNonMappedCurrentBin4 = (nonMappedHeightAboveSensorBeam4 >= heightAboveSensorDown(i)) & (nonMappedHeightAboveSensorBeam4 < heightAboveSensorUp(i));
-        iNonMappedCurrentBin3 = (nonMappedHeightAboveSensorBeam3 >= heightAboveSensorDown(i)) & (nonMappedHeightAboveSensorBeam3 < heightAboveSensorUp(i));
-        iNonMappedCurrentBin1 = (nonMappedHeightAboveSensorBeam1 >= heightAboveSensorDown(i)) & (nonMappedHeightAboveSensorBeam1 < heightAboveSensorUp(i));
-        iNonMappedCurrentBin2 = (nonMappedHeightAboveSensorBeam2 >= heightAboveSensorDown(i)) & (nonMappedHeightAboveSensorBeam2 < heightAboveSensorUp(i));
-        mappedHeightAboveSensorBeam4(iNonMappedCurrentBin4) = i;
-        mappedHeightAboveSensorBeam3(iNonMappedCurrentBin3) = i;
-        mappedHeightAboveSensorBeam1(iNonMappedCurrentBin1) = i;
-        mappedHeightAboveSensorBeam2(iNonMappedCurrentBin2) = i;
-    end
+    nSamples = length(pitch);
+    mappedHeightAboveSensor = repmat(distAlongBeams', nSamples, 1);
   
-    % now we can average mapped values per bin when needed for each
+    % now we can now interpolate mapped values per bin when needed for each
     % impacted parameter
     isBinMapApplied = false;
     for j=1:length(sample_data{k}.variables)
         beamNumber = sample_data{k}.variables{j}.name(end);
         switch beamNumber
             case '1'
-                mappedHeightAboveSensor = mappedHeightAboveSensorBeam1;
+                nonMappedHeightAboveSensor = nonMappedHeightAboveSensorBeam1;
             case '2'
-                mappedHeightAboveSensor = mappedHeightAboveSensorBeam2;
+                nonMappedHeightAboveSensor = nonMappedHeightAboveSensorBeam2;
             case '3'
-                mappedHeightAboveSensor = mappedHeightAboveSensorBeam3;
+                nonMappedHeightAboveSensor = nonMappedHeightAboveSensorBeam3;
             case '4'
-                mappedHeightAboveSensor = mappedHeightAboveSensorBeam4;
+                nonMappedHeightAboveSensor = nonMappedHeightAboveSensorBeam4;
             otherwise
                 % do not process if not in beam coordinates
                 continue;
@@ -126,13 +108,12 @@ for k = 1:length(sample_data)
             % only process variables that are function of DIST_ALONG_BEAMS
             isBinMapApplied = true;
             
+            % let's now interpolate data values at nominal bin height for
+            % each profile
             nonMappedData = sample_data{k}.variables{j}.data;
-            mappedData = NaN(size(nonMappedData));
-            for i=1:nBins
-                iMappedCurrentBin = mappedHeightAboveSensor == i*ones(size(mappedHeightAboveSensor));
-                tmpNonMappedData = nonMappedData;
-                tmpNonMappedData(~iMappedCurrentBin) = NaN;
-                mappedData(:, i) = nanmean(tmpNonMappedData, 2);
+            mappedData = NaN(size(nonMappedData), 'single');
+            for i=1:nSamples
+                mappedData(i,:) = interp1(nonMappedHeightAboveSensor(i,:), nonMappedData(i,:), mappedHeightAboveSensor(i,:));
             end
             
             binMappingComment = 'rdiBinMappingVelocityPP.m: data originally referenced to DISTANCE_ALONG_BEAMS has been vertically bin-mapped to HEIGHT_ABOVE_SENSOR using tilt information.';
