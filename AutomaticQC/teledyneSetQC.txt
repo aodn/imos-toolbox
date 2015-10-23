@@ -3,4 +3,4 @@ pgood     = 50
 cmag      = 64
 vvel      = 0.2
 hvel      = 2.0
-ea_thresh = 30
+ea_thresh = 40
