@@ -66,3 +66,4 @@ Sea-Bird Electronics, SBE37SM, SBE37SM
 RDI, WHLS75-I-2, workhorse
 Nortek, Aquadopp DW 2 MHz, aquadoppVelocity
 Nortek, Aquadopp DW 2Mhz, aquadoppVelocity
+RDI, ADCP 75KHz, workhorse
