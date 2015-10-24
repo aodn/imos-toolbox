@@ -56,6 +56,8 @@ function sample_data = timeStartPP( sample_data, qcLevel, auto )
   if nargin<3, auto=false; end
   if auto, error('timeStart pre-processing cannot be ran in batch mode'); end
   
+  % no modification of data is performed on the raw FV00 dataset except
+  % local time to UTC conversion
   if strcmpi(qcLevel, 'raw'), return; end
   
   timeFmt = readProperty('toolbox.timeFormat');
