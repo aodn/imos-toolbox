@@ -152,7 +152,7 @@ idCspd = 0;
 idCdir = 0;
 idPitch = 0;
 idRoll = 0;
-lenVar = size(sample_data.variables,2);
+lenVar = length(sample_data.variables);
 for i=1:lenVar
     paramName = sample_data.variables{i}.name;
     

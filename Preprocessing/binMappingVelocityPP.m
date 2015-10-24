@@ -3,8 +3,8 @@ function sample_data = binMappingVelocityPP( sample_data, qcLevel, auto )
 %that is function of DIST_ALONG_BEAMS into a HEIGHT_ABOVE_SENSOR dimension.
 %
 % The tilt is infered from pitch and roll measurement and used to map bins
-% along the beams towards vertical bins (case when tilt is 0). When more
-% than one bin is mapped to the same bin then the mean is computed.
+% along the beams towards vertical bins (case when tilt is 0). Data values
+% at nominal vertical bin heights are obtained by interpolation.
 % 
 % !!!WARNING!!! This function provides OK results for small tilt angles. When
 % tilt is important enough for same cells of distinct beams not being in the same
@@ -73,25 +73,17 @@ for k = 1:length(sample_data)
     if ~(distAlongBeamsIdx && pitchIdx && rollIdx), continue; end
   
     distAlongBeams = sample_data{k}.dimensions{distAlongBeamsIdx}.data;
-    pitch = sample_data{k}.variables{pitchIdx}.data;
-    roll  = sample_data{k}.variables{rollIdx}.data;
+    pitch = sample_data{k}.variables{pitchIdx}.data*pi/180;
+    roll  = sample_data{k}.variables{rollIdx}.data*pi/180;
     
-    tilt = acos(sqrt(1 - sin(roll*pi/180).^2 - sin(pitch*pi/180).^2));
+    tilt = acos(abs(sqrt(1 - sin(roll).^2 - sin(pitch).^2)));
     
-    binSize = sample_data{k}.meta.binSize;
-    nBins = length(distAlongBeams);
-    heightAboveSensorUp   = distAlongBeams + binSize/2;
-    heightAboveSensorDown = distAlongBeams - binSize/2;
     nonMappedHeightAboveSensor = cos(tilt)*distAlongBeams';
     
-    % bin-mapping one bin at a time
-    mappedHeightAboveSensor = NaN(size(nonMappedHeightAboveSensor));
-    for i=1:nBins
-        iNonMappedCurrentBin = (nonMappedHeightAboveSensor >= heightAboveSensorDown(i)) & (nonMappedHeightAboveSensor < heightAboveSensorUp(i));
-        mappedHeightAboveSensor(iNonMappedCurrentBin) = i;
-    end
+    nSamples = length(tilt);
+    mappedHeightAboveSensor = repmat(distAlongBeams', nSamples, 1);
   
-    % now we can average mapped values per bin when needed for each
+    % now we can interpolate mapped values per bin when needed for each
     % impacted parameter
     isBinMapApplied = false;
     for j=1:length(sample_data{k}.variables)
@@ -101,13 +93,12 @@ for k = 1:length(sample_data)
             % and not expressed in beams coordinates
             isBinMapApplied = true;
             
+            % let's now interpolate data values at nominal bin height for
+            % each profile
             nonMappedData = sample_data{k}.variables{j}.data;
-            mappedData = NaN(size(nonMappedData));
-            for i=1:nBins
-                iMappedCurrentBin = mappedHeightAboveSensor == i*ones(size(mappedHeightAboveSensor));
-                tmpNonMappedData = nonMappedData;
-                tmpNonMappedData(~iMappedCurrentBin) = NaN;
-                mappedData(:, i) = nanmean(tmpNonMappedData, 2);
+            mappedData = NaN(size(nonMappedData), 'single');
+            for i=1:nSamples
+                mappedData(i,:) = interp1(nonMappedHeightAboveSensor(i,:), nonMappedData(i,:), mappedHeightAboveSensor(i,:));
             end
             
             binMappingComment = 'binMappingVelocityPP.m: data originally referenced to DISTANCE_ALONG_BEAMS has been vertically bin-mapped to HEIGHT_ABOVE_SENSOR using tilt information.';
