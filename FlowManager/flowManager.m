@@ -57,7 +57,7 @@ function flowManager(toolboxVersion)
   
   % preprocess data
   rawData       = preprocessManager(nonUTCRawData, 'raw', mode, false); % only apply TIME to UTC pre-processing routines
-  autoQCData    = preprocessManager(nonUTCRawData, 'qc',  mode, true);  % auto is true so that GUI only appears once
+  autoQCData    = preprocessManager(rawData, 'qc',  mode, true);  % auto is true so that GUI only appears once
   clear nonUTCRawData;
   
   % display data
