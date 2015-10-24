@@ -1,0 +1,6 @@
+#Saved
+#Fri Aug 07 13:32:21 AEST 2015
+instrument.file.path=S\:\\Marine Technology and Equipment\\Ocean Engineering\\Moorings\\Instrument History\\
+db.connect=jdbc\:postgresql\://localhost\:5432/IMOS-DEPLOY?user\=cow074&password\=imosHV00112j
+scanevent-dir=C\:\\Users\\lad022\\Desktop\\BARCODES.TXT
+selected=,0,2,10,11,12,56

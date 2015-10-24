@@ -316,7 +316,12 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
       end
 
       % get some site information if it exists
-      site = executeDDBQuery('Sites', 'Site', dep.Site);
+      ddb = readProperty('toolbox.ddb');
+      if strcmp('csv',ddb)
+          site = executeCSVQuery('Sites', 'Site', dep.Site);
+      else
+          site = executeDDBQuery('Sites', 'Site', dep.Site);
+      end
 
       if ~isempty(site)
 

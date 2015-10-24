@@ -71,7 +71,8 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   end
 
   % If the toolbox.ddb property has been set, assume that we have a
-  % deployment database. Otherwise perform a manual import
+  % deployment database. Or if it is designated as 'csv', use a CSV file for
+  % import. Otherwise perform a manual import.
   ddb = readProperty('toolbox.ddb');
   
   driver = readProperty('toolbox.ddb.driver');
@@ -348,7 +349,6 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
           fileDisplay = fileDisplay(3:end);
           waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
       end
-      
       % import data
       sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt, mode);
       rawFiles{   end+1} = allFiles{k};
@@ -443,8 +443,14 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   %   parser     - Function handle to the parser function, or 0 if a parser
   %                function wasn't found.
   %
-    instrument = executeDDBQuery(...
-      'Instruments', 'InstrumentID', deployment.InstrumentID);
+  ddb = readProperty('toolbox.ddb');
+  if strcmp('csv',ddb)
+      instrument = executeCSVQuery(...
+          'Instruments', 'InstrumentID', deployment.InstrumentID);
+  else
+      instrument = executeDDBQuery(...
+          'Instruments', 'InstrumentID', deployment.InstrumentID);
+  end
 
     % there should be exactly one instrument 
     if length(instrument) ~= 1

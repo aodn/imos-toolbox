@@ -1,16 +1,15 @@
 % filename or ODBC DSN of MS-ACCESS deployment database
 % ex. : /home/ggalibert/OceanDB.mdb or imos-ddb
-toolbox.ddb = csv
-
+toolbox.ddb = imos-ddb
 
 % or full connection details to other kind of deployment database :
 % class name of JDBC database driver
 % ex. : net.ucanaccess.jdbc.UcanaccessDriver
-toolbox.ddb.driver = 
+toolbox.ddb.driver = org.postgresql.Driver
 
 % database connection string, must include user and password if required by the database
 % ex. : "jdbc:ucanaccess:///home/ggalibert/OceanDB.mdb;jackcessOpener=org.imos.ddb.CryptCodecOpener"
-toolbox.ddb.connection = /Volumes/DWmoorings1/Solander_2015/2014_recoveries/MooringsProcessingDocs/csvfiles/
+toolbox.ddb.connection = jdbc:postgresql://localhost/IMOS-DEPLOY
 #toolbox.ddb.connection = jdbc:postgresql://cmar-cmd-cdc.it.csiro.au/IMOS-DEPLOY
 
 % user's login and password to database
@@ -27,8 +26,8 @@ toolbox.mode = timeSeries
 toolbox.templateDir = 
 
 % date and time formats used internally and for GUI display
-toolbox.dateFormat = dd/mm/yy
-toolbox.timeFormat = dd/mm/yy HH:MM
+toolbox.dateFormat = dd mmm yyyy
+toolbox.timeFormat = yyyy-mm-ddTHH:MM:SS
 
 % QC set in use - see section 6.2 of the IMOS NetCDF User's Manual
 toolbox.qc_set = 1
@@ -40,7 +39,7 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
-autoQCManager.autoQCChain.timeSeries = imosImpossibleDepthQC imosSideLobeVelocitySetQC imosHistoricalManualSetQC teledyneSetQC imosInOutWaterQC imosVerticalSpikeQC
+autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosCorrMagVelocitySetQC imosHistoricalManualSetQC
 autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
 
 % prompt for preprocessing (if false, 
@@ -48,7 +47,7 @@ autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationS
 preprocessManager.preprocessPrompt = true
 
 % default set of preprocessing routines
-preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP binMappingVelocityPP timeDriftPP
+preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP binMappingVelocityPP pressureRelPP
 preprocessManager.preprocessChain.profile = depthPP salinityPP
 
 % file status dialog formatting styles
@@ -59,13 +58,13 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % default values for start dialog
-startDialog.dataDir.timeSeries = /Volumes/DWmoorings1/Solander_2015/2014_recoveries/RawData
+startDialog.dataDir.timeSeries = /Volumes/DWmoorings1/SS2012_V05/science/moorings/2011/Raw Data
 startDialog.dataDir.profile = 
-startDialog.fieldTrip.timeSeries = Timor-00123
+startDialog.fieldTrip.timeSeries = Timor-00125
 startDialog.fieldTrip.profile = 
 startDialog.lowDate.timeSeries = 0
 startDialog.lowDate.profile = 
-startDialog.highDate.timeSeries = 736328
+startDialog.highDate.timeSeries = 736175.0943
 startDialog.highDate.profile = 
 
 % default directory for manual data import
