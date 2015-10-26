@@ -160,7 +160,7 @@ for i=1:lenSampleData
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+            iGood = (timeFlags == 0 | timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
         end
         
         if all(~iGood) && isQC
