@@ -233,18 +233,17 @@ error(nargchk(1, 2, nargin));
   end
 
   % add dimensions with their data mapped
-  % we consider a static value for this variable to be the most frequent value found
-  % str2num is actually more relevant than str2double here
-  adcpOrientations = str2num(fixed.systemConfiguration(:, 1));
-  adcpOrientation = mode(adcpOrientations);
-  if adcpOrientation == '0', distance = -distance; end % case of a downward looking ADCP -> negative values
+  adcpOrientations = str2num(fixed.systemConfiguration(:, 1)); % str2num is actually more relevant than str2double here
+  adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
+  height = distance;
+  if adcpOrientation == '0', height = -height; end % case of a downward looking ADCP -> negative values
   iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
   dims = {
-      'TIME',                   time(iWellOriented),     ''; ...
-      'HEIGHT_ABOVE_SENSOR',    distance(:), 'Data has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.'; ...
-      'DIST_ALONG_BEAMS',       distance(:), 'Data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
+      'TIME',                   time(iWellOriented),    ''; ...
+      'HEIGHT_ABOVE_SENSOR',    height(:),              'Data has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.'; ...
+      'DIST_ALONG_BEAMS',       distance(:),            'Data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
       };
-  clear time distance;
+  clear time height distance;
   
   nDims = size(dims, 1);
   sample_data.dimensions = cell(nDims, 1);

@@ -1,4 +1,4 @@
-function sample_data = awacParse( filename, mode )
+function sample_data = awacParse( filename, tMode )
 %AWACPARSE Parses ADCP data from a raw Nortek AWAC binary (.wpr) file. If
 % processed wave data files (.whd and .wap) are present, these are also 
 % parsed.
@@ -17,7 +17,7 @@ function sample_data = awacParse( filename, mode )
 % Inputs:
 %   filename    - Cell array containing the name of the raw AWAC file 
 %                 to parse.
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   tMode       - Toolbox data type mode ('profile' or 'timeSeries').
 % 
 % Outputs:
 %   sample_data - Struct containing sample data; If wave data is present, 
@@ -76,22 +76,48 @@ nsamples = length(structures.Id32);
 ncells   = user.NBins;
 
 % preallocate memory for all sample data
-time         = zeros(nsamples, 1);
-distance     = zeros(ncells,   1);
-analn1       = zeros(nsamples, 1);
-battery      = zeros(nsamples, 1);
-analn2       = zeros(nsamples, 1);
-heading      = zeros(nsamples, 1);
-pitch        = zeros(nsamples, 1);
-roll         = zeros(nsamples, 1);
-pressure     = zeros(nsamples, 1);
-temperature  = zeros(nsamples, 1);
-velocity1    = zeros(nsamples, ncells);
-velocity2    = zeros(nsamples, ncells);
-velocity3    = zeros(nsamples, ncells);
-backscatter1 = zeros(nsamples, ncells);
-backscatter2 = zeros(nsamples, ncells);
-backscatter3 = zeros(nsamples, ncells);
+time         = nan(nsamples, 1);
+distance     = nan(ncells,   1);
+analn1       = nan(nsamples, 1);
+battery      = nan(nsamples, 1);
+analn2       = nan(nsamples, 1);
+heading      = nan(nsamples, 1);
+pitch        = nan(nsamples, 1);
+roll         = nan(nsamples, 1);
+status       = zeros(nsamples, 8, 'uint8');
+pressure     = nan(nsamples, 1);
+temperature  = nan(nsamples, 1);
+velocity1    = nan(nsamples, ncells);
+velocity2    = nan(nsamples, ncells);
+velocity3    = nan(nsamples, ncells);
+backscatter1 = nan(nsamples, ncells);
+backscatter2 = nan(nsamples, ncells);
+backscatter3 = nan(nsamples, ncells);
+
+velocityProcessed = false;
+if isfield(structures, 'Id106')
+    % velocity has been processed
+    velocityProcessed = true;
+    nsamplesProc = length(structures.Id106.Sync);
+    timeProc         = nan(nsamplesProc, 1);
+    velocity1Proc    = nan(nsamples, ncells);
+    velocity2Proc    = nan(nsamples, ncells);
+    velocity3Proc    = nan(nsamples, ncells);
+    sig2noise1       = nan(nsamples, ncells);
+    sig2noise2       = nan(nsamples, ncells);
+    sig2noise3       = nan(nsamples, ncells);
+    stdDev1          = nan(nsamples, ncells);
+    stdDev2          = nan(nsamples, ncells);
+    stdDev3          = nan(nsamples, ncells);
+    errorCode1       = nan(nsamples, ncells);
+    errorCode2       = nan(nsamples, ncells);
+    errorCode3       = nan(nsamples, ncells);
+    speed            = nan(nsamples, ncells);
+    direction        = nan(nsamples, ncells);
+    verticalDist     = nan(nsamples, ncells);
+    profileErrorCode = nan(nsamples, ncells);
+    qcFlag           = nan(nsamples, ncells);
+end
 
 %
 % calculate distance values from metadata. See continentalParse.m 
@@ -129,6 +155,7 @@ analn2          = structures.Id32.Analn2';
 heading         = structures.Id32.Heading';
 pitch           = structures.Id32.Pitch';
 roll            = structures.Id32.Roll';
+status          = structures.Id32.Status';
 pressure        = structures.Id32.PressureMSB'*65536 + structures.Id32.PressureLSW';
 temperature     = structures.Id32.Temperature';
 velocity1       = structures.Id32.Vel1';
@@ -137,6 +164,30 @@ velocity3       = structures.Id32.Vel3';
 backscatter1    = structures.Id32.Amp1';
 backscatter2    = structures.Id32.Amp2';
 backscatter3    = structures.Id32.Amp3';
+
+if velocityProcessed
+    % velocity has been processed
+    timeProc = structures.Id106.Time';
+    iCommonTime = ismember(time, timeProc); % timeProc can be shorter than time
+    
+    velocity1Proc(iCommonTime, :)    = structures.Id106.Vel1'; % tilt effect corrected velocity
+    velocity2Proc(iCommonTime, :)    = structures.Id106.Vel2';
+    velocity3Proc(iCommonTime, :)    = structures.Id106.Vel3';
+    sig2noise1(iCommonTime, :)       = structures.Id106.Snr1';
+    sig2noise2(iCommonTime, :)       = structures.Id106.Snr2';
+    sig2noise3(iCommonTime, :)       = structures.Id106.Snr3';
+    stdDev1(iCommonTime, :)          = structures.Id106.Std1'; % currently not used
+    stdDev2(iCommonTime, :)          = structures.Id106.Std2';
+    stdDev3(iCommonTime, :)          = structures.Id106.Std3';
+    errorCode1(iCommonTime, :)       = structures.Id106.Erc1'; % error codes for each cell in one beam, values between 0 and 4.
+    errorCode2(iCommonTime, :)       = structures.Id106.Erc2';
+    errorCode3(iCommonTime, :)       = structures.Id106.Erc3';
+    speed(iCommonTime, :)            = structures.Id106.speed';
+    direction(iCommonTime, :)        = structures.Id106.direction';
+    verticalDist(iCommonTime, :)     = structures.Id106.verticalDistance'; % ? no idea what this is, always same values between 6000 and 65534 for each profile.
+    profileErrorCode(iCommonTime, :) = structures.Id106.profileErrorCode'; % error codes for each cell of a velocity profile inferred from the 3 beams. 0=good; otherwise error. See http://www.nortek-as.com/en/knowledge-center/forum/waves/20001875?b_start=0#769595815
+    qcFlag(iCommonTime, :)           = structures.Id106.qcFlag'; % QUARTOD QC result. 0=not eval; 1=bad; 2=questionable; 3=good.
+end
 clear structures;
 
 % battery     / 10.0   (0.1 V    -> V)
@@ -160,6 +211,28 @@ backscatter1 = backscatter1 * 0.45;
 backscatter2 = backscatter2 * 0.45;
 backscatter3 = backscatter3 * 0.45;
 
+if velocityProcessed
+    % velocity has been processed
+    % velocities  / 1000.0 (mm/s     -> m/s) assuming earth coordinates
+    % 20*log10(sig2noise)  (counts   -> dB)
+    % direction   / 100.0  (0.01 deg  -> deg)
+    velocity1     = velocity1Proc / 1000.0; % we update the velocity
+    velocity2     = velocity2Proc / 1000.0;
+    velocity3     = velocity3Proc / 1000.0;
+    sig2noise1(sig2noise1==0) = NaN;
+    sig2noise2(sig2noise2==0) = NaN;
+    sig2noise3(sig2noise3==0) = NaN;
+    sig2noise1    = 20*log10(sig2noise1);
+    sig2noise2    = 20*log10(sig2noise2);
+    sig2noise3    = 20*log10(sig2noise3);
+    stdDev1       = stdDev1 / 1000.0; % same unit as velocity I suppose
+    stdDev2       = stdDev2 / 1000.0;
+    stdDev3       = stdDev3 / 1000.0;
+    speed         = speed / 1000.0; % same unit as velocity I suppose
+    direction     = direction / 100.0;
+    verticalDist  = verticalDist / 1000.0; % since verticalDist is uint16, max value gives 65m but distance along beams can go up to 170m...???
+end
+
 sample_data = struct;
     
 sample_data.toolbox_input_file              = filename;
@@ -176,11 +249,23 @@ sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.beam_angle                 = 25;   % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
 
 % add dimensions with their data mapped
+adcpOrientations = single(status(:, 1));
+adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
+height = distance;
+if adcpOrientation == '1', height = -height; end % case of a downward looking ADCP -> negative values
+iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
 dims = {
-    'TIME',             time,       ''; ...
-    'DIST_ALONG_BEAMS', distance,   'Nortek instrument data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
+    'TIME',             time(iWellOriented),    ''; ...
+    'DIST_ALONG_BEAMS', distance,               'Nortek instrument data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
     };
 clear time distance;
+
+if velocityProcessed
+    % we re-arrange dimensions like for RDI ADCPs
+    dims(end+1, :) = dims(end, :);
+    dims(end-1, :) = {'HEIGHT_ABOVE_SENSOR', height(:), 'Data has been vertically bin-mapped using Nortek Storm software ''Remove tilt effects'' procedure. Cells have consistant heights above sensor in time.'};
+end
+clear height;
 
 nDims = size(dims, 1);
 sample_data.dimensions = cell(nDims, 1);
@@ -194,27 +279,58 @@ clear dims;
 
 % add variables with their dimensions and data mapped.
 % we assume no correction for magnetic declination has been applied
+if velocityProcessed
+    % velocity has been processed
+    iDimVel = nDims-1;
+    iDimDiag = nDims;
+else
+    iDimVel = nDims;
+    iDimDiag = nDims;
+end
 vars = {
-    'TIMESERIES',       [],    1; ...
-    'LATITUDE',         [],    NaN; ...
-    'LONGITUDE',        [],    NaN; ...
-    'NOMINAL_DEPTH',    [],    NaN; ...
-    'VCUR_MAG',         [1 2], velocity2; ... % V
-    'UCUR_MAG',         [1 2], velocity1; ... % U
-    'WCUR',             [1 2], velocity3; ...
-    'ABSI1',            [1 2], backscatter1; ...
-    'ABSI2',            [1 2], backscatter2; ...
-    'ABSI3',            [1 2], backscatter3; ...
-    'TEMP',             1,     temperature; ...
-    'PRES_REL',         1,     pressure; ...
-    'VOLT',             1,     battery; ...
-    'PITCH',            1,     pitch; ...
-    'ROLL',             1,     roll; ...
-    'HEADING_MAG',      1,     heading
+    'TIMESERIES',       [],             1; ...
+    'LATITUDE',         [],             NaN; ...
+    'LONGITUDE',        [],             NaN; ...
+    'NOMINAL_DEPTH',    [],             NaN; ...
+    'VCUR_MAG',         [1 iDimVel],    velocity2(iWellOriented, :); ... % V
+    'UCUR_MAG',         [1 iDimVel],    velocity1(iWellOriented, :); ... % U
+    'WCUR',             [1 iDimVel],    velocity3(iWellOriented, :); ...
+    'ABSI1',            [1 iDimDiag],   backscatter1(iWellOriented, :); ...
+    'ABSI2',            [1 iDimDiag],   backscatter2(iWellOriented, :); ...
+    'ABSI3',            [1 iDimDiag],   backscatter3(iWellOriented, :); ...
+    'TEMP',             1,              temperature(iWellOriented); ...
+    'PRES_REL',         1,              pressure(iWellOriented); ...
+    'VOLT',             1,              battery(iWellOriented); ...
+    'PITCH',            1,              pitch(iWellOriented); ...
+    'ROLL',             1,              roll(iWellOriented); ...
+    'HEADING_MAG',      1,              heading(iWellOriented)
     };
 clear analn1 analn2 time distance velocity1 velocity2 velocity3 ...
     backscatter1 backscatter2 backscatter3 ...
-    temperature pressure battery pitch roll heading;
+    temperature pressure battery pitch roll heading status;
+
+if velocityProcessed
+    % velocity has been processed
+    vars = [vars; {
+        'SNR1',                [1 iDimDiag], sig2noise1(iWellOriented, :); ...
+        'SNR2',                [1 iDimDiag], sig2noise2(iWellOriented, :); ...
+        'SNR3',                [1 iDimDiag], sig2noise3(iWellOriented, :); ...
+%         'STDB1',               [1 iDimDiag], stdDev1(iWellOriented, :); ... % currently not used
+%         'STDB2',               [1 iDimDiag], stdDev2(iWellOriented, :); ...
+%         'STDB3',               [1 iDimDiag], stdDev3(iWellOriented, :); ...
+        'NORTEK_ERR1',         [1 iDimDiag], errorCode1(iWellOriented, :); ...
+        'NORTEK_ERR2',         [1 iDimDiag], errorCode2(iWellOriented, :); ...
+        'NORTEK_ERR3',         [1 iDimDiag], errorCode3(iWellOriented, :); ...
+        'CSPD',                [1 iDimVel],  speed(iWellOriented, :); ...
+        'CDIR_MAG',            [1 iDimVel],  direction(iWellOriented, :); ...
+%         'VERT_DIST',           [1 iDimVel],  verticalDist(iWellOriented, :); ... % don't know what this is
+        'NORTEK_PROFILE_ERR',  [1 iDimVel],  profileErrorCode(iWellOriented, :); ...
+        'NORTEK_QC',           [1 iDimVel],  qcFlag(iWellOriented, :)
+        }];
+    clear sig2noise1 sig2noise2 sig2noise3 stdDev1 stdDev2 stdDev3 ...
+        errorCode1 errorCode2 errorCode3 speed direction verticalDist ...
+        profileErrorCode qcFlag;
+end
 
 nVars = size(vars, 1);
 sample_data.variables = cell(nVars, 1);
