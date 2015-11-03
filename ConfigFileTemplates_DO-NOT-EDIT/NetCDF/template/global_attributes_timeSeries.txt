@@ -36,23 +36,23 @@ S, history                      =
 S, quality_control_log          = 
 
 % where
-N, geospatial_lat_min       = [ddb Site Sites Latitude]
-N, geospatial_lat_max       = [ddb Site Sites Latitude]
-N, geospatial_lon_min       = [ddb Site Sites Longitude]
-N, geospatial_lon_max       = [ddb Site Sites Longitude]
-N, instrument_nominal_height= 
-N, instrument_nominal_depth = 
-N, site_nominal_depth       = 
-N, site_depth_at_deployment = 
+N, geospatial_lat_min           = [ddb Site Sites Latitude]
+N, geospatial_lat_max           = [ddb Site Sites Latitude]
+N, geospatial_lon_min           = [ddb Site Sites Longitude]
+N, geospatial_lon_max           = [ddb Site Sites Longitude]
+N, instrument_nominal_height    = 
+N, instrument_nominal_depth     = 
+N, site_nominal_depth           = 
+N, site_depth_at_deployment     = 
 
 % if left empty, these fields are automatically populated upon import 
 % when DEPTH variable exist (if not use depthPP pre-processing routine)
-N, geospatial_vertical_min = 
-N, geospatial_vertical_max = 
+N, geospatial_vertical_min      = 
+N, geospatial_vertical_max      = 
 S, geospatial_vertical_positive = down
 
 % when
-N, local_time_zone         = 
+N, local_time_zone              = 
 
 % these fields are automatically populated upon import
 D, time_deployment_start        = 
@@ -72,8 +72,8 @@ S, principal_investigator_email =
 S, institution_references       = http://www.imos.org.au/emii.html
 
 % how
-S, lineage                 = 
-S, citation                = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-URL], accessed [date-of-access].".
-S, acknowledgement         = Any users of IMOS data are required to clearly acknowledge the source of the material derived from IMOS in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is a national collaborative research infrastructure, supported by the Australian Government." If relevant, also credit other organisations involved in collection of this particular datastream (as listed in 'credit' in the metadata record).
-S, disclaimer              = Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
-S, license                 = http://creativecommons.org/licenses/by/4.0/
+S, lineage                      = 
+S, citation                     = The citation in a list of references is: "IMOS [year-of-data-download], [Title], [data-access-URL], accessed [date-of-access].".
+S, acknowledgement              = Any users of IMOS data are required to clearly acknowledge the source of the material derived from IMOS in the format: "Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is a national collaborative research infrastructure, supported by the Australian Government." If relevant, also credit other organisations involved in collection of this particular datastream (as listed in "credit" in the metadata record).
+S, disclaimer                   = Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.
+S, license                      = http://creativecommons.org/licenses/by/4.0/
