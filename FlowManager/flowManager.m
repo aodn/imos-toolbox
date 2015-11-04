@@ -56,8 +56,8 @@ function flowManager(toolboxVersion)
   for k = 1:length(nonUTCRawData), nonUTCRawData{k}.meta.index = k; end
   
   % preprocess data
-  rawData       = preprocessManager(nonUTCRawData, 'raw', mode, false); % only apply TIME to UTC pre-processing routines
-  autoQCData    = preprocessManager(nonUTCRawData, 'qc',  mode, true);  % auto is true so that GUI only appears once
+  rawData       = preprocessManager(nonUTCRawData, 'raw', mode, false); % only apply TIME to UTC conversion pre-processing routines
+  autoQCData    = preprocessManager(rawData, 'qc',  mode, true);  % apply any pp routine except TIME to UTC conversion, auto is true so that GUI only appears once
   clear nonUTCRawData;
   
   % display data

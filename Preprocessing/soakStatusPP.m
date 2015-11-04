@@ -66,6 +66,8 @@ if isempty(sample_data), return;                                    end
 % auto logical in input to enable running under batch processing
 if nargin<3, auto=false; end
 
+% no modification of data is performed on the raw FV00 dataset except
+% local time to UTC conversion
 if strcmpi(qcLevel, 'raw'), return; end
 
 % read options from parameter file  Minimum Soak Delay: SoakDelay1 (sec.)

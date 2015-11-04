@@ -51,6 +51,8 @@ error(nargchk(2, 3, nargin));
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
 
+% no modification of data is performed on the raw FV00 dataset except
+% local time to UTC conversion
 if strcmpi(qcLevel, 'raw'), return; end
 
 % auto logical in input to enable running under batch processing

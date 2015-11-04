@@ -71,7 +71,7 @@ for j=1:4
     idABSI{j}  = 0;
     idCMAG{j}  = 0;
 end
-lenVar = size(sample_data.variables, 2);
+lenVar = length(sample_data.variables);
 for i=1:lenVar
     paramName = sample_data.variables{i}.name;
     

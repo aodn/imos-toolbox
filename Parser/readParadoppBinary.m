@@ -139,33 +139,33 @@ sectType = data(idx+1);
 
 % read the section in
 switch sectType
-    case 0,   [sect, len, off] = readUserConfiguration       (data, idx, cpuEndianness); % 0x00
-    case 1,   [sect, len, off] = readAquadoppVelocity        (data, idx, cpuEndianness); % 0x01
-    case 2,   [sect, len, off] = readVectrinoDistance        (data, idx, cpuEndianness); % 0x02
-    case 4,   [sect, len, off] = readHeadConfiguration       (data, idx, cpuEndianness); % 0x04
-    case 5,   [sect, len, off] = readHardwareConfiguration   (data, idx, cpuEndianness); % 0x05
-    case 6,   [sect, len, off] = readAquadoppDiagHeader      (data, idx, cpuEndianness); % 0x06
-    case 7,   [sect, len, off] = readVectorProbeCheck		 (data, idx, cpuEndianness); % 0x07
-    case 16,  [sect, len, off] = readVectorVelocity          (data, idx, cpuEndianness); % 0x10
-    case 17,  [sect, len, off] = readVectorSystem            (data, idx, cpuEndianness); % 0x11
-    case 18,  [sect, len, off] = readVectorVelocityHeader    (data, idx, cpuEndianness); % 0x12
-    case 32,  [sect, len, off] = readAwacVelocityProfile     (data, idx, cpuEndianness); % 0x20
-    case 33,  [sect, len, off] = readAquadoppProfilerVelocity(data, idx, cpuEndianness); % 0x21
-    case 36,  [sect, len, off] = readContinental             (data, idx, cpuEndianness); % 0x24
-    case 42,  [sect, len, off] = readHRAquadoppProfile       (data, idx, cpuEndianness); % 0x2A
-    case 48,  [sect, len, off] = readAwacWaveData            (data, idx, cpuEndianness); % 0x30
-    case 49,  [sect, len, off] = readAwacWaveHeader          (data, idx, cpuEndianness); % 0x31
-    case 54,  [sect, len, off] = readAwacWaveDataSUV         (data, idx, cpuEndianness); % 0x36
-    case 66,  [sect, len, off] = readAwacStageData           (data, idx, cpuEndianness); % 0x42
-    case 80,  [sect, len, off] = readVectrinoVelocityHeader  (data, idx, cpuEndianness); % 0x50
-    case 81,  [sect, len, off] = readVectrinoVelocity        (data, idx, cpuEndianness); % 0x51
-    case 96,  [sect, len, off] = readWaveParameterEstimates	 (data, idx, cpuEndianness); % 0x60
-    case 97,  [sect, len, off] = readWaveBandEstimates		 (data, idx, cpuEndianness); % 0x61
-    case 98,  [sect, len, off] = readWaveEnergySpectrum		 (data, idx, cpuEndianness); % 0x62
+    case 0,   [sect, len, off] = readUserConfiguration            (data, idx, cpuEndianness); % 0x00
+    case 1,   [sect, len, off] = readAquadoppVelocity             (data, idx, cpuEndianness); % 0x01
+    case 2,   [sect, len, off] = readVectrinoDistance             (data, idx, cpuEndianness); % 0x02
+    case 4,   [sect, len, off] = readHeadConfiguration            (data, idx, cpuEndianness); % 0x04
+    case 5,   [sect, len, off] = readHardwareConfiguration        (data, idx, cpuEndianness); % 0x05
+    case 6,   [sect, len, off] = readAquadoppDiagHeader           (data, idx, cpuEndianness); % 0x06
+    case 7,   [sect, len, off] = readVectorProbeCheck             (data, idx, cpuEndianness); % 0x07
+    case 16,  [sect, len, off] = readVectorVelocity               (data, idx, cpuEndianness); % 0x10
+    case 17,  [sect, len, off] = readVectorSystem                 (data, idx, cpuEndianness); % 0x11
+    case 18,  [sect, len, off] = readVectorVelocityHeader         (data, idx, cpuEndianness); % 0x12
+    case 32,  [sect, len, off] = readAwacVelocityProfile          (data, idx, cpuEndianness); % 0x20
+    case 33,  [sect, len, off] = readAquadoppProfilerVelocity     (data, idx, cpuEndianness); % 0x21
+    case 36,  [sect, len, off] = readContinental                  (data, idx, cpuEndianness); % 0x24
+    case 42,  [sect, len, off] = readHRAquadoppProfile            (data, idx, cpuEndianness); % 0x2A
+    case 48,  [sect, len, off] = readAwacWaveData                 (data, idx, cpuEndianness); % 0x30
+    case 49,  [sect, len, off] = readAwacWaveHeader               (data, idx, cpuEndianness); % 0x31
+    case 54,  [sect, len, off] = readAwacWaveDataSUV              (data, idx, cpuEndianness); % 0x36
+    case 66,  [sect, len, off] = readAwacStageData                (data, idx, cpuEndianness); % 0x42
+    case 80,  [sect, len, off] = readVectrinoVelocityHeader       (data, idx, cpuEndianness); % 0x50
+    case 81,  [sect, len, off] = readVectrinoVelocity             (data, idx, cpuEndianness); % 0x51
+    case 96,  [sect, len, off] = readWaveParameterEstimates       (data, idx, cpuEndianness); % 0x60
+    case 97,  [sect, len, off] = readWaveBandEstimates            (data, idx, cpuEndianness); % 0x61
+    case 98,  [sect, len, off] = readWaveEnergySpectrum           (data, idx, cpuEndianness); % 0x62
     case 99,  [sect, len, off] = readWaveFourierCoefficentSpectrum(data, idx, cpuEndianness); % 0x63
-    case 101, [sect, len, off] = readAwacAST(data, idx, cpuEndianness); % 0x65
-    case 106, [sect, len, off] = readAwacProcessedVelocity(data, idx, cpuEndianness); % 0x6A
-    case 128, [sect, len, off] = readAquadoppDiagnostics     (data, idx, cpuEndianness); % 0x80
+    case 101, [sect, len, off] = readAwacAST                      (data, idx, cpuEndianness); % 0x65
+    case 106, [sect, len, off] = readAwacProcessedVelocity        (data, idx, cpuEndianness); % 0x6A
+    case 128, [sect, len, off] = readAquadoppDiagnostics          (data, idx, cpuEndianness); % 0x80
     otherwise
 %        disp('Unknown sector type');
 %        disp(['sectType : hex ' dec2hex(sectType) ' == ' num2str(sectType) ' at offset ' num2str(idx+1)]);        
@@ -262,7 +262,29 @@ sect.Id        = data(idx+1);
 block1         = data(idx+2:idx+9);  % uint16
 sect.SerialNo  = data(idx+10:idx+21);
 sect.SerialNo  = char(sect.SerialNo(sect.SerialNo ~= 0)');
-sect.System    = 0; % 176 bytes; not sure what's in them
+
+% MUST CHECK ARRAY LAYOUT
+sect.System5  = double(bytecast(data(idx+22:idx+29), 'L', 'uint16', cpuEndianness))';
+
+sect.TransformationMatrix = reshape(double(bytecast(data(idx+30:idx+47), 'L', 'int16', cpuEndianness))/4096, [3 3])';
+
+sect.System7  = reshape(double(bytecast(data(idx+48:idx+63), 'L', 'int16', cpuEndianness)), [4 2])';
+sect.System8  = reshape(double(bytecast(data(idx+66:idx+83), 'L', 'int16', cpuEndianness)), [3 3])';
+sect.System9  = reshape(double(bytecast(data(idx+84:idx+101), 'L', 'int16', cpuEndianness)), [3 3])';
+sect.System10 = double(bytecast(data(idx+102:idx+109), 'L', 'int16', cpuEndianness))';
+sect.System11 = double(bytecast(data(idx+110:idx+117), 'L', 'int16', cpuEndianness))';
+
+sect.PressureSensorCalibration = double(bytecast(data(idx+118:idx+125), 'L', 'uint16', cpuEndianness))';
+
+sect.System13 = double(bytecast(data(idx+126:idx+133), 'L', 'int16', cpuEndianness))';
+sect.System14 = reshape(double(bytecast(data(idx+134:idx+149), 'L', 'int16', cpuEndianness)), [4 2])';
+sect.System15 = reshape(double(bytecast(data(idx+150:idx+181), 'L', 'int16', cpuEndianness)), [4 4])';
+sect.System16 = double(bytecast(data(idx+182:idx+189), 'L', 'int16', cpuEndianness))';
+sect.System17 = double(bytecast(data(idx+190:idx+191), 'L', 'int16', cpuEndianness))';
+sect.System18 = double(bytecast(data(idx+192:idx+193), 'L', 'int16', cpuEndianness))';
+sect.System19 = double(bytecast(data(idx+194:idx+195), 'L', 'int16', cpuEndianness))';
+sect.System20 = double(bytecast(data(idx+196:idx+197), 'L', 'int16', cpuEndianness))';
+
 % bytes 198-219 are free
 block2         = data(idx+220:idx+223);  % uint16
 
@@ -368,9 +390,9 @@ sect.Time        = readClockData(data, idx+4);
 block2           = data(idx+10:idx+23); % int16
 
 sect.PressureMSB = data(idx+24); % uint8
-sect.Status      = data(idx+25);
+sect.Status      = uint8(de2bi(data(idx+25), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
 
-block1            = data(idx+26:idx+29); % uint16
+block1           = data(idx+26:idx+29); % uint16
 % !!! velocity can be negative
 block3           = data(idx+30:idx+35); % int16
 block4           = data(idx+36:idx+39); % uint8
@@ -550,7 +572,7 @@ sect.Pitch       = block(4);
 sect.Roll        = block(5);
 sect.Temperature = block(6);
 sect.Error       = data(idx+22);
-sect.Status      = sprintf('%08s', dec2bin(data(idx+23)));
+sect.Status      = uint8(de2bi(data(idx+23), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
 block            = data(idx+24:idx+27); % uint16
 
 % let's process uint16s in one call
@@ -575,7 +597,7 @@ sect.Time        = readClockData(data, idx+4);
 block1           = data(idx+10:idx+23); % int16
 
 sect.PressureMSB = data(idx+24); % uint8
-sect.Status      = data(idx+25);
+sect.Status      = uint8(de2bi(data(idx+25), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
 block2           = data(idx+26:idx+29); % uint16
 
 % let's process uint16s in one call
@@ -852,7 +874,7 @@ sect.Heading     = block(5);
 sect.Pitch       = block(6);
 sect.Roll        = block(7);
 sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness);
-sect.Status      = data(idx+25);
+sect.Status      = uint8(de2bi(data(idx+25), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
 block            = bytecast(data(idx+ 26:idx+29), 'L', 'uint16', cpuEndianness); % uint16
 sect.PressureLSW = block(1);
 sect.Temperature = block(2);
@@ -1176,7 +1198,15 @@ sect = struct;
 sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = 0;           % no size field in spec
+
+% [exvcccbb] status bits, where
+% e = error (0 = no error, 1 = error condition)
+% x = not used
+% v = velocity scaling (0 = mm/s, 1 = 0.1mm/s)
+% ccc = #cells -1
+% bb = #beams -1
 sect.Status = sprintf('%08s', dec2bin(data(idx+2)));
+
 sect.Count  = data(idx+3);
 
 % number of cells/beams is in status byte
@@ -1292,14 +1322,71 @@ function [sect, len, off] = readAwacProcessedVelocity(data, idx, cpuEndianness)
 % Awac Processed Velocity Profile Data
 % Id=0x6A SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 55-56
 
-Sync        = data(idx);
-Id          = data(idx+1);
-Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
-len              = Size * 2;
-off              = len;
-sect = [];
-%warning(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
-%disp(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
+sect.Sync    = data(idx);
+sect.Id      = data(idx+1);
+sect.Size    = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
+len          = sect.Size * 2;
+off          = len;
+ 
+sect.Time    = readClockData(data, idx+4);
+milliSeconds = bytecast(data(idx+10:idx+11), 'L', 'uint16', cpuEndianness);
+sect.Time    = sect.Time + (milliSeconds/1000/60/60/24);
+
+sect.Beams   = bytecast(data(idx+12), 'L', 'uint8', cpuEndianness);
+nCells       = bytecast(data(idx+13), 'L', 'uint8', cpuEndianness);
+sect.nCells  = nCells;
+
+% velocity
+vel1Off = idx+14;
+vel2Off = vel1Off + nCells*2;
+vel3Off = vel2Off + nCells*2;
+
+% signal to noise ratio
+snr1Off = vel3Off + nCells*2;
+snr2Off = snr1Off + nCells*2;
+snr3Off = snr2Off + nCells*2;
+
+% standard deviation
+std1Off = snr3Off + nCells*2;
+std2Off = std1Off + nCells*2;
+std3Off = std2Off + nCells*2;
+
+% error code
+erc1Off = std3Off + nCells*2;
+erc2Off = erc1Off + nCells;
+erc3Off = erc2Off + nCells;
+
+spdOff  = erc3Off + nCells;   % speed
+dirOff  = spdOff  + nCells*2; % direction
+vdtOff  = dirOff  + nCells*2; % vertical distance
+percOff = vdtOff  + nCells*2; % profile error code
+qcOff   = percOff + nCells;   % qc flag
+
+csOff   = qcOff   + nCells;   % checksum
+if mod(nCells, 2), csOff = csOff + 1; end % unconfirmed but was the only way to make this work
+
+sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16', cpuEndianness); % U comp (East)  % int16
+sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16', cpuEndianness); % V comp (North) % int16
+sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16', cpuEndianness); % W comp (up)    % int16
+
+sect.Snr1 = bytecast(data(snr1Off:snr1Off+nCells*2-1), 'L', 'uint16', cpuEndianness);
+sect.Snr2 = bytecast(data(snr2Off:snr2Off+nCells*2-1), 'L', 'uint16', cpuEndianness);
+sect.Snr3 = bytecast(data(snr3Off:snr3Off+nCells*2-1), 'L', 'uint16', cpuEndianness);
+
+sect.Std1 = bytecast(data(std1Off:std1Off+nCells*2-1), 'L', 'uint16', cpuEndianness);
+sect.Std2 = bytecast(data(std2Off:std2Off+nCells*2-1), 'L', 'uint16', cpuEndianness);
+sect.Std3 = bytecast(data(std3Off:std3Off+nCells*2-1), 'L', 'uint16', cpuEndianness);
+
+sect.Erc1 = bytecast(data(erc1Off:erc1Off+nCells-1),   'L', 'uint8', cpuEndianness);
+sect.Erc2 = bytecast(data(erc2Off:erc2Off+nCells-1),   'L', 'uint8', cpuEndianness);
+sect.Erc3 = bytecast(data(erc3Off:erc3Off+nCells-1),   'L', 'uint8', cpuEndianness);
+
+sect.speed            = bytecast(data(spdOff:spdOff+nCells*2-1), 'L', 'uint16', cpuEndianness);
+sect.direction        = bytecast(data(dirOff:dirOff+nCells*2-1), 'L', 'uint16', cpuEndianness);
+sect.verticalDistance = bytecast(data(vdtOff:vdtOff+nCells*2-1), 'L', 'uint16', cpuEndianness);
+sect.profileErrorCode = bytecast(data(percOff:percOff+nCells-1), 'L', 'uint8',  cpuEndianness);
+sect.qcFlag           = bytecast(data(qcOff:qcOff+nCells-1),     'L', 'uint8',  cpuEndianness);
+sect.Checksum         = bytecast(data(csOff:csOff+1),            'L', 'uint16', cpuEndianness);
 
 end
 
@@ -1328,6 +1415,43 @@ len = 80;
 off = len;
 sect = [];
 %warning('readWaveParameterEstimates not implemented yet.');
+
+% % Need to confirm below is correct
+% sect = struct;
+% sect.Sync   = data(idx);
+% sect.Id     = data(idx+1);
+% sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
+% sect.clock = readClockData(data, idx+4); %clock layout needs checking
+% sect.hSpectrumTyp = bytecast(data(idx+10), 'L', 'uint8', cpuEndianness);
+% sect.hProcMethod = bytecast(data(idx+11), 'L', 'uint8', cpuEndianness);
+% block = bytecast(data(idx+12:idx+33), 'L', 'uint16', cpuEndianness);
+% sect.Hm0 = block(1) / 1000; %metre
+% sect.H3 = block(2) /1000; %metre
+% sect.H10 = block(3) /1000; %metre
+% sect.Hmax = block(4) /1000; %metre
+% sect.Tm02 = block(5) * 0.01; %seconds
+% sect.Tp = block(6) * 0.01; %seconds
+% sect.DirTp = block(7) * 0.01; %seconds
+% sect.DirMean = block(8) * 0.01; %seconds
+% sect.SprTp = block(9) * 0.01; %seconds
+% sect.DirMean = block(10) * 0.01; %degrees
+% sect.UI = block(11) / 65535;
+% sect.hPressureMean = bytecast(data(idx+34:idx+37), 'L', 'uint32', cpuEndianness) * 0.001; %dbar
+% sect.NumNoDet = bytecast(data(idx+38:idx+39), 'L', 'uint16', cpuEndianness);
+% sect.NumBadDet = bytecast(data(idx40:idx+42), 'L', 'uint16', cpuEndianness);
+% sect.CurSpeedMean = bytecast(data(idx42:idx+43), 'L', 'uint16', cpuEndianness) /1000; %m/s
+% sect.CurDirMean = bytecast(data(idx43:idx+44), 'L', 'uint16', cpuEndianness) * 0.01; %degrees
+% sect.hError = bytecast(data(idx46:idx+49), 'L', 'uint32', cpuEndianness);
+% sect.ASTdistMean = bytecast(data(idx50:idx+53), 'L', 'uint32', cpuEndianness) / 1000; %metre
+% sect.ICEdistMean = bytecast(data(idx54:idx+57), 'L', 'uint32', cpuEndianness) / 1000; %metre
+% block = bytecast(data(idx+60:idx+67), 'L', 'uint16', cpuEndianness);
+% sect.fregDirAmbLimit = block(1) * 0.001; %hertz
+% set.T3 = block(2); %seconds
+% sect.T10 = block(3) * 0.1; %sec
+% sect.Tmax = block(4); %seconds
+% sect.Hmean = block(5) / 1000; %metre
+% % bytes idx+88 to idx+77 spare
+% sect.checksum = bytecast(data(idx+78:idx+79), 'L', 'uint16', cpuEndianness);
 
 end
 

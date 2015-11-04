@@ -69,7 +69,7 @@ idABSI = cell(4, 1);
 for j=1:4
     idABSI{j}  = 0;
 end
-lenVar = size(sample_data.variables, 2);
+lenVar = length(sample_data.variables);
 for i=1:lenVar
     paramName = sample_data.variables{i}.name;
     
@@ -134,16 +134,19 @@ lenTime = sizeCur(1);
 lenBin  = sizeCur(2);
 
 % if the following test is successfull, the bin gets good
-ib = uint8(diff(squeeze(ea(1, :,:)),1,2) <= ea_thresh) + ...
-     uint8(diff(squeeze(ea(2, :,:)),1,2) <= ea_thresh) + ...
-     uint8(diff(squeeze(ea(3, :,:)),1,2) <= ea_thresh) + ...
-     uint8(diff(squeeze(ea(4, :,:)),1,2) <= ea_thresh);
+ib = uint8(abs(diff(squeeze(ea(1, :,:)),1,2)) <= ea_thresh) + ...
+     uint8(abs(diff(squeeze(ea(2, :,:)),1,2)) <= ea_thresh) + ...
+     uint8(abs(diff(squeeze(ea(3, :,:)),1,2)) <= ea_thresh) + ...
+     uint8(abs(diff(squeeze(ea(4, :,:)),1,2)) <= ea_thresh);
 
 % we look for the bins that have 3 or more beams that pass the tests
 ib = ib >= 3;
  
-% we assume the first bin is good
+% we assume that the first half of bins should always be good
 ib = [true(lenTime, 1), ib];
+for i=1:round(lenBin/2)
+    ib(:, i) = true;
+end
  
 % any good bin further than a bad one should be set bad
 jkf = repmat(single(1:1:lenBin), [lenTime, 1]);

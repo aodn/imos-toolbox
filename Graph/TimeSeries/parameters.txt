@@ -20,6 +20,14 @@ PERG1,     TimeDepth
 PERG2,     TimeDepth
 PERG3,     TimeDepth
 PERG4,     TimeDepth
+SNR1,      TimeDepth
+SNR2,      TimeDepth
+SNR3,      TimeDepth
+NORTEK_ERR1, TimeDepth
+NORTEK_ERR2, TimeDepth
+NORTEK_ERR3, TimeDepth
+NORTEK_PROFILE_ERR, TimeDepth
+NORTEK_QC, TimeDepth
 VDEN,      TimeFrequency
 VDEV,      TimeFrequency
 VDEP,      TimeFrequency
