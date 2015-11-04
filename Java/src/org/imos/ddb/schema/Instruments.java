@@ -32,25 +32,26 @@ package org.imos.ddb.schema;
 
 import java.util.Date;
 
-public class Instruments {
-  
-  public String  InstrumentID;
-  public String  Make;
-  public String  Model;
-  public String  SerialNumber;
-  public String  AssetNumber;
-  public String  BarCode;
-  public Date    PurchaseDate;
-  public Date    ExpiryDate;
-  public Double  AssetLifeYears;
-  public String  Category;
-  public String  Sensors;
-  public String  Description;
-  public String  Capability;
-  public Boolean Status;
-  public String  Project;
-  public String  Image;
-  public String  Comment;
-  public Date    Modified;
-  public String  ModifiedBy;
+public class Instruments
+{
+
+	public String InstrumentID;
+	public String Make;
+	public String Model;
+	public String SerialNumber;
+	public String AssetNumber;
+	public String BarCode;
+	public Date PurchaseDate;
+	public Date ExpiryDate;
+	public Double AssetLifeYears;
+	public String Category;
+	public String Sensors;
+	public String Description;
+	public String Capability;
+	public Boolean Status;
+	public String Project;
+	public String Image;
+	public String Comment;
+	public Date Modified;
+	public String ModifiedBy;
 }

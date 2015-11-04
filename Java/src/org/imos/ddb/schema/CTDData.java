@@ -32,42 +32,42 @@ package org.imos.ddb.schema;
 
 import java.util.Date;
 
-public class CTDData {
-  
-  public String  FieldTrip;
-  public Double  Latitude;
-  public Double  Longitude;
-  public String  Site;
-  public String  Station;
-  public String  InstrumentID;
-  public String  FileName;
-  public Boolean Niskin;
-  public Boolean Chlorophyll;
-  public Double  DepthNiskin01;
-  public String  DepthDatumNiskin01;
-  public Double  DepthNiskin02;
-  public String  DepthDatumNiskin02;
-  public Double  DepthNiskin03;
-  public String  DepthDatumNiskin03;
-  public Double  DepthNiskin04;
-  public String  DepthDatumNiskin04;
-  public Double  DepthNiskin05;
-  public String  DepthDatumNiskin05;
-  public Date    DateFirstInPos;
-  public Date    TimeFirstInPos;
-  public Date    DateLastInPos;
-  public Date    TimeLastInPos;
-  public String  TimeZone;
-  public String  InstrumentDepth;
-  public String  InstrumentDepthDatum;
-  public String  SiteDepth;
-  public String  SiteDepthDatum;
-  public String  LinkFile1;
-  public String  LinkFile2;
-  public String  Comment;
-  public String  ResearchActivity;
-  public Date    DateModified;
-  public Date    TimeModified;
-  public String  ModifiedBy;
-}
+public class CTDData
+{
 
+	public String FieldTrip;
+	public Double Latitude;
+	public Double Longitude;
+	public String Site;
+	public String Station;
+	public String InstrumentID;
+	public String FileName;
+	public Boolean Niskin;
+	public Boolean Chlorophyll;
+	public Double DepthNiskin01;
+	public String DepthDatumNiskin01;
+	public Double DepthNiskin02;
+	public String DepthDatumNiskin02;
+	public Double DepthNiskin03;
+	public String DepthDatumNiskin03;
+	public Double DepthNiskin04;
+	public String DepthDatumNiskin04;
+	public Double DepthNiskin05;
+	public String DepthDatumNiskin05;
+	public Date DateFirstInPos;
+	public Date TimeFirstInPos;
+	public Date DateLastInPos;
+	public Date TimeLastInPos;
+	public String TimeZone;
+	public String InstrumentDepth;
+	public String InstrumentDepthDatum;
+	public String SiteDepth;
+	public String SiteDepthDatum;
+	public String LinkFile1;
+	public String LinkFile2;
+	public String Comment;
+	public String ResearchActivity;
+	public Date DateModified;
+	public Date TimeModified;
+	public String ModifiedBy;
+}

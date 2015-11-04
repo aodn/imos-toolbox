@@ -28,12 +28,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.imos.ddb.schema;
+package org.imos.ddb;
 
-public class FieldTripPersonnel
+public class DBObject
 {
-
-	public String FieldTripID;
-	public String StaffID;
-	public String Comment;
+	public String name;
+	public Object o;
 }
