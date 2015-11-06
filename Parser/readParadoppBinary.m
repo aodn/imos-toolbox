@@ -390,7 +390,7 @@ sect.Time        = readClockData(data, idx+4);
 block2           = data(idx+10:idx+23); % int16
 
 sect.PressureMSB = data(idx+24); % uint8
-sect.Status      = uint8(de2bi(data(idx+25), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+sect.Status      = uint8(dec2bin(data(idx+25), 8)-'0')'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
 
 block1           = data(idx+26:idx+29); % uint16
 % !!! velocity can be negative
@@ -572,7 +572,7 @@ sect.Pitch       = block(4);
 sect.Roll        = block(5);
 sect.Temperature = block(6);
 sect.Error       = data(idx+22);
-sect.Status      = uint8(de2bi(data(idx+23), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+sect.Status      = uint8(dec2bin(data(idx+23), 8)-'0')'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
 block            = data(idx+24:idx+27); % uint16
 
 % let's process uint16s in one call
@@ -597,7 +597,7 @@ sect.Time        = readClockData(data, idx+4);
 block1           = data(idx+10:idx+23); % int16
 
 sect.PressureMSB = data(idx+24); % uint8
-sect.Status      = uint8(de2bi(data(idx+25), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+sect.Status      = uint8(dec2bin(data(idx+25), 8)-'0')'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
 block2           = data(idx+26:idx+29); % uint16
 
 % let's process uint16s in one call
@@ -874,7 +874,7 @@ sect.Heading     = block(5);
 sect.Pitch       = block(6);
 sect.Roll        = block(7);
 sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness);
-sect.Status      = uint8(de2bi(data(idx+25), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+sect.Status      = uint8(dec2bin(data(idx+25), 8)-'0')'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
 block            = bytecast(data(idx+ 26:idx+29), 'L', 'uint16', cpuEndianness); % uint16
 sect.PressureLSW = block(1);
 sect.Temperature = block(2);
