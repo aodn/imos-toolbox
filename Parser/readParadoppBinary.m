@@ -348,7 +348,7 @@ sect.NBins          = blocks(17);
 sect.BinLength      = blocks(18);
 sect.MeasInterval   = blocks(19);
 sect.WrapMode       = blocks(20);
-sect.Mode           = sprintf('%08s', dec2bin(blocks(21)));
+sect.Mode           = dec2bin(blocks(21), 8);
 sect.AdjSoundSpeed  = blocks(22);
 sect.NSampDiag      = blocks(23);
 sect.NBeamsCellDiag = blocks(24);
@@ -390,7 +390,8 @@ sect.Time        = readClockData(data, idx+4);
 block2           = data(idx+10:idx+23); % int16
 
 sect.PressureMSB = data(idx+24); % uint8
-sect.Status      = uint8(de2bi(data(idx+25), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+% 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+sect.Status      = uint8(flipud(str2num(dec2bin(data(idx+25), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
 
 block1           = data(idx+26:idx+29); % uint16
 % !!! velocity can be negative
@@ -572,7 +573,8 @@ sect.Pitch       = block(4);
 sect.Roll        = block(5);
 sect.Temperature = block(6);
 sect.Error       = data(idx+22);
-sect.Status      = uint8(de2bi(data(idx+23), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+% 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+sect.Status      = uint8(flipud(str2num(dec2bin(data(idx+23), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
 block            = data(idx+24:idx+27); % uint16
 
 % let's process uint16s in one call
@@ -597,7 +599,8 @@ sect.Time        = readClockData(data, idx+4);
 block1           = data(idx+10:idx+23); % int16
 
 sect.PressureMSB = data(idx+24); % uint8
-sect.Status      = uint8(de2bi(data(idx+25), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+% 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+sect.Status      = uint8(flipud(str2num(dec2bin(data(idx+25), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
 block2           = data(idx+26:idx+29); % uint16
 
 % let's process uint16s in one call
@@ -874,7 +877,8 @@ sect.Heading     = block(5);
 sect.Pitch       = block(6);
 sect.Roll        = block(7);
 sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness);
-sect.Status      = uint8(de2bi(data(idx+25), 8))'; % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+% 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
+sect.Status      = uint8(flipud(str2num(dec2bin(data(idx+25), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
 block            = bytecast(data(idx+ 26:idx+29), 'L', 'uint16', cpuEndianness); % uint16
 sect.PressureLSW = block(1);
 sect.Temperature = block(2);
@@ -1205,7 +1209,7 @@ sect.Size   = 0;           % no size field in spec
 % v = velocity scaling (0 = mm/s, 1 = 0.1mm/s)
 % ccc = #cells -1
 % bb = #beams -1
-sect.Status = sprintf('%08s', dec2bin(data(idx+2)));
+sect.Status = dec2bin(data(idx+2), 8);
 
 sect.Count  = data(idx+3);
 
