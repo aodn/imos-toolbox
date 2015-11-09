@@ -54,9 +54,9 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 if ~isvector(color),       error('color must be a vector');       end
 
-time = sample_data.variables{var}.dimensions(1);
+iTimeDim = getVar(sample_data.dimensions, 'TIME');
 
-time = sample_data.dimensions{time};
+time = sample_data.dimensions{iTimeDim};
 var  = sample_data.variables {var};
 
 if ischar(var.data), var.data = str2num(var.data); end % we assume data is an array of one single character

@@ -54,8 +54,8 @@ if ~isnumeric(var),        error('var must be numeric');                 end
 if ~ishandle(ax),          error('ax must be a graphics handle');        end
 if ~ishandle(highlight),   error('highlight must be a graphics handle'); end
 
-time = sample_data.variables{var}.dimensions(1);
-time = sample_data.dimensions{time};
+iTimeDim = getVar(sample_data.dimensions, 'TIME');
+time = sample_data.dimensions{iTimeDim};
 
 highlightX = get(highlight, 'XData');
 

@@ -55,10 +55,10 @@ if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 
-time = sample_data.variables{var}.dimensions(1);
+iTimeDim = getVar(sample_data.dimensions, 'TIME');
 freq = sample_data.variables{var}.dimensions(2);
 
-time = sample_data.dimensions{time};
+time = sample_data.dimensions{iTimeDim};
 freq = sample_data.dimensions{freq};
 var  = sample_data.variables {var};
 
