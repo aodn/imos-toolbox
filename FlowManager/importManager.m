@@ -80,7 +80,7 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   sample_data = {};
   rawFiles    = {};
   
-  if ~isempty(ddb) || (~isempty(driver) && ~isempty(connection))
+  if (~isempty(ddb) && ~isempty(driver) && ~isempty(connection))
       [structs rawFiles] = ddbImport(auto, iMooring);
   else
     if auto, error('manual import cannot be automated without deployment database'); end
@@ -90,7 +90,6 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   % user cancelled
   if isempty(structs), return; end
   
-  dateFmt = readProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readProperty('toolbox.qc_set'));
   rawFlag = imosQCFlag('raw', qcSet, 'flag');
   

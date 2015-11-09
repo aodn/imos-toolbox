@@ -1,18 +1,26 @@
 % filename or ODBC DSN of MS-ACCESS deployment database
 % ex. : /home/ggalibert/OceanDB.mdb or imos-ddb
-toolbox.ddb = 
+toolbox.ddb = IMOS-DEPLOY
+%toolbox.ddb = imos-ddb
+%toolbox.ddb =
 
 % or full connection details to other kind of deployment database :
 % class name of JDBC database driver
 % ex. : net.ucanaccess.jdbc.UcanaccessDriver
-toolbox.ddb.driver = 
+toolbox.ddb.driver = org.postgresql.Driver
+%toolbox.ddb.driver = net.ucanaccess.jdbc.UcanaccessDriver
 
 % database connection string, must include user and password if required by the database
 % ex. : "jdbc:ucanaccess:///home/ggalibert/OceanDB.mdb;jackcessOpener=org.imos.ddb.CryptCodecOpener"
-toolbox.ddb.connection = 
+toolbox.ddb.connection = jdbc:postgresql://localhost/IMOS-DEPLOY
+%toolbox.ddb.connection = "jdbc:ucanaccess://C:/Users/jan079/svn/imos-toolbox/TAS-IMOS_DeploymentDatabase2.0.mdb;jackcessOpener=org.imos.ddb.CryptCodecOpener"
+%toolbox.ddb.connection = "jdbc:ucanaccess:////Users/pete/ABOS/imos-toolbox/TAS-IMOS_DeploymentDatabase2.0.mdb;jackcessOpener=org.imos.ddb.CryptCodecOpener"
+%toolbox.ddb.connection = "jdbc:ucanaccess://C:/Users/jan079/svn/imos-toolbox/TAS-IMOS_DeploymentDatabase2.0.mdb"
+%toolbox.ddb.connection = "jdbc:ucanaccess:////Users/pete/ABOS/imos-toolbox/TAS-IMOS_DeploymentDatabase2.0.mdb"
 
 % user's login and password to database
-toolbox.ddb.user = 
+%toolbox.ddb.user = 
+toolbox.ddb.user = pete
 toolbox.ddb.password = 
 
 % toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
@@ -37,7 +45,7 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
-autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosCorrMagVelocitySetQC imosHistoricalManualSetQC
+autoQCManager.autoQCChain.timeSeries = imosInOutWaterQC
 autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
 
 % prompt for preprocessing (if false, 
@@ -45,31 +53,31 @@ autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationS
 preprocessManager.preprocessPrompt = true
 
 % default set of preprocessing routines
-preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP binMappingVelocityPP
+preprocessManager.preprocessChain.timeSeries = depthPP salinityPP binMappingVelocityPP
 preprocessManager.preprocessChain.profile = depthPP salinityPP
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
 % 'blue' etc)
 dataFileStatusDialog.invalidFileNameFormat = red
-dataFileStatusDialog.noFileFormat          = bold
+dataFileStatusDialog.noFileFormat          = blue
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % default values for start dialog
-startDialog.dataDir.timeSeries = 
+startDialog.dataDir.timeSeries = /Users/pete/ABOS/imos-toolbox/data
 startDialog.dataDir.profile = 
-startDialog.fieldTrip.timeSeries = 
+startDialog.fieldTrip.timeSeries = SOTS-00084
 startDialog.fieldTrip.profile = 
-startDialog.lowDate.timeSeries = 
+startDialog.lowDate.timeSeries = 0
 startDialog.lowDate.profile = 
-startDialog.highDate.timeSeries = 
+startDialog.highDate.timeSeries = 736273.207
 startDialog.highDate.profile = 
 
 % default directory for manual data import
-importManager.manualDir = 
+importManager.manualDir = C:\Users\jan079\svn\imos-toolbox\data\
 
 % default directory for file export
-exportDialog.defaultDir = 
+exportDialog.defaultDir = /Users/pete/ABOS/imos-toolbox/data
 
 % prompt user to select parser if an appropriate one 
 % cannot be found (if false, the data is not imported)

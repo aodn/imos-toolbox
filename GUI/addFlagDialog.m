@@ -139,8 +139,8 @@ function [returnVars, flagVal, commentText] = addFlagDialog( variable, kVar, def
   set(optList,       'Position', [0.0,  0.9,  1.0,  0.1]);
   set(setPanel,      'Position', [0.0,  0.5,  1.0,  0.4]);
   set(commentPanel,  'Position', [0.0,  0.1,  1.0,  0.4]);
-  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.1]);
-  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.1]);
+  set(cancelButton,  'Position', [0.6,  0.015,  0.15,  0.07]);
+  set(confirmButton, 'Position', [0.8,  0.015,  0.15,  0.07]);
 
   % populate the panel for variable selection
   uicontrol(...
