@@ -86,7 +86,7 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
   xLimits = [min(sample_data.dimensions{iTimeDim}.data), max(sample_data.dimensions{iTimeDim}.data)];
   xStep   = (xLimits(2) - xLimits(1)) / 5;
   xTicks  = xLimits(1):xStep:xLimits(2);
-  xTickLabels = datestr(xTicks, 'dd-mm-yy HH:MM');
+  xTickLabels = datestr(xTicks, 'yyyy-dd-mm HH:MM');
   xTickProp.ticks = xTicks;
   xTickProp.labels = xTickLabels;
     
