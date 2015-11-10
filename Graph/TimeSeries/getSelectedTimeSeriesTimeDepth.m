@@ -55,10 +55,10 @@ if ~ishandle(highlight),   error('highlight must be a graphics handle'); end
 
 dataIdx = [];
 
-time  = sample_data.variables{var}.dimensions(1);
+iTimeDim = getVar(sample_data.dimensions, 'TIME');
 depth = sample_data.variables{var}.dimensions(2);
 
-time  = sample_data.dimensions{time} .data;
+time  = sample_data.dimensions{iTimeDim} .data;
 depth = sample_data.dimensions{depth}.data;
 
 highlightX = get(highlight, 'XData');
