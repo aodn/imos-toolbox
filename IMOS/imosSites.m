@@ -69,7 +69,7 @@ try
   fid = fopen([path filesep 'imosSites.txt'], 'rt');
   if fid == -1, return; end
   
-  params = textscan(fid, '%s%f%f%f%f%f', 'delimiter', ',', 'commentStyle', '%');
+  params = textscan(fid, '%s%12.8f%12.8f%f%f%f', 'delimiter', ',', 'commentStyle', '%');
   fclose(fid);
 catch e
   if fid ~= -1, fclose(fid); end
