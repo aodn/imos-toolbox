@@ -95,8 +95,8 @@ function choice = optionDialog( title, message, options, default )
   set(confirmButton, 'Units', 'normalized');
 
   set(f,             'Position', [0.3,  0.46, 0.4,  0.08]);
-  set(cancelButton,  'Position', [0.6,  0.015,  0.15,  0.07 ]);
-  set(confirmButton, 'Position', [0.8,  0.015,  0.15,  0.07 ]);
+  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.3 ]);
+  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.3 ]);
   set(optList,       'Position', [0.0,  0.3,  1.0,  0.3 ]);
   set(msgPanel,      'Position', [0.0,  0.6,  1.0,  0.4 ]);
 
