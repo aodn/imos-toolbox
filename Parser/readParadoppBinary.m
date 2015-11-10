@@ -127,14 +127,16 @@ function [sect, off] = readSection(filename, data, idx, cpuEndianness)
 sect = [];
 off = [];
 
+sectType = data(idx+1);
+
 % check sync byte
 if data(idx) ~= 165 % hex a5
     fprintf('%s\n', ['Warning : ' filename ' bad sync (idx '...
         num2str(idx) ', val ' num2str(data(idx)) ')']);
+    fprintf('%s\n', ['Sect Type: ' num2str(sectType)]);
     return;
 end
 
-sectType = data(idx+1);
 %disp(['sectType : hex ' dec2hex(sectType) ' == ' num2str(sectType) ' at offset ' num2str(idx+1)]);
 
 % read the section in
@@ -171,6 +173,9 @@ switch sectType
 %        disp(['sectType : hex ' dec2hex(sectType) ' == ' num2str(sectType) ' at offset ' num2str(idx+1)]);        
         [sect, len, off] = readGeneric(data, idx, cpuEndianness);
 end
+
+%disp('Just read sector type');
+%disp(['sectType : hex ' dec2hex(sectType) ' == ' num2str(sectType) ' at offset ' num2str(idx+1)]);
 
 if isempty(sect), return; end
 if numel(data) < idx+len
@@ -1307,12 +1312,14 @@ sect.Samples   = bytecast(data(idx+10:idx+11), 'L', 'uint16', cpuEndianness);
 sect.Spare   = bytecast(data(idx+12:idx+23), 'L', 'uint8', cpuEndianness);
 
 astOff = idx+24;
-csOff   = astOff + (sect.Samples*2)*2 + 1;
-sect.ast = bytecast(data(astOff:csOff-1), 'L', 'uint16', cpuEndianness);
+% description in System Integrator manual unclear, but this calculation of
+% csOff works to produce corrent checksum comparison
+csOff   = astOff + sect.Samples*2;
+sect.ast = bytecast(data(astOff:csOff-1), 'L', 'uint16', cpuEndianness); % mm
 
 sect.Checksum  = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
-sect = [];
+%sect = [];
 %warning(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
 %disp(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
 
@@ -1411,8 +1418,9 @@ function [sect, len, off] = readWaveParameterEstimates(data, idx, cpuEndianness)
 % Id=0x60, Wave parameter estimates
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 52-53
 
-len = 80;
-off = len;
+Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
+len              = Size * 2;
+off              = len;
 sect = [];
 %warning('readWaveParameterEstimates not implemented yet.');
 
@@ -1460,8 +1468,9 @@ function [sect, len, off] = readWaveBandEstimates(data, idx, cpuEndianness)
 % Id=0x61, Wave band estimates
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 53
 
-len = 48;
-off = len;
+Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
+len              = Size * 2;
+off              = len;
 sect = [];
 %warning('readWaveBandEstimates not implemented yet.');
 
@@ -1525,8 +1534,9 @@ function [sect, len, off] = readWaveFourierCoefficentSpectrum(data, idx, cpuEndi
 % Id=0x63, Wave fourier coefficient spectrum
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 54
 
-len = 816;
-off = len;
+Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
+len              = Size * 2;
+off              = len;
 sect = [];
 %warning('readWaveFourierCoefficentSpectrum not implemented yet.');
 
