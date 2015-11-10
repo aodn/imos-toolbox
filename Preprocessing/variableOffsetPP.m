@@ -107,8 +107,8 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
       
       % position widgets
       set(f,             'Position', [0.25, 0.25,  0.5, 0.5]);
-      set(cancelButton,  'Position', [0.6,  0.015,  0.15,  0.07]);
-      set(confirmButton, 'Position', [0.8,  0.015,  0.15,  0.07]);
+      set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.1]);
+      set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.1]);
       set(tabPanel,      'Position', [0.0,  0.1,  1.0,  0.9]);
       
       % reset back to pixels

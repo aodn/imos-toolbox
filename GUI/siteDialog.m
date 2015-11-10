@@ -90,8 +90,8 @@ function selectedSiteId = siteDialog(siteId, siteDesc)
 
   % position the widgets
   set(f,               'Position', [0.2,  0.35,  0.6,   0.3]);
-  set(cancelButton,    'Position', [0.6,  0.015,   0.15,   0.07]);
-  set(confirmButton,   'Position', [0.8,  0.015,   0.15,   0.07]);
+  set(cancelButton,    'Position', [0.0,  0.0,   0.5,   0.1]);
+  set(confirmButton,   'Position', [0.5,  0.0,   0.5,   0.1]);
   set(fidLabel,        'Position', [0.0,  0.1,   0.2,   0.9]);
   set(fidList,         'Position', [0.2,  0.1,   0.8,   0.9]);
   

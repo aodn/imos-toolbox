@@ -116,13 +116,13 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
 
   % position widgets
   set(f,                'Position', [0.3, 0.3,  0.4, 0.4 ]);
-  set(cancelButton,     'Position', [0.6, 0.015,  0.15, 0.05]);
-  set(confirmButton,    'Position', [0.8, 0.015,  0.15, 0.05]);
+  set(cancelButton,     'Position', [0.0, 0.0,  0.5, 0.08]);
+  set(confirmButton,    'Position', [0.5, 0.0,  0.5, 0.08]);
   set(fileList,         'Position', [0.0, 0.08, 1.0, 0.32]);
-  set(fileRemoveButton, 'Position', [0.4, 0.415, 0.2, 0.05]);
-  set(fileAddButton,    'Position', [0.7, 0.415, 0.25, 0.05]);
+  set(fileRemoveButton, 'Position', [0.0, 0.40, 0.5, 0.08]);
+  set(fileAddButton,    'Position', [0.5, 0.40, 0.5, 0.08]);
   set(depList,          'Position', [0.0, 0.48, 1.0, 0.44]);
-  set(depRemoveButton,  'Position', [0.5, 0.93, 0.3, 0.05]);
+  set(depRemoveButton,  'Position', [0.0, 0.92, 1.0, 0.08]);
   
   % reset back to pixel units
   set(f,                                 'Units', 'pixels');
