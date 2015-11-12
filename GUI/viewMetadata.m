@@ -60,7 +60,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(5, 5, nargin));
+  narginchk(5, 5);
 
   if ~ishandle(parent),      error('parent must be a handle');           end
   if ~isstruct(sample_data), error('sample_data must be a struct');      end

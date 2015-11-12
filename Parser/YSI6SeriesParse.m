@@ -48,7 +48,7 @@ function sample_data = YSI6SeriesParse( filename, mode )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,2,nargin));
+  narginchk(1,2);
 
   if ~iscellstr(filename)
     error('filename must be a cell array of strings'); 

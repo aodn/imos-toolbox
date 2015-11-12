@@ -49,7 +49,7 @@ function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,4,nargin));
+  narginchk(3,4);
 
   %BDM - 12/08/2010 - added auto logical in input to enable running under
   %batch processing

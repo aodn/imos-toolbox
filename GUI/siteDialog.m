@@ -47,7 +47,7 @@ function selectedSiteId = siteDialog(siteId, siteDesc)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,2,nargin));
+  narginchk(2,2);
   
   % generate site labels
   nSites = length(siteId);

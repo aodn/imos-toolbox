@@ -56,7 +56,7 @@ function writeProperty( prop, val, file, delim )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(2,4,nargin));
+narginchk(2,4);
 
 if ~exist('delim', 'var'), delim = '=';                     end
 if ~exist('file',  'var'), file  = 'toolboxProperties.txt'; end

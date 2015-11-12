@@ -46,7 +46,7 @@ function sample_data = readECOraw( filename, deviceInfo )
 %
 
 % ensure that there is exactly one argument
-error(nargchk(2, 2, nargin));
+narginchk(2, 2);
 if ~ischar(filename), error('filename must contain a string'); end
 if ~isstruct(deviceInfo), error('deviceInfo must contain a struct'); end
 

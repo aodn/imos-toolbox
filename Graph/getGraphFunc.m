@@ -81,7 +81,7 @@ function func = getGraphFunc( graphType, graphFunc, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,3,nargin));
+narginchk(3,3);
 
 if ~ischar(graphType), error('graphType must be a string'); end
 if ~ischar(graphFunc), error('graphFunc must be a string'); end

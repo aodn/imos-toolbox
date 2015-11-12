@@ -48,7 +48,7 @@ function [ matlabType ] = netcdf3ToMatlabType( netcdfType )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+narginchk(1,1);
 
 if ~ischar(netcdfType),        error('netcdfType must be a string');  end
 

@@ -57,7 +57,7 @@ function sample_data = timeOffsetPP(sample_data, qcLevel, auto)
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-  error(nargchk(2,3,nargin));
+  narginchk(2,3);
   
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end

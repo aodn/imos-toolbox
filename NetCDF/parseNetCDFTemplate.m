@@ -178,7 +178,7 @@ function template = parseNetCDFTemplate ( file, sample_data, k )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2, 3, nargin));
+  narginchk(2, 3);
 
   if ~ischar(file),                error('file must be a string');        end
   if ~isstruct(sample_data),       error('sample_data must be a struct'); end

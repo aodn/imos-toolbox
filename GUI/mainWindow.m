@@ -84,7 +84,7 @@ function mainWindow(...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(5,5,nargin));
+  narginchk(5,5);
 
   if ~ischar(windowTitle),   error('windowTitle must be a string');         end
   if ~iscell(sample_data)...
@@ -711,7 +711,7 @@ end
   %UPDATECALLBACK Called when a data set has been modified. Saves the new
   % copy of the data set.
   %
-    error(nargchk(1,1,nargin));
+    narginchk(1,1);
     if ~isstruct(sam),              error('sam must be a struct');         end
     if ~isfield(sam.meta, 'index'), error('sam must have an index field'); end
     

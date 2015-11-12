@@ -47,7 +47,7 @@ function sample_data = ECOTripletParse( filename, mode )
 %
   % ensure that there is exactly one argument, 
   % and that it is a cell array of strings
-  error(nargchk(1, 2, nargin));
+  narginchk(1, 2);
   if ~iscell(filename), error('filename must be a cell array'); end
 
   filename = filename{1};

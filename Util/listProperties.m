@@ -52,7 +52,7 @@ function [names values] = listProperties(file, delim)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(0,2,nargin));
+narginchk(0,2);
 
 if ~exist('delim', 'var'), delim = '=';                     end
 if ~exist('file',  'var'), file  = 'toolboxProperties.txt'; end

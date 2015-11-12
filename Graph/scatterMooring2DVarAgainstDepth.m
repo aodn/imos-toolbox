@@ -46,7 +46,7 @@ function scatterMooring2DVarAgainstDepth(sample_data, varName, isQC, saveToFile,
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+narginchk(5,5);
 
 if ~iscell(sample_data),    error('sample_data must be a cell array');  end
 if ~ischar(varName),        error('varName must be a string');          end

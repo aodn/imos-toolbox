@@ -47,7 +47,7 @@ function [graphs lines vars] = graphXvY( parent, sample_data, vars )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,3,nargin));
+  narginchk(3,3);
   
   if ~ishandle( parent),       error('parent must be a handle');      end
   if ~isstruct( sample_data),  error('sample_data must be a struct'); end

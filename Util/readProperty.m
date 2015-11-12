@@ -53,7 +53,7 @@ function value = readProperty(prop, file, delim)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,3,nargin));
+narginchk(1,3);
 
 if ~exist('delim', 'var'), delim = '=';                     end
 if ~exist('file',  'var'), file  = 'toolboxProperties.txt'; end

@@ -55,7 +55,7 @@ function writeQCparameter(rawDataFile, QCtest, param, value)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(4,4,nargin));
+narginchk(4,4);
 
 if ~ischar(rawDataFile), error('rawDataFile must be a string'); end
 if ~ischar(QCtest),      error('QCtest must be a string');      end

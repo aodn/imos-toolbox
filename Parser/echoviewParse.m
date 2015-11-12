@@ -61,7 +61,7 @@ function sample_data = echoviewParse( filename, platform, config )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,3,nargin));
+  narginchk(1,3);
 
   if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 

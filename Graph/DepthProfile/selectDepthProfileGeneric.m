@@ -43,7 +43,7 @@ function selectDepthProfileGeneric( selectCallback, clickCallback )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,2,nargin));
+  narginchk(2,2);
 
   if ~isa(selectCallback, 'function_handle')
     error('selectCallback must be a function handle');

@@ -46,7 +46,7 @@ function exportManager(dataSets, levelNames, output, auto)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,4,nargin));
+  narginchk(3,4);
 
   if ~iscell(dataSets),      error('dataSets must be a cell array');   end
   if ~iscellstr(levelNames), error('levelNames must be a cell array'); end

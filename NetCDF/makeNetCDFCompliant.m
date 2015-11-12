@@ -48,7 +48,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+  narginchk(1,1);
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
 

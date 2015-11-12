@@ -58,7 +58,7 @@ function [data, flags, paramsLog] = imosImpossibleDateQC( sample_data, data, k, 
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(4, 5, nargin));
+narginchk(4, 5);
 if ~isstruct(sample_data),        error('sample_data must be a struct'); end
 % if ~isvector(data),               error('data must be a vector');        end
 if ~isscalar(k) || ~isnumeric(k), error('k must be a numeric scalar');   end

@@ -47,7 +47,7 @@ function value = imosFileVersion(index, field)
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(2, 2, nargin));
+narginchk(2, 2);
 if isnumeric(index), index = num2str(index); end
 if ~ischar(field),    error('field must be a string'); end
 

@@ -63,7 +63,7 @@ function structures = readParadoppBinary( filename )
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
-error(nargchk(1,1,nargin));
+narginchk(1,1);
 
 if ~ischar(filename),         error('filename must be a string');  end
 if ~exist( filename, 'file'), error([filename ' does not exist']); end

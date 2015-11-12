@@ -48,7 +48,7 @@ function lineMooring2DVarSection(sample_data, varName, timeValue, isQC, saveToFi
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(6,6,nargin));
+narginchk(6,6);
 
 if ~isstruct(sample_data),  error('sample_data must be a struct');      end
 if ~ischar(varName),        error('varName must be a string');          end

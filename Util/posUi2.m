@@ -62,7 +62,7 @@ function pos = posUi2( hContainer , nLine , nRow , line , row , margin , outUnit
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(5, 7, nargin));
+narginchk(5, 7);
 if nargin < 6
     margin = 0;
 end

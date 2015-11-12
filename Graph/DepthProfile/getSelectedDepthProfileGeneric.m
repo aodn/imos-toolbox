@@ -50,7 +50,7 @@ function dataIdx = getSelectedDepthProfileGeneric( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(4,4,nargin));
+narginchk(4,4);
 
 if ~isstruct(sample_data), error('sample_data must be a struct');        end
 if ~isnumeric(var),        error('var must be numeric');                 end

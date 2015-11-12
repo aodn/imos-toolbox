@@ -41,7 +41,7 @@ function errorString = getErrorString(e)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,1,nargin));
+narginchk(1,1);
 
 errorString = '';
 

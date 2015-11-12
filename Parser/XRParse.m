@@ -49,7 +49,7 @@ function sample_data = XRParse( filename, mode )
 
 % ensure that there is exactly one argument, 
 % and that it is a cell array of strings
-error(nargchk(1,2,nargin));
+narginchk(1,2);
 
 if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 

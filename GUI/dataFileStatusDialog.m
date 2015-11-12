@@ -55,7 +55,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,2,nargin));
+  narginchk(2,2);
 
   if ~isstruct(deployments), error('deployments must be a struct'); end
   if ~iscell  (files),       error('files must be a cell array');   end

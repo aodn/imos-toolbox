@@ -55,7 +55,7 @@ function t = templateType( templateDir, name, temp, mode )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,4,nargin));
+narginchk(3,4);
 
 if ~ischar(templateDir), error('templateDir must be a string'); end
 if ~ischar(name), error('name must be a string'); end

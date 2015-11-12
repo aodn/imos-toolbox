@@ -46,7 +46,7 @@ function flags = flagDepthProfile( parent, graphs, sample_data, vars )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(4,4,nargin));
+narginchk(4,4);
 
 if ~ishandle(parent),      error('parent must be a graphic handle');    end
 if ~ishandle(graphs),      error('graphs must be a graphic handle(s)'); end

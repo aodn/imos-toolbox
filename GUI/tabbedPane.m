@@ -49,7 +49,7 @@ function panel = tabbedPane( parent, tabs, tabNames, useButtons )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(3,4,nargin));
+narginchk(3,4);
 
 if ~ishandle(parent),    error('parent must be a graphics handle');          end
 if ~isvector(tabs) ||...

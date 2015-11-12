@@ -48,7 +48,7 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader, mode
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(4, 4, nargin));
+  narginchk(4, 4);
   
   data = struct;
   comment = struct;

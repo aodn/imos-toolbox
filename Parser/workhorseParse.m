@@ -63,7 +63,7 @@ function sample_data = workhorseParse( filename, tMode )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 2, nargin));
+narginchk(1, 2);
 
   filename = filename{1};
 

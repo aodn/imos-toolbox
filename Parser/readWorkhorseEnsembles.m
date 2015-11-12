@@ -73,7 +73,7 @@ function ensembles = readWorkhorseEnsembles( filename )
 
 % ensure that there is exactly one argument,
 % and that it is a string
-error(nargchk(1, 1, nargin));
+narginchk(1, 1);
 if ~ischar(filename), error('filename must be a string');
 end
 

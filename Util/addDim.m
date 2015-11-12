@@ -45,7 +45,7 @@ function sam = addDim(sam, name, data, comment)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(4, 4, nargin));
+narginchk(4, 4);
 
 if ~isstruct( sam),        error('sam must be a struct');        end
 if ~ischar(   name),       error('name must be a string');       end

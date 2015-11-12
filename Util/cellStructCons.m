@@ -44,7 +44,7 @@ function str = cellStructCons(structs, fieldname, delimiter)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,3,nargin));
+  narginchk(3,3);
   
   if ~iscell(structs),   error('structs must be a cell array'); end
   if ~ischar(fieldname), error('fieldname must be a string');   end

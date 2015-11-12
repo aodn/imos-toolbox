@@ -59,7 +59,7 @@ function value = imosParameters( short_name, field )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(2, 2, nargin));
+narginchk(2, 2);
 if ~ischar(short_name), error('short_name must be a string'); end
 if ~ischar(field),      error('field must be a string');      end
 

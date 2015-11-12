@@ -51,7 +51,7 @@ function site = imosSites(name)
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(1, 1, nargin));
+narginchk(1, 1);
 if ~ischar(name),    error('name must be a string'); end
 
 site = [];

@@ -50,7 +50,7 @@ function [returnVars, flagVal, commentText] = addFlagDialog( variable, kVar, def
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,3,nargin));
+  narginchk(3,3);
 
   flagVal = defaultVal;
   commentText = '';

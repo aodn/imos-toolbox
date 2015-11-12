@@ -44,7 +44,7 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(4, 4, nargin));
+  narginchk(4, 4);
 
   if ~isstruct(sam), error('sam must be a struct'); end
   

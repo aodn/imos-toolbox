@@ -47,7 +47,7 @@ function [sample_data, varChecked, paramsLog] = imosImpossibleLocationSetQC( sam
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(1, 2, nargin));
+narginchk(1, 2);
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
 % auto logical in input to enable running under batch processing

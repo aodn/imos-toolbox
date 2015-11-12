@@ -57,7 +57,7 @@ function [data, flags, paramsLog] = imosRegionalRangeQC ( sample_data, data, k, 
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(4, 5, nargin));
+narginchk(4, 5);
 if ~isstruct(sample_data),              error('sample_data must be a struct');      end
 if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
 if ~ischar(type),                       error('type must be a string');             end
@@ -196,7 +196,7 @@ function [regionalRangeMin, regionalRangeMax, isSite] = getImosRegionalRange(sit
 %   isSite           - boolean true if site is found in the list
 %
 
-error(nargchk(2, 2, nargin));
+narginchk(2, 2);
 if ~ischar(siteName),    error('siteName must be a string'); end
 if ~ischar(paramName),   error('paramName must be a string'); end
 

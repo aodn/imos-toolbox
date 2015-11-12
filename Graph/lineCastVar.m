@@ -46,7 +46,7 @@ function lineCastVar(sample_data, varNames, isQC, saveToFile, exportDir)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+narginchk(5,5);
 
 if ~iscell(sample_data),    error('sample_data must be a cell array');  end
 if ~iscellstr(varNames),    error('varNames must be a cell array');     end

@@ -63,7 +63,7 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,3,nargin));
+  narginchk(1,3);
 
   if nargin == 1
       auto = false;

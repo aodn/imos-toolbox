@@ -122,7 +122,7 @@ function sample_data = SBE3x( filename, mode )
 %
 
 %% Check input, set up data structures
-error(nargchk(1, 2, nargin));
+narginchk(1, 2);
 
 % save file size and open file; this will throw an error if file doesn't exist
 filesize = dir(filename);

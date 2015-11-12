@@ -63,7 +63,7 @@ function autoIMOSToolbox(toolboxVersion, fieldTrip, dataDir, ppChain, qcChain, e
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 6, nargin));
+narginchk(1, 6);
 
 % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
 % If no value is set then default mode is 'timeSeries'

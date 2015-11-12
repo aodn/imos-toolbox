@@ -72,7 +72,7 @@ function value = imosQCFlag( qcClass, qcSet, field )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(3, 3, nargin));
+narginchk(3, 3);
 if ~ischar(qcClass)...
 && ~isnumeric(qcClass), error('qcClass must be a string or numeric'); end
 if ~isnumeric(qcSet),   error('qcSet must be numeric');               end

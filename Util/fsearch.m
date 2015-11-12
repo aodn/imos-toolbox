@@ -56,7 +56,7 @@ function hits = fsearch(pattern, root, restriction)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2, 3, nargin));
+  narginchk(2, 3);
   
   if nargin == 2, restriction = 'both'; end
 

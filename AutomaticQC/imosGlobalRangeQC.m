@@ -58,7 +58,7 @@ function [data, flags, paramsLog] = imosGlobalRangeQC ( sample_data, data, k, ty
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-error(nargchk(4, 5, nargin));
+narginchk(4, 5);
 if ~isstruct(sample_data),              error('sample_data must be a struct');      end
 if ~isscalar(k) || ~isnumeric(k),       error('k must be a numeric scalar');        end
 if ~ischar(type),                       error('type must be a string');             end

@@ -49,7 +49,7 @@ function [year month day] = datePromptDialog(year,month,day)
 % POSSIBILITY OF SUCH DAMAGE.
 %
   % validate input
-  error(nargchk(3,3,nargin));
+  narginchk(3,3);
 
   if ~isnumeric(year)  && ~isscalar(year)
     error('year must be a scalar numeric');  end

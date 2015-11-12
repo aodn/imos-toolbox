@@ -67,7 +67,7 @@ function sample_data = readWQMraw( filename )
 % POSSIBILITY OF SUCH DAMAGE.
 %
   % ensure that there is exactly one argument
-  error(nargchk(1, 1, nargin));
+  narginchk(1, 1);
   if ~ischar(filename), error('filename must contain a string'); end
   
   % Lookup arrays for supported and required fields

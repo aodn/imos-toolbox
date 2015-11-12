@@ -50,7 +50,7 @@ function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, instHe
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(6, 6, nargin));
+narginchk(6, 6);
 
 switch name
     

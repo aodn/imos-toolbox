@@ -51,7 +51,7 @@ function choice = optionDialog( title, message, options, default )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(4,4,nargin));
+  narginchk(4,4);
 
   if ~ischar(title),      error('title must be a string');                  end
   if ~ischar(message),    error('message must be a string');                end

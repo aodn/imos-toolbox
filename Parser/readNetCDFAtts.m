@@ -43,7 +43,7 @@ function atts = readNetCDFAtts(ncid, varid)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,2,nargin));
+  narginchk(2,2);
 
   atts = struct;
   k    = 0;

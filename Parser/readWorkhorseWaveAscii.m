@@ -59,7 +59,7 @@ function waveData = readWorkhorseWaveAscii( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 1, nargin));
+narginchk(1, 1);
 
 if ~ischar(filename), error('filename must be a string'); end
 

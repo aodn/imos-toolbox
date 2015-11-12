@@ -54,7 +54,7 @@ function [data, name, comment, history] = sbe43OxygenTransform( sam, varIdx )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,2, nargin));
+  narginchk(2,2);
 
   if ~isstruct(sam),     error('sam must be a struct');    end
   if ~isnumeric(varIdx), error('varIdx must be a number'); end
