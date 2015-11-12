@@ -32,11 +32,12 @@ package org.imos.ddb.schema;
 
 import java.util.Date;
 
-public class FieldTrip {
-  
-  public String FieldTripID;
-  public String FieldDescription;
-  public Date   DateStart;
-  public Date   DateEnd;
-  public Date   Modified;
+public class FieldTrip
+{
+
+	public String FieldTripID;
+	public String FieldDescription;
+	public Date DateStart;
+	public Date DateEnd;
+	public Date Modified;
 }

@@ -32,13 +32,14 @@ package org.imos.ddb.schema;
 
 import java.util.Date;
 
-public class Maintenance {
-  
-  public String  Inst_SensID;
-  public Date    Date;
-  public Boolean Calibrated;
-  public String  MaintenanceNotes;
-  public String  LocationNotes;
-  public String  CalibrationFile;
-  public String  ModifiedBy;
+public class Maintenance
+{
+
+	public String Inst_SensID;
+	public Date Date;
+	public Boolean Calibrated;
+	public String MaintenanceNotes;
+	public String LocationNotes;
+	public String CalibrationFile;
+	public String ModifiedBy;
 }

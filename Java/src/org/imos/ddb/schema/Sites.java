@@ -32,23 +32,24 @@ package org.imos.ddb.schema;
 
 import java.util.Date;
 
-public class Sites {
-  
-  public String  Site;
-  public String  SiteName;
-  public Double  NominalLongitude;
-  public Double  NominalLatitude;
-  public Double  Longitude;
-  public Double  Latitude;
-  public String  Datum;
-  public String  Description;
-  public Double  Depth;
-  public String  DepthTxt;
-  public String  Image;
-  public String  Document;
-  public String  ResearchActivity;
-  public Boolean Completed;
-  public String  Comment;
-  public Date    Modified;
-  public String  ModifiedBy;
+public class Sites
+{
+
+	public String Site;
+	public String SiteName;
+	public Double NominalLongitude;
+	public Double NominalLatitude;
+	public Double Longitude;
+	public Double Latitude;
+	public String Datum;
+	public String Description;
+	public Double Depth;
+	public String DepthTxt;
+	public String Image;
+	public String Document;
+	public String ResearchActivity;
+	public Boolean Completed;
+	public String Comment;
+	public Date Modified;
+	public String ModifiedBy;
 }

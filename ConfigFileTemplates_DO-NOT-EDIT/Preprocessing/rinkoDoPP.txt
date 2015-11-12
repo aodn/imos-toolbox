@@ -1,0 +1,16 @@
+% This file includes the relevant output labels used for DO and Temp, plus the instrument/calibration coefficients for Rinko sensors
+
+voltDO, RINKO1
+aDO, -43.32265
+bDO, 144.4138
+cDO, -0.3548429
+dDO, 0.0105
+eDO, 0.0053
+fDO, 0
+gDO, 0.0362
+hDO, 1.0143
+voltTempDO, RINKO2
+aTempDO, -5.015006
+bTempDO, 16.78886
+cTempDO, -2.211178
+dTempDO, 0.4738992

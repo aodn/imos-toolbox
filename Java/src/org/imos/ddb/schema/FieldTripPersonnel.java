@@ -30,9 +30,10 @@
 
 package org.imos.ddb.schema;
 
-public class FieldTripPersonnel {
-  
-  public String FieldTripID;
-  public String StaffID;
-  public String Comment;
+public class FieldTripPersonnel
+{
+
+	public String FieldTripID;
+	public String StaffID;
+	public String Comment;
 }

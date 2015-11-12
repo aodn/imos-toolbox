@@ -30,11 +30,12 @@
 
 package org.imos.ddb.schema;
 
-public class Personnel {
-  
-  public String StaffID;
-  public String LastName;
-  public String FirstName;
-  public String Organisation;
-  public String Comment;
+public class Personnel
+{
+
+	public String StaffID;
+	public String LastName;
+	public String FirstName;
+	public String Organisation;
+	public String Comment;
 }

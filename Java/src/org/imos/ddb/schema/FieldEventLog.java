@@ -32,9 +32,10 @@ package org.imos.ddb.schema;
 
 import java.util.Date;
 
-public class FieldEventLog {
-  
-  public String FieldTripID;
-  public Date   Date;
-  public String Event;
+public class FieldEventLog
+{
+
+	public String FieldTripID;
+	public Date Date;
+	public String Event;
 }

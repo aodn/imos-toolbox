@@ -32,19 +32,20 @@ package org.imos.ddb.schema;
 
 import java.util.Date;
 
-public class Sensors {
-  
-  public String  SensorID;
-  public String  Make;
-  public String  Model;
-  public String  SerialNumber;
-  public String  Parameter;
-  public String  Units;
-  public String  Capability;
-  public String  Description;
-  public Boolean Status;
-  public String  Image;
-  public String  Document;
-  public Date    Modified;
-  public String  ModifiedBy;
+public class Sensors
+{
+
+	public String SensorID;
+	public String Make;
+	public String Model;
+	public String SerialNumber;
+	public String Parameter;
+	public String Units;
+	public String Capability;
+	public String Description;
+	public Boolean Status;
+	public String Image;
+	public String Document;
+	public Date Modified;
+	public String ModifiedBy;
 }

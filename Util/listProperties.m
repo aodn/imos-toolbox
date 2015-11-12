@@ -11,7 +11,7 @@ function [names values] = listProperties(file, delim)
 %
 % Inputs:
 %
-%   file   - Optional. Name of the property file. Must be specified relative 
+%   file   - Optional. Name of the property file. Can be specified with a full path or relative 
 %            to the IMOS toolbox root. Defaults to 'toolboxProperties.txt'.
 %
 %   delim  - Optional. Delimiter character/string. Defaults to '='.
@@ -65,7 +65,13 @@ if ~isdeployed, [propFilePath, ~, ~] = fileparts(which('imosToolbox.m')); end
 if isempty(propFilePath), propFilePath = pwd; end
 
 % read in all the name=value pairs
-fid = fopen([propFilePath filesep file], 'rt');
+if strcmpi(file(1), '/') || strcmpi(file(2:3), ':\')
+    % file is provided as a full path
+    fid = fopen(file, 'rt');
+else
+    % file is provided as a relative path
+    fid = fopen(fullfile(propFilePath, file), 'rt');
+end
 if fid == -1, error(['could not open ' file]); end
 
 props = textscan(fid, '%s%s', 'Delimiter', delim, 'CommentStyle', '%');

@@ -32,10 +32,11 @@ package org.imos.ddb.schema;
 
 import java.util.Date;
 
-public class FieldImages {
-  
-  public String FieldTripID;
-  public Date   Date;
-  public String Image;
-  public String Description;
+public class FieldImages
+{
+
+	public String FieldTripID;
+	public Date Date;
+	public String Image;
+	public String Description;
 }

@@ -30,11 +30,11 @@
 
 package org.imos.ddb.schema;
 
-public class EMIIProcessedNames {
-  
-  public String  Site;
-  public String  Filename;
-  public String  EMIIFile;
-  public Double  QCLevel;
-}
+public class EMIIProcessedNames
+{
 
+	public String Site;
+	public String Filename;
+	public String EMIIFile;
+	public Double QCLevel;
+}
