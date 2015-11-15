@@ -34,7 +34,11 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate] = geomag
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 
-  if ~(length(lat)==length(lon) && length(lat)==length(height_above_sea_level) && length(lat)==length(date)), error('dimension miss match'); end
+  if ~(length(lat)==length(lon) && ...
+      length(lat)==length(height_above_sea_level) && ...
+      length(lat)==length(date)), ...
+        error('dimension miss match, lat %d lon %d h %d date %d', length(lat), length(lat), length(height_above_sea_level), length(date)); 
+  end
   
   switch computer
       case 'GLNXA64'
@@ -99,7 +103,7 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate] = geomag
   geomagLon     = geomagOutputData{4};
   signDeclin    = sign(geomagOutputData{5});
   if signDeclin >= 0, signDeclin = 1; end
-  geomagDeclin  = geomagOutputData{5} + signDeclin*geomagOutputData{6}/60;
+  geomagDeclin  = geomagOutputData{5} + signDeclin.*geomagOutputData{6}/60;
   
   %for i=1:length(geomagDeclin)
   %  fprintf('lat = %f, lon = %f, date = %s, dec = %f\n', geomagLat(i), geomagLon(i), datestr(geomagDate(i), 'yyyy-mm-dd'), geomagDeclin(i));
