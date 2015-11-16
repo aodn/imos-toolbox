@@ -1,4 +1,4 @@
-%$$$ 
+%$$$
 %$$$ #undef __PR
 %$$$ #include "VARIANT.h"
 
@@ -6,22 +6,22 @@ function c = sw_satO2(S,T)
 
 % SW_SATO2   Satuaration of O2 in sea water
 %=========================================================================
-% sw_satO2 $Revision$  $Date$
+% sw_satO2 $Id: sw_satO2.m,v 1.1 2003/12/12 04:23:22 pen078 Exp $
 %          Copyright (C) CSIRO, Phil Morgan 1998.
 %
 % USAGE:  satO2 = sw_satO2(S,T)
 %
 % DESCRIPTION:
-%    Solubility (saturation) of Oxygen (O2) in sea water
+%    Solubility (satuaration) of Oxygen (O2) in sea water
 %
 % INPUT:  (all must have same dimensions)
 %   S = salinity    [psu      (PSS-78)]
-%   T = temperature [degree C (IPTS-68)]
+%   T = temperature [degree C (ITS-90)]
 %
 % OUTPUT:
-%   satO2 = solubility of O2  [ml/l] 
-% 
-% AUTHOR:  Phil Morgan 97-11-05  (morgan@ml.csiro.au)
+%   satO2 = solubility of O2  [ml/l]
+%
+% AUTHOR:  Phil Morgan 97-11-05, Lindsay Pender (Lindsay.Pender@csiro.au)
 %
 %$$$ #include "disclaimer_in_code.inc"
 %
@@ -31,16 +31,20 @@ function c = sw_satO2(S,T)
 %    Deap-Sea Research., 1970, Vol 17, pp721-735.
 %=========================================================================
 
+% Modifications
+% 99-06-25. Lindsay Pender, Fixed transpose of row vectors.
+% 03-12-12. Lindsay Pender, Converted to ITS-90.
+
 % CALLER: general purpose
-% CALLEE: 
+% CALLEE:
 
 %$$$ #ifdef VARIANT_PRIVATE
 %$$$ %***********************************************************
-%$$$ %$Id$
+%$$$ %$Id: sw_satO2.m,v 1.1 2003/12/12 04:23:22 pen078 Exp $
 %$$$ %
-%$$$ %$Log$
-%$$$ %Revision 1.1.1.1  2003/05/26 13:08:14  jgrelet
-%$$$ %import lib seawater sous matlab
+%$$$ %$Log: sw_satO2.m,v $
+%$$$ %Revision 1.1  2003/12/12 04:23:22  pen078
+%$$$ %*** empty log message ***
 %$$$ %
 
 %$$$ %
@@ -58,18 +62,10 @@ end %if
 [ms,ns] = size(S);
 [mt,nt] = size(T);
 
-  
+
 % CHECK THAT S & T HAVE SAME SHAPE
 if (ms~=mt) | (ns~=nt)
    error('sw_satO2: S & T must have same dimensions')
-end %if
-
-% IF ALL ROW VECTORS ARE PASSED THEN LET US PRESERVE SHAPE ON RETURN.
-Transpose = 0;
-if ms == 1  % row vector
-   T       =  T(:);
-   S       =  S(:);   
-   Transpose = 1;
 end %if
 
 %------
@@ -77,7 +73,7 @@ end %if
 %------
 
 % convert T to Kelvin
-T = 273.15 + T; 
+T68 = 273.15 + T * 1.00024;
 
 % constants for Eqn (4) of Weiss 1970
 a1 = -173.4292;
@@ -89,10 +85,8 @@ b2 =    0.014259;
 b3 =   -0.0017000;
 
 % Eqn (4) of Weiss 1970
-lnC = a1 + a2.*(100./T) + a3.*log(T./100) + a4.*(T./100) + ...
-      S.*( b1 + b2.*(T./100) + b3.*((T./100).^2) );
+lnC = a1 + a2.*(100./T68) + a3.*log(T68./100) + a4.*(T68./100) + ...
+      S.*( b1 + b2.*(T68./100) + b3.*((T68./100).^2) );
 
 c = exp(lnC);
-
-return
 

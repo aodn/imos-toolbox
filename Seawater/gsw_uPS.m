@@ -1,16 +1,17 @@
-function P0 = gsw_P0
+function uPS = gsw_uPS
 
-% gsw_P0                       Absolute Pressure of one standard atmosphere
+% gsw_uPS                             unit conversion factor for salinities
 %==========================================================================
 %
 % USAGE:
-%  P0 = gsw_P0
+%  uPS = gsw_uPS
 %
 % DESCRIPTION:
-%  Absolute Pressure of one standard atmosphere in Pa, 101325 Pa.
+%  The unit conversion factor for salinities (35.16504/35) g/kg (Millero et
+%  al., 2008).  Reference Salinity SR is uPS times Practical Salinity SP. 
 %
 % OUTPUT:
-%  P0  =  Absolute Pressure of one standard atmosphere.              [ Pa ]
+%  uPS  =  unit conversion factor for salinities                   [ g/kg ]
 %
 % AUTHOR: 
 %  Trevor McDougall and Paul Barker                    [ help@teos-10.org ]
@@ -22,12 +23,17 @@ function P0 = gsw_P0
 %   seawater - 2010: Calculation and use of thermodynamic properties.  
 %   Intergovernmental Oceanographic Commission, Manuals and Guides No. 56,
 %   UNESCO (English), 196 pp.  Available from http://www.TEOS-10.org.
-%    See section 2.2, appendix A.2 and Table D.1 of this TEOS-10 Manual.  
+%    See section 2.4 and Table D.4 of this TEOS-10 Manual.  
+%
+%  Millero, F. J., R. Feistel, D. G. Wright, and T. J. McDougall, 2008: 
+%   The composition of Standard Seawater and the definition of the 
+%   Reference-Composition Salinity Scale, Deep-Sea Res. I, 55, 50-72. 
+%     See section 6, Eqn. (6.1) of this paper.
 %
 %  The software is available from http://www.TEOS-10.org
 %
 %==========================================================================
 
-P0 = 101325;
+uPS = 35.16504/35;
 
 end

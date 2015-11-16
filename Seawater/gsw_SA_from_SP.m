@@ -33,7 +33,7 @@ function [SA, in_ocean] = gsw_SA_from_SP(SP,p,long,lat)
 % AUTHOR: 
 %  David Jackett, Trevor McDougall & Paul Barker       [ help@teos-10.org ]
 %
-% VERSION NUMBER: 3.02 (7th January, 2013)
+% VERSION NUMBER: 3.05 (27th January 2015)
 %
 % REFERENCES:
 %  IOC, SCOR and IAPSO, 2010: The international thermodynamic equation of 
@@ -164,7 +164,7 @@ in_ocean = SA;
 % not space. 
 [SAAR(Iocean), in_ocean(Iocean)] = gsw_SAAR(p(Iocean),long(Iocean),lat(Iocean));
 
-SA(Iocean) = (35.16504/35)*SP(Iocean).*(1 + SAAR(Iocean));
+SA(Iocean) = gsw_uPS*SP(Iocean).*(1 + SAAR(Iocean));
 
 % Here the Practical Salinity in the Baltic is used to calculate the
 % Absolute Salinity there. 
