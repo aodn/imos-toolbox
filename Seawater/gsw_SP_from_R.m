@@ -30,7 +30,7 @@ function SP = gsw_SP_from_R(R,t,p)
 % AUTHOR:  
 %  Paul Barker, Trevor McDougall and Rich Pawlowicz    [ help@teos-10.org ]
 %
-% VERSION NUMBER: 3.02 (16th November, 2012)
+% VERSION NUMBER: 3.05 (27th January 2015)
 %
 % REFERENCES:
 %  Hill, K.D., T.M. Dauphinee & D.J. Woods, 1986: The extension of the 
@@ -136,35 +136,39 @@ e3 =  3.989e-15;
 
 k  =  0.0162;
 
-t68 = t.*1.00024;
+[Iocean] = find(~isnan(R + t + p));
+
+t68 = t(Iocean).*1.00024;
 ft68 = (t68 - 15)./(1 + k*(t68 - 15));
 
 % rt_lc corresponds to rt as defined in the UNESCO 44 (1983) routines.  
 rt_lc = c0 + (c1 + (c2 + (c3 + c4.*t68).*t68).*t68).*t68;
-Rp = 1 + (p.*(e1 + e2.*p + e3.*p.*p))./ ...
-      (1 + d1.*t68 + d2.*t68.*t68 + (d3 + d4.*t68).*R);
-Rt = R./(Rp.*rt_lc);   
+Rp = 1 + (p(Iocean).*(e1 + p(Iocean).*(e2 + e3.*p(Iocean))))./ ...
+      (1 + d1.*t68 + d2.*t68.*t68 + (d3 + d4.*t68).*R(Iocean));
+Rt = R(Iocean)./(Rp.*rt_lc);   
 
 Rt(Rt < 0) = NaN;
 
 Rtx = sqrt(Rt);
 
-SP = a0 + (a1 + (a2 + (a3 + (a4 + a5.*Rtx).*Rtx).*Rtx).*Rtx).*Rtx + ...
+SP = NaN(size(R));
+
+SP(Iocean) = a0 + (a1 + (a2 + (a3 + (a4 + a5.*Rtx).*Rtx).*Rtx).*Rtx).*Rtx + ...
     ft68.*(b0 + (b1 + (b2+ (b3 + (b4 + b5.*Rtx).*Rtx).*Rtx).*Rtx).*Rtx);
 
 % The following section of the code is designed for SP < 2 based on the
 % Hill et al. (1986) algorithm.  This algorithm is adjusted so that it is
 % exactly equal to the PSS-78 algorithm at SP = 2.
 
-if any(SP < 2)
-    [I2] = find(SP < 2);
-    Hill_ratio = gsw_Hill_ratio_at_SP2(t(I2)); 
+if any(SP(Iocean) < 2)
+    [I2] = find(SP(Iocean) < 2);
+    Hill_ratio = gsw_Hill_ratio_at_SP2(t(Iocean(I2))); 
     x = 400*Rt(I2);
     sqrty = 10*Rtx(I2);
-    part1 = 1 + x.*(1.5 + x) ;
+    part1 = 1 + x.*(1.5 + x);
     part2 = 1 + sqrty.*(1 + sqrty.*(1 + sqrty));
     SP_Hill_raw = SP(I2) - a0./part1 - b0.*ft68(I2)./part2;
-    SP(I2) = Hill_ratio.*SP_Hill_raw;
+    SP(Iocean(I2)) = Hill_ratio.*SP_Hill_raw;
 end
 
 % This line ensures that SP is non-negative.
