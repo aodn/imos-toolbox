@@ -23,7 +23,7 @@ function Hill_ratio = gsw_Hill_ratio_at_SP2(t)
 % AUTHOR:  
 %  Trevor McDougall and Paul Barker                    [ help@teos-10.org ]
 %
-% VERSION NUMBER: 3.02 (16th November, 2012)
+% VERSION NUMBER: 3.05 (27th January 2015)
 %
 % REFERENCES:
 %  Hill, K.D., T.M. Dauphinee & D.J. Woods, 1986: The extension of the 
@@ -36,9 +36,9 @@ function Hill_ratio = gsw_Hill_ratio_at_SP2(t)
 %   UNESCO (English), 196 pp.  Available from http://www.TEOS-10.org
 %    See appendix E of this TEOS-10 Manual.  
 %
-%  McDougall, T.J. and S.J. Wotherspoon, 2012: A simple modification of 
-%   Newton’s method to achieve convergence of order "1 + sqrt(2)".
-%   Submitted to Applied Mathematics and Computation.  
+%  McDougall T.J. and S.J. Wotherspoon, 2013: A simple modification of 
+%   Newton's method to achieve convergence of order 1 + sqrt(2).  Applied 
+%   Mathematics Letters, 29, 20-25.  
 %
 %  Unesco, 1983: Algorithms for computation of fundamental properties of 
 %   seawater. Unesco Technical Papers in Marine Science, 44, 53 pp.
@@ -103,15 +103,15 @@ dSP_dRtx =  a1 + (2*a2 + (3*a3 + (4*a4 + 5*a5.*Rtx0).*Rtx0).*Rtx0).*Rtx0 + ...
 
 %--------------------------------------------------------------------------
 % Begin a single modified Newton-Raphson iteration (McDougall and 
-% Wotherspoon, 2012) to find Rt at SP = 2.
+% Wotherspoon, 2013) to find Rt at SP = 2.
 %--------------------------------------------------------------------------
 SP_est = a0 + (a1 + (a2 + (a3 + (a4 + a5.*Rtx0).*Rtx0).*Rtx0).*Rtx0).*Rtx0 ...
         + ft68.*(b0 + (b1 + (b2+ (b3 + (b4 + b5.*Rtx0).*Rtx0).*Rtx0).*Rtx0).*Rtx0);
-  Rtx = Rtx0 - (SP_est - SP2)./dSP_dRtx;
-    Rtxm = 0.5*(Rtx + Rtx0);
+Rtx = Rtx0 - (SP_est - SP2)./dSP_dRtx;
+Rtxm = 0.5*(Rtx + Rtx0);
 dSP_dRtx =  a1 + (2*a2 + (3*a3 + (4*a4 + 5*a5.*Rtxm).*Rtxm).*Rtxm).*Rtxm...
         + ft68.*(b1 + (2*b2 + (3*b3 + (4*b4 + 5*b5.*Rtxm).*Rtxm).*Rtxm).*Rtxm);
-  Rtx = Rtx0 - (SP_est - SP2)./dSP_dRtx;
+Rtx = Rtx0 - (SP_est - SP2)./dSP_dRtx;
 
 % This is the end of one full iteration of the modified Newton-Raphson 
 % iterative equation solver.  The error in Rtx at this point is equivalent 

@@ -1,23 +1,25 @@
-function z = gsw_z_from_p(p,lat,geo_strf_dyn_height)
+function z = gsw_z_from_p(p,lat,geo_strf_dyn_height,sea_surface_geopotental)
 
 % gsw_z_from_p                                         height from pressure
 %==========================================================================
 %
 % USAGE:  
-%  z = gsw_z_from_p(p,lat,{geo_strf_dyn_height})
+%  z = gsw_z_from_p(p,lat,{geo_strf_dyn_height},{sea_surface_geopotental})
 %
 % DESCRIPTION:
 %  Calculates height from sea pressure using the computationally-efficient
-%  48-term expression for density in terms of SA, CT and p (McDougall et 
-%  al., 2013).  Dynamic height anomaly, geo_strf_dyn_height, if provided,
-%  must be computed with its p_ref = 0 (the surface).  
+%  75-term expression for specific volume in terms of SA, CT and p 
+%  (Roquet et al., 2015).  Dynamic height anomaly, geo_strf_dyn_height, if
+%  provided, must be computed with its p_ref = 0 (the surface).  Also if
+%  provided, sea_surface_geopotental is the geopotential at zero sea 
+%  pressure. This function solves Eqn.(3.32.3) of IOC et al. (2010).  
 %
 %  Note. Height z is NEGATIVE in the ocean. i.e. Depth is -z.  
 %   Depth is not used in the GSW computer software library.  
 %
-%  Note that the 48-term equation has been fitted in a restricted range of 
+%  Note that this 75-term equation has been fitted in a restricted range of 
 %  parameter space, and is most accurate inside the "oceanographic funnel" 
-%  described in McDougall et al. (2013).  The GSW library function 
+%  described in McDougall et al. (2003).  The GSW library function 
 %  "gsw_infunnel(SA,CT,p)" is avaialble to be used if one wants to test if 
 %  some of one's data lies outside this "funnel".  
 %
@@ -30,10 +32,11 @@ function z = gsw_z_from_p(p,lat,geo_strf_dyn_height)
 %  geo_strf_dyn_height = dynamic height anomaly                 [ m^2/s^2 ]
 %    Note that the refernce pressure, p_ref, of geo_strf_dyn_height must be 
 %    zero (0) dbar.
+%  sea_surface_geopotental = geopotential at zero sea pressure  [ m^2/s^2 ]
 %
 %  lat may have dimensions 1x1 or Mx1 or 1xN or MxN, where p is MxN.
-%  geo_strf_dyn_height, if provided, must have dimensions MxN which is
-%  the same as p.
+%  geo_strf_dyn_height and geo_strf_dyn_height, if provided, must have 
+%  dimensions MxN, which are the same as p.
 %
 % OUTPUT:
 %  z  =  height                                                       [ m ]
@@ -45,7 +48,7 @@ function z = gsw_z_from_p(p,lat,geo_strf_dyn_height)
 %  Trevor McDougall, Claire Roberts-Thomson & Paul Barker.
 %                                                      [ help@teos-10.org ]
 %
-% VERSION NUMBER: 3.02 (16th November, 2012)
+% VERSION NUMBER: 3.04 (10th December, 2013)
 %
 % REFERENCES:
 %  IOC, SCOR and IAPSO, 2010: The international thermodynamic equation of 
@@ -53,13 +56,17 @@ function z = gsw_z_from_p(p,lat,geo_strf_dyn_height)
 %   Intergovernmental Oceanographic Commission, Manuals and Guides No. 56,
 %   UNESCO (English), 196 pp.  Available from http://www.TEOS-10.org
 %
-%  McDougall T.J., P.M. Barker, R. Feistel and D.R. Jackett, 2013:  A 
-%   computationally efficient 48-term expression for the density of 
-%   seawater in terms of Conservative Temperature, and related properties
-%   of seawater.  To be submitted to J. Atm. Ocean. Technol., xx, yyy-zzz.
+%  McDougall, T.J., D.R. Jackett, D.G. Wright and R. Feistel, 2003: 
+%   Accurate and computationally efficient algorithms for potential 
+%   temperature and density of seawater.  J. Atmosph. Ocean. Tech., 20,
+%   pp. 730-741.
 %
 %  Moritz (2000) Goedetic reference system 1980. J. Geodesy, 74, 128-133.
-%   
+%
+%  Roquet, F., G. Madec, T.J. McDougall, P.M. Barker, 2015: Accurate
+%   polynomial expressions for the density and specifc volume of seawater
+%   using the TEOS-10 standard. Ocean Modelling.
+%
 %  This software is available from http://www.TEOS-10.org
 %
 %==========================================================================
@@ -68,20 +75,27 @@ function z = gsw_z_from_p(p,lat,geo_strf_dyn_height)
 % Check variables and resize if necessary
 %--------------------------------------------------------------------------
 
-if ~(nargin == 2 | nargin == 3)
-   error('gsw_z_from_p: Requires two or three inputs')
+if ~(nargin == 2 | nargin == 3 | nargin == 4)
+   error('gsw_z_from_p: Requires two, three or four inputs')
 end %if
 
 if ~exist('geo_strf_dyn_height','var')
     geo_strf_dyn_height = zeros(size(p));
 end
+if ~exist('sea_surface_geopotental','var')
+    sea_surface_geopotental = zeros(size(p));
+end
 
 [mp,np] = size(p);
 [ml,nl] = size(lat);
 [mdh,ndh] = size(geo_strf_dyn_height);
+[msg,nsg] = size(sea_surface_geopotental);
 
 if (mp ~= mdh) | (np ~= ndh)
     error('gsw_z_from_p: pressure & dynamic height anomaly need to have the same dimensions')
+end
+if (mdh ~= msg) | (ndh ~= nsg)
+    error('gsw_z_from_p: dynamic height anomaly & the geopotential at zero sea pressure need to have the same dimensions')
 end
 
 if (ml == 1) & (nl == 1)              % lat scalar - fill to size of p
@@ -103,6 +117,7 @@ if mp == 1
     p = p.';
     lat = lat.';
     geo_strf_dyn_height = geo_strf_dyn_height.';
+    sea_surface_geopotental = sea_surface_geopotental.';
     transposed = 1;
 else
     transposed = 0;
@@ -112,14 +127,17 @@ end
 % Start of the calculation
 %--------------------------------------------------------------------------
 
-gamma = 2.26e-7 ; 
-DEG2RAD = pi/180;
-X     = sin(lat*DEG2RAD);
-sin2  = X.*X;
-B     = 9.780327*(1.0 + (5.2792e-3 + (2.32e-5*sin2)).*sin2); 
-A     = -0.5*gamma*B ;
-C     = gsw_enthalpy_SSO_0_p(p) - geo_strf_dyn_height;
-z     = -2*C./(B + sqrt(B.*B - 4.*A.*C));
+gamma = 2.26e-7; % If the graviational acceleration were to be regarded as 
+                 % being depth-independent, which is often the case in 
+                 % ocean models, then gamma would be set to be zero here,
+                 % and the code below works perfectly well.
+deg2rad = pi/180;
+sinlat = sin(lat*deg2rad);
+sin2 = sinlat.*sinlat;
+B = 9.780327*(1.0 + (5.2792e-3 + (2.32e-5*sin2)).*sin2); 
+A = -0.5*gamma*B;
+C = gsw_enthalpy_SSO_0(p) - (geo_strf_dyn_height + sea_surface_geopotental);
+z = -2*C./(B + sqrt(B.*B - 4.*A.*C));
 
 if transposed
     z = z.';
