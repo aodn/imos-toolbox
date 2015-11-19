@@ -1,4 +1,4 @@
-function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate] = geomag70( lat, lon, height_above_sea_level, date )
+function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] = geomag70( lat, lon, height_above_sea_level, date )
 
 % GEOMAG Calculate geomagnetic field values from a spherical harmonic model.
 %
