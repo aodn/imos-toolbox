@@ -67,11 +67,15 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate] = geomag
   if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
   if isempty(path), path = pwd; end
   
+  % read in model parameter
+  propFile = fullfile('Geomag', 'geomag70.txt');
+  model    = readProperty('model', propFile);
+  
   geomagPath        = fullfile(path, 'Geomag', computerDir);
   geomagExeFull     = fullfile(geomagPath, geomagExe);
-  geomagModelFile   = fullfile(geomagPath, 'IGRF12.COF');
+  geomagModelFile   = fullfile(geomagPath, [model '.COF']);
   geomagInputFile   = fullfile(geomagPath, 'sample_coords.txt');
-  geomagOutputFile  = fullfile(geomagPath, 'sample_out_IGRF12.txt');
+  geomagOutputFile  = fullfile(geomagPath, ['sample_out_' model '.txt']);
   
   % geomag is limited to path length of 92 characters
   if length(geomagOutputFile) > 92
