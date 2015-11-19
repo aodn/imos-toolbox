@@ -95,8 +95,10 @@ structures = struct;
 
 % list of Ids that have variables that can vary in size, so cannot just
 % concatenate them
-specialIds{1}.id = 'Id98';
-specialIds{1}.vars = { 'Energy' };
+specialIds{1}.id = 'Id66';
+specialIds{1}.vars = { 'Amp' };
+specialIds{2}.id = 'Id98';
+specialIds{2}.vars = { 'Energy' };
 
 while dIdx < dataLen
     
@@ -117,28 +119,31 @@ while dIdx < dataLen
         end
         
         if ~isfield(structures, curField)
+            % copy first instance of IdX structure
             if notSpecial
                 structures.(curField) = sect;
             else
                 for i=1:nField
                     if ~iSpecialVars(i)
-                        structures.(curField).(theFieldNames{i}) = sect.(theFieldNames{i}); % no pre-allocation is still faster than allocating more than needed and then removing the excess
+                        structures.(curField).(theFieldNames{i}) = sect.(theFieldNames{i});
                     else
-                        structures.(curField).(theFieldNames{i}) = {sect.(theFieldNames{i})};
+                        structures.(curField).(theFieldNames{i}){1} = sect.(theFieldNames{i});
                     end
                 end
             end
         else
+            % append current IdX structure to existing
+            % no pre-allocation is still faster than allocating more than needed and then removing the excess
             if notSpecial
                 for i=1:nField
-                    structures.(curField).(theFieldNames{i})(:, end+1) = sect.(theFieldNames{i}); % no pre-allocation is still faster than allocating more than needed and then removing the excess
+                    structures.(curField).(theFieldNames{i})(:, end+1) = sect.(theFieldNames{i});
                 end
             else
                 for i=1:nField
                     if ~iSpecialVars(i)
-                        structures.(curField).(theFieldNames{i})(:, end+1) = sect.(theFieldNames{i}); % no pre-allocation is still faster than allocating more than needed and then removing the excess
+                        structures.(curField).(theFieldNames{i})(:, end+1) = sect.(theFieldNames{i});
                     else
-                        structures.(curField).(theFieldNames{i}){end+1} = {sect.(theFieldNames{i})};
+                        structures.(curField).(theFieldNames{i}){end+1} = sect.(theFieldNames{i});
                     end
                 end
             end
@@ -639,6 +644,7 @@ sect = struct;
 sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
 sect.Size        = data(idx+2:idx+3); % uint16
+
 sect.Time        = readClockData(data, idx+4);
 % !!! Heading, pitch and roll can be negative
 block1           = data(idx+10:idx+23); % int16
@@ -1046,6 +1052,7 @@ function [sect, len, off] = readAwacWaveHeader(data, idx, cpuEndianness)
 %READAWACWAVEHEADER Reads an AWAC wave header section.
 % Id=0x31, Awac Wave Data Header
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 49
+
 sect = struct;
 
 sect.Sync         = data(idx);
@@ -1094,8 +1101,8 @@ function [sect, len, off] = readAwacWaveData(data, idx, cpuEndianness)
 %READAWACWAVEDATA Reads an AWAC Wave data section.
 % Id=0x30, Awac Wave Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 49
-sect = struct;
 
+sect = struct;
 sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
 sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
@@ -1112,10 +1119,10 @@ sect.Vel2        = block(2); % velocity beam 2 (mm/s) (North for SUV)
 sect.Vel3        = block(3); % velocity beam 3 (mm/s) (Up for SUV)
 sect.Vel4        = block(4); % distance 2 to surface vertical beam (mm). For non-AST velocity beam 4 (mm/s)
 block            = bytecast(data(idx+18:idx+21), 'L', 'uint8', cpuEndianness);
-sect.AmpB1        = block(1); % amplitude beam 1 (mm/s)
-sect.AmpB2        = block(2); % amplitude beam 2 (mm/s)
-sect.AmpB3        = block(3); % amplitude beam 3 (mm/s)
-sect.AmpB4        = block(4); % AST quality Counts). For non-AST amplitude beam 4 (mm/s)
+sect.Amp1        = block(1); % amplitude beam 1 (mm/s)
+sect.Amp2        = block(2); % amplitude beam 2 (mm/s)
+sect.Amp3        = block(3); % amplitude beam 3 (mm/s)
+sect.Amp4ASTQual = block(4); % AST quality Counts). For non-AST amplitude beam 4 (mm/s)
 sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16', cpuEndianness);
 end
 
@@ -1125,71 +1132,80 @@ function [sect, len, off] = readAwacWaveDataSUV(data, idx, cpuEndianness)
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 49-50
 
 sect = struct;
-len = 24;
+sect.Sync        = data(idx);
+sect.Id          = data(idx+1);
+len = 24; % no size variable in this structure
 off = len;
-sect = [];
+block            = bytecast(data(idx+2:idx+7), 'L', 'uint16', cpuEndianness);
+sect.Heading     = block(1); % heading (0.1deg)
+sect.Pressure    = block(2); % pressure (0.001 dbar)
+sect.Distance    = block(3); % distance 1 to surface vertical beam (mm)
+sect.Pitch = data(idx+8); % pitch (0.1 or 0.2 deg) (+/- 12.7 deg)
+sect.Roll = data(idx+9); % roll (0.1 or 0.2 deg) (+/- 12.7 deg)
+% !!! velocity can be negative
+block            = bytecast(data(idx+10:idx+17), 'L', 'int16', cpuEndianness);
+sect.Vel1        = block(1); % velocity beam 1 (mm/s) (East for SUV)
+sect.Vel2        = block(2); % velocity beam 2 (mm/s) (North for SUV)
+sect.Vel3        = block(3); % velocity beam 3 (mm/s) (Up for SUV)
+sect.Vel4Distance2 = block(4); % distance 2 to surface vertical beam (mm). For non-AST velocity beam 4 (mm/s)
+block            = bytecast(data(idx+18:idx+21), 'L', 'uint8', cpuEndianness);
+sect.Amp1        = block(1); % amplitude beam 1 (mm/s)
+sect.Amp2        = block(2); % amplitude beam 2 (mm/s)
+sect.Amp3        = block(3); % amplitude beam 3 (mm/s)
+sect.Amp4ASTQual = block(4); % AST quality Counts. For non-AST amplitude beam 4 (mm/s)
+sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16', cpuEndianness);
 
-% sect.Sync        = data(idx);
-% sect.Id          = data(idx+1);
-% block            = bytecast(data(idx+2:idx+7), 'L', 'uint16', cpuEndianness);
-% sect.Heading     = block(1); % heading (0.1deg)
-% sect.Pressure    = block(2); % pressure (0.001 dbar)
-% sect.Distance    = block(3); % distance 1 to surface vertical beam (mm)
-% sect.Pitch = data(idx+8); % pitch (0.1 or 0.2 deg) (+/- 12.7 deg)
-% sect.Roll = data(idx+9); % roll (0.1 or 0.2 deg) (+/- 12.7 deg)
-% % !!! velocity can be negative
-% block            = bytecast(data(idx+9:idx+17), 'L', 'int16', cpuEndianness);
-% sect.Vel1        = block(1); % velocity beam 1 (mm/s) (East for SUV)
-% sect.Vel2        = block(2); % velocity beam 2 (mm/s) (North for SUV)
-% sect.Vel3        = block(3); % velocity beam 3 (mm/s) (Up for SUV)
-% sect.Vel4Distance2 = block(4); % distance 2 to surface vertical beam (mm). For non-AST velocity beam 4 (mm/s)
-% sect.AmpB1        = bytecast(data(idx+18), 'L', 'uint8', cpuEndianness); % amplitude beam 1 (mm/s)
-% sect.AmpB2        = bytecast(data(idx+19), 'L', 'uint8', cpuEndianness); % amplitude beam 2 (mm/s)
-% sect.AmpB3        = bytecast(data(idx+20), 'L', 'uint8', cpuEndianness); % amplitude beam 3 (mm/s)
-% sect.AmpB4ASTQual = bytecast(data(idx+21), 'L', 'uint8', cpuEndianness); % AST quality Counts. For non-AST amplitude beam 4 (mm/s)
-% sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16', cpuEndianness);
 end
 
 function [sect, len, off] = readAwacStageData(data, idx, cpuEndianness)
 %READAWACSTAGEDATA Reads an AWAC Stage data section.
 % Id=0x42, Awac Stage Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 48
-sect = struct;
 
+% Note comment in http://www.nortek-as.com/en/knowledge-center/forum/system-integration-and-telemetry/739675601
+% "As you've seen the system integrator manual is describing the latest 
+% firmware available. The format is the same, but all the fields wasn't 
+% populated from the beginning of the product life. I am sorry that when 
+% the different fields were populated isn't available.
+% The stage data is truly variable in size. The AST window size will vary 
+% depending of the seastate captured in previous current measurements. The 
+% chosen AST window is then cut into a number of fixed size cells."
+
+sect = struct;
+sect.Sync         = data(idx);
+sect.Id           = data(idx+1);
 sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len              = sect.Size * 2;
 off              = len;
-sect = [];
-%warning('readAwacStageData not implemented yet.');
 
-% % idx+4 uint16 spare, (AST distance1 duplicate)
-% block = bytecast(data(idx+6:idx+9), 'L', 'uint8', cpuEndianness);
-% sect.AmpB1 = block(1); % amplitude beam 1 (counts)
-% sect.AmpB2 = block(2); % amplitude beam 2 (counts)
-% sect.AmpB3 = block(3); % amplitude beam 3 (counts)
-% % block(4) spare (AST quality duplicate)
-% 
-% block = bytecast(data(idx+10:idx+19), 'L', 'uint16', cpuEndianness);
-% sect.Pressure =     block(1); % pressure (0.001 dbar)
-% sect.AST1 =         block(2); % AST distance 1 (mm)
-% sect.ASTquality =   block(3); % AST quality (counts)
-% sect.SoundSpeed =   block(4); % Speed of sound (0.1 m/s)
-% sect.AST2 =         block(5); % AST distance 2 (mm)
-% % idx+20:idx+21 spare
-% block = bytecast(data(idx+22:idx+27), 'L', 'int16', cpuEndianness);
-% sect.Velocity1 = block(1); % velocity beam 1 (mm/s) (East for SUV)
-% sect.Velocity2 = block(2); % velocity beam 2 (mm/s) (North for SUV)
-% sect.Velocity3 = block(3); % velocity beam 3 (mm/s) (Up for SUV)
-% % idx+28:idx+29 spare (AST distance2 duplicate)
-% % idx+30:idx+31 spare
-% % calculate number of cells from structure size (size is in 16 bit words)
-% nCells = floor(((sect.Size) * 2 - (32 + 2)));
-% ampOff = idx+32;
-% csOff  = ampOff + nCells;
-% % fill value is included if number of cells is odd
-% if mod(nCells, 2), csOff = csOff + 1; end
-% sect.Amp = bytecast(data(ampOff:ampOff+nCells-1),   'L', 'uint8', cpuEndianness);
-% sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
+% idx+4 uint16 spare, (AST distance1 duplicate)
+block = bytecast(data(idx+6:idx+9), 'L', 'uint8', cpuEndianness);
+sect.Amp1 = block(1); % amplitude beam 1 (counts)
+sect.Amp2 = block(2); % amplitude beam 2 (counts)
+sect.Amp3 = block(3); % amplitude beam 3 (counts)
+% block(4) spare (AST quality duplicate)
+
+block = bytecast(data(idx+10:idx+19), 'L', 'uint16', cpuEndianness);
+sect.Pressure =     block(1); % pressure (0.001 dbar)
+sect.AST1 =         block(2); % AST distance 1 (mm)
+sect.ASTquality =   block(3); % AST quality (counts)
+sect.SoundSpeed =   block(4); % Speed of sound (0.1 m/s)
+sect.AST2 =         block(5); % AST distance 2 (mm)
+% idx+20:idx+21 spare
+block = bytecast(data(idx+22:idx+27), 'L', 'int16', cpuEndianness);
+sect.Vel1 = block(1); % velocity beam 1 (mm/s) (East for SUV)
+sect.Vel2 = block(2); % velocity beam 2 (mm/s) (North for SUV)
+sect.Vel3 = block(3); % velocity beam 3 (mm/s) (Up for SUV)
+% idx+28:idx+29 spare (AST distance2 duplicate)
+% idx+30:idx+31 spare
+% calculate number of cells from structure size (size is in 16 bit words)
+nCells = floor(((sect.Size) * 2 - (32 + 2)));
+ampOff = idx+32;
+csOff  = ampOff + nCells;
+% fill value is included if number of cells is odd
+if mod(nCells, 2), csOff = csOff + 1; end
+sect.Amp = bytecast(data(ampOff:ampOff+nCells-1),   'L', 'uint8', cpuEndianness);
+sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
 % below doesn't match structure definition in latest manual. Kept for reference.
 % sect.Blanking    = bytecast(data(idx+4:idx+5), 'L', 'uint16', cpuEndianness);
@@ -1213,6 +1229,7 @@ sect = [];
 % if mod(nCells, 2), csOff = csOff + 1; end
 % sect.Amp = bytecast(data(ampOff:ampOff+nCells-1),   'L', 'uint8', cpuEndianness);
 % sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
+
 end
 
 function [sect, len, off] = readContinental(data, idx, cpuEndianness)
@@ -1229,6 +1246,7 @@ function [sect, len, off] = readVectrinoVelocityHeader(data, idx, cpuEndianness)
 % (pg 42 of system integrator manual).
 % Id=0x12, Vectrino velocity data header
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 57-58
+
 sect = struct;
 len = 42;
 off = len;
@@ -1276,8 +1294,8 @@ function [sect, len, off] = readVectrinoVelocity(data, idx, cpuEndianness)
 % system integrator manual).
 % Id=0x51, Vectrino velocity data Size Name Offset Description
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 58
-sect = struct;
 
+sect = struct;
 sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = 0;           % no size field in spec
@@ -1379,6 +1397,7 @@ function [sect, len, off] = readAwacAST(data, idx, cpuEndianness)
 % Awac Cleaned Up AST Time Series
 % Id=0x65 SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 54-55
 
+sect = struct;
 sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
@@ -1407,6 +1426,7 @@ function [sect, len, off] = readAwacProcessedVelocity(data, idx, cpuEndianness)
 % Awac Processed Velocity Profile Data
 % Id=0x6A SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 55-56
 
+sect = struct;
 sect.Sync    = data(idx);
 sect.Id      = data(idx+1);
 sect.Size    = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
@@ -1502,45 +1522,54 @@ function [sect, len, off] = readWaveParameterEstimates(data, idx, cpuEndianness)
 %READWAVEPARAMETERESTIMATES Reads an AWAC Wave Parameter Estimates section.
 % Id=0x60, Wave parameter estimates
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 52-53
-sect = struct;
 
+sect = struct;
 sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len         = sect.Size * 2;
 off         = len;
 sect.Time = readClockData(data, idx+4);
-sect.hSpectrumTyp = bytecast(data(idx+10), 'L', 'uint8', cpuEndianness); % spectrum used for calculation
-sect.hProcMethod = bytecast(data(idx+11), 'L', 'uint8', cpuEndianness); % processing method used in actual calculation
+% Spectrum basis type
+% 0-pressure,
+% 1-Velocity,
+% 3-AST.
+sect.SpectrumType = bytecast(data(idx+10), 'L', 'uint8', cpuEndianness); % spectrum used for calculation
+% Processing method
+% 1-PUV, [Aquadopp/Vector]
+% 2-SUV, [AWAC/AST]
+% 3-MLM (Maximum Likelihood Method without Surface Tracking) [AWAC],
+% 4-MLMST (Maximum Likelihood Method with Surface Tracking) [AWAC/AST].
+sect.ProcMethod = bytecast(data(idx+11), 'L', 'uint8', cpuEndianness); % processing method used in actual calculation
 block = bytecast(data(idx+12:idx+33), 'L', 'uint16', cpuEndianness);
-sect.Hm0 =  block(1); % Spectral significant wave height [mm]
-sect.H3 =   block(2); % AST significant wave height (mean of largest 1/3) [mm]
-sect.H10 =  block(3); % AST wave height(mean of largest 1/10) [mm]
-sect.Hmax = block(4); % AST max wave height in wave ensemble [mm]
-sect.Tm02 = block(5); % Mean period spectrum based [0.01 sec]
-sect.Tp =   block(6); % Peak period [0.01 sec]
-sect.Tz =   block(7); % AST mean zero-crossing period [0.01 sec]
-sect.DirTp = block(7); % Direction at Tp [0.01 deg]
-sect.SprTp = block(9); % Spreading at Tp [0.01 deg]
-sect.DirMean = block(10); % Mean wave direction [0.01 deg]
-sect.UI = block(11); % Unidirectivity index [1/65535]
-sect.hPressureMean = bytecast(data(idx+34:idx+37), 'L', 'uint32', cpuEndianness); % Mean pressure during burst [0.001 dbar]
+sect.Hm0 =      block(1); % Spectral significant wave height [mm]
+sect.H3 =       block(2); % AST significant wave height (mean of largest 1/3) [mm]
+sect.H10 =      block(3); % AST wave height(mean of largest 1/10) [mm]
+sect.Hmax =     block(4); % AST max wave height in wave ensemble [mm]
+sect.Tm02 =     block(5); % Mean period spectrum based [0.01 sec]
+sect.Tp =       block(6); % Peak period [0.01 sec]
+sect.Tz =       block(7); % AST mean zero-crossing period [0.01 sec]
+sect.DirTp =    block(7); % Direction at Tp [0.01 deg]
+sect.SprTp =    block(9); % Spreading at Tp [0.01 deg]
+sect.DirMean =  block(10); % Mean wave direction [0.01 deg]
+sect.UI =       block(11); % Unidirectivity index [1/65535]
+sect.PressureMean = bytecast(data(idx+34:idx+37), 'L', 'uint32', cpuEndianness); % Mean pressure during burst [0.001 dbar]
 block = bytecast(data(idx+38:idx+45), 'L', 'uint16', cpuEndianness);
 sect.NumNoDet =     block(1); % Number of AST No detects [#]
 sect.NumBadDet =    block(2); % Number of AST Bad detects [#]
 sect.CurSpeedMean = block(3); % Mean current speed - wave cells [mm/sec]
 sect.CurDirMean =   block(4); % Mean current direction - wave cells [0.01 deg]
 block = bytecast(data(idx+46:idx+57), 'L', 'uint32', cpuEndianness);
-sect.hError =       block(1); % Error Code for bad data
+sect.Error =        block(1); % Error Code for bad data
 sect.ASTdistMean =  block(2); % Mean AST distance during burst [mm]
 sect.ICEdistMean =  block(3); % Mean ICE distance during burst [mm]
 block = bytecast(data(idx+58:idx+67), 'L', 'uint16', cpuEndianness);
-sect.fregDirAmbLimit =  block(1); % Low frequency in [0.001 Hz]
-sect.T3 =                block(2); % AST significant wave period (sec)
+sect.freqDirAmbLimit =  block(1); % Low frequency in [0.001 Hz]
+sect.T3 =               block(2); % AST significant wave period (sec)
 sect.T10 =              block(3); % AST 1/10 wave period (sec)
 sect.Tmax =             block(4); % AST max period in wave ensemble (sec)
 sect.Hmean =            block(5); % Mean wave height (mm)
-% bytes idx+68 to idx+77 spare
+% bytes idx+68:idx+77 spare
 sect.Checksum = bytecast(data(idx+78:idx+79), 'L', 'uint16', cpuEndianness);
 
 end
@@ -1549,27 +1578,38 @@ function [sect, len, off] = readWaveBandEstimates(data, idx, cpuEndianness)
 %READWAVEBANDESTIMATES Reads an AWAC Wave Band Estimates section.
 % Id=0x61, Wave band estimates
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 53
-sect = struct;
 
+sect = struct;
 sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len         = sect.Size * 2;
 off         = len;
 sect.Time   = readClockData(data, idx+4);
-sect.hSpectrumType = data(idx+10); % spectrum used for calculation
-sect.hProcMethod   = data(idx+11); % processing method used in actual calculation
-block              = bytecast(data(idx+12:idx+27), 'L', 'uint16', cpuEndianness);
-sect.LowFrequency  = block(1); % low frequency in [0.001 Hz]
-sect.HighFrequency = block(2); % high frequency in [0.001 Hz]
-sect.Hm0 = block(3); % Spectral significant wave height [mm]
-sect.Tm02 = block(4); % Mean period spectrum based [0.01 sec]
-sect.Tp = block(5); % Peak period [0.01 sec]
-sect.DirTp = block(6); % Direction at Tp [0.01 deg]
-sect.DirMean = block(7); % Mean wave direction [0.01 deg]
-sect.SprTp = block(8); % Spreading at Tp [0.01 deg]
-sect.hError = bytecast(data(idx+28:idx+31), 'L', 'uint32', cpuEndianness); % Error Code for bad data
-% bytes 32 to 45 spare
+% Spectrum basis type
+% 0-pressure,
+% 1-Velocity,
+% 3-AST.
+sect.SpectrumType = data(idx+10); % spectrum used for calculation
+% Processing method
+% 1-PUV, [Aquadopp/Vector]
+% 2-SUV, [AWAC/AST]
+% 3-MLM (Maximum Likelihood Method without Surface Tracking) [AWAC],
+% 4-MLMST (Maximum Likelihood Method with Surface Tracking) [AWAC/AST].
+sect.ProcMethod     = data(idx+11); % processing method used in actual calculation
+block               = bytecast(data(idx+12:idx+27), 'L', 'uint16', cpuEndianness);
+sect.LowFrequency   = block(1); % low frequency in [0.001 Hz]
+sect.HighFrequency  = block(2); % high frequency in [0.001 Hz]
+sect.Hm0            = block(3); % Spectral significant wave height [mm]
+sect.Tm02           = block(4); % Mean period spectrum based [0.01 sec]
+sect.Tp             = block(5); % Peak period [0.01 sec]
+sect.DirTp          = block(6); % Direction at Tp [0.01 deg]
+sect.DirMean        = block(7); % Mean wave direction [0.01 deg]
+sect.SprTp          = block(8); % Spreading at Tp [0.01 deg]
+sect.Error = bytecast(data(idx+28:idx+31), 'L', 'uint32', cpuEndianness); % Error Code for bad data
+
+% idx+32:idx+45 Spares
+
 sect.Checksum = bytecast(data(idx+46:idx+47), 'L', 'uint16', cpuEndianness);
 
 end
@@ -1578,28 +1618,37 @@ function [sect, len, off] = readWaveEnergySpectrum(data, idx, cpuEndianness)
 %READWAVEENERGYSPECTRUM Reads an AWAC Wave Energy Spectrum section.
 % Id=0x62, Wave energy spectrum
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 53-54
-sect = struct;
 
+sect = struct;
 sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len         = sect.Size * 2;
 off         = len;
 sect.Time   = readClockData(data, idx+4);
-sect.cSpectrumType     = data(idx+10); % spectrum used for calculation
-% idx+11 is cSpare
+% Spectrum basis type
+% 0-pressure,
+% 1-Velocity,
+% 3-AST.
+sect.SpectrumType     = data(idx+10); % spectrum used for calculation
+
+% idx+11 is Spare
+
 block              = bytecast(data(idx+12:idx+19), 'L', 'uint16', cpuEndianness);
-sect.hNumSpectrum  = block(1); % number of spectral bins 
+sect.NumSpectrum  = block(1); % number of spectral bins 
 sect.LowFrequency  = block(2); % low frequency in [0.001 Hz]
 sect.HighFrequency = block(3); % high frequency in [0.001 Hz]
 sect.StepFrequency = block(4); % frequency step in [0.001 Hz]
-% idx+20 to idx+37 are Spares
+
+% idx+20:idx+37 are Spares
+
 % AST energy spectrum multiplier [cm^2/Hz]
-sect.hEnergyMultiplier = bytecast(data(idx+38:idx+41), 'L', 'uint32', cpuEndianness);
+sect.EnergyMultiplier = bytecast(data(idx+38:idx+41), 'L', 'uint32', cpuEndianness);
 eOff = idx+42;
 csOff = eOff + sect.hNumSpectrum*2;
 % AST Spectra [0 - 1/65535] 
 sect.Energy = bytecast(data(eOff:csOff-1), 'L', 'uint16', cpuEndianness);
+
 sect.Checksum     = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
 end
@@ -1608,23 +1657,32 @@ function [sect, len, off] = readWaveFourierCoefficentSpectrum(data, idx, cpuEndi
 %READWAVEFOURIERCOEFFICIENTSSPECTRUM Reads an AWAC Wave Fourier Coefficient Spectrum section.
 % Id=0x63, Wave fourier coefficient spectrum
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 54
-sect = struct;
 
+sect = struct;
 sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len         = sect.Size * 2;
 off         = len;
 sect.Time   = readClockData(data, idx+4);
+
 % idx+10 is cSpare
-sect.cProcMethod     = data(idx+11); % processing method used in actual calculation
+
+% Processing method
+% 1-PUV, [Aquadopp/Vector]
+% 2-SUV, [AWAC/AST]
+% 3-MLM (Maximum Likelihood Method without Surface Tracking) [AWAC],
+% 4-MLMST (Maximum Likelihood Method with Surface Tracking) [AWAC/AST].
+sect.ProcMethod     = data(idx+11); % processing method used in actual calculation
 
 block              = bytecast(data(idx+12:idx+19), 'L', 'uint16', cpuEndianness);
 sect.NumSpectrum  = block(1); % number of spectral bins 
 sect.LowFrequency  = block(2); % low frequency in [0.001 Hz]
 sect.HighFrequency = block(3); % high frequency in [0.001 Hz]
 sect.StepFrequency = block(4); % frequency step in [0.001 Hz]
+
 % idx+20 to idx+29 are 5 x uint16 spares
+
 a1Off = idx+30;
 b1Off = a1Off + sect.NumSpectrum*2;
 a2Off = b1Off + sect.NumSpectrum*2;
@@ -1635,6 +1693,7 @@ sect.A1 = bytecast(data(a1Off:b1Off-1), 'L', 'int16', cpuEndianness);
 sect.B1 = bytecast(data(b1Off:a2Off-1), 'L', 'int16', cpuEndianness);
 sect.A2 = bytecast(data(a2Off:b2Off-1), 'L', 'int16', cpuEndianness);
 sect.B2 = bytecast(data(b2Off:csOff-1), 'L', 'int16', cpuEndianness);
+
 sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
 end
