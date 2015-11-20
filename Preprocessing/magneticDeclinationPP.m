@@ -61,10 +61,10 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
    
   % magnetic measurement dependent IMOS parameters
   magParam = {'CDIR_MAG', 'HEADING_MAG', 'SSDS_MAG', 'SSWD_MAG', ...
-      'SSWV_MAG', 'WPDI_MAG', 'WWPD_MAG', 'SWPD_MAG', 'WMPD_MAG', ...
+      'SSWV_MAG', 'WPDI_MAG', 'WWPD_MAG', 'SWPD_MAG', ...
       'UCUR_MAG', 'VCUR_MAG', 'VDIR_MAG', ...
       'CDIR', 'HEADING', 'SSDS', 'SSWD', ...
-      'SSWV', 'WPDI', 'WWPD', 'SWPD', 'WMPD', ...
+      'SSWV', 'WPDI', 'WWPD', 'SWPD', ...
       'UCUR', 'VCUR', 'VDIR'};
   
   nDataSet = length(sample_data);
@@ -141,7 +141,7 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
           for j = 1:nVar
               switch sample_data{iMagDataSet(i)}.variables{j}.name
                   case {'CDIR_MAG', 'HEADING_MAG', 'VDIR_MAG', 'SSDS_MAG', ...
-                          'SSWD_MAG', 'WPDI_MAG', 'WWPD_MAG', 'SWPD_MAG', 'WMPD_MAG'} % PARAM_MAG (Degrees clockwise from magnetic North)
+                          'SSWD_MAG', 'WPDI_MAG', 'WWPD_MAG', 'SWPD_MAG'} % PARAM_MAG (Degrees clockwise from magnetic North)
                      
                       % current parameter gives a direction from magnetic
                       % North so just need to add the magnetic declination
@@ -194,7 +194,7 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
                       end
               
                   case {'CDIR', 'HEADING', 'VDIR', 'SSDS', 'SSWD', 'WPDI', ...
-                          'WWPD', 'SWPD', 'WMPD', 'VCUR', 'UCUR'}
+                          'WWPD', 'SWPD', 'VCUR', 'UCUR'}
                       % we add a variable attribute for theoretical
                       % magnetic declination but don't do any modification
                       % to the data

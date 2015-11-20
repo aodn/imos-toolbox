@@ -402,7 +402,7 @@ vars = {
     'NOMINAL_DEPTH',[],      NaN; ...
     'VDEN',         [1 2],   waveData.pwrSpectrum; ... % sea_surface_wave_variance_spectral_density
     'SSWD_MAG',     [1 3],   waveData.dirSpectrum; ... % sea_surface_wave_direction_spectral_density
-    'VAVH',         1,       waveData.SignificantHeight; ... % sea_surface_wave_significant_height
+    'WSSH',         1,       waveData.SignificantHeight; ... % sea_surface_wave_spectral_significant_height
     'VAVT',         1,       waveData.MeanZeroCrossingPeriod; ... % sea_surface_wave_zero_upcrossing_period
     'VDIR_MAG',     1,       waveData.MeanDirection; ... % sea_surface_wave_from_direction
     'SSDS_MAG',     1,       waveData.DirectionalSpread; ... % sea_surface_wave_directional_spread
@@ -424,7 +424,7 @@ for i=1:nVars
     sample_data{2}.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
     sample_data{2}.variables{i}.dimensions   = vars{i, 2};
     if ~isempty(vars{i, 2}) && ~strcmpi(vars{i, 1}, 'SPCT') % we don't want this for scalar variables nor SPCT
-        if any(strcmpi(vars{i, 1}, {'VDEN', 'SSWD_MAG', 'VAVH', 'VAVT', 'VDIR_MAG', 'SSDS_MAG', 'SSWV_MAG'}))
+        if any(strcmpi(vars{i, 1}, {'VDEN', 'SSWD_MAG', 'WSSH', 'VAVT', 'VDIR_MAG', 'SSDS_MAG', 'SSWV_MAG'}))
             sample_data{2}.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE'; % data at the surface, can be inferred from standard/long names
         else
             sample_data{2}.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
