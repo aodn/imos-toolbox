@@ -259,6 +259,27 @@ clear IDX sType;
 ensembles.fixedLeader       = parseFixedLeader(data, iFixedLeader, cpuEndianness);
 ensembles.variableLeader    = parseVariableLeader(data, iVarLeader, cpuEndianness);
 
+% adc channels sequentially sampled per ping, nan channels not sampled
+% in that ensemble
+pingsPerEnsemble = mode(ensembles.fixedLeader.pingsPerEnsemble);
+nChan = 8;
+if pingsPerEnsemble < nChan
+    nEns = length(ensembles.variableLeader.adcChannel0);
+    % % start/end adc channel recorded per ping group
+    % startAdc = mod(((1:nEns)-1)*pingsPerEnsemble, nChan);
+    % endAdc = rem(startAdc + pingsPerEnsemble-1, nChan);
+    
+    % must be a smarter way but couldn't work it out
+    repmatCh=repmat(0:7,[1,pingsPerEnsemble*nEns]);
+    reshapeCh = reshape(repmatCh',pingsPerEnsemble,[]);
+    reshapeCh(:,nEns+1:end)=[];
+    for ii=0:7
+        iAdc = any(reshapeCh == ii, 1);
+        ensembles.variableLeader.(['adcChannel' num2str(ii)])(~iAdc) = NaN;
+    end
+    clear('repmatCh', 'reshapeCh', 'iAdc');
+end
+
 % subfields contain the vector time series
 % we set a static value for nCells to the most frequent value found
 nCells = mode(ensembles.fixedLeader.numCells);
@@ -474,6 +495,39 @@ function [sect len] = parseVariableLeader( data, idx, cpuEndianness )
   sect.hdgStdDev              = double(data(idx+31));
   sect.pitchStdDev            = double(data(idx+32));
   sect.rollStdDev             = double(data(idx+33));
+% The next fields contain the outputs of the Analog-to-Digital Converter
+% (ADC) located on the DSP board. The ADC sequentially samples one of the 
+% eight channels per ping group (the number of ping groups per ensemble is
+% the maximum of the WP). These fields are zeroed at the beginning of the
+% deployment and updated each ensemble at the rate of one channel per ping
+% group. For example, if the ping group size is 5, then:
+% END OF ENSEMBLE No.   CHANNELS UPDATED
+% Start                 All channels = 0
+%
+% 1                     0, 1, 2, 3, 4
+% 2                     5, 6, 7, 0, 1
+% 3                     2, 3, 4, 5, 6
+% 4                     7, 0, 1, 2, 3
+% 5                     4, 5, 6, 7, 0
+% 6                     1, 2, 3, 4, 5
+% 7                     6, 7, 0, 1, 2
+% 8                     3, 4, 5, 6, 7
+% 9                     0, 1, 2, 3, 4
+% 10                    5, 6, 7, 0, 1
+% 11                    2, 3, 4, 5, 6
+% 12                    7, 0, 1, 2, 3
+% Here is the description for each channel:
+% CHANNEL DESCRIPTION
+% 0 XMIT CURRENT
+% 1 XMIT VOLTAGE
+% 2 AMBIENT TEMP
+% 3 PRESSURE (+)
+% 4 PRESSURE (-)
+% 5 ATTITUDE TEMP
+% 6 ATTITUDE
+% 7 CONTAMINATION SENSOR
+% Note that the ADC values may be “noisy” from sample to sample,
+% but are useful for detecting long-term trends.
   sect.adcChannel0            = double(data(idx+34));
   sect.adcChannel1            = double(data(idx+35));
   sect.adcChannel2            = double(data(idx+36));
