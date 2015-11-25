@@ -79,7 +79,7 @@ end
 
 qcSet    = str2double(readProperty('toolbox.qc_set'));
 passFlag = imosQCFlag('good',           qcSet, 'flag');
-failFlag = imosQCFlag('probablyBad',    qcSet, 'flag');
+failFlag = imosQCFlag('bad',            qcSet, 'flag');
 
 if ~isempty(dataTime)
     sizeData = size(dataTime);
