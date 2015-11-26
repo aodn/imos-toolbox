@@ -142,7 +142,7 @@ for k = 1:length(sample_data)
   psal = gsw_SP_from_R(R, temp, presRel);
   
   dimensions = sam.variables{tempIdx}.dimensions;
-  salinityComment = ['salinityPP.m: derived from CNDC, TEMP and ' presName ' using the Gibbs-SeaWater toolbox (TEOS-10) v3.02'];
+  salinityComment = ['salinityPP.m: derived from CNDC, TEMP and ' presName ' using the Gibbs-SeaWater toolbox (TEOS-10) v3.05'];
   
   if isfield(sam.variables{tempIdx}, 'coordinates')
       coordinates = sam.variables{tempIdx}.coordinates;

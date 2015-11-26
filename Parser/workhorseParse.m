@@ -411,26 +411,26 @@ narginchk(1, 2);
           'LATITUDE',       [],         NaN; ...
           'LONGITUDE',      [],         NaN; ...
           'NOMINAL_DEPTH',  [],         NaN; ...
-          'VAVH',           1,          waveData.param.Hs; ...   % sea_surface_wave_significant_height
+          'WSSH',           1,          waveData.param.Hs; ...   % sea_surface_wave_spectral_significant_height
           'WPPE',           1,          waveData.param.Tp; ...   % sea_surface_wave_period_at_variance_spectral_density_maximum
           ['WPDI' magExt],  1,          waveData.param.Dp; ...   % sea_surface_wave_from_direction_at_variance_spectral_density_maximum
           'WWSH',           1,          waveData.param.Hs_W; ... % sea_surface_wind_wave_significant_height
-          'WWPP',           1,          waveData.param.Tp_W; ... % sea_surface_wind_wave_period_at_variance_spectral_density_maximum
-          ['WWPD' magExt],  1,          waveData.param.Dp_W; ... % sea_surface_wind_wave_from_direction_at_variance_spectral_density_maximum
+          'WWPP',           1,          waveData.param.Tp_W; ... % sea_surface_peak_wind_sea_wave_period
+          ['WWPD' magExt],  1,          waveData.param.Dp_W; ... % sea_surface_peak_wind_sea_wave_from_direction
           'SWSH',           1,          waveData.param.Hs_S; ... % sea_surface_swell_wave_significant_height
-          'SWPP',           1,          waveData.param.Tp_S; ... % sea_surface_swell_wave_period_at_variance_spectral_density_maximum
-          ['SWPD' magExt],  1,          waveData.param.Dp_S; ... % sea_surface_swell_wave_from_direction_at_variance_spectral_density_maximum
+          'SWPP',           1,          waveData.param.Tp_S; ... % sea_surface_peak_swell_wave_period
+          ['SWPD' magExt],  1,          waveData.param.Dp_S; ... % sea_surface_peak_swell_wave_from_direction
           % ht is in mm
           'DEPTH',          1,          waveData.param.ht/1000; ...
           'WMXH',           1,          waveData.param.Hmax; ...  % sea_surface_wave_maximum_height
-          'WMPP',           1,          waveData.param.Tmax; ...  % sea_surface_wave_maximum_period_at_variance_spectral_density_maximum
-          'WHTH',           1,          waveData.param.Hth; ...   % sea_surface_wave_significant_height_of_largest_third
-          'WPTH',           1,          waveData.param.Tth; ...   % sea_surface_wave_period_at_largest_third_peak_wave_height
-          'WMSH',           1,          waveData.param.Hmn; ...   % sea_surface_wave_mean_significant_height
-          'WPMH',           1,          waveData.param.Tmn; ...   % sea_surface_wave_period_at_mean_significant_wave_height
-          'WHTE',           1,          waveData.param.Hte; ...   % sea_surface_wave_significant_height_of_largest_tenth
-          'WPTE',           1,          waveData.param.Tte; ...   % sea_surface_wave_period_at_largest_tenth_peak_wave_height
-          ['WMPD' magExt],  1,          waveData.param.Dmn; ...   % sea_surface_wave_from_mean_direction_at_variance_spectral_density_maximum
+          'WMPP',           1,          waveData.param.Tmax; ...  % sea_surface_wave_maximum_zero_crossing_period
+          'WHTH',           1,          waveData.param.Hth; ...   % sea_surface_wave_significant_height_of_highest_one_third
+          'WPTH',           1,          waveData.param.Tth; ...   % sea_surface_wave_period_of_highest_one_third
+          'WMSH',           1,          waveData.param.Hmn; ...   % sea_surface_wave_zero_crossing_mean_height
+          'WPMH',           1,          waveData.param.Tmn; ...   % sea_surface_wave_zero_crossing_period
+          'WHTE',           1,          waveData.param.Hte; ...   % sea_surface_wave_significant_height_of_highest_one_tenth
+          'WPTE',           1,          waveData.param.Tte; ...   % sea_surface_wave_period_of_highest_one_tenth
+          ['VDIR' magExt],  1,          waveData.param.Dmn; ...   % sea_surface_wave_from_direction
           % Vspec is in mm/sqrt(Hz)
           'VDEV',           [1 2],      (waveData.Vspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_velocity
           'VDEP',           [1 2],      (waveData.Pspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_pressure
@@ -454,7 +454,7 @@ narginchk(1, 2);
               end
           end
           sample_data{2}.variables{i}.data         = sample_data{2}.variables{i}.typeCastFunc(vars{i, 3});
-          if any(strcmpi(vars{i, 1}, {'WPDI', 'WWPD', 'SWPD', 'WMPD', 'SSWV'}))
+          if any(strcmpi(vars{i, 1}, {'WPDI', 'WWPD', 'SWPD', 'VDIR', 'SSWV'}))
               sample_data{2}.variables{i}.compass_correction_applied = magDec;
               sample_data{2}.variables{i}.comment  = magBiasComment;
           end
