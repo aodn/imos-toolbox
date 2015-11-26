@@ -60,7 +60,7 @@
 /*         Model Data File       :  Name of the data file containing the    */
 /*                                  spherical harmonic coefficients of      */
 /*                                  the chosen model.  The model and path   */
-/*                                  must be less than PATH chars.           */
+/*                                  must be less than MAX_PATH chars.       */
 /*                                                                          */
 /*         Coordinate Preference :  Geodetic (WGS84 latitude and altitude   */
 /*                                  above ellipsoid (WGS84),                */
@@ -107,6 +107,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h> 
+#if defined(WIN32) || defined(WIN64)
+#include <windows.h>  /* for MAX_PATH */
+#endif
 
 int my_isnan(double d)
 {
@@ -139,7 +142,9 @@ int my_isnan(double d)
 #define MAXMOD 30
 /** Max number of models in a file **/
 
-#define PATH MAXREAD
+#ifndef MAX_PATH
+#define MAX_PATH 1024
+#endif
 /** Max path and filename length **/
 
 #define EXT_COEFF1 (double)0
@@ -181,8 +186,8 @@ FILE *stream = NULL;                /* Pointer to specified model data file */
 /*      Rewritten by : David Owens                                          */
 /*                     For Susan McLean                                     */
 /*                                                                          */
-/*      Maintained by: Stefan Maus                                          */
-/*      Contact      : stefan.maus@noaa.gov                                 */
+/*      Maintained by: Adam Woods                                           */
+/*      Contact      : geomag.models@noaa.gov                               */
 /*                     National Geophysical Data Center                     */
 /*                     World Data Center-A for Solid Earth Geophysics       */
 /*                     NOAA, E/GC1, 325 Broadway,                           */
@@ -258,7 +263,7 @@ FILE *stream = NULL;                /* Pointer to specified model data file */
 /*                                                                          */
 /*   max3       Integer array of MAXMOD Acceleration coefficient.           */
 /*                                                                          */
-/*   mdfile     Character array of PATH  Model file name.                   */
+/*   mdfile     Character array of MAX_PATH  Model file name.               */
 /*                                                                          */
 /*   minyr      Double                  Min year of all models              */
 /*                                                                          */
@@ -313,16 +318,15 @@ int main(int argc, char**argv)
   int arg_err = 0;
   int need_to_read_model = 1;
 
-  char  mdfile[PATH];
+  char  mdfile[MAX_PATH];
   char  inbuff[MAXINBUFF];
   char  model[MAXMOD][9];
   char *begin;
   char *rest;
-  char args[7][MAXREAD];
   int iarg;
 
-  char coord_fname[PATH];
-  char out_fname[PATH];
+  char coord_fname[MAX_PATH];
+  char out_fname[MAX_PATH];
   FILE *coordfile,*outfile;
   int iline=0;
   int read_flag;
@@ -377,14 +381,10 @@ int main(int argc, char**argv)
   inbuff[MAXREAD+1]='\0';  /* Just to protect mem. */
   inbuff[MAXINBUFF-1]='\0';  /* Just to protect mem. */
   
-  for (iarg=0; iarg<argc; iarg++)
-    if (argv[iarg] != NULL)
-      strncpy(args[iarg],argv[iarg],MAXREAD);
-  
   /* printing out version number and header */
-  printf("\n\n Geomag v7.0 - Jan 25, 2010 ");
+  printf("\n\n Geomag v7.01 - Nov 17, 2015");
   
-  if ((argc==2)&&((*(args[1])=='h')||(*(args[1])=='?')||(args[1][1]=='?')))
+  if ((argc==2)&&((*(argv[1])=='h')||(*(argv[1])=='?')||(argv[1][1]=='?')))
     {
       printf("\n\nUSAGE:\n");
       printf("interactive:     geomag\n");
@@ -422,7 +422,7 @@ int main(int argc, char**argv)
       exit(2);
     } /* help */
   
-  if ((argc==5)&&(*(args[2])=='f'))
+  if ((argc==5)&&(*(argv[2])=='f'))
     {
       printf("\n\n 'f' switch: converting file with multiple locations.\n");
       printf("     The first five output columns repeat the input coordinates.\n");
@@ -431,14 +431,14 @@ int main(int argc, char**argv)
       printf("     The units are the same as when the program is\n");
       printf("     run in command line or interactive mode.\n\n");
       coords_from_file = 1;
-      strncpy(coord_fname,args[3],MAXREAD);
+      strncpy(coord_fname,argv[3],MAX_PATH);
       coordfile=fopen(coord_fname, "rt");
-      strncpy(out_fname,args[4],MAXREAD);
+      strncpy(out_fname,argv[4],MAX_PATH);
       outfile=fopen(out_fname, "w");
       fprintf(outfile,"Date Coord-System Altitude Latitude Longitude D_deg D_min I_deg I_min H_nT X_nT Y_nT Z_nT F_nT dD_min dI_min dH_nT dX_nT dY_nT dZ_nT dF_nT\n");
     } /* file option */
 
-  if (argc>=3 && argc !=5 && *(args[2])=='f')
+  if (argc>=3 && argc !=5 && *(argv[2])=='f')
     {
       printf("\n\nERROR in 'f' switch option: wrong number of arguments\n");
     }
@@ -458,9 +458,9 @@ int main(int argc, char**argv)
       if (coords_from_file) 
         {
           argc = 7;
-          read_flag = fscanf(coordfile,"%s%s%s%s%s%*[^\n]",args[2],args[3],args[4],args[5],args[6]);
+          read_flag = fscanf(coordfile,"%s%s%s%s%s%*[^\n]",argv[2],argv[3],argv[4],argv[5],argv[6]);
           if (read_flag == EOF) goto reached_EOF;
-          fprintf(outfile,"%s %s %s %s %s ",args[2],args[3],args[4],args[5],args[6]);fflush(outfile);
+          fprintf(outfile,"%s %s %s %s %s ",argv[2],argv[3],argv[4],argv[5],argv[6]);fflush(outfile);
           iline++;
         } /* coords_from_file */
       
@@ -468,7 +468,7 @@ int main(int argc, char**argv)
       /* Note that there are no 'breaks' after the cases, so these are entry points */
       switch(argc)
         {
-        case 7 : strncpy(inbuff, args[6], MAXREAD);
+        case 7 : strncpy(inbuff, argv[6], MAXREAD);
           if ((rest=strchr(inbuff, ',')))     /* If it contains a comma */
             {
               decdeg=2;                        /* Then not decimal degrees */
@@ -493,10 +493,10 @@ int main(int argc, char**argv)
           else 
             {
               decdeg=1;                        /* Else it's decimal */
-              longitude=atof(args[6]);
+              longitude=atof(argv[6]);
             }
           
-        case 6 : strncpy(inbuff, args[5], MAXREAD);
+        case 6 : strncpy(inbuff, argv[5], MAXREAD);
           if ((rest=strchr(inbuff, ',')))
             {
               decdeg=2;
@@ -521,10 +521,10 @@ int main(int argc, char**argv)
           else 
             {
               decdeg=1;
-              latitude=atof(args[5]);
+              latitude=atof(argv[5]);
             }
           
-        case 5 : strncpy(inbuff, args[4], MAXREAD);
+        case 5 : strncpy(inbuff, argv[4], MAXREAD);
           inbuff[0]=toupper(inbuff[0]);
           if (inbuff[0]=='K') units=1;
           else if (inbuff[0]=='M') units=2;
@@ -536,12 +536,12 @@ int main(int argc, char**argv)
               alt=atof(begin);
             }
           
-        case 4 : strncpy(inbuff, args[3], MAXREAD);
+        case 4 : strncpy(inbuff, argv[3], MAXREAD);
           inbuff[0]=toupper(inbuff[0]);
           if (inbuff[0]=='D') igdgc=1;
           else if (inbuff[0]=='C') igdgc=2;
           
-        case 3 : strncpy(inbuff, args[2], MAXREAD);
+        case 3 : strncpy(inbuff, argv[2], MAXREAD);
           if ((rest=strchr(inbuff, '-')))   /* If it contains a dash */
             {
               range = 2;                     /* They want a range */
@@ -633,7 +633,7 @@ int main(int argc, char**argv)
               else 
                 {
                   decyears=1;                    /* Else it's decimal years */
-                  sdate=atof(args[2]);
+                  sdate=atof(argv[2]);
                 }
             }
           if (sdate==0)
@@ -645,7 +645,7 @@ int main(int argc, char**argv)
         case 2 : 
           if (need_to_read_model)
             {
-              strncpy(mdfile,args[1],MAXREAD);
+              strncpy(mdfile,argv[1],MAXREAD);
               stream=fopen(mdfile, "rt");
             }
           break;
@@ -653,7 +653,7 @@ int main(int argc, char**argv)
       
       if (range == 2 && coords_from_file) 
         {
-          printf("Error in line %1d, date = %s: date ranges not allowed for file option\n\n",iline,args[2]);
+          printf("Error in line %1d, date = %s: date ranges not allowed for file option\n\n",iline,argv[2]);
           exit(2);
         }
       
@@ -753,7 +753,7 @@ int main(int argc, char**argv)
       /* Get date */
       
       if (coords_from_file && !arg_err && (decyears != 1 && decyears != 2))
-        {printf("\nError: unrecognized date %s in coordinate file line %1d\n\n",args[2],iline); arg_err = 1;} 
+        {printf("\nError: unrecognized date %s in coordinate file line %1d\n\n",argv[2],iline); arg_err = 1;} 
 
       while ((decyears!=1)&&(decyears!=2))
         {
@@ -766,7 +766,7 @@ int main(int argc, char**argv)
         }
 
       if (coords_from_file && !arg_err && range != 1)
-        {printf("\nError: unrecognized date %s in coordinate file line %1d\n\n",args[2],iline); arg_err = 1;} 
+        {printf("\nError: unrecognized date %s in coordinate file line %1d\n\n",argv[2],iline); arg_err = 1;} 
       
       while ((range!=1)&&(range!=2))
         {
@@ -782,7 +782,7 @@ int main(int argc, char**argv)
       if (range == 1)
         {
           if (coords_from_file && !arg_err && (sdate < minyr || sdate > maxyr+1))
-            {printf("\nError: unrecognized date %s in coordinate file line %1d\n\n",args[2],iline); arg_err = 1;} 
+            {printf("\nError: unrecognized date %s in coordinate file line %1d\n\n",argv[2],iline); arg_err = 1;} 
 
           while ((sdate<minyr)||(sdate>maxyr+1))
             {
@@ -947,7 +947,7 @@ int main(int argc, char**argv)
       /* Get Coordinate prefs */
 
       if (coords_from_file && !arg_err && (igdgc != 1 && igdgc != 2))
-          {printf("\nError: unrecognized coordinate system %s in coordinate file line %1d\n\n",args[3],iline); arg_err = 1;} 
+          {printf("\nError: unrecognized coordinate system %s in coordinate file line %1d\n\n",argv[3],iline); arg_err = 1;} 
 
       while ((igdgc!=1)&&(igdgc!=2))
         {
@@ -970,7 +970,7 @@ int main(int argc, char**argv)
       if (igdgc==1)
         {
           if (coords_from_file && !arg_err && (units > 3 || units < 1))
-            {printf("\nError: unrecognized altitude units %s in coordinate file line %1d\n\n",args[4],iline); arg_err = 1;} 
+            {printf("\nError: unrecognized altitude units %s in coordinate file line %1d\n\n",argv[4],iline); arg_err = 1;} 
 
           while ((units>3)||(units<1))
             {
@@ -1000,7 +1000,7 @@ int main(int argc, char**argv)
       /* Get altitude */
 
       if (coords_from_file && !arg_err && (alt < minalt || alt > maxalt))
-        {printf("\nError: unrecognized altitude %s in coordinate file line %1d\n\n",args[4],iline); arg_err = 1;} 
+        {printf("\nError: unrecognized altitude %s in coordinate file line %1d\n\n",argv[4],iline); arg_err = 1;} 
 
       while ((alt<minalt)||(alt>maxalt))
         {
@@ -1025,7 +1025,7 @@ int main(int argc, char**argv)
       /* Get lat/long prefs */
 
       if (coords_from_file && !arg_err && (decdeg != 1 && decdeg != 2))
-        {printf("\nError: unrecognized lat %s or lon %s in coordinate file line %1d\n\n",args[5],args[6],iline); arg_err = 1;}
+        {printf("\nError: unrecognized lat %s or lon %s in coordinate file line %1d\n\n",argv[5],argv[6],iline); arg_err = 1;}
 
       while ((decdeg!=1)&&(decdeg!=2))
         {
@@ -1043,7 +1043,7 @@ int main(int argc, char**argv)
       if (decdeg==1)
         {
           if (coords_from_file && !arg_err && (latitude < -90 || latitude > 90))
-            {printf("\nError: unrecognized latitude %s in coordinate file line %1d\n\n",args[6],iline); arg_err = 1;} 
+            {printf("\nError: unrecognized latitude %s in coordinate file line %1d\n\n",argv[6],iline); arg_err = 1;} 
 
           while ((latitude<-90)||(latitude>90))
             {
@@ -1053,7 +1053,7 @@ int main(int argc, char**argv)
             }
 
           if (coords_from_file && !arg_err && (longitude < -180 || longitude > 180))
-            {printf("\nError: unrecognized longitude %s in coordinate file line %1d\n\n",args[6],iline); arg_err = 1;} 
+            {printf("\nError: unrecognized longitude %s in coordinate file line %1d\n\n",argv[6],iline); arg_err = 1;} 
 
           while ((longitude<-180)||(longitude>180))
             {
@@ -1068,7 +1068,7 @@ int main(int argc, char**argv)
           longitude=degrees_to_decimal(ilon_deg,ilon_min,ilon_sec);
 
           if (coords_from_file && !arg_err && (latitude < -90 || latitude > 90))
-            {printf("\nError: unrecognized latitude %s in coordinate file line %1d\n\n",args[6],iline); arg_err = 1;} 
+            {printf("\nError: unrecognized latitude %s in coordinate file line %1d\n\n",argv[6],iline); arg_err = 1;} 
 
           while ((latitude<-90)||(latitude>90))
             {
@@ -1102,7 +1102,7 @@ int main(int argc, char**argv)
             } /* while ((latitude<-90)||(latitude>90)) */
           
           if (coords_from_file && !arg_err && (longitude < -180 || longitude > 180))
-            {printf("\nError: unrecognized longitude %s in coordinate file line %1d\n\n",args[6],iline); arg_err = 1;} 
+            {printf("\nError: unrecognized longitude %s in coordinate file line %1d\n\n",argv[6],iline); arg_err = 1;} 
 
           while ((longitude<-180)||(longitude>180))
             {
@@ -1417,7 +1417,7 @@ int main(int argc, char**argv)
   if (argc<7)
     {
       printf("\nThe same result could have been generated with the following command:\n");
-      printf("%s %s ", args[0], mdfile);
+      printf("%s %s ", argv[0], mdfile);
       if (range == 1)
         {
           if (decyears==1)
@@ -1755,7 +1755,7 @@ double julday(month, day, year)
 
 
 int getshc(file, iflag, strec, nmax_of_gh, gh)
-char file[PATH];
+char file[MAX_PATH];
 int iflag;
 long int  strec;
 int       nmax_of_gh;
@@ -2483,3 +2483,4 @@ int dihf (gh)
     }
   return(ios);
 }
+
