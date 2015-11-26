@@ -73,7 +73,7 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
   lat = [];
   lon = [];
   h = [];
-  d = {};
+  d = [];
   for i = 1:nDataSet
     nVar = length(sample_data{i}.variables);
     for j = 1:nVar
@@ -103,13 +103,13 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
         height_above_sea_level = -sample_data{i}.instrument_nominal_depth;
         if height_above_sea_level < -1000; height_above_sea_level = -1000; end
                 
-        geomagDate = datestr(sample_data{i}.time_coverage_start + ...
-            (sample_data{i}.time_coverage_end - sample_data{i}.time_coverage_start)/2, 'yyyy,mm,dd');
+        geomagDate = sample_data{i}.time_coverage_start + ...
+            (sample_data{i}.time_coverage_end - sample_data{i}.time_coverage_start)/2;
         
         lat(end+1) = sample_data{i}.geospatial_lat_min;
         lon(end+1) = sample_data{i}.geospatial_lon_min;
         h(end+1) = height_above_sea_level;
-        d{end+1} = geomagDate;
+        d(end+1) = geomagDate;
         
         isMagDecToBeComputed = true;
     end

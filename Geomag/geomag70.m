@@ -89,7 +89,7 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
   geomagFormat = ['%s D M%f %f %f' endOfLine];
   inputId = fopen(geomagInputFile, 'w');
   for i=1:length(lat)
-      fprintf(inputId, geomagFormat, date{i}, height_above_sea_level(i),  lat(i), lon(i));
+      fprintf(inputId, geomagFormat, datestr(date(i), 'yyyy,mm,dd'), height_above_sea_level(i),  lat(i), lon(i));
   end
   fclose(inputId);
     
