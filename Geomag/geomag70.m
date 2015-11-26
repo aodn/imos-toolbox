@@ -46,18 +46,21 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
           geomagExe = 'geomag70';
           stdOutRedirection = '>/dev/null'; % we don't want standard output to be output in console (useless)
           endOfLine = '\n';
+          maxPathLength = 1024;
           
       case {'PCWIN', 'PCWIN64'}
           computerDir = 'windows';
           geomagExe = 'geomag70.exe';
           stdOutRedirection = '>NUL';
           endOfLine = '\r\n';
+          maxPathLength = 259;
 
       case {'MACI64'}
           computerDir = 'macosx';
           geomagExe = 'geomag70';
           stdOutRedirection = '>/dev/null';
           endOfLine = '\n';
+          maxPathLength = 1024;
           
       otherwise
           return;
@@ -77,9 +80,9 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
   geomagInputFile   = fullfile(geomagPath, 'sample_coords.txt');
   geomagOutputFile  = fullfile(geomagPath, ['sample_out_' model '.txt']);
   
-  % geomag is limited to path length of 92 characters
-  if length(geomagOutputFile) > 92
-      error(['geomag70.m : Change your toolbox location so that ' geomagOutputFile ' is shorter than 92 characters long (Geomag limitation).']);
+  % geomag is limited to OS path length
+  if length(geomagOutputFile) > maxPathLength
+      error(['geomag70.m : Change your toolbox location so that ' geomagOutputFile ' is shorter than ' num2str(maxPathLength) ' characters long (Geomag limitation).']);
   end
 
   % we create the geomag input file for the input data
