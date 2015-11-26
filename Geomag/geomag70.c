@@ -107,6 +107,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h> 
+#if defined(WIN32) || defined(WIN64)
+#include <windows.h>  /* for MAX_PATH */
+#endif
 
 int my_isnan(double d)
 {
@@ -129,8 +132,11 @@ int my_isnan(double d)
 #define TRUE 1                  /* constants */
 #define RECL 81
 
-#define MAXINBUFF RECL+14
+#ifndef MAX_PATH
+#define MAX_PATH 1024
+#endif
 
+#define MAXINBUFF MAX_PATH
 /** Max size of in buffer **/
 
 #define MAXREAD MAXINBUFF-2
@@ -181,8 +187,8 @@ FILE *stream = NULL;                /* Pointer to specified model data file */
 /*      Rewritten by : David Owens                                          */
 /*                     For Susan McLean                                     */
 /*                                                                          */
-/*      Maintained by: Stefan Maus                                          */
-/*      Contact      : stefan.maus@noaa.gov                                 */
+/*      Maintained by: Adam Woods                                           */
+/*      Contact      : geomag.models@noaa.gov                               */
 /*                     National Geophysical Data Center                     */
 /*                     World Data Center-A for Solid Earth Geophysics       */
 /*                     NOAA, E/GC1, 325 Broadway,                           */
@@ -382,7 +388,7 @@ int main(int argc, char**argv)
       strncpy(args[iarg],argv[iarg],MAXREAD);
   
   /* printing out version number and header */
-  printf("\n\n Geomag v7.0 - Jan 25, 2010 ");
+  printf("\n\n Geomag v7.01 - Nov 26, 2015 ");
   
   if ((argc==2)&&((*(args[1])=='h')||(*(args[1])=='?')||(args[1][1]=='?')))
     {
