@@ -60,7 +60,7 @@
 /*         Model Data File       :  Name of the data file containing the    */
 /*                                  spherical harmonic coefficients of      */
 /*                                  the chosen model.  The model and path   */
-/*                                  must be less than PATH chars.           */
+/*                                  must be less than MAX_PATH chars.       */
 /*                                                                          */
 /*         Coordinate Preference :  Geodetic (WGS84 latitude and altitude   */
 /*                                  above ellipsoid (WGS84),                */
@@ -130,7 +130,7 @@ int my_isnan(double d)
 #define IEXT 0
 #define FALSE 0
 #define TRUE 1                  /* constants */
-#define RECL 81
+#define RECL 80
 
 #ifndef MAX_PATH
 #define MAX_PATH 1024
@@ -388,7 +388,7 @@ int main(int argc, char**argv)
       strncpy(args[iarg],argv[iarg],MAXREAD);
   
   /* printing out version number and header */
-  printf("\n\n Geomag v7.01 - Nov 26, 2015 ");
+  printf("\n\n Geomag v7.02 - Nov 30, 2015 ");
   
   if ((argc==2)&&((*(args[1])=='h')||(*(args[1])=='?')||(args[1][1]=='?')))
     {
@@ -464,7 +464,14 @@ int main(int argc, char**argv)
       if (coords_from_file) 
         {
           argc = 7;
-          read_flag = fscanf(coordfile,"%s%s%s%s%s%*[^\n]",args[2],args[3],args[4],args[5],args[6]);
+          char av[7][128];
+          int k;
+          for(k=2;k<argc;k++)
+          {
+            av[k][0] = '\0';
+            argv[k] = av[k];
+          }
+          read_flag = fscanf(coordfile,"%s%s%s%s%s%*[^\n\r]",args[2],args[3],args[4],args[5],args[6]);
           if (read_flag == EOF) goto reached_EOF;
           fprintf(outfile,"%s %s %s %s %s ",args[2],args[3],args[4],args[5],args[6]);fflush(outfile);
           iline++;
@@ -691,7 +698,8 @@ int main(int argc, char**argv)
             {
               fileline++;                           /* On new line */
               
-              
+              char* p = strchr(inbuff, '\n'); if (p != NULL) *p = '\0';
+              p = strchr(inbuff, '\r'); if (p != NULL) *p = '\0';
               if (strlen(inbuff) != RECL)       /* IF incorrect record size */
                 {
                   printf("Corrupt record in file %s on line %d.\n", mdfile, fileline);
