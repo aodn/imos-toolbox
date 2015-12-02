@@ -14,7 +14,7 @@ public class CryptCodecOpener implements JackcessOpenerInterface {
    DatabaseBuilder dbd =new DatabaseBuilder(fl);
    dbd.setAutoSync(true);
    dbd.setCodecProvider(new CryptCodecProvider(pwd));
-   dbd.setReadOnly(false);
+   dbd.setReadOnly(true);
    return dbd.open();
    
   }
