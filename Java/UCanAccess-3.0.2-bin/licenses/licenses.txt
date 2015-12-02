@@ -1,7 +1,7 @@
-Jackcess is distributed  under GNU Lesser General Public License (http://www.gnu.org/licenses/lgpl.html). 
+Jackcess 2.1.2 is distributed  under Apache License 2.0. 
 You can download  Jackcess at http://jackcess.sourceforge.net. Copyright 2005-2012  Health Market Science. 
 
-Apache Commons Lang is distribuited under Apache License 2.0.  You can dowload  the latest version of commons-lang-2.4.jar at http://commons.apache.org. 
+Apache Commons Lang is distribuited under   You can dowload  the latest version of commons-lang-2.4.jar at http://commons.apache.org. 
 
 Apache Commons Logging is distribuited under Apache License 2.0.  You can  download  the latest version of commons-logging-api.jar   at http://commons.apache.org. 
 
@@ -13,4 +13,9 @@ Most of the financial functions (PMT, NPER, IPMT, PPMT, RATE, PV Function class 
 They have been then modified and adapted so that they are integrated with UCanAccess, in a consistent manner. 
 The  Apache POI project is licensed under Apache License, Version 2.0 http://www.apache.org/licenses/LICENSE-2.0.
 
+Some of the UcanaccessDatabaseMetadata methods have been originally inspired by  the hsqldb 
+DatabaseMetaData implementation. 
+They have been then modified and adapted so that they are integrated with UCanAccess, in a 
+
+consistent manner
 
