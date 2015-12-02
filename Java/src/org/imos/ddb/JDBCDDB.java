@@ -29,10 +29,10 @@
  */
 package org.imos.ddb;
 
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -48,6 +48,7 @@ import java.util.List;
  * org.imos.ddb.DDB.getDDB.
  * 
  * @author Gordon Keith <gordon.keith@csiro.au>
+ * @author Peter Jansen <peter.jansen@csiro.au> - generic database schema changes
  * 
  * @see http://java.sun.com/javase/6/docs/technotes/guides/jdbc/bridge.html
  */
@@ -106,9 +107,6 @@ public class JDBCDDB extends DDB {
     Connection conn = null;
     List<Object> results = null;
     
-    //type of object to return
-    Class clazz = Class.forName("org.imos.ddb.schema." + tableName);
-    
     try {
       
       //create ODBC database connection
@@ -119,7 +117,7 @@ public class JDBCDDB extends DDB {
       results = new ArrayList<Object>();
       
       //build the query
-      String query = "select * from " + tableName;
+      String query = "SELECT * FROM " + tableName;
       if (fieldName != null) {
 
         if (fieldValue == null)
@@ -127,9 +125,9 @@ public class JDBCDDB extends DDB {
 
         //wrap strings in quotes
         if (fieldValue instanceof String) 
-          query += " where " + fieldName + " = '" + fieldValue + "'";
+          query += " WHERE " + fieldName + " = '" + fieldValue + "'";
         else
-          query += " where " + fieldName + " = " + fieldValue;
+          query += " WHERE " + fieldName + " = " + fieldValue;
       }
 
       //execute the query
@@ -140,46 +138,47 @@ public class JDBCDDB extends DDB {
         rs = stmt.executeQuery(query);
       }
       catch (Exception e) {
+    	  
+    	System.out.println("JDBCDDB::Exception Caught " + e);
       
         //Hack to accommodate DeploymentId and FieldTripID
         //types of number or text. Don't tell anyone
         if (fieldName != null && fieldValue instanceof String) {
         
-          query = "select * from " + tableName + 
-            " where " + fieldName + " = " + fieldValue;
-                  
+          query = "SELECT * FROM " + tableName + 
+            " WHERE " + fieldName + " = " + fieldValue;
+          
+          System.out.println("JDBCDDB::Query : " + query);
+          
           stmt = conn.createStatement();
           rs = stmt.executeQuery(query);
         }
         else throw e;
       }
       
+      ResultSetMetaData rsmd = rs.getMetaData();
+      int columnsNumber = rsmd.getColumnCount();
+      int rows = 0;
       //create an object for each row
       while (rs.next()) {
         
-        Object instance = clazz.newInstance();
+    	rows++;
+    	ArrayList<Object> instance = new ArrayList<Object>();
         results.add(instance);
         
-        Field [] fields = clazz.getDeclaredFields();
-        
-        //set the fields of the object from the row data
-        for (Field f : fields) {
+        for (int i = 1; i < columnsNumber; i++) {
           
-          if (f.isSynthetic()) continue;
+          DBObject db = new DBObject();
           
-          Object o = rs.getObject(f.getName());
+          db.name = rsmd.getColumnName(i);
+          db.o = rs.getObject(i);
 
           //all numeric values must be doubles
-          if (o instanceof Integer) {
-            o = (double)((Integer)o).intValue();
-
-            //Hack to accommodate DeploymentId and FieldTripID 
-            //types of number or text. Don't tell anyone
-            if (f.getType() == String.class)
-              o = o.toString();
+          if (db.o instanceof Integer) {
+            db.o = (double)((Integer)db.o).intValue();
           }
             
-          f.set(instance, o);
+          instance.add(db);
         }
       }
     }

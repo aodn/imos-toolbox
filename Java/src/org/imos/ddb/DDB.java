@@ -73,7 +73,7 @@ public abstract class DDB {
     if (filename.isFile())
     	//By default, uses the UCanAccess driver and mdb file name as connection, 
     	//assuming username and password are not necessary (see http://ucanaccess.sourceforge.net/site.html).
-    	//ucanaccess-1.0.2.jar and its .jar dependencies must be added to the 
+    	//ucanaccess.jar and its .jar dependencies must be added to the 
     	//Java Build Path libraries of the project (and at least in Matlab classpath.txt).
     	return new JDBCDDB("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + name + ";jackcessOpener=org.imos.ddb.CryptCodecOpener", "", "");
     else {
@@ -112,7 +112,7 @@ public abstract class DDB {
   }
   
   /**
-   * Query the DDB. This method provites a primitive SQL interface to the DDB.
+   * Query the DDB. This method provides a primitive SQL interface to the DDB.
    * The following SQL query is executed:
    * 
    *   select * from [tableName] where [fieldName] = '[fieldValue]'

@@ -50,6 +50,7 @@ import java.util.List;
  * org.imos.ddb.DDB.getDDB.
  * 
  * @author Paul McCarthy <paul.mcccarthy@csiro.au>
+ * @author Peter Jansen <peter.jansen@csiro.au> - generic database schema changes
  * 
  * @see http://java.sun.com/javase/6/docs/technotes/guides/jdbc/bridge.html
  */
@@ -106,7 +107,7 @@ public class ODBCDDB extends DDB {
       results = new ArrayList();
       
       //build the query
-      String query = "select * from " + tableName;
+      String query = "SELECT * FROM " + tableName;
       if (fieldName != null) {
 
         if (fieldValue == null)
@@ -114,9 +115,9 @@ public class ODBCDDB extends DDB {
 
         //wrap strings in quotes
         if (fieldValue instanceof String) 
-          query += " where " + fieldName + " = '" + fieldValue + "'";
+          query += " WHERE " + fieldName + " = '" + fieldValue + "'";
         else
-          query += " where " + fieldName + " = " + fieldValue;
+          query += " WHERE " + fieldName + " = " + fieldValue;
       }
 
       //execute the query
@@ -130,8 +131,8 @@ public class ODBCDDB extends DDB {
         //types of number or text. Don't tell anyone
         if (fieldName != null && fieldValue instanceof String) {
         
-          query = "select * from " + tableName + 
-            " where " + fieldName + " = " + fieldValue;
+          query = "SELECT * FROM " + tableName + 
+            " WHERE " + fieldName + " = " + fieldValue;
                   
           stmt = conn.createStatement();
           rs = stmt.executeQuery(query);
@@ -142,13 +143,16 @@ public class ODBCDDB extends DDB {
       //create an object for each row
       while (rs.next()) {
         
-        Object instance = clazz.newInstance();
+    	ArrayList<Object> instance = new ArrayList<Object>();
         results.add(instance);
         
         Field [] fields = clazz.getDeclaredFields();
         
         //set the fields of the object from the row data
         for (Field f : fields) {
+          
+          DBObject db = new DBObject();
+          db.name = f.getName();
           
           if (f.isSynthetic()) continue;
           
@@ -165,6 +169,8 @@ public class ODBCDDB extends DDB {
           }
             
           f.set(instance, o);
+          db.o = o;
+          instance.add(db);
         }
       }
     }
