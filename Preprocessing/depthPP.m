@@ -225,10 +225,12 @@ for k = 1:length(sample_data)
                     newDiffWithOthers(iFirst) = NaN;
                     distance = 0;
                     
+                    % if those two sensors are too close to each other then
+                    % the calculated depth could be too far off the truth
                     distMin = 10;
                     while distance < distMin && ~all(isnan(newDiffWithOthers))
                         iNextBelow = find(diffWithOthers == max(newDiffWithOthers(newDiffWithOthers < 0)), 1);
-                        distance = abs(diffWithOthers(iBelow) - diffWithOthers(iBelow));
+                        distance = abs(diffWithOthers(iNextBelow) - diffWithOthers(iBelow));
                         if distance >= distMin
                             iSecond = iNextBelow;
                             break;
