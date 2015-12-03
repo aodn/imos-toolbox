@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="ddb.jar"/>
+	<classpathentry kind="lib" path="postgresql-9.4-1201.jdbc4.jar"/>
+	<classpathentry kind="lib" path="UCanAccess-3.0.2-bin/ucanaccess-3.0.2.jar"/>
+	<classpathentry kind="lib" path="UCanAccess-3.0.2-bin/lib/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="UCanAccess-3.0.2-bin/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="UCanAccess-3.0.2-bin/lib/hsqldb.jar"/>
+	<classpathentry kind="lib" path="UCanAccess-3.0.2-bin/lib/jackcess-2.1.2.jar"/>
+	<classpathentry kind="lib" path="UCanAccess-3.0.2-bin/lib/jackcess-encrypt-2.1.0.jar"/>
+	<classpathentry kind="lib" path="UCanAccess-3.0.2-bin/lib/bcprov-jdk15on-153.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
