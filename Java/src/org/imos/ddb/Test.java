@@ -30,10 +30,8 @@
 
 package org.imos.ddb;
 
-import java.lang.reflect.Field;
 import java.util.List;
-
-import org.imos.ddb.schema.*;
+import java.util.ArrayList;
 
 /**
  * Simple test case for DDB access.
@@ -46,16 +44,22 @@ public class Test
 	static void printObj(Object o) throws Exception
 	{
 
-		Field[] fields = o.getClass().getDeclaredFields();
-
-		for (Field f : fields)
+		ArrayList<DBObject> l = (ArrayList<DBObject>) o;
+		for (DBObject i : l)
 		{
-
-			if (f.isSynthetic())
-				continue;
-
-			System.out.println(f.getName() + ": " + f.get(o));
+			if (i.o == null)
+				System.out.println(i.name + " = null");
+			else
+				System.out.println(i.name + " class " + i.o.getClass().getName() + " = " + i.o);
 		}
+		// Field []fields = o.getClass().getDeclaredFields();
+
+		// for (Field f : fields) {
+
+		// if (f.isSynthetic()) continue;
+
+		// System.out.println(f.getName() + ": " + f.get(o));
+		// }
 		System.out.println("------");
 	}
 
@@ -68,25 +72,59 @@ public class Test
 		long startFreeMem, connectFreeMem, endFreeMem;
 		DDB mdb = null;
 
-		// String odbcArgs = "imos-ddb_bmorris";
-		String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/OceanDB2015.mdb";
-		// String odbcArgs =
-		// "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
-		// String odbcArgs =
-		// "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/new_ddb/OceanDB_Unreplicated.mdb";
-
-		String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
-		String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
-		// String connection = "jdbc:ucanaccess://" + mdbFile +
-		// ";jackcessOpener=org.imos.ddb.CryptCodecOpener;SingleConnection=true";
-		String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener";
-		String user = "";
-		String password = "";
 		String[] jdbcArgs = new String[4];
-		jdbcArgs[0] = driver;
-		jdbcArgs[1] = connection;
-		jdbcArgs[2] = user;
-		jdbcArgs[3] = password;
+
+		//System.out.println("args " + args.length);
+		
+		if (args.length > 0)
+		{
+			if (args.length < 2)
+			{					
+				System.err.println("example usage : org.imos.ddb.Test net.ucanaccess.jdbc.UcanaccessDriver \"jdbc:ucanaccess://C:/Users/jan079/svn/imos-toolbox/TAS-IMOS_DeploymentDatabase2.0.mdb\"");
+				System.err.println("                org.imos.ddb.Test org.postgresql.Driver \"jdbc:postgresql://localhost/IMOS-DEPLOY\" jan079");
+				
+				System.exit(-1);
+			}
+			
+			jdbcArgs[0] = args[0];
+			jdbcArgs[1] = args[1];
+			if (args.length > 2)
+				jdbcArgs[2] = args[2];
+			if (args.length > 3)
+				jdbcArgs[3] = args[3];
+		}
+		else
+		{
+			// String odbcArgs = "imos-ddb_bmorris";
+			// String odbcArgs =
+			// "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/OceanDB2015.mdb";
+			// String odbcArgs =
+			// "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
+			// String odbcArgs =
+			// "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/new_ddb/OceanDB_Unreplicated.mdb";
+	
+			String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
+			// String mdbFile =
+			// "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
+			// String mdbFile = "/Users/pete/ABOS/imos-toolbox/OceanDB2015.mdb";
+			// String mdbFile = "C:/Users/jan079/svn/imos-toolbox/OceanDB2015.mdb";
+			String mdbFile = "C:/Users/jan079/svn/imos-toolbox/TAS-IMOS_DeploymentDatabase2.0.mdb";
+			// String connection = "jdbc:ucanaccess://" + mdbFile +
+			// ";jackcessOpener=org.imos.ddb.CryptCodecOpener;SingleConnection=true";
+			String connection = "jdbc:ucanaccess://" + mdbFile;
+			String user = "";
+			String password = "";
+	
+			// String driver = "org.postgresql.Driver";
+			// String connection = "jdbc:postgresql://localhost/IMOS-DEPLOY";
+			// String user = "pete";
+			// String password = "";
+	
+			jdbcArgs[0] = driver;
+			jdbcArgs[1] = connection;
+			jdbcArgs[2] = user;
+			jdbcArgs[3] = password;
+		}
 
 		long startTime = System.currentTimeMillis();
 		// startFreeMem = Runtime.getRuntime().totalMemory();
@@ -96,10 +134,9 @@ public class Test
 
 		try
 		{
-			mdb = DDB.getDDB(odbcArgs);
+			// mdb = DDB.getDDB(odbcArgs);}
+			mdb = DDB.getDDB(jdbcArgs[0], jdbcArgs[1], jdbcArgs[2], jdbcArgs[3]);
 		}
-		// mdb = DDB.getDDB(jdbcArgs[0], jdbcArgs[1], jdbcArgs[2],
-		// jdbcArgs[3]);}
 		catch (Exception e)
 		{
 			e.printStackTrace();
@@ -108,6 +145,7 @@ public class Test
 
 		long connectTime = System.currentTimeMillis();
 		System.out.println("Connection created in " + (connectTime - startTime) / 1000 + " seconds.");
+		System.out.println("Connection String '" + jdbcArgs[1] + "'");
 
 		// connectFreeMem = Runtime.getRuntime().totalMemory();
 		// System.out.println("free mem: " + connectFreeMem/1000000 + "Mb");
@@ -119,33 +157,33 @@ public class Test
 		try
 		{
 
-			List<FieldTrip> trips = mdb.executeQuery("FieldTrip", null, null);
-			for (FieldTrip t : trips)
-				printObj(t);
+			List<ArrayList<Object>> trips = mdb.executeQuery("FieldTrip", null, null);
+			for (Object o : trips)
+				printObj(o);
 
-			List<DeploymentData> deps = mdb.executeQuery("DeploymentData", null, null);
-			for (DeploymentData d : deps)
-				printObj(d);
+			List<ArrayList<Object>> deps = mdb.executeQuery("DeploymentData", null, null);
+			for (Object o : deps)
+				printObj(o);
 
-			List<Sites> capeSites = mdb.executeQuery("Sites", null, null);
-			for (Sites s : capeSites)
-				printObj(s);
+			List<ArrayList<Object>> sites = mdb.executeQuery("Sites", null, null);
+			for (Object o : sites)
+				printObj(o);
 
-			List<CTDData> casts = mdb.executeQuery("CTDData", null, null);
-			for (CTDData d : casts)
-				printObj(d);
+			//List<ArrayList<Object>> casts = mdb.executeQuery("CTDData", null, null);
+			//for (Object o : casts)
+			//	printObj(o);
 
-			List<Instruments> inst = mdb.executeQuery("Instruments", null, null);
-			for (Instruments d : inst)
-				printObj(d);
+			List<ArrayList<Object>> inst = mdb.executeQuery("Instruments", null, null);
+			for (Object o : inst)
+				printObj(o);
 
-			List<Sensors> sens = mdb.executeQuery("Sensors", null, null);
-			for (Sensors d : sens)
-				printObj(d);
+			List<ArrayList<Object>> sens = mdb.executeQuery("Sensors", null, null);
+			for (Object o : sens)
+				printObj(o);
 
-			List<InstrumentSensorConfig> instSens = mdb.executeQuery("InstrumentSensorConfig", null, null);
-			for (InstrumentSensorConfig d : instSens)
-				printObj(d);
+			List<ArrayList<Object>> instSens = mdb.executeQuery("InstrumentSensorConfig", null, null);
+			for (Object o : instSens)
+				printObj(o);
 		}
 		catch (Exception e)
 		{
@@ -159,6 +197,7 @@ public class Test
 		// System.out.println("free mem: " + endFreeMem/1000000 + "Mb");
 		// System.out.println("lost mem: " + (connectFreeMem -
 		// endFreeMem)/1000000 + "Mb");
+		
 		usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		System.out.println("used mem: " + usedMem / 1000000 + "Mb");
 	}

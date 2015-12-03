@@ -46,6 +46,7 @@ import java.util.List;
  * @author Paul McCarthy <paul.mccarthy@csiro.au>
  * @author Gordon Keith <gordon.keith@csiro.au> -provides a method getDDB(String
  *         driver, String connection, String user, String password)
+ * @author Peter Jansen <peter.jansen@csiro.au> - generic database schema changes
  */
 public abstract class DDB
 {
@@ -67,7 +68,6 @@ public abstract class DDB
 	 */
 	public static DDB getDDB(String name) throws Exception
 	{
-
 		if (ddb != null)
 			return ddb;
 
@@ -119,7 +119,6 @@ public abstract class DDB
 	 */
 	public static DDB getDDB(String driver, String connection, String user, String password) throws Exception
 	{
-
 		if (ddb != null)
 			return ddb;
 

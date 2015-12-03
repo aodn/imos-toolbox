@@ -57,7 +57,7 @@ function result = executeDDBQuery( table, field, value)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(3,3);
+  error(nargchk(3,3,nargin));
 
   if ~ischar(table), error('table must be a string'); end
   if ~isempty(field) ...
@@ -137,33 +137,29 @@ function strs = java2struct(list)
   
   if list.size() == 0, return; end;
   
-  dateFmt = readProperty('exportNetCDF.dateFormat');
-
   % it's horribly ugly, but this is the only way that I know of to turn
   % Java fields of arbitrary types into matlab fields: a big, ugly switch
   % statement :( at least the fieldnames function works on java objects.
   for k = 0:list.size()-1
     
     obj = list.get(k);
-    
-    % for each field in the java object
-    fields = fieldnames(obj);
-    
-    for m = 1:length(fields)
+        
+    for m = 0:obj.size()-1
       
-      field = fields{m};
-      val   = obj.(field);
+      fields = obj.get(m);
+      
+      field = char(fields.name);
+      val   = fields.o;
       
       % if java field is null
       if isempty(val), strs(k+1).(field) = []; continue; end
       
       % get class type of field
-      class = char(val.getClass().getName());
+      oClass = class(val);
       
       % turn java field value into matlab field 
       % value, ignoring unsupported types
-      switch(class)
-        
+      switch(oClass)
         case 'java.lang.String',
           strs(k+1).(field) = char(val);
         case 'java.lang.Double',
@@ -182,7 +178,10 @@ function strs = java2struct(list)
             cal.get(java.util.Calendar.HOUR_OF_DAY),...
             cal.get(java.util.Calendar.MINUTE),...
             cal.get(java.util.Calendar.SECOND));
+        otherwise,
+            strs(k+1).(field) = val;
       end
     end
+  
   end
 end
