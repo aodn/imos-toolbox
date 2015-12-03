@@ -29,7 +29,7 @@
 	</target>
 
 	<target name="compile" depends="clean" description="--> Compile all files">
-		<javac debug="on" srcdir="${sourcedir}" destdir="${targetdir}" classpathref="classpath" />
+		<javac debug="on" source="1.6" target="1.6" srcdir="${sourcedir}" destdir="${targetdir}" classpathref="classpath" />
 	</target>
 
   <target name="install" depends="compile" description="--> Build a Jar file">
