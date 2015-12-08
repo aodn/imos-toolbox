@@ -30,7 +30,7 @@
 package org.imos.ddb;
 
 import java.io.File;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Interface providing access to the Deployment Database (DDB). Provides the 
@@ -133,7 +133,7 @@ public abstract class DDB {
 	 * 
 	 * @throws Exception on any error.
 	 */
-	public abstract List executeQuery(
+	public abstract ArrayList<Object> executeQuery(
 			String tableName,  
 			String fieldName, 
 			Object fieldValue)

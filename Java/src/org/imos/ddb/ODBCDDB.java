@@ -29,13 +29,12 @@
  */
 package org.imos.ddb;
 
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * In memory representation of the IMOS deployment database using JDBC. 
@@ -83,7 +82,7 @@ public class ODBCDDB extends DDB {
 	 * 
 	 * @throws Exception on any error.
 	 */
-	public List executeQuery(
+	public ArrayList<Object> executeQuery(
 			String tableName,  
 			String fieldName, 
 			Object fieldValue)
@@ -92,10 +91,7 @@ public class ODBCDDB extends DDB {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
-		List results = null;
-
-		//type of object to return
-		Class clazz = Class.forName("org.imos.ddb.schema." + tableName);
+		ArrayList<Object> results = null;
 
 		try {
 
@@ -104,7 +100,7 @@ public class ODBCDDB extends DDB {
 
 			conn = DriverManager.getConnection("jdbc:odbc:" + dbName);
 
-			results = new ArrayList();
+			results = new ArrayList<Object>();
 
 			//build the query
 			String query = "SELECT * FROM " + tableName;
@@ -140,36 +136,26 @@ public class ODBCDDB extends DDB {
 				else throw e;
 			}
 
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int columnsNumber = rsmd.getColumnCount();
 			//create an object for each row
 			while (rs.next()) {
 
 				ArrayList<Object> instance = new ArrayList<Object>();
 				results.add(instance);
 
-				Field [] fields = clazz.getDeclaredFields();
-
-				//set the fields of the object from the row data
-				for (Field f : fields) {
+				for (int i = 1; i < columnsNumber; i++) {
 
 					DBObject db = new DBObject();
-					db.name = f.getName();
 
-					if (f.isSynthetic()) continue;
-
-					Object o = rs.getObject(f.getName());
+					db.name = rsmd.getColumnName(i);
+					db.o = rs.getObject(i);
 
 					//all numeric values must be doubles
-					if (o instanceof Integer) {
-						o = (double)((Integer)o).intValue();
-
-						//Hack to accommodate DeploymentId and FieldTripID 
-						//types of number or text. Don't tell anyone
-						if (f.getType() == String.class)
-							o = o.toString();
+					if (db.o instanceof Integer) {
+						db.o = (double)((Integer)db.o).intValue();
 					}
 
-					f.set(instance, o);
-					db.o = o;
 					instance.add(db);
 				}
 			}

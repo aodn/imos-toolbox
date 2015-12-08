@@ -36,7 +36,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * In memory representation of the IMOS deployment database using JDBC. 
@@ -98,14 +97,14 @@ public class JDBCDDB extends DDB {
 	 * 
 	 * @throws Exception on any error.
 	 */
-	public List<Object> executeQuery(
+	public ArrayList<Object> executeQuery(
 			String tableName,  
 			String fieldName, 
 			Object fieldValue)
 					throws Exception {
 
 		Connection conn = null;
-		List<Object> results = null;
+		ArrayList<Object> results = null;
 
 		try {
 
@@ -158,11 +157,9 @@ public class JDBCDDB extends DDB {
 
 			ResultSetMetaData rsmd = rs.getMetaData();
 			int columnsNumber = rsmd.getColumnCount();
-			int rows = 0;
 			//create an object for each row
 			while (rs.next()) {
 
-				rows++;
 				ArrayList<Object> instance = new ArrayList<Object>();
 				results.add(instance);
 
