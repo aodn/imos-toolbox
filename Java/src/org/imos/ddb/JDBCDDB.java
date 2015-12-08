@@ -31,6 +31,7 @@ package org.imos.ddb;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -55,6 +56,8 @@ import java.util.List;
  */
 public class JDBCDDB extends DDB
 {
+	String identQuote = "'";
+	
 	/** The JDBC database driver */
 	private String driver;
 	private String connection;
@@ -86,6 +89,11 @@ public class JDBCDDB extends DDB
 		Class.forName(driver);
 
 		Connection conn = DriverManager.getConnection(connection, user, password);
+		
+		// get the database's IdentifierQuote
+		
+		DatabaseMetaData dbmd = conn.getMetaData();
+		identQuote = dbmd.getIdentifierQuoteString();
 		
 		conn.close();
 	}
@@ -137,9 +145,9 @@ public class JDBCDDB extends DDB
 
 				// wrap strings in quotes
 				if (fieldValue instanceof String)
-					query += " WHERE \"" + fieldName + "\" = '" + fieldValue + "'";
+					query += " WHERE "+identQuote+"" + fieldName + ""+identQuote+" = '" + fieldValue + "'";
 				else
-					query += " WHERE \"" + fieldName + "\" = " + fieldValue;
+					query += " WHERE "+identQuote+"" + fieldName + ""+identQuote+" = " + fieldValue;
 			}
 
 			// execute the query
@@ -160,7 +168,7 @@ public class JDBCDDB extends DDB
 				// types of number or text. Don't tell anyone
 				if (fieldName != null && fieldValue instanceof String)
 				{
-					query = "SELECT * FROM " + tableName + " WHERE \"" + fieldName + "\" = " + fieldValue;
+					query = "SELECT * FROM " + tableName + " WHERE "+identQuote+"" + fieldName + ""+identQuote+" = " + fieldValue;
 
 					System.out.println("JDBCDDB::Query : " + query);
 					
