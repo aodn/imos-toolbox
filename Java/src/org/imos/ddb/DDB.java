@@ -49,93 +49,93 @@ import java.util.List;
  *   String password)
  */
 public abstract class DDB {
-  
-  /**Singleton instance of the DDB.*/
-  private static DDB ddb;
-  
-  /**
-   * Returns a handle to a DDB object. Creates one if necessary.
-   * 
-   * @param name  Currently if Windows, the ODBC DSN name of the DDB, or if 
-   * Linux, the file name of the DDB. 
-   * 
-   * @return a DDB instance, which can be used to access the DDB.
-   * 
-   * @throws Exception on any error.
-   */
-  public static DDB getDDB(String name) throws Exception {
-    
-    if (ddb != null) return ddb;
-    
-    String os = System.getProperty("os.name");
-    File filename = new File(name);
-    
-    if (filename.isFile())
-    	//By default, uses the UCanAccess driver and mdb file name as connection, 
-    	//assuming username and password are not necessary (see http://ucanaccess.sourceforge.net/site.html).
-    	//ucanaccess.jar and its .jar dependencies must be added to the 
-    	//Java Build Path libraries of the project (and at least in Matlab classpath.txt).
-    	return new JDBCDDB("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + name + ";jackcessOpener=org.imos.ddb.CryptCodecOpener", "", "");
-    else {
-    	if (os.startsWith("Windows"))
-        	return new ODBCDDB(name);
-        else {
-        	System.err.println(name + " is not a valid filepath!");
-        	System.exit(1);
-        }
-        	
-    }
-    
-    return ddb;
-  }
-  
-  /**
-   * Returns a handle to a DDB object. Creates one if necessary.
-   * 
-   * @param driver  Class name of JDBC database driver
-   * @param connection  Database connection string, must include user
-   * and password if required by the database.
-   * @param user  user's login to log on to the database
-   * @param password  password associated to the user's login provided
-   * 
-   * @return a DDB instance, which can be used to access the DDB.
-   * 
-   * @throws Exception on any error.
-   */
-  public static DDB getDDB(String driver, String connection, String user, String password) throws Exception {
-    
-    if (ddb != null) return ddb;
-    
-    ddb = new JDBCDDB(driver, connection, user, password);
-    
-    return ddb;
-  }
-  
-  /**
-   * Query the DDB. This method provides a primitive SQL interface to the DDB.
-   * The following SQL query is executed:
-   * 
-   *   select * from [tableName] where [fieldName] = '[fieldValue]'
-   * 
-   * The resulting rows are converted into object-equivalents of the given 
-   * table and returned in a List. If fieldName is null, all rows are returned.
-   * 
-   * @param tableName name of the DDB table to query (used in the 'from'
-   * clause).
-   * 
-   * @param fieldName field name within the given table - optional (used in the 
-   * 'where' clause).
-   * 
-   * @param fieldValue field value - optional (used in the 'where' clause).
-   *  
-   * @return a List of org.imos.ddb.schema.* objects, each representing one 
-   * row of the result.
-   * 
-   * @throws Exception on any error.
-   */
-  public abstract List executeQuery(
-      String tableName,  
-      String fieldName, 
-      Object fieldValue)
-    throws Exception;
+
+	/**Singleton instance of the DDB.*/
+	private static DDB ddb;
+
+	/**
+	 * Returns a handle to a DDB object. Creates one if necessary.
+	 * 
+	 * @param name  Currently if Windows, the ODBC DSN name of the DDB, or if 
+	 * Linux, the file name of the DDB. 
+	 * 
+	 * @return a DDB instance, which can be used to access the DDB.
+	 * 
+	 * @throws Exception on any error.
+	 */
+	public static DDB getDDB(String name) throws Exception {
+
+		if (ddb != null) return ddb;
+
+		String os = System.getProperty("os.name");
+		File filename = new File(name);
+
+		if (filename.isFile())
+			//By default, uses the UCanAccess driver and mdb file name as connection, 
+			//assuming username and password are not necessary (see http://ucanaccess.sourceforge.net/site.html).
+			//ucanaccess.jar and its .jar dependencies must be added to the 
+			//Java Build Path libraries of the project (and at least in Matlab classpath.txt).
+			return new JDBCDDB("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + name + ";jackcessOpener=org.imos.ddb.CryptCodecOpener", "", "");
+		else {
+			if (os.startsWith("Windows"))
+				return new ODBCDDB(name);
+			else {
+				System.err.println(name + " is not a valid filepath!");
+				System.exit(1);
+			}
+
+		}
+
+		return ddb;
+	}
+
+	/**
+	 * Returns a handle to a DDB object. Creates one if necessary.
+	 * 
+	 * @param driver  Class name of JDBC database driver
+	 * @param connection  Database connection string, must include user
+	 * and password if required by the database.
+	 * @param user  user's login to log on to the database
+	 * @param password  password associated to the user's login provided
+	 * 
+	 * @return a DDB instance, which can be used to access the DDB.
+	 * 
+	 * @throws Exception on any error.
+	 */
+	public static DDB getDDB(String driver, String connection, String user, String password) throws Exception {
+
+		if (ddb != null) return ddb;
+
+		ddb = new JDBCDDB(driver, connection, user, password);
+
+		return ddb;
+	}
+
+	/**
+	 * Query the DDB. This method provides a primitive SQL interface to the DDB.
+	 * The following SQL query is executed:
+	 * 
+	 *   select * from [tableName] where [fieldName] = '[fieldValue]'
+	 * 
+	 * The resulting rows are converted into object-equivalents of the given 
+	 * table and returned in a List. If fieldName is null, all rows are returned.
+	 * 
+	 * @param tableName name of the DDB table to query (used in the 'from'
+	 * clause).
+	 * 
+	 * @param fieldName field name within the given table - optional (used in the 
+	 * 'where' clause).
+	 * 
+	 * @param fieldValue field value - optional (used in the 'where' clause).
+	 *  
+	 * @return a List of org.imos.ddb.schema.* objects, each representing one 
+	 * row of the result.
+	 * 
+	 * @throws Exception on any error.
+	 */
+	public abstract List executeQuery(
+			String tableName,  
+			String fieldName, 
+			Object fieldValue)
+					throws Exception;
 }

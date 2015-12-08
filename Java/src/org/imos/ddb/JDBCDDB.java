@@ -53,139 +53,139 @@ import java.util.List;
  * @see http://java.sun.com/javase/6/docs/technotes/guides/jdbc/bridge.html
  */
 public class JDBCDDB extends DDB {
-  
-  /**The JDBC database driver*/
-  private String driver;
-  private String connection;
-  private String user;
-  private String password;
-  
-  /**
-   * Create a JDBC DDB object using the specified JDBC driver and database connection. 
-   * 
-   * @param driver Class name of JDBC database driver
-   * @param connection Database connection string, must include user and password if required by the database.
-   * @throws ClassNotFoundException If the specified Database driver can't be found
-   * @throws SQLException If an attempt to open a connection to the database fails
-   */
-  protected JDBCDDB(String driver, String connection, String user, String password) throws ClassNotFoundException, SQLException {
-	  this.driver = driver;
-	  this.connection = connection;
-	  this.user = user;
-	  this.password = password;
-	  
-	  // Test connection - throws exception at creation if can't connect
-      Class.forName(driver);
-      
-      Connection conn = DriverManager.getConnection(connection, user, password);
-      conn.close();
-  }
 
-/**
-   * Executes the given query, in the form:
-   * 
-   *   select * from [tableName] where [fieldName] = '[fieldValue]'
-   * 
-   * The rows are converted into object equivalents of the table, and returned 
-   * in a List. If fieldName is null, the where clause is omitted, thus the 
-   * entire table is returned.
-   * 
-   * @param tableName The table to read.
-   * 
-   * @param fieldName the name of the query field.
-   * 
-   * @param fieldValue the query field value.
-   * 
-   * @throws Exception on any error.
-   */
-  public List<Object> executeQuery(
-    String tableName,  
-    String fieldName, 
-    Object fieldValue)
-  throws Exception {
-    
-    Connection conn = null;
-    List<Object> results = null;
-    
-    try {
-      
-      //create ODBC database connection
-      Class.forName(driver);
-      
-      conn = DriverManager.getConnection(connection, user, password);
-    
-      results = new ArrayList<Object>();
-      
-      //build the query
-      String query = "SELECT * FROM " + tableName;
-      if (fieldName != null) {
+	/**The JDBC database driver*/
+	private String driver;
+	private String connection;
+	private String user;
+	private String password;
 
-        if (fieldValue == null)
-          throw new Exception("a fieldValue must be provided");
+	/**
+	 * Create a JDBC DDB object using the specified JDBC driver and database connection. 
+	 * 
+	 * @param driver Class name of JDBC database driver
+	 * @param connection Database connection string, must include user and password if required by the database.
+	 * @throws ClassNotFoundException If the specified Database driver can't be found
+	 * @throws SQLException If an attempt to open a connection to the database fails
+	 */
+	protected JDBCDDB(String driver, String connection, String user, String password) throws ClassNotFoundException, SQLException {
+		this.driver = driver;
+		this.connection = connection;
+		this.user = user;
+		this.password = password;
 
-        //wrap strings in quotes
-        if (fieldValue instanceof String) 
-          query += " WHERE " + fieldName + " = '" + fieldValue + "'";
-        else
-          query += " WHERE " + fieldName + " = " + fieldValue;
-      }
+		// Test connection - throws exception at creation if can't connect
+		Class.forName(driver);
 
-      //execute the query
-      Statement stmt = null;
-      ResultSet rs = null;
-      try {
-        stmt = conn.createStatement();
-        rs = stmt.executeQuery(query);
-      }
-      catch (Exception e) {
-    	  
-    	System.out.println("JDBCDDB::Exception Caught " + e);
-      
-        //Hack to accommodate DeploymentId and FieldTripID
-        //types of number or text. Don't tell anyone
-        if (fieldName != null && fieldValue instanceof String) {
-        
-          query = "SELECT * FROM " + tableName + 
-            " WHERE " + fieldName + " = " + fieldValue;
-          
-          System.out.println("JDBCDDB::Query : " + query);
-          
-          stmt = conn.createStatement();
-          rs = stmt.executeQuery(query);
-        }
-        else throw e;
-      }
-      
-      ResultSetMetaData rsmd = rs.getMetaData();
-      int columnsNumber = rsmd.getColumnCount();
-      int rows = 0;
-      //create an object for each row
-      while (rs.next()) {
-        
-    	rows++;
-    	ArrayList<Object> instance = new ArrayList<Object>();
-        results.add(instance);
-        
-        for (int i = 1; i < columnsNumber; i++) {
-          
-          DBObject db = new DBObject();
-          
-          db.name = rsmd.getColumnName(i);
-          db.o = rs.getObject(i);
+		Connection conn = DriverManager.getConnection(connection, user, password);
+		conn.close();
+	}
 
-          //all numeric values must be doubles
-          if (db.o instanceof Integer) {
-            db.o = (double)((Integer)db.o).intValue();
-          }
-            
-          instance.add(db);
-        }
-      }
-    }
-    
-    //always close db connection
-    finally {try {conn.close();} catch (Exception e) {}}
-    
-    return results;
-  }
+	/**
+	 * Executes the given query, in the form:
+	 * 
+	 *   select * from [tableName] where [fieldName] = '[fieldValue]'
+	 * 
+	 * The rows are converted into object equivalents of the table, and returned 
+	 * in a List. If fieldName is null, the where clause is omitted, thus the 
+	 * entire table is returned.
+	 * 
+	 * @param tableName The table to read.
+	 * 
+	 * @param fieldName the name of the query field.
+	 * 
+	 * @param fieldValue the query field value.
+	 * 
+	 * @throws Exception on any error.
+	 */
+	public List<Object> executeQuery(
+			String tableName,  
+			String fieldName, 
+			Object fieldValue)
+					throws Exception {
+
+		Connection conn = null;
+		List<Object> results = null;
+
+		try {
+
+			//create ODBC database connection
+			Class.forName(driver);
+
+			conn = DriverManager.getConnection(connection, user, password);
+
+			results = new ArrayList<Object>();
+
+			//build the query
+			String query = "SELECT * FROM " + tableName;
+			if (fieldName != null) {
+
+				if (fieldValue == null)
+					throw new Exception("a fieldValue must be provided");
+
+				//wrap strings in quotes
+				if (fieldValue instanceof String) 
+					query += " WHERE " + fieldName + " = '" + fieldValue + "'";
+				else
+					query += " WHERE " + fieldName + " = " + fieldValue;
+			}
+
+			//execute the query
+			Statement stmt = null;
+			ResultSet rs = null;
+			try {
+				stmt = conn.createStatement();
+				rs = stmt.executeQuery(query);
+			}
+			catch (Exception e) {
+
+				System.out.println("JDBCDDB::Exception Caught " + e);
+
+				//Hack to accommodate DeploymentId and FieldTripID
+				//types of number or text. Don't tell anyone
+				if (fieldName != null && fieldValue instanceof String) {
+
+					query = "SELECT * FROM " + tableName + 
+							" WHERE " + fieldName + " = " + fieldValue;
+
+					System.out.println("JDBCDDB::Query : " + query);
+
+					stmt = conn.createStatement();
+					rs = stmt.executeQuery(query);
+				}
+				else throw e;
+			}
+
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int columnsNumber = rsmd.getColumnCount();
+			int rows = 0;
+			//create an object for each row
+			while (rs.next()) {
+
+				rows++;
+				ArrayList<Object> instance = new ArrayList<Object>();
+				results.add(instance);
+
+				for (int i = 1; i < columnsNumber; i++) {
+
+					DBObject db = new DBObject();
+
+					db.name = rsmd.getColumnName(i);
+					db.o = rs.getObject(i);
+
+					//all numeric values must be doubles
+					if (db.o instanceof Integer) {
+						db.o = (double)((Integer)db.o).intValue();
+					}
+
+					instance.add(db);
+				}
+			}
+		}
+
+		//always close db connection
+		finally {try {conn.close();} catch (Exception e) {}}
+
+		return results;
+	}
 }

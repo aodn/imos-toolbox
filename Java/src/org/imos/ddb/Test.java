@@ -39,102 +39,102 @@ import java.util.ArrayList;
  * @author Paul McCarthy <paul.mccarthy@csiro.au>
  */
 public class Test {
-  
-  static void printObj(Object o) throws Exception {
-    
-	ArrayList<DBObject> l = (ArrayList<DBObject>) o;
-    
-	for (DBObject i : l) {
-      
-	  if (i.o == null)
-		  System.out.println(i.name + " = null");
-	  else
-		  System.out.println(i.name + " class " + i.o.getClass().getName() + " = " + i.o);
-    }
-    System.out.println("------");
-  }
 
-  /**
-   * @param args
-   */
-  public static void main(String[] args) {
+	static void printObj(Object o) throws Exception {
 
-    long startFreeMem, connectFreeMem, endFreeMem;
-    DDB mdb = null;
-    
-    //String odbcArgs = "imos-ddb_bmorris";
-//    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/OceanDB2015.mdb";
-    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
-//    String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/new_ddb/OceanDB_Unreplicated.mdb";
+		ArrayList<DBObject> l = (ArrayList<DBObject>) o;
 
-    String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
-    String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/OceanDB2015.mdb";
-    //String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
-    //String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener;SingleConnection=true";
-    String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener";
-    String user = "";
-    String password = "";
-    String[] jdbcArgs = new String[4];
-    jdbcArgs[0] = driver;
-    jdbcArgs[1] = connection;
-    jdbcArgs[2] = user;
-    jdbcArgs[3] = password;
-    
-    long startTime = System.currentTimeMillis();
-//    startFreeMem = Runtime.getRuntime().totalMemory();
-//    System.out.println("free mem: " + startFreeMem/1000000 + "Mb");
-    long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-    System.out.println("used mem: " + usedMem/1000000 + "Mb");
-    
-    try {
-    	//mdb = DDB.getDDB(odbcArgs);}
-    	mdb = DDB.getDDB(jdbcArgs[0], jdbcArgs[1], jdbcArgs[2], jdbcArgs[3]);}
-    catch (Exception e) {
-      e.printStackTrace();
-      System.exit(1);
-    }
- 
-    long connectTime = System.currentTimeMillis();
-    System.out.println("Connection created in " + (connectTime - startTime)/1000 + " seconds.");
-    
-//    connectFreeMem = Runtime.getRuntime().totalMemory();
-//    System.out.println("free mem: " + connectFreeMem/1000000 + "Mb");
-//    System.out.println("lost mem: " + (startFreeMem - connectFreeMem)/1000000 + "Mb");
-    usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-    System.out.println("used mem: " + usedMem/1000000 + "Mb");
-    
-    try {
+		for (DBObject i : l) {
 
-    	List<ArrayList<Object>> trips = mdb.executeQuery("FieldTrip", null, null);
-    	for (Object o : trips) printObj(o);
-    	
-    	List<ArrayList<Object>> deps = mdb.executeQuery("DeploymentData", null, null);
-    	for (Object o : deps) printObj(o);
-    	
-    	List<ArrayList<Object>> capeSites = mdb.executeQuery("Sites", null, null);
-    	for (Object o : capeSites) printObj(o);
-    	
-    	List<ArrayList<Object>> casts = mdb.executeQuery("CTDData", null, null);
-    	for (Object o : casts) printObj(o);
-    	
-    	List<ArrayList<Object>> inst = mdb.executeQuery("Instruments", null, null);
-    	for (Object o : inst) printObj(o);
-    	
-    	List<ArrayList<Object>> sens = mdb.executeQuery("Sensors", null, null);
-    	for (Object o : sens) printObj(o);
-    	
-    	List<ArrayList<Object>> instSens = mdb.executeQuery("InstrumentSensorConfig", null, null);
-    	for (Object o : instSens) printObj(o);
-    }
-    catch (Exception e) {e.printStackTrace();}
-    
-    long stopTime = System.currentTimeMillis();
-    System.out.println("Query performed in " + (stopTime - connectTime)/1000 + " seconds.");
-    
-//    endFreeMem = Runtime.getRuntime().totalMemory();
-//    System.out.println("free mem: " + endFreeMem/1000000 + "Mb");
-//    System.out.println("lost mem: " + (connectFreeMem - endFreeMem)/1000000 + "Mb");
-    usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-    System.out.println("used mem: " + usedMem/1000000 + "Mb");
-  }
+			if (i.o == null)
+				System.out.println(i.name + " = null");
+			else
+				System.out.println(i.name + " class " + i.o.getClass().getName() + " = " + i.o);
+		}
+		System.out.println("------");
+	}
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+
+		long startFreeMem, connectFreeMem, endFreeMem;
+		DDB mdb = null;
+
+//		String odbcArgs = "imos-ddb_bmorris";
+//		String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/OceanDB2015.mdb";
+		String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
+//		String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/new_ddb/OceanDB_Unreplicated.mdb";
+
+		String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
+//		String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/OceanDB2015.mdb";
+		String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
+//		String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener;SingleConnection=true";
+		String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener";
+		String user = "";
+		String password = "";
+		String[] jdbcArgs = new String[4];
+		jdbcArgs[0] = driver;
+		jdbcArgs[1] = connection;
+		jdbcArgs[2] = user;
+		jdbcArgs[3] = password;
+
+		long startTime = System.currentTimeMillis();
+//		startFreeMem = Runtime.getRuntime().totalMemory();
+//		System.out.println("free mem: " + startFreeMem/1000000 + "Mb");
+		long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+		System.out.println("used mem: " + usedMem/1000000 + "Mb");
+
+		try {
+//			mdb = DDB.getDDB(odbcArgs);}
+			mdb = DDB.getDDB(jdbcArgs[0], jdbcArgs[1], jdbcArgs[2], jdbcArgs[3]);}
+		catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+
+		long connectTime = System.currentTimeMillis();
+		System.out.println("Connection created in " + (connectTime - startTime)/1000 + " seconds.");
+
+//		connectFreeMem = Runtime.getRuntime().totalMemory();
+//		System.out.println("free mem: " + connectFreeMem/1000000 + "Mb");
+//		System.out.println("lost mem: " + (startFreeMem - connectFreeMem)/1000000 + "Mb");
+		usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+		System.out.println("used mem: " + usedMem/1000000 + "Mb");
+
+		try {
+
+			List<ArrayList<Object>> trips = mdb.executeQuery("FieldTrip", null, null);
+			for (Object o : trips) printObj(o);
+
+//			List<ArrayList<Object>> deps = mdb.executeQuery("DeploymentData", null, null);
+//			for (Object o : deps) printObj(o);
+//
+//			List<ArrayList<Object>> capeSites = mdb.executeQuery("Sites", null, null);
+//			for (Object o : capeSites) printObj(o);
+//
+//			List<ArrayList<Object>> casts = mdb.executeQuery("CTDData", null, null);
+//			for (Object o : casts) printObj(o);
+//
+//			List<ArrayList<Object>> inst = mdb.executeQuery("Instruments", null, null);
+//			for (Object o : inst) printObj(o);
+//
+//			List<ArrayList<Object>> sens = mdb.executeQuery("Sensors", null, null);
+//			for (Object o : sens) printObj(o);
+//
+//			List<ArrayList<Object>> instSens = mdb.executeQuery("InstrumentSensorConfig", null, null);
+//			for (Object o : instSens) printObj(o);
+		}
+		catch (Exception e) {e.printStackTrace();}
+
+		long stopTime = System.currentTimeMillis();
+		System.out.println("Query performed in " + (stopTime - connectTime)/1000 + " seconds.");
+
+//		endFreeMem = Runtime.getRuntime().totalMemory();
+//		System.out.println("free mem: " + endFreeMem/1000000 + "Mb");
+//		System.out.println("lost mem: " + (connectFreeMem - endFreeMem)/1000000 + "Mb");
+		usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+		System.out.println("used mem: " + usedMem/1000000 + "Mb");
+	}
 }

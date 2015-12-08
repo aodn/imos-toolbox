@@ -31,7 +31,7 @@
 package org.imos.ddb;
 
 public class DBObject {
-  
-  public String name;
-  public Object o;
+
+	public String name;
+	public Object o;
 }
