@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+ * Copyright (c) 2015, eMarine Information Infrastructure (eMII) and Integrated 
  * Marine Observing System (IMOS).
  * All rights reserved.
  * 
@@ -28,14 +28,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.imos.ddb.schema;
+package org.imos.ddb;
 
-import java.util.Date;
-
-public class FieldImages {
-  
-  public String FieldTripID;
-  public Date   Date;
-  public String Image;
-  public String Description;
+public class DBObject
+{
+	public String name;
+	public Object o;
 }
