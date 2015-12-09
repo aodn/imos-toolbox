@@ -26,6 +26,7 @@ function result = executeDDBQuery( table, field, value)
 % Contributor:  Gordon Keith <gordon.keith@csiro.au>
 %    -now can use the toolbox.ddb.* optional properties if exist
 %               Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%               Peter Jansen <peter.jansen@csiro.au>
 %
 
 %
@@ -122,12 +123,12 @@ function result = executeDDBQuery( table, field, value)
 end
 
 function strs = java2struct(list)
-%JAVA2STRUCT Converts a Java ArrayList which contains org.imos.ddb.schema.*
+%JAVA2STRUCT Converts a Java ArrayList which contains org.imos.ddb.DBObject
 % objects into equivalent Matlab structs. java.util.Date objects are
 % returned as matlab serial date values.
 %
 % Inputs:
-%   list - a Java ArrayList containing org.imos.ddb.schema.* objects
+%   list - a Java ArrayList containing org.imos.ddb.DBObject objects
 %
 % Outputs:
 %   strs - A vector of matlab structs which are equivalent to the java
@@ -137,32 +138,26 @@ function strs = java2struct(list)
   
   if list.size() == 0, return; end;
   
-  dateFmt = readProperty('exportNetCDF.dateFormat');
-
-  % it's horribly ugly, but this is the only way that I know of to turn
-  % Java fields of arbitrary types into matlab fields: a big, ugly switch
-  % statement :( at least the fieldnames function works on java objects.
+  % We turn Java fields of arbitrary types into matlab fields
   for k = 0:list.size()-1
     
     obj = list.get(k);
     
-    % for each field in the java object
-    fields = fieldnames(obj);
-    
-    for m = 1:length(fields)
+    for m = 0:obj.size()-1
       
-      field = fields{m};
-      val   = obj.(field);
+      fields = obj.get(m);
+      field = char(fields.name);
+      val   = fields.o;
       
       % if java field is null
       if isempty(val), strs(k+1).(field) = []; continue; end
       
       % get class type of field
-      class = char(val.getClass().getName());
+      oClass = class(val);
       
       % turn java field value into matlab field 
       % value, ignoring unsupported types
-      switch(class)
+      switch(oClass)
         
         case 'java.lang.String',
           strs(k+1).(field) = char(val);
@@ -182,6 +177,8 @@ function strs = java2struct(list)
             cal.get(java.util.Calendar.HOUR_OF_DAY),...
             cal.get(java.util.Calendar.MINUTE),...
             cal.get(java.util.Calendar.SECOND));
+        otherwise
+          strs(k+1).(field) = val;
       end
     end
   end
