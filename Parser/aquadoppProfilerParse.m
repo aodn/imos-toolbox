@@ -341,7 +341,7 @@ for i=1:nVars
     sample_data.variables{i}.dimensions   = vars{i, 2};
     if ~isempty(vars{i, 2}) % we don't want this for scalar variables
         if length(sample_data.variables{i}.dimensions) == 2
-            sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE DIST_ALONG_BEAMS';
+            sample_data.variables{i}.coordinates = ['TIME LATITUDE LONGITUDE ' sample_data.dimensions{sample_data.variables{i}.dimensions(2)}.name];
         else
             sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
         end
