@@ -33,6 +33,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -53,6 +54,8 @@ import java.util.ArrayList;
  */
 public class JDBCDDB extends DDB {
 
+	String identQuote = "'";
+	
 	/**The JDBC database driver*/
 	private String driver;
 	private String connection;
@@ -77,6 +80,11 @@ public class JDBCDDB extends DDB {
 		Class.forName(driver);
 
 		Connection conn = DriverManager.getConnection(connection, user, password);
+		
+		// get the database's IdentifierQuote
+		DatabaseMetaData dbmd = conn.getMetaData();
+		identQuote = dbmd.getIdentifierQuoteString();
+		
 		conn.close();
 	}
 
@@ -124,9 +132,9 @@ public class JDBCDDB extends DDB {
 
 				//wrap strings in quotes
 				if (fieldValue instanceof String) 
-					query += " WHERE " + fieldName + " = '" + fieldValue + "'";
+					query += " WHERE " + identQuote + fieldName + identQuote + " = '" + fieldValue + "'";
 				else
-					query += " WHERE " + fieldName + " = " + fieldValue;
+					query += " WHERE " + identQuote + fieldName + identQuote + " = " + fieldValue;
 			}
 
 			//execute the query
@@ -145,7 +153,7 @@ public class JDBCDDB extends DDB {
 				if (fieldName != null && fieldValue instanceof String) {
 
 					query = "SELECT * FROM " + tableName + 
-							" WHERE " + fieldName + " = " + fieldValue;
+							" WHERE " + identQuote + fieldName + identQuote + " = " + fieldValue;
 
 					System.out.println("JDBCDDB::Query : " + query);
 
