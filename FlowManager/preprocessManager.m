@@ -1,4 +1,4 @@
-function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
+function [sample_data, cancel] = preprocessManager( sample_data, qcLevel, mode, auto )
 %PREPROCESSMANAGER Runs preprocessing filters over the given sample data 
 % structs.
 %
@@ -14,6 +14,8 @@ function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
 % Outputs:
 %   sample_data - same as input, potentially with preprocessing
 %                 modifications.
+%   cancel      - logical, whether pre-processing has been cancelled or
+%                 not.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:	Brad Morris <b.morris@unsw.edu.au>
@@ -57,6 +59,8 @@ function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
     
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
 
+  cancel = false;
+  
   % nothing to do
   if isempty(sample_data), return; end
 
@@ -100,11 +104,11 @@ function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
       % routine names, but must be provided to the list selection dialog
       % as indices
       ppChainIdx = cellfun(@(x)(find(ismember(ppRoutines,x))),ppChain);
-      ppChain = listSelectionDialog(...
+      [ppChain, cancel] = listSelectionDialog(...
           'Select Preprocess routines', ppRoutines, ppChainIdx);
       
       % user cancelled dialog
-      if isempty(ppChain), return; end
+      if isempty(ppChain) || cancel, return; end
       
       % save user's latest selection for next time - turn the ppChain
       % cell array into a space-separated string of the names
