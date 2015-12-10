@@ -8,6 +8,10 @@ VCUR_MAG,  TimeDepth
 UCUR_MAG,  TimeDepth
 WCUR,      TimeDepth
 ECUR,      TimeDepth
+ABSIC1,    TimeDepth
+ABSIC2,    TimeDepth
+ABSIC3,    TimeDepth
+ABSIC4,    TimeDepth
 ABSI1,     TimeDepth
 ABSI2,     TimeDepth
 ABSI3,     TimeDepth
