@@ -93,6 +93,10 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
             num_lines = 1;
             defaultans = {'0','0', '0'};
             answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+            
+            % don't try to apply any correction if canceled by user
+            if isempty(answer), return; end
+            
             sample_data{i}.instrument_nominal_depth = str2double(answer(1));
             sample_data{i}.geospatial_lat_min = str2double(answer(2));
             sample_data{i}.geospatial_lon_min = str2double(answer(3));
