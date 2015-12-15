@@ -106,8 +106,10 @@ for k = 1:length(sample_data)
                 continue;
         end
         
-        if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx)
+        if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx) && ~strcmpi(sample_data{k}.variables{j}.name(1:end-1), 'ABSIC')
             % only process variables that are function of DIST_ALONG_BEAMS
+            % except ABSIC in count cannot be bin-mapped (1 count for a
+            % transducer doesn't mean 1 count for another one...)
             isBinMapApplied = true;
             
             % let's now interpolate data values at nominal bin height for
@@ -143,11 +145,6 @@ for k = 1:length(sample_data)
         end
     end
     
-    % we need to remove DIST_ALONG_BEAMS if still exists
-    if heightAboveSensorIdx && distAlongBeamsIdx
-        sample_data{k}.dimensions(distAlongBeamsIdx) = [];
-    end
-
     if isBinMapApplied
         history = sample_data{k}.history;
         if isempty(history)

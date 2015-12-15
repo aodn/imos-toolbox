@@ -658,6 +658,8 @@ function displayScatterMooringVar(source,ev, isQC, is1D)
             iStr = num2str(i);
             iABSI = strcmpi(['ABSI' iStr], paramsName);
             paramsName(iABSI) = [];
+            iABSIC = strcmpi(['ABSIC' iStr], paramsName);
+            paramsName(iABSIC) = [];
             iCORR = strcmpi(['CMAG' iStr], paramsName);
             paramsName(iCORR) = [];
             iPERG = strcmpi(['PERG' iStr], paramsName);
