@@ -180,6 +180,16 @@ end
 
 %disp(['sectType : hex ' dec2hex(sectType) ' == ' num2str(sectType) ' at offset ' num2str(idx+1)]);
 
+% if a section (typically the last one) is shorter than expected, 
+% abort further data read
+len = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness) * 2;
+if length(data) < idx-1+len
+    fprintf('%s\n', ['Warning : ' filename ' bad idx/len']);
+    fprintf('%s\n', ['Sect Type: ' num2str(sectType)]);
+    fprintf('%s\n', ['idx-1+len: ' num2str(idx-1+len) ' length(data): ' num2str(length(data))]);
+    return;
+end
+
 % read the section in
 switch sectType
     case 0,   [sect, len, off] = readUserConfiguration            (data, idx, cpuEndianness); % 0x00
@@ -223,12 +233,6 @@ end
 %disp(['sectType : hex ' dec2hex(sectType) ' == ' num2str(sectType) ' at offset ' num2str(idx+1)]);
 
 if isempty(sect), return; end
-if numel(data) < idx+len
-        fprintf('%s\n', ['Warning : ' filename ' bad idx/len']);
-    fprintf('%s\n', ['Sect Type: ' num2str(sectType)]);
-    sect = [];
-    return;
-end
 
 % generate and compare checksum - all section
 % structs have a Checksum field
@@ -734,14 +738,6 @@ sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness); %
 len              = sect.Size * 2;
 off              = len;
 
-% if a section (typically the last one) is shorter than expected, 
-% abort further data read
-if numel(data) < idx+len
-    fprintf('%s\n', 'Warning : readHRAquadoppProfile bad idx/len');
-    sect = [];
-    return;
-end
-
 sect.Time         = readClockData(data, idx+4);
 block1            = data(idx+10:idx+13); % int16
 block2            = data(idx+14:idx+17); % uint16
@@ -856,32 +852,15 @@ csOff   = amp3Off + nCells;
 % fill value is included if number of cells is odd
 if mod(nCells, 2), csOff = csOff + 1; end
 
-lastIdx = csOff+2;
+% !!! Velocity can be negative
+sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16', cpuEndianness); % U comp (East)  % int16
+sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16', cpuEndianness); % V comp (North) % int16
+sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16', cpuEndianness); % W comp (up)    % int16
+sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1), 'L', 'uint8', cpuEndianness);
+sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1), 'L', 'uint8', cpuEndianness);
+sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1), 'L', 'uint8', cpuEndianness);
 
-if lastIdx <= length(data) % sometimes dataset are cut before being properly ended?
-    % !!! Velocity can be negative
-    sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16', cpuEndianness); % U comp (East)  % int16
-    sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16', cpuEndianness); % V comp (North) % int16
-    sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16', cpuEndianness); % W comp (up)    % int16
-    sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1), 'L', 'uint8', cpuEndianness);
-    sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1), 'L', 'uint8', cpuEndianness);
-    sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1), 'L', 'uint8', cpuEndianness);
-    
-    sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
-else
-    fprintf('%s\n', ['Warning : readAwacVelocityProfile bad end of file with ' ...
-        'expected last index greater than file size. Give up reading this ensemble.']);
-    sect = [];
-    return;
-end
-
-if lastIdx < length(data)
-    if data(lastIdx) ~= 165 % hex a5
-        fprintf('%s\n', ['Warning : readAwacVelocityProfile bad end sync (idx '...
-            num2str(lastIdx) ', val ' num2str(data(lastIdx)) ')']);
-        return;
-    end
-end
+sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
 
 end
 
@@ -1043,29 +1022,6 @@ csOff  = ampOff + nCells;
 if mod(nCells, 2), csOff = csOff + 1; end
 sect.Amp = bytecast(data(ampOff:ampOff+nCells-1),   'L', 'uint8', cpuEndianness);
 sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
-
-% below doesn't match structure definition in latest manual. Kept for reference.
-% sect.Blanking    = bytecast(data(idx+4:idx+5), 'L', 'uint16', cpuEndianness);
-% % !!! Heading, pitch and roll can be negative
-% block            = bytecast(data(idx+6:idx+9), 'L', 'int16', cpuEndianness);
-% sect.Pitch       = block(1);
-% sect.Roll        = block(2);
-% block            = bytecast(data(idx+10:idx+21), 'L', 'uint16', cpuEndianness);
-% sect.Pressure    = block(1);
-% sect.Stage       = block(2);
-% sect.Quality     = block(3);
-% sect.SoundSpeed  = block(4);
-% sect.StageP      = block(5);
-% % bytes 22-31 are spare
-% % calculate number of cells from structure size
-% % (size is in 16 bit words)
-% nCells = floor(((sect.Size) * 2 - (32 + 2)));
-% ampOff = idx+32;
-% csOff  = ampOff + nCells;
-% % fill value is included if number of cells is odd
-% if mod(nCells, 2), csOff = csOff + 1; end
-% sect.Amp = bytecast(data(ampOff:ampOff+nCells-1),   'L', 'uint8', cpuEndianness);
-% sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
 end
 
@@ -1248,15 +1204,11 @@ sect.Spare   = bytecast(data(idx+12:idx+23), 'L', 'uint8', cpuEndianness);
 
 astOff = idx+24;
 % description in System Integrator manual unclear, but this calculation of
-% csOff works to produce corrent checksum comparison
+% csOff works to produce correct checksum comparison
 csOff   = astOff + sect.Samples*2;
 sect.ast = bytecast(data(astOff:csOff-1), 'L', 'uint16', cpuEndianness); % mm
 
 sect.Checksum  = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
-
-%sect = [];
-%warning(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
-%disp(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
 
 end
 
@@ -1306,7 +1258,9 @@ percOff = vdtOff  + nCells*2; % profile error code
 qcOff   = percOff + nCells;   % qc flag
 
 csOff   = qcOff   + nCells;   % checksum
-if mod(nCells, 2), csOff = csOff + 1; end % unconfirmed but was the only way to make this work
+
+% fill value included if number of cells is odd unconfirmed but was the only way to make this work
+if mod(nCells, 2), csOff = csOff + 1; end
 
 % tilt effect corrected velocity
 sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16', cpuEndianness); % U comp (East)  % int16
