@@ -180,6 +180,16 @@ end
 
 %disp(['sectType : hex ' dec2hex(sectType) ' == ' num2str(sectType) ' at offset ' num2str(idx+1)]);
 
+% if a section (typically the last one) is shorter than expected, 
+% abort further data read
+len = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness) * 2;
+if length(data) < idx-1+len
+    fprintf('%s\n', ['Warning : ' filename ' bad idx/len']);
+    fprintf('%s\n', ['Sect Type: ' num2str(sectType)]);
+    fprintf('%s\n', ['idx-1+len: ' num2str(idx-1+len) ' length(data): ' num2str(length(data))]);
+    return;
+end
+
 % read the section in
 switch sectType
     case 0,   [sect, len, off] = readUserConfiguration            (data, idx, cpuEndianness); % 0x00
@@ -223,12 +233,6 @@ end
 %disp(['sectType : hex ' dec2hex(sectType) ' == ' num2str(sectType) ' at offset ' num2str(idx+1)]);
 
 if isempty(sect), return; end
-if numel(data) < idx+len
-        fprintf('%s\n', ['Warning : ' filename ' bad idx/len']);
-    fprintf('%s\n', ['Sect Type: ' num2str(sectType)]);
-    sect = [];
-    return;
-end
 
 % generate and compare checksum - all section
 % structs have a Checksum field
@@ -436,38 +440,41 @@ sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
 sect.Size        = data(idx+2:idx+3); % uint16
 sect.Time        = readClockData(data, idx+4);
+
+sect.Error       = data(idx+10:idx+11); % int16
+block1           = data(idx+12:idx+17); % uint16
 % !!! Heading, pitch and roll can be negative => signed integer
-block2           = data(idx+10:idx+23); % int16
+block2           = data(idx+18:idx+23); % int16
 
 sect.PressureMSB = data(idx+24); % uint8
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-sect.Status      = uint8(flipud(str2num(dec2bin(data(idx+25), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.Status      = int8(flipud(str2num(dec2bin(bytecast(data(idx+25), 'L', 'int8', cpuEndianness), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
 
-block1           = data(idx+26:idx+29); % uint16
-% !!! velocity can be negative
-block3           = data(idx+30:idx+35); % int16
+sect.PressureLSW = data(idx+26:idx+27); % uint16
+% !!! temperature and velocity can be negative
+block3           = data(idx+28:idx+35); % int16
 block4           = data(idx+36:idx+39); % uint8
 sect.Checksum    = data(idx+40:idx+41); % uint16
 
 % let's process uint16s in one call
-blocks = bytecast([sect.Size; block1; sect.Checksum], 'L', 'uint16', cpuEndianness);
+blocks = bytecast([sect.Size; block1; sect.PressureLSW; sect.Checksum], 'L', 'uint16', cpuEndianness);
 sect.Size        = blocks(1);
-sect.PressureLSW = blocks(2);
-sect.Temperature = blocks(3);
-sect.Checksum    = blocks(4);
-
-% let's process int16s in one call
-blocks = bytecast([block2; block3], 'L', 'int16', cpuEndianness);
-sect.Error       = blocks(1);
 sect.Analn1      = blocks(2);
 sect.Battery     = blocks(3);
 sect.Analn2      = blocks(4);
-sect.Heading     = blocks(5);
-sect.Pitch       = blocks(6);
-sect.Roll        = blocks(7);
-sect.Vel1        = blocks(8);
-sect.Vel2        = blocks(9);
-sect.Vel3        = blocks(10);
+sect.PressureLSW = blocks(5);
+sect.Checksum    = blocks(6);
+
+% let's process int16s in one call
+blocks = bytecast([sect.Error; block2; block3], 'L', 'int16', cpuEndianness);
+sect.Error       = blocks(1);
+sect.Heading     = blocks(2);
+sect.Pitch       = blocks(3);
+sect.Roll        = blocks(4);
+sect.Temperature = blocks(5);
+sect.Vel1        = blocks(6);
+sect.Vel2        = blocks(7);
+sect.Vel3        = blocks(8);
 
 % let's process uint8s in one call
 blocks = bytecast([sect.PressureMSB; block4], 'L', 'uint8', cpuEndianness);
@@ -493,7 +500,7 @@ block1         = data(idx+2:idx+7); % uint16
 block3         = data(idx+8:idx+11); % uint8
 block2         = data(idx+12:idx+27); % uint16
 % bytes 28-33 are spare
-sect.Checksum  = data(idx+34:idx+35);
+sect.Checksum  = data(idx+34:idx+35); % uint16
 
 % let's process uint16s in one call
 blocks = bytecast([block1; block2; sect.Checksum], 'L', 'uint16', cpuEndianness);
@@ -573,23 +580,25 @@ off = len;
 sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
 block1           = data(idx+2:idx+5); % uint8
-block            = data(idx+6:idx+9); % uint16
+block2           = data(idx+6:idx+9); % uint16
 % !!! velocities can be negative
-block2           = bytecast(data(idx+10:idx+15), 'L', 'int16', cpuEndianness);
-sect.VelB1       = block2(1);
-sect.VelB2       = block2(2);
-sect.VelB3       = block2(3);
-block3           = data(idx+16:idx+21); % uint8
+block3           = data(idx+10:idx+15); % int16
+block4           = data(idx+16:idx+21); % uint8
 sect.Checksum    = data(idx+22:idx+23); % uint16
 
+block3           = bytecast(block3, 'L', 'int16', cpuEndianness);
+sect.VelB1       = block3(1);
+sect.VelB2       = block3(2);
+sect.VelB3       = block3(3);
+
 % let's process uint16s in one call
-blocks = bytecast([block; sect.Checksum], 'L', 'uint16', cpuEndianness);
+blocks           = bytecast([block2; sect.Checksum], 'L', 'uint16', cpuEndianness);
 sect.PressureLSW = blocks(1);
 sect.Analn1      = blocks(2);
 sect.Checksum    = blocks(3);
 
 % let's process uint8s in one call
-blocks = bytecast([block1; block3], 'L', 'uint8', cpuEndianness);
+blocks = bytecast([block1; block4], 'L', 'uint8', cpuEndianness);
 sect.Analn2LSB   = blocks(1);
 sect.Count       = blocks(2);
 sect.PressureMSB = blocks(3);
@@ -614,24 +623,31 @@ sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
 sect.Size        = data(idx+2:idx+3); % uint16
 sect.Time        = readClockData(data, idx+4);
-% !!! Heading, pitch and roll can be negative
-block            = bytecast(data(idx+10:idx+21), 'L', 'int16', cpuEndianness);
-sect.Battery     = block(1);
-sect.SoundSpeed  = block(2);
-sect.Heading     = block(3);
-sect.Pitch       = block(4);
-sect.Roll        = block(5);
-sect.Temperature = block(6);
-sect.Error       = data(idx+22);
+block1           = data(idx+10:idx+13); % uint16
+
+% !!! Heading, pitch, roll and temperature can be negative
+block2           = data(idx+14:idx+21); % int16
+
+sect.Error       = bytecast(data(idx+22), 'L', 'int8', cpuEndianness);
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-sect.Status      = uint8(flipud(str2num(dec2bin(data(idx+23), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
-block            = data(idx+24:idx+27); % uint16
+sect.Status      = int8(flipud(str2num(dec2bin(bytecast(data(idx+25), 'L', 'int8', cpuEndianness), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.Analn       = data(idx+24:idx+25); % uint16
+
+sect.Checksum    = data(idx+26:idx+27); % uint16
 
 % let's process uint16s in one call
-blocks = bytecast([sect.Size; block], 'L', 'uint16', cpuEndianness);
+blocks = bytecast([sect.Size; block1; sect.Analn; sect.Checksum], 'L', 'uint16', cpuEndianness);
 sect.Size        = blocks(1);
-sect.Analn       = blocks(2);
-sect.Checksum    = blocks(3);
+sect.Battery     = blocks(2);
+sect.SoundSpeed  = blocks(3);
+sect.Analn       = blocks(4);
+sect.Checksum    = blocks(5);
+
+blocks           = bytecast(block2, 'L', 'int16', cpuEndianness);
+sect.Heading     = blocks(1);
+sect.Pitch       = blocks(2);
+sect.Roll        = blocks(3);
+sect.Temperature = blocks(4);
 end
 
 function [sect, len, off] = readAquadoppProfilerVelocity(data, idx, cpuEndianness)
@@ -643,22 +659,19 @@ sect = struct;
 
 sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
-sect.Size        = data(idx+2:idx+3); % uint16
+sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness); % uint16
 
 sect.Time        = readClockData(data, idx+4);
+sect.Error       = data(idx+10:idx+11); % int16
+block1           = data(idx+12:idx+17); % uint16
 % !!! Heading, pitch and roll can be negative
-block1           = data(idx+10:idx+23); % int16
+block2           = data(idx+18:idx+23); % int16
 
-sect.PressureMSB = data(idx+24); % uint8
+sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness); % uint8
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-sect.Status      = uint8(flipud(str2num(dec2bin(data(idx+25), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
-block2           = data(idx+26:idx+29); % uint16
-
-% let's process uint16s in one call
-blocks = bytecast([sect.Size; block2], 'L', 'uint16', cpuEndianness);
-sect.Size        = blocks(1);
-sect.PressureLSW = blocks(2);
-sect.Temperature = blocks(3);
+sect.Status      = int8(flipud(str2num(dec2bin(bytecast(data(idx+25), 'L', 'int8', cpuEndianness), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.PressureLSW = data(idx+26:idx+27); % uint16
+sect.Temperature = data(idx+28:idx+29); % int16
 
 len              = sect.Size * 2;
 off              = len;
@@ -679,32 +692,36 @@ csOff   = amp3Off + nCells;
 % a fill byte is present if the number of cells is odd
 if mod(nCells, 2), csOff = csOff + 1; end
 
+sect.Checksum = data(csOff:csOff+1); % uint16
+
+% let's process uint16s in one call
+blocks = bytecast([block1; sect.PressureLSW; sect.Checksum], 'L', 'uint16', cpuEndianness);
+sect.Analn1      = blocks(1);
+sect.Battery     = blocks(2);
+sect.Analn2      = blocks(3);
+sect.PressureLSW = blocks(4);
+sect.Checksum    = blocks(5);
+
 % !!! velocity can be negative
-block3 = data(vel1Off:vel3Off+nCells*2-1); % int16
-block4 = data(amp1Off:amp3Off+nCells-1); % uint8
-
-sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
-
-% let's process int16s in one call
-blocks = bytecast([block1; block3], 'L', 'int16', cpuEndianness);
-sect.Error       = blocks(1);
-sect.Analn1      = blocks(2);
-sect.Battery     = blocks(3);
-sect.Analn2      = blocks(4);
-sect.Heading     = blocks(5);
-sect.Pitch       = blocks(6);
-sect.Roll        = blocks(7);
-sect.Vel1        = blocks(8          :8+nCells  -1);
-sect.Vel2        = blocks(8+nCells   :8+nCells*2-1);
-sect.Vel3        = blocks(8+nCells*2 :8+nCells*3-1);
+block4 = data(vel1Off:vel3Off+nCells*2-1); % int16
+block5 = data(amp1Off:amp3Off+nCells-1); % uint8
 
 % let's process uint8s in one call
-blocks = bytecast([sect.PressureMSB; block4], 'L', 'uint8', cpuEndianness);
-sect.PressureMSB = blocks(1);
-sect.Amp1        = blocks(2           :2+nCells  -1);
-sect.Amp2        = blocks(2+nCells    :2+nCells*2-1);
-sect.Amp3        = blocks(2+nCells*2  :2+nCells*3-1);
+blocks = bytecast(block5, 'L', 'uint8', cpuEndianness);
+sect.Amp1        = blocks(1           :1+nCells  -1);
+sect.Amp2        = blocks(1+nCells    :1+nCells*2-1);
+sect.Amp3        = blocks(1+nCells*2  :1+nCells*3-1);
 
+% let's process int16s in one call
+blocks = bytecast([sect.Error; block2; sect.Temperature; block4], 'L', 'int16', cpuEndianness);
+sect.Error       = blocks(1);
+sect.Heading     = blocks(2);
+sect.Pitch       = blocks(3);
+sect.Roll        = blocks(4);
+sect.Temperature = blocks(5);
+sect.Vel1        = blocks(6          :6+nCells  -1);
+sect.Vel2        = blocks(6+nCells   :6+nCells*2-1);
+sect.Vel3        = blocks(6+nCells*2 :6+nCells*3-1);
 end
 
 function [sect, len, off] = readHRAquadoppProfile(data, idx, cpuEndianness)
@@ -714,128 +731,49 @@ function [sect, len, off] = readHRAquadoppProfile(data, idx, cpuEndianness)
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 43-45
 sect = struct;
 
-%   sect.Sync         = data(idx);
-%   sect.Id           = data(idx+1);
-%   sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
-%   len               = sect.Size * 2;
-%   off               = len;
-%   sect.Time         = readClockData(data, idx+4);
-%   % !!! Heading, pitch and roll can be negative
-%   block             = bytecast(data(idx+10:idx+23), 'L', 'int16', cpuEndianness);
-%   sect.Milliseconds = block(1);
-%   sect.Error        = block(2);
-%   sect.Battery      = block(3);
-%   sect.Analn2_1     = block(4);
-%   sect.Heading      = block(5);
-%   sect.Pitch        = block(6);
-%   sect.Roll         = block(7);
-%   sect.PressureMSB  = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness);
-%   % byte 25 is a fill byte
-%   block             = bytecast(data(idx+26:idx+33), 'L', 'uint16', cpuEndianness);
-%   sect.PressureLSW  = block(1);
-%   sect.Temperature  = block(2);
-%   sect.Analn1       = block(3);
-%   sect.Analn2_2     = block(4);
-%   sect.Beams        = bytecast(data(idx+34), 'L', 'uint8', cpuEndianness);
-%   sect.Cells        = bytecast(data(idx+35), 'L', 'uint8', cpuEndianness);
-%   sect.VelLag2      = bytecast(data(idx+36:idx+41), 'L', 'uint16', cpuEndianness);
-%   block             = bytecast(data(idx+42:idx+47), 'L', 'uint8', cpuEndianness);
-%   sect.AmpLag2      = block(1:3);
-%   sect.CorrLag2     = block(4:6);
-%   % bytes 48-53 are spare
-%   velOff  = idx     + 54;
-%   ampOff  = velOff  + sect.Beams*sect.Cells*2;
-%   corrOff = ampOff  + sect.Beams*sect.Cells;
-%   csOff   = corrOff + sect.Beams*sect.Cells;
-% 
-%   nCells = floor(((sect.Size) * 2 - (30+2)) / (3*2 + 3));
-%   
-%   % fill byte if num cells is odd
-%   if mod(nCells, 2), csOff = csOff + 1; end
-% 
-%   % velocity data
-%   for k = 1:sect.Beams
-% 
-%     sOff = velOff + (k-1) * (sect.Cells * 2);
-%     eOff = sOff + (sect.Cells * 2)-1;
-%     % !!! velocity can be negative
-%     sect.(['Vel' sprintf('%d', k)]) = ...
-%       bytecast(data(sOff:eOff), 'L', 'int16', cpuEndianness);
-%   end
-% 
-%   % amplitude data
-%   for k = 1:sect.Beams
-% 
-%     sOff = ampOff + (k-1) * (sect.Cells);
-%     eOff = sOff + (sect.Cells * 2)-1;
-% 
-%     sect.(['Amp' sprintf('%d', k)]) = ...
-%       bytecast(data(sOff:eOff), 'L', 'uint8', cpuEndianness);
-%   end
-% 
-%   % correlation data
-%   for k = 1:sect.Beams
-% 
-%     sOff = corrOff + (k-1) * (sect.Cells);
-%     eOff = sOff + (sect.Cells * 2)-1;
-% 
-%     sect.(['Corr' sprintf('%d', k)]) = ...
-%       bytecast(data(sOff:eOff), 'L', 'uint8', cpuEndianness);
-%   end
-% 
-%   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
-
-% should be faster this way but need to validate results against previous
-% algo above
-
 sect.Sync         = data(idx);
 sect.Id           = data(idx+1);
-sect.Size         = data(idx+2:idx+3); % uint16
+sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness); % uint16
 
-len              = bytecast(sect.Size, 'L', 'uint16', cpuEndianness) * 2;
+len              = sect.Size * 2;
 off              = len;
 
-% if a section (typically the last one) is shorter than expected, 
-% abort further data read
-if numel(data) < idx+len
-    fprintf('%s\n', 'Warning : readHRAquadoppProfile bad idx/len');
-    sect = [];
-    return;
-end
-
 sect.Time         = readClockData(data, idx+4);
+block1            = data(idx+10:idx+13); % int16
+block2            = data(idx+14:idx+17); % uint16
 % !!! Heading, pitch and roll can be negative
-block1            = data(idx+10:idx+23); % int16
+block3            = data(idx+18:idx+23); % int16
 sect.PressureMSB  = data(idx+24); % uint8
 % byte 25 is a fill byte
-block2            = data(idx+26:idx+33); % uint16
+sect.PressureLSW  = data(idx+26:idx+27); % uint16
+sect.Temperature  = data(idx+28:idx+29); % int16
+block4            = data(idx+30:idx+33); % uint16
 
 sect.Beams        = data(idx+34); % uint8
 sect.Cells        = data(idx+35); % uint8
 sect.VelLag2      = data(idx+36:idx+41); % uint16
-block3            = data(idx+42:idx+47); % uint8
+block5            = data(idx+42:idx+47); % uint8
 
 % let's process uint16s in one call
-blocks = bytecast([sect.Size; block2; sect.VelLag2], 'L', 'uint16', cpuEndianness);
-sect.Size         = blocks(1);
-sect.PressureLSW  = blocks(2);
-sect.Temperature  = blocks(3);
+blocks = bytecast([block2; sect.PressureLSW; block4; sect.VelLag2], 'L', 'uint16', cpuEndianness);
+sect.Battery      = blocks(1);
+sect.SpeedOfSound = blocks(2);
+sect.PressureLSW  = blocks(3);
 sect.Analn1       = blocks(4);
 sect.Analn2       = blocks(5);
 sect.VelLag2      = blocks(6);
 
 % let's process int16s in one call
-blocks = bytecast(block1, 'L', 'int16', cpuEndianness);
+blocks = bytecast([block1; block3; sect.Temperature], 'L', 'int16', cpuEndianness);
 sect.Milliseconds = blocks(1);
 sect.Error        = blocks(2);
-sect.Battery      = blocks(3);
-sect.SpeedOfSound = blocks(4);
-sect.Heading      = blocks(5);
-sect.Pitch        = blocks(6);
-sect.Roll         = blocks(7);
+sect.Heading      = blocks(3);
+sect.Pitch        = blocks(4);
+sect.Roll         = blocks(5);
+sect.Temperature  = blocks(6);
 
 % let's process uint8s in one call
-blocks = bytecast([sect.PressureMSB; sect.Beams; sect.Cells; block3], 'L', 'uint8', cpuEndianness);
+blocks = bytecast([sect.PressureMSB; sect.Beams; sect.Cells; block5], 'L', 'uint8', cpuEndianness);
 sect.PressureMSB  = blocks(1);
 sect.Beams        = blocks(2);
 sect.Cells        = blocks(3);
@@ -849,42 +787,6 @@ corrOff = ampOff  + sect.Beams*sect.Cells;
 csOff   = corrOff + sect.Beams*sect.Cells;
 
 sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
-
-% cellDataVel = [];
-% cellDataAmp = [];
-% cellDataCor = [];
-% for k = 1:sect.Beams
-%     % velocity data
-%     sVelOff = velOff + (k-1) * (sect.Cells * 2);
-%     eVelOff = sVelOff + (sect.Cells * 2)-1;
-%     % !!! velocity can be negative
-%     sect.(['Vel' sprintf('%d', k)]) = data(sVelOff:eVelOff); % int16
-%     
-%     % amplitude data
-%     sAmpOff = ampOff + (k-1) * (sect.Cells);
-%     eAmpOff = sAmpOff + sect.Cells - 1;
-%     
-%     sect.(['Amp' sprintf('%d', k)]) = data(sAmpOff:eAmpOff); % uint8
-%     
-%     % correlation data
-%     sCorOff = corrOff + (k-1) * (sect.Cells);
-%     eCorOff = sCorOff + sect.Cells - 1;
-%     
-%     sect.(['Corr' sprintf('%d', k)]) = data(sCorOff:eCorOff); % uint8
-%     
-%     cellDataVel = [cellDataVel; sect.(['Vel' sprintf('%d', k)])];
-%     cellDataAmp = [cellDataAmp; sect.(['Amp' sprintf('%d', k)])];
-%     cellDataCor = [cellDataCor; sect.(['Corr' sprintf('%d', k)])];
-% end
-% 
-% % let's process int16s and uint8s in one call each
-% cellDataVel = bytecast(cellDataVel, 'L', 'int16', cpuEndianness);
-% blocksUint8 = bytecast([cellDataAmp; cellDataCor], 'L', 'uint8', cpuEndianness);
-% for k = 1:sect.Beams
-%     sect.(['Vel' sprintf('%d', k)]) = cellDataVel((k - 1)*sect.Cells + 1:k*sect.Cells);
-%     sect.(['Amp' sprintf('%d', k)]) = blocksUint8((k - 1)*sect.Cells + 1:k*sect.Cells);
-%     sect.(['Corr' sprintf('%d', k)]) = blocksUint8(sect.Beams*sect.Cells + 1:(k + sect.Beams)*sect.Cells);
-% end
 
 for k = 1:sect.Beams
     % velocity data, velocity can be negative, int16
@@ -918,21 +820,21 @@ sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness); % 
 len              = sect.Size * 2;
 off              = len;
 sect.Time        = readClockData(data, idx+4);
+sect.Error       = bytecast(data(idx+10:idx+11), 'L', 'int16', cpuEndianness); % int16
+block            = bytecast(data(idx+12:idx+17), 'L', 'uint16', cpuEndianness); % uint16
+sect.Analn1      = block(1);
+sect.Battery     = block(2);
+sect.Analn2      = block(3);
 % !!! Heading, pitch and roll can be negative
-block            = bytecast(data(idx+10:idx+23), 'L', 'int16', cpuEndianness); % int16
-sect.Error       = block(1);
-sect.Analn1      = block(2);
-sect.Battery     = block(3);
-sect.Analn2      = block(4);
-sect.Heading     = block(5);
-sect.Pitch       = block(6);
-sect.Roll        = block(7);
-sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness);
+block            = bytecast(data(idx+18:idx+23), 'L', 'int16', cpuEndianness); % int16
+sect.Heading     = block(1);
+sect.Pitch       = block(2);
+sect.Roll        = block(3);
+sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness); % uint8
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-sect.Status      = uint8(flipud(str2num(dec2bin(data(idx+25), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
-block            = bytecast(data(idx+ 26:idx+29), 'L', 'uint16', cpuEndianness); % uint16
-sect.PressureLSW = block(1);
-sect.Temperature = block(2);
+sect.Status      = int8(flipud(str2num(dec2bin(bytecast(data(idx+25), 'L', 'int8', cpuEndianness), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.PressureLSW = bytecast(data(idx+ 26:idx+27), 'L', 'uint16', cpuEndianness); % uint16
+sect.Temperature = bytecast(data(idx+ 28:idx+29), 'L', 'int16', cpuEndianness); % int16
 % bytes 30-117 are spare
 
 % calculate number of cells from structure size
@@ -950,102 +852,16 @@ csOff   = amp3Off + nCells;
 % fill value is included if number of cells is odd
 if mod(nCells, 2), csOff = csOff + 1; end
 
-lastIdx = csOff+2;
+% !!! Velocity can be negative
+sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16', cpuEndianness); % U comp (East)  % int16
+sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16', cpuEndianness); % V comp (North) % int16
+sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16', cpuEndianness); % W comp (up)    % int16
+sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1), 'L', 'uint8', cpuEndianness);
+sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1), 'L', 'uint8', cpuEndianness);
+sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1), 'L', 'uint8', cpuEndianness);
 
-if lastIdx <= length(data) % sometimes dataset are cut before being properly ended?
-    % !!! Velocity can be negative
-    sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16', cpuEndianness); % U comp (East)  % int16
-    sect.Vel2 = bytecast(data(vel2Off:vel2Off+nCells*2-1), 'L', 'int16', cpuEndianness); % V comp (North) % int16
-    sect.Vel3 = bytecast(data(vel3Off:vel3Off+nCells*2-1), 'L', 'int16', cpuEndianness); % W comp (up)    % int16
-    sect.Amp1 = bytecast(data(amp1Off:amp1Off+nCells-1),   'L', 'uint8', cpuEndianness);
-    sect.Amp2 = bytecast(data(amp2Off:amp2Off+nCells-1),   'L', 'uint8', cpuEndianness);
-    sect.Amp3 = bytecast(data(amp3Off:amp3Off+nCells-1),   'L', 'uint8', cpuEndianness);
-    
-    sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
-else
-    fprintf('%s\n', ['Warning : readAwacVelocityProfile bad end of file with ' ...
-        'expected last index greater than file size. Give up reading this ensemble.']);
-    sect = [];
-    return;
-end
-if lastIdx < length(data) 
-if data(lastIdx) ~= 165 % hex a5
-    fprintf('%s\n', ['Warning : readAwacVelocityProfile bad end sync (idx '...
-        num2str(lastIdx) ', val ' num2str(data(lastIdx)) ')']);
-    return;
-end
-end
+sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
 
-% variant below is twice slower so we're keeping the original code
-
-%   sect.Sync        = data(idx);
-%   sect.Id          = data(idx+1);
-%   sect.Size        = data(idx+2:idx+3); % uint16
-%
-%   sect.Time        = readClockData(data, idx+4);
-%
-%   sect.Status      = data(idx+25);
-%   block2           = data(idx+ 26:idx+29); % uint16
-%   % bytes 30-117 are spare
-%
-%   % let's process uint16s in one call
-%   blocks = bytecast([sect.Size; block2], 'L', 'uint16', cpuEndianness);
-%   sect.Size         = blocks(1);
-%   sect.PressureLSW  = blocks(2);
-%   sect.Temperature  = blocks(3);
-%
-%   len               = sect.Size * 2;
-%   off               = len;
-%
-%   % !!! Heading, pitch and roll can be negative
-%   block1           = data(idx+10:idx+23); % int16
-%
-%   sect.PressureMSB = data(idx+24); % uint8
-%
-%   % calculate number of cells from structure size
-%   % (size is in 16 bit words)
-%   nCells = floor((len - (118 + 2)) / (3*2 + 3));
-%
-%   vel1Off = idx + 118;
-%   vel2Off = vel1Off + nCells*2;
-%   vel3Off = vel2Off + nCells*2;
-%   amp1Off = vel3Off + nCells*2;
-%   amp2Off = amp1Off + nCells;
-%   amp3Off = amp2Off + nCells;
-%   csOff   = amp3Off + nCells;
-%
-%   % fill value is included if number of cells is odd
-%   if mod(nCells, 2), csOff = csOff + 1; end
-%
-%   % !!! Velocity can be negative
-%   sect.Vel1 = data(vel1Off:vel1Off+nCells*2-1); % U comp (East)  % int16
-%   sect.Vel2 = data(vel2Off:vel2Off+nCells*2-1); % V comp (North) % int16
-%   sect.Vel3 = data(vel3Off:vel3Off+nCells*2-1); % W comp (up)    % int16
-%   sect.Amp1 = data(amp1Off:amp1Off+nCells-1);
-%   sect.Amp2 = data(amp2Off:amp2Off+nCells-1);
-%   sect.Amp3 = data(amp3Off:amp3Off+nCells-1);
-%
-%   sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % uint16
-%
-%   % let's process int16s in one call
-%   blocks = bytecast([block1; sect.Vel1; sect.Vel2; sect.Vel3], 'L', 'int16', cpuEndianness);
-%   sect.Error       = blocks(1);
-%   sect.Analn1      = blocks(2);
-%   sect.Battery     = blocks(3);
-%   sect.Analn2      = blocks(4);
-%   sect.Heading     = blocks(5);
-%   sect.Pitch       = blocks(6);
-%   sect.Roll        = blocks(7);
-%   sect.Vel1        = blocks(8            :8 +   nCells - 1);
-%   sect.Vel2        = blocks(8 +   nCells :8 + 2*nCells - 1);
-%   sect.Vel3        = blocks(8 + 2*nCells :8 + 3*nCells - 1);
-%
-%   % let's process uint8s in one call
-%   blocks = bytecast([sect.PressureMSB; sect.Amp1; sect.Amp2; sect.Amp3], 'L', 'uint8', cpuEndianness);
-%   sect.PressureMSB = blocks(1);
-%   sect.Amp1 = blocks(2              :2 +   nCells - 1);
-%   sect.Amp2 = blocks(2 +   nCells   :2 + 2*nCells - 1);
-%   sect.Amp3 = blocks(2 + 2*nCells   :2 + 3*nCells - 1);
 end
 
 function [sect, len, off] = readAwacWaveHeader(data, idx, cpuEndianness)
@@ -1070,11 +886,11 @@ block             = bytecast(data(idx+18:idx+23), 'L', 'int16', cpuEndianness);
 sect.Heading      = block(1); % compass heading (0.1 deg)
 sect.Pitch        = block(2); % compass pitch (0.1 deg)
 sect.Roll         = block(3); % compass roll (0.1 deg)
-block             = bytecast(data(idx+24:idx+31), 'L', 'uint16', cpuEndianness);
+block             = bytecast(data(idx+24:idx+27), 'L', 'uint16', cpuEndianness);
 sect.MinPress     = block(1); % minimum pressure value of previous profile (dbar)
 sect.HMaxPress    = block(2); % maximum pressure value of previous profile (dbar)
-sect.Temperature  = block(3); % temperature (0.01 deg C)
-sect.CellSize     = block(4); % cell size in counts of T3
+sect.Temperature  = bytecast(data(idx+28:idx+29), 'L', 'int16', cpuEndianness); % temperature (0.01 deg C)
+sect.CellSize     = bytecast(data(idx+30:idx+31), 'L', 'uint16', cpuEndianness); % cell size in counts of T3
 % noise amplitude (counts)
 block             = bytecast(data(idx+32:idx+35), 'L', 'uint8', cpuEndianness);
 sect.Noise1       = block(1);
@@ -1207,29 +1023,6 @@ if mod(nCells, 2), csOff = csOff + 1; end
 sect.Amp = bytecast(data(ampOff:ampOff+nCells-1),   'L', 'uint8', cpuEndianness);
 sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
-% below doesn't match structure definition in latest manual. Kept for reference.
-% sect.Blanking    = bytecast(data(idx+4:idx+5), 'L', 'uint16', cpuEndianness);
-% % !!! Heading, pitch and roll can be negative
-% block            = bytecast(data(idx+6:idx+9), 'L', 'int16', cpuEndianness);
-% sect.Pitch       = block(1);
-% sect.Roll        = block(2);
-% block            = bytecast(data(idx+10:idx+21), 'L', 'uint16', cpuEndianness);
-% sect.Pressure    = block(1);
-% sect.Stage       = block(2);
-% sect.Quality     = block(3);
-% sect.SoundSpeed  = block(4);
-% sect.StageP      = block(5);
-% % bytes 22-31 are spare
-% % calculate number of cells from structure size
-% % (size is in 16 bit words)
-% nCells = floor(((sect.Size) * 2 - (32 + 2)));
-% ampOff = idx+32;
-% csOff  = ampOff + nCells;
-% % fill value is included if number of cells is odd
-% if mod(nCells, 2), csOff = csOff + 1; end
-% sect.Amp = bytecast(data(ampOff:ampOff+nCells-1),   'L', 'uint8', cpuEndianness);
-% sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
-
 end
 
 function [sect, len, off] = readContinental(data, idx, cpuEndianness)
@@ -1267,9 +1060,8 @@ sect.Correlation1 = bytecast(data(idx+16), 'L', 'uint8', cpuEndianness);
 sect.Correlation2 = bytecast(data(idx+17), 'L', 'uint8', cpuEndianness);
 sect.Correlation3 = bytecast(data(idx+18), 'L', 'uint8', cpuEndianness);
 sect.Correlation4 = bytecast(data(idx+19), 'L', 'uint8', cpuEndianness);
-block             = bytecast(data(idx+20:idx+23), 'L', 'uint16', cpuEndianness);
-sect.Temperature  = block(1);
-sect.SoundSpeed   = block(2);
+sect.Temperature  = bytecast(data(idx+20:idx+21), 'L', 'int16', cpuEndianness);
+sect.SoundSpeed   = bytecast(data(idx+22:idx+23), 'L', 'uint16', cpuEndianness);
 sect.AmpZ01       = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness);
 sect.AmpZ02       = bytecast(data(idx+25), 'L', 'uint8', cpuEndianness);
 sect.AmpZ03       = bytecast(data(idx+26), 'L', 'uint8', cpuEndianness);
@@ -1367,14 +1159,16 @@ off = len;
 
 sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
-block            = bytecast(data(idx+2:idx+15), 'L', 'uint16', cpuEndianness);
-sect.Size        = block(1);
-sect.Temperature = block(2);
-sect.SoundSpeed  = block(3);
-sect.Distance    = block(4);
-sect.DistQuality = block(5);
+sect.Size        = data(idx+2:idx+3); % uint16
+sect.Temperature = bytecast(data(idx+4:idx+5), 'L', 'int16', cpuEndianness); % int16
+block1           = data(idx+6:idx+15); % uint16
+blocks           = bytecast([sect.Size; block1], 'L', 'uint16', cpuEndianness);
+sect.Size        = blocks(1);
+sect.SoundSpeed  = blocks(2);
+sect.Distance    = blocks(3);
+sect.DistQuality = blocks(4);
 % bytes 12-13 are spare
-sect.Checksum    = block(7);
+sect.Checksum    = blocks(6);
 
 end
 
@@ -1410,15 +1204,11 @@ sect.Spare   = bytecast(data(idx+12:idx+23), 'L', 'uint8', cpuEndianness);
 
 astOff = idx+24;
 % description in System Integrator manual unclear, but this calculation of
-% csOff works to produce corrent checksum comparison
+% csOff works to produce correct checksum comparison
 csOff   = astOff + sect.Samples*2;
 sect.ast = bytecast(data(astOff:csOff-1), 'L', 'uint16', cpuEndianness); % mm
 
 sect.Checksum  = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
-
-%sect = [];
-%warning(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
-%disp(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
 
 end
 
@@ -1468,7 +1258,9 @@ percOff = vdtOff  + nCells*2; % profile error code
 qcOff   = percOff + nCells;   % qc flag
 
 csOff   = qcOff   + nCells;   % checksum
-if mod(nCells, 2), csOff = csOff + 1; end % unconfirmed but was the only way to make this work
+
+% fill value included if number of cells is odd unconfirmed but was the only way to make this work
+if mod(nCells, 2), csOff = csOff + 1; end
 
 % tilt effect corrected velocity
 sect.Vel1 = bytecast(data(vel1Off:vel1Off+nCells*2-1), 'L', 'int16', cpuEndianness); % U comp (East)  % int16
