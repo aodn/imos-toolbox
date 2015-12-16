@@ -80,9 +80,13 @@ for k = 1:length(sample_data)
     beamAngle = sample_data{k}.meta.beam_angle*pi/180;
     nBins = length(distAlongBeams);
     nonMappedHeightAboveSensorBeam4 = (cos(beamAngle + pitch)/cos(beamAngle))*distAlongBeams';
+    nonMappedHeightAboveSensorBeam4 = nonMappedHeightAboveSensorBeam4 .* repmat(cos(roll), 1, nBins);
     nonMappedHeightAboveSensorBeam3 = (cos(beamAngle - pitch)/cos(beamAngle))*distAlongBeams';
+    nonMappedHeightAboveSensorBeam3 = nonMappedHeightAboveSensorBeam3 .* repmat(cos(roll), 1, nBins);
     nonMappedHeightAboveSensorBeam1 = (cos(beamAngle + roll)/cos(beamAngle))*distAlongBeams';
+    nonMappedHeightAboveSensorBeam1 = nonMappedHeightAboveSensorBeam1 .* repmat(cos(pitch), 1, nBins);
     nonMappedHeightAboveSensorBeam2 = (cos(beamAngle - roll)/cos(beamAngle))*distAlongBeams';
+    nonMappedHeightAboveSensorBeam2 = nonMappedHeightAboveSensorBeam2 .* repmat(cos(pitch), 1, nBins);
     
     nSamples = length(pitch);
     mappedHeightAboveSensor = repmat(distAlongBeams', nSamples, 1);
