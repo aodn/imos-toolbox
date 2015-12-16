@@ -54,31 +54,27 @@ function [fieldTrip dataDir] = startDialog(mode)
 %
   narginchk(1,1);
   
-  dataDir     = pwd;
-  fieldTripId = '1';
-  lowDate     = 0;
-  highDate    = now_utc;
   dateFmt     = readProperty('toolbox.dateFormat');
     
-  % if default values exist for data dir and field trip, use them
-  try 
-      switch mode
-          case 'profile'
-              dataDir     =            readProperty('startDialog.dataDir.profile');
-              fieldTripId =            readProperty('startDialog.fieldTrip.profile');
-              lowDate     = str2double(readProperty('startDialog.lowDate.profile'));
-              highDate    = str2double(readProperty('startDialog.highDate.profile'));
-          otherwise
-              dataDir     =            readProperty('startDialog.dataDir.timeSeries');
-              fieldTripId =            readProperty('startDialog.fieldTrip.timeSeries');
-              lowDate     = str2double(readProperty('startDialog.lowDate.timeSeries'));
-              highDate    = str2double(readProperty('startDialog.highDate.timeSeries'));
-      end
-  catch
+  % if values exist for data dir and field trip, use them
+  switch mode
+      case 'profile'
+          dataDir     =            readProperty('startDialog.dataDir.profile');
+          fieldTripId =            readProperty('startDialog.fieldTrip.profile');
+          lowDate     = str2double(readProperty('startDialog.lowDate.profile'));
+          highDate    = str2double(readProperty('startDialog.highDate.profile'));
+      otherwise
+          dataDir     =            readProperty('startDialog.dataDir.timeSeries');
+          fieldTripId =            readProperty('startDialog.fieldTrip.timeSeries');
+          lowDate     = str2double(readProperty('startDialog.lowDate.timeSeries'));
+          highDate    = str2double(readProperty('startDialog.highDate.timeSeries'));
   end
 
-  if isnan(lowDate),  lowDate  = 0;   end
-  if isnan(highDate), highDate = now_utc; end
+  % otherwise use default values
+  if isempty(dataDir),      dataDir = pwd;      end
+  if isempty(fieldTripId),  fieldTripId = '1';  end
+  if isnan(lowDate),        lowDate  = 0;       end
+  if isnan(highDate),       highDate = now_utc; end
 
   % retrieve all field trip IDs; they are displayed as a drop down menu
   fieldTrips = executeDDBQuery('FieldTrip', [], []);
