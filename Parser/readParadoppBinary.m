@@ -1437,7 +1437,7 @@ sect.StepFrequency = block(4); % frequency step in [0.001 Hz]
 % AST energy spectrum multiplier [cm^2/Hz]
 sect.EnergyMultiplier = bytecast(data(idx+38:idx+41), 'L', 'uint32', cpuEndianness);
 eOff = idx+42;
-csOff = eOff + sect.hNumSpectrum*2;
+csOff = eOff + sect.NumSpectrum*2;
 % AST Spectra [0 - 1/65535] 
 sect.Energy = bytecast(data(eOff:csOff-1), 'L', 'uint16', cpuEndianness);
 
