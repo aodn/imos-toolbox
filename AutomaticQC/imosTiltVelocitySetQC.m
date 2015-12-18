@@ -174,10 +174,18 @@ qcSet = str2double(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good', qcSet, 'flag');
 
 % we try to find out which kind of ADCP we're dealing with
-[firstTiltThreshold, secondTiltThreshold, firstFlagThreshold, secondFlagThreshold] = getTiltThresholds(sample_data.instrument);
+instrument = sample_data.instrument;
+if isfield(sample_data, 'meta')
+    if isfield(sample_data.meta, 'instrument_make') && isfield(sample_data.meta, 'instrument_model')
+        instrument = [sample_data.meta.instrument_make ' ' sample_data.meta.instrument_model];
+    end
+end
+        
+[firstTiltThreshold, secondTiltThreshold, firstFlagThreshold, secondFlagThreshold] = getTiltThresholds(instrument);
 
 if isempty(firstTiltThreshold)
-    error(['Impossible to determine from which ADCP make/model is ' sample_data.toolbox_input_file ' => Fill instrument global attribute and/or imosTiltVelositySetQC.txt with relevant make/model information!']);
+    error(['Impossible to determine from which ADCP make/model is ' sample_data.toolbox_input_file ...
+        ' instrument = "' instrument '" => Fill imosTiltVelositySetQC.txt with according relevant make/model information!']);
 end
 
 paramsLog = ['firstTiltThreshold=' num2str(firstTiltThreshold) ', secondTiltThreshold=' num2str(secondTiltThreshold)];
