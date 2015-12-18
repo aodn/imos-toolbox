@@ -216,7 +216,38 @@ narginchk(1, 2);
   sample_data.meta.fixedLeader          = fixed;
   sample_data.meta.binSize              = mode(fixed.depthCellLength)/100; % we set a static value for this variable to the most frequent value found
   sample_data.meta.instrument_make      = 'Teledyne RDI';
-  sample_data.meta.instrument_model     = 'Workhorse ADCP';
+  
+  % try to guess model information
+  adcpFreqs = str2num(fixed.systemConfiguration(:, 6:8)); % str2num is actually more relevant than str2double here
+  adcpFreq = mode(adcpFreqs); % hopefully the most frequent value reflects the frequency when deployed
+  switch adcpFreq
+      case 0
+          adcpFreq = 75;
+          model = 'Long Ranger';
+          
+      case 1
+          adcpFreq = 150;
+          model = 'Quartermaster';
+          
+      case 10
+          adcpFreq = 300;
+          model = 'Sentinel or Monitor';
+          
+      case 11
+          adcpFreq = 600;
+          model = 'Sentinel or Monitor';
+          
+      case 100
+          adcpFreq = 1200;
+          model = 'Sentinel or Monitor';
+          
+      otherwise
+          adcpFreq = 2400;
+          model = 'unknown';
+          
+  end
+  
+  sample_data.meta.instrument_model     = ['Workhorse ADCP model ' model];
   sample_data.meta.instrument_serial_no =  serial;
   sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
   sample_data.meta.instrument_firmware  = ...
@@ -226,12 +257,12 @@ narginchk(1, 2);
   else
       sample_data.meta.beam_angle       =  mode(fixed.beamAngle); % we set a static value for this variable to the most frequent value found
   end
-
+  
   % add dimensions with their data mapped
   adcpOrientations = str2num(fixed.systemConfiguration(:, 1)); % str2num is actually more relevant than str2double here
   adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
   height = distance;
-  if adcpOrientation == '0', height = -height; end % case of a downward looking ADCP -> negative values
+  if adcpOrientation == 0, height = -height; end % case of a downward looking ADCP -> negative values
   iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
   dims = {
       'TIME',                   time(iWellOriented),    ''; ...
