@@ -220,7 +220,7 @@ if any(idodgy)
         idx     = idx(igood);
         nBytes  = nBytes(igood);
     else
-        error('this is interesting, need to look at this data file please contact developer');
+        error('This file looks corrupted. Try open it with WinADCP and save it again.');
     end
 end
 
@@ -526,7 +526,7 @@ function [sect len] = parseVariableLeader( data, idx, cpuEndianness )
 % 5 ATTITUDE TEMP
 % 6 ATTITUDE
 % 7 CONTAMINATION SENSOR
-% Note that the ADC values may be “noisy” from sample to sample,
+% Note that the ADC values may be ï¿½noisyï¿½ from sample to sample,
 % but are useful for detecting long-term trends.
   sect.adcChannel0            = double(data(idx+34));
   sect.adcChannel1            = double(data(idx+35));
