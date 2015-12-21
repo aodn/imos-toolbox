@@ -262,7 +262,11 @@ narginchk(1, 2);
   adcpOrientations = str2num(fixed.systemConfiguration(:, 1)); % str2num is actually more relevant than str2double here
   adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
   height = distance;
-  if adcpOrientation == 0, height = -height; end % case of a downward looking ADCP -> negative values
+  if adcpOrientation == 0
+      % case of a downward looking ADCP -> negative values
+      height = -height;
+      distance = -distance;
+  end
   iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
   dims = {
       'TIME',                   time(iWellOriented),    ''; ...

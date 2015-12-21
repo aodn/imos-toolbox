@@ -248,7 +248,11 @@ sample_data.meta.beam_angle                 = 25;   % http://www.hydro-internati
 adcpOrientations = single(status(:, 1));
 adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
 height = distance;
-if adcpOrientation == 1, height = -height; end % case of a downward looking ADCP -> negative values
+if adcpOrientation == 1
+    % case of a downward looking ADCP -> negative values
+    height = -height;
+    distance = -distance;
+end
 iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
 dims = {
     'TIME',             time(iWellOriented),    ''; ...
