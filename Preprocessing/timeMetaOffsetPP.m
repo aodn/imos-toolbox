@@ -137,8 +137,8 @@ function sample_data = timeMetaOffsetPP(sample_data, qcLevel, auto)
       set(offsetFields,   'Units', 'normalized');
       
       set(f,             'Position', [0.2 0.35 0.6 0.3]);
-      set(cancelButton,  'Position', [0.0 0.0  0.5 0.1]);
-      set(confirmButton, 'Position', [0.5 0.0  0.5 0.1]);
+      set(cancelButton,  'Position', [0.6 0.015  0.15 0.07]);
+      set(confirmButton, 'Position', [0.8 0.015  0.15 0.07]);
       
       rowHeight = 0.9 / length(sample_data);
       for k = 1:length(sample_data)

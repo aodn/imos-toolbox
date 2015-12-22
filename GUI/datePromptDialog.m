@@ -109,8 +109,8 @@ function [year month day] = datePromptDialog(year,month,day)
   
   % position figure and widgets
   set(f,             'Position', [0.4,  0.46, 0.2,  0.08]);
-  set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.5 ]);
-  set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.5 ]);
+  set(cancelButton,  'Position', [0.6,  0.015,  0.15,  0.07 ]);
+  set(confirmButton, 'Position', [0.8,  0.015,  0.15,  0.07 ]);
   set(yearMenu,      'Position', [0.0,  0.5,  0.33, 0.5 ]);
   set(monthMenu,     'Position', [0.33, 0.5,  0.34, 0.5 ]);
   set(dayMenu,       'Position', [0.67, 0.5,  0.33, 0.5 ]);

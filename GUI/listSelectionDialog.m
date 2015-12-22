@@ -122,14 +122,14 @@ function [selected, cancel] = listSelectionDialog( ...
   
   % position the figure and widgets
   set(f,             'Position', [0.3, 0.36, 0.4, 0.28]);
-  set(cancelButton,  'Position', [0.0, 0.0,  0.5, 0.1]);
-  set(confirmButton, 'Position', [0.5, 0.0,  0.5, 0.1]);
+  set(cancelButton,  'Position', [0.6, 0.015,  0.15, 0.07]);
+  set(confirmButton, 'Position', [0.8, 0.015,  0.15, 0.07]);
   set(nSelList,      'Position', [0.0, 0.1,  0.4, 0.9]);
   set(selList,       'Position', [0.5, 0.1,  0.4, 0.9]);
-  set(downButton,    'Position', [0.9, 0.45, 0.1, 0.1]);
-  set(upButton,      'Position', [0.9, 0.55, 0.1, 0.1]);
-  set(remButton,     'Position', [0.4, 0.45, 0.1, 0.1]);
-  set(addButton,     'Position', [0.4, 0.55, 0.1, 0.1]);
+  set(downButton,    'Position', [0.91, 0.45, 0.08, 0.08]);
+  set(upButton,      'Position', [0.91, 0.55, 0.08, 0.08]);
+  set(remButton,     'Position', [0.41, 0.45, 0.08, 0.08]);
+  set(addButton,     'Position', [0.41, 0.55, 0.08, 0.08]);
   
   % reset back to pixels
   set(f,             'Units', 'pixels');

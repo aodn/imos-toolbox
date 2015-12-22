@@ -161,18 +161,18 @@ function [fieldTrip dataDir] = startDialog(mode)
   % position the widgets
   set(f,               'Position', [0.2,  0.35,  0.6,   0.3]);
 
-  set(cancelButton,    'Position', [0.0,  0.0,  0.5,   0.1]);
-  set(confirmButton,   'Position', [0.5,  0.0,  0.5,   0.1]);
+  set(cancelButton,    'Position', [0.6,  0.015,  0.15,   0.07]);
+  set(confirmButton,   'Position', [0.8,  0.015,  0.15,   0.07]);
 
   set(dirLabel,        'Position', [0.0,  0.1, 0.199, 0.1]);
-  set(dirText,         'Position', [0.2,  0.1, 0.65,  0.1]);
-  set(dirButton,       'Position', [0.85, 0.1, 0.15,  0.1]);
+  set(dirText,         'Position', [0.21,  0.1, 0.65,  0.08]);
+  set(dirButton,       'Position', [0.86, 0.1, 0.1,  0.08]);
 
   set(fidLabel,        'Position', [0.0,  0.2, 0.199, 0.7]);
   set(fidList,         'Position', [0.2,  0.2, 0.8,   0.7]);
   
-  set(dateStartButton, 'Position', [0.0,  0.9, 0.50,  0.1]);
-  set(dateEndButton,   'Position', [0.5,  0.9, 0.50,  0.1]);
+  set(dateStartButton, 'Position', [0.03,  0.91, 0.45,  0.08]);
+  set(dateEndButton,   'Position', [0.53,  0.91, 0.45,  0.08]);
   
   % reset back to pixels
   set(f,                                'Units', 'pixels');
