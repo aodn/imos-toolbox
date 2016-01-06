@@ -77,10 +77,12 @@ for k = 1:length(sample_data)
     % do not process if pitch, roll, and dist_along_beams not present in data set
     if ~(distAlongBeamsIdx && pitchIdx && rollIdx), continue; end
   
-    % do not process if velocity data not vertically bin-mapped (useless)
+    % do not process if velocity data not vertically bin-mapped and there 
+    % is no velocity data in beam coordinates (useless)
     ucurIdx  = getVar(sample_data{k}.variables, 'UCUR');
     if ~ucurIdx, ucurIdx  = getVar(sample_data{k}.variables, 'UCUR_MAG'); end
-    if any(sample_data{k}.variables{ucurIdx}.dimensions == distAlongBeamsIdx), continue; end
+    vel1Idx  = getVar(sample_data{k}.variables, 'VEL1');
+    if any(sample_data{k}.variables{ucurIdx}.dimensions == distAlongBeamsIdx) && ~vel1Idx, continue; end
     
     % We apply tilt corrections to project DIST_ALONG_BEAMS onto the vertical
     % axis HEIGHT_ABOVE_SENSOR.
@@ -170,7 +172,7 @@ for k = 1:length(sample_data)
                 mappedData(i,:) = interp1(nonMappedHeightAboveSensor(i,:), nonMappedData(i,:), mappedHeightAboveSensor(i,:));
             end
             
-            binMappingComment = ['rdiAdcpBinMappingPP.m: data in beam coordinates originally referenced to DISTANCE_ALONG_BEAMS ' ...
+            binMappingComment = ['adcpBinMappingPP.m: data in beam coordinates originally referenced to DISTANCE_ALONG_BEAMS ' ...
                 'has been vertically bin-mapped to HEIGHT_ABOVE_SENSOR using tilt information.'];
             
             % we create the HEIGHT_ABOVE_SENSOR dimension if needed
