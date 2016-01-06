@@ -32,6 +32,9 @@ NORTEK_ERR2, TimeDepth
 NORTEK_ERR3, TimeDepth
 NORTEK_PROFILE_ERR, TimeDepth
 NORTEK_QC, TimeDepth
+VEL1,      TimeDepth
+VEL2,      TimeDepth
+VEL3,      TimeDepth
 VDEN,      TimeFrequency
 VDEV,      TimeFrequency
 VDEP,      TimeFrequency

@@ -137,7 +137,7 @@ for i=1:lenSampleData
         end
         
     elseif iVar > 0 && iDepth > 0 && ...
-            any(strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD'})) && ...
+            any(strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'})) && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 % we're plotting current metre 1D variables with DEPTH variable.
         iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
         if isQC
@@ -169,7 +169,7 @@ if any(isPlottable)
     
     % define cMap, cLim and cType per parameter
     switch varName
-        case {'UCUR', 'VCUR', 'WCUR'}   % 0 centred parameters
+        case {'UCUR', 'VCUR', 'WCUR', 'VEL1', 'VEL2', 'VEL3'}   % 0 centred parameters
             cMap = 'r_b';
             cType = 'centeredOnZero';
             CLim = [-yLimMax yLimMax];

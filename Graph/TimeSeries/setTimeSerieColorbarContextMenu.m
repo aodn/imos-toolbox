@@ -63,7 +63,7 @@ if iLastUnderscore > 0
 end
 
 switch upper(var.name(1:4))
-    case {'UCUR', 'VCUR', 'WCUR', 'ECUR'} % 0 centred parameters
+    case {'UCUR', 'VCUR', 'WCUR', 'ECUR', 'VEL1', 'VEL2', 'VEL3'} % 0 centred parameters
         colormap(r_b);
         cbCLimRange('', '', 'auto, 0 centred', var.data);
         
