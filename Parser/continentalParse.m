@@ -245,6 +245,7 @@ sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.beam_angle                 = 25;   % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
+sample_data.meta.beam_to_xyz_transform      = head.TransformationMatrix;
 
 % add dimensions with their data mapped
 adcpOrientations = single(status(:, 1));
