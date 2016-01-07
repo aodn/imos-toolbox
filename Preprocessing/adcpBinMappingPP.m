@@ -170,6 +170,11 @@ for k = 1:length(sample_data)
             mappedData = NaN(size(nonMappedData), 'single');
             for i=1:nSamples
                 mappedData(i,:) = interp1(nonMappedHeightAboveSensor(i,:), nonMappedData(i,:), mappedHeightAboveSensor(i,:));
+                % there is a risk of ending up with a NaN for the first bin
+                % while the difference between its nominal and tilted
+                % position is negligeable so we can arbitrarily set it to 
+                % its value when tilted (RDI practice)
+                mappedData(i,1) = nonMappedData(i,1);
             end
             
             binMappingComment = ['adcpBinMappingPP.m: data in beam coordinates originally referenced to DISTANCE_ALONG_BEAMS ' ...
