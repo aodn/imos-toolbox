@@ -81,10 +81,14 @@ for k = 1:length(sample_data)
     % do not process if no velocity data in ENU coordinates
     varSuffix = '';
     if ~isMagCorrected, varSuffix = '_MAG'; end
-    ucurIdx  = getVar(sample_data{k}.variables, ['UCUR' varSuffix]);
-    vcurIdx  = getVar(sample_data{k}.variables, ['VCUR' varSuffix]);
-    wcurIdx  = getVar(sample_data{k}.variables, 'WCUR');
+    ucurIdx = getVar(sample_data{k}.variables, ['UCUR' varSuffix]);
+    vcurIdx = getVar(sample_data{k}.variables, ['VCUR' varSuffix]);
+    wcurIdx = getVar(sample_data{k}.variables, 'WCUR');
     if ~(ucurIdx && vcurIdx && wcurIdx), continue; end
+    
+    % do not process if more than 3 beams
+    absic4Idx = getVar(sample_data{k}.variables, 'ABSIC4');
+    if absic4Idx continue; end
     
     ucur = sample_data{k}.variables{ucurIdx}.data;
     vcur = sample_data{k}.variables{vcurIdx}.data;

@@ -69,6 +69,10 @@ for k = 1:length(sample_data)
     if strcmpi(sample_data{k}.meta.instrument_make, 'Nortek'), isNortek = true; end
     if ~isRDI && ~isNortek, continue; end
     
+    % do not process if Nortek with more than 3 beams
+    absic4Idx = getVar(sample_data{k}.variables, 'ABSIC4');
+    if absic4Idx && isNortek, continue; end
+    
     heightAboveSensorIdx = getVar(sample_data{k}.dimensions, 'HEIGHT_ABOVE_SENSOR');
     distAlongBeamsIdx = getVar(sample_data{k}.dimensions, 'DIST_ALONG_BEAMS');
     pitchIdx = getVar(sample_data{k}.variables, 'PITCH');
@@ -173,8 +177,15 @@ for k = 1:length(sample_data)
                 % there is a risk of ending up with a NaN for the first bin
                 % while the difference between its nominal and tilted
                 % position is negligeable so we can arbitrarily set it to 
-                % its value when tilted (RDI practice)
+                % its value when tilted (RDI practice).
                 mappedData(i,1) = nonMappedData(i,1);
+                % there is also a risk of ending with a NaN for the last
+                % good bin (one beam has this bin slightly below its
+                % bin-mapped nominal position and that's a shame we miss 
+                % it). For this bin, using extrapolation methods like 
+                % spline could still be ok.
+%                 iLastGoodBin = find(isnan(mappedData(i,:)), 1, 'first');
+%                 mappedData(i,iLastGoodBin) = interp1(nonMappedHeightAboveSensor(i,:), nonMappedData(i,:), mappedHeightAboveSensor(i,iLastGoodBin), 'spline');
             end
             
             binMappingComment = ['adcpBinMappingPP.m: data in beam coordinates originally referenced to DISTANCE_ALONG_BEAMS ' ...

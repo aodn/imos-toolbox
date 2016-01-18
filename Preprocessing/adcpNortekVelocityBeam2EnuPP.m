@@ -84,6 +84,17 @@ for k = 1:length(sample_data)
     vel3Idx  = getVar(sample_data{k}.variables, 'VEL3');
     if ~(vel1Idx && vel2Idx && vel3Idx), continue; end
     
+    % do not process if more than 3 beams
+    vel4Idx  = getVar(sample_data{k}.variables, 'VEL4');
+    if vel4Idx, continue; end
+    
+    % do not process if transformation matrix not known
+    if isfield(sample_data{k}.meta, 'beam_to_xyz_transform')
+        beam2xyz = sample_data{k}.meta.beam_to_xyz_transform;
+    else
+        continue;
+    end
+    
     vel1 = sample_data{k}.variables{vel1Idx}.data;
     vel2 = sample_data{k}.variables{vel2Idx}.data;
     vel3 = sample_data{k}.variables{vel3Idx}.data;
@@ -97,8 +108,6 @@ for k = 1:length(sample_data)
     if any(sample_data{k}.variables{vel1Idx}.dimensions == heightAboveSensorIdx)
         dist = sample_data{k}.dimensions{heightAboveSensorIdx}.data;
     end
-    
-    beam2xyz = sample_data{k}.meta.beam_to_xyz_transform;
     
     % If instrument is pointing down dist is negative and
     % rows 2 and 3 must change sign
