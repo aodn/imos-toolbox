@@ -127,8 +127,8 @@ end
 % (except for HR profilers - also explained in the forum post).
 %
 freq       = head.Frequency; % this is in KHz
-cellStart  = user.T2;        % counts
-cellLength = user.BinLength; % counts
+blankDist  = user.T2;        % counts
+cellSize   = user.BinLength; % counts
 factor     = 0;              % used for conversion
 
 switch freq
@@ -136,18 +136,18 @@ switch freq
   case 470, factor = 0.0945;
 end
 
-cellLength = (cellLength / 256) * factor * cos(25 * pi / 180);
-cellStart  =  cellStart         * 0.0229 * cos(25 * pi / 180) - cellLength;
+cellSize  = (cellSize / 256) * factor * cos(25 * pi / 180);
+blankDist = blankDist        * 0.0229 * cos(25 * pi / 180) - cellSize;
 
 % generate distance values
-distance(:) = (cellStart):  ...
-           (cellLength): ...
-           (cellStart + (ncells-1) * cellLength);
+distance(:) = (blankDist):  ...
+           (cellSize): ...
+           (blankDist + (ncells-1) * cellSize);
 
 % Note this is actually the distance between the ADCP's transducers and the
 % middle of each cell along the beams axis (no tilt correction applied)
 % See http://www.nortek-bv.nl/en/knowledge-center/forum/current-profilers-and-current-meters/579860330
-distance = distance + cellLength;
+distance = distance + cellSize;
 
 % retrieve sample data
 time            = structures.Id36.Time';
@@ -238,7 +238,7 @@ sample_data.meta.featureType                = 'timeSeriesProfile';
 sample_data.meta.head                       = head;
 sample_data.meta.hardware                   = hardware;
 sample_data.meta.user                       = user;
-sample_data.meta.binSize                    = cellLength;
+sample_data.meta.binSize                    = cellSize;
 sample_data.meta.instrument_make            = 'Nortek';
 sample_data.meta.instrument_model           = 'Continental';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;
