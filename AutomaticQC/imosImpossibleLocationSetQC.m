@@ -75,8 +75,13 @@ if ~isempty(dataLon) && ~isempty(dataLat)
     
     % test if site information exists
     if isempty(site)
-        fprintf('%s\n', ['Warning : ' 'No site information found to '...
-            'perform impossible location QC test']);
+        if isempty(sample_data.site_code)
+            fprintf('%s\n', ['Warning : ' 'No site code documented to '...
+                'perform impossible location QC test']);
+        else
+            fprintf('%s\n', ['Warning : ' 'No site information found for ' sample_data.site_code ' in imosSites.txt to '...
+                'perform impossible location QC test']);
+        end
     else
         lenData = length(dataLon);
         
