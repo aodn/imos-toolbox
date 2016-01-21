@@ -81,9 +81,26 @@ for i=1:lenSampleData
     else
         metaDepth(i) = NaN;
     end
+    
     iTime = getVar(sample_data{i}.dimensions, 'TIME');
-    xMin(i) = min(sample_data{i}.dimensions{iTime}.data);
-    xMax(i) = max(sample_data{i}.dimensions{iTime}.data);
+    iVar = getVar(sample_data{i}.variables, varName);
+    iGood = true(size(sample_data{i}.dimensions{iTime}.data));
+        
+    if isQC && iVar
+        %get time and var QC information
+        timeFlags = sample_data{i}.dimensions{iTime}.flags;
+        varFlags = sample_data{i}.variables{iVar}.flags;
+        
+        iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+    end
+    
+    if iVar
+        if all(~iGood)
+            continue;
+        end
+        xMin(i) = min(sample_data{i}.dimensions{iTime}.data(iGood));
+        xMax(i) = max(sample_data{i}.dimensions{iTime}.data(iGood));
+    end
 end
 [metaDepth, iSort] = sort(metaDepth);
 xMin = min(xMin);
@@ -121,7 +138,7 @@ for i=1:lenSampleData
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
     
     if iVar > 0 && size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 && ... % we're only plotting 1D variables but no current
-            all(~strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}))
+            all(~strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}))        
         if initiateFigure
             fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
             visible = 'on';
@@ -152,7 +169,7 @@ for i=1:lenSampleData
             hLineVar(1) = line([xMin, xMax], [metaDepth(i), metaDepth(i)], ...
                 'Color', 'black');
         end
-            
+        
         iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
         
         if isQC

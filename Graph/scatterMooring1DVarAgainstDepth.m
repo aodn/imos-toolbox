@@ -83,8 +83,24 @@ for i=1:lenSampleData
         metaDepth(i) = NaN;
     end
     iTime = getVar(sample_data{i}.dimensions, 'TIME');
-    xMin(i) = min(sample_data{i}.dimensions{iTime}.data);
-    xMax(i) = max(sample_data{i}.dimensions{iTime}.data);
+    iVar = getVar(sample_data{i}.variables, varName);
+    iGood = true(size(sample_data{i}.dimensions{iTime}.data));
+        
+    if isQC && iVar
+        %get time and var QC information
+        timeFlags = sample_data{i}.dimensions{iTime}.flags;
+        varFlags = sample_data{i}.variables{iVar}.flags;
+        
+        iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+    end
+    
+    if iVar
+        if all(~iGood)
+            continue;
+        end
+        xMin(i) = min(sample_data{i}.dimensions{iTime}.data(iGood));
+        xMax(i) = max(sample_data{i}.dimensions{iTime}.data(iGood));
+    end
 end
 [metaDepth, iSort] = sort(metaDepth);
 xMin = min(xMin);
