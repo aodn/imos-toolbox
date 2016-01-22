@@ -212,7 +212,7 @@ narginchk(1, 2);
   
   % fill in the sample_data struct
   sample_data.toolbox_input_file        = filename;
-  sample_data.meta.featureType          = 'timeSeriesProfile';
+  sample_data.meta.featureType          = ''; % strictly this dataset cannot be described as timeSeriesProfile since it also includes timeSeries data like TEMP
   sample_data.meta.fixedLeader          = fixed;
   sample_data.meta.binSize              = mode(fixed.depthCellLength)/100; % we set a static value for this variable to the most frequent value found
   sample_data.meta.instrument_make      = 'Teledyne RDI';

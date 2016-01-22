@@ -231,7 +231,7 @@ end
 sample_data = struct;
     
 sample_data.toolbox_input_file              = filename;
-sample_data.meta.featureType                = 'timeSeriesProfile';
+sample_data.meta.featureType                = ''; % strictly this dataset cannot be described as timeSeriesProfile since it also includes timeSeries data like TEMP
 sample_data.meta.head                       = head;
 sample_data.meta.hardware                   = hardware;
 sample_data.meta.user                       = user;

@@ -145,7 +145,7 @@ clear structures velocity velocityScaling amplitude correlation;
 sample_data = struct;
     
 sample_data.toolbox_input_file              = filename;
-sample_data.meta.featureType                = 'timeSeriesProfile';
+sample_data.meta.featureType                = ''; % strictly this dataset cannot be described as timeSeriesProfile since it also includes timeSeries data like TEMP
 sample_data.meta.binSize                    = cellSize;
 sample_data.meta.instrument_make            = 'Nortek';
 if isempty(instrumentConfig)
