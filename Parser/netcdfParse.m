@@ -193,6 +193,7 @@ function sample_data = netcdfParse( filename, mode )
   sample_data.meta.instrument_model           = '';
   sample_data.meta.instrument_serial_no       = '';
   sample_data.meta.instrument_sample_interval = NaN;
+  sample_data.meta.featureType                = '';
   
   if isfield(sample_data, 'deployment_code')
       sample_data.meta.site_id = sample_data.deployment_code;
@@ -222,6 +223,10 @@ function sample_data = netcdfParse( filename, mode )
   
   if isfield(sample_data, 'instrument_sample_interval')
       sample_data.meta.instrument_sample_interval = sample_data.instrument_sample_interval;
+  end
+  
+  if isfield(sample_data, 'featureType')
+      sample_data.meta.featureType = sample_data.featureType;
   end
   
   iHeightAboveSensor = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');

@@ -81,6 +81,7 @@ function sample_data = YSI6SeriesParse( filename, mode )
   sample_data.meta.instrument_model             = '6 Series';
   sample_data.meta.instrument_serial_no         = '';
   sample_data.meta.instrument_sample_interval   = median(diff(records.time*24*3600));
+  sample_data.meta.featureType                  = mode;
   
   sample_data.dimensions = {};
   sample_data.variables  = {};

@@ -121,6 +121,7 @@ function sample_data = SBE19Parse( filename, mode )
   sample_data = struct;
   
   sample_data.toolbox_input_file    = filename;
+  sample_data.meta.featureType      = mode;
   sample_data.meta.instHeader       = instHeader;
   sample_data.meta.procHeader       = procHeader;
   

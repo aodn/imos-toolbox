@@ -82,6 +82,7 @@ sample_data.toolbox_input_file        = filename;
 sample_data.meta.instrument_make      = 'WET Labs';
 sample_data.meta.instrument_model     = deviceInfo.instrument;
 sample_data.meta.instrument_serial_no = deviceInfo.serial;
+sample_data.meta.featureType          = mode;
 
 % infer time information from start time in filename (already in UTC) and 
 % assuming recording is performed over 60 minutes

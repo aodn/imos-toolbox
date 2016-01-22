@@ -122,6 +122,7 @@ procHeader.toolbox_input_file = filename;
 sample_data = struct;
 
 sample_data.toolbox_input_file  = filename;
+sample_data.meta.featureType    = mode;
 sample_data.meta.procHeader     = procHeader;
 
 sample_data.meta.instrument_make = 'Vemco';

@@ -73,6 +73,7 @@ function sample_data = readXR620( filename, mode )
   sample_data.meta.instrument_firmware          = header.firmware;
   sample_data.meta.instrument_serial_no         = header.serial;
   sample_data.meta.instrument_sample_interval   = median(diff(data.time*24*3600));
+  sample_data.meta.featureType                  = mode;
   
   sample_data.dimensions = {};  
   sample_data.variables  = {};

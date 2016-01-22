@@ -103,6 +103,7 @@ function sample_data = NXICBinaryParse( filename, mode )
   sample_data.meta.instrument_make      = header.instrument_make;
   sample_data.meta.instrument_model     = header.instrument_model;
   sample_data.meta.instrument_serial_no = header.instrument_serial_no;
+  sample_data.meta.featureType          = mode;
   if header.sampleRate > 0
       sample_data.meta.instrument_sample_interval = 1/header.sampleRate;
   else

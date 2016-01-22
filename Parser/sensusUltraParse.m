@@ -72,6 +72,7 @@ if ~ischar(filename), error('filename must contain a string'); end
   sample_data.meta.instrument_firmware  = '3.02';
   sample_data.meta.instrument_serial_no = data.serial{1};
   sample_data.meta.instrument_sample_interval = median(diff(data.time*24*3600));
+  sample_data.meta.featureType          = mode;
   
   sample_data.dimensions = {};
   sample_data.variables  = {};

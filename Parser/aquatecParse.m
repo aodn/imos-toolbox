@@ -131,6 +131,7 @@ sample_data.meta.instrument_make      = 'Aquatec';
 sample_data.meta.instrument_model     = ['Aqualogger ' model{1}];
 sample_data.meta.instrument_firmware  = firmware{1};
 sample_data.meta.instrument_serial_no = serial{1};
+sample_data.meta.featureType          = mode;
 %
 % get regime data (mode, sample rate, etc)
 %

@@ -206,6 +206,7 @@ function sample_data = readWQMdat( filename )
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = samples{1}{1};
+  sample_data.meta.featureType          = mode;
   
   % convert and save the time data
   time = cellstr(samples{2});
