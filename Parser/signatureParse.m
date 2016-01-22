@@ -102,8 +102,8 @@ correlation4 = nan(nSamples, nCells);
 serialNumber = num2str(unique(vertcat(structures.(dataRecordType).Data.SerialNumber)));
 
 % generate distance values
-cellSize  = unique(vertcat(structures.(dataRecordType).Data.CellSize));
-blankDist = unique(vertcat(structures.(dataRecordType).Data.Blanking));
+cellSize  = unique(vertcat(structures.(dataRecordType).Data.CellSize))*0.001; % m
+blankDist = unique(vertcat(structures.(dataRecordType).Data.Blanking))*0.001; % m
 if length(cellSize) > 1, error('Multiple cell sizes/blanking distance not supported'); end
 distance(:) = (blankDist):  ...
            (cellSize): ...
@@ -112,7 +112,7 @@ distance(:) = (blankDist):  ...
 % Note this is actually the distance between the ADCP's transducers and the
 % middle of each cell
 % See http://www.nortek-bv.nl/en/knowledge-center/forum/current-profilers-and-current-meters/579860330
-distance = (distance + cellSize)*0.001; % m
+distance = (distance + cellSize);
        
 % retrieve sample data
 time            = vertcat(structures.(dataRecordType).Data.Time);
