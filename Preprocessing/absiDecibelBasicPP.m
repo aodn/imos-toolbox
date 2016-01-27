@@ -79,7 +79,7 @@ function sample_data = absiDecibelBasicPP( sample_data, qcLevel, auto )
           absic = sam.variables{absicIdx}.data;
           
           coefFile = ['Preprocessing' filesep 'absiDecibelBasicPP.txt'];
-          coefficient = str2double(readProperty('coefficient', coefFile, ','));
+          coefficient = str2double(readProperty('coefficient', coefFile));
           absi = absic * coefficient;
           
           dimensions = sam.variables{absicIdx}.dimensions;

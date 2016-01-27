@@ -79,9 +79,9 @@ offset      = NaN(1, nAquatracka);
 
 ParamFile = ['Preprocessing' filesep 'aquatrackaPP.txt'];
 for i=1:nAquatracka
-    voltLabel{i}    = readProperty(['volt' analogAquatracka{i}], ParamFile, ',');
-    scaleFactor(i)  = str2double(readProperty(['scaleFactor' analogAquatracka{i}], ParamFile, ','));
-    offset(i)       = str2double(readProperty(['offset' analogAquatracka{i}], ParamFile, ','));
+    voltLabel{i}    = readProperty(['volt' analogAquatracka{i}], ParamFile);
+    scaleFactor(i)  = str2double(readProperty(['scaleFactor' analogAquatracka{i}], ParamFile));
+    offset(i)       = str2double(readProperty(['offset' analogAquatracka{i}], ParamFile));
 end
 
 for k = 1:length(sample_data)

@@ -61,7 +61,7 @@ if strcmpi(qcLevel, 'raw'), return; end
 % read options from parameter file  Minimum Soak Delay: SoakDelay1 (sec.)
 %                                   Optimal Soak Delay: SoakDelay2 (sec.)
 PressFile = ['Preprocessing' filesep 'CTDDepthBinPP.txt'];
-bin_size = str2double(readProperty('bin_size', PressFile, ','));
+bin_size = str2double(readProperty('bin_size', PressFile));
 
 firstbin = -bin_size/2;
 ctdSSflags = {'tempSoakStatus', 'cndSoakStatus', 'oxSoakStatus'};

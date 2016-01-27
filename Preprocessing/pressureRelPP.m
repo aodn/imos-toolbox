@@ -82,14 +82,14 @@ for k = 1:lenSam
     
     if isempty(sources{k})
         try
-            offsets(k) = str2double(readProperty('default', pressureRelFile, ','));
+            offsets(k) = str2double(readProperty('default', pressureRelFile));
         end
     else
         try
-            offsets(k) = str2double(readProperty(sources{k}, pressureRelFile, ','));
+            offsets(k) = str2double(readProperty(sources{k}, pressureRelFile));
         catch
             try
-                offsets(k) = str2double(readProperty('default', pressureRelFile, ','));
+                offsets(k) = str2double(readProperty('default', pressureRelFile));
             end
         end
     end

@@ -85,7 +85,7 @@ function sample_data = timeOffsetPP(sample_data, qcLevel, auto)
     
     if isnan(str2double(timezones{k}))
         try
-            offsets(k) = str2double(readProperty(timezones{k}, offsetFile, ','));
+            offsets(k) = str2double(readProperty(timezones{k}, offsetFile));
         catch
             if strncmpi(timezones{k}, 'UTC', 3)
                 offsetStr = timezones{k}(4:end);

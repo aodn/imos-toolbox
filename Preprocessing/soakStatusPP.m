@@ -73,12 +73,12 @@ if strcmpi(qcLevel, 'raw'), return; end
 % read options from parameter file  Minimum Soak Delay: SoakDelay1 (sec.)
 %                                   Optimal Soak Delay: SoakDelay2 (sec.)
 PressFile = ['Preprocessing' filesep 'soakStatusPP.txt'];
-tempMinSoak = str2double(readProperty('tempMinSoak', PressFile, ','));
-tempOptSoak = str2double(readProperty('tempOptSoak', PressFile, ','));
-cndMinSoak  = str2double(readProperty('cndMinSoak', PressFile, ','));
-cndOptSoak  = str2double(readProperty('cndOptSoak', PressFile, ','));
-oxMinSoak   = str2double(readProperty('oxMinSoak', PressFile, ','));
-oxOptSoak   = str2double(readProperty('oxOptSoak', PressFile, ','));
+tempMinSoak = str2double(readProperty('tempMinSoak', PressFile));
+tempOptSoak = str2double(readProperty('tempOptSoak', PressFile));
+cndMinSoak  = str2double(readProperty('cndMinSoak', PressFile));
+cndOptSoak  = str2double(readProperty('cndOptSoak', PressFile));
+oxMinSoak   = str2double(readProperty('oxMinSoak', PressFile));
+oxOptSoak   = str2double(readProperty('oxOptSoak', PressFile));
 
 % loop on every data sets
 for k = 1:length(sample_data)
