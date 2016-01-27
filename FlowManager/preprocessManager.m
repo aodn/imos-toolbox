@@ -105,7 +105,7 @@ function [sample_data, cancel] = preprocessManager( sample_data, qcLevel, mode, 
       % as indices
       ppChainIdx = cellfun(@(x)(find(ismember(ppRoutines,x))),ppChain);
       [ppChain, cancel] = listSelectionDialog(...
-          'Select Preprocess routines', ppRoutines, ppChainIdx, @routineConfig, 'Configure routine');
+          'Select Preprocess routines', ppRoutines, ppChainIdx, {@routineConfig, 'Configure routine'});
       
       % user cancelled dialog
       if isempty(ppChain) || cancel, return; end

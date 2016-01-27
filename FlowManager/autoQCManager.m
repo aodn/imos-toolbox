@@ -95,7 +95,7 @@ function qc_data = autoQCManager( sample_data, auto )
     % but must be provided to the list selection dialog as indices
     qcChain = cellfun(@(x)(find(ismember(qcRoutines,x))),qcChain);
     [qcChain, qcCancel] = listSelectionDialog('Select QC filters', qcRoutines, ...
-                                  qcChain, @routineConfig, 'Configure routine');
+                                  qcChain, {@routineConfig, 'Configure routine'});
     
 	% save user's latest selection for next time - turn the qcChain
     % cell array into a space-separated string of the names
