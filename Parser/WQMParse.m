@@ -58,10 +58,10 @@ function sample_data = WQMParse( filename, mode )
   
   switch upper(ext)
       case '.DAT'
-          sample_data = readWQMdat(filename);
+          sample_data = readWQMdat(filename, mode);
           
       case '.RAW'
-          sample_data = readWQMraw(filename);
+          sample_data = readWQMraw(filename, mode);
           
       otherwise
           error('filename must either be a .DAT or .RAW WQM file')

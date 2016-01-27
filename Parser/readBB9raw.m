@@ -1,4 +1,4 @@
-function sample_data = readBB9raw( filename, deviceInfo )
+function sample_data = readBB9raw( filename, deviceInfo, mode )
 %READBB9RAW parses a .raw data file retrieved from a Wetlabs ECO BB9 instrument
 %deployed at the Lucinda Jetty.
 %
@@ -6,6 +6,7 @@ function sample_data = readBB9raw( filename, deviceInfo )
 % Inputs:
 %   filename    - name of the input file to be parsed
 %   deviceInfo  - infos retrieved from the relevant device file
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 

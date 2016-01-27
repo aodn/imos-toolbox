@@ -1,4 +1,4 @@
-function sample_data = readWQMraw( filename )
+function sample_data = readWQMraw( filename, mode )
 %readWQMraw parses a .RAW file retrieved from a Wetlabs WQM instrument.
 %
 % This function is able to parse raw data retrieved from a Wetlabs WQM CTD/ECO 
@@ -6,6 +6,7 @@ function sample_data = readWQMraw( filename )
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 

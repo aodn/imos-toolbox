@@ -61,6 +61,6 @@ function sample_data = ECOBB9Parse( filename, mode )
   
   deviceInfo = readECODevice(devFilename);
   
-  sample_data = readBB9raw(filename, deviceInfo);
+  sample_data = readBB9raw(filename, deviceInfo, mode);
 
 end

@@ -8,6 +8,7 @@ function sample_data = readXR420( filename, mode )
 %
 % Inputs:
 %   filename    - Cell array containing the name of the file to parse.
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - Struct containing imported sample data.
