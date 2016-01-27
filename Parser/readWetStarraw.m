@@ -45,8 +45,8 @@ function sample_data = readWetStarraw( filename, deviceInfo, mode )
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
-% ensure that there is exactly one argument
-narginchk(2, 2);
+% ensure that there are exactly three arguments
+narginchk(3, 3);
 if ~ischar(filename), error('filename must contain a string'); end
 if ~isstruct(deviceInfo), error('deviceInfo must contain a struct'); end
 

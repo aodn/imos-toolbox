@@ -45,7 +45,7 @@ function sample_data = readXR420( filename, mode )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(1,2);
+  narginchk(2,2);
   
   if ~ischar(filename)  
     error('filename must be a string'); 
