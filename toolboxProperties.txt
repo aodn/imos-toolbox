@@ -36,7 +36,7 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 % different date format for NetCDF file names
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
-% default set of auto QC routines
+% last selected set of auto QC routines
 autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosCorrMagVelocitySetQC imosHistoricalManualSetQC
 autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
 
@@ -44,8 +44,8 @@ autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationS
 % preprocessing routines are not executed)
 preprocessManager.preprocessPrompt = true
 
-% default set of preprocessing routines
-preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP absiDecibelBasicPP adcpBinMappingPP
+% last selected set of preprocessing routines
+preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP
 preprocessManager.preprocessChain.profile = depthPP salinityPP
 
 % file status dialog formatting styles
@@ -55,7 +55,7 @@ dataFileStatusDialog.invalidFileNameFormat = red
 dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
-% default values for start dialog
+% last selected values for start dialog
 startDialog.dataDir.timeSeries = 
 startDialog.dataDir.profile = 
 startDialog.fieldTrip.timeSeries = 
@@ -65,17 +65,17 @@ startDialog.lowDate.profile =
 startDialog.highDate.timeSeries = 
 startDialog.highDate.profile = 
 
-% default directory for manual data import
+% last selected directory for manual data import
 importManager.manualDir = 
 
-% default directory for file export
+% last selected directory for file export
 exportDialog.defaultDir = 
 
 % prompt user to select parser if an appropriate one 
 % cannot be found (if false, the data is not imported)
 importManager.noParserPrompt = true
 
-% default directory for saving graphs as images
+% last selected directory for saving graphs as images
 saveGraph.noPrompt  = false
 saveGraph.exportDir = 
 saveGraph.imgType   = png
