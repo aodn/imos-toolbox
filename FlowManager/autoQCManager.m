@@ -95,7 +95,7 @@ function qc_data = autoQCManager( sample_data, auto )
     % but must be provided to the list selection dialog as indices
     qcChain = cellfun(@(x)(find(ismember(qcRoutines,x))),qcChain);
     [qcChain, qcCancel] = listSelectionDialog('Select QC filters', qcRoutines, ...
-                                  qcChain, @filterConfig, 'Configure');
+                                  qcChain, @routineConfig, 'Configure routine');
     
 	% save user's latest selection for next time - turn the qcChain
     % cell array into a space-separated string of the names
@@ -211,20 +211,20 @@ function qc_data = autoQCManager( sample_data, auto )
   qc_data = sample_data;
 end
 
-%FILTERCONFIG Called via the QC filter list selection dialog when the user
-% chooses to configure a filter. If the selected filter has any configurable 
+%ROUTINECONFIG Called via the QC routine list selection dialog when the user
+% chooses to configure a routine. If the selected routine has any configurable 
 % options, a propertyDialog is displayed, allowing the user to configure
-% the filter.
+% the routine.
 %
-function filterConfig(filterName)
+function routineConfig(routineName)
 
-  % check to see if the filter has an associated properties file.
-  propFileName = fullfile('AutomaticQC', [filterName '.txt']);
+  % check to see if the routine has an associated properties file.
+  propFileName = fullfile('AutomaticQC', [routineName '.txt']);
   
-  % ignore if there is no properties file for this filter
+  % ignore if there is no properties file for this routine
   if ~exist(propFileName, 'file'), return; end
   
-  % display a propertyDialog, allowing configuration of the filter
+  % display a propertyDialog, allowing configuration of the routine
   % properties.
   propertyDialog(propFileName);
 end

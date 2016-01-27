@@ -105,7 +105,7 @@ function [sample_data, cancel] = preprocessManager( sample_data, qcLevel, mode, 
       % as indices
       ppChainIdx = cellfun(@(x)(find(ismember(ppRoutines,x))),ppChain);
       [ppChain, cancel] = listSelectionDialog(...
-          'Select Preprocess routines', ppRoutines, ppChainIdx);
+          'Select Preprocess routines', ppRoutines, ppChainIdx, @routineConfig, 'Configure routine');
       
       % user cancelled dialog
       if isempty(ppChain) || cancel, return; end
@@ -141,4 +141,26 @@ function [sample_data, cancel] = preprocessManager( sample_data, qcLevel, mode, 
       fprintf('%s\n', ['Preprocessing using : ' allPpChain]);
   end
 
+end
+
+%ROUTINECONFIG Called via the PP routine list selection dialog when the user
+% chooses to configure a routine. If the selected routine has any configurable 
+% options, a propertyDialog is displayed, allowing the user to configure
+% the routine.
+%
+function routineConfig(routineName)
+
+  % check to see if the routine has an associated properties file.
+  propFileName = fullfile('Preprocessing', [routineName '.txt']);
+  
+  % ignore if there is no properties file for this routine
+  if ~exist(propFileName, 'file'), return; end
+  
+  % display a propertyDialog, allowing configuration of the routine
+  % properties.
+  if strcmpi(routineName, 'depthPP')
+      propertyDialog(propFileName, ',');
+  else
+      propertyDialog(propFileName);
+  end
 end
