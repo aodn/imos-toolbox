@@ -104,8 +104,10 @@ function [sample_data, cancel] = preprocessManager( sample_data, qcLevel, mode, 
       % routine names, but must be provided to the list selection dialog
       % as indices
       ppChainIdx = cellfun(@(x)(find(ismember(ppRoutines,x))),ppChain);
-      [ppChain, cancel] = listSelectionDialog(...
-          'Select Preprocess routines', ppRoutines, ppChainIdx, {@routineConfig, 'Configure routine'});
+      [ppChain, cancel] = listSelectionDialog('Select Preprocess routines', ...
+          ppRoutines, ppChainIdx, ...
+          {@routineConfig, 'Configure routine';
+          @setDefaultRoutines, 'Default set'});
       
       % user cancelled dialog
       if isempty(ppChain) || cancel, return; end
@@ -148,8 +150,11 @@ end
 % options, a propertyDialog is displayed, allowing the user to configure
 % the routine.
 %
-function routineConfig(routineName)
+function [dummy1, dummy2] = routineConfig(routineName)
 
+  dummy1 = {};
+  dummy2 = {};
+  
   % check to see if the routine has an associated properties file.
   propFileName = fullfile('Preprocessing', [routineName '.txt']);
   
@@ -163,4 +168,30 @@ function routineConfig(routineName)
   else
       propertyDialog(propFileName);
   end
+end
+
+%SETDEFAULTROUTINES Called via the PP routine list selection dialog when the user
+% chooses to set the list of routines to default.
+%
+function [ppRoutines, ppChain] = setDefaultRoutines(filterName)
+
+  % get all PP routines that exist
+  ppRoutines = listPreprocessRoutines();
+  ppChain    = {};
+  
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = readProperty('toolbox.mode');
+  
+  % get default filter chain if there is one
+  try
+      ppChain = textscan(readProperty(['preprocessManager.preprocessDefaultChain.' mode]), '%s');
+      ppChain = ppChain{1};
+      
+      % set last filter list to default
+      qcChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
+      writeProperty(['preprocessManager.preprocessChain.' mode], deblank([qcChainStr{:}]));
+  catch e
+  end
+  
 end

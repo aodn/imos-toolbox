@@ -160,7 +160,7 @@ function [selected, cancel] = listSelectionDialog( title, allOpts, initialOpts, 
               'Style', 'pushbutton', ...
               'String', selectCell(i, 2), ...
               'Units', 'normalized', ...
-              'Callback', @selectCallback);
+              'Callback', {@selectCallback, i});
           
           set(selectButton, 'Position', [0.9, 0.9 - (i-1)*0.1, 0.1, 0.1]);
           set(selectButton, 'Units',    'pixels');
@@ -183,20 +183,36 @@ function [selected, cancel] = listSelectionDialog( title, allOpts, initialOpts, 
 
   %% Callback functions
   
-  %SELECTCALLBACK Wrapper for the real callback function. Calls selectCB,
+  %SELECTCALLBACK Wrapper for the real callback function. Calls selectCellCB,
   % and passes it the (first) currently selected item in the selected list.
   % Does nothing if no items are selected.
   %
-  function selectCallback(source, ev)
+  function selectCallback(source, ev, iButton)
 
     selIdx = get(selList, 'Value');
     
-    if isempty(selIdx), return; end
+    if isempty(selIdx)
+        fprintf('%s\n', 'Info : please first select a routine.');
+        return;
+    end
     
     % pass the selected item to the real callback function
-    selectCellCB = selectCell{i, 1};
-    selectCellCB(selected{selIdx(1)});
-
+    selectCellCB = selectCell{iButton, 1};
+    [routines, chain] = selectCellCB(selected{selIdx(1)});
+    
+    if ~isempty(chain)
+        % reset the list data to current setting (in case would have been
+        % updated by previous callback
+        chainIdx = cellfun(@(x)(find(ismember(routines,x))),chain);
+        
+        selected = {routines{chainIdx}};
+        notSelected = true(size(routines));
+        notSelected(chainIdx) = false;
+        notSelected = {routines{notSelected}};
+        
+        set(nSelList, 'String', notSelected);
+        set(selList,  'String', selected);
+    end
   end
   
   function keyPressCallback(source,ev)
