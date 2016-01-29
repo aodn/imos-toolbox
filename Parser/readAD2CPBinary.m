@@ -255,11 +255,11 @@ function sect = readBurstAverageVersion1(data, idx, cpuEndianness)
 sect = struct;
 
 sect.Version           = bytecast(data(idx), 'L', 'uint8', cpuEndianness);
-sect.Configuration     = uint8(flipud(str2num(dec2bin(bytecast(data(idx+1), 'L', 'uint8', cpuEndianness), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.Configuration     = dec2bin(bytecast(data(idx+1), 'L', 'uint8', cpuEndianness), 8);
 
-isVelocity      = sect.Configuration(6) == 1;
-isAmplitude     = sect.Configuration(7) == 1;
-isCorrelation   = sect.Configuration(8) == 1;
+isVelocity      = sect.Configuration(end-6+1) == '1';
+isAmplitude     = sect.Configuration(end-7+1) == '1';
+isCorrelation   = sect.Configuration(end-8+1) == '1';
 
 sect.Time              = readClockData(data, idx+2, cpuEndianness);
 sect.SpeedOfSound      = bytecast(data(idx+10:idx+11), 'L', 'uint16', cpuEndianness); % 0.1 m/s
@@ -271,9 +271,13 @@ sect.Roll              = bytecast(data(idx+22:idx+23), 'L', 'int16', cpuEndianne
 sect.Error             = bytecast(data(idx+24:idx+25), 'L', 'uint16', cpuEndianness);
 sect.Status            = bytecast(data(idx+26:idx+27), 'L', 'uint16', cpuEndianness);
 
-sect.Beams_CoordSys_Cells = uint8(flipud(str2num(dec2bin(bytecast(data(idx+28:idx+29), 'L', 'uint8', cpuEndianness), 8)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
-nCells = bin2dec(num2str(fliplr(sect.Beams_CoordSys_Cells(1:10)')));
-nBeams = bin2dec(num2str(fliplr(sect.Beams_CoordSys_Cells(13:16)')));
+sect.Beams_CoordSys_Cells = dec2bin(bytecast(data(idx+28:idx+29), 'L', 'uint16', cpuEndianness), 16);
+iStartCell = 1;
+iEndCell = 10;
+iStartBeam = 13;
+iEndBeam = 16;
+sect.nCells            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndCell+1:end-iStartCell+1));
+sect.nBeams            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndBeam+1:end-iStartBeam+1));
 
 sect.CellSize          = bytecast(data(idx+30:idx+31), 'L', 'uint16', cpuEndianness); % 1 mm
 sect.Blanking          = bytecast(data(idx+32:idx+33), 'L', 'uint16', cpuEndianness); % 1 mm
@@ -284,31 +288,18 @@ sect.BatteryVoltage    = bytecast(data(idx+37:idx+38), 'L', 'uint16', cpuEndiann
 % idx+39 is not used
 off = 39;
 if isVelocity
-    for i=1:nBeams
-        for j=1:nCells
-            off = off + 1;
-            sect.VelocityData(i, j) = bytecast(data(idx+off:idx+off+1), 'L', 'int16', cpuEndianness); % 10^(velocity scaling) m/s
-            off = off + 1;
-        end
-    end
+    sect.VelocityData       = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells*2), 'L', 'int16', cpuEndianness), sect.nCells, sect.nBeams)'; % 10^(velocity scaling) m/s
+    off = off+sect.nBeams*sect.nCells*2;
 end
 
 if isAmplitude
-    for i=1:nBeams
-        for j=1:nCells
-            off = off + 1;
-            sect.AmplitudeData(i, j) = bytecast(data(idx+off), 'L', 'uint8', cpuEndianness); % 1 count
-        end
-    end
+    sect.AmplitudeData      = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells), 'L', 'uint8', cpuEndianness), sect.nCells, sect.nBeams)'; % 1 count
+    off = off+sect.nBeams*sect.nCells;
 end
 
 if isCorrelation
-    for i=1:nBeams
-        for j=1:nCells
-            off = off + 1;
-            sect.CorrelationData(i, j) = bytecast(data(idx+off), 'L', 'uint8', cpuEndianness); % [0-100]
-        end
-    end
+    sect.CorrelationData    = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells), 'L', 'uint8', cpuEndianness), sect.nCells, sect.nBeams)'; % [0-100]
+    off = off+sect.nBeams*sect.nCells;
 end
 
 end
@@ -323,11 +314,11 @@ sect = struct;
 sect.Version           = bytecast(data(idx), 'L', 'uint8', cpuEndianness);
 sect.OffsetOfData      = bytecast(data(idx+1), 'L', 'uint8', cpuEndianness);
 sect.SerialNumber      = bytecast(data(idx+2:idx+5), 'L', 'uint32', cpuEndianness);
-sect.Configuration     = uint8(flipud(str2num(dec2bin(bytecast(data(idx+6:idx+7), 'L', 'uint16', cpuEndianness), 16)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.Configuration     = dec2bin(bytecast(data(idx+6:idx+7), 'L', 'uint16', cpuEndianness), 16);
 
-isVelocity      = sect.Configuration(6) == 1;
-isAmplitude     = sect.Configuration(7) == 1;
-isCorrelation   = sect.Configuration(8) == 1;
+isVelocity      = sect.Configuration(end-6+1) == '1';
+isAmplitude     = sect.Configuration(end-7+1) == '1';
+isCorrelation   = sect.Configuration(end-8+1) == '1';
 
 sect.Time              = readClockData(data, idx+8, cpuEndianness);
 sect.SpeedOfSound      = bytecast(data(idx+16:idx+17), 'L', 'uint16', cpuEndianness); % 0.1 m/s
@@ -339,9 +330,13 @@ sect.Roll              = bytecast(data(idx+28:idx+29), 'L', 'int16', cpuEndianne
 sect.Error             = bytecast(data(idx+30:idx+31), 'L', 'uint16', cpuEndianness);
 sect.Status            = bytecast(data(idx+32:idx+33), 'L', 'uint16', cpuEndianness);
 
-sect.Beams_CoordSys_Cells = uint8(flipud(str2num(dec2bin(bytecast(data(idx+34:idx+35), 'L', 'uint16', cpuEndianness), 16)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
-nCells = bin2dec(num2str(fliplr(sect.Beams_CoordSys_Cells(1:10)')));
-nBeams = bin2dec(num2str(fliplr(sect.Beams_CoordSys_Cells(13:16)')));
+sect.Beams_CoordSys_Cells = dec2bin(bytecast(data(idx+34:idx+35), 'L', 'uint16', cpuEndianness), 16);
+iStartCell = 1;
+iEndCell = 10;
+iStartBeam = 13;
+iEndBeam = 16;
+sect.nCells            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndCell+1:end-iStartCell+1));
+sect.nBeams            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndBeam+1:end-iStartBeam+1));
 
 sect.CellSize          = bytecast(data(idx+36:idx+37), 'L', 'uint16', cpuEndianness); % 1 mm
 sect.Blanking          = bytecast(data(idx+38:idx+39), 'L', 'uint16', cpuEndianness); % 1 mm
@@ -354,7 +349,7 @@ sect.AccRawX           = bytecast(data(idx+50:idx+51), 'L', 'int16', cpuEndianne
 sect.AccRawY           = bytecast(data(idx+52:idx+53), 'L', 'int16', cpuEndianness);
 sect.AccRawZ           = bytecast(data(idx+54:idx+55), 'L', 'int16', cpuEndianness);
 sect.AmbiguityVelocity = bytecast(data(idx+56:idx+57), 'L', 'uint16', cpuEndianness); % 0.1mm/s ; corrected for sound velocity
-sect.DatasetDesc       = uint8(flipud(str2num(dec2bin(bytecast(data(idx+58:idx+59), 'L', 'uint16', cpuEndianness), 16)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.DatasetDesc       = dec2bin(bytecast(data(idx+58:idx+59), 'L', 'uint16', cpuEndianness), 16);
 sect.TransmitEnergy    = bytecast(data(idx+60:idx+61), 'L', 'uint16', cpuEndianness);
 sect.VelocityScaling   = bytecast(data(idx+62), 'L', 'int8', cpuEndianness);
 sect.PowerLevel        = bytecast(data(idx+63), 'L', 'int8', cpuEndianness); % dB
@@ -362,31 +357,18 @@ sect.PowerLevel        = bytecast(data(idx+63), 'L', 'int8', cpuEndianness); % d
 % idx+64 to 67 is not used
 off = 67;
 if isVelocity
-    for i=1:nBeams
-        for j=1:nCells
-            off = off + 1;
-            sect.VelocityData(i, j) = bytecast(data(idx+off:idx+off+1), 'L', 'int16', cpuEndianness); % 10^(velocity scaling) m/s
-            off = off + 1;
-        end
-    end
+    sect.VelocityData       = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells*2), 'L', 'int16', cpuEndianness), sect.nCells, sect.nBeams)'; % 10^(velocity scaling) m/s
+    off = off+sect.nBeams*sect.nCells*2;
 end
 
 if isAmplitude
-    for i=1:nBeams
-        for j=1:nCells
-            off = off + 1;
-            sect.AmplitudeData(i, j) = bytecast(data(idx+off), 'L', 'uint8', cpuEndianness); % 1 count
-        end
-    end
+    sect.AmplitudeData      = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells), 'L', 'uint8', cpuEndianness), sect.nCells, sect.nBeams)'; % 1 count
+    off = off+sect.nBeams*sect.nCells;
 end
 
 if isCorrelation
-    for i=1:nBeams
-        for j=1:nCells
-            off = off + 1;
-            sect.CorrelationData(i, j) = bytecast(data(idx+off), 'L', 'uint8', cpuEndianness); % [0-100]
-        end
-    end
+    sect.CorrelationData    = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells), 'L', 'uint8', cpuEndianness), sect.nCells, sect.nBeams)'; % [0-100]
+    off = off+sect.nBeams*sect.nCells;
 end
 
 end
@@ -400,14 +382,14 @@ sect = struct;
 
 sect.Version           = bytecast(data(idx), 'L', 'uint8', cpuEndianness);
 sect.OffsetOfData      = bytecast(data(idx+1), 'L', 'uint8', cpuEndianness);
-sect.Configuration     = uint8(flipud(str2num(dec2bin(bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness), 16)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.Configuration     = dec2bin(bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness), 16);
 
-isVelocity      = sect.Configuration(6) == 1;
-isAmplitude     = sect.Configuration(7) == 1;
-isCorrelation   = sect.Configuration(8) == 1;
-isAltimeter     = sect.Configuration(9) == 1;
-isAltimeterRaw  = sect.Configuration(10) == 1;
-isAST           = sect.Configuration(11) == 1;
+isVelocity      = sect.Configuration(end-6+1) == '1';
+isAmplitude     = sect.Configuration(end-7+1) == '1';
+isCorrelation   = sect.Configuration(end-8+1) == '1';
+isAltimeter     = sect.Configuration(end-9+1) == '1';
+isAltimeterRaw  = sect.Configuration(end-10+1) == '1';
+isAST           = sect.Configuration(end-11+1) == '1';
 
 sect.SerialNumber      = bytecast(data(idx+4:idx+7), 'L', 'uint32', cpuEndianness);
 sect.Time              = readClockData(data, idx+8, cpuEndianness);
@@ -418,9 +400,13 @@ sect.Heading           = bytecast(data(idx+24:idx+25), 'L', 'uint16', cpuEndiann
 sect.Pitch             = bytecast(data(idx+26:idx+27), 'L', 'int16', cpuEndianness); % 0.01 Deg
 sect.Roll              = bytecast(data(idx+28:idx+29), 'L', 'int16', cpuEndianness); % 0.01 Deg
 
-sect.Beams_CoordSys_Cells = uint8(flipud(str2num(dec2bin(bytecast(data(idx+30:idx+31), 'L', 'uint16', cpuEndianness), 16)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
-nCells = bin2dec(num2str(fliplr(sect.Beams_CoordSys_Cells(1:10)')));
-nBeams = bin2dec(num2str(fliplr(sect.Beams_CoordSys_Cells(13:16)')));
+sect.Beams_CoordSys_Cells = dec2bin(bytecast(data(idx+30:idx+31), 'L', 'uint16', cpuEndianness), 16);
+iStartCell = 1;
+iEndCell = 10;
+iStartBeam = 13;
+iEndBeam = 16;
+sect.nCells            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndCell+1:end-iStartCell+1));
+sect.nBeams            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndBeam+1:end-iStartBeam+1));
 
 sect.CellSize          = bytecast(data(idx+32:idx+33), 'L', 'uint16', cpuEndianness); % 1 mm
 sect.Blanking          = bytecast(data(idx+34:idx+35), 'L', 'uint16', cpuEndianness); % 1 mm
@@ -434,64 +420,51 @@ sect.AccRawX           = bytecast(data(idx+46:idx+47), 'L', 'int16', cpuEndianne
 sect.AccRawY           = bytecast(data(idx+48:idx+49), 'L', 'int16', cpuEndianness);
 sect.AccRawZ           = bytecast(data(idx+50:idx+51), 'L', 'int16', cpuEndianness);
 sect.AmbiguityVelocity = bytecast(data(idx+52:idx+53), 'L', 'uint16', cpuEndianness); % 10^(Velocity scaling) m/s ; corrected for sound velocity
-sect.DatasetDesc       = uint8(flipud(str2num(dec2bin(bytecast(data(idx+54:idx+55), 'L', 'uint16', cpuEndianness), 16)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.DatasetDesc       = dec2bin(bytecast(data(idx+54:idx+55), 'L', 'uint16', cpuEndianness), 16);
 sect.TransmitEnergy    = bytecast(data(idx+56:idx+57), 'L', 'uint16', cpuEndianness);
 sect.VelocityScaling   = bytecast(data(idx+58), 'L', 'int8', cpuEndianness);
 sect.PowerLevel        = bytecast(data(idx+59), 'L', 'int8', cpuEndianness); % dB
 sect.MagTemperature    = bytecast(data(idx+60:idx+61), 'L', 'int16', cpuEndianness); % uncalibrated
 sect.RTCTemperature    = bytecast(data(idx+62:idx+63), 'L', 'int16', cpuEndianness); % 0.01 deg C
 sect.Error             = bytecast(data(idx+64:idx+67), 'L', 'uint32', cpuEndianness);
-sect.Status            = uint8(flipud(str2num(dec2bin(bytecast(data(idx+68:idx+71), 'L', 'uint32', cpuEndianness), 32)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.Status            = dec2bin(bytecast(data(idx+68:idx+71), 'L', 'uint32', cpuEndianness), 32);
 sect.EnsembleCounter   = bytecast(data(idx+72:idx+75), 'L', 'uint32', cpuEndianness); % counts the number of ensembles in both averaged and burst data
 
 off = 75;
 if isVelocity
-    for i=1:nBeams
-        for j=1:nCells
-            off = off + 1;
-            sect.VelocityData(i, j) = bytecast(data(idx+off:idx+off+1), 'L', 'int16', cpuEndianness); % 10^(velocity scaling) m/s
-            off = off + 1;
-        end
-    end
+    sect.VelocityData       = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells*2), 'L', 'int16', cpuEndianness), sect.nCells, sect.nBeams)'; % 10^(velocity scaling) m/s
+    off = off+sect.nBeams*sect.nCells*2;
 end
 
 if isAmplitude
-    for i=1:nBeams
-        for j=1:nCells
-            off = off + 1;
-            sect.AmplitudeData(i, j) = bytecast(data(idx+off), 'L', 'uint8', cpuEndianness); % 1 count
-        end
-    end
+    sect.AmplitudeData      = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells), 'L', 'uint8', cpuEndianness), sect.nCells, sect.nBeams)'; % 1 count
+    off = off+sect.nBeams*sect.nCells;
 end
 
 if isCorrelation
-    for i=1:nBeams
-        for j=1:nCells
-            off = off + 1;
-            sect.CorrelationData(i, j) = bytecast(data(idx+off), 'L', 'uint8', cpuEndianness); % [0-100]
-        end
-    end
+    sect.CorrelationData    = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells), 'L', 'uint8', cpuEndianness), sect.nCells, sect.nBeams)'; % [0-100]
+    off = off+sect.nBeams*sect.nCells;
 end
 
 if isAltimeter
     off = off + 1;
-    sect.AltimeterDistance = bytecast(data(idx+off:idx+off+3), 'L', 'single', cpuEndianness); % m
+    sect.AltimeterDistance  = bytecast(data(idx+off:idx+off+3), 'L', 'single', cpuEndianness); % m
     off = off + 3;
-    sect.AltimeterQuality  = bytecast(data(idx+off:idx+off+1), 'L', 'uint16', cpuEndianness);
+    sect.AltimeterQuality   = bytecast(data(idx+off:idx+off+1), 'L', 'uint16', cpuEndianness);
     off = off + 1;
-    sect.AltimeterStatus   = uint8(flipud(str2num(dec2bin(bytecast(data(idx+off:idx+off+1), 'L', 'uint16', cpuEndianness), 16)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+    sect.AltimeterStatus    = dec2bin(bytecast(data(idx+off:idx+off+1), 'L', 'uint16', cpuEndianness), 16);
     off = off + 1;
 end
 
 if isAST
     off = off + 1;
-    sect.ASTDistance = bytecast(data(idx+off:idx+off+3), 'L', 'single', cpuEndianness); % m
+    sect.ASTDistance        = bytecast(data(idx+off:idx+off+3), 'L', 'single', cpuEndianness); % m
     off = off + 3;
-    sect.ASTQuality = bytecast(data(idx+off:idx+off+1), 'L', 'uint16', cpuEndianness);
+    sect.ASTQuality         = bytecast(data(idx+off:idx+off+1), 'L', 'uint16', cpuEndianness);
     off = off + 1;
-    sect.ASTOffset100uSec = bytecast(data(idx+off:idx+off+1), 'L', 'int16', cpuEndianness); % 100 us
+    sect.ASTOffset100uSec   = bytecast(data(idx+off:idx+off+1), 'L', 'int16', cpuEndianness); % 100 us
     off = off + 1;
-    sect.ASTPressure = bytecast(data(idx+off:idx+off+3), 'L', 'single', cpuEndianness); % dbar
+    sect.ASTPressure        = bytecast(data(idx+off:idx+off+3), 'L', 'single', cpuEndianness); % dbar
     off = off + 3;
 end
 
@@ -511,11 +484,11 @@ off = len;
 
 sect.Data.Version           = bytecast(data(idx), 'L', 'uint8', cpuEndianness);
 sect.Data.OffsetOfData      = bytecast(data(idx+1), 'L', 'uint8', cpuEndianness);
-sect.Data.Configuration     = uint8(flipud(str2num(dec2bin(bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness), 16)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.Data.Configuration     = dec2bin(bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness), 16);
 
-isVelocity      = sect.Data.Configuration(6) == 1;
-isDistance      = sect.Data.Configuration(7) == 1;
-isFigureOfMerit = sect.Data.Configuration(8) == 1;
+isVelocity      = sect.Data.Configuration(end-6+1) == '1';
+isDistance      = sect.Data.Configuration(end-7+1) == '1';
+isFigureOfMerit = sect.Data.Configuration(end-8+1) == '1';
 
 sect.Data.SerialNumber      = bytecast(data(idx+4:idx+7), 'L', 'uint32', cpuEndianness);
 sect.Data.Time              = readClockData(data, idx+8, cpuEndianness);
@@ -526,8 +499,10 @@ sect.Data.Heading           = bytecast(data(idx+24:idx+25), 'L', 'uint16', cpuEn
 sect.Data.Pitch             = bytecast(data(idx+26:idx+27), 'L', 'int16', cpuEndianness); % 0.01 Deg
 sect.Data.Roll              = bytecast(data(idx+28:idx+29), 'L', 'int16', cpuEndianness); % 0.01 Deg
 
-sect.Data.Beams_CoordSys_Cells = uint8(flipud(str2num(dec2bin(bytecast(data(idx+30:idx+31), 'L', 'uint16', cpuEndianness), 16)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
-nBeams = bin2dec(num2str(fliplr(sect.Beams_CoordSys_Cells(13:16)')));
+sect.Data.Beams_CoordSys_Cells = dec2bin(bytecast(data(idx+30:idx+31), 'L', 'uint16', cpuEndianness), 16);
+iStartBeam = 13;
+iEndBeam = 16;
+sect.Data.nBeams            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndBeam+1:end-iStartBeam+1));
 
 sect.Data.CellSize          = bytecast(data(idx+32:idx+33), 'L', 'uint16', cpuEndianness); % 1 mm
 sect.Data.Blanking          = bytecast(data(idx+34:idx+35), 'L', 'uint16', cpuEndianness); % 1 mm
@@ -541,39 +516,30 @@ sect.Data.AccRawX           = bytecast(data(idx+46:idx+47), 'L', 'int16', cpuEnd
 sect.Data.AccRawY           = bytecast(data(idx+48:idx+49), 'L', 'int16', cpuEndianness);
 sect.Data.AccRawZ           = bytecast(data(idx+50:idx+51), 'L', 'int16', cpuEndianness);
 sect.Data.AmbiguityVelocity = bytecast(data(idx+52:idx+53), 'L', 'uint16', cpuEndianness); % 10^(Velocity scaling) m/s ; corrected for sound velocity
-sect.Data.DatasetDesc       = uint8(flipud(str2num(dec2bin(bytecast(data(idx+54:idx+55), 'L', 'uint16', cpuEndianness), 16)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.Data.DatasetDesc       = dec2bin(bytecast(data(idx+54:idx+55), 'L', 'uint16', cpuEndianness), 16);
 sect.Data.TransmitEnergy    = bytecast(data(idx+56:idx+57), 'L', 'uint16', cpuEndianness);
 sect.Data.VelocityScaling   = bytecast(data(idx+58), 'L', 'int8', cpuEndianness);
 sect.Data.PowerLevel        = bytecast(data(idx+59), 'L', 'int8', cpuEndianness); % dB
 sect.Data.MagTemperature    = bytecast(data(idx+60:idx+61), 'L', 'int16', cpuEndianness); % uncalibrated
 sect.Data.RTCTemperature    = bytecast(data(idx+62:idx+63), 'L', 'int16', cpuEndianness); % 0.01 deg C
 sect.Data.Error             = bytecast(data(idx+64:idx+67), 'L', 'uint32', cpuEndianness);
-sect.Data.Status            = uint8(flipud(str2num(dec2bin(bytecast(data(idx+68:idx+71), 'L', 'uint32', cpuEndianness), 32)'))); % str2num is used on purpose here. flipud is to bring bit0 first in the array.
+sect.Status                 = dec2bin(bytecast(data(idx+68:idx+71), 'L', 'uint32', cpuEndianness), 32);
 sect.Data.EnsembleCounter   = bytecast(data(idx+72:idx+75), 'L', 'uint32', cpuEndianness); % counts the number of ensembles in both averaged and burst data
 
 off = 75;
 if isVelocity
-    for i=1:nBeams
-        off = off + 1;
-        sect.VelocityData(i) = bytecast(data(idx+off:idx+off+3), 'L', 'int32', cpuEndianness); % 10^(velocity scaling) m/s
-        off = off + 3;
-    end
+    sect.VelocityData       = bytecast(data(idx+off+1:idx+off+sect.nBeams*4), 'L', 'int32', cpuEndianness); % 10^(velocity scaling) m/s
+    off = off+sect.nBeams*4;
 end
 
 if isDistance
-    for i=1:nBeams
-        off = off + 1;
-        sect.DistanceData(i) = bytecast(data(idx+off:idx+off+3), 'L', 'int32', cpuEndianness); % mm
-        off = off + 3;
-    end
+    sect.DistanceData       = bytecast(data(idx+off+1:idx+off+sect.nBeams*4), 'L', 'int32', cpuEndianness); % mm
+    off = off+sect.nBeams*4;
 end
 
 if isFigureOfMerit
-    for i=1:nBeams
-        off = off + 1;
-        sect.FigureOfMeritData(i) = bytecast(data(idx+off:idx+off+1), 'L', 'uint16', cpuEndianness);
-        off = off + 1;
-    end
+    sect.FigureOfMeritData  = bytecast(data(idx+off+1:idx+off+sect.nBeams*2), 'L', 'uint16', cpuEndianness);
+    off = off+sect.nBeams*2;
 end
 
 end

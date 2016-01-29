@@ -73,31 +73,7 @@ else
 end
 
 nSamples = length(structures.(dataRecordType).Header);
-nCells   = size(structures.(dataRecordType).Data(1).VelocityData, 2);
-
-% preallocate memory for all sample data
-time         = nan(nSamples, 1);
-distance     = nan(nCells,   1);
-speedOfSound = nan(nSamples, 1);
-temperature  = nan(nSamples, 1);
-pressure     = nan(nSamples, 1);
-heading      = nan(nSamples, 1);
-pitch        = nan(nSamples, 1);
-roll         = nan(nSamples, 1);
-battery      = nan(nSamples, 1);
-status       = zeros(nSamples, 32, 'uint8');
-velocity1    = nan(nSamples, nCells);
-velocity2    = nan(nSamples, nCells);
-velocity3    = nan(nSamples, nCells);
-velocity4    = nan(nSamples, nCells);
-backscatter1 = nan(nSamples, nCells);
-backscatter2 = nan(nSamples, nCells);
-backscatter3 = nan(nSamples, nCells);
-backscatter4 = nan(nSamples, nCells);
-correlation1 = nan(nSamples, nCells);
-correlation2 = nan(nSamples, nCells);
-correlation3 = nan(nSamples, nCells);
-correlation4 = nan(nSamples, nCells);
+nCells   = structures.(dataRecordType).Data(1).nCells;
 
 serialNumber = num2str(unique(vertcat(structures.(dataRecordType).Data.SerialNumber)));
 
@@ -105,7 +81,7 @@ serialNumber = num2str(unique(vertcat(structures.(dataRecordType).Data.SerialNum
 cellSize  = unique(vertcat(structures.(dataRecordType).Data.CellSize))*0.001; % m
 blankDist = unique(vertcat(structures.(dataRecordType).Data.Blanking))*0.001; % m
 if length(cellSize) > 1, error('Multiple cell sizes/blanking distance not supported'); end
-distance(:) = (blankDist):  ...
+distance = (blankDist):  ...
            (cellSize): ...
            (blankDist + (nCells-1) * cellSize);
        
@@ -123,7 +99,7 @@ heading         = vertcat(structures.(dataRecordType).Data.Heading)*0.01; % deg
 pitch           = vertcat(structures.(dataRecordType).Data.Pitch)*0.01; % deg
 roll            = vertcat(structures.(dataRecordType).Data.Roll)*0.01; % deg
 battery         = vertcat(structures.(dataRecordType).Data.BatteryVoltage)*0.1; % Volt
-status          = horzcat(structures.(dataRecordType).Data.Status)';
+status          = vertcat(structures.(dataRecordType).Data.Status);
 velocity        = cat(3, structures.(dataRecordType).Data.VelocityData);
 velocityScaling = repmat(10.^vertcat(structures.(dataRecordType).Data.VelocityScaling), 1, nCells);
 velocity1       = squeeze(velocity(1,:,:))'.*velocityScaling; % m/s
@@ -164,11 +140,12 @@ switch sample_data.meta.instrument_model
 end
 
 % add dimensions with their data mapped
-adcpOrientations = single(status(:, 26:28));
+iStartOrientation = 26;
+iEndOrientation = 28;
+adcpOrientations = bin2dec(status(:, end-iEndOrientation+1:end-iStartOrientation+1));
 adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
-adcpOrientationDec = bin2dec([num2str(adcpOrientation(3)), num2str(adcpOrientation(2)), num2str(adcpOrientation(1))]);
 % we assume adcpOrientation == 4 by default "ZUP"
-if adcpOrientationDec == 5
+if adcpOrientation == 5
     % case of a downward looking ADCP -> negative values
     distance = -distance;
 end
