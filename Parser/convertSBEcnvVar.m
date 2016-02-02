@@ -130,15 +130,15 @@ switch name
       data = data ./ 10000;
       comment = '';
     
-    % fluorescence (counts)
+    % fluorescence (ug/l)
     case 'flC'
-      name = 'FLU2';
-      comment = '';
+      name = 'CPHL';
+      comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements. Originally expressed in ug/l, 1l = 0.001m3 was assumed.';
       
     % artificial chlorophyll from fluorescence (mg/m3)
     case 'flECO0x2DAFL'
-      name = 'CHLF';
-      comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements using factory calibration coefficient.';
+      name = 'CPHL';
+      comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements.';
       
     % oxygen (mg/l)
     % mg/l => umol/l
