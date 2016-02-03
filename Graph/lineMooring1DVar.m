@@ -86,7 +86,8 @@ for i=1:lenSampleData
     iVar = getVar(sample_data{i}.variables, varName);
     iGood = true(size(sample_data{i}.dimensions{iTime}.data));
         
-    if isQC && iVar
+    % the variable exists, is QC'd and is 1D
+    if isQC && iVar && size(sample_data{i}.variables{iVar}.data, 2) == 1
         %get time and var QC information
         timeFlags = sample_data{i}.dimensions{iTime}.flags;
         varFlags = sample_data{i}.variables{iVar}.flags;
