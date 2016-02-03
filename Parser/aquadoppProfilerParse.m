@@ -245,7 +245,7 @@ sample_data.meta.beam_angle                 = 25;   % http://www.hydro-internati
 sample_data.meta.beam_to_xyz_transform      = head.TransformationMatrix;
 
 % add dimensions with their data mapped
-adcpOrientations = single(status(:, 1));
+adcpOrientations = bin2dec(status(:, end));
 adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
 height = distance;
 if adcpOrientation == 1
