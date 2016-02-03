@@ -275,6 +275,28 @@ function sample_data = populateMetadata( sample_data )
                   end
               end
           end
+      else
+          % Update from NOMINAL_DEPTH if available
+          if ivNomDepth > 0
+              % Update from NOMINAL_DEPTH data
+              dataNominalDepth = sample_data.variables{ivNomDepth}.data;
+              iNan = isnan(dataNominalDepth);
+              dataNominalDepth = dataNominalDepth(~iNan);
+              
+              verticalComment = ['Geospatial vertical min/max information has '...
+                  'been filled using the NOMINAL_DEPTH.'];
+              
+              sample_data.geospatial_vertical_min = dataNominalDepth;
+              sample_data.geospatial_vertical_max = dataNominalDepth;
+              
+              if isempty(sample_data.comment)
+                  sample_data.comment = verticalComment;
+              elseif ~strcmpi(sample_data.comment, verticalComment)
+                  sample_data.comment = [sample_data.comment ' ' verticalComment];
+              end
+              
+              metadataChanged = true;
+          end
       end
   end
   
