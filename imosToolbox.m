@@ -49,21 +49,21 @@ function imosToolbox(auto, varargin)
 
 if nargin == 0, auto = 'manual'; end
 
-% set Matlab path for this session (add all recursive directories to Matlab
-% path)
 path = '';
-if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
-if isempty(path), path = pwd; end
-searchPath = textscan(genpath(path), '%s', 'Delimiter', pathsep);
-searchPath = searchPath{1};
-iPathToRemove = ~cellfun(@isempty, strfind(searchPath, [filesep '.']));
-searchPath(iPathToRemove) = [];
-nPath = length(searchPath);
-for i=1:nPath
-    searchPath{i}(end+1) = pathsep;
+if ~isdeployed
+    [path, ~, ~] = fileparts(which('imosToolbox.m'));
+    
+    % set Matlab path for this session (add all recursive directories to Matlab
+    % path)
+    searchPath = textscan(genpath(path), '%s', 'Delimiter', pathsep);
+    searchPath = searchPath{1};
+    iPathToRemove = ~cellfun(@isempty, strfind(searchPath, [filesep '.']));
+    searchPath(iPathToRemove) = [];
+    searchPath = cellfun(@(x)([x pathsep]), searchPath, 'UniformOutput', false);
+    searchPath = [searchPath{:}];
+    addpath(searchPath);
 end
-searchPath = [searchPath{:}];
-addpath(searchPath);
+if isempty(path), path = pwd; end
 
 % we must dynamically add the ddb.jar java library to the classpath
 % as well as any other .jar library and jdbc drivers
