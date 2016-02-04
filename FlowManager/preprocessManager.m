@@ -125,24 +125,43 @@ function [sample_data, cancel] = preprocessManager( sample_data, qcLevel, mode, 
       end
   end
   
-  allPpChain = '';
-  for k = 1:length(ppChain)    
-    
-    ppFunc = str2func(ppChain{k});
-     
-    if k == 1
-        allPpChain = ppChain{k};
-    else
-        allPpChain = [allPpChain ' ' ppChain{k}];
-    end
-    sample_data = ppFunc(sample_data, qcLevel, auto);
+  if ~isempty(ppChain)
+      % let user know what is going on in batch mode
+      if auto 
+          if strcmpi(qcLevel, 'raw')
+              ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
+              fprintf('%s\n', ['Preprocessing using : ' ppChainStr{:}]);
+          end
+          progress = [];
+      else
+          progress = waitbar(...
+              0, 'Running PP routines', ...
+              'Name', 'Running PP routines',...
+              'CreateCancelBtn', ...
+              ['waitbar(1,gcbf,''Cancelling - please wait...'');'...
+              'setappdata(gcbf,''cancel'',true)']);
+          setappdata(progress,'cancel',false);
+      end
   end
-  %BDM - 17/08/2010 - Added disp to let user know what is going on in
-  %batch mode
-  if auto && strcmpi(qcLevel, 'raw')
-      fprintf('%s\n', ['Preprocessing using : ' allPpChain]);
+  
+  for k = 1:length(ppChain)
+      
+      if ~auto
+          % user cancelled progress bar
+          if getappdata(progress, 'cancel'), sample_data = {}; break; end
+          
+          % update progress bar
+          progVal = k / length(ppChain);
+          progStr = ppChain{k};
+          waitbar(progVal, progress, progStr);
+      end
+      
+      ppFunc = str2func(ppChain{k});
+      
+      sample_data = ppFunc(sample_data, qcLevel, auto);
   end
 
+  if ~auto && ~isempty(ppChain), delete(progress); end
 end
 
 %ROUTINECONFIG Called via the PP routine list selection dialog when the user

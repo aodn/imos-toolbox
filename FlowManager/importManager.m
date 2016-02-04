@@ -154,8 +154,8 @@ function [sample_data rawFile]= manualImport()
     parser = getParser(parser);
 
     % display progress dialog
-    progress = waitbar(0, ['importing ' rawFile], ...
-      'Name',                  'Importing',...
+    progress = waitbar(0,      rawFile, ...
+      'Name',                  'Importing file',...
       'DefaultTextInterpreter','none');
 
     % import the data
@@ -317,8 +317,8 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
       if isempty(deps), continue; end
 
       % display progress dialog
-      progress = waitbar(0, 'importing data', ...
-        'Name',                  'Importing',...
+      progress = waitbar(0,      'Importing file', ...
+        'Name',                  'Importing file',...
         'DefaultTextInterpreter','none');
     end
     
@@ -346,7 +346,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
               fileDisplay = [fileDisplay ', ' name ext];
           end
           fileDisplay = fileDisplay(3:end);
-          waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
+          waitbar(k / length(deps), progress, fileDisplay);
       end
       
       % import data
