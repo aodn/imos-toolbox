@@ -49,21 +49,33 @@ function imosToolbox(auto, varargin)
 
 if nargin == 0, auto = 'manual'; end
 
-% Set current toolbox version
-toolboxVersion = ['2.5 beta (testing purpose only) - ' computer];
-
-% we must dynamically add the ddb.jar java library to the classpath
-% as well as any other .jar library and jdbc drivers
+% set Matlab path for this session (add all recursive directories to Matlab
+% path)
 path = '';
 if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
 if isempty(path), path = pwd; end
+searchPath = textscan(genpath(path), '%s', 'Delimiter', pathsep);
+searchPath = searchPath{1};
+iPathToRemove = ~cellfun(@isempty, strfind(searchPath, '/.'));
+searchPath(iPathToRemove) = [];
+nPath = length(searchPath);
+for i=1:nPath
+    searchPath{i}(end+1) = pathsep;
+end
+searchPath = [searchPath{:}];
+addpath(searchPath);
+
+% we must dynamically add the ddb.jar java library to the classpath
+% as well as any other .jar library and jdbc drivers
 jars = fsearch('.jar', fullfile(path, 'Java'), 'files');
 for j = 1 : length(jars)
     javaaddpath(jars{j});
 end
 
-switch auto
-  
+% Set current toolbox version
+toolboxVersion = ['2.5 beta (testing purpose only) - ' computer];
+
+switch auto  
   case 'auto', autoIMOSToolbox(toolboxVersion, varargin{:});
   otherwise,   flowManager(toolboxVersion);
 end
