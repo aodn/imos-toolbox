@@ -159,9 +159,10 @@ for k = 1:length(sample_data)
         end
         sample_data{k}.variables{curIdx}.data = squeeze(velENU(l, :, :));
         
-        % need to update the dimensions in case velocity in Beam
+        % need to update the dimensions/coordinates in case velocity in Beam
         % coordinates would have been previously bin-mapped
         sample_data{k}.variables{curIdx}.dimensions = sample_data{k}.variables{vel1Idx}.dimensions;
+        sample_data{k}.variables{curIdx}.coordinates = sample_data{k}.variables{vel1Idx}.coordinates;
         
         if ~isfield(sample_data{k}.variables{curIdx}, 'comment')
             sample_data{k}.variables{curIdx}.comment = Beam2EnuComment;
