@@ -32,8 +32,7 @@ compilerLog = '.\%s\log.txt' % exportDir
 #
 print('\n--exporting tree from %s to %s' % (url, exportDir))
 os.system('git clone %s %s' % (url, exportDir))
-os.system('cd %s' % exportDir)
-os.system('git checkout %s' % (version))
+os.system('cd %s && git checkout %s' % (exportDir, version))
 
 #
 # remove snapshot directory
