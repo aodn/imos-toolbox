@@ -704,7 +704,7 @@ end
   %OPENWIKIPAGE opens a new tab in your web-browser to access the
   %IMOS-Toolbox wiki
   %
-    url = 'http://code.google.com/p/imos-toolbox/wiki/Sidebar';
+    url = 'https://github.com/aodn/imos-toolbox/wiki';
     stat = web(url, '-browser');
     if stat == 1
         fprintf('%s\n', 'Warning : Browser was not found.');
