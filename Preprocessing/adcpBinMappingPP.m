@@ -149,7 +149,6 @@ for k = 1:length(sample_data)
     isBinMapApplied = false;
     for j=1:length(sample_data{k}.variables)
         if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx) ... % only process variables that are function of DIST_ALONG_BEAMS
-                && ~strcmpi(sample_data{k}.variables{j}.name(1:end-1), 'ABSIC') % except ABSIC in count
             
             beamNumber = sample_data{k}.variables{j}.name(end);
             switch beamNumber
