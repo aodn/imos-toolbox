@@ -31,6 +31,7 @@ function sample_data = readWQMdat( filename, mode )
 %   CHLa(Counts)        (integer fluorescence in raw counts)
 %   NTU                 (floating point turbidity, NTU)
 %   NTU(NTU)            (floating point turbidity, NTU)
+%   Turbidity(NTU)      (floating point turbidity, NTU)
 %   rho                 (floating point density, kg/metre^3)
 %   PAR(umol_phtn/m2/s) (floating point photosynthetically active radiation, micromole of photon/m2/s)
 %
@@ -165,6 +166,7 @@ function sample_data = readWQMdat( filename, mode )
   params{end+1} = {'CHLa(Counts)',          {'FLU2', ''}};
   params{end+1} = {'NTU',                   {'TURB', ''}};
   params{end+1} = {'NTU(NTU)',              {'TURB', ''}};
+  params{end+1} = {'Turbidity(NTU)',        {'TURB', ''}};
   params{end+1} = {'rho',                   {'DENS', ''}};
   params{end+1} = {'PAR(umol_phtn/m2/s)',   {'PAR', ''}};
 
