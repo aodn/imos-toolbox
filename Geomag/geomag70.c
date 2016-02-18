@@ -1,12 +1,20 @@
 /****************************************************************************/
 /*                                                                          */
-/*     NGDC's Geomagnetic Field Modeling software for the IGRF and WMM      */
+/*     NGDC's Geomagnetic Field Modelling software for the IGRF and WMM     */
 /*                                                                          */
 /****************************************************************************/
 /*                                                                          */
 /*     Disclaimer: This program has undergone limited testing. It is        */
-/*     being distributed unoffically. The National Geophysical Data         */
+/*     being distributed unofficially. The National Geophysical Data        */
 /*     Center does not guarantee it's correctness.                          */
+/*                                                                          */
+/****************************************************************************/
+/*                                                                          */
+/*     Version 7.01:                                                        */
+/*     - paths originally limited to 95 characters have been extended to OS */
+/*            MAX_PATH if exist (windows) or 1024                           */
+/*                                                                          */
+/*                                          IMOS toolbox Nov-26-2015        */
 /*                                                                          */
 /****************************************************************************/
 /*                                                                          */
@@ -15,7 +23,7 @@
 /*            -- accept new DGRF2005 coeffs with 0.01 nT precision          */
 /*            -- make sure all values are separated by blanks               */
 /*            -- swapped n and m: first is degree, second is order          */
-/*     - new my_isnan function improves portablility                        */
+/*     - new my_isnan function improves portability                         */
 /*     - corrected feet to km conversion factor                             */
 /*     - fixed date conversion errors for yyyy,mm,dd format                 */
 /*     - fixed lon/lat conversion errors for deg,min,sec format             */
@@ -130,7 +138,7 @@ int my_isnan(double d)
 #define IEXT 0
 #define FALSE 0
 #define TRUE 1                  /* constants */
-#define RECL 80
+#define RECL 81
 
 #ifndef MAX_PATH
 #define MAX_PATH 1024
@@ -276,7 +284,6 @@ FILE *stream = NULL;                /* Pointer to specified model data file */
 /*                                                                          */
 /****************************************************************************/
 
-
 int main(int argc, char**argv)
 {
 #ifdef MAC
@@ -388,7 +395,7 @@ int main(int argc, char**argv)
       strncpy(args[iarg],argv[iarg],MAXREAD);
   
   /* printing out version number and header */
-  printf("\n\n Geomag v7.02 - Nov 30, 2015 ");
+  printf("\n\n Geomag v7.01 - Nov 26, 2015 ");
   
   if ((argc==2)&&((*(args[1])=='h')||(*(args[1])=='?')||(args[1][1]=='?')))
     {
@@ -464,14 +471,7 @@ int main(int argc, char**argv)
       if (coords_from_file) 
         {
           argc = 7;
-          char av[7][128];
-          int k;
-          for(k=2;k<argc;k++)
-          {
-            av[k][0] = '\0';
-            argv[k] = av[k];
-          }
-          read_flag = fscanf(coordfile,"%s%s%s%s%s%*[^\n\r]",args[2],args[3],args[4],args[5],args[6]);
+          read_flag = fscanf(coordfile,"%s%s%s%s%s%*[^\n]",args[2],args[3],args[4],args[5],args[6]);
           if (read_flag == EOF) goto reached_EOF;
           fprintf(outfile,"%s %s %s %s %s ",args[2],args[3],args[4],args[5],args[6]);fflush(outfile);
           iline++;
@@ -697,9 +697,6 @@ int main(int argc, char**argv)
                                                    * read to end of line or buffer */
             {
               fileline++;                           /* On new line */
-              
-              char* p = strchr(inbuff, '\n'); if (p != NULL) *p = '\0';
-              p = strchr(inbuff, '\r'); if (p != NULL) *p = '\0';
               if (strlen(inbuff) != RECL)       /* IF incorrect record size */
                 {
                   printf("Corrupt record in file %s on line %d.\n", mdfile, fileline);
