@@ -45,18 +45,21 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
           computerDir = 'linux';
           geomagExe = 'geomag70';
           stdOutRedirection = '>/dev/null'; % we don't want standard output to be output in console (useless)
+          endOfLine = '\n';
           maxPathLength = 1024;
           
       case {'PCWIN', 'PCWIN64'}
           computerDir = 'windows';
           geomagExe = 'geomag70.exe';
           stdOutRedirection = '>NUL';
+          endOfLine = '\r\n';
           maxPathLength = 259;
 
       case {'MACI64'}
           computerDir = 'macosx';
           geomagExe = 'geomag70';
           stdOutRedirection = '>/dev/null';
+          endOfLine = '\n';
           maxPathLength = 1024;
           
       otherwise
@@ -73,7 +76,7 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
   
   geomagPath        = fullfile(path, 'Geomag');
   geomagExeFull     = fullfile(geomagPath, computerDir, geomagExe);
-  geomagModelFile   = fullfile(geomagPath, [model '.COF']);
+  geomagModelFile   = fullfile(geomagPath, computerDir, [model '.COF']);
   geomagInputFile   = fullfile(geomagPath, 'sample_coords.txt');
   geomagOutputFile  = fullfile(geomagPath, ['sample_out_' model '.txt']);
   
@@ -94,13 +97,13 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
   geomagCmd = sprintf('%s %s f %s %s %s', geomagExeFull, geomagModelFile, geomagInputFile, geomagOutputFile, stdOutRedirection);
   system(geomagCmd);
   
-  geomagFormat = '%s D M%f %f %f %fd %fm %*s %*s %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f\n';
+  geomagFormat = '%s D M%f %f %f %fd %fm %*s %*s %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f';
   outputId = fopen(geomagOutputFile, 'rt');
   geomagOutputData = textscan(outputId, geomagFormat, ...
       'HeaderLines',            1, ...
       'Delimiter',              ' ', ...
       'MultipleDelimsAsOne',    true, ...
-      'EndOfLine',              '\n');
+      'EndOfLine',              endOfLine);
   fclose(outputId);
   
   geomagDate    = datenum(geomagOutputData{1}, 'yyyy,mm,dd');
