@@ -147,10 +147,13 @@ function [name, data, comment] = convertData(name, data, instHeader, procHeader,
 
   % the cast date, if present, is used for time field offset
   castDate = 0;
-  if isfield(instHeader, 'castDate')
-      castDate = instHeader.castDate;
+  if isfield(procHeader, 'startTime')
+    castDate = procHeader.startTime;
+  elseif isfield(instHeader, 'castDate')
+    castDate = instHeader.castDate;
+    if numel(castDate) > 1, castDate = castDate(1); end
   else
-      if isfield(procHeader, 'startTime'), castDate = procHeader.startTime; end
+    warning('No startTime/castDate found in Seabird CNV file.');
   end
   
   [name, data, comment] = convertSBEcnvVar(name, data, castDate, instHeader, procHeader, mode);
