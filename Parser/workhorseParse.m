@@ -243,11 +243,11 @@ narginchk(1, 2);
           
       otherwise
           adcpFreq = 2400;
-          model = 'unknown';
+          model = 'Unknown';
           
   end
   
-  sample_data.meta.instrument_model     = ['Workhorse ADCP model ' model];
+  sample_data.meta.instrument_model     = [model ' Workhorse ADCP'];
   sample_data.meta.instrument_serial_no =  serial;
   sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
   sample_data.meta.instrument_firmware  = ...
