@@ -81,7 +81,8 @@ serialNumber = num2str(unique(vertcat(structures.(dataRecordType).Data.SerialNum
 cellSize  = unique(vertcat(structures.(dataRecordType).Data.CellSize))*0.001; % m
 blankDist = unique(vertcat(structures.(dataRecordType).Data.Blanking))*0.001; % m
 if length(cellSize) > 1, error('Multiple cell sizes/blanking distance not supported'); end
-distance = (blankDist):  ...
+distance = nan(nCells, 1);
+distance(:) = (blankDist):  ...
            (cellSize): ...
            (blankDist + (nCells-1) * cellSize);
        
