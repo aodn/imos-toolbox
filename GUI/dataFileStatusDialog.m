@@ -245,14 +245,17 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     dep  = get(depList,  'Value');
     file = get(fileList, 'Value');
     
-    files{dep}(file) = [];
+    if ~isempty(files{dep}
+      files{dep}(file) = [];
     
-    set(fileList, 'String', files{dep}, 'Value', 1);
+      set(fileList, 'String', files{dep}, 'Value', 1);
     
-    % update deplist view (the deployment's status may have changed)
-    set(depList, ...
+      % update deplist view (the deployment's status may have changed)
+      set(depList, ...
         'Value',  dep, ...
         'String', annotateDepDescriptions(deployments, deploymentDescs));
+    end
+        
   end
 
   function fileAddCallback(source,ev)
