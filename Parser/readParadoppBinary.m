@@ -448,7 +448,7 @@ block2           = data(idx+18:idx+23); % int16
 
 sect.PressureMSB = data(idx+24); % uint8
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-sect.Status      = dec2bin(bytecast(data(idx+25), 'L', 'int8', cpuEndianness), 8)';
+sect.Status      = dec2bin(bytecast(data(idx+25), 'L', 'uint8', cpuEndianness), 8)';
 
 sect.PressureLSW = data(idx+26:idx+27); % uint16
 % !!! temperature and velocity can be negative
@@ -630,7 +630,7 @@ block2           = data(idx+14:idx+21); % int16
 
 sect.Error       = bytecast(data(idx+22), 'L', 'int8', cpuEndianness);
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-sect.Status      = dec2bin(bytecast(data(idx+25), 'L', 'int8', cpuEndianness), 8)';
+sect.Status      = dec2bin(bytecast(data(idx+25), 'L', 'uint8', cpuEndianness), 8)';
 sect.Analn       = data(idx+24:idx+25); % uint16
 
 sect.Checksum    = data(idx+26:idx+27); % uint16
@@ -669,7 +669,7 @@ block2           = data(idx+18:idx+23); % int16
 
 sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness); % uint8
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-sect.Status      = dec2bin(bytecast(data(idx+25), 'L', 'int8', cpuEndianness), 8)';
+sect.Status      = dec2bin(bytecast(data(idx+25), 'L', 'uint8', cpuEndianness), 8)';
 sect.PressureLSW = data(idx+26:idx+27); % uint16
 sect.Temperature = data(idx+28:idx+29); % int16
 
@@ -832,7 +832,7 @@ sect.Pitch       = block(2);
 sect.Roll        = block(3);
 sect.PressureMSB = bytecast(data(idx+24), 'L', 'uint8', cpuEndianness); % uint8
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-sect.Status      = dec2bin(bytecast(data(idx+25), 'L', 'int8', cpuEndianness), 8)';
+sect.Status      = dec2bin(bytecast(data(idx+25), 'L', 'uint8', cpuEndianness), 8)';
 sect.PressureLSW = bytecast(data(idx+ 26:idx+27), 'L', 'uint16', cpuEndianness); % uint16
 sect.Temperature = bytecast(data(idx+ 28:idx+29), 'L', 'int16', cpuEndianness); % int16
 % bytes 30-117 are spare
