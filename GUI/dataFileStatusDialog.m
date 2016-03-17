@@ -66,13 +66,14 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   
   deploymentDescs = genDepDescriptions(deployments, files);
   
-  % put deployments in alphabetical order
+  % sort deployments by depth
   %
   % [B, iX] = sort(A);
   % =>
   % A(iX) == B
   %
-  [deploymentDescs, iSort] = sort(deploymentDescs);
+  [~, iSort] = sort([deployments.InstrumentDepth]);
+  deploymentDescs = deploymentDescs(iSort);
   deployments = deployments(iSort);
   files = files(iSort);
   
@@ -311,11 +312,18 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
 
       dep = deployments(k);
 
-      % at the very least, the instrument and file name
+      % at the very least, the instrument, nominal depth and file name
       descs{k} = dep.InstrumentID;
+      if ~isempty(dep.InstrumentDepth) 
+        descs{k} = [descs{k} ' @' num2str(dep.InstrumentDepth) 'm'];
+      end
+      if ~isempty(dep.DepthTxt) 
+        descs{k} = [descs{k} ' ' dep.DepthTxt];
+      end
       if ~isempty(dep.FileName) 
         descs{k} = [descs{k} ' (' dep.FileName ')'];
       end
+      
 
       % get some site information if it exists
       site = executeDDBQuery('Sites', 'Site', dep.Site);
