@@ -18,32 +18,32 @@ function scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, saveToFile,
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
 % Marine Observing System (IMOS).
 % All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
+%
+% Redistribution and use in source and binary forms, with or without
 % modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
+%
+%     * Redistributions of source code must retain the above copyright notice,
 %       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
+%     * Redistributions in binary form must reproduce the above copyright
+%       notice, this list of conditions and the following disclaimer in the
 %       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
+%     * Neither the name of the eMII/IMOS nor the names of its contributors
+%       may be used to endorse or promote products derived from this software
 %       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
 narginchk(5,5);
@@ -62,12 +62,32 @@ if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'})), return; end
 stringQC = 'non QC';
 if isQC, stringQC = 'QC'; end
 
+% some variables (eg ECUR or CNDC) while qc for in/out water do not
+% have further processing and are marked raw. If varName is not
+% listed in imosGlobalRangeQC.txt chances are this is one such
+% variable.
+% read all values from imosGlobalRangeQC properties file
+values = readProperty('*', fullfile('AutomaticQC', 'imosGlobalRangeQC.txt'));
+specialVars = strtrim(values{1});
+% also test if variable_MAG (eg UCUR_MAG)
+tokens = regexp(varName,'([a-zA-Z0-9]+)(?:_MAG*)','tokens');
+if isempty(tokens), tokens{1} = ''; end
+if any(strcmpi(varName, specialVars)) | any(strcmpi(tokens{:}, specialVars))
+    useQCgood = true;  % test against qc=1 or 2
+else
+    useQCgood = false; % test against qc=0
+end
+
 %plot depth information
 monitorRec = get(0,'MonitorPosition');
 xResolution = monitorRec(:, 3)-monitorRec(:, 1);
 iBigMonitor = xResolution == max(xResolution);
 if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
-title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
+if useQCgood
+    title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
+else
+    title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d (QC=0) ' varTitle];
+end
 
 %sort instruments by depth
 lenSampleData = length(sample_data);
@@ -83,19 +103,25 @@ for i=1:lenSampleData
         metaDepth(i) = NaN;
     end
     iTime = getVar(sample_data{i}.dimensions, 'TIME');
-    iVar = getVar(sample_data{i}.variables, varName);
+    izVar = getVar(sample_data{i}.variables, varName);
     iGood = true(size(sample_data{i}.dimensions{iTime}.data));
-        
+    
     % the variable exists, is QC'd and is 1D
-    if isQC && iVar && size(sample_data{i}.variables{iVar}.data, 2) == 1
+    if isQC && izVar && size(sample_data{i}.variables{izVar}.data, 2) == 1
         %get time and var QC information
         timeFlags = sample_data{i}.dimensions{iTime}.flags;
-        varFlags = sample_data{i}.variables{iVar}.flags;
+        varFlags = sample_data{i}.variables{izVar}.flags;
         
-        iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+        if useQCgood
+            iVarGood = varFlags == 1 | varFlags == 2;
+        else
+            iVarGood = varFlags == 0;
+        end
+        
+        iGood = (timeFlags == 1 | timeFlags == 2) & iVarGood;
     end
     
-    if iVar
+    if izVar
         if all(~iGood)
             continue;
         end
@@ -125,25 +151,31 @@ for i=1:lenSampleData
     %look for time and relevant variable
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
     iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
-    iVar = getVar(sample_data{iSort(i)}.variables, varName);
+    izVar = getVar(sample_data{iSort(i)}.variables, varName);
     
-    if iVar > 0 && iDepth > 0 && ...
-            size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
-            all(~strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}))
-        iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
+    if izVar > 0 && iDepth > 0 && ...
+            size(sample_data{iSort(i)}.variables{izVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
+            all(~strcmpi(sample_data{iSort(i)}.variables{izVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}))
+        iGood = true(size(sample_data{iSort(i)}.variables{izVar}.data));
         if isQC
             %get time, depth and var QC information
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
-            varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
+            varFlags = sample_data{iSort(i)}.variables{izVar}.flags;
             
-            iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2) & (depthFlags == 1 | depthFlags == 2);
+            if useQCgood
+                iVarGood = varFlags == 1 | varFlags == 2;
+            else
+                iVarGood = varFlags == 0;
+            end
+            
+            iGood = (timeFlags == 1 | timeFlags == 2) & iVarGood & (depthFlags == 1 | depthFlags == 2);
         end
         
         if any(iGood)
             isPlottable(i) = true;
-            minClim = min(minClim, min(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
-            maxClim = max(maxClim, max(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
+            minClim = min(minClim, min(sample_data{iSort(i)}.variables{izVar}.data(iGood)));
+            maxClim = max(maxClim, max(sample_data{iSort(i)}.variables{izVar}.data(iGood)));
         end
     end
 end
@@ -155,7 +187,7 @@ if any(isPlottable)
     catch e %#ok<NASGU>
         fastScatter = true;
     end
-  
+    
     initiateFigure = true;
     for i=1:lenSampleData
         % instrument description
@@ -175,7 +207,7 @@ if any(isPlottable)
         %look for time and relevant variable
         iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
         iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
-        iVar = getVar(sample_data{iSort(i)}.variables, varName);
+        izVar = getVar(sample_data{iSort(i)}.variables, varName);
         
         if isPlottable(i)
             if initiateFigure
@@ -197,24 +229,50 @@ if any(isPlottable)
                 set(hAxMooringVar, 'XLim', [xMin, xMax]);
                 hold(hAxMooringVar, 'on');
                 
+                % set data cursor mode custom display
+                dcm_obj = datacursormode(hFigMooringVar);
+                set(dcm_obj, 'UpdateFcn', {@customDcm, sample_data}, 'SnapToDataVertex','on');
+                
+                % set zoom datetick update
+                datetick(hAxMooringVar, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
+                zoomH = zoom(hFigMooringVar);
+                panH = pan(hFigMooringVar);
+                set(zoomH,'ActionPostCallback',{@zoomDateTick, hAxMooringVar});
+                set(panH,'ActionPostCallback',{@zoomDateTick, hAxMooringVar});
+                
+                try
+                    nColors =  str2num(readProperty('visualQC.ncolors'));
+                    defaultColormapFh = str2func(readProperty('visualQC.defaultColormap'));
+                    cMap = colormap(hAxMooringVar, defaultColormapFh(nColors));
+                catch e
+                    nColors = 64;
+                    cMap = colormap(hAxMooringVar, parula(nColors));
+                end
+                
                 hCBar = colorbar('peer', hAxMooringVar);
                 set(get(hCBar, 'Title'), 'String', [varName ' (' varUnit ')'], 'Interpreter', 'none');
                 
                 initiateFigure = false;
             end
             
-            iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
+            iGood = true(size(sample_data{iSort(i)}.variables{izVar}.data));
             iGoodDepth = iGood;
             
             if isQC
                 %get time, depth and var QC information
                 timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
                 depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
-                varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
-                varValues = sample_data{iSort(i)}.variables{iVar}.data;
+                varFlags = sample_data{iSort(i)}.variables{izVar}.flags;
+                varValues = sample_data{iSort(i)}.variables{izVar}.data;
+                
+                if useQCgood
+                    iVarGood = varFlags == 1 | varFlags == 2;
+                else
+                    iVarGood = varFlags == 0;
+                end
                 
                 iGood = (timeFlags == 1 | timeFlags == 2) & ...
-                    (varFlags == 1 | varFlags == 2) & ...
+                    iVarGood & ...
                     ~isnan(varValues);
                 iGoodDepth = (depthFlags == 1 | depthFlags == 2);
             end
@@ -228,6 +286,13 @@ if any(isPlottable)
                 depth(~iGoodDepth) = metaDepth(i);
                 depth = depth(iGood);
                 
+                % data for customDcm
+                userData.idx = iSort(i);
+                userData.xName = 'TIME';
+                userData.yName = 'DEPTH';
+                userData.zName = varName;
+                userData.iGood = iGood;
+                
                 if fastScatter
                     % for performance, we use plot (1 single handle object
                     % returned) rather than scatter (as many handles returned as
@@ -240,21 +305,26 @@ if any(isPlottable)
                     % first to last) of the total points given. We choose an ordering from
                     % centre to both ends of colorbar in order to keep extreme colors visible
                     % though.
+                    
                     h = plotclr(hAxMooringVar, ...
                         sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
                         depth, ...
-                        sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
+                        sample_data{iSort(i)}.variables{izVar}.data(iGood), ...
                         markerStyle{mod(i, lenMarkerStyle)+1}, ...
-                        [minClim maxClim]);
+                        [minClim maxClim], 'DisplayName', instrumentDesc{i+1},'UserData', userData);
                 else
-                    h = scatter(hAxMooringVar, ...
-                        sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
-                        depth, ...
-                        5, ...
-                        sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
-                        markerStyle{mod(i, lenMarkerStyle)+1}, ...
-                        MarkerFaceColor, 'none');
+                    % faster than scatter, but legend requires adjusting
+                    h = fastScatterMesh( hAxMooringVar,...
+                        sample_data{iSort(i)}.dimensions{iTime}.data(iGood),...
+                        depth,...
+                        sample_data{iSort(i)}.variables{izVar}.data(iGood),...
+                        [minClim maxClim],...
+                        'Marker',markerStyle{mod(i, lenMarkerStyle)+1},...
+                        'MarkerSize',2.5,...
+                        'DisplayName',[markerStyle{mod(i, lenMarkerStyle)+1} ' ' instrumentDesc{i+1}],...
+                        'UserData', userData);
                 end
+                clear('userData');                
                 
                 if ~isempty(h), hScatterVar(i + 1) = h; end
                 
@@ -273,6 +343,13 @@ if any(isPlottable)
             % we plot the instrument nominal depth
             hScatterVar(1) = line([xMin, xMax], [metaDepth(i), metaDepth(i)], ...
                 'Color', 'black');
+            % turn off legend entry for this plot
+            set(get(get(hScatterVar(1),'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+            % with 'HitTest' == 'off' plot should not be selectable but
+            % just in case set idx = NaN for customDcm
+            userData.idx = NaN;
+            set(hScatterVar(1), 'UserData', userData, 'HitTest', 'off');
+            clear('userData');
         end
     end
 else
@@ -294,30 +371,47 @@ if ~initiateFigure
     
     % we try to split the legend in two location horizontally
     nLine = length(hScatterVar);
+    fontSizeAx = get(hAxMooringVar,'FontSize');
+    fontSizeLb = get(get(hAxMooringVar,'XLabel'),'FontSize');
+    xscale = 0.9;
     if nLine > 2
-        nLine1 = ceil(nLine/2);
-        
-        hLegend(1) = multipleLegend(hAxMooringVar, ...
-            hScatterVar(1:nLine1),  instrumentDesc(1:nLine1), ...
-            'Interpreter',          'none', ...
-            'Location',             'SouthOutside');
-        hLegend(2) = multipleLegend(hAxMooringVar, ...
-            hScatterVar(nLine1+1:nLine),    instrumentDesc(nLine1+1:nLine), ...
-            'Interpreter',                  'none', ...
-            'Location',                     'SouthOutside');
-        
+        if numel(instrumentDesc) < 4
+            nCols = 1;
+        elseif numel(instrumentDesc) < 8
+            nCols = 2;
+        else
+            nCols = 3;
+            fontSizeAx = fontSizeAx - 1;
+            xscale = 0.75;
+        end
+        hYBuffer = 1.1 * (2*(fontSizeAx + fontSizeLb));
+        hLegend = legendflex(hAxMooringVar,instrumentDesc(2:end),...
+            'anchor', [6 2], ...
+            'buffer', [0 -hYBuffer], ...
+            'ncol', nCols,...
+            'FontSize', fontSizeAx,'xscale',xscale);
+        entries = get(hLegend,'children');
+        % if used mesh for scatter plot then have to clean up legend
+        % entries
+        for ii = 1:numel(entries)
+            if strcmpi(get(entries(ii),'Type'),'patch')
+                XData = get(entries(ii),'XData');
+                YData = get(entries(ii),'YData');
+                %CData = get(entries(ii),'CData');
+                set(entries(ii),'XData',repmat(mean(XData),size(XData)))
+                set(entries(ii),'YData',repmat(mean(YData),size(XData)))
+                %set(entries(ii),'CData',CData(1))
+            end
+        end
         posAx = get(hAxMooringVar, 'Position');
-
-        pos1 = get(hLegend(1), 'Position');
-        pos2 = get(hLegend(2), 'Position');
-        maxWidth = max(pos1(3), pos2(3));
-
-        set(hLegend(1), 'Position', [posAx(1), pos1(2), pos1(3), pos1(4)]);
-        set(hLegend(2), 'Position', [posAx(3) - maxWidth/2, pos1(2), pos2(3), pos2(4)]);
-        
-        % set position on legends above modifies position of axis so we
-        % re-initialise it
-        set(hAxMooringVar, 'Position', posAx);
+        set(hLegend, 'Units', 'Normalized')
+        posLh = get(hLegend, 'Position');
+        if posLh(2) < 0
+            set(hLegend, 'Position',[posLh(1), abs(posLh(2)), posLh(3), posLh(4)]);
+            set(hAxMooringVar, 'Position',[posAx(1), posAx(2)+2*abs(posLh(2)), posAx(3), posAx(4)-2*abs(posLh(2))]);
+        else
+            set(hAxMooringVar, 'Position',[posAx(1), posAx(2)+abs(posLh(2)), posAx(3), posAx(4)-abs(posLh(2))]);
+        end
     else
         % doesn't make sense to continue and export to file since seing a
         % scatter plot in depth only helps to analyse the data in its
@@ -326,7 +420,7 @@ if ~initiateFigure
         return;
     end
     
-%     set(hLegend, 'Box', 'off', 'Color', 'none');
+    % set(hLegend, 'Box', 'off', 'Color', 'none');
     
     if saveToFile
         % ensure the printed version is the same whatever the screen used.
@@ -335,7 +429,7 @@ if ~initiateFigure
         
         % preserve the color scheme
         set(hFigMooringVar, 'InvertHardcopy', 'off');
-                
+        
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_SCATTER_');
         
@@ -347,5 +441,120 @@ if ~initiateFigure
         close(hFigMooringVar);
     end
 end
+
+    function datacursorText = customDcm(~, event_obj, sample_data)
+        %customDcm : custom data tip display for 1D Var Against Depth plot
+        %
+        % Display the position of the data cursor
+        % obj          Currently not used (empty)
+        % event_obj    Handle to event object
+        % datacursorText   Data cursor text string (string or cell array of strings).
+        % sample_data : the data plotted, since only good data is plotted require
+        % iGood passed in on UserData
+        %
+        % NOTES
+        % - the multiple try catch blocks are there to trap and modifications of
+        % the UserData field (by say an external function called before entry into
+        % customDcm
+        
+        dataIndex = get(event_obj,'DataIndex');
+        posClic = get(event_obj,'Position');
+        
+        target_obj=get(event_obj,'Target');
+        userData = get(target_obj, 'UserData');
+        
+        % somehow selected nominal depth line plot
+        if isnan(userData.idx), return; end
+        
+        sam = sample_data{userData.idx};
+        
+        xName = userData.xName;
+        yName = userData.yName;
+        zName = userData.zName;
+        
+        try
+            dStr = get(target_obj,'DisplayName');
+        catch
+            dStr = 'UNKNOWN';
+        end
+        
+        try
+            % generalized case pass in a variable instead of a dimension
+            ixVar = getVar(sam.dimensions, xName);
+            if ixVar ~= 0
+                xUnits  = sam.dimensions{ixVar}.units;
+            else
+                ixVar = getVar(sam.variables, xName);
+                xUnits  = sam.variables{ixVar}.units;
+            end
+            if strcmp(xName, 'TIME')
+                xStr = datestr(posClic(1),'yyyy-mm-dd HH:MM:SS.FFF');
+            else
+                xStr = [num2str(posClic(1)) ' ' xUnits];
+            end
+        catch
+            xStr = 'NO DATA';
+        end
+        
+        try
+            % generalized case pass in a variable instead of a dimension
+            iyVar = getVar(sam.dimensions, yName);
+            if iyVar ~= 0
+                yUnits  = sam.dimensions{iyVar}.units;
+            else
+                iyVar = getVar(sam.variables, yName);
+                yUnits  = sam.variables{iyVar}.units;
+            end
+            if strcmp(yName, 'TIME')
+                yStr = datestr(posClic(2),'yyyy-mm-dd HH:MM:SS.FFF');
+            else
+                yStr = [num2str(posClic(2)) ' ' yUnits]; %num2str(posClic(2),4)
+            end
+        catch
+            yStr = 'NO DATA';
+        end
+        
+        try
+            % generalized case pass in a variable instead of a dimension
+            izVar = getVar(sam.dimensions, zName);
+            if izVar ~= 0
+                zUnits  = sam.dimensions{izVar}.units;
+                zData = sam.dimensions{izVar}.data(userData.iGood);
+            else
+                izVar = getVar(sam.variables, zName);
+                zUnits  = sam.variables{izVar}.units;
+                zData = sam.variables{izVar}.data(userData.iGood);
+            end
+            iTime = getVar(sam.dimensions, 'TIME');
+            timeData = sam.dimensions{iTime}.data(userData.iGood);
+            idx = find(abs(timeData-posClic(1))<eps(10));
+            if strcmp(zName, 'TIME')
+                zStr = datestr(zData(idx),'yyyy-mm-dd HH:MM:SS.FFF');
+            else
+                zStr = [num2str(zData(idx)) ' (' zUnits ')'];
+            end
+        catch
+            zStr = 'NO DATA';
+        end
+        
+        try
+            datacursorText = {dStr,...
+                [xName ': ' xStr],...
+                [yName ': ' yStr],...
+                [zName ': ' zStr]};
+            % debug info
+            %datacursorText{end+1} = ['DataIndex : ' num2str(dataIndex)];
+            %datacursorText{end+1} = ['idx: ' num2str(idx)];
+            %datacursorText{end+1} = ['minClim: ' num2str(minClim)];
+            %datacursorText{end+1} = ['maxClim: ' num2str(maxClim)];
+        catch
+            datacursorText = {'NO DATA'};
+        end
+    end
+
+%%
+    function zoomDateTick(obj,event_obj,hAx)
+        datetick(hAx,'x','dd-mm-yy HH:MM:SS','keeplimits')
+    end
 
 end
