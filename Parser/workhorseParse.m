@@ -138,6 +138,9 @@ narginchk(1, 2);
       variable.y2kMinute,...
       variable.y2kSecond + variable.y2kHundredth/100.0]);
   
+  % shift the timestamp to the middle of the burst
+  time = time + (fixed.pingsPerEnsemble .* (fixed.tppMinutes*60 + fixed.tppSeconds + fixed.tppHundredths/100) / (3600 * 24))/2;
+  
   %
   % auxillary data
   %
