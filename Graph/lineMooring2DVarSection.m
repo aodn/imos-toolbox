@@ -136,6 +136,10 @@ if iVar > 0
     
     hold(hAxCastVar, 'on');
     
+    % dummy entry for first legend
+    hLineVar(1) = plot(0, 0, 'o', 'color', [0 0 0], 'Visible', 'off');
+    set(get(get(hLineVar(1),'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+    
     yLine = sample_data.dimensions{i2Ddim}.data;
     dataVar = sample_data.variables{iVar}.data(iX);
     
@@ -254,12 +258,12 @@ if ~initiateFigure
     
     hLineVar = [hLineVar; hLineFlag];
     instrumentDesc = [instrumentDesc; flagDesc];
-    
+    % Matlab >R2015 legend entries for data which are not plotted 
+	% will be shown with reduced opacity
     hLegend = legend(hAxCastVar, ...
-        hLineVar,       instrumentDesc, ...
+        hLineVar,       regexprep(instrumentDesc,'_','\_'), ...
         'Interpreter',  'none', ...
         'Location',     'SouthOutside');
-    
     %     set(hLegend, 'Box', 'off', 'Color', 'none');
 end
     
