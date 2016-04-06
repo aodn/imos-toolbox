@@ -67,7 +67,7 @@ if isempty(path), path = pwd; end
 
 % we must dynamically add the ddb.jar java library to the classpath
 % as well as any other .jar library and jdbc drivers
-jars = fsearch('.jar', fullfile(path, 'Java'), 'files');
+jars = fsearchRegexp('.jar$', fullfile(path, 'Java'), 'files');
 for j = 1 : length(jars)
     javaaddpath(jars{j});
 end
