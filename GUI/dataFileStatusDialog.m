@@ -305,8 +305,9 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   % deployments, suitable for use in the deployments list.
   %
 
+    ddb = readProperty('toolbox.ddb');
+  
     % set values for lists
-
     descs = {};
     for k = 1:length(deployments)
 
@@ -326,7 +327,11 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
       
 
       % get some site information if it exists
-      site = executeDDBQuery('Sites', 'Site', dep.Site);
+      if strcmp('csv', ddb)
+          site = executeCSVQuery('Sites', 'Site', dep.Site);
+      else
+          site = executeDDBQuery('Sites', 'Site', dep.Site);
+      end
 
       if ~isempty(site)
 

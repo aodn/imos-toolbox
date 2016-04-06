@@ -163,7 +163,9 @@ function value = parseDDBToken(token, sample_data, k)
   
   % if there is no deployment database, set the value to an empty matrix
   ddb = readProperty('toolbox.ddb');
-  if isempty(ddb), return; end
+  driver = readProperty('toolbox.ddb.driver');
+  connection = readProperty('toolbox.ddb.connection');
+  if isempty(ddb) && (isempty(driver) || isempty(connection)), return; end
 
   % get the relevant deployment/CTD cast
   if isfield(sample_data.meta, 'profile')    
@@ -206,7 +208,11 @@ function value = parseDDBToken(token, sample_data, k)
   % a foreign key, so our only choice is to give up
   if isempty(field_value), return; end
   
-  result = executeDDBQuery(related_table, related_pkey, field_value);
+  if strcmp('csv',ddb)
+      result = executeCSVQuery(related_table, related_pkey, field_value);
+  else
+      result = executeDDBQuery(related_table, related_pkey, field_value);
+  end
   if length(result) ~= 1, return; end
 
   value = result.(related_field);
