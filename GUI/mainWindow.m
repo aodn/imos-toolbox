@@ -277,6 +277,12 @@ function mainWindow(...
   %set uimenu
   hToolsMenu                        = uimenu(fig, 'label', 'Tools');
   if strcmpi(mode, 'timeseries')
+      hToolsCheckPlannedDepths      = uimenu(hToolsMenu, 'label', 'Check measured against planned depths');
+      hToolsCheckPlannedDepthsNonQC = uimenu(hToolsCheckPlannedDepths, 'label', 'non QC');
+      hToolsCheckPlannedDepthsQC    = uimenu(hToolsCheckPlannedDepths, 'label', 'QC');
+      hToolsCheckPressDiffs         = uimenu(hToolsMenu, 'label', 'Check pressure differences between selected instrument and nearest neighbours');
+      hToolsCheckPressDiffsNonQC    = uimenu(hToolsCheckPressDiffs, 'label', 'non QC');
+      hToolsCheckPressDiffsQC       = uimenu(hToolsCheckPressDiffs, 'label', 'QC');
       hToolsLineDepth               = uimenu(hToolsMenu, 'label', 'Line plot mooring''s depths');
       hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'non QC');
       hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'QC');
@@ -291,14 +297,18 @@ function mainWindow(...
       hToolsScatter2DCommonVarQC    = uimenu(hToolsScatter2DCommonVar, 'label', 'QC');
       
       %set menu callbacks
-      set(hToolsLineDepthNonQC,         'callBack', {@displayLineMooringDepth, false});
-      set(hToolsLineDepthQC,            'callBack', {@displayLineMooringDepth, true});
-      set(hToolsLineCommonVarNonQC,     'callBack', {@displayLineMooringVar, false});
-      set(hToolsLineCommonVarQC,        'callBack', {@displayLineMooringVar, true});
-      set(hToolsScatterCommonVarNonQC,  'callBack', {@displayScatterMooringVar, false, true});
-      set(hToolsScatterCommonVarQC,     'callBack', {@displayScatterMooringVar, true, true});
-      set(hToolsScatter2DCommonVarNonQC,'callBack', {@displayScatterMooringVar, false, false});
-      set(hToolsScatter2DCommonVarQC,   'callBack', {@displayScatterMooringVar, true, false});
+      set(hToolsCheckPlannedDepthsNonQC, 'callBack', {@displayCheckPlannedDepths, false});
+      set(hToolsCheckPlannedDepthsQC,    'callBack', {@displayCheckPlannedDepths, true});
+      set(hToolsCheckPressDiffsNonQC,    'callBack', {@displayCheckPressDiffs, false});
+      set(hToolsCheckPressDiffsQC,       'callBack', {@displayCheckPressDiffs, true});
+      set(hToolsLineDepthNonQC,          'callBack', {@displayLineMooringDepth, false});
+      set(hToolsLineDepthQC,             'callBack', {@displayLineMooringDepth, true});
+      set(hToolsLineCommonVarNonQC,      'callBack', {@displayLineMooringVar, false});
+      set(hToolsLineCommonVarQC,         'callBack', {@displayLineMooringVar, true});
+      set(hToolsScatterCommonVarNonQC,   'callBack', {@displayScatterMooringVar, false, true});
+      set(hToolsScatterCommonVarQC,      'callBack', {@displayScatterMooringVar, true, true});
+      set(hToolsScatter2DCommonVarNonQC, 'callBack', {@displayScatterMooringVar, false, false});
+      set(hToolsScatter2DCommonVarQC,    'callBack', {@displayScatterMooringVar, true, false});
   else
       hToolsLineCastVar             = uimenu(hToolsMenu, 'label', 'Line plot profile variables');
       hToolsLineCastVarNonQC        = uimenu(hToolsLineCastVar, 'label', 'non QC');
@@ -467,6 +477,31 @@ function mainWindow(...
   end
 
   %% Menu callback
+  function displayCheckPressDiffs(source,ev, isQC)
+      %DISPLAYLINEPRESSDIFFS opens a new window where all the PRES/PRES_REL
+      %values for instruments adjacent to the current instrument are
+      %displayed with the differences between these instrument pressures
+      %
+      %check for pressure
+      iSampleMenu = get(sampleMenu, 'Value');
+      iPRES_REL = getVar(sample_data{iSampleMenu}.variables, 'PRES_REL');
+      iPRES = getVar(sample_data{iSampleMenu}.variables, 'PRES');
+      if iPRES_REL == 0 && iPRES == 0
+          sampleMenuStrings = get(sampleMenu, 'String');
+          disp(['No pressure data for ' sampleMenuStrings{iSampleMenu}])
+          return
+      end
+        
+      checkMooringPresDiffs(sample_data, iSampleMenu, isQC, false, '');      
+  end
+
+  function displayCheckPlannedDepths(source,ev, isQC)
+      %DISPLAYCHECKPLANNEDDEPTHS Opens a new window where the actual
+      %depths recorded are compared to the planned depths.
+      %
+      checkMooringPlannedDepths(sample_data, isQC, false, '');
+  end
+  
   function displayLineMooringDepth(source,ev, isQC)
   %DISPLAYLINEMOORINGDEPTH Opens a new window where all the nominal depths and
   %actual/computed depths from intruments on the mooring are line-plotted.
