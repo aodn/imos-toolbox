@@ -175,8 +175,8 @@ function cd = readClockData(data, idx, cpuEndianness)
 
 data = data(idx:idx+7);
 
-year    = bytecast(data(1), 'L', 'uint8', cpuEndianness);
-month   = bytecast(data(2), 'L', 'uint8', cpuEndianness);
+year    = bytecast(data(1), 'L', 'uint8', cpuEndianness) + 1900; % years since 1900
+month   = bytecast(data(2), 'L', 'uint8', cpuEndianness) + 1; % Jan=0, Feb=1, etc.
 day     = bytecast(data(3), 'L', 'uint8', cpuEndianness);
 hour    = bytecast(data(4), 'L', 'uint8', cpuEndianness);
 minute  = bytecast(data(5), 'L', 'uint8', cpuEndianness);
@@ -184,9 +184,9 @@ second  = bytecast(data(6), 'L', 'uint8', cpuEndianness);
 hundredsusecond  = bytecast(data(7:8), 'L', 'uint16', cpuEndianness);
 
 second  = second + hundredsusecond/10000;
-year = year + 1900;
 
 cd = datenummx(year, month, day, hour, minute, second); % direct access to MEX function, faster
+
 end
 
 function [header, len, off] = readHeader(data, idx, cpuEndianness)
