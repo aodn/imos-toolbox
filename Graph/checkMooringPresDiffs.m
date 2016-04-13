@@ -132,6 +132,8 @@ hLineVar2 = hLineVar;
 
 isPlottable = false;
 
+backgroundColor = [0.75 0.75 0.75];
+
 %plot
 fileName = genIMOSFileName(sample_data{iCurrSam}, 'png');
 visible = 'on';
@@ -192,26 +194,27 @@ end
 curSamTime(~iGood)      = NaN;
 curSamPresRel(~iGood)   = NaN;
 
-hLineVar(iCurrSam) = line(curSamTime, ...
-    curSamPresRel, ...
-    'Color', 'k', ...
-    'LineStyle', '-',...
-    'Parent',hAxPress);
-
 %now get the adjacent instruments based on planned depth (up to 4 nearest)
 metaDepthCurrSam = metaDepth(iCurrSam);
-% sample_data(iCurrSam) = [];
-% metaDepth(iCurrSam)   = [];
 [~, iOthers] = sort(abs(metaDepthCurrSam - metaDepth));
-iOthers(1) = []; % remove current sample
 nOthers = length(iOthers);
-if nOthers > 4
-    iOthers = iOthers(1:4);
-    nOthers = 4;
+nOthersMax = 5; % includes current sample
+if nOthers > nOthersMax
+    iOthers = iOthers(1:nOthersMax);
+    nOthers = nOthersMax;
 end
 
 %color map
-cMap = hsv(nOthers);
+% no need to reverse the colorbar since instruments are plotted from
+% nearest (blue) to farthest (yellow)
+try
+    defaultColormapFh = str2func(readProperty('visualQC.defaultColormap'));
+    cMap = colormap(hAxPress, defaultColormapFh(nOthers - 1));
+catch e
+    cMap = colormap(hAxPress, parula(nOthers - 1));
+end
+% current sample is black
+cMap = [0, 0, 0; cMap];
 
 %now add the other data:
 for i=1:nOthers
@@ -264,7 +267,8 @@ for i=1:nOthers
             'LineStyle', '-','Parent',hAxPressDiff);
         
         % set background to be grey
-%         set(hAxPressDiff, 'Color', [0.75 0.75 0.75])
+        set(hAxPress, 'Color', backgroundColor)
+        set(hAxPressDiff, 'Color', backgroundColor)
     end
 end
 
@@ -288,23 +292,37 @@ if isPlottable
         hLineVar(iNan) = [];
         instrumentDesc(iNan) = [];
     end
+    iOthers = iOthers - (min(iOthers)-1);
         
     datetick(hAxPressDiff, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
     datetick(hAxPress, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
     
-    hLegend = legend(hAxPress, ...
-        hLineVar,       instrumentDesc, ...
-        'Interpreter',  'none', ...
-        'Location',     'SouthOutside');
-    
-    set(hLegend,'Fontsize',14)
-    
-%     % unfortunately we need to do this hack so that we have consistency with
-%     % the case above
-%     posAx = get(hAxPressDiff, 'Position');
-%     set(hAxPressDiff, 'Position', posAx);
-    
-    %     set(hLegend, 'Box', 'off', 'Color', 'none');
+    % we try to split the legend, maximum 3 columns
+    fontSizeAx = get(hAxPress,'FontSize');
+    fontSizeLb = get(get(hAxPress,'XLabel'),'FontSize');
+    xscale = 0.9;
+    if numel(instrumentDesc) < 4
+        nCols = 1;
+    elseif numel(instrumentDesc) < 8
+        nCols = 2;
+    else
+        nCols = 3;
+        fontSizeAx = fontSizeAx - 1;
+        xscale = 0.75;
+    end
+    hYBuffer = 1.1 * (2*(fontSizeAx + fontSizeLb));
+    hLegend = legendflex(hAxPress, instrumentDesc(iOthers),...
+        'anchor', [6 2], ...
+        'buffer', [0 -hYBuffer], ...
+        'ncol', nCols,...
+        'FontSize', fontSizeAx,...
+        'xscale',xscale);
+    posAx = get(hAxPress, 'Position');
+    set(hLegend, 'Units', 'Normalized', 'color', backgroundColor);
+
+    % for some reason this call brings everything back together while it
+    % shouldn't have moved previously anyway...
+     set(hAxPress, 'Position', posAx);
     
     if saveToFile
         % ensure the printed version is the same whatever the screen used.

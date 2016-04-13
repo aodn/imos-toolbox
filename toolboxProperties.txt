@@ -91,3 +91,12 @@ saveGraph.imgType   = png
 % visual QC plots export properties
 visualQC.export = true
 visualQC.fastScatter = true
+
+% default nonspecialized scalar colormap and number of colour steps
+% jet | parula | viridis
+visualQC.defaultColormap = parula
+visualQC.ncolors = 64
+
+% simple zbuffering of markers if using fallback fastScatterMesh plot (fastScatter = false)
+% 'ascending', 'descending', 'triangle', 'vee', 'flat', 'parabolic', 'hamming', 'hann'
+visualQC.zbuffer = triangle

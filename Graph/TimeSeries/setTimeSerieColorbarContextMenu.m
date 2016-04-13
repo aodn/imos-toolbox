@@ -105,40 +105,44 @@ switch upper(var.name(1:4))
         uimenu(mainItem2, 'Label', 'manual',                        'Callback', {@cbCLimRange, 'manual', var.data});
         
     case 'PERG' % percentages
-        colormap(jet);
+        colormap(parula);
         cbCLimRange('', '', 'percent [0; 100]', var.data);
         
         % Define a context menu
         hMenu = uicontextmenu;
         
         % Define callbacks for context menu items that change linestyle
-        hcb11 = 'colormap(jet)';
+        hcb11 = 'colormap(parula)';
+        hcb12 = 'colormap(jet)';
         hcb13 = 'colormapeditor';
         
         % Define the context menu items and install their callbacks
         mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
-        uimenu(mainItem1, 'Label', 'jet (default)', 'Callback', hcb11);
-        uimenu(mainItem1, 'Label', 'other',         'Callback', hcb13);
+        uimenu(mainItem1, 'Label', 'parula (default)',  'Callback', hcb11);
+        uimenu(mainItem1, 'Label', 'jet',               'Callback', hcb12);
+        uimenu(mainItem1, 'Label', 'other',             'Callback', hcb13);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
         uimenu(mainItem2, 'Label', 'percent [0; 100] (default)',  'Callback', {@cbCLimRange, 'percent [0; 100]', var.data});
         uimenu(mainItem2, 'Label', 'manual',                      'Callback', {@cbCLimRange, 'manual', var.data});
         
     case {'CSPD', 'VDEN', 'VDEV', 'VDEP', 'VDES'} % [0; oo[ paremeters
-        colormap(jet);
+        colormap(parula);
         cbCLimRange('', '', 'auto from 0', var.data);
         
         % Define a context menu
         hMenu = uicontextmenu;
         
         % Define callbacks for context menu items that change linestyle
+        hcb11 = 'colormap(parula)';
         hcb12 = 'colormap(jet)';
         hcb13 = 'colormapeditor';
         
         % Define the context menu items and install their callbacks
         mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
-        uimenu(mainItem1, 'Label', 'jet (default)', 'Callback', hcb12);
-        uimenu(mainItem1, 'Label', 'other',         'Callback', hcb13);
+        uimenu(mainItem1, 'Label', 'parula (default)',  'Callback', hcb11);
+        uimenu(mainItem1, 'Label', 'jet',               'Callback', hcb12);
+        uimenu(mainItem1, 'Label', 'other',             'Callback', hcb13);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
         uimenu(mainItem2, 'Label', 'full',                                      'Callback', {@cbCLimRange, 'full', var.data});
@@ -157,15 +161,17 @@ switch upper(var.name(1:4))
         hMenu = uicontextmenu;
         
         % Define callbacks for context menu items that change linestyle
-        hcb12 = 'load(''jet_w.mat'', ''-mat'', ''jet_w''); colormap(jet_w)';
+        hcb11 = 'load(''jet_w.mat'', ''-mat'', ''jet_w''); colormap(jet_w)';
+        hcb12 = 'colormap(parula)';
         hcb13 = 'colormap(jet)';
         hcb14 = 'colormapeditor';
         
         % Define the context menu items and install their callbacks
         mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
-        uimenu(mainItem1, 'Label', 'jet_w (default)', 'Callback', hcb12);
-        uimenu(mainItem1, 'Label', 'jet',             'Callback', hcb13);
-        uimenu(mainItem1, 'Label', 'other',           'Callback', hcb14);
+        uimenu(mainItem1, 'Label', 'jet_w (default)',   'Callback', hcb11);
+        uimenu(mainItem1, 'Label', 'parula',            'Callback', hcb12);
+        uimenu(mainItem1, 'Label', 'jet',               'Callback', hcb13);
+        uimenu(mainItem1, 'Label', 'other',             'Callback', hcb14);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
         uimenu(mainItem2, 'Label', 'full',                                      'Callback', {@cbCLimRange, 'full', var.data});
@@ -175,22 +181,24 @@ switch upper(var.name(1:4))
         uimenu(mainItem2, 'Label', 'manual',                                    'Callback', {@cbCLimRange, 'manual', var.data});
         
     otherwise
-        colormap(jet);
+        colormap(parula);
         cbCLimRange('', '', 'full', var.data);
         
         % Define a context menu
         hMenu = uicontextmenu;
         
         % Define callbacks for context menu items that change linestyle
-        hcb11 = 'colormap(r_b)';
+        hcb11 = 'colormap(parula)';
         hcb12 = 'colormap(jet)';
-        hcb13 = 'colormapeditor';
+        hcb13 = 'colormap(r_b)';
+        hcb14 = 'colormapeditor';
         
         % Define the context menu items and install their callbacks
         mainItem1 = uimenu(hMenu, 'Label', 'Colormaps');
-        uimenu(mainItem1, 'Label', 'r_b',           'Callback', hcb11);
-        uimenu(mainItem1, 'Label', 'jet (default)', 'Callback', hcb12);
-        uimenu(mainItem1, 'Label', 'other',         'Callback', hcb13);
+        uimenu(mainItem1, 'Label', 'parula (default)',  'Callback', hcb11);
+        uimenu(mainItem1, 'Label', 'jet',               'Callback', hcb12);
+        uimenu(mainItem1, 'Label', 'r_b',               'Callback', hcb13);
+        uimenu(mainItem1, 'Label', 'other',             'Callback', hcb14);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
         uimenu(mainItem2, 'Label', 'full (default)',                    'Callback', {@cbCLimRange, 'full', var.data});

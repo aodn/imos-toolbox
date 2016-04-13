@@ -115,6 +115,8 @@ dimName = sample_data.dimensions{i2Ddim}.name;
 dimTitle = imosParameters(dimName, 'long_name');
 dimUnit = imosParameters(dimName, 'uom');
 
+backgroundColor = [0.75 0.75 0.75];
+
 if iVar > 0
     if initiateFigure
         fileName = genIMOSFileName(sample_data, 'png');
@@ -135,6 +137,9 @@ if iVar > 0
     set(get(hAxCastVar, 'YLabel'), 'String', [dimTitle ' (' dimUnit ')'], 'Interpreter', 'none');
     
     hold(hAxCastVar, 'on');
+    
+    % dummy entry for first entry in legend
+    hLineVar(1) = plot(0, 0, 'o', 'color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
     
     yLine = sample_data.dimensions{i2Ddim}.data;
     dataVar = sample_data.variables{iVar}.data(iX);
@@ -242,7 +247,7 @@ if iVar > 0
         'Layer',        'top');
     
     % set background to be grey
-    set(hAxCastVar, 'Color', [0.75 0.75 0.75])
+    set(hAxCastVar, 'Color', backgroundColor)
 end
 
 if ~initiateFigure
@@ -254,12 +259,12 @@ if ~initiateFigure
     
     hLineVar = [hLineVar; hLineFlag];
     instrumentDesc = [instrumentDesc; flagDesc];
-    
+    % Matlab >R2015 legend entries for data which are not plotted 
+	% will be shown with reduced opacity
     hLegend = legend(hAxCastVar, ...
-        hLineVar,       instrumentDesc, ...
+        hLineVar,       regexprep(instrumentDesc,'_','\_'), ...
         'Interpreter',  'none', ...
         'Location',     'SouthOutside');
-    
     %     set(hLegend, 'Box', 'off', 'Color', 'none');
 end
     

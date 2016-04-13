@@ -72,12 +72,16 @@ title = [sample_data{1}.deployment_code ' mooring planned depth vs measured dept
 %sort instruments by depth
 lenSampleData = length(sample_data);
 instrumentDesc = cell(lenSampleData, 1);
+hLineVar = nan(lenSampleData, 1);
 metaDepth = nan(lenSampleData, 1);
 xMin = nan(lenSampleData, 1);
 xMax = nan(lenSampleData, 1);
 dataVar = nan(lenSampleData,800000);
 timeVar = dataVar;
 isPlottable = false;
+
+backgroundColor = [0.75 0.75 0.75];
+
 for i=1:lenSampleData
     %only look at instruments with pressure
     iPresRel    = getVar(sample_data{i}.variables, 'PRES_REL');
@@ -177,8 +181,8 @@ instrumentDesc(ibad) = [];
 xMin = min(xMin);
 xMax = max(xMax);
 
-%color map
-cMap = jet(length(metaDepth));
+instrumentDesc = [{'Make Model (nominal depth - instrument SN)'}; instrumentDesc];
+hLineVar(1) = 0;
 
 %now plot all the calculated depths on one plot to choose region for comparison:
 %plot
@@ -191,8 +195,10 @@ hFigPress = figure(...
     'Visible', visible, ...
     'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
 
-%depth plot for selecting region to compare depth to planned depth
 hAxPress = subplot(2,1,1,'Parent', hFigPress);
+hAxDepthDiff = subplot(2,1,2,'Parent', hFigPress);
+
+%depth plot for selecting region to compare depth to planned depth
 set(hAxPress, 'YDir', 'reverse')
 set(get(hAxPress, 'XLabel'), 'String', 'Time');
 set(get(hAxPress, 'YLabel'), 'String', ['DEPTH (' varUnit ')'], 'Interpreter', 'none');
@@ -201,17 +207,40 @@ set(hAxPress, 'XTick', (xMin:(xMax-xMin)/4:xMax));
 set(hAxPress, 'XLim', [xMin, xMax]);
 hold(hAxPress, 'on');
 
-%now plot the data:Have to do it one at a time to get the colors right..
-for i = 1:length(metaDepth)
-    hLineVar(i) = line(timeVar(i,:), ...
-        dataVar(i,:), ...
-        'Color',cMap(i,:),...
-        'LineStyle', '-',...
-        'Parent',hAxPress);
-end
+%Actual depth minus planned depth
+set(get(hAxDepthDiff, 'XLabel'), 'String', 'Planned Depth (m)');
+set(get(hAxDepthDiff, 'YLabel'), 'String', ['Actual Depth - Planned Depth (' varUnit ')'], 'Interpreter', 'none');
+set(get(hAxDepthDiff, 'Title'), 'String', ...
+    ['Differences from planned depth for ' sample_data{1}.meta.site_name] , 'Interpreter', 'none');
+hold(hAxDepthDiff, 'on');
+grid(hAxDepthDiff, 'on');
 
 % set background to be grey
-%         set(hAxPressDiff, 'Color', [0.75 0.75 0.75])
+set(hAxPress, 'Color', backgroundColor);
+set(hAxDepthDiff, 'Color', backgroundColor);
+
+%color map
+lenMetaDepth = length(metaDepth);
+try
+    defaultColormapFh = str2func(readProperty('visualQC.defaultColormap'));
+    cMap = colormap(hAxPress, defaultColormapFh(lenMetaDepth));
+catch e
+    cMap = colormap(hAxPress, parula(lenMetaDepth));
+end
+% reverse the colorbar as we want surface instruments with warmer colors
+cMap = flipud(cMap);
+
+% dummy entry for first entry in legend
+hLineVar(1) = plot(hAxPress, 0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
+
+%now plot the data:Have to do it one at a time to get the colors right..
+for i = 1:lenMetaDepth
+    hLineVar(i+1) = line(timeVar(i,:), ...
+        dataVar(i,:), ...
+        'Color', cMap(i,:),...
+        'LineStyle', '-',...
+        'Parent', hAxPress);
+end
 
 % Let's redefine properties after pcolor to make sure grid lines appear
 % above color data and XTick and XTickLabel haven't changed
@@ -224,12 +253,32 @@ set(hAxPress, ...
 if isPlottable    
     datetick(hAxPress, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
     
-    hLegend = legend(hAxPress, ...
-        hLineVar,       instrumentDesc, ...
-        'Interpreter',  'none', ...
-        'Location',     'Best');
-    
-    set(hLegend,'Fontsize',10)
+    % we try to split the legend, maximum 3 columns
+    fontSizeAx = get(hAxPress,'FontSize');
+    fontSizeLb = get(get(hAxPress,'XLabel'),'FontSize');
+    xscale = 0.9;
+    if numel(instrumentDesc) < 4
+        nCols = 1;
+    elseif numel(instrumentDesc) < 8
+        nCols = 2;
+    else
+        nCols = 3;
+        fontSizeAx = fontSizeAx - 1;
+        xscale = 0.75;
+    end
+    hYBuffer = 1.1 * (2*(fontSizeAx + fontSizeLb));
+    hLegend = legendflex(hAxPress, instrumentDesc,...
+        'anchor', [6 2], ...
+        'buffer', [0 -hYBuffer], ...
+        'ncol', nCols,...
+        'FontSize', fontSizeAx,...
+        'xscale',xscale);
+    posAx = get(hAxPress, 'Position');
+    set(hLegend, 'Units', 'Normalized', 'color', backgroundColor);
+
+    % for some reason this call brings everything back together while it
+    % shouldn't have moved previously anyway...
+     set(hAxPress, 'Position', posAx);
 end
 
 %Ask for the user to select the region they would like to use for
@@ -242,30 +291,19 @@ uiwait(hMsgbox);
 %select the area to use for comparison
 [x,y] = select_points(hAxPress);
 
-%Actual depth minus planned depth
-hAxDepthDiff = subplot(2,1,2,'Parent', hFigPress);
-set(get(hAxDepthDiff, 'XLabel'), 'String', 'Planned Depth (m)');
-set(get(hAxDepthDiff, 'YLabel'), 'String', ['Actual Depth - Planned Depth (' varUnit ')'], 'Interpreter', 'none');
-set(get(hAxDepthDiff, 'Title'), 'String', ...
-    ['Differences from planned depth for ' sample_data{1}.meta.site_name] , 'Interpreter', 'none');
-hold(hAxDepthDiff, 'on');
-grid(hAxDepthDiff, 'on');
-
-
 %now plot the difference from planned depth data:
 iGood = timeVar >= x(1) & timeVar <= x(2);
 dataVar(~iGood) = NaN;
 minDep = min(dataVar,[],2);
 
-hLineVar2 = line(metaDepth, ...
+hLineVar2 = scatter(hAxDepthDiff, ...
+    metaDepth, ...
     minDep - metaDepth, ...
-    'Color','k',...
-    'LineStyle', 'None',...
-    'Marker','o',...
-    'Marker','.',...
-    'MarkerSize',12,...
-    'Parent',hAxDepthDiff);
+    15, ...
+    cMap, ...
+    'filled');
 
+instrumentDesc(1) = [];
 text(metaDepth + 1, (minDep - metaDepth), instrumentDesc, ...
     'Parent', hAxDepthDiff)
         
