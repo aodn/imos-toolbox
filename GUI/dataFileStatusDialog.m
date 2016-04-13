@@ -64,16 +64,30 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   origDeployments = deployments;
   origFiles       = files;
   
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
   deploymentDescs = genDepDescriptions(deployments, files);
   
-  % sort deployments by depth
+  % Sort data_samples
   %
   % [B, iX] = sort(A);
   % =>
   % A(iX) == B
   %
-  [~, iSort] = sort([deployments.InstrumentDepth]);
-  deploymentDescs = deploymentDescs(iSort);
+  switch mode
+      case 'profile'
+          % for a profile, sort by alphabetical order
+          [deploymentDescs, iSort] = sort(deploymentDescs);
+      otherwise
+          % for a mooring, sort instruments by depth
+          [~, iSort] = sort([deployments.InstrumentDepth]);
+          deploymentDescs = deploymentDescs(iSort);
+  end
+  
+  
+  
   deployments = deployments(iSort);
   files = files(iSort);
   
@@ -263,11 +277,6 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   % Opens a dialog, allowing the user to select a file to add to the
   % deployment.
   %
-  
-    % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
-    % If no value is set then default mode is 'timeSeries'
-    mode = lower(readProperty('toolbox.mode'));
-
     switch mode
         case 'profile'
             [newFile path] = uigetfile('*', 'Select Data File',...
@@ -318,8 +327,10 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
       if ~isempty(dep.InstrumentDepth) 
         descs{k} = [descs{k} ' @' num2str(dep.InstrumentDepth) 'm'];
       end
-      if ~isempty(dep.DepthTxt) 
-        descs{k} = [descs{k} ' ' dep.DepthTxt];
+      if isfield(dep, 'DepthTxt')
+          if ~isempty(dep.DepthTxt)
+              descs{k} = [descs{k} ' ' dep.DepthTxt];
+          end
       end
       if ~isempty(dep.FileName) 
         descs{k} = [descs{k} ' (' dep.FileName ')'];
