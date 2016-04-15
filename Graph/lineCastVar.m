@@ -162,7 +162,7 @@ for k=1:lenVarNames
                 set(hAxCastVar, 'YLim', [yMin, yMax]);
                 hold(hAxCastVar, 'on');
                 
-                cMap = colormap(hAxCastVar, jet(lenSampleData));
+                cMap = colormap(hAxCastVar, parula(lenSampleData));
                 cMap = flipud(cMap);
             end
             

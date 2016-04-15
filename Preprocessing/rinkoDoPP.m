@@ -157,7 +157,7 @@ for k = 1:length(sample_data)
     DO = G + H*DO;
     
     % correction for pressure
-    DO = DO.*(1 + E*presRel); % DO is in % of dissolved oxygen during calibration at this stage
+    DO = DO.*(1 + E*presRel/100); % pressRel/100 => conversion dBar to MPa (see rinko correction formula pdf). DO is in % of dissolved oxygen during calibration at this stage.
     
     if psalIdx > 0
         psal = sam.variables{psalIdx}.data;

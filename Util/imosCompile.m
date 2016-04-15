@@ -70,7 +70,7 @@ if ~mkdir(stagingRoot), error('could not create staging area'); end
 % find all .m and .mat files - these are to be 
 % included as resources in the standalone application 
 matlabFiles     = fsearchRegexp('.m$',   exportRoot, 'files');
-matlabDataFiles = fsearch('.mat', exportRoot, 'files');
+matlabDataFiles = fsearchRegexp('.mat$', exportRoot, 'files');
 
 % we leave out imosToolbox.m because, as the main 
 % function, it must be listed first.

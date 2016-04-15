@@ -483,7 +483,11 @@ for k = 1:length(varNames)
   switch varNames{k}
     case TEMPERATURE_NAME,  sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(temperature);
     case CONDUCTIVITY_NAME, sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(conductivity);
-    case PRESSURE_NAME,     sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(pressure);
+    case PRESSURE_NAME
+        sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(pressure);
+        % let's document the constant pressure atmosphere offset previously
+        % applied by SeaBird software on the absolute presure measurement
+        sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
     case SALINITY_NAME,     sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(salinity);
   end
 end

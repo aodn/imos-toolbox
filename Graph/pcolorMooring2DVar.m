@@ -116,10 +116,10 @@ for i=1:lenSampleData
             cMap = 'rkbwr';
             cType = 'direction';
         case {'CSPD'}                   % [0; oo[ paremeters 
-            cMap = 'jet';
+            cMap = 'parula';
             cType = 'positiveFromZero';
         otherwise
-            cMap = 'jet';
+            cMap = 'parula';
             cType = '';
     end
     

@@ -71,7 +71,8 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   end
 
   % If the toolbox.ddb property has been set, assume that we have a
-  % deployment database. Otherwise perform a manual import
+  % deployment database. Or if it is designated as 'csv', use a CSV file for
+  % import. Otherwise perform a manual import.
   ddb = readProperty('toolbox.ddb');
   
   driver = readProperty('toolbox.ddb.driver');
@@ -81,10 +82,10 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   rawFiles    = {};
   
   if ~isempty(ddb) || (~isempty(driver) && ~isempty(connection))
-      [structs rawFiles] = ddbImport(auto, iMooring);
+      [structs rawFiles] = ddbImport(auto, iMooring, ddb);
   else
-    if auto, error('manual import cannot be automated without deployment database'); end
-    [structs rawFiles] = manualImport();
+      if auto, error('manual import cannot be automated without deployment database'); end
+      [structs rawFiles] = manualImport();
   end
   
   % user cancelled
@@ -190,13 +191,18 @@ function [sample_data rawFile]= manualImport()
   end
 end
 
-function [sample_data rawFiles] = ddbImport(auto, iMooring)
+function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb)
 %DDBIMPORT Imports data sets using metadata retrieved from a deployment
 % database.
 %
 % Inputs:
 %   auto        - if true, the import process is automated, with no user
 %                 interaction.
+%   iMooring    - Optional logical(comes with auto == true). Contains
+%                 the logical indices to extract only the deployments 
+%                 from one mooring set of deployments.
+%   ddb         - deployment database string attribute from
+%                 toolboxProperties.txt
 %
 % Outputs:
 %   sample_data - cell array containig the imported data sets, or empty 
@@ -304,8 +310,16 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
       rawFile = deps(k).FileName;
 
       hits = fsearch(rawFile, dataDir, 'files');
-
-      allFiles{k} = hits;
+      
+      % we remove any potential .pqc or .mqc files found (reserved for use
+      % by the toolbox)
+      reservedExts = {'.pqc', '.mqc'};
+      for l=1:length(hits)
+          [~, ~, ext] = fileparts(hits{l});
+          if all(~strcmp(ext, reservedExts))
+              allFiles{k}{end+1} = hits{l};
+          end
+      end
     end
     
     % display status dialog to highlight any discrepancies (file not found
@@ -348,9 +362,8 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
           fileDisplay = fileDisplay(3:end);
           waitbar(k / length(deps), progress, fileDisplay);
       end
-      
       % import data
-      sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt, mode);
+      sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt, mode, ddb);
       rawFiles{   end+1} = allFiles{k};
       
       if iscell(sample_data{end})
@@ -407,7 +420,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   % close progress dialog
   if ~auto, close(progress); end
 
-  function sam = parse(deployment, files, parsers, noParserPrompt, mode)
+  function sam = parse(deployment, files, parsers, noParserPrompt, mode, ddb)
   %PARSE Parses a raw data file, returns a sample_data struct.
   %
   % Inputs:
@@ -416,12 +429,14 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   %   parsers        - Cell array of strings containing all available parsers.
   %   noParserPrompt - Whether to prompt the user if a parser cannot be found.
   %   mode           - Toolbox data type mode ('profile' or 'timeSeries').
+  %   ddb            - deployment database string attribute from
+  %                    toolboxProperties.txt
   %
   % Outputs:
   %   sam        - Struct containing sample data.
 
     % get the appropriate parser function
-    parser = getParserFunc(deployment, parsers, noParserPrompt);
+    parser = getParserFunc(deployment, parsers, noParserPrompt, ddb);
     if isnumeric(parser)
       error(['no parser found for instrument ' deployment.InstrumentID]); 
     end
@@ -430,7 +445,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
     sam = parser(files, mode);
   end
 
-  function parser = getParserFunc(deployment, parsers, noParserPrompt)
+  function parser = getParserFunc(deployment, parsers, noParserPrompt, ddb)
   %GETPARSERFUNC Searches for a parser function which is able to parse data 
   % for the given deployment.
   %
@@ -438,13 +453,20 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   %   deployment     - struct containing information about the deployment.
   %   parsers        - Cell array of strings containing all available parsers.
   %   noParserPrompt - Whether to prompt the user if a parser cannot be found.
+  %   ddb            - deployment database string attribute from
+  %                    toolboxProperties.txt
   %
   % Outputs:
   %   parser     - Function handle to the parser function, or 0 if a parser
   %                function wasn't found.
   %
-    instrument = executeDDBQuery(...
-      'Instruments', 'InstrumentID', deployment.InstrumentID);
+  if strcmp('csv',ddb)
+      instrument = executeCSVQuery(...
+          'Instruments', 'InstrumentID', deployment.InstrumentID);
+  else
+      instrument = executeDDBQuery(...
+          'Instruments', 'InstrumentID', deployment.InstrumentID);
+  end
 
     % there should be exactly one instrument 
     if length(instrument) ~= 1

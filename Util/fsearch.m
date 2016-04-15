@@ -89,7 +89,14 @@ function hits = fsearch(pattern, root, restriction)
         case 'dirs'
             if ~d.isdir, continue; end
             if ~isempty(strfind(lower(fullfile(root, d.name)), lower(pattern)))
-                hits{end+1} = fullfile(root, d.name);
+                % we check that the radical name is the one we're
+                % looking for. We want 4T3993 to match path/4T3993/ but not
+                % path/454T3993
+                [~, foundName, foundExt] = fileparts(d.name);
+                [~, patternName, patternExt] = fileparts(pattern);
+                if strcmpi(foundName, patternName)
+                    hits{end+1} = fullfile(root, d.name);
+                end
             end
         case 'files'
             if d.isdir
@@ -98,12 +105,27 @@ function hits = fsearch(pattern, root, restriction)
                 hits = [hits subhits];
             else
                 if ~isempty(strfind(lower(fullfile(root, d.name)), lower(pattern)))
-                    hits{end+1} = fullfile(root, d.name);
+                    % we check that the radical name is the one we're
+                    % looking for. We want 4T3993 to match 4T3993.DAT or
+                    % 4T3993.csv but not 454T3993.DAT
+                    [~, foundName, foundExt] = fileparts(d.name);
+                    [~, patternName, patternExt] = fileparts(pattern);
+                    if strcmpi(foundName, patternName)
+                        hits{end+1} = fullfile(root, d.name);
+                    end
                 end
             end
         otherwise % both
             if ~isempty(strfind(lower(fullfile(root, d.name)), lower(pattern)))
-                hits{end+1} = fullfile(root, d.name);
+                % we check that the radical name is the one we're
+                % looking for. We want 4T3993 to match path/4T3993/ or
+                % path/4T3993.DAT but not path/454T3993 nor
+                % path/454T3993.DAT
+                [~, foundName, foundExt] = fileparts(d.name);
+                [~, patternName, patternExt] = fileparts(pattern);
+                if strcmpi(foundName, patternName)
+                    hits{end+1} = fullfile(root, d.name);
+                end
             end
             
             if d.isdir
