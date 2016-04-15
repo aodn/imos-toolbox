@@ -219,7 +219,7 @@ for i=1:lenMooring
     if isempty(sample_data), continue; end
     
     raw_data = preprocessManager(sample_data, 'raw', mode, true);
-    qc_data  = preprocessManager(sample_data, 'qc', mode, true);
+    qc_data  = preprocessManager(raw_data, 'qc', mode, true);
     clear sample_data;
     qc_data  = autoQCManager(qc_data, true);
     

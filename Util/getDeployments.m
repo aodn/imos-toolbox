@@ -1,4 +1,4 @@
-function [fieldTrip deployments sites dataDir] = getDeployments(auto)
+function [fieldTrip deployments sites dataDir] = getDeployments(auto, isCSV)
 %GETDEPLOYMENTS Prompts the user for a field trip ID and data directory.
 % Retrieves and returns the field trip, all deployments from the DDB that
 % are related to the field trip, and the selected data directory.
@@ -7,6 +7,8 @@ function [fieldTrip deployments sites dataDir] = getDeployments(auto)
 %   auto        - if true, the user is not prompted to select a field
 %                 trip/directory; the values in toolboxProperties are
 %                 used.
+%   isCSV       - optional [false = default]. If true, look for csv files 
+%                 rather than using database
 %
 % Outputs:
 %   fieldTrip   - field trip struct - the field trip selected by the user.
@@ -49,13 +51,25 @@ function [fieldTrip deployments sites dataDir] = getDeployments(auto)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
+if nargin == 1
+    isCSV = false;
+end
+
 deployments = struct;
 sites       = struct;
+
+%check for CSV file import:
+ddb = readProperty('toolbox.ddb');
+if strcmp(ddb,'csv')
+    isCSV = true;
+else
+    isCSV = false;
+end
 
 % prompt the user to select a field trip and
 % directory which contains raw data files
 if ~auto
-    [fieldTrip dataDir] = startDialog('timeSeries');
+    [fieldTrip, dataDir] = startDialog('timeSeries', isCSV);
     % if automatic, just get the defaults from toolboxProperties.txt
 else
     dataDir   = readProperty('startDialog.dataDir.timeSeries');
@@ -72,15 +86,21 @@ if isempty(fieldTrip) && isempty(dataDir), return; end
 
 fId = fieldTrip.FieldTripID;
 
-% query the ddb for all deployments related to this field trip
-deployments = executeDDBQuery('DeploymentData', 'EndFieldTrip', fId);
+if isCSV
+    executeQueryFunc = @executeCSVQuery;
+else
+    executeQueryFunc = @executeDDBQuery;
+end
+
+% query the ddb/csv file for all deployments related to this field trip
+deployments = executeQueryFunc('DeploymentData', 'EndFieldTrip', fId);
 
 % query the ddb for all sites related to these deployments
 lenDep = length(deployments);
 for i=1:lenDep
     if i==1
-        sites = executeDDBQuery('Sites', 'Site', deployments(i).Site);
+        sites = executeQueryFunc('Sites', 'Site', deployments(i).Site);
     else
-        sites(i) = executeDDBQuery('Sites', 'Site', deployments(i).Site);
+        sites(i) = executeQueryFunc('Sites', 'Site', deployments(i).Site);
     end
 end

@@ -83,7 +83,7 @@ if ~mkdir(stagingRoot), error('could not create staging area'); end
 % find all .m, .mat, .txt, .jar, .bat, .exe, .bin and .sh files - these are to be 
 % included as resources in the standalone application 
 matlabFiles     = fsearchRegexp('.m$',   toolboxRoot, 'files');
-matlabDataFiles = fsearch('.mat', toolboxRoot, 'files');
+matlabDataFiles = fsearchRegexp('.mat$', toolboxRoot, 'files');
 resourceFiles   = [matlabFiles   matlabDataFiles];
 resourceFiles   = [resourceFiles fsearchRegexp('.txt$', toolboxRoot, 'files')];
 resourceFiles   = [resourceFiles fsearchRegexp('.COF$', toolboxRoot, 'files')];

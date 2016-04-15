@@ -64,15 +64,30 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   origDeployments = deployments;
   origFiles       = files;
   
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = lower(readProperty('toolbox.mode'));
+  
   deploymentDescs = genDepDescriptions(deployments, files);
   
-  % put deployments in alphabetical order
+  % Sort data_samples
   %
   % [B, iX] = sort(A);
   % =>
   % A(iX) == B
   %
-  [deploymentDescs, iSort] = sort(deploymentDescs);
+  switch mode
+      case 'profile'
+          % for a profile, sort by alphabetical order
+          [deploymentDescs, iSort] = sort(deploymentDescs);
+      otherwise
+          % for a mooring, sort instruments by depth
+          [~, iSort] = sort([deployments.InstrumentDepth]);
+          deploymentDescs = deploymentDescs(iSort);
+  end
+  
+  
+  
   deployments = deployments(iSort);
   files = files(iSort);
   
@@ -245,14 +260,16 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     dep  = get(depList,  'Value');
     file = get(fileList, 'Value');
     
-    files{dep}(file) = [];
-    
-    set(fileList, 'String', files{dep}, 'Value', 1);
-    
-    % update deplist view (the deployment's status may have changed)
-    set(depList, ...
-        'Value',  dep, ...
-        'String', annotateDepDescriptions(deployments, deploymentDescs));
+    if ~isempty(files{dep})
+        files{dep}(file) = [];
+        
+        set(fileList, 'String', files{dep}, 'Value', 1);
+        
+        % update deplist view (the deployment's status may have changed)
+        set(depList, ...
+            'Value',  dep, ...
+            'String', annotateDepDescriptions(deployments, deploymentDescs));
+    end
   end
 
   function fileAddCallback(source,ev)
@@ -260,11 +277,6 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   % Opens a dialog, allowing the user to select a file to add to the
   % deployment.
   %
-  
-    % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
-    % If no value is set then default mode is 'timeSeries'
-    mode = lower(readProperty('toolbox.mode'));
-
     switch mode
         case 'profile'
             [newFile path] = uigetfile('*', 'Select Data File',...
@@ -302,21 +314,35 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   % deployments, suitable for use in the deployments list.
   %
 
+    ddb = readProperty('toolbox.ddb');
+  
     % set values for lists
-
     descs = {};
     for k = 1:length(deployments)
 
       dep = deployments(k);
 
-      % at the very least, the instrument and file name
+      % at the very least, the instrument, nominal depth and file name
       descs{k} = dep.InstrumentID;
+      if ~isempty(dep.InstrumentDepth) 
+        descs{k} = [descs{k} ' @' num2str(dep.InstrumentDepth) 'm'];
+      end
+      if isfield(dep, 'DepthTxt')
+          if ~isempty(dep.DepthTxt)
+              descs{k} = [descs{k} ' ' dep.DepthTxt];
+          end
+      end
       if ~isempty(dep.FileName) 
         descs{k} = [descs{k} ' (' dep.FileName ')'];
       end
+      
 
       % get some site information if it exists
-      site = executeDDBQuery('Sites', 'Site', dep.Site);
+      if strcmp('csv', ddb)
+          site = executeCSVQuery('Sites', 'Site', dep.Site);
+      else
+          site = executeDDBQuery('Sites', 'Site', dep.Site);
+      end
 
       if ~isempty(site)
 

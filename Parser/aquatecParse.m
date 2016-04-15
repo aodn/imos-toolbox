@@ -125,12 +125,13 @@ model    = strtrim(strrep(model, 'Pressure', ''));
 model    = strtrim(strrep(model, 'Temperature', ''));
 firmware = getValues({'VERSION'},    keys, meta);
 serial   = getValues({'LOGGER'},     keys, meta);
+serial   = textscan(serial{1}, '%s', 1, 'Delimiter', ',');
     
 sample_data.toolbox_input_file        = filename;
 sample_data.meta.instrument_make      = 'Aquatec';
 sample_data.meta.instrument_model     = ['Aqualogger ' model{1}];
 sample_data.meta.instrument_firmware  = firmware{1};
-sample_data.meta.instrument_serial_no = serial{1};
+sample_data.meta.instrument_serial_no = serial{1}{1};
 sample_data.meta.featureType          = mode;
 %
 % get regime data (mode, sample rate, etc)

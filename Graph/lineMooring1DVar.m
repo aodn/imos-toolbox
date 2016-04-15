@@ -18,32 +18,32 @@ function lineMooring1DVar(sample_data, varName, isQC, saveToFile, exportDir)
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
 % Marine Observing System (IMOS).
 % All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
+%
+% Redistribution and use in source and binary forms, with or without
 % modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
+%
+%     * Redistributions of source code must retain the above copyright notice,
 %       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
+%     * Redistributions in binary form must reproduce the above copyright
+%       notice, this list of conditions and the following disclaimer in the
 %       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
+%     * Neither the name of the eMII/IMOS nor the names of its contributors
+%       may be used to endorse or promote products derived from this software
 %       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 %
 narginchk(5,5);
@@ -85,7 +85,7 @@ for i=1:lenSampleData
     iTime = getVar(sample_data{i}.dimensions, 'TIME');
     iVar = getVar(sample_data{i}.variables, varName);
     iGood = true(size(sample_data{i}.dimensions{iTime}.data));
-        
+    
     % the variable exists, is QC'd and is 1D
     if isQC && iVar && size(sample_data{i}.variables{iVar}.data, 2) == 1
         %get time and var QC information
@@ -119,6 +119,8 @@ hLineVar(1) = 0;
 initiateFigure = true;
 isPlottable = false;
 
+backgroundColor = [0.75 0.75 0.75];
+
 for i=1:lenSampleData
     % instrument description
     if ~isempty(strtrim(sample_data{iSort(i)}.instrument))
@@ -133,13 +135,13 @@ for i=1:lenSampleData
     end
     
     instrumentDesc{i + 1} = [strrep(instrumentDesc{i + 1}, '_', ' ') ' (' num2str(metaDepth(i)) 'm' instrumentSN ')'];
-        
+    
     %look for time and relevant variable
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
     
     if iVar > 0 && size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 && ... % we're only plotting 1D variables but no current
-            all(~strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}))        
+            all(~strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}))
         if initiateFigure
             fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
             visible = 'on';
@@ -159,16 +161,37 @@ for i=1:lenSampleData
             set(hAxMooringVar, 'XLim', [xMin, xMax]);
             hold(hAxMooringVar, 'on');
             
-            % reverse the colorbar as we want surface in red and bottom in blue
-            cMap = colormap(hAxMooringVar, jet(lenSampleData));
+            % dummy entry for first entry in legend
+            hLineVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
+            
+            % set data cursor mode custom display
+            dcm_obj = datacursormode(hFigMooringVar);
+            set(dcm_obj, 'UpdateFcn', {@customDcm, sample_data});
+            
+            % set zoom datetick update
+            datetick(hAxMooringVar, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
+            zoomH = zoom(hFigMooringVar);
+            panH = pan(hFigMooringVar);
+            set(zoomH,'ActionPostCallback',{@zoomDateTick, hAxMooringVar});
+            set(panH,'ActionPostCallback',{@zoomDateTick, hAxMooringVar});
+            
+            try
+                defaultColormapFh = str2func(readProperty('visualQC.defaultColormap'));
+                cMap = colormap(hAxMooringVar, defaultColormapFh(lenSampleData));
+            catch e
+                cMap = colormap(hAxMooringVar, parula(lenSampleData));
+            end
+            % reverse the colorbar as we want surface instruments with warmer colors
             cMap = flipud(cMap);
             
             initiateFigure = false;
         end
         
         if strcmpi(varName, 'DEPTH')
-            hLineVar(1) = line([xMin, xMax], [metaDepth(i), metaDepth(i)], ...
+            hNominalDepth = line([xMin, xMax], [metaDepth(i), metaDepth(i)], ...
                 'Color', 'black');
+            % turn off legend entry for this plot
+            set(get(get(hNominalDepth,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
         end
         
         iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
@@ -193,12 +216,16 @@ for i=1:lenSampleData
             
             dataVar = sample_data{iSort(i)}.variables{iVar}.data;
             dataVar(~iGood) = NaN;
-    
+            
             hLineVar(i + 1) = line(xLine, ...
                 dataVar, ...
                 'Color', cMap(i, :), ...
                 'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
-            
+            userData.idx = iSort(i);
+            userData.xName = 'TIME';
+            userData.yName = varName;
+            set(hLineVar(i + 1), 'UserData', userData);
+            clear('userData');
             % Let's redefine properties after pcolor to make sure grid lines appear
             % above color data and XTick and XTickLabel haven't changed
             set(hAxMooringVar, ...
@@ -208,7 +235,7 @@ for i=1:lenSampleData
                 'Layer',        'top');
             
             % set background to be grey
-            set(hAxMooringVar, 'Color', [0.75 0.75 0.75])
+            set(hAxMooringVar, 'Color', backgroundColor)
         end
     end
 end
@@ -230,45 +257,35 @@ if ~initiateFigure && isPlottable
     
     datetick(hAxMooringVar, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
     
-    % we try to split the legend in two location horizontally
-    nLine = length(hLineVar);
-    if nLine > 2
-        nLine1 = ceil(nLine/2);
-        
-        hLegend(1) = multipleLegend(hAxMooringVar, ...
-            hLineVar(1:nLine1), instrumentDesc(1:nLine1), ...
-            'Interpreter',      'none', ...
-            'Location',         'SouthOutside');
-        hLegend(2) = multipleLegend(hAxMooringVar, ...
-            hLineVar(nLine1+1:nLine),   instrumentDesc(nLine1+1:nLine), ...
-            'Interpreter',              'none', ...
-            'Location',                 'SouthOutside');
-        
-        posAx = get(hAxMooringVar, 'Position');
-        
-        pos1 = get(hLegend(1), 'Position');
-        pos2 = get(hLegend(2), 'Position');
-        maxWidth = max(pos1(3), pos2(3));
-
-        set(hLegend(1), 'Position', [posAx(1), pos1(2), pos1(3), pos1(4)]);
-        set(hLegend(2), 'Position', [posAx(3) - maxWidth/2, pos1(2), pos2(3), pos2(4)]);
-        
-        % set position on legends above modifies position of axis so we
-        % re-initialise it
-        set(hAxMooringVar, 'Position', posAx);
+    % we try to split the legend, maximum 3 columns
+    fontSizeAx = get(hAxMooringVar,'FontSize');
+    fontSizeLb = get(get(hAxMooringVar,'XLabel'),'FontSize');
+    xscale = 0.9;
+    if numel(instrumentDesc) < 4
+        nCols = 1;
+    elseif numel(instrumentDesc) < 8
+        nCols = 2;
     else
-        hLegend = legend(hAxMooringVar, ...
-            hLineVar,       instrumentDesc, ...
-            'Interpreter',  'none', ...
-            'Location',     'SouthOutside');
-        
-        % unfortunately we need to do this hack so that we have consistency with
-        % the case above
-        posAx = get(hAxMooringVar, 'Position');
-        set(hAxMooringVar, 'Position', posAx);
+        nCols = 3;
+        fontSizeAx = fontSizeAx - 1;
+        xscale = 0.75;
     end
-    
-%     set(hLegend, 'Box', 'off', 'Color', 'none');
+    hYBuffer = 1.1 * (2*(fontSizeAx + fontSizeLb));
+    hLegend = legendflex(hAxMooringVar, instrumentDesc,...
+        'anchor', [6 2], ...
+        'buffer', [0 -hYBuffer], ...
+        'ncol', nCols,...
+        'FontSize', fontSizeAx,...
+        'xscale',xscale);
+    posAx = get(hAxMooringVar, 'Position');
+    set(hLegend, 'Units', 'Normalized', 'color', backgroundColor);
+    posLh = get(hLegend, 'Position');
+    if posLh(2) < 0
+        set(hLegend, 'Position',[posLh(1), abs(posLh(2)), posLh(3), posLh(4)]);
+        set(hAxMooringVar, 'Position',[posAx(1), posAx(2)+2*abs(posLh(2)), posAx(3), posAx(4)-2*abs(posLh(2))]);
+    else
+        set(hAxMooringVar, 'Position',[posAx(1), posAx(2)+abs(posLh(2)), posAx(3), posAx(4)-abs(posLh(2))]);
+    end
     
     if saveToFile
         % ensure the printed version is the same whatever the screen used.
@@ -289,5 +306,68 @@ if ~initiateFigure && isPlottable
         close(hFigMooringVar);
     end
 end
+
+%%
+    function datacursorText = customDcm(~, event_obj, sample_data)
+        %customDatacursorText : custom data tip display
+        
+        % Display the position of the data cursor
+        % obj          Currently not used (empty)
+        % event_obj    Handle to event object
+        % output_txt   Data cursor text string (string or cell array of strings).
+        % event_obj
+        % xVarName, yVarName, zVarName : x, y, z (coloured by variable) names,
+        
+        dataIndex = get(event_obj,'DataIndex');
+        posClic = get(event_obj,'Position');
+        
+        p=get(event_obj,'Target');
+        userData = get(p, 'UserData');
+        
+        xName = userData.xName;
+        yName = userData.yName;
+        
+        sam = sample_data{userData.idx};
+        
+        ixVar = getVar(sam.dimensions, xName);
+        if ixVar ~= 0
+            xUnits  = sam.dimensions{ixVar}.units;
+        else
+            % generalized case pass in a variable instead of a dimension
+            ixVar = getVar(sam.variables, xName);
+            xUnits  = sam.variables{ixVar}.units;
+        end
+        
+        iyVar = getVar(sam.dimensions, yName);
+        if iyVar ~= 0
+            yUnits  = sam.dimensions{iyVar}.units;
+        else
+            % generalized case pass in a variable instead of a dimension
+            iyVar = getVar(sam.variables, yName);
+            yUnits  = sam.variables{iyVar}.units;
+        end
+        
+        if strcmp(xName, 'TIME')
+            xStr = datestr(posClic(1),'yyyy-mm-dd HH:MM:SS.FFF');
+        else
+            xStr = [num2str(posClic(1)) ' ' xUnits];
+        end
+        
+        if strcmp(yName, 'TIME')
+            yStr = datestr(posClic(2),'yyyy-mm-dd HH:MM:SS.FFF');
+        else
+            yStr = [num2str(posClic(2)) ' (' yUnits ')']; %num2str(posClic(2),4)
+        end
+        
+        datacursorText = {get(p,'DisplayName'),...
+            [xName ': ' xStr],...
+            [yName ': ' yStr]};
+        %datacursorText{end+1} = ['FileName: ',get(p,'Tag')];
+    end
+
+%%
+    function zoomDateTick(obj,event_obj,hAx)
+        datetick(hAx,'x','dd-mm-yy HH:MM:SS','keeplimits')
+    end
 
 end

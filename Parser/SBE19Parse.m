@@ -331,7 +331,7 @@ function sample_data = SBE19Parse( filename, mode )
                   sample_data.variables{end}.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
               end
               
-              if strcmpi('PRES_REL', vars{k})
+              if strncmp('PRES_REL', vars{k}, 8)
                   % let's document the constant pressure atmosphere offset previously
                   % applied by SeaBird software on the absolute presure measurement
                   sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);

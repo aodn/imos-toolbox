@@ -151,7 +151,7 @@ function sample_data = makeNetCDFCompliant( sample_data )
   %
   % variables
   %
-  
+  ddb = readProperty('toolbox.ddb');
   for k = 1:length(sample_data.variables)
     
     
@@ -173,11 +173,11 @@ function sample_data = makeNetCDFCompliant( sample_data )
     if isfield(sample_data.meta, 'deployment')
         iTime = getVar(sample_data.dimensions, 'TIME');
         sample_data.variables{k}.sensor_serial_number = ...
-            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.deployment.InstrumentID, sample_data.dimensions{iTime}.data(1));
+            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.deployment.InstrumentID, sample_data.dimensions{iTime}.data(1), ddb);
     elseif isfield(sample_data.meta, 'profile')
         iTime = getVar(sample_data.variables, 'TIME');
         sample_data.variables{k}.sensor_serial_number = ...
-            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.profile.InstrumentID, sample_data.variables{iTime}.data(1));
+            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.profile.InstrumentID, sample_data.variables{iTime}.data(1), ddb);
     end
   end
 end
@@ -200,7 +200,7 @@ function target = mergeAtts ( target, atts )
   end
 end
 
-function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSample )
+function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSample, ddb )
 %GETSENSORSERIALNUMBER gets the sensor serial number associated to an IMOS
 %paramter for a given deployment ID
 %
@@ -208,8 +208,11 @@ function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSamp
 target = '';
 
 % query the ddb for all sensor config related to this instrument ID
-InstrumentSensorConfig = executeDDBQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
-
+if strcmp('csv',ddb)
+    InstrumentSensorConfig = executeCSVQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
+else
+    InstrumentSensorConfig = executeDDBQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
+end
 lenConfig = length(InstrumentSensorConfig);
 % only consider relevant config based on timeFirstSample
 for i=1:lenConfig

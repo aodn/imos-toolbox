@@ -464,4 +464,8 @@ function data = readData(fid, header)
   % generate time stamps from start/interval/end
   data.time = header.start:header.interval:header.end;
   data.time = data.time(1:length(samples{1}))';
+  
+  if isfield(header, 'averaging_time_period')
+      data.time = data.time + (header.averaging_time_period/(24*3600))/2; %assume averaging time is always in seconds
+  end
 end

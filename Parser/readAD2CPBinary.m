@@ -4,7 +4,7 @@ function structures = readAD2CPBinary( filename )
 %
 % This function is able to parse raw binary data from any Nortek instrument
 % which is defined in the Data formats chapter of the Nortek
-% Integrator Guide AD2CP, 2015.
+% Integrator Guide AD2CP, 2016.
 %
 % Nortek AD2CP binary files consist of 2 'sections': header and data record, the format of
 % which are specified in the Integrator Guide. This function reads
@@ -147,14 +147,13 @@ switch id
     case '17'
         [sect, len, off] = readBottomTrack         (data, idx, cpuEndianness); % 0x17
     case '18'
-        % [sect, len, off] = readInterleavedBurst    (data, idx, cpuEndianness); % 0x18
-        disp('Interleaved Burst Data Record not supported');
-        disp(['ID : hex ' id ' at offset ' num2str(idx+2)]);
+        [sect, len, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x18
     case 'A0'
         [sect, len, off] = readString              (data, idx, cpuEndianness); % 0xA0
     otherwise
         disp('Unknown section type');
         disp(['ID : hex ' id ' at offset ' num2str(idx+2)]);
+        off = len;
 end
 
 if isempty(sect), return; end
@@ -176,8 +175,8 @@ function cd = readClockData(data, idx, cpuEndianness)
 
 data = data(idx:idx+7);
 
-year    = bytecast(data(1), 'L', 'uint8', cpuEndianness);
-month   = bytecast(data(2), 'L', 'uint8', cpuEndianness);
+year    = bytecast(data(1), 'L', 'uint8', cpuEndianness) + 1900; % years since 1900
+month   = bytecast(data(2), 'L', 'uint8', cpuEndianness) + 1; % Jan=0, Feb=1, etc.
 day     = bytecast(data(3), 'L', 'uint8', cpuEndianness);
 hour    = bytecast(data(4), 'L', 'uint8', cpuEndianness);
 minute  = bytecast(data(5), 'L', 'uint8', cpuEndianness);
@@ -185,9 +184,9 @@ second  = bytecast(data(6), 'L', 'uint8', cpuEndianness);
 hundredsusecond  = bytecast(data(7:8), 'L', 'uint16', cpuEndianness);
 
 second  = second + hundredsusecond/10000;
-year = year + 1900;
 
 cd = datenummx(year, month, day, hour, minute, second); % direct access to MEX function, faster
+
 end
 
 function [header, len, off] = readHeader(data, idx, cpuEndianness)
@@ -220,7 +219,7 @@ end
 
 function [sect, len, off] = readBurstAverage(data, idx, cpuEndianness)
 %READBURST
-% Id=0x15, Burst/Average Data Record
+% Burst/Average Data Record
 
 sect = struct;
 [sect.Header, len, off] = readHeader(data, idx, cpuEndianness);
@@ -249,7 +248,7 @@ end
 
 function sect = readBurstAverageVersion1(data, idx, cpuEndianness)
 %READBURSTAVERAGEVERSION1
-% Id=0x15 or 0x16, Burst/Average Data Record
+% Id=0x15 or 0x16 or 0x18, Burst/Average Data Record
 % Version=1
 
 sect = struct;
@@ -306,7 +305,7 @@ end
 
 function sect = readBurstAverageVersion2(data, idx, cpuEndianness)
 %READBURSTAVERAGEVERSION2
-% Id=0x15 or 0x16, Burst/Average Data Record
+% Id=0x15 or 0x16 or 0x18, Burst/Average Data Record
 % Version=2
 
 sect = struct;
@@ -375,7 +374,7 @@ end
 
 function sect = readBurstAverageVersion3(data, idx, cpuEndianness)
 %READBURSTAVERAGEVERSION3
-% Id=0x15 or 0x16, Burst/Average Data Record
+% Id=0x15 or 0x16 or 0x18, Burst/Average Data Record
 % Version=3
 
 sect = struct;
@@ -405,8 +404,11 @@ iStartCell = 1;
 iEndCell = 10;
 iStartBeam = 13;
 iEndBeam = 16;
+iStartCoord = 11;
+iEndCoord = 12;
 sect.nCells            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndCell+1:end-iStartCell+1));
 sect.nBeams            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndBeam+1:end-iStartBeam+1));
+sect.coordSys          = sect.Beams_CoordSys_Cells(end-iEndCoord+1:end-iStartCoord+1);
 
 sect.CellSize          = bytecast(data(idx+32:idx+33), 'L', 'uint16', cpuEndianness); % 1 mm
 sect.Blanking          = bytecast(data(idx+34:idx+35), 'L', 'uint16', cpuEndianness); % 1 mm
@@ -430,7 +432,7 @@ sect.Error             = bytecast(data(idx+64:idx+67), 'L', 'uint32', cpuEndiann
 sect.Status            = dec2bin(bytecast(data(idx+68:idx+71), 'L', 'uint32', cpuEndianness), 32);
 sect.EnsembleCounter   = bytecast(data(idx+72:idx+75), 'L', 'uint32', cpuEndianness); % counts the number of ensembles in both averaged and burst data
 
-off = 75;
+off = sect.OffsetOfData - 1;
 if isVelocity
     sect.VelocityData       = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells*2), 'L', 'int16', cpuEndianness), sect.nCells, sect.nBeams)'; % 10^(velocity scaling) m/s
     off = off+sect.nBeams*sect.nCells*2;
@@ -447,25 +449,25 @@ if isCorrelation
 end
 
 if isAltimeter
-    off = off + 1;
-    sect.AltimeterDistance  = bytecast(data(idx+off:idx+off+3), 'L', 'single', cpuEndianness); % m
-    off = off + 3;
-    sect.AltimeterQuality   = bytecast(data(idx+off:idx+off+1), 'L', 'uint16', cpuEndianness);
-    off = off + 1;
-    sect.AltimeterStatus    = dec2bin(bytecast(data(idx+off:idx+off+1), 'L', 'uint16', cpuEndianness), 16);
-    off = off + 1;
+    sect.AltimeterDistance  = bytecast(data(idx+off+1:idx+off+4), 'L', 'single', cpuEndianness); % m
+    off = off + 4;
+    sect.AltimeterQuality   = bytecast(data(idx+off+1:idx+off+2), 'L', 'uint16', cpuEndianness);
+    off = off + 2;
+    sect.AltimeterStatus    = dec2bin(bytecast(data(idx+off+1:idx+off+2), 'L', 'uint16', cpuEndianness), 16);
+    off = off + 2;
 end
 
 if isAST
-    off = off + 1;
-    sect.ASTDistance        = bytecast(data(idx+off:idx+off+3), 'L', 'single', cpuEndianness); % m
-    off = off + 3;
-    sect.ASTQuality         = bytecast(data(idx+off:idx+off+1), 'L', 'uint16', cpuEndianness);
-    off = off + 1;
-    sect.ASTOffset100uSec   = bytecast(data(idx+off:idx+off+1), 'L', 'int16', cpuEndianness); % 100 us
-    off = off + 1;
-    sect.ASTPressure        = bytecast(data(idx+off:idx+off+3), 'L', 'single', cpuEndianness); % dbar
-    off = off + 3;
+    sect.ASTDistance        = bytecast(data(idx+off+1:idx+off+4), 'L', 'single', cpuEndianness); % m
+    off = off + 4;
+    sect.ASTQuality         = bytecast(data(idx+off+1:idx+off+2), 'L', 'uint16', cpuEndianness);
+    off = off + 2;
+    sect.ASTOffset100uSec   = bytecast(data(idx+off+1:idx+off+2), 'L', 'int16', cpuEndianness); % 100 us
+    off = off + 2;
+    sect.ASTPressure        = bytecast(data(idx+off+1:idx+off+4), 'L', 'single', cpuEndianness); % dbar
+    off = off + 4;
+    sect.ASTSpare           = bytecast(data(idx+off+1:idx+off+8), 'L', 'int8', cpuEndianness); % spare
+    off = off + 8;
 end
 
 end
