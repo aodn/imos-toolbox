@@ -62,10 +62,10 @@ narginchk(2,3);
 
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
-% if this is the second time through (ie for applying autoQC PP
-% routines), then return. sample_data already contains the corrections
-% and they are therefore carried through.
-if auto, return; end
+
+% no modification of data is performed on the raw FV00 dataset except
+% local time to UTC conversion
+if strcmpi(qcLevel, 'raw'), return; end
 
 % auto logical in input to enable running under batch processing
 if nargin<3, auto=false; end
@@ -189,7 +189,7 @@ for k = 1:nSample
     
     %check for zero values in both fields
     if startOffsets(k) == 0 && endOffsets(k) == 0
-        continue
+        continue;
     end
     
     % look time through dimensions
