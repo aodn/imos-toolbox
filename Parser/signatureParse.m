@@ -51,6 +51,9 @@ if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 filename = filename{1};
 [path, name, ext] = fileparts(filename);
 
+isMagBias = false;
+magDec = 0;
+
 switch lower(ext)
     case '.ad2cp'
         % read in all of the structures in the raw file
@@ -60,7 +63,17 @@ switch lower(ext)
         if isfield(structures, 'IdA0')
             % this is a string data record
             if structures.IdA0.Data.Id == 16
+                % looking for instrument model
                 instrumentModel = regexp(structures.IdA0.Data.String, 'Signature[0-9]*', 'match', 'once');
+                
+                % check for magnetic declination
+                stringCell = textscan(structures.IdA0.Data.String, '%s', 'Delimiter', ',');
+                iMagDec = strncmp('DECL=', stringCell{1}, 5);
+                if any(iMagDec)
+                    magDec = stringCell{1}{iMagDec};
+                    magDec = textscan(magDec, 'DECL=%f');
+                    magDec = magDec{1};
+                end
             end
         end
         
@@ -158,6 +171,9 @@ switch lower(ext)
         cellSize    = structures.Config.([acquisitionMode '_CellSize']);
         blankDist   = structures.Config.([acquisitionMode '_BlankingDistance']);
         
+        % check for magnetic declination
+        magDec = structures.Config.Declination;
+        
         [~, ~, cpuEndianness] = computer;
         
         Status              = dec2bin(bytecast(structures.Data.([acquisitionMode '_Status']), 'L', 'uint32', cpuEndianness), 32);
@@ -213,6 +229,13 @@ end
 
 sample_data = struct;
     
+if magDec ~= 0
+    isMagBias = true;
+    magBiasComment = ['A compass correction of ' num2str(magDec) ...
+        'degrees has been applied to the data by a technician using Nortek''s software ' ...
+        '(usually to account for magnetic declination).'];
+end
+
 sample_data.toolbox_input_file              = filename;
 sample_data.meta.featureType                = ''; % strictly this dataset cannot be described as timeSeriesProfile since it also includes timeSeries data like TEMP
 sample_data.meta.binSize                    = cellSize;
@@ -271,6 +294,11 @@ clear dims;
 
 % add variables with their dimensions and data mapped.
 % we assume no correction for magnetic declination has been applied
+if isMagBias
+    magExt = '';
+else
+    magExt = '_MAG';
+end
 iDimVel = nDims;
 iDimDiag = nDims;
 vars = {
@@ -278,8 +306,8 @@ vars = {
     'LATITUDE',         [],             NaN; ...
     'LONGITUDE',        [],             NaN; ...
     'NOMINAL_DEPTH',    [],             NaN; ...
-    'VCUR_MAG',         [1 iDimVel],    Velocity_N(iWellOriented, :); ... % V
-    'UCUR_MAG',         [1 iDimVel],    Velocity_E(iWellOriented, :); ... % U
+    ['VCUR' magExt],    [1 iDimVel],    Velocity_N(iWellOriented, :); ... % V
+    ['UCUR' magExt],    [1 iDimVel],    Velocity_E(iWellOriented, :); ... % U
     'WCUR',             [1 iDimVel],    Velocity_U(iWellOriented, :); ...
     'WCUR_2',           [1 iDimVel],    Velocity_U2(iWellOriented, :); ...
     'ABSIC1',           [1 iDimDiag],   Backscatter1(iWellOriented, :); ...
@@ -296,7 +324,7 @@ vars = {
     'VOLT',             1,              Battery(iWellOriented); ...
     'PITCH',            1,              Pitch(iWellOriented); ...
     'ROLL',             1,              Roll(iWellOriented); ...
-    'HEADING_MAG',      1,              Heading(iWellOriented)
+    ['HEADING' magExt], 1,              Heading(iWellOriented)
     };
 clear Velocity_N Velocity_E Velocity_U Velocity_U2 ...
     Backscatter1 Backscatter2 Backscatter3 Backscatter4 ...
@@ -317,5 +345,10 @@ for i=1:nVars
         end
     end
     sample_data.variables{i}.data         = sample_data.variables{i}.typeCastFunc(vars{i, 3});
+    
+    if any(strcmpi(vars{i, 1}, {'VCUR', 'UCUR', 'HEADING'}))
+        sample_data.variables{i}.compass_correction_applied = magDec;
+        sample_data.variables{i}.comment = magBiasComment;
+    end
 end
 clear vars;
