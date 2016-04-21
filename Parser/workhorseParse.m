@@ -138,8 +138,10 @@ narginchk(1, 2);
       variable.y2kMinute,...
       variable.y2kSecond + variable.y2kHundredth/100.0]);
   
-  % shift the timestamp to the middle of the burst
-  time = time + (fixed.pingsPerEnsemble .* (fixed.tppMinutes*60 + fixed.tppSeconds + fixed.tppHundredths/100) / (3600 * 24))/2;
+  timePerPing = fixed.tppMinutes*60 + fixed.tppSeconds + fixed.tppHundredths/100;
+  timePerEnsemble = fixed.pingsPerEnsemble .* timePerPing;
+%   % shift the timestamp to the middle of the burst
+%   time = time + (timePerEnsemble / (3600 * 24))/2;
   
   %
   % auxillary data
@@ -253,6 +255,7 @@ narginchk(1, 2);
   sample_data.meta.instrument_model     = [model ' Workhorse ADCP'];
   sample_data.meta.instrument_serial_no =  serial;
   sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+  sample_data.meta.instrument_average_interval = mode(timePerEnsemble);
   sample_data.meta.instrument_firmware  = ...
     strcat(num2str(fixed.cpuFirmwareVersion(1)), '.', num2str(fixed.cpuFirmwareRevision(1))); % we assume the first value is correct for the rest of the dataset
   if all(isnan(fixed.beamAngle))
@@ -272,7 +275,7 @@ narginchk(1, 2);
   end
   iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
   dims = {
-      'TIME',                   time(iWellOriented),    ''; ...
+      'TIME',                   time(iWellOriented),    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(sample_data.meta.instrument_average_interval) ' seconds.']; ...
       'HEIGHT_ABOVE_SENSOR',    height(:),              'Data has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.'; ...
       'DIST_ALONG_BEAMS',       distance(:),            'Data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
       };
@@ -287,6 +290,9 @@ narginchk(1, 2);
       sample_data.dimensions{i}.comment      = dims{i, 3};
   end
   clear dims;
+  
+  % add information about the middle of the measurement period
+  sample_data.dimensions{1}.seconds_to_middle_of_measurement = sample_data.meta.instrument_average_interval/2;
   
   % add variables with their dimensions and data mapped
   if isMagBias
@@ -415,14 +421,25 @@ narginchk(1, 2);
       sample_data{2}.meta.user                       = [];
       sample_data{2}.meta.instrument_sample_interval = median(diff(waveData.param.time*24*3600));
       
+      avgInterval = [];
+      if isfield(waveData, 'summary')
+          iMatch = ~cellfun(@isempty, regexp(waveData.summary, 'Each Burst Contains  [0-9]* Samples, Taken at [0-9\.]* Hz.'));
+          if any(iMatch)
+              avgInterval = textscan(waveData.summary{iMatch}, 'Each Burst Contains  %f Samples, Taken at %f Hz.');
+              avgInterval = avgInterval{1}/avgInterval{2};
+          end
+      end
+      sample_data{2}.meta.instrument_average_interval = avgInterval;
+      if isempty(avgInterval), avgInterval = '?'; end
+      
       sample_data{2}.dimensions = {};
       sample_data{2}.variables  = {};
       
       % add dimensions with their data mapped
       dims = {
-          'TIME',                   waveData.param.time; ...
-          'FREQUENCY',              waveData.Dspec.freq; ...
-          ['DIR' magExt],           waveData.Dspec.dir
+          'TIME',                   waveData.param.time,    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(avgInterval) ' seconds.']; ...
+          'FREQUENCY',              waveData.Dspec.freq,    ''; ...
+          ['DIR' magExt],           waveData.Dspec.dir,     ''
           };
       
       nDims = size(dims, 1);
@@ -437,6 +454,9 @@ narginchk(1, 2);
           end
       end
       clear dims;
+      
+      % add information about the middle of the measurement period
+      sample_data{2}.dimensions{1}.seconds_to_middle_of_measurement = sample_data{2}.meta.instrument_average_interval/2;
       
       % add variables with their dimensions and data mapped
       vars = {
