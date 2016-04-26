@@ -196,7 +196,12 @@ roll  = sample_data.variables{idRoll}.data;
 tilt = acos(sqrt(1 - sin(roll*pi/180).^2 - sin(pitch*pi/180).^2))*180/pi;
 
 % initially everything is failing the tests
-sizeCur = size(sample_data.variables{idWcur}.flags);
+if idUcur
+    idVar = idUcur;
+else
+    idVar = idCspd;
+end
+sizeCur = size(sample_data.variables{idVar}.flags);
 flags = ones(sizeCur, 'int8')*secondFlagThreshold;
 
 % tilt test
