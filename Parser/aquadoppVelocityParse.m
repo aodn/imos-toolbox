@@ -158,12 +158,13 @@ sample_data.meta.instrument_model           = 'Aquadopp Current Meter';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+sample_data.meta.instrument_average_interval= user.AvgInterval;
 sample_data.meta.beam_angle                 = 45;   % http://wiki.neptunecanada.ca/download/attachments/18022846/Nortek+Aquadopp+Current+Meter+User+Manual+-+Rev+C.pdf
 sample_data.meta.featureType                = mode;
 
 % add dimensions with their data mapped
 dims = {
-    'TIME',                   time
+    'TIME', time, ['Time stamp corresponds to the start of the measurement which lasts ' num2str(user.AvgInterval) ' seconds.'] 
     };
 clear time;
 
@@ -173,8 +174,12 @@ for i=1:nDims
     sample_data.dimensions{i}.name         = dims{i, 1};
     sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
     sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
+    sample_data.dimensions{i}.comment      = dims{i, 3};
 end
 clear dims;
+
+% add information about the middle of the measurement period
+sample_data.dimensions{1}.seconds_to_middle_of_measurement = user.AvgInterval/2;
 
 % add variables with their dimensions and data mapped.
 % we assume no correction for magnetic declination has been applied

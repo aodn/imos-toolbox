@@ -23,6 +23,7 @@ S, metadata                     =
 S, sensorML                     = 
 S, instrument_serial_number     = [mat updateIfEmpty('[ddb InstrumentID Instruments SerialNumber]', sample_data.meta.instrument_serial_no)]
 N, instrument_sample_interval   = [mat sample_data.meta.instrument_sample_interval]
+N, instrument_average_interval  = [mat sample_data.meta.instrument_average_interval]
 N, instrument_beam_angle        = [mat sample_data.meta.beam_angle]
 N, instrument_burst_interval    = [mat sample_data.meta.instrument_burst_interval]
 N, instrument_burst_duration    = [mat sample_data.meta.instrument_burst_duration]

@@ -243,6 +243,7 @@ sample_data.meta.instrument_make            = 'Nortek';
 sample_data.meta.instrument_model           = 'Continental';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+sample_data.meta.instrument_average_interval= user.AvgInterval;
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.beam_angle                 = 25;   % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
 sample_data.meta.beam_to_xyz_transform      = head.TransformationMatrix;
@@ -258,7 +259,7 @@ if adcpOrientation == 1
 end
 iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
 dims = {
-    'TIME',             time(iWellOriented),    ''; ...
+    'TIME',             time(iWellOriented),    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(user.AvgInterval) ' seconds.']; ...
     'DIST_ALONG_BEAMS', distance,               'Nortek instrument data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
     };
 clear time distance;
@@ -279,6 +280,9 @@ for i=1:nDims
     sample_data.dimensions{i}.comment      = dims{i, 3};
 end
 clear dims;
+
+% add information about the middle of the measurement period
+sample_data.dimensions{1}.seconds_to_middle_of_measurement = user.AvgInterval/2;
 
 % add variables with their dimensions and data mapped.
 % we assume no correction for magnetic declination has been applied

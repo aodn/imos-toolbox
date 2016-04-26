@@ -241,6 +241,7 @@ sample_data.meta.instrument_make            = 'Nortek';
 sample_data.meta.instrument_model           = 'AWAC';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+sample_data.meta.instrument_average_interval= user.AvgInterval;
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.beam_angle                 = 25;   % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
 sample_data.meta.beam_to_xyz_transform      = head.TransformationMatrix;
@@ -256,7 +257,7 @@ if adcpOrientation == 1
 end
 iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
 dims = {
-    'TIME',             time(iWellOriented),    ''; ...
+    'TIME',             time(iWellOriented),    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(user.AvgInterval) ' seconds.']; ...
     'DIST_ALONG_BEAMS', distance,               'Nortek instrument data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
     };
 clear time distance;
@@ -277,6 +278,9 @@ for i=1:nDims
     sample_data.dimensions{i}.comment      = dims{i, 3};
 end
 clear dims;
+
+% add information about the middle of the measurement period
+sample_data.dimensions{1}.seconds_to_middle_of_measurement = user.AvgInterval/2;
 
 % add variables with their dimensions and data mapped.
 % we assume no correction for magnetic declination has been applied
@@ -370,20 +374,36 @@ sample_data{2} = sample_data{1};
 [filePath, fileRadName, ~] = fileparts(filename);
 filename = fullfile(filePath, [fileRadName '.wap']);
 
-sample_data{2}.toolbox_input_file              = filename;
-sample_data{2}.meta.head                       = [];
-sample_data{2}.meta.hardware                   = [];
-sample_data{2}.meta.user                       = [];
-sample_data{2}.meta.instrument_sample_interval = median(diff(waveData.Time*24*3600));
+sample_data{2}.toolbox_input_file               = filename;
+sample_data{2}.meta.head                        = [];
+sample_data{2}.meta.hardware                    = [];
+sample_data{2}.meta.user                        = [];
+sample_data{2}.meta.instrument_sample_interval  = median(diff(waveData.Time*24*3600));
+
+avgInterval = [];
+if isfield(waveData, 'summary')
+    iMatch = ~cellfun(@isempty, regexp(waveData.summary, 'Wave - Number of samples              [0-9]'));
+    if any(iMatch)
+        nSamples = textscan(waveData.summary{iMatch}, 'Wave - Number of samples              %f');
+        
+        iMatch = ~cellfun(@isempty, regexp(waveData.summary, 'Wave - Sampling rate                  [0-9\.] Hz'));
+        if any(iMatch)
+            samplingRate = textscan(waveData.summary{iMatch}, 'Wave - Sampling rate                  %f Hz');
+            avgInterval = nSamples{1}/samplingRate{1};
+        end
+    end
+end
+sample_data{2}.meta.instrument_average_interval = avgInterval;
+if isempty(avgInterval), avgInterval = '?'; end
 
 % we assume no correction for magnetic declination has been applied
 
 % add dimensions with their data mapped
 dims = {
-    'TIME',                   waveData.Time; ...
-    'FREQUENCY_1',            waveData.pwrFrequency; ...
-    'FREQUENCY_2',            waveData.dirFrequency; ...
-    'DIR_MAG',                waveData.Direction
+    'TIME',                   waveData.Time,            ['Time stamp corresponds to the start of the measurement which lasts ' num2str(avgInterval) ' seconds.']; ...
+    'FREQUENCY_1',            waveData.pwrFrequency,    ''; ...
+    'FREQUENCY_2',            waveData.dirFrequency,    ''; ...
+    'DIR_MAG',                waveData.Direction,       ''
     };
 
 nDims = size(dims, 1);
@@ -394,6 +414,9 @@ for i=1:nDims
     sample_data{2}.dimensions{i}.data         = sample_data{2}.dimensions{i}.typeCastFunc(dims{i, 2});
 end
 clear dims;
+
+% add information about the middle of the measurement period
+sample_data{2}.dimensions{1}.seconds_to_middle_of_measurement = sample_data{2}.meta.instrument_average_interval/2;
 
 % add variables with their dimensions and data mapped
 vars = {

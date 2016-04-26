@@ -76,7 +76,7 @@ function sample_data = readXR420( filename, mode )
   sample_data.meta.featureType          = mode;
   
   if isfield(header, 'correction'),             sample_data.meta.correction             = header.correction; end
-  if isfield(header, 'averaging_time_period'),  sample_data.meta.averaging_time_period  = header.averaging_time_period; end
+  if isfield(header, 'averaging_time_period'),  sample_data.meta.instrument_average_interval = header.averaging_time_period; end
   if isfield(header, 'burst_sample_rate'),      sample_data.meta.burst_sample_rate      = header.burst_sample_rate; end
   
   sample_data.dimensions = {};  
@@ -287,6 +287,10 @@ function sample_data = readXR420( filename, mode )
           sample_data.dimensions{1}.name            = 'TIME';
           sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
           sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(data.time);
+          if isfield(header, 'averaging_time_period')
+              sample_data.dimensions{1}.comment         = ['Time stamp corresponds to the start of the measurement which lasts ' num2str(header.averaging_time_period) ' seconds.'];
+              sample_data.dimensions{1}.seconds_to_middle_of_measurement = header.averaging_time_period/2; %assume averaging time is always in seconds
+          end
           
           sample_data.variables{end+1}.name           = 'TIMESERIES';
           sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
@@ -465,7 +469,7 @@ function data = readData(fid, header)
   data.time = header.start:header.interval:header.end;
   data.time = data.time(1:length(samples{1}))';
   
-  if isfield(header, 'averaging_time_period')
-      data.time = data.time + (header.averaging_time_period/(24*3600))/2; %assume averaging time is always in seconds
-  end
+%   if isfield(header, 'averaging_time_period')
+%       data.time = data.time + (header.averaging_time_period/(24*3600))/2; %assume averaging time is always in seconds
+%   end
 end

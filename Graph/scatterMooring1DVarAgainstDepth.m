@@ -108,7 +108,7 @@ end
 xMin = min(xMin);
 xMax = max(xMax);
 
-markerStyle = {'+', 'o', '*', '.', 'x', 's', 'd', '^', 'v', '>', '<', 'p', 'h'};
+markerStyle = {'+', 'o', '*', 's', 'd', '^', 'v', '>', '<', 'p', 'h'};
 lenMarkerStyle = length(markerStyle);
 
 instrumentDesc = cell(lenSampleData + 1, 1);
@@ -128,17 +128,20 @@ for i=1:lenSampleData
     iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
     izVar = getVar(sample_data{iSort(i)}.variables, varName);
     
-    if izVar > 0 && iDepth > 0 && ...
-            size(sample_data{iSort(i)}.variables{izVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
+    if izVar > 0 && size(sample_data{iSort(i)}.variables{izVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
             all(~strcmpi(sample_data{iSort(i)}.variables{izVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}))
         iGood = true(size(sample_data{iSort(i)}.variables{izVar}.data));
         if isQC
             %get time, depth and var QC information
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-            depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
             varFlags = sample_data{iSort(i)}.variables{izVar}.flags;
             
-            iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2) & (depthFlags == 1 | depthFlags == 2);
+            iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+            
+            if iDepth
+                depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
+                iGood = iGood & (depthFlags == 1 | depthFlags == 2);
+            end
         end
         
         if any(iGood)
@@ -235,14 +238,17 @@ if any(isPlottable)
             if isQC
                 %get time, depth and var QC information
                 timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-                depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
                 varFlags = sample_data{iSort(i)}.variables{izVar}.flags;
                 varValues = sample_data{iSort(i)}.variables{izVar}.data;
                 
                 iGood = (timeFlags == 1 | timeFlags == 2) & ...
                     (varFlags == 1 | varFlags == 2) & ...
                     ~isnan(varValues);
-                iGoodDepth = (depthFlags == 1 | depthFlags == 2);
+                
+                if iDepth
+                    depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
+                    iGoodDepth = (depthFlags == 1 | depthFlags == 2);
+                end
             end
             
             if all(~iGood) && isQC
@@ -250,7 +256,17 @@ if any(isPlottable)
                     ', there is not any ' varName ' data with good flags.']);
                 continue;
             else
-                depth = sample_data{iSort(i)}.variables{iDepth}.data;
+                if iDepth
+                    depth = sample_data{iSort(i)}.variables{iDepth}.data;
+                else
+                    if isfield(sample_data{iSort(i)}, 'instrument_nominal_depth')
+                        depth = sample_data{iSort(i)}.instrument_nominal_depth*ones(size(iGood));
+                    else
+                        fprintf('%s\n', ['Error : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                            ', global attribute instrument_nominal_depth is not documented.']);
+                        continue;
+                    end
+                end
                 depth(~iGoodDepth) = metaDepth(i);
                 depth = depth(iGood);
                 

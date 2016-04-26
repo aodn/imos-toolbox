@@ -137,10 +137,10 @@ for k = 1:length(sample_data)
                 % samples without pressure information are excluded
                 if (presCurIdx == 0 && presRelCurIdx == 0), continue; end
                 
-                if isSensorHeight
-                    samSensorZ = sam.instrument_nominal_height;
-                else
+                if isSensorTargetDepth
                     samSensorZ = sam.instrument_nominal_depth;
+                else
+                    samSensorZ = sam.instrument_nominal_height;
                 end
                 
                 % current sample or samples without vertical nominal 
@@ -199,10 +199,12 @@ for k = 1:length(sample_data)
                 iFirst  = [];
                 iSecond = [];
                 for l = 1:m
-                    if isSensorHeight
-                        diffWithOthers(l) = curSam.instrument_nominal_height - otherSam{l}.instrument_nominal_height;
-                    else
+                    if isSensorTargetDepth
                         diffWithOthers(l) = curSam.instrument_nominal_depth - otherSam{l}.instrument_nominal_depth;
+                    else
+                        % below is reversed so that sign convention is the
+                        % same
+                        diffWithOthers(l) = otherSam{l}.instrument_nominal_height - curSam.instrument_nominal_height;
                     end
                 end
                 
@@ -229,7 +231,9 @@ for k = 1:length(sample_data)
                     % the calculated depth could be too far off the truth
                     distMin = 10;
                     while distance < distMin && ~all(isnan(newDiffWithOthers))
-                        iNextBelow = find(diffWithOthers == max(newDiffWithOthers(newDiffWithOthers < 0)), 1);
+                        iNextBelow = diffWithOthers == max(newDiffWithOthers(newDiffWithOthers < 0));
+                        iNextBelow(isnan(newDiffWithOthers)) = 0; % deals with the case of same depth instrument previously found
+                        iNextBelow = find(iNextBelow, 1, 'first');
                         distance = abs(diffWithOthers(iNextBelow) - diffWithOthers(iBelow));
                         if distance >= distMin
                             iSecond = iNextBelow;
@@ -239,6 +243,27 @@ for k = 1:length(sample_data)
                     end
                 elseif isempty(iBelow) && ~isempty(iAbove)
                     iFirst = iAbove;
+                    
+                    % extending reseach to further nearest above didn't
+                    % lead to better results
+                    
+%                     % let's find the second nearest above
+%                     newDiffWithOthers = diffWithOthers;
+%                     newDiffWithOthers(iFirst) = NaN;
+%                     distance = 0;
+%                     
+%                     % if those two sensors are too close to each other then
+%                     % the calculated depth could be too far off the truth
+%                     distMin = 10;
+%                     while distance < distMin && ~all(isnan(newDiffWithOthers))
+%                         iNextAbove = find(diffWithOthers == min(newDiffWithOthers(newDiffWithOthers > 0)), 1);
+%                         distance = abs(diffWithOthers(iNextAbove) - diffWithOthers(iAbove));
+%                         if distance >= distMin
+%                             iSecond = iNextAbove;
+%                             break;
+%                         end
+%                         newDiffWithOthers(iNextAbove) = NaN;
+%                     end
                 else
                     iFirst  = iAbove;
                     iSecond = iBelow;
@@ -248,7 +273,7 @@ for k = 1:length(sample_data)
                     fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ...
                         ' computing actual depth from only one pressure sensor '...
                         'on mooring']);
-                    % we found only one sensor (it is above)
+                    % we found only one sensor
                     otherSam = otherSam{iFirst};
                     presIdxOther = getVar(otherSam.variables, 'PRES');
                     presRelIdxOther = getVar(otherSam.variables, 'PRES_REL');
@@ -285,10 +310,19 @@ for k = 1:length(sample_data)
                     % vertical axis is positive down when talking about
                     % depth
                     %
-                    if isSensorHeight
-                        distOtherCurSensor = otherSam.instrument_nominal_height - curSam.instrument_nominal_height;
-                    else
+                    if isSensorTargetDepth
                         distOtherCurSensor = curSam.instrument_nominal_depth - otherSam.instrument_nominal_depth;
+                        signOtherCurSensor = sign(distOtherCurSensor);
+                        
+                        distOtherCurSensor = abs(distOtherCurSensor);
+                    else
+                        distOtherCurSensor = otherSam.instrument_nominal_height - curSam.instrument_nominal_height;
+                        signOtherCurSensor = -sign(distOtherCurSensor);
+                        %  0 => two sensors at the same depth
+                        %  1 => current sensor is deeper than other sensor
+                        % -1 => current sensor is lower than other sensor
+                        
+                        distOtherCurSensor = abs(distOtherCurSensor);
                     end
                     
                     if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
@@ -332,7 +366,7 @@ for k = 1:length(sample_data)
                     zOther = interp1(tOther, zOther, tCur);
                     clear tOther tCur;
                     
-                    computedDepth = zOther + distOtherCurSensor;
+                    computedDepth = zOther + signOtherCurSensor*distOtherCurSensor;
                     clear zOther;
                 else
                     samFirst            = otherSam{iFirst};
@@ -382,12 +416,12 @@ for k = 1:length(sample_data)
                     % compute pressure at current sensor using trigonometry and
                     % assuming sensors repartition on a line between the two
                     % nearest pressure sensors
-                    if isSensorHeight
+                    if isSensorTargetDepth
+                        distFirstSecond     = samSecond.instrument_nominal_depth - samFirst.instrument_nominal_depth;
+                        distFirstCurSensor  = curSam.instrument_nominal_depth - samFirst.instrument_nominal_depth;
+                    else
                         distFirstSecond     = samFirst.instrument_nominal_height - samSecond.instrument_nominal_height;
                         distFirstCurSensor  = samFirst.instrument_nominal_height - curSam.instrument_nominal_height;
-                    else
-                        distFirstSecond     = samFirst.instrument_nominal_depth - samSecond.instrument_nominal_depth;
-                        distFirstCurSensor  = samFirst.instrument_nominal_depth - curSam.instrument_nominal_depth;
                     end
                     
                     % theta is the angle between the vertical and line
