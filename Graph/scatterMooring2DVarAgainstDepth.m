@@ -120,7 +120,7 @@ if any(isnan([xMin, xMax]))
     return;
 end
 
-markerStyle = {'+', 'o', '*', '.', 'x', 's', 'd', '^', 'v', '>', '<', 'p', 'h'};
+markerStyle = {'+', 'o', '*', 's', 'd', '^', 'v', '>', '<', 'p', 'h'};
 lenMarkerStyle = length(markerStyle);
 
 instrumentDesc = cell(lenSampleData + 1, 1);
@@ -139,10 +139,9 @@ for i=1:lenSampleData
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
     iHeight = getVar(sample_data{iSort(i)}.dimensions, 'HEIGHT_ABOVE_SENSOR');
     if iHeight == 0, iHeight = getVar(sample_data{iSort(i)}.dimensions, 'DIST_ALONG_BEAMS'); end % is equivalent when tilt is negligeable
-    iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
     
-    if iVar > 0 && iHeight > 0 && iDepth > 0 && ...
+    if iVar > 0 && iHeight > 0 && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) > 1 && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 3) == 1 % we're plotting ADCP 2D variables with DEPTH variable.
         isPlottable(i) = true;
@@ -163,7 +162,7 @@ for i=1:lenSampleData
             yLimMax = max(yLimMax, max(max(sample_data{iSort(i)}.variables{iVar}.data(iGood))));
         end
         
-    elseif iVar > 0 && iDepth > 0 && ...
+    elseif iVar > 0 && ...
             any(strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'})) && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 % we're plotting current metre 1D variables with DEPTH variable.
         iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
@@ -307,11 +306,14 @@ if any(isPlottable)
             if isQC
                 %get time and var QC information
                 timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-                depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
                 varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
                 varValues = sample_data{iSort(i)}.variables{iVar}.data;
                 
-                iGoodDepth = (depthFlags == 1 | depthFlags == 2);
+                if iDepth
+                    depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
+                    iGoodDepth = (depthFlags == 1 | depthFlags == 2);
+                end
+                
                 iGoodTime = (timeFlags == 1 | timeFlags == 2);
                 
                 iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
@@ -337,7 +339,17 @@ if any(isPlottable)
                     yScatter = 0;
                 end
                 
-                dataDepth = sample_data{iSort(i)}.variables{iDepth}.data;
+                if iDepth
+                    dataDepth = sample_data{iSort(i)}.variables{iDepth}.data;
+                else
+                    if isfield(sample_data{iSort(i)}, 'instrument_nominal_depth')
+                        dataDepth = sample_data{iSort(i)}.instrument_nominal_depth*ones(size(iGoodTime));
+                    else
+                        fprintf('%s\n', ['Error : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                            ', global attribute instrument_nominal_depth is not documented.']);
+                        continue;
+                    end
+                end
                 dataDepth(~iGoodTime) = NaN;
                 dataDepth(~iGoodDepth) = metaDepth(i);
                 

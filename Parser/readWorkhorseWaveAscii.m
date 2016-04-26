@@ -66,7 +66,17 @@ if ~ischar(filename), error('filename must be a string'); end
 waveData = struct;
 
 % transform the filename into a path
-filePath = fileparts(filename);
+[filePath, name, ext] = fileparts(filename);
+
+% read the summary file
+summaryFile = fullfile(filePath, [name '.txt']);
+
+if exist(summaryFile, 'file')
+    summaryFileID = fopen(summaryFile);
+    summary = textscan(summaryFileID, '%s', 'Delimiter', '');
+    waveData.summary = summary{1};
+    fclose(summaryFileID);
+end
 
 % Load the *_LOG9.TXT file
 logFile = dir(fullfile(filePath, '*_LOG9.TXT'));

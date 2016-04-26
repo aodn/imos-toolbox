@@ -153,6 +153,7 @@ waveData = [];
 % transform the filename into processed wave data filenames
 [path, name] = fileparts(filename);
 
+summaryFile    = fullfile(path, [name '.hdr']);
 headerFile     = fullfile(path, [name '.whd']);
 waveFile       = fullfile(path, [name '.wap']);
 dirFreqFile    = fullfile(path, [name '.wdr']);
@@ -170,6 +171,15 @@ if ~exist(headerFile, 'file') || ~exist(waveFile, 'file') || ...
 end
 
 try
+    waveData = struct;
+    
+    if exist(summaryFile, 'file')
+        summaryFileID = fopen(summaryFile);
+        summary = textscan(summaryFileID, '%s', 'Delimiter', '');
+        waveData.summary = summary{1};
+        fclose(summaryFileID);
+    end
+
     header     = importdata(headerFile);
     wave       = importdata(waveFile);
     dirFreq    = importdata(dirFreqFile);
@@ -197,8 +207,6 @@ try
     iHeader = ismember(totalTime, headerTime);
     iWave = ismember(totalTime, waveTime);
     clear headerTime waveTime;
-    
-    waveData = struct;
     
     % copy data over to struct
     waveData.Time = totalTime;
