@@ -221,7 +221,10 @@ header = struct;
 % but it's the nicest way i can think of
 %BDM (18/2/2011) - changed expressions to reflect newer SBE header info
 %   headerExpr   = '^\*\s*(SBE \S+|SeacatPlus)\s+V\s+(\S+)\s+SERIAL NO.\s+(\d+)';
-headerExpr   = '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>';
+% new style header
+headerExpr1   = '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>';
+% old style header e.g. '* SBE37-SM V 2.6b  SERIAL NO. 4481    10 Feb 2014  04:33:43'
+headerExpr2   = '^\*\s*(SBE\S+|SeacatPlus)\s+V\s+(\S+)\s+SERIAL NO.\s+(\d+)';
 scanExpr     = 'number of scans to average = (\d+)';
 memExpr      = 'samples = (\d+), free = (\d+), casts = (\d+)';
 sampleExpr   = ['sample interval = (\d+) (\w+), ' ...
@@ -245,14 +248,14 @@ otherExpr    = '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
 firmExpr ='<FirmwareVersion>(\S+)</FirmwareVersion>';
 
 exprs = {...
-    headerExpr   scanExpr     ...
+    headerExpr1   scanExpr     ...
     memExpr      sampleExpr   ...
     modeExpr     pressureExpr ...
     voltExpr     outputExpr   ...
     castExpr     intervalExpr ...
     sbe38Expr    optodeExpr   ...
     voltCalExpr  otherExpr ...
-    firmExpr};
+    firmExpr     headerExpr2};
 
 for k = 1:length(headerLines)
     
@@ -266,7 +269,7 @@ for k = 1:length(headerLines)
             % yes, ugly, but easiest way to figure out which regex we're on
             switch m
                 
-                % header
+                % header (new style)
                 case 1
                     %             header.instrument_model     = tkns{1}{1};
                     %             header.instrument_firmware  = tkns{1}{2};
@@ -344,6 +347,12 @@ for k = 1:length(headerLines)
                     %firmware version
                 case 15
                     header.instrument_firmware  = tkns{1}{1};
+				
+                % header (old style)
+                case 16
+					header.instrument_model     = tkns{1}{1};
+					header.instrument_firmware  = tkns{1}{2};
+					header.instrument_serial_no = tkns{1}{3};
                     
             end
             break;
