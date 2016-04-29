@@ -165,15 +165,16 @@ for i=1:lenVar
     if strcmpi(paramName, 'ROLL'),      idRoll    = i; end
 end
 
-% check if the data is compatible with the QC algorithm
+% check if the data is compatible with the QC algorithm, otherwise quit
+% silently
 idMandatory = idPitch & idRoll & (idUcur | idVcur | idWcur | idCspd | idCdir);
-
 if ~idMandatory, return; end
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good', qcSet, 'flag');
 
-% we try to find out which kind of ADCP we're dealing with
+% we try to find out which kind of ADCP we're dealing with and if it is
+% listed as one we should process
 instrument = sample_data.instrument;
 if isfield(sample_data, 'meta')
     if isfield(sample_data.meta, 'instrument_make') && isfield(sample_data.meta, 'instrument_model')
@@ -184,8 +185,10 @@ end
 [firstTiltThreshold, secondTiltThreshold, firstFlagThreshold, secondFlagThreshold] = getTiltThresholds(instrument);
 
 if isempty(firstTiltThreshold)
-    error(['Impossible to determine from which ADCP make/model is ' sample_data.toolbox_input_file ...
-        ' instrument = "' instrument '" => Fill imosTiltVelositySetQC.txt with according relevant make/model information!']);
+    % couldn't find this instrument so quit the test
+    disp(['Info: imosTiltVelositySetQC could not be performed on ' sample_data.toolbox_input_file ...
+        ' instrument = "' instrument '" => Fill imosTiltVelositySetQC.txt with relevant make/model information if you wish to run this test on this dataset.']);
+    return;
 end
 
 paramsLog = ['firstTiltThreshold=' num2str(firstTiltThreshold) ', secondTiltThreshold=' num2str(secondTiltThreshold)];

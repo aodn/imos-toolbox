@@ -142,7 +142,7 @@ TIME_NAME         = 'TIME';
 header_expr       = '^[\*]\s*(SBE\S+)\s+V\s+(\S+)\s+(\d+)$';
 cal_coeff_expr    = '^[\*]\s*(\w+)\s*=\s*(\S+)\s*$';
 sensor_cal_expr   = '^[\*]\s*(\w+):\s*(.+)\s*$';
-salinity_expr     = '^* output salinity.*$';
+salinity_expr     = '^[\*] output salinity.*$';
 pressure_cal_expr = ['^[\*]\s*pressure\s+S/N\s+(\d+)'... % serial number
                      ',\s*range\s*=\s*(\d+)'         ... % pressure range
                      '\s+psia:?\s*(.+)\s*$'];            % cal date including Seaterm v2 variation format
@@ -203,6 +203,10 @@ sample_data.meta.featureType            = mode;
 % the data. It is literally:
 %
 %   * output salinity with each sample
+%
+% as opposed to:
+%   * do not output salinity with each sample
+%
 %
 % The fourth type of line is a name-value pair of a particular calibration
 % coefficient. These lines have the format:
