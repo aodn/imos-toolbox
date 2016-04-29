@@ -102,13 +102,22 @@ function result = executeCSVQuery( file, field, value)
   %figure out how many columns we have:
   header1 = fgetl(fid);
   ncols = length(strfind(header1,',')) + 1;
-  fmtHeader1 = repmat('%q', 1, ncols);
-  header1 = textscan(header1, fmtHeader1, 'Delimiter', ',', 'CollectOutput',  1);
+  fmtHeader = repmat('%q', 1, ncols);
+  header1 = textscan(header1, fmtHeader, 'Delimiter', ',', 'CollectOutput',  1);
   header1 = header1{1};
   
   %build the format string
   header2 = fgetl(fid);
-  fmt = strrep(header2, ',', '');
+  header2 = textscan(header2, fmtHeader, 'Delimiter', ',', 'CollectOutput',  1);
+  header2 = header2{1};
+  
+  iDate = cellfun(@(x) ~strncmpi(x, '%', 1), header2);
+  iDateFmt = header2;
+  iDateFmt(iDate) = header2(iDate);
+  
+  [header2{iDate}] = deal('%q');
+  
+  fmt = cell2mat(header2);
   
   %close and re-open the file
   fclose(fid);
@@ -118,17 +127,27 @@ function result = executeCSVQuery( file, field, value)
   data = textscan(fid, fmt, ...
       'Delimiter',      ',' , ...
       'HeaderLines',    2);
-%   data = data{1};
-  for i=1:length(data)
+
+  nCols = length(data);
+  nRows = length(data{1});
+  myData = cell(nRows, nCols);
+  for i=1:nCols
       if isfloat(data{i})
           myData(:, i) = num2cell(data{i});
       else
-          myData(:, i) = data{i};
+%           if iDate(i)
+%               iEmpty = cellfun(@isempty, data{i});
+%               if any(~iEmpty)
+%                   myData(~iEmpty, i) = cellfun(@(x) datenum(x, iDateFmt{i}), data{i}(~iEmpty), 'Uniform', false);
+%               end
+%           else
+              myData(:, i) = data{i};
+%           end
       end
   end
   fclose(fid);
     
-  result = extractdata(header1, myData, field, value);
+  result = extractdata(header1, myData, iDate, iDateFmt, field, value);
   
   % save result in structure
   csvStruct.table{end+1} = file;
@@ -137,7 +156,7 @@ function result = executeCSVQuery( file, field, value)
   csvStruct.result{end+1} = result;
 end
 
-function result = extractdata(header, data, field, value);
+function result = extractdata(header, data, iDate, iDateFmt, field, value)
 % Extract the required values from the data
 %headers become field names
 
@@ -154,28 +173,12 @@ if ~isempty(field)
     data = data(ivalue,:);
 end
 
-%look for dates and convert to matlab date format:
-dateTimeFmt = 'dd/mm/yy HH:MM';
-idate = cellfun(@isempty,strfind(lower(header),'date'));
-idate = find(~idate);
-for a = idate
-    iempty = cellfun(@isempty, data(:,a));
-    data(~iempty,a) = cellfun(@(x) datenum(x,dateTimeFmt), data(~iempty,a), 'Uniform', false);
-%     iempty = cellfun(@isempty, data(:,a));
-%     cellDateStr = data{~iempty,a};
-%     arrayDateNum = datenum(cellDateStr, dateTimeFmt);
-%     cellDateNum = num2cell(arrayDateNum);
-%     data{~iempty,a} = cellDateNum;
-end
-
-%look for times and convert to matlab date format:
-idate = cellfun(@isempty,strfind(lower(header),'time'));
-idateTZ = cellfun(@isempty,strfind(lower(header),'timezone'));
-idateTD = cellfun(@isempty,strfind(lower(header),'timedriftinstrument'));
-idate = find(~idate & idateTZ & idateTD);
-for a = idate
-    iempty = cellfun(@isempty, data(:,a));
-    data(~iempty,a) = cellfun(@(x) datenum(x,dateTimeFmt), data(~iempty,a), 'Uniform', false);
+% look for dates and convert them
+for i = find(iDate)
+    iEmpty = cellfun(@isempty, data(:,i));
+    if any(~iEmpty)
+        data(~iEmpty, i) = cellfun(@(x) datenum(x, iDateFmt{i}), data(~iEmpty,i), 'Uniform', false);
+    end
 end
 
 %make the structure:
