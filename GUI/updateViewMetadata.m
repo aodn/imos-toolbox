@@ -62,9 +62,10 @@ function updateViewMetadata(parent, sample_data, mode)
   dims = sample_data.dimensions;
   lenDims = length(dims);
   for k = 1:lenDims
-      dims{k} = rmfield(dims{k}, {'data', 'typeCastFunc'});
-      if isfield(dims{k}, 'flags')
-          dims{k} = rmfield(dims{k}, 'flags');
+      fieldsToBeRemoved = {'data', 'typeCastFunc', 'flags'};
+      iToBeRemoved = isfield(dims{k}, fieldsToBeRemoved);
+      if any(iToBeRemoved)
+          dims{k} = rmfield(dims{k}, fieldsToBeRemoved(iToBeRemoved));
       end
       dims{k} = orderfields(dims{k});
   end
@@ -72,7 +73,12 @@ function updateViewMetadata(parent, sample_data, mode)
   vars = sample_data.variables;
   lenVars = length(vars);
   for k = 1:lenVars
-    vars{k} = orderfields(rmfield(vars{k}, {'data', 'dimensions', 'flags', 'typeCastFunc'})); 
+      fieldsToBeRemoved = {'data', 'dimensions', 'typeCastFunc', 'flags'};
+      iToBeRemoved = isfield(vars{k}, fieldsToBeRemoved);
+      if any(iToBeRemoved)
+          vars{k} = rmfield(vars{k}, fieldsToBeRemoved(iToBeRemoved));
+      end
+      vars{k} = orderfields(vars{k});
   end
   
   % create a cell array containing global attribute data
