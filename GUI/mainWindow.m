@@ -283,6 +283,9 @@ function mainWindow(...
       hToolsCheckPressDiffs         = uimenu(hToolsMenu, 'label', 'Check pressure differences between selected instrument and nearest neighbours');
       hToolsCheckPressDiffsNonQC    = uimenu(hToolsCheckPressDiffs, 'label', 'non QC');
       hToolsCheckPressDiffsQC       = uimenu(hToolsCheckPressDiffs, 'label', 'QC');
+      hTools1DTidalAnalysis         = uimenu(hToolsMenu, 'label', 'Residuals from 1D tidal analysis');
+      hTools1DTidalAnalysisNonQC    = uimenu(hTools1DTidalAnalysis, 'label', 'non QC');
+      hTools1DTidalAnalysisQC       = uimenu(hTools1DTidalAnalysis, 'label', 'QC');
       hToolsLineDepth               = uimenu(hToolsMenu, 'label', 'Line plot mooring''s depths');
       hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'non QC');
       hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'QC');
@@ -301,6 +304,8 @@ function mainWindow(...
       set(hToolsCheckPlannedDepthsQC,    'callBack', {@displayCheckPlannedDepths, true});
       set(hToolsCheckPressDiffsNonQC,    'callBack', {@displayCheckPressDiffs, false});
       set(hToolsCheckPressDiffsQC,       'callBack', {@displayCheckPressDiffs, true});
+      set(hTools1DTidalAnalysisNonQC,    'callBack', {@display1DTidalResiduals, false});
+      set(hTools1DTidalAnalysisQC,       'callBack', {@display1DTidalResiduals, true});
       set(hToolsLineDepthNonQC,          'callBack', {@displayLineMooringDepth, false});
       set(hToolsLineDepthQC,             'callBack', {@displayLineMooringDepth, true});
       set(hToolsLineCommonVarNonQC,      'callBack', {@displayLineMooringVar, false});
@@ -492,7 +497,7 @@ function mainWindow(...
           return
       end
         
-      checkMooringPresDiffs(sample_data, iSampleMenu, isQC, false, '');      
+      checkMooringPresDiffs(sample_data, iSampleMenu, isQC, false, '');
   end
 
   function displayCheckPlannedDepths(source,ev, isQC)
@@ -502,6 +507,26 @@ function mainWindow(...
       checkMooringPlannedDepths(sample_data, isQC, false, '');
   end
   
+    function display1DTidalResiduals(source,ev, isQC)
+        % Opens a new window where the residuals of pressure
+        % measurements of selected instrument are plotted.
+        %
+        
+        %check for pressure
+        iSampleMenu = get(sampleMenu, 'Value');
+        iElev = getVar(sample_data{iSampleMenu}.variables, 'PRES_REL');
+        if iElev == 0
+            iElev = getVar(sample_data{iSampleMenu}.variables, 'PRES');
+            if iElev == 0
+                sampleMenuStrings = get(sampleMenu, 'String');
+                disp(['No pressure data for ' sampleMenuStrings{iSampleMenu}])
+                return
+            end
+        end
+        
+        check1DTidalResiduals(sample_data, iSampleMenu, iElev, isQC, false, '');
+    end
+
   function displayLineMooringDepth(source,ev, isQC)
   %DISPLAYLINEMOORINGDEPTH Opens a new window where all the nominal depths and
   %actual/computed depths from intruments on the mooring are line-plotted.
