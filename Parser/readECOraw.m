@@ -1,5 +1,5 @@
 function sample_data = readECOraw( filename, deviceInfo, mode )
-%READECORAW parses a .raw data file retrieved from a Wetlabs ECO Triplet instrument.
+%READECORAW parses a .raw data file retrieved from a Wetlabs ECO Triplet or PARSB instrument.
 %
 %
 % Inputs:
@@ -167,8 +167,10 @@ for i=3:nColumns
     iNaN(:, i-2) = isnan(str2double(samples{i}));
 end
 iNaN = any(iNaN, 2);
-for i=1:nColumns
-    samples{i}(iNaN) = [];
+if any(iNaN)
+    for i=1:nColumns
+        samples{i}(iNaN) = [];
+    end
 end
 clear iNaN;
 
@@ -176,15 +178,6 @@ clear iNaN;
 for i=3:nColumns
     samples{i} = str2double(samples{i});
 end
-
-% count value 4130 and over look like to be the maximum
-% possible count value the instrument can deliver
-maxCount = 4130;
-for i=3:nColumns
-    iMaxCount = samples{i} >= maxCount;
-    samples{i}(iMaxCount) = NaN;
-end
-clear iMaxCount;
 
 %fill in sample and cal data
 sample_data            = struct;
@@ -225,8 +218,8 @@ sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosP
 sample_data.variables{end}.data             = sample_data.variables{end}.typeCastFunc(NaN);
 sample_data.variables{end}.dimensions       = [];
 
-for i=1:nColumns
-    [name, comment, data] = getParamDetails(deviceInfo.columns{i}, samples{i});
+for i=3:nColumns
+    [name, comment, data, calibration] = convertECOrawVar(deviceInfo.columns{i}, samples{i});
     
     if ~isempty(data)
         % dimensions definition must stay in this order : T, Z, Y, X, others;
@@ -238,6 +231,14 @@ for i=1:nColumns
         sample_data.variables{end}.coordinates   = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
         sample_data.variables{end}.comment       = comment;
         
+        if ~isempty(calibration)
+            fields = fieldnames(calibration);
+            for j=1:length(fields)
+                attribute = ['calibration_' fields{j}];
+                sample_data.variables{end}.(attribute) = calibration.(fields{j});
+            end
+        end
+        
         % WQM uses SeaBird pressure sensor
         if strncmp('PRES_REL', name, 8)
             % let's document the constant pressure atmosphere offset previously
@@ -245,93 +246,5 @@ for i=1:nColumns
             sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
         end
     end
-end
-  
-end
-
-function [name, comment, data] = getParamDetails(columnsInfo, sample)
-name = '';
-comment = '';
-data = [];
-
-switch upper(columnsInfo.type)
-    case 'N/U'
-        % ignored
-        
-    case 'IENGR'
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        
-    case 'PAR'
-        % not sure about what to do with this measurement from this
-        % instrument so for the time being won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        if isfield(columnsInfo, 'offset')
-            data = data - columnsInfo.offset;
-        end
-        if isfield(columnsInfo, 'scale')
-            data = data * columnsInfo.scale;
-        end
-        
-    case 'CHL' %ug/l (470/695nm)
-        name = 'CPHL';
-        comment = ['Artificial chlorophyll data computed from bio-optical ' ...
-            'sensor raw counts measurements. Originally expressed in ' ...
-            'ug/l, 1l = 0.001m3 was assumed.'];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'PHYCOERYTHRIN' %ug/l (540/570nm)
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'PHYCOCYANIN' %ug/l (630/680nm)
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'URANINE' %ppb (470/530nm)
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'RHODAMINE' %ug/l (540/570nm)
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'CDOM' %ppb
-        name = 'CDOM';
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'NTU'
-        name = 'TURB';
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'LAMBDA' %m-1 sr-1
-        name = ['VSF' num2str(columnsInfo.measWaveLength)];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    otherwise
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        if isfield(columnsInfo, 'offset')
-            data = data - columnsInfo.offset;
-        end
-        if isfield(columnsInfo, 'scale')
-            data = data * columnsInfo.scale;
-        end
-
 end
 end
