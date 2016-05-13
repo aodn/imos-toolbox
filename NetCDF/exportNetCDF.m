@@ -364,10 +364,12 @@ function filename = exportNetCDF( sample_data, dest, mode )
           data = data - datenum('1950-01-01 00:00:00');
       end
       
-      iNaNData = isnan(data);
-      if isnumeric(data) && any(any(iNaNData))
-          fprintf('%s\n', ['Warning : in ' sample_data.toolbox_input_file ...
-                ', there are NaNs in ' dims{m}.name ' dimension (not CF).']);
+      if isnumeric(data)
+          iNaNData = isnan(data);
+          if any(any(iNaNData))
+              fprintf('%s\n', ['Warning : in ' sample_data.toolbox_input_file ...
+                  ', there are NaNs in ' dims{m}.name ' dimension (not CF).']);
+          end
       end
       
       data = typeCastFunction(data);
