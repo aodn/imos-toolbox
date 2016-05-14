@@ -74,9 +74,9 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
   propFile = fullfile('Geomag', 'geomag70.txt');
   model    = readProperty('model', propFile);
   
-  geomagPath        = fullfile(path, 'Geomag', computerDir);
-  geomagExeFull     = fullfile(geomagPath, geomagExe);
-  geomagModelFile   = fullfile(geomagPath, [model '.COF']);
+  geomagPath        = fullfile(path, 'Geomag');
+  geomagExeFull     = fullfile(geomagPath, computerDir, geomagExe);
+  geomagModelFile   = fullfile(geomagPath, computerDir, [model '.COF']);
   geomagInputFile   = fullfile(geomagPath, 'sample_coords.txt');
   geomagOutputFile  = fullfile(geomagPath, ['sample_out_' model '.txt']);
   
@@ -86,10 +86,10 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
   end
 
   % we create the geomag input file for the input data
-  geomagFormat = ['%s D M%f %f %f' endOfLine];
+  geomagFormat = '%s D M%f %f %f\n';
   inputId = fopen(geomagInputFile, 'w');
   for i=1:length(lat)
-      fprintf(inputId, geomagFormat, date{i}, height_above_sea_level(i),  lat(i), lon(i));
+      fprintf(inputId, geomagFormat, datestr(date(i), 'yyyy,mm,dd'), height_above_sea_level(i),  lat(i), lon(i));
   end
   fclose(inputId);
     
@@ -97,8 +97,8 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
   geomagCmd = sprintf('%s %s f %s %s %s', geomagExeFull, geomagModelFile, geomagInputFile, geomagOutputFile, stdOutRedirection);
   system(geomagCmd);
   
-  geomagFormat = ['%s D M%f %f %f %fd %fm %*s %*s %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f' endOfLine];
-  outputId = fopen(geomagOutputFile, 'r');
+  geomagFormat = '%s D M%f %f %f %fd %fm %*s %*s %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f';
+  outputId = fopen(geomagOutputFile, 'rt');
   geomagOutputData = textscan(outputId, geomagFormat, ...
       'HeaderLines',            1, ...
       'Delimiter',              ' ', ...

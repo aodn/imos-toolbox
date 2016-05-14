@@ -37,6 +37,10 @@ exportNetCDF.dateFormat = yyyy-mm-ddTHH:MM:SSZ
 exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
+autoQCManager.autoQCDefaultChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosCorrMagVelocitySetQC imosHistoricalManualSetQC
+autoQCManager.autoQCDefaultChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
+
+% last selected set of auto QC routines
 autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosCorrMagVelocitySetQC imosHistoricalManualSetQC
 autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
 
@@ -45,7 +49,11 @@ autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationS
 preprocessManager.preprocessPrompt = true
 
 % default set of preprocessing routines
-preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP binMappingVelocityPP
+preprocessManager.preprocessDefaultChain.timeSeries = depthPP salinityPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP
+preprocessManager.preprocessDefaultChain.profile = depthPP salinityPP
+
+% last selected set of preprocessing routines
+preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP
 preprocessManager.preprocessChain.profile = depthPP salinityPP
 
 % file status dialog formatting styles
@@ -55,7 +63,7 @@ dataFileStatusDialog.invalidFileNameFormat = red
 dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
-% default values for start dialog
+% last selected values for start dialog
 startDialog.dataDir.timeSeries = 
 startDialog.dataDir.profile = 
 startDialog.fieldTrip.timeSeries = 
@@ -65,17 +73,17 @@ startDialog.lowDate.profile =
 startDialog.highDate.timeSeries = 
 startDialog.highDate.profile = 
 
-% default directory for manual data import
+% last selected directory for manual data import
 importManager.manualDir = 
 
-% default directory for file export
+% last selected directory for file export
 exportDialog.defaultDir = 
 
 % prompt user to select parser if an appropriate one 
 % cannot be found (if false, the data is not imported)
 importManager.noParserPrompt = true
 
-% default directory for saving graphs as images
+% last selected directory for saving graphs as images
 saveGraph.noPrompt  = false
 saveGraph.exportDir = 
 saveGraph.imgType   = png
@@ -83,3 +91,12 @@ saveGraph.imgType   = png
 % visual QC plots export properties
 visualQC.export = true
 visualQC.fastScatter = true
+
+% default nonspecialized scalar colormap and number of colour steps
+% jet | parula | viridis
+visualQC.defaultColormap = parula
+visualQC.ncolors = 64
+
+% simple zbuffering of markers if using fallback fastScatterMesh plot (fastScatter = false)
+% 'ascending', 'descending', 'triangle', 'vee', 'flat', 'parabolic', 'hamming', 'hann'
+visualQC.zbuffer = triangle

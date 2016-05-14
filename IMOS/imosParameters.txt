@@ -1,9 +1,7 @@
 %
 % A list of all IMOS compliant parameter names, associated standard names from version 20
 % (http://cf-pcmdi.llnl.gov/documents/cf-standard-names/standard-name-table/20/cf-standard-name-table.html/),
-% units of measurement, fill values, and valid min/max values. This list has been copied 
-% verbatim from the IMOS NetCDF User's manual version 1.3, and the IMOS NetCDF 
-% File Naming Convention version 1.3. Entries are in the following format:
+% units of measurement, fill values, and valid min/max values. Entries are in the following format:
 % 
 %   parameter name, is cf parameter, standard/long name, units of measurement, direction positive, reference datum, data code, fillValue, validMin, validMax, NetCDF C type
 %
@@ -17,6 +15,10 @@ ABSI1,               0, backscatter_intensity_from_acoustic_beam_1,             
 ABSI2,               0, backscatter_intensity_from_acoustic_beam_2,                                               decibel,       ,              ,                                  A, 999999.0, 0.0,      150.0,    float
 ABSI3,               0, backscatter_intensity_from_acoustic_beam_3,                                               decibel,       ,              ,                                  A, 999999.0, 0.0,      150.0,    float
 ABSI4,               0, backscatter_intensity_from_acoustic_beam_4,                                               decibel,       ,              ,                                  A, 999999.0, 0.0,      150.0,    float
+ABSIC1,              0, backscatter_intensity_from_acoustic_beam_1,                                               count,         ,              ,                                  A, 999999.0,    ,           ,    float
+ABSIC2,              0, backscatter_intensity_from_acoustic_beam_2,                                               count,         ,              ,                                  A, 999999.0,    ,           ,    float
+ABSIC3,              0, backscatter_intensity_from_acoustic_beam_3,                                               count,         ,              ,                                  A, 999999.0,    ,           ,    float
+ABSIC4,              0, backscatter_intensity_from_acoustic_beam_4,                                               count,         ,              ,                                  A, 999999.0,    ,           ,    float
 CMAG1,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_1,                         1,             ,              ,                                  E, 999999.0, 0.0,      250.0,    float
 CMAG2,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_2,                         1,             ,              ,                                  E, 999999.0, 0.0,      250.0,    float
 CMAG3,               0, particle_distribution_correlation_magnitude_from_acoustic_beam_3,                         1,             ,              ,                                  E, 999999.0, 0.0,      250.0,    float
@@ -48,7 +50,7 @@ DIR,                 0, from_direction,                                         
 DIR_MAG,             0, from_direction,                                                                           degree,        clockwise,     magnetic north,                    E, 999999.0, 0.0,      360.0,    float
 DIRECTION,           0, direction_of_the_profile,                                                                 ,              ,              ,                                  ,  ,         ,         ,         char
 DIRT,                0, to_direction,                                                                             degree,        clockwise,     true north,                        E, 999999.0, 0.0,      360.0,    float
-DIST_ALONG_BEAMS,    0, distance_from_sensor_along_beams,                                                         m,             ,              sensor,                            Z, 999999.0, -12000.0, 12000.0,  float
+DIST_ALONG_BEAMS,    0, distance_from_sensor_along_beams,                                                         m,             up,            sensor,                            Z, 999999.0, -12000.0, 12000.0,  float
 DOX1,                1, mole_concentration_of_dissolved_molecular_oxygen_in_sea_water,                            umol l-1,      ,              ,                                  O, 999999.0, 0.0,      900000.0, float
 DOX2,                1, moles_of_oxygen_per_unit_mass_in_sea_water,                                               umol kg-1,     ,              ,                                  O, 999999.0, 0.0,      880000.0, float
 DOXS,                1, fractional_saturation_of_oxygen_in_sea_water,                                             percent,       ,              ,                                  O, 999999.0, ,         ,         float
@@ -57,14 +59,14 @@ DOXY_TEMP,           1, temperature_of_sensor_for_oxygen_in_sea_water,          
 DRYT,                0, dry_bulb_temperature,                                                                     degrees_Celsius,,             ,                                  M, 999999.0, ,         ,         float
 DYNHT,               0, dynamic_height,                                                                           m,             ,              ,                                  E, 999999.0, ,         ,         float
 ECUR,                0, error_sea_water_velocity,                                                                 m s-1,         ,              ,                                  V, 999999.0, -5.0,     5.0,      float
-FLU2,                0, fluorescence_in_sea_water,                                                                counts,        ,              ,                                  B, 999999.0, ,         ,         float
+FLU2,                0, fluorescence_in_sea_water,                                                                count,         ,              ,                                  B, 999999.0, ,         ,         float
 FREQUENCY,           0, frequency,                                                                                Hz,            ,              ,                                  E, 999999.0, 0.0,      900000.0, float
 GDOP,                0, radar_beam_intersection_angle,                                                            degree,        ,              ,                                  E, 999999.0, 0.0,      180.0,    float
 HEADING,             1, platform_yaw_angle,                                                                       degree,        clockwise,     true north,                        E, 999999.0, 0.0,      360.0,    float
 HEADING_MAG,         1, platform_yaw_angle,                                                                       degree,        clockwise,     magnetic north,                    E, 999999.0, 0.0,      360.0,    float
 HEAT,                0, heat_content,                                                                             10^10 J m-2,   ,              ,                                  E, 999999.0, ,         ,         float
 HEAT_NET,            1, upward_heat_flux_in_air,                                                                  W m-2,         ,              ,                                  F, 999999.0, ,         ,         float
-HEIGHT_ABOVE_SENSOR, 0, height_above_sensor,                                                                      m,             up,            sensor,                            Z, 999999.0, -12000.0, 12000.0,  float
+HEIGHT_ABOVE_SENSOR, 1, height,                                                                                   m,             up,            sensor,                            Z, 999999.0, -12000.0, 12000.0,  float
 HL,                  1, surface_upward_latent_heat_flux,                                                          W m-2,         ,              ,                                  F, 999999.0, ,         ,         float
 HS,                  1, surface_upward_sensible_heat_flux,                                                        W m-2,         ,              ,                                  F, 999999.0, ,         ,         float
 ISO17,               1, depth_of_isosurface_of_sea_water_potential_temperature,                                   m,             down,          sea surface,                       E, 999999.0, ,         ,         float
@@ -155,6 +157,9 @@ VDES,                0, sea_surface_wave_variance_spectral_density_from_range_to
 VDIR,                1, sea_surface_wave_from_direction,                                                          degree,        clockwise,     true north,                        W, 999999.0, 0.0,      360.0,    float
 VDIR_MAG,            1, sea_surface_wave_from_direction,                                                          degree,        clockwise,     magnetic north,                    W, 999999.0, 0.0,      360.0,    float
 VDIRT,               1, sea_surface_wave_to_direction,                                                            degree,        clockwise,     true north,                        W, 999999.0, 0.0,      360.0,    float
+VEL1,                0, sea_water_velocity_from_acoustic_beam_1,                                                  m s-1,         ,              ,                                  V, 999999.0, -10.0,    10.0,     float
+VEL2,                0, sea_water_velocity_from_acoustic_beam_2,                                                  m s-1,         ,              ,                                  V, 999999.0, -10.0,    10.0,     float
+VEL3,                0, sea_water_velocity_from_acoustic_beam_3,                                                  m s-1,         ,              ,                                  V, 999999.0, -10.0,    10.0,     float
 VOLT,                0, voltage,                                                                                  V,             ,              ,                                  E, 999999.0, -100.0,   100.0,    float
 VSF412,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_412nm,           m-1 sr-1,      ,              ,                                  E, 999999.0, ,         ,         float
 VSF440,              0, volume_scattering_function_of_radiative_flux_in_sea_water_for_wavelength_440nm,           m-1 sr-1,      ,              ,                                  E, 999999.0, ,         ,         float

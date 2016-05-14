@@ -257,11 +257,13 @@ function mainWindow(...
   zoomoutb = findobj(buttons, 'TooltipString', 'Zoom Out');
   zoominb  = findobj(buttons, 'TooltipString', 'Zoom In');
   panb     = findobj(buttons, 'TooltipString', 'Pan');
+  datacursorb     = findobj(buttons, 'TooltipString', 'Data Cursor');
   
-  buttons(buttons == tb)       = [];
-  buttons(buttons == zoomoutb) = [];
-  buttons(buttons == zoominb)  = [];
-  buttons(buttons == panb)     = [];
+  buttons(buttons == tb)            = [];
+  buttons(buttons == zoomoutb)      = [];
+  buttons(buttons == zoominb)       = [];
+  buttons(buttons == panb)          = [];
+  buttons(buttons == datacursorb)   = [];
   
   delete(buttons);
   
@@ -275,6 +277,12 @@ function mainWindow(...
   %set uimenu
   hToolsMenu                        = uimenu(fig, 'label', 'Tools');
   if strcmpi(mode, 'timeseries')
+      hToolsCheckPlannedDepths      = uimenu(hToolsMenu, 'label', 'Check measured against planned depths');
+      hToolsCheckPlannedDepthsNonQC = uimenu(hToolsCheckPlannedDepths, 'label', 'non QC');
+      hToolsCheckPlannedDepthsQC    = uimenu(hToolsCheckPlannedDepths, 'label', 'QC');
+      hToolsCheckPressDiffs         = uimenu(hToolsMenu, 'label', 'Check pressure differences between selected instrument and nearest neighbours');
+      hToolsCheckPressDiffsNonQC    = uimenu(hToolsCheckPressDiffs, 'label', 'non QC');
+      hToolsCheckPressDiffsQC       = uimenu(hToolsCheckPressDiffs, 'label', 'QC');
       hToolsLineDepth               = uimenu(hToolsMenu, 'label', 'Line plot mooring''s depths');
       hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'non QC');
       hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'QC');
@@ -289,14 +297,18 @@ function mainWindow(...
       hToolsScatter2DCommonVarQC    = uimenu(hToolsScatter2DCommonVar, 'label', 'QC');
       
       %set menu callbacks
-      set(hToolsLineDepthNonQC,         'callBack', {@displayLineMooringDepth, false});
-      set(hToolsLineDepthQC,            'callBack', {@displayLineMooringDepth, true});
-      set(hToolsLineCommonVarNonQC,     'callBack', {@displayLineMooringVar, false});
-      set(hToolsLineCommonVarQC,        'callBack', {@displayLineMooringVar, true});
-      set(hToolsScatterCommonVarNonQC,  'callBack', {@displayScatterMooringVar, false, true});
-      set(hToolsScatterCommonVarQC,     'callBack', {@displayScatterMooringVar, true, true});
-      set(hToolsScatter2DCommonVarNonQC,'callBack', {@displayScatterMooringVar, false, false});
-      set(hToolsScatter2DCommonVarQC,   'callBack', {@displayScatterMooringVar, true, false});
+      set(hToolsCheckPlannedDepthsNonQC, 'callBack', {@displayCheckPlannedDepths, false});
+      set(hToolsCheckPlannedDepthsQC,    'callBack', {@displayCheckPlannedDepths, true});
+      set(hToolsCheckPressDiffsNonQC,    'callBack', {@displayCheckPressDiffs, false});
+      set(hToolsCheckPressDiffsQC,       'callBack', {@displayCheckPressDiffs, true});
+      set(hToolsLineDepthNonQC,          'callBack', {@displayLineMooringDepth, false});
+      set(hToolsLineDepthQC,             'callBack', {@displayLineMooringDepth, true});
+      set(hToolsLineCommonVarNonQC,      'callBack', {@displayLineMooringVar, false});
+      set(hToolsLineCommonVarQC,         'callBack', {@displayLineMooringVar, true});
+      set(hToolsScatterCommonVarNonQC,   'callBack', {@displayScatterMooringVar, false, true});
+      set(hToolsScatterCommonVarQC,      'callBack', {@displayScatterMooringVar, true, true});
+      set(hToolsScatter2DCommonVarNonQC, 'callBack', {@displayScatterMooringVar, false, false});
+      set(hToolsScatter2DCommonVarQC,    'callBack', {@displayScatterMooringVar, true, false});
   else
       hToolsLineCastVar             = uimenu(hToolsMenu, 'label', 'Line plot profile variables');
       hToolsLineCastVarNonQC        = uimenu(hToolsLineCastVar, 'label', 'non QC');
@@ -342,6 +354,10 @@ function mainWindow(...
       sample_data, ...
       graph, ...
       sam.meta.index, vars);
+  
+    % set data cursor mode custom display
+    dcm_obj = datacursormode(fig);
+    set(dcm_obj, 'UpdateFcn', {@customDcm, sam, vars, graph, mode});
   end
   
   function sampleMenuCallback(source,ev)
@@ -461,6 +477,31 @@ function mainWindow(...
   end
 
   %% Menu callback
+  function displayCheckPressDiffs(source,ev, isQC)
+      %DISPLAYLINEPRESSDIFFS opens a new window where all the PRES/PRES_REL
+      %values for instruments adjacent to the current instrument are
+      %displayed with the differences between these instrument pressures
+      %
+      %check for pressure
+      iSampleMenu = get(sampleMenu, 'Value');
+      iPRES_REL = getVar(sample_data{iSampleMenu}.variables, 'PRES_REL');
+      iPRES = getVar(sample_data{iSampleMenu}.variables, 'PRES');
+      if iPRES_REL == 0 && iPRES == 0
+          sampleMenuStrings = get(sampleMenu, 'String');
+          disp(['No pressure data for ' sampleMenuStrings{iSampleMenu}])
+          return
+      end
+        
+      checkMooringPresDiffs(sample_data, iSampleMenu, isQC, false, '');      
+  end
+
+  function displayCheckPlannedDepths(source,ev, isQC)
+      %DISPLAYCHECKPLANNEDDEPTHS Opens a new window where the actual
+      %depths recorded are compared to the planned depths.
+      %
+      checkMooringPlannedDepths(sample_data, isQC, false, '');
+  end
+  
   function displayLineMooringDepth(source,ev, isQC)
   %DISPLAYLINEMOORINGDEPTH Opens a new window where all the nominal depths and
   %actual/computed depths from intruments on the mooring are line-plotted.
@@ -658,6 +699,8 @@ function displayScatterMooringVar(source,ev, isQC, is1D)
             iStr = num2str(i);
             iABSI = strcmpi(['ABSI' iStr], paramsName);
             paramsName(iABSI) = [];
+            iABSIC = strcmpi(['ABSIC' iStr], paramsName);
+            paramsName(iABSIC) = [];
             iCORR = strcmpi(['CMAG' iStr], paramsName);
             paramsName(iCORR) = [];
             iPERG = strcmpi(['PERG' iStr], paramsName);
@@ -696,7 +739,7 @@ end
   %OPENWIKIPAGE opens a new tab in your web-browser to access the
   %IMOS-Toolbox wiki
   %
-    url = 'http://code.google.com/p/imos-toolbox/wiki/Sidebar';
+    url = 'https://github.com/aodn/imos-toolbox/wiki';
     stat = web(url, '-browser');
     if stat == 1
         fprintf('%s\n', 'Warning : Browser was not found.');
@@ -836,4 +879,78 @@ end
     % easy to retrieve in the getSelectedVars function
     set(varPanel, 'UserData', checkboxes);
   end
+
+    function txt = customDcm(~, event_obj, sam, vars, graph, mode)
+        % Customizes text of data tips
+        switch mode
+            case 'profile'
+                % we don't want to plot TIME, PROFILE, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
+                varOffset = getVar(sam.variables, 'BOT_DEPTH');
+            otherwise
+                % we don't want to plot TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE, NOMINAL_DEPTH
+                varOffset = getVar(sam.variables, 'NOMINAL_DEPTH');
+        end
+        
+        % retrieve x/y click positions + data index
+        posClic = get(event_obj, 'Position');
+        I       = get(event_obj, 'DataIndex');
+        
+        switch graph
+            case 'Profile'
+                dimLabel = 'DEPTH';
+                dimUnit  = ' m';
+                dimFun = @num2str;
+            case 'TimeSeries'
+                dimLabel = 'TIME';
+                dimUnit  = ' UTC';
+                dimFun = @datestr;
+            otherwise
+                error(['graph type ' graph ' not supported']);
+        end
+        
+        iDim = getVar(sam.dimensions, dimLabel);
+        nRecord = length(sam.dimensions{iDim}.data);
+        
+        nVar = length(vars);
+        txt = cell(1, nVar+1);
+        txt{1} = [dimLabel ': ' dimFun(posClic(1)) dimUnit];
+        for iVar=1:nVar
+            iVarCorr  = vars(iVar)+varOffset;
+            varLabel  = sam.variables{iVarCorr}.name;
+            varUnit   = [' ' sam.variables{iVarCorr}.units];
+            
+            nSample   = numel(sam.variables{iVarCorr}.data);
+            iSample   = I;
+            zInfo = '';
+            if I < nRecord && nSample > nRecord
+                % we've clicked on a 1D plot so don't want to display
+                % information from 2D plots
+                txt{iVar+1} = [];
+                continue;
+            else
+                % we've clicked on a 2D plot
+                nDim = sam.variables{iVarCorr}.dimensions;
+                if nDim==1
+                    % and are dealing with a 1D info
+                    iSample = sam.dimensions{iDim}.data == posClic(1);
+                else
+                    % and are dealing with a 2D info
+                    iZ = sam.variables{iVarCorr}.dimensions(2);
+                    nZ = length(sam.dimensions{iZ}.data);
+                    iSample = repmat(sam.dimensions{iDim}.data == posClic(1), 1, nZ) & repmat((sam.dimensions{iZ}.data == posClic(2))', nRecord, 1);
+                    
+                    zLabel = sam.dimensions{iZ}.name;
+                    zUnit  = [' ' sam.dimensions{iZ}.units];
+                    zData  = num2str(posClic(2));
+                    zInfo  = [' @' zLabel ': ' zData zUnit];
+                end
+            end
+            varData   = num2str(sam.variables{iVarCorr}.data(iSample));
+            
+            txt{iVar+1} = [varLabel ': ' varData varUnit zInfo];
+        end
+        
+        % clean up empty cells
+        txt(cellfun(@isempty, txt)) = [];
+    end
 end

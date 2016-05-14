@@ -61,6 +61,6 @@ function sample_data = WetStarParse( filename, mode )
   
   deviceInfo = readECODevice(devFilename);
   
-  sample_data = readWetStarraw(filename, deviceInfo);
+  sample_data = readWetStarraw(filename, deviceInfo, mode);
 
 end

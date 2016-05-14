@@ -109,17 +109,17 @@ for i=1:lenSampleData
     instrumentDesc{i} = [strrep(instrumentDesc{i}, '_', ' ') ' (' num2str(metaDepth(i)) 'm' instrumentSN ')'];
         
     switch varName
-        case {'UCUR', 'VCUR', 'WCUR'}   % 0 centred parameters
+        case {'UCUR', 'VCUR', 'WCUR', 'VEL1', 'VEL2', 'VEL3'}   % 0 centred parameters
             cMap = 'r_b';
             cType = 'centeredOnZero';
         case {'CDIR', 'SSWD'}           % directions [0; 360[
             cMap = 'rkbwr';
             cType = 'direction';
         case {'CSPD'}                   % [0; oo[ paremeters 
-            cMap = 'jet';
+            cMap = 'parula';
             cType = 'positiveFromZero';
         otherwise
-            cMap = 'jet';
+            cMap = 'parula';
             cType = '';
     end
     

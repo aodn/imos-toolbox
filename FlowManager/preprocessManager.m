@@ -1,4 +1,4 @@
-function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
+function [sample_data, cancel] = preprocessManager( sample_data, qcLevel, mode, auto )
 %PREPROCESSMANAGER Runs preprocessing filters over the given sample data 
 % structs.
 %
@@ -14,6 +14,8 @@ function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
 % Outputs:
 %   sample_data - same as input, potentially with preprocessing
 %                 modifications.
+%   cancel      - logical, whether pre-processing has been cancelled or
+%                 not.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:	Brad Morris <b.morris@unsw.edu.au>
@@ -57,6 +59,8 @@ function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
     
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
 
+  cancel = false;
+  
   % nothing to do
   if isempty(sample_data), return; end
 
@@ -100,11 +104,13 @@ function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
       % routine names, but must be provided to the list selection dialog
       % as indices
       ppChainIdx = cellfun(@(x)(find(ismember(ppRoutines,x))),ppChain);
-      ppChain = listSelectionDialog(...
-          'Select Preprocess routines', ppRoutines, ppChainIdx);
+      [ppChain, cancel] = listSelectionDialog('Select Preprocess routines', ...
+          ppRoutines, ppChainIdx, ...
+          {@routineConfig, 'Configure routine';
+          @setDefaultRoutines, 'Default set'});
       
       % user cancelled dialog
-      if isempty(ppChain), return; end
+      if isempty(ppChain) || cancel, return; end
       
       % save user's latest selection for next time - turn the ppChain
       % cell array into a space-separated string of the names
@@ -119,22 +125,92 @@ function sample_data = preprocessManager( sample_data, qcLevel, mode, auto )
       end
   end
   
-  allPpChain = '';
-  for k = 1:length(ppChain)    
-    
-    ppFunc = str2func(ppChain{k});
-     
-    if k == 1
-        allPpChain = ppChain{k};
-    else
-        allPpChain = [allPpChain ' ' ppChain{k}];
-    end
-    sample_data = ppFunc(sample_data, qcLevel, auto);
+  if ~isempty(ppChain)
+      % let user know what is going on in batch mode
+      if auto 
+          if strcmpi(qcLevel, 'raw')
+              ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
+              fprintf('%s\n', ['Preprocessing using : ' ppChainStr{:}]);
+          end
+          progress = [];
+      else
+          progress = waitbar(...
+              0, 'Running PP routines', ...
+              'Name', 'Running PP routines',...
+              'CreateCancelBtn', ...
+              ['waitbar(1,gcbf,''Cancelling - please wait...'');'...
+              'setappdata(gcbf,''cancel'',true)']);
+          setappdata(progress,'cancel',false);
+      end
   end
-  %BDM - 17/08/2010 - Added disp to let user know what is going on in
-  %batch mode
-  if auto && strcmpi(qcLevel, 'raw')
-      fprintf('%s\n', ['Preprocessing using : ' allPpChain]);
+  
+  for k = 1:length(ppChain)
+      
+      if ~auto
+          % user cancelled progress bar
+          if getappdata(progress, 'cancel'), sample_data = {}; break; end
+          
+          % update progress bar
+          progVal = k / length(ppChain);
+          progStr = ppChain{k};
+          waitbar(progVal, progress, progStr);
+      end
+      
+      ppFunc = str2func(ppChain{k});
+      
+      sample_data = ppFunc(sample_data, qcLevel, auto);
   end
 
+  if ~auto && ~isempty(ppChain), delete(progress); end
+end
+
+%ROUTINECONFIG Called via the PP routine list selection dialog when the user
+% chooses to configure a routine. If the selected routine has any configurable 
+% options, a propertyDialog is displayed, allowing the user to configure
+% the routine.
+%
+function [dummy1, dummy2] = routineConfig(routineName)
+
+  dummy1 = {};
+  dummy2 = {};
+  
+  % check to see if the routine has an associated properties file.
+  propFileName = fullfile('Preprocessing', [routineName '.txt']);
+  
+  % ignore if there is no properties file for this routine
+  if ~exist(propFileName, 'file'), return; end
+  
+  % display a propertyDialog, allowing configuration of the routine
+  % properties.
+  if strcmpi(routineName, 'depthPP')
+      propertyDialog(propFileName, ',');
+  else
+      propertyDialog(propFileName);
+  end
+end
+
+%SETDEFAULTROUTINES Called via the PP routine list selection dialog when the user
+% chooses to set the list of routines to default.
+%
+function [ppRoutines, ppChain] = setDefaultRoutines(filterName)
+
+  % get all PP routines that exist
+  ppRoutines = listPreprocessRoutines();
+  ppChain    = {};
+  
+  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+  % If no value is set then default mode is 'timeSeries'
+  mode = readProperty('toolbox.mode');
+  
+  % get default filter chain if there is one
+  try
+      ppChain = textscan(readProperty(['preprocessManager.preprocessDefaultChain.' mode]), '%s');
+      ppChain = ppChain{1};
+      
+      % set last filter list to default
+      qcChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
+      writeProperty(['preprocessManager.preprocessChain.' mode], deblank([qcChainStr{:}]));
+  catch e
+  end
+  
 end

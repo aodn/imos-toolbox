@@ -1,4 +1,4 @@
-function sample_data = readWQMdat( filename )
+function sample_data = readWQMdat( filename, mode )
 %readWQMdat parses a .dat file retrieved from a Wetlabs WQM instrument.
 %
 % This function is able to parse data retrieved from a Wetlabs WQM CTD/ECO 
@@ -31,6 +31,7 @@ function sample_data = readWQMdat( filename )
 %   CHLa(Counts)        (integer fluorescence in raw counts)
 %   NTU                 (floating point turbidity, NTU)
 %   NTU(NTU)            (floating point turbidity, NTU)
+%   Turbidity(NTU)      (floating point turbidity, NTU)
 %   rho                 (floating point density, kg/metre^3)
 %   PAR(umol_phtn/m2/s) (floating point photosynthetically active radiation, micromole of photon/m2/s)
 %
@@ -38,6 +39,7 @@ function sample_data = readWQMdat( filename )
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
+%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
@@ -103,8 +105,8 @@ function sample_data = readWQMdat( filename )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  % ensure that there is exactly one argument
-  narginchk(1, 1);
+  % ensure that there are exactly two arguments
+  narginchk(2, 2);
   if ~ischar(filename), error('filename must contain a string'); end
 
   % Lookup arrays for supported and required fields
@@ -164,6 +166,7 @@ function sample_data = readWQMdat( filename )
   params{end+1} = {'CHLa(Counts)',          {'FLU2', ''}};
   params{end+1} = {'NTU',                   {'TURB', ''}};
   params{end+1} = {'NTU(NTU)',              {'TURB', ''}};
+  params{end+1} = {'Turbidity(NTU)',        {'TURB', ''}};
   params{end+1} = {'rho',                   {'DENS', ''}};
   params{end+1} = {'PAR(umol_phtn/m2/s)',   {'PAR', ''}};
 
@@ -206,6 +209,7 @@ function sample_data = readWQMdat( filename )
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = samples{1}{1};
+  sample_data.meta.featureType          = mode;
   
   % convert and save the time data
   time = cellstr(samples{2});

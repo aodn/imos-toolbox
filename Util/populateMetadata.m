@@ -129,28 +129,12 @@ function sample_data = populateMetadata( sample_data )
       % Update from DEPTH data
       maxDepth      = max(dataDepth);
       minDepth      = min(dataDepth);
-      MedianDepth   = median(dataDepth);
-      
-      maxDepth      = round(maxDepth*100)/100;
-      minDepth      = round(minDepth*100)/100;
-      MedianDepth   = round(MedianDepth*100)/100;
       
       verticalComment = ['Geospatial vertical min/max information has '...
-          'been filled using the'];
+          'been filled using the DEPTH min and max.'];
       
-      switch mode
-          case 'profile'
-              sample_data.geospatial_vertical_min = minDepth;
-              sample_data.geospatial_vertical_max = maxDepth;
-              verticalComment = [verticalComment ' DEPTH min and max (vertical profile).'];
-              
-          otherwise
-              % Moored => geospatial_vertical_min ~= geospatial_vertical_max
-              sample_data.geospatial_vertical_min = MedianDepth;
-              sample_data.geospatial_vertical_max = MedianDepth;
-              verticalComment = [verticalComment ' DEPTH median (mooring).'];
-              
-      end
+      sample_data.geospatial_vertical_min = minDepth;
+      sample_data.geospatial_vertical_max = maxDepth;
       
       if isempty(sample_data.comment)
           sample_data.comment = verticalComment;
@@ -187,8 +171,6 @@ function sample_data = populateMetadata( sample_data )
               if sample_data.geospatial_lat_min == sample_data.geospatial_lat_max
                   computedDepth         = - gsw_z_from_p(relPres, ...
                       sample_data.geospatial_lat_min);
-                  computedMedianDepth   = - gsw_z_from_p(median(relPres(~iNanRelPres)), ...
-                      sample_data.geospatial_lat_min);
                   computedMinDepth      = - gsw_z_from_p(min(relPres(~iNanRelPres)), ...
                       sample_data.geospatial_lat_min);
                   computedMaxDepth      = - gsw_z_from_p(max(relPres(~iNanRelPres)), ...
@@ -196,54 +178,37 @@ function sample_data = populateMetadata( sample_data )
                   computedDepthComment  = ['depthPP: Depth computed using the '...
                       'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from latitude and '...
                       presComment '.'];
-                  computedMedianDepthComment  = ['Geospatial vertical '...
-                      'min/max information has been computed using the '...
-                      'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from latitude and '...
-                      presComment '.'];
               else
                   meanLat = sample_data.geospatial_lat_min + ...
                       (sample_data.geospatial_lat_max - sample_data.geospatial_lat_min)/2;
                   
                   computedDepth         = - gsw_z_from_p(relPres, meanLat);
-                  computedMedianDepth   = - gsw_z_from_p(median(relPres(~iNanRelPres)), meanLat);
                   computedMinDepth      = - gsw_z_from_p(min(relPres(~iNanRelPres)), meanLat);
                   computedMaxDepth      = - gsw_z_from_p(max(relPres(~iNanRelPres)), meanLat);
                   computedDepthComment  = ['depthPP: Depth computed using the '...
-                      'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from mean latitude and '...
-                      presComment '.'];
-                  computedMedianDepthComment  = ['Geospatial vertical '...
-                      'min/max information has been computed using the '...
                       'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from mean latitude and '...
                       presComment '.'];
               end
           else
               % without latitude information, we assume 1dbar ~= 1m
               computedDepth         = relPres;
-              computedMedianDepth   = median(relPres(~iNanRelPres));
               computedMinDepth      = min(relPres(~iNanRelPres));
               computedMaxDepth      = max(relPres(~iNanRelPres));
               computedDepthComment  = ['depthPP: Depth computed from '...
                   presComment ', assuming 1dbar ~= 1m.'];
-              computedMedianDepthComment  = ['Geospatial vertical min/max '...
-                  'information has been computed from '...
-                  presComment ', assuming 1dbar ~= 1m.'];
           end
-            
-          computedMedianDepth   = round(computedMedianDepth*100)/100;
-          computedMinDepth      = round(computedMinDepth*100)/100;
-          computedMaxDepth      = round(computedMaxDepth*100)/100;
           
           if idHeight > 0
               % ADCP
               if all(sample_data.dimensions{idHeight}.data >= 0) % upward looking configuration
-                  maxDistance = round(max(sample_data.dimensions{idHeight}.data)*100)/100; % HEIGHT_ABOVE_SENSOR is positive when upward
+                  maxDistance = max(sample_data.dimensions{idHeight}.data); % HEIGHT_ABOVE_SENSOR is positive when upward
                   % update vertical min/max metadata from data
                   % we assume that depth data is reliable
                   if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
                       
-                      sample_data.geospatial_vertical_min = max(0, computedMedianDepth - maxDistance); % cannot be above surface
-                      sample_data.geospatial_vertical_max = computedMedianDepth;
-                      comment  = strrep(computedMedianDepthComment, 'min/', '');
+                      sample_data.geospatial_vertical_min = computedMinDepth - maxDistance;
+                      sample_data.geospatial_vertical_max = computedMaxDepth;
+                      comment = computedDepthComment;
                       
                       if isempty(sample_data.comment)
                           sample_data.comment = comment;
@@ -254,22 +219,14 @@ function sample_data = populateMetadata( sample_data )
                       metadataChanged = true;
                   end
               else % downward looking configuration
-                  maxDistance = - round(min(sample_data.dimensions{idHeight}.data)*100)/100; % HEIGHT_ABOVE_SENSOR is negative when downward
+                  maxDistance = - min(sample_data.dimensions{idHeight}.data); % HEIGHT_ABOVE_SENSOR is negative when downward
                   % update vertical min/max metadata from data
                   % we assume that depth data is reliable
                   if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
                       
-                      sample_data.geospatial_vertical_min = computedMedianDepth;
-                      sample_data.geospatial_vertical_max = computedMedianDepth + maxDistance;
-                      comment  = strrep(computedMedianDepthComment, '/max', '');
-                      
-                      if computedMedianDepth + maxDistance > sample_data.site_nominal_depth; % cannot be below bottom
-                          sample_data.geospatial_vertical_max = sample_data.site_nominal_depth;
-                      end
-                      
-                      if computedMedianDepth + maxDistance > sample_data.site_depth_at_deployment; % cannot be below bottom
-                          sample_data.geospatial_vertical_max = sample_data.site_depth_at_deployment;
-                      end
+                      sample_data.geospatial_vertical_min = computedMinDepth;
+                      sample_data.geospatial_vertical_max = computedMaxDepth + maxDistance;
+                      comment = computedDepthComment;
                       
                       if isempty(sample_data.comment)
                           sample_data.comment = comment;
@@ -304,19 +261,10 @@ function sample_data = populateMetadata( sample_data )
               end
           
               if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
-                  switch mode
-                      case 'profile'
-                          sample_data.geospatial_vertical_min = 0;
-                          sample_data.geospatial_vertical_max = computedMaxDepth;
-                          comment  = strrep(computedMedianDepthComment, 'median', 'max (vertical profile)');
-                          
-                      otherwise
-                          % Moored => geospatial_vertical_min ~= geospatial_vertical_max
-                          sample_data.geospatial_vertical_min = computedMedianDepth;
-                          sample_data.geospatial_vertical_max = computedMedianDepth;
-                          comment  = strrep(computedMedianDepthComment, 'median', 'median (mooring)');        
-                          
-                  end
+                  
+                  sample_data.geospatial_vertical_min = computedMinDepth;
+                  sample_data.geospatial_vertical_max = computedMaxDepth;
+                  comment = computedDepthComment;
                   
                   metadataChanged = true;
                   
@@ -326,6 +274,28 @@ function sample_data = populateMetadata( sample_data )
                       sample_data.comment = [sample_data.comment ' ' comment];
                   end
               end
+          end
+      else
+          % Update from NOMINAL_DEPTH if available
+          if ivNomDepth > 0
+              % Update from NOMINAL_DEPTH data
+              dataNominalDepth = sample_data.variables{ivNomDepth}.data;
+              iNan = isnan(dataNominalDepth);
+              dataNominalDepth = dataNominalDepth(~iNan);
+              
+              verticalComment = ['Geospatial vertical min/max information has '...
+                  'been filled using the NOMINAL_DEPTH.'];
+              
+              sample_data.geospatial_vertical_min = dataNominalDepth;
+              sample_data.geospatial_vertical_max = dataNominalDepth;
+              
+              if isempty(sample_data.comment)
+                  sample_data.comment = verticalComment;
+              elseif ~strcmpi(sample_data.comment, verticalComment)
+                  sample_data.comment = [sample_data.comment ' ' verticalComment];
+              end
+              
+              metadataChanged = true;
           end
       end
   end

@@ -59,8 +59,8 @@ if strcmpi(qcLevel, 'raw'), return; end
 if nargin<3, auto=false; end
 
 ParamFile = ['Preprocessing' filesep 'rinkoDoPP.txt'];
-voltDOLabel     = readProperty('voltDO', ParamFile, ',');
-voltTempDOLabel = readProperty('voltTempDO', ParamFile, ',');
+voltDOLabel     = readProperty('voltDO', ParamFile);
+voltTempDOLabel = readProperty('voltTempDO', ParamFile);
 
 for k = 1:length(sample_data)
     
@@ -133,22 +133,22 @@ for k = 1:length(sample_data)
     end
     
     % define Temp DO coefficients
-    A = str2double(readProperty('aTempDO', ParamFile, ','));
-    B = str2double(readProperty('bTempDO', ParamFile, ','));
-    C = str2double(readProperty('cTempDO', ParamFile, ','));
-    D = str2double(readProperty('dTempDO', ParamFile, ','));
+    A = str2double(readProperty('aTempDO', ParamFile));
+    B = str2double(readProperty('bTempDO', ParamFile));
+    C = str2double(readProperty('cTempDO', ParamFile));
+    D = str2double(readProperty('dTempDO', ParamFile));
     
     tempDO = A + B*voltTempDO + C*voltTempDO.^2 + D*voltTempDO.^3;
     
     % define DO coefficients
-    A = str2double(readProperty('aDO', ParamFile, ','));
-    B = str2double(readProperty('bDO', ParamFile, ','));
-    C = str2double(readProperty('cDO', ParamFile, ','));
-    D = str2double(readProperty('dDO', ParamFile, ','));
-    E = str2double(readProperty('eDO', ParamFile, ','));
-    F = str2double(readProperty('fDO', ParamFile, ','));
-    G = str2double(readProperty('gDO', ParamFile, ','));
-    H = str2double(readProperty('hDO', ParamFile, ','));
+    A = str2double(readProperty('aDO', ParamFile));
+    B = str2double(readProperty('bDO', ParamFile));
+    C = str2double(readProperty('cDO', ParamFile));
+    D = str2double(readProperty('dDO', ParamFile));
+    E = str2double(readProperty('eDO', ParamFile));
+    F = str2double(readProperty('fDO', ParamFile));
+    G = str2double(readProperty('gDO', ParamFile));
+    H = str2double(readProperty('hDO', ParamFile));
     
     % RINKO III correction formulae on temperature
     DO = A./(1 + D*(tempDO - 25)) + B./((voltDO - F).*(1 + D*(tempDO - 25)) + C + F);
@@ -157,7 +157,7 @@ for k = 1:length(sample_data)
     DO = G + H*DO;
     
     % correction for pressure
-    DO = DO.*(1 + E*presRel); % DO is in % of dissolved oxygen during calibration at this stage
+    DO = DO.*(1 + E*presRel/100); % pressRel/100 => conversion dBar to MPa (see rinko correction formula pdf). DO is in % of dissolved oxygen during calibration at this stage.
     
     if psalIdx > 0
         psal = sam.variables{psalIdx}.data;

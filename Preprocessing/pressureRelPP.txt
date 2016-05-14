@@ -7,7 +7,7 @@
 %
 % Each line is of the format:
 %
-%   source, offset
+%   source = offset
 %
 
-default,                                    -10.1325
+default = -10.1325

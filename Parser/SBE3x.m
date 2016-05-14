@@ -142,7 +142,7 @@ TIME_NAME         = 'TIME';
 header_expr       = '^[\*]\s*(SBE\S+)\s+V\s+(\S+)\s+(\d+)$';
 cal_coeff_expr    = '^[\*]\s*(\w+)\s*=\s*(\S+)\s*$';
 sensor_cal_expr   = '^[\*]\s*(\w+):\s*(.+)\s*$';
-salinity_expr     = '^* output salinity.*$';
+salinity_expr     = '^[\*] output salinity.*$';
 pressure_cal_expr = ['^[\*]\s*pressure\s+S/N\s+(\d+)'... % serial number
                      ',\s*range\s*=\s*(\d+)'         ... % pressure range
                      '\s+psia:?\s*(.+)\s*$'];            % cal date including Seaterm v2 variation format
@@ -180,6 +180,7 @@ sample_data.toolbox_input_file          = filename;
 sample_data.meta.instrument_make        = 'Sea-bird Electronics';
 sample_data.meta.instrument_model       = 'SBE3x';
 sample_data.meta.instrument_serial_no   = '';
+sample_data.meta.featureType            = mode;
 
 %% Read file header (which contains sensor and calibration information)
 %
@@ -202,6 +203,10 @@ sample_data.meta.instrument_serial_no   = '';
 % the data. It is literally:
 %
 %   * output salinity with each sample
+%
+% as opposed to:
+%   * do not output salinity with each sample
+%
 %
 % The fourth type of line is a name-value pair of a particular calibration
 % coefficient. These lines have the format:
@@ -482,7 +487,11 @@ for k = 1:length(varNames)
   switch varNames{k}
     case TEMPERATURE_NAME,  sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(temperature);
     case CONDUCTIVITY_NAME, sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(conductivity);
-    case PRESSURE_NAME,     sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(pressure);
+    case PRESSURE_NAME
+        sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(pressure);
+        % let's document the constant pressure atmosphere offset previously
+        % applied by SeaBird software on the absolute presure measurement
+        sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
     case SALINITY_NAME,     sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(salinity);
   end
 end

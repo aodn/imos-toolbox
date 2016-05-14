@@ -28,14 +28,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.imos.ddb.schema;
+package org.imos.ddb;
 
-import java.util.Date;
+public class DBObject {
 
-public class FieldImages {
-  
-  public String FieldTripID;
-  public Date   Date;
-  public String Image;
-  public String Description;
+	public String name;
+	public Object o;
 }

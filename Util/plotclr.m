@@ -1,4 +1,4 @@
-function h = plotclr(hAx, x, y, v, marker, vlim)
+function h = plotclr(hAx, x, y, v, marker, vlim, varargin)
 % plots the values of v colour coded
 % at the positions specified by x and y.
 % A colourbar is added on the right side of the figure.
@@ -79,10 +79,9 @@ for i=1:nMap/2
     else
         iv = (v > miv+(nc-1)*clrstep) & (v <= miv+nc*clrstep);
     end
-    
     htmp = plot(hAx, x(iv), y(iv), marker, ...
         'Color', map(nc,:), ...
-        'MarkerSize', sqrt(5));
+        'MarkerSize', sqrt(5), varargin{:});
     
     if ~isempty(htmp), h = htmp; end
     
@@ -94,10 +93,9 @@ for i=1:nMap/2
     else
         iv = (v > miv+(nc-1)*clrstep) & (v <= miv+nc*clrstep);
     end
-    
     htmp = plot(hAx, x(iv), y(iv), marker, ...
         'Color', map(nc,:), ...
-        'MarkerSize', sqrt(5));
+        'MarkerSize', sqrt(5), varargin{:});
     
     if ~isempty(htmp), h = htmp; end
 end

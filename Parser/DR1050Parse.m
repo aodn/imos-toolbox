@@ -76,6 +76,7 @@ function sample_data = DR1050Parse( filename, mode )
   sample_data.meta.instrument_model             = header.model;
   sample_data.meta.instrument_firmware          = header.firmware;
   sample_data.meta.instrument_serial_no         = header.serial;
+  sample_data.meta.featureType                  = mode;
   if header.interval > 0
       sample_data.meta.instrument_sample_interval = 24*3600*header.interval;
   else

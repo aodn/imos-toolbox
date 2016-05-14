@@ -1,5 +1,5 @@
 function deviceInfo = readECODevice( filename )
-%READECODEVICE parses a .dev device file retrieved from a Wetlabs ECO Triplet instrument.
+%READECODEVICE parses a .dev device file retrieved from a Wetlabs ECO instrument.
 %
 %
 % Inputs:
@@ -116,8 +116,31 @@ for i=1:nColumns
         case {'N/U', 'DKDC'}
             % do nothing
             
-        % measurements with possible scale, offset and wavelengths infos
+        case 'PAR'
+            % measurements in counts with coefficients calibration
+            deviceInfo.columns{i}.type = upper(type);
+            im = [];
+            a1 = [];
+            a0 = [];
+            
+            for j=j+1:nLines
+                if isempty(im), im = regexp(lines{j}, 'im=[\s]*([0-9\.]*)', 'tokens'); end
+                if isempty(a1), a1 = regexp(lines{j}, 'a1=[\s]*([0-9\.]*)', 'tokens'); end
+                if isempty(a0), a0 = regexp(lines{j}, 'a0=[\s]*([0-9\.]*)', 'tokens'); end
+                if ~isempty(im) && ~isempty(a1) && ~isempty(a0)
+                    deviceInfo.columns{i}.im = str2double(im{1});
+                    deviceInfo.columns{i}.a0 = str2double(a0{1});
+                    deviceInfo.columns{i}.a1 = str2double(a1{1});
+                    break;
+                end
+            end
+            
+            if isempty(im) || isempty(a1) || isempty(a0)
+                error(['couldn''t read PAR coefficients calibration from ' filename]);
+            end
+            
         otherwise
+            % measurements with possible scale, offset and wavelengths infos
             deviceInfo.columns{i}.type = upper(type);
             format = '%*s\t%f\t%f\t%f\t%f';
             output = cell(1, 4);

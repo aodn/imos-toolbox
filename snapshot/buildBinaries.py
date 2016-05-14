@@ -20,6 +20,8 @@ lt = time.localtime()
 
 project = 'imos-toolbox'
 
+version    = '2.5'
+
 url        = 'https://github.com/aodn/%s.git' % project
 exportDir  = 'export'
 
@@ -30,6 +32,7 @@ compilerLog = '.\%s\log.txt' % exportDir
 #
 print('\n--exporting tree from %s to %s' % (url, exportDir))
 os.system('git clone %s %s' % (url, exportDir))
+os.system('cd %s && git checkout %s' % (exportDir, version))
 
 #
 # remove snapshot directory

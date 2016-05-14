@@ -246,9 +246,10 @@ function displayManager(windowTitle, sample_data, callbacks)
       vars(vars > nVar) = [];
     
       % display selected raw data
+      graphs = [];
       try
         graphFunc = getGraphFunc(graphType, 'graph', '');
-        graphFunc(panel, sample_data{setIdx}, vars);
+        [graphs lines vars] = graphFunc(panel, sample_data{setIdx}, vars);
       catch e
         errorString = getErrorString(e);
         fprintf('%s\n',   ['Error says : ' errorString]);
@@ -257,6 +258,42 @@ function displayManager(windowTitle, sample_data, callbacks)
           ['Could not display this data set using ' graphType ...
            ' (' e.message '). Try a different graph type.' ], ...
            'Graphing Error');
+      end
+      
+      % save line handles and index in axis userdata 
+      % so the data select callback can retrieve them
+      if ~isempty(graphs)
+          for k = 1:length(graphs)
+              
+              set(graphs(k), 'UserData', {lines(k), k});
+          end
+      end
+      
+      % add data selection functionality
+      selectFunc = getGraphFunc(graphType, 'select', '');
+      selectFunc(@dataSelectCallbackDoNothing, @dataClickCallback);
+      
+      function dataClickCallback(ax, type, point)
+      %DATACLICKCALLBACK Called when the user clicks on a region of data.
+      %
+          if ~strcmpi(type, 'normal'), return; end
+          
+          % line handles are stored in the axis userdata
+          ud = get(ax, 'UserData');
+
+          varIdx = ud{2};
+          
+          varName = sample_data{setIdx}.variables{vars(varIdx)}.name;
+          
+          graphFunc = getGraphFunc(graphType, 'graph', varName);
+          if strcmpi(func2str(graphFunc), 'graphTimeSeriesTimeDepth')
+              lineMooring2DVarSection(sample_data{1}, varName, point(1), false, false, '')
+          end
+      end
+      
+      function dataSelectCallbackDoNothing(ax, type, range)
+      %DATASELECTCALLBACKDONOTHING
+      
       end
     end
 

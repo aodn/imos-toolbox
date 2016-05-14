@@ -79,7 +79,6 @@ function [exportDir sets] = exportDialog( ...
   if length(setNames) ~= numSets, error('set name length mismatch'); end
 
   % all of these variables store the current settings
-  exportDir         = pwd;
   selectedLevels    = zeros(numSets, numLevels);
   selectedLevels(:) = 1;
   selectedVars      = cell(numSets, 1);
@@ -93,6 +92,8 @@ function [exportDir sets] = exportDialog( ...
     exportDir = readProperty('exportDialog.defaultDir');
   catch e
   end
+  
+  if isempty(exportDir), exportDir = pwd; end
   
   descs = {};
   for k = 1:length(dataSets{1})

@@ -117,6 +117,7 @@ clear dataTxt;
 sample_data = struct;
 
 sample_data.toolbox_input_file  = filename;
+sample_data.meta.featureType    = mode;
 sample_data.meta.headerLines    = headerLines;
 
 sample_data.meta.instrument_make = 'NIWA ASCII .DAT3';

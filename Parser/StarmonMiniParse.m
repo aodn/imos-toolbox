@@ -69,10 +69,11 @@ sample_data = struct;
 sample_data.toolbox_input_file  = filename;
 sample_data.meta.header         = header;
 
-sample_data.meta.instrument_make    = 'Star ODDI';
-sample_data.meta.instrument_model   = 'Starmon Mini';
+sample_data.meta.instrument_make            = 'Star ODDI';
+sample_data.meta.instrument_model           = 'Starmon Mini';
 sample_data.meta.instrument_sample_interval = median(diff(data.TIME.values*24*3600));
-sample_data.meta.instrument_serial_no = header.serialNo;
+sample_data.meta.instrument_serial_no       = header.serialNo;
+sample_data.meta.featureType                = mode;
 
 sample_data.dimensions = {};
 sample_data.variables  = {};

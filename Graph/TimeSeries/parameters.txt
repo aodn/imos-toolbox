@@ -8,6 +8,10 @@ VCUR_MAG,  TimeDepth
 UCUR_MAG,  TimeDepth
 WCUR,      TimeDepth
 ECUR,      TimeDepth
+ABSIC1,    TimeDepth
+ABSIC2,    TimeDepth
+ABSIC3,    TimeDepth
+ABSIC4,    TimeDepth
 ABSI1,     TimeDepth
 ABSI2,     TimeDepth
 ABSI3,     TimeDepth
@@ -28,6 +32,9 @@ NORTEK_ERR2, TimeDepth
 NORTEK_ERR3, TimeDepth
 NORTEK_PROFILE_ERR, TimeDepth
 NORTEK_QC, TimeDepth
+VEL1,      TimeDepth
+VEL2,      TimeDepth
+VEL3,      TimeDepth
 VDEN,      TimeFrequency
 VDEV,      TimeFrequency
 VDEP,      TimeFrequency

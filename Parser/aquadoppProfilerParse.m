@@ -122,8 +122,8 @@ end
 % http://www.nortek-as.com/en/knowledge-center/forum/hr-profilers/736804717
 %
 freq       = head.Frequency; % this is in KHz
-cellStart  = user.T2;        % counts
-cellLength = user.BinLength; % counts
+blankDist  = user.T2;        % counts
+cellSize   = user.BinLength; % counts
 factor     = 0;              % used for conversion
 
 switch freq
@@ -133,18 +133,18 @@ switch freq
   case 2000, factor = 0.0239;
 end
 
-cellLength = (cellLength / 256) * factor * cos(25 * pi / 180);
-cellStart  =  cellStart         * 0.0229 * cos(25 * pi / 180) - cellLength;
+cellSize   = (cellSize / 256) * factor * cos(25 * pi / 180);
+blankDist  = blankDist        * 0.0229 * cos(25 * pi / 180) - cellSize;
 
 % generate distance values
-distance(:) = (cellStart):  ...
-           (cellLength): ...
-           (cellStart + (ncells-1) * cellLength);
+distance(:) = (blankDist):  ...
+           (cellSize): ...
+           (blankDist + (ncells-1) * cellSize);
 
 % Note this is actually the distance between the ADCP's transducers and the
 % middle of each cell
 % See http://www.nortek-bv.nl/en/knowledge-center/forum/current-profilers-and-current-meters/579860330
-distance = distance + cellLength;
+distance = distance + cellSize;
        
 % retrieve sample data
 time            = structures.(profilerType).Time';
@@ -196,9 +196,6 @@ clear structures;
 % pressure    / 1000.0 (mm       -> m)   assuming equivalence to dbar
 % temperature / 100.0  (0.01 deg -> deg)
 % velocities  / 1000.0 (mm/s     -> m/s) assuming earth coordinates
-% backscatter * 0.45   (counts   -> dB)  see
-% http://www.nortek-as.com/en/knowledge-center/forum/velocimeters/577870840
-% and http://www.nortek-as.com/lib/technical-notes/seditments
 battery      = battery      / 10.0;
 heading      = heading      / 10.0;
 pitch        = pitch        / 10.0;
@@ -208,9 +205,6 @@ temperature  = temperature  / 100.0;
 velocity1    = velocity1    / 1000.0;
 velocity2    = velocity2    / 1000.0;
 velocity3    = velocity3    / 1000.0;
-backscatter1 = backscatter1 * 0.45;
-backscatter2 = backscatter2 * 0.45;
-backscatter3 = backscatter3 * 0.45;
 
 if velocityProcessed
     % velocity has been processed
@@ -237,26 +231,32 @@ end
 sample_data = struct;
     
 sample_data.toolbox_input_file              = filename;
-sample_data.meta.featureType                = 'timeSeriesProfile';
+sample_data.meta.featureType                = ''; % strictly this dataset cannot be described as timeSeriesProfile since it also includes timeSeries data like TEMP
 sample_data.meta.head                       = head;
 sample_data.meta.hardware                   = hardware;
 sample_data.meta.user                       = user;
-sample_data.meta.binSize                    = cellLength;
+sample_data.meta.binSize                    = cellSize;
 sample_data.meta.instrument_make            = 'Nortek';
 sample_data.meta.instrument_model           = 'Aquadopp Profiler';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+sample_data.meta.instrument_average_interval= user.AvgInterval;
 sample_data.meta.beam_angle                 = 25;   % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
+sample_data.meta.beam_to_xyz_transform      = head.TransformationMatrix;
 
 % add dimensions with their data mapped
-adcpOrientations = single(status(:, 1));
+adcpOrientations = bin2dec(status(:, end));
 adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
 height = distance;
-if adcpOrientation == '1', height = -height; end % case of a downward looking ADCP -> negative values
+if adcpOrientation == 1
+    % case of a downward looking ADCP -> negative values
+    height = -height;
+    distance = -distance;
+end
 iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
 dims = {
-    'TIME',             time(iWellOriented),    ''; ...
+    'TIME',             time(iWellOriented),    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(user.AvgInterval) ' seconds.']; ...
     'DIST_ALONG_BEAMS', distance,               'Nortek instrument data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
     };
 clear time distance;
@@ -278,6 +278,9 @@ for i=1:nDims
 end
 clear dims;
 
+% add information about the middle of the measurement period
+sample_data.dimensions{1}.seconds_to_middle_of_measurement = user.AvgInterval/2;
+
 % add variables with their dimensions and data mapped.
 % we assume no correction for magnetic declination has been applied
 if velocityProcessed
@@ -296,9 +299,9 @@ vars = {
     'VCUR_MAG',         [1 iDimVel],    velocity2(iWellOriented, :); ... % V
     'UCUR_MAG',         [1 iDimVel],    velocity1(iWellOriented, :); ... % U
     'WCUR',             [1 iDimVel],    velocity3(iWellOriented, :); ...
-    'ABSI1',            [1 iDimDiag],   backscatter1(iWellOriented, :); ...
-    'ABSI2',            [1 iDimDiag],   backscatter2(iWellOriented, :); ...
-    'ABSI3',            [1 iDimDiag],   backscatter3(iWellOriented, :); ...
+    'ABSIC1',           [1 iDimDiag],   backscatter1(iWellOriented, :); ...
+    'ABSIC2',           [1 iDimDiag],   backscatter2(iWellOriented, :); ...
+    'ABSIC3',           [1 iDimDiag],   backscatter3(iWellOriented, :); ...
     'TEMP',             1,              temperature(iWellOriented); ...
     'PRES_REL',         1,              pressure(iWellOriented); ...
     'VOLT',             1,              battery(iWellOriented); ...
@@ -341,7 +344,7 @@ for i=1:nVars
     sample_data.variables{i}.dimensions   = vars{i, 2};
     if ~isempty(vars{i, 2}) % we don't want this for scalar variables
         if length(sample_data.variables{i}.dimensions) == 2
-            sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE DIST_ALONG_BEAMS';
+            sample_data.variables{i}.coordinates = ['TIME LATITUDE LONGITUDE ' sample_data.dimensions{sample_data.variables{i}.dimensions(2)}.name];
         else
             sample_data.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
         end

@@ -1,4 +1,4 @@
-function [fieldTrip dataDir] = startDialog(mode)
+function [fieldTrip dataDir] = startDialog(mode, isCSV)
 %STARTDIALOG Displays a dialog prompting the user to select a Field Trip 
 % and a directory which contains raw data files.
 %
@@ -11,6 +11,7 @@ function [fieldTrip dataDir] = startDialog(mode)
 % Input:
 %
 %   mode - String, toolox execution mode can be 'profile' or 'timeSeries'.
+%   isCSV - optional boolean (default = false). True if importing from csv files.
 %   
 % Outputs:
 %
@@ -52,36 +53,40 @@ function [fieldTrip dataDir] = startDialog(mode)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(1,1);
+  narginchk(1,2);
   
-  dataDir     = pwd;
-  fieldTripId = '1';
-  lowDate     = 0;
-  highDate    = now_utc;
+  if nargin == 1
+      isCSV = false;
+  end
+  
   dateFmt     = readProperty('toolbox.dateFormat');
     
-  % if default values exist for data dir and field trip, use them
-  try 
-      switch mode
-          case 'profile'
-              dataDir     =            readProperty('startDialog.dataDir.profile');
-              fieldTripId =            readProperty('startDialog.fieldTrip.profile');
-              lowDate     = str2double(readProperty('startDialog.lowDate.profile'));
-              highDate    = str2double(readProperty('startDialog.highDate.profile'));
-          otherwise
-              dataDir     =            readProperty('startDialog.dataDir.timeSeries');
-              fieldTripId =            readProperty('startDialog.fieldTrip.timeSeries');
-              lowDate     = str2double(readProperty('startDialog.lowDate.timeSeries'));
-              highDate    = str2double(readProperty('startDialog.highDate.timeSeries'));
-      end
-  catch
+  % if values exist for data dir and field trip, use them
+  switch mode
+      case 'profile'
+          dataDir     =            readProperty('startDialog.dataDir.profile');
+          fieldTripId =            readProperty('startDialog.fieldTrip.profile');
+          lowDate     = str2double(readProperty('startDialog.lowDate.profile'));
+          highDate    = str2double(readProperty('startDialog.highDate.profile'));
+      otherwise
+          dataDir     =            readProperty('startDialog.dataDir.timeSeries');
+          fieldTripId =            readProperty('startDialog.fieldTrip.timeSeries');
+          lowDate     = str2double(readProperty('startDialog.lowDate.timeSeries'));
+          highDate    = str2double(readProperty('startDialog.highDate.timeSeries'));
   end
 
-  if isnan(lowDate),  lowDate  = 0;   end
-  if isnan(highDate), highDate = now_utc; end
+  % otherwise use default values
+  if isempty(dataDir),      dataDir = pwd;      end
+  if isempty(fieldTripId),  fieldTripId = '1';  end
+  if isnan(lowDate),        lowDate  = 0;       end
+  if isnan(highDate),       highDate = now_utc; end
 
   % retrieve all field trip IDs; they are displayed as a drop down menu
-  fieldTrips = executeDDBQuery('FieldTrip', [], []);
+  if isCSV
+      fieldTrips = executeCSVQuery('FieldTrip', [], []);
+  else
+      fieldTrips = executeDDBQuery('FieldTrip', [], []);
+  end
   
   if isempty(fieldTrips), error('No field trip entries in DDB'); end
   

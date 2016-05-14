@@ -165,19 +165,30 @@ for i=1:lenVar
     if strcmpi(paramName, 'ROLL'),      idRoll    = i; end
 end
 
-% check if the data is compatible with the QC algorithm
+% check if the data is compatible with the QC algorithm, otherwise quit
+% silently
 idMandatory = idPitch & idRoll & (idUcur | idVcur | idWcur | idCspd | idCdir);
-
 if ~idMandatory, return; end
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good', qcSet, 'flag');
 
-% we try to find out which kind of ADCP we're dealing with
-[firstTiltThreshold, secondTiltThreshold, firstFlagThreshold, secondFlagThreshold] = getTiltThresholds(sample_data.instrument);
+% we try to find out which kind of ADCP we're dealing with and if it is
+% listed as one we should process
+instrument = sample_data.instrument;
+if isfield(sample_data, 'meta')
+    if isfield(sample_data.meta, 'instrument_make') && isfield(sample_data.meta, 'instrument_model')
+        instrument = [sample_data.meta.instrument_make ' ' sample_data.meta.instrument_model];
+    end
+end
+        
+[firstTiltThreshold, secondTiltThreshold, firstFlagThreshold, secondFlagThreshold] = getTiltThresholds(instrument);
 
 if isempty(firstTiltThreshold)
-    error(['Impossible to determine from which ADCP make/model is ' sample_data.toolbox_input_file ' => Fill instrument global attribute and/or imosTiltVelositySetQC.txt with relevant make/model information!']);
+    % couldn't find this instrument so quit the test
+    disp(['Info: imosTiltVelositySetQC could not be performed on ' sample_data.toolbox_input_file ...
+        ' instrument = "' instrument '" => Fill imosTiltVelositySetQC.txt with relevant make/model information if you wish to run this test on this dataset.']);
+    return;
 end
 
 paramsLog = ['firstTiltThreshold=' num2str(firstTiltThreshold) ', secondTiltThreshold=' num2str(secondTiltThreshold)];
@@ -188,7 +199,12 @@ roll  = sample_data.variables{idRoll}.data;
 tilt = acos(sqrt(1 - sin(roll*pi/180).^2 - sin(pitch*pi/180).^2))*180/pi;
 
 % initially everything is failing the tests
-sizeCur = size(sample_data.variables{idWcur}.flags);
+if idUcur
+    idVar = idUcur;
+else
+    idVar = idCspd;
+end
+sizeCur = size(sample_data.variables{idVar}.flags);
 flags = ones(sizeCur, 'int8')*secondFlagThreshold;
 
 % tilt test

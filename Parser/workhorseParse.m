@@ -138,6 +138,11 @@ narginchk(1, 2);
       variable.y2kMinute,...
       variable.y2kSecond + variable.y2kHundredth/100.0]);
   
+  timePerPing = fixed.tppMinutes*60 + fixed.tppSeconds + fixed.tppHundredths/100;
+  timePerEnsemble = fixed.pingsPerEnsemble .* timePerPing;
+%   % shift the timestamp to the middle of the burst
+%   time = time + (timePerEnsemble / (3600 * 24))/2;
+  
   %
   % auxillary data
   %
@@ -173,7 +178,6 @@ narginchk(1, 2);
   % veast       / 1000.0 (mm/s       -> m/s)
   % wvel        / 1000.0 (mm/s       -> m/s)
   % evel        / 1000.0 (mm/s       -> m/s)
-  % backscatter * 0.45   (count      -> dB)
   % pitch       / 100.0  (0.01 deg   -> deg)
   % roll        / 100.0  (0.01 deg   -> deg)
   % heading     / 100.0  (0.01 deg   -> deg)
@@ -186,10 +190,6 @@ narginchk(1, 2);
   veast        = veast        / 1000.0;
   wvel         = wvel         / 1000.0;
   evel         = evel         / 1000.0;
-  backscatter1 = backscatter1 * 0.45;
-  backscatter2 = backscatter2 * 0.45;
-  backscatter3 = backscatter3 * 0.45;
-  backscatter4 = backscatter4 * 0.45;
   pitch        = pitch        / 100.0;
   roll         = roll         / 100.0;
   heading      = heading      / 100.0;
@@ -217,13 +217,45 @@ narginchk(1, 2);
   
   % fill in the sample_data struct
   sample_data.toolbox_input_file        = filename;
-  sample_data.meta.featureType          = 'timeSeriesProfile';
+  sample_data.meta.featureType          = ''; % strictly this dataset cannot be described as timeSeriesProfile since it also includes timeSeries data like TEMP
   sample_data.meta.fixedLeader          = fixed;
   sample_data.meta.binSize              = mode(fixed.depthCellLength)/100; % we set a static value for this variable to the most frequent value found
   sample_data.meta.instrument_make      = 'Teledyne RDI';
-  sample_data.meta.instrument_model     = 'Workhorse ADCP';
+  
+  % try to guess model information
+  adcpFreqs = str2num(fixed.systemConfiguration(:, 6:8)); % str2num is actually more relevant than str2double here
+  adcpFreq = mode(adcpFreqs); % hopefully the most frequent value reflects the frequency when deployed
+  switch adcpFreq
+      case 0
+          adcpFreq = 75;
+          model = 'Long Ranger';
+          
+      case 1
+          adcpFreq = 150;
+          model = 'Quartermaster';
+          
+      case 10
+          adcpFreq = 300;
+          model = 'Sentinel or Monitor';
+          
+      case 11
+          adcpFreq = 600;
+          model = 'Sentinel or Monitor';
+          
+      case 100
+          adcpFreq = 1200;
+          model = 'Sentinel or Monitor';
+          
+      otherwise
+          adcpFreq = 2400;
+          model = 'Unknown';
+          
+  end
+  
+  sample_data.meta.instrument_model     = [model ' Workhorse ADCP'];
   sample_data.meta.instrument_serial_no =  serial;
   sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+  sample_data.meta.instrument_average_interval = mode(timePerEnsemble);
   sample_data.meta.instrument_firmware  = ...
     strcat(num2str(fixed.cpuFirmwareVersion(1)), '.', num2str(fixed.cpuFirmwareRevision(1))); % we assume the first value is correct for the rest of the dataset
   if all(isnan(fixed.beamAngle))
@@ -231,15 +263,19 @@ narginchk(1, 2);
   else
       sample_data.meta.beam_angle       =  mode(fixed.beamAngle); % we set a static value for this variable to the most frequent value found
   end
-
+  
   % add dimensions with their data mapped
   adcpOrientations = str2num(fixed.systemConfiguration(:, 1)); % str2num is actually more relevant than str2double here
   adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
   height = distance;
-  if adcpOrientation == '0', height = -height; end % case of a downward looking ADCP -> negative values
+  if adcpOrientation == 0
+      % case of a downward looking ADCP -> negative values
+      height = -height;
+      distance = -distance;
+  end
   iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
   dims = {
-      'TIME',                   time(iWellOriented),    ''; ...
+      'TIME',                   time(iWellOriented),    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(sample_data.meta.instrument_average_interval) ' seconds.']; ...
       'HEIGHT_ABOVE_SENSOR',    height(:),              'Data has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.'; ...
       'DIST_ALONG_BEAMS',       distance(:),            'Data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
       };
@@ -254,6 +290,9 @@ narginchk(1, 2);
       sample_data.dimensions{i}.comment      = dims{i, 3};
   end
   clear dims;
+  
+  % add information about the middle of the measurement period
+  sample_data.dimensions{1}.seconds_to_middle_of_measurement = sample_data.meta.instrument_average_interval/2;
   
   % add variables with their dimensions and data mapped
   if isMagBias
@@ -273,10 +312,10 @@ narginchk(1, 2);
       'ECUR',               [1 2],  evel(iWellOriented, :); ...
       'CSPD',               [1 2],  speed(iWellOriented, :); ...
       ['CDIR' magExt],      [1 2],  direction(iWellOriented, :); ...
-      'ABSI1',              [1 3],  backscatter1(iWellOriented, :); ...
-      'ABSI2',              [1 3],  backscatter2(iWellOriented, :); ...
-      'ABSI3',              [1 3],  backscatter3(iWellOriented, :); ...
-      'ABSI4',              [1 3],  backscatter4(iWellOriented, :); ...
+      'ABSIC1',              [1 3],  backscatter1(iWellOriented, :); ...
+      'ABSIC2',              [1 3],  backscatter2(iWellOriented, :); ...
+      'ABSIC3',              [1 3],  backscatter3(iWellOriented, :); ...
+      'ABSIC4',              [1 3],  backscatter4(iWellOriented, :); ...
       'TEMP',               1,      temperature(iWellOriented); ...
       'PRES_REL',           1,      pressure(iWellOriented); ...
       'PSAL',               1,      salinity(iWellOriented); ...
@@ -352,7 +391,7 @@ narginchk(1, 2);
   % less than 4 beams
   for k = 4:-1:numBeams+1
       kStr = num2str(k);
-      remove(end+1) = getVar(sample_data.variables, ['ABSI' kStr]);
+      remove(end+1) = getVar(sample_data.variables, ['ABSIC' kStr]);
       remove(end+1) = getVar(sample_data.variables, ['CMAG' kStr]);
       remove(end+1) = getVar(sample_data.variables, ['PERG' kStr]);
   end
@@ -382,14 +421,25 @@ narginchk(1, 2);
       sample_data{2}.meta.user                       = [];
       sample_data{2}.meta.instrument_sample_interval = median(diff(waveData.param.time*24*3600));
       
+      avgInterval = [];
+      if isfield(waveData, 'summary')
+          iMatch = ~cellfun(@isempty, regexp(waveData.summary, 'Each Burst Contains  [0-9]* Samples, Taken at [0-9\.]* Hz.'));
+          if any(iMatch)
+              avgInterval = textscan(waveData.summary{iMatch}, 'Each Burst Contains  %f Samples, Taken at %f Hz.');
+              avgInterval = avgInterval{1}/avgInterval{2};
+          end
+      end
+      sample_data{2}.meta.instrument_average_interval = avgInterval;
+      if isempty(avgInterval), avgInterval = '?'; end
+      
       sample_data{2}.dimensions = {};
       sample_data{2}.variables  = {};
       
       % add dimensions with their data mapped
       dims = {
-          'TIME',                   waveData.param.time; ...
-          'FREQUENCY',              waveData.Dspec.freq; ...
-          ['DIR' magExt],           waveData.Dspec.dir
+          'TIME',                   waveData.param.time,    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(avgInterval) ' seconds.']; ...
+          'FREQUENCY',              waveData.Dspec.freq,    ''; ...
+          ['DIR' magExt],           waveData.Dspec.dir,     ''
           };
       
       nDims = size(dims, 1);
@@ -404,6 +454,9 @@ narginchk(1, 2);
           end
       end
       clear dims;
+      
+      % add information about the middle of the measurement period
+      sample_data{2}.dimensions{1}.seconds_to_middle_of_measurement = sample_data{2}.meta.instrument_average_interval/2;
       
       % add variables with their dimensions and data mapped
       vars = {

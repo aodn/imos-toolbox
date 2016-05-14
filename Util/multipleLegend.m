@@ -1,5 +1,5 @@
-function [leg,labelhandles,outH,outM] = legend(varargin)
-%LEGEND Display legend.
+function [leg,labelhandles,outH,outM] = multipleLegend(varargin)
+%MULTIPLELEGEND Display multiple legends.
 %   LEGEND(string1,string2,string3, ...) puts a legend on the current plot
 %   using the specified strings as labels. LEGEND works on line graphs,
 %   bar graphs, pie graphs, ribbon plots, etc.  You can label any

@@ -1,5 +1,4 @@
-function [selected, cancel] = listSelectionDialog( ...
-  title, allOpts, initialOpts, selectCB, selectLabel )
+function [selected, cancel] = listSelectionDialog( title, allOpts, initialOpts, selectCell )
 %LISTSELECTIONDIALOG Prompts the user to select a subset from a list of
 % options.
 %
@@ -14,19 +13,19 @@ function [selected, cancel] = listSelectionDialog( ...
 %                 defining the options that should be selected when the 
 %                 dialog is first displayed. If not provided, no options
 %                 are selected.
-%   selectCB    - Optional. If provided, an extra button will be displayed 
-%                 with a default label of 'Select'. This function will be 
-%                 called when the user pushes the button; the name of the 
+%   selectCell  - Optional, cell array of 2 tuples {@function, buttonLabel}. 
+%                 If provided, an extra button will be displayed 
+%                 with a label. The function will be called when the 
+%                 user pushes the button; the name of the 
 %                 first selected item in the list of currently selected 
 %                 items is passed to the function.
-%   selectLabel - Optional. If provided, is used as the label for the
-%                 selectCB button.
 %
 % Outputs:
 %   selected    - Cell array containing the selected options If the user 
 %                 cancelled the dialog, this vector is empty.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:	Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -58,19 +57,21 @@ function [selected, cancel] = listSelectionDialog( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(2,5);
+  narginchk(2,4);
 
   if nargin == 2, initialOpts = []; end
-  if nargin == 4, selectLabel = 'Select'; end
 
   if ~ischar(title),          error('title must be a string');              end
   if ~iscellstr(allOpts),     error('allOpts must be a string cell array'); end
   if  isempty(allOpts),       error('allOpts is empty');                    end
   if ~isnumeric(initialOpts), error('initialOpts must be numeric');         end
-  if  exist('selectCB', 'var') && ~isa(selectCB, 'function_handle')
-                              error('selectCB must be a handle');           end
-  if  exist('selectLabel', 'var') && ~ischar(selectLabel)
-                              error('selectLabel must be a string');        end
+  if exist('selectCell', 'var') && ~iscell(selectCell)
+                              error('selectCell must be a cell array'); end
+  if size(selectCell, 2) ~= 2, error('selectCell must contain n tuples of length 2'); end
+  nTuples = size(selectCell, 1);
+  function_handles = repmat({'function_handle'}, nTuples, 1);
+  if any(~cellfun(@isa, selectCell(:, 1), function_handles)), error('selectCell first column must include function handlers'); end
+  if any(~cellfun(@ischar, selectCell(:, 2))), error('selectCell second column must include strings'); end
   
   cancel = false;
                           
@@ -152,16 +153,18 @@ function [selected, cancel] = listSelectionDialog( ...
   set(confirmButton, 'Callback',          @confirmCallback);
   
   % set item select callback function if it was passed in
-  if exist('selectCB', 'var')
+  if exist('selectCell', 'var')
     
-    selectButton = uicontrol(...
-      'Style', 'pushbutton', ...
-      'String', selectLabel,...
-      'Units', 'normalized',...
-      'Callback', @selectCallback);
-    
-    set(selectButton, 'Position', [0.9, 0.9, 0.1, 0.1]);
-    set(selectButton, 'Units',    'pixels');
+      for i=1:nTuples
+          selectButton = uicontrol(...
+              'Style', 'pushbutton', ...
+              'String', selectCell(i, 2), ...
+              'Units', 'normalized', ...
+              'Callback', {@selectCallback, i});
+          
+          set(selectButton, 'Position', [0.9, 0.9 - (i-1)*0.1, 0.1, 0.1]);
+          set(selectButton, 'Units',    'pixels');
+      end
   end
   
   % set the list data
@@ -180,19 +183,36 @@ function [selected, cancel] = listSelectionDialog( ...
 
   %% Callback functions
   
-  %SELECTCALLBACK Wrapper for the real callback function. Calls selectCB,
+  %SELECTCALLBACK Wrapper for the real callback function. Calls selectCellCB,
   % and passes it the (first) currently selected item in the selected list.
   % Does nothing if no items are selected.
   %
-  function selectCallback(source, ev)
+  function selectCallback(source, ev, iButton)
 
     selIdx = get(selList, 'Value');
     
-    if isempty(selIdx), return; end
+    if isempty(selIdx)
+        fprintf('%s\n', 'Info : please first select a routine.');
+        return;
+    end
     
     % pass the selected item to the real callback function
-    selectCB(selected{selIdx(1)});
-
+    selectCellCB = selectCell{iButton, 1};
+    [routines, chain] = selectCellCB(selected{selIdx(1)});
+    
+    if ~isempty(chain)
+        % reset the list data to current setting (in case would have been
+        % updated by previous callback
+        chainIdx = cellfun(@(x)(find(ismember(routines,x))),chain);
+        
+        selected = {routines{chainIdx}};
+        notSelected = true(size(routines));
+        notSelected(chainIdx) = false;
+        notSelected = {routines{notSelected}};
+        
+        set(nSelList, 'String', notSelected);
+        set(selList,  'String', selected);
+    end
   end
   
   function keyPressCallback(source,ev)

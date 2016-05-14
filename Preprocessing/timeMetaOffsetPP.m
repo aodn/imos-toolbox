@@ -83,7 +83,7 @@ function sample_data = timeMetaOffsetPP(sample_data, qcLevel, auto)
     
     if isnan(str2double(timezones{k}))
       try 
-        offsets(k) = str2double(readProperty(timezones{k}, offsetFile, ','));
+        offsets(k) = str2double(readProperty(timezones{k}, offsetFile));
       catch
         offsets(k) = nan;
       end

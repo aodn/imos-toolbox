@@ -136,7 +136,6 @@ clear structures;
 % pressure    / 1000.0 (mm       -> m)   assuming equivalence to dbar
 % temperature / 100.0  (0.01 deg -> deg)
 % velocities  / 1000.0 (mm/s     -> m/s) assuming earth coordinates
-% backscatter * 0.45   (counts   -> dB)  see http://www.nortek-as.com/lib/technical-notes/seditments
 battery      = battery      / 10.0;
 heading      = heading      / 10.0;
 pitch        = pitch        / 10.0;
@@ -146,9 +145,6 @@ temperature  = temperature  / 100.0;
 velocity1    = velocity1    / 1000.0;
 velocity2    = velocity2    / 1000.0;
 velocity3    = velocity3    / 1000.0;
-backscatter1 = backscatter1 * 0.45;
-backscatter2 = backscatter2 * 0.45;
-backscatter3 = backscatter3 * 0.45;
 
 sample_data = struct;
     
@@ -162,11 +158,13 @@ sample_data.meta.instrument_model           = 'Aquadopp Current Meter';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+sample_data.meta.instrument_average_interval= user.AvgInterval;
 sample_data.meta.beam_angle                 = 45;   % http://wiki.neptunecanada.ca/download/attachments/18022846/Nortek+Aquadopp+Current+Meter+User+Manual+-+Rev+C.pdf
+sample_data.meta.featureType                = mode;
 
 % add dimensions with their data mapped
 dims = {
-    'TIME',                   time
+    'TIME', time, ['Time stamp corresponds to the start of the measurement which lasts ' num2str(user.AvgInterval) ' seconds.'] 
     };
 clear time;
 
@@ -176,8 +174,12 @@ for i=1:nDims
     sample_data.dimensions{i}.name         = dims{i, 1};
     sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
     sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
+    sample_data.dimensions{i}.comment      = dims{i, 3};
 end
 clear dims;
+
+% add information about the middle of the measurement period
+sample_data.dimensions{1}.seconds_to_middle_of_measurement = user.AvgInterval/2;
 
 % add variables with their dimensions and data mapped.
 % we assume no correction for magnetic declination has been applied
@@ -189,9 +191,9 @@ vars = {
     'VCUR_MAG',         1,  velocity2; ... % V
     'UCUR_MAG',         1,  velocity1; ... % U
     'WCUR',             1,  velocity3; ...
-    'ABSI1',            1,  backscatter1; ...
-    'ABSI2',            1,  backscatter2; ...
-    'ABSI3',            1,  backscatter3; ...
+    'ABSIC1',           1,  backscatter1; ...
+    'ABSIC2',           1,  backscatter2; ...
+    'ABSIC3',           1,  backscatter3; ...
     'TEMP',             1,  temperature; ...
     'PRES_REL',         1,  pressure; ...
     'VOLT',             1,  battery; ...
