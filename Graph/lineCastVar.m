@@ -62,10 +62,8 @@ for i=1:length(notNeededParams)
 end
 
 %plot depth information
-monitorRec = get(0,'MonitorPosition');
-xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-iBigMonitor = xResolution == max(xResolution);
-if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
 
 title = [sample_data{1}.site_code ' profile on ' datestr(sample_data{1}.time_coverage_start, 'yyyy-mm-dd UTC')];
 
@@ -138,7 +136,7 @@ for k=1:lenVarNames
                     'Name', title, ...
                     'NumberTitle','off', ...
                     'Visible', visible, ...
-                    'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+                    'OuterPosition', monitorRect(iBigMonitor, :));
                 
                 initiateFigure = false;
             end

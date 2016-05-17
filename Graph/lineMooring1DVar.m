@@ -61,10 +61,8 @@ stringQC = 'non QC';
 if isQC, stringQC = 'QC'; end
 
 %plot depth information
-monitorRec = get(0,'MonitorPosition');
-xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-iBigMonitor = xResolution == max(xResolution);
-if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
 
 title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
 
@@ -150,7 +148,7 @@ for i=1:lenSampleData
                 'Name', title, ...
                 'NumberTitle','off', ...
                 'Visible', visible, ...
-                'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+                'OuterPosition', monitorRect(iBigMonitor, :));
             
             hAxMooringVar = axes('Parent',   hFigMooringVar);
             if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'})), set(hAxMooringVar, 'YDir', 'reverse'); end
