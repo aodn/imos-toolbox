@@ -107,7 +107,7 @@ for i=1:lenSampleData
     
     instrumentDesc{i} = [strrep(instrumentDesc{i}, '_', ' ') ' (' num2str(metaDepth(i)) 'm' instrumentSN ')'];
         
-    switch varName
+    switch varName(1:4)
         case {'UCUR', 'VCUR', 'WCUR', 'VEL1', 'VEL2', 'VEL3'}   % 0 centred parameters
             cMap = 'r_b';
             cType = 'centeredOnZero';

@@ -127,7 +127,7 @@ for i=1:lenSampleData
     izVar = getVar(sample_data{iSort(i)}.variables, varName);
     
     if izVar > 0 && size(sample_data{iSort(i)}.variables{izVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
-            all(~strcmpi(sample_data{iSort(i)}.variables{izVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}))
+            all(~strncmpi(sample_data{iSort(i)}.variables{izVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}, 4))
         iGood = true(size(sample_data{iSort(i)}.variables{izVar}.data));
         if isQC
             %get time, depth and var QC information
