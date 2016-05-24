@@ -84,7 +84,7 @@ function updateViewMetadata(parent, sample_data, mode)
   % create a cell array containing global attribute data
   globData = [fieldnames(globs) struct2cell(globs)];
   
-  if strcmpi(mode, 'timeSeries')
+  if any(strcmpi(mode, {'timeSeries', 'trajectory'}))
       % create cell array containing dimension
       % attribute data (one per dimension)
       dimData  = cell(lenDims, 1);
@@ -114,7 +114,7 @@ function updateViewMetadata(parent, sample_data, mode)
     path = fullfile(path, 'NetCDF', 'template');
   end
   
-  if strcmpi(mode, 'timeSeries')
+  if any(strcmpi(mode, {'timeSeries', 'trajectory'}))
       for k = 1:length(dims)
           temp = fullfile(path, [lower(dims{k}.name) '_attributes.txt']);
           if exist(temp, 'file')

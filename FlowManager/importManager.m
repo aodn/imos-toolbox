@@ -227,7 +227,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
       switch mode
           case 'profile'
               [fieldTrip deps sits dataDir] = getCTDs(auto, isCSV); % one entry is one CTD profile instrument file
-          case 'timeSeries'
+          case {'timeSeries', 'trajectory'}
               [fieldTrip deps sits dataDir] = getDeployments(auto, isCSV); % one entry is one moored instrument file
       end
       
@@ -292,7 +292,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
             switch mode
                 case 'profile'
                     deps(~iSelectedSite) = [];
-                case 'timeSeries'
+                case {'timeSeries', 'trajectory'}
                     deps(~iSelectedSite) = [];
                     sits(~iSelectedSite) = [];
             end
@@ -308,8 +308,9 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
         switch mode
             case 'profile'
                 id   = deps(k).FieldTrip;
-            case 'timeSeries'
+            case {'timeSeries', 'trajectory'}
                 id   = deps(k).DeploymentId;
+                
         end
         
       rawFile = deps(k).FileName;
@@ -380,6 +381,8 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
                 case 'timeSeries'
                     sample_data{end}{m}.meta.deployment = deps(k);
                     sample_data{end}{m}.meta.site = sits(k);
+                case 'trajectory'
+                    sample_data{end}{m}.meta.deployment = deps(k);
             end
         end
         
@@ -390,6 +393,8 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
               case 'timeSeries'
                   sample_data{end}.meta.deployment = deps(k);
                   sample_data{end}.meta.site = sits(k);
+              case 'trajectory'
+                  sample_data{end}.meta.deployment = deps(k);
           end
       end
     
@@ -416,6 +421,10 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
                 fprintf('\t%s\n', ['Station = ' deps(k).Station]);
                 fprintf('\t%s\n', ['DeploymentType = ' deps(k).DeploymentType]);
                 fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
+                errorString = getErrorString(e);
+                fprintf('%s\n',   ['Error says : ' errorString]);
+            case 'trajectory'
+                fprintf('%s\n',   ['Warning : skipping ' deps(k).FileName]);
                 errorString = getErrorString(e);
                 fprintf('%s\n',   ['Error says : ' errorString]);
         end

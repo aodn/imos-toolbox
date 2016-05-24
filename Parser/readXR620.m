@@ -712,6 +712,10 @@ function sample_data = readXR620( filename, mode )
                   sample_data.variables{end}.coordinates  = coordinates;
               end
           end
+          
+      otherwise
+          error('Parser only supported in toolbox mode timeSeries or profile.');
+          
   end
 end
   

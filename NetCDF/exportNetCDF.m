@@ -542,7 +542,7 @@ function vid = addQCVar(...
   
   % we only want to consider flags when data has been collected in position
   switch mode
-      case 'profile'
+      case {'profile', 'trajectory'}
           iInWater = true(size(sample_data.(type){varIdx}.data));
           
       case 'timeSeries'

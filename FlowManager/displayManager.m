@@ -239,7 +239,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       switch mode
           case 'profile'
               nVar = length(sample_data{setIdx}.variables) - 5;
-          case 'timeSeries'
+          case {'timeSeries', 'trajectory'}
               nVar = length(sample_data{setIdx}.variables) - 3;
       end
       vars(vars > nVar) = [];
@@ -440,7 +440,7 @@ function displayManager(windowTitle, sample_data, callbacks)
                   % a comment
                   manualQcComment = '';
                   if ~isempty(comment)
-                      % we get the first dimension (either TIME or DEPTH for timeSeries or
+                      % we get the first dimension (either TIME or DEPTH for timeSeries, trajectory or
                       % profile)
                       iDim1 = sample_data{setIdx}.variables{kVar(i)}.dimensions(1);
                       nameDim1 = sample_data{setIdx}.dimensions{iDim1}.name;

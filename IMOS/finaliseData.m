@@ -181,33 +181,23 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   % set the time coverage period from the data
   switch mode
       case 'profile'
-          time = getVar(sam.variables, 'TIME');
-          if time ~= 0
-              if isempty(sam.time_coverage_start),
-                  sam.time_coverage_start = sam.variables{time}.data(1);
-              end
-              if isempty(sam.time_coverage_end),
-                  sam.time_coverage_end   = sam.variables{time}.data(end);
-              end
-          else
-              if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
-              if isempty(sam.time_coverage_end),   sam.time_coverage_end   = []; end
-          end
+          type = 'variables';
           
-      case 'timeSeries'
-          time = getVar(sam.dimensions, 'TIME');
-          if time ~= 0
-              if isempty(sam.time_coverage_start),
-                  sam.time_coverage_start = sam.dimensions{time}.data(1);
-              end
-              if isempty(sam.time_coverage_end),
-                  sam.time_coverage_end   = sam.dimensions{time}.data(end);
-              end
-          else
-              if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
-              if isempty(sam.time_coverage_end),   sam.time_coverage_end   = []; end
-          end
+      case {'timeSeries', 'trajectory'}
+          type = 'dimensions';
   
   end
   
+  time = getVar(sam.(type), 'TIME');
+  if time ~= 0
+      if isempty(sam.time_coverage_start),
+          sam.time_coverage_start = sam.(type){time}.data(1);
+      end
+      if isempty(sam.time_coverage_end),
+          sam.time_coverage_end   = sam.(type){time}.data(end);
+      end
+  else
+      if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
+      if isempty(sam.time_coverage_end),   sam.time_coverage_end   = []; end
+  end
 end

@@ -15,8 +15,8 @@ toolbox.ddb.connection =
 toolbox.ddb.user = 
 toolbox.ddb.password = 
 
-% toolbox execution mode. Values can be 'timeSeries' or 'profile'. 
-toolbox.mode = timeSeries
+% toolbox execution mode. Values can be 'timeSeries', 'profile' and 'trajectory'. 
+toolbox.mode = trajectory
 
 % directory which contains netcdf templates
 % (defaults to ./NetCDF/template/)
@@ -38,10 +38,12 @@ exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 % default set of auto QC routines
 autoQCManager.autoQCDefaultChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosCorrMagVelocitySetQC imosHistoricalManualSetQC
 autoQCManager.autoQCDefaultChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
+autoQCManager.autoQCDefaultChain.trajectory = 
 
 % last selected set of auto QC routines
 autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosCorrMagVelocitySetQC imosHistoricalManualSetQC
 autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
+autoQCManager.autoQCChain.trajectory = 
 
 % prompt for preprocessing (if false, 
 % preprocessing routines are not executed)
@@ -50,10 +52,12 @@ preprocessManager.preprocessPrompt = true
 % default set of preprocessing routines
 preprocessManager.preprocessDefaultChain.timeSeries = depthPP salinityPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP
 preprocessManager.preprocessDefaultChain.profile = depthPP salinityPP
+preprocessManager.preprocessDefaultChain.trajectory = 
 
 % last selected set of preprocessing routines
 preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP
 preprocessManager.preprocessChain.profile = depthPP salinityPP
+preprocessManager.preprocessChain.trajectory = 
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 
@@ -65,12 +69,16 @@ dataFileStatusDialog.multipleFileFormat    = italic
 % last selected values for start dialog
 startDialog.dataDir.timeSeries = 
 startDialog.dataDir.profile = 
+startDialog.dataDir.trajectory = 
 startDialog.fieldTrip.timeSeries = 
 startDialog.fieldTrip.profile = 
+startDialog.fieldTrip.trajectory = 
 startDialog.lowDate.timeSeries = 
 startDialog.lowDate.profile = 
+startDialog.lowDate.trajectory = 
 startDialog.highDate.timeSeries = 
 startDialog.highDate.profile = 
+startDialog.highDate.trajectory = 
 
 % last selected directory for manual data import
 importManager.manualDir = 

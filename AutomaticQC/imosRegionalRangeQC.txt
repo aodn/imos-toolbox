@@ -105,3 +105,7 @@ WATR15,	PSAL,	30.1,	39.6
 WATR15,	TEMP,	9.7,	32
 WATR20,	TEMP,	8.1,	32.8
 WATR50,	TEMP,	2.5,	28
+BS,     TEMP,   5,      30
+BS,     PSAL,   15,     37
+BS,     CPHL,   0,      100
+BS,     TURB,   0,      50

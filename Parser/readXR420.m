@@ -357,6 +357,10 @@ function sample_data = readXR420( filename, mode )
               sample_data.variables{end}.coordinates  = coordinates;
               sample_data.variables{end}.comment      = comment.(fields{k});
           end
+          
+      otherwise
+          error('Parser only supported in toolbox mode timeSeries or profile.');
+          
   end
 end
   

@@ -91,6 +91,11 @@ function [deployments files] = dataFileStatusDialog( deployments, files, isCSV )
           
           [~, iSort] = sort(instDepths);
           deploymentDescs = deploymentDescs(iSort);
+      case 'trajectory'
+          % for a trajectory, sort by alphabetical order on DeploymentId
+          [~, iSort] = sort({deployments.DeploymentId});
+          deploymentDescs = deploymentDescs(iSort);
+
   end
   
   

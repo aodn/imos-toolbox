@@ -386,6 +386,9 @@ function sample_data = SBE19Parse( filename, mode )
                   sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
               end
           end
+          
+      otherwise
+          error('Parser only supported in toolbox mode timeSeries or profile.');
   
   end
 end

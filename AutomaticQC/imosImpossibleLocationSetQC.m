@@ -95,9 +95,9 @@ if ~isempty(dataLon) && ~isempty(dataLat)
                 ', latitudePlusMinusThreshold=' num2str(site.latitudePlusMinusThreshold)];
             
             % test each independent coordinate on a rectangular area
-            iGoodLon = dataLon >= site.longitude - site.longitudePlusMinusThreshold && ...
+            iGoodLon = dataLon >= site.longitude - site.longitudePlusMinusThreshold & ...
                 dataLon <= site.longitude + site.longitudePlusMinusThreshold;
-            iGoodLat = dataLat >= site.latitude - site.latitudePlusMinusThreshold && ...
+            iGoodLat = dataLat >= site.latitude - site.latitudePlusMinusThreshold & ...
                 dataLat <= site.latitude + site.latitudePlusMinusThreshold;
         else
             paramsLog = ['distanceKmPlusMinusThreshold=' num2str(site.distanceKmPlusMinusThreshold)];
@@ -127,7 +127,17 @@ if ~isempty(dataLon) && ~isempty(dataLat)
         varChecked = {'LATITUDE', 'LONGITUDE'};
         
         if any(~iGoodLon) || any(~iGoodLat)
-            error('Impossible location QC test failed => Check deployment database values for latitude/longitude or thresholds in imosSites.txt!');
+            % get the toolbox execution mode
+            mode = readProperty('toolbox.mode');
+            
+            switch mode
+                case 'trajectory'
+                    % This is not a problem and we can keep QC'ing
+                    
+                otherwise
+                    error('Impossible location QC test failed => Check deployment database values for latitude/longitude or thresholds in imosSites.txt!');
+                    
+            end
         end
     end
 end

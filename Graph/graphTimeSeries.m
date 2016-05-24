@@ -68,7 +68,7 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
       case 'profile'
           % we don't want to plot TIME, PROFILE, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
           p = getVar(sample_data.variables, 'BOT_DEPTH');
-      case 'timeSeries'
+      case {'timeSeries', 'trajectory'}
           % we don't want to plot TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE, NOMINAL_DEPTH
           p = getVar(sample_data.variables, 'NOMINAL_DEPTH');
   end

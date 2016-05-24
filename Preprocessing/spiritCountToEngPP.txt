@@ -1,0 +1,9 @@
+% Defaut values are
+% chluBlank = 55
+% chluScale = 0.0123
+% turbBlank  = 50
+% turbScale  = 0.006
+chluBlank = 55
+chluScale = 0.0123
+turbBlank  = 50
+turbScale  = 0.006

@@ -128,7 +128,7 @@ function mainWindow(...
   switch mode
       case 'profile'
           graphMenuValue = 2;
-      case 'timeSeries'
+      case {'timeSeries', 'trajectory'}
           graphMenuValue = 1;
   end
 
@@ -321,6 +321,32 @@ function mainWindow(...
           %set menu callbacks
           set(hToolsLineCastVarNonQC,       'callBack', {@displayLineCastVar, false});
           set(hToolsLineCastVarQC,          'callBack', {@displayLineCastVar, true});
+      case 'trajectory'
+          %nothing yet but could imagine timeserie like plots with x axis
+          %being latitude
+          hToolsLineCommonVar           = uimenu(hToolsMenu, 'label', 'Line plot transects'' 1D variables');
+          hToolsLineCommonVarNonQC      = uimenu(hToolsLineCommonVar, 'label', 'all data');
+          hToolsLineCommonVarQC         = uimenu(hToolsLineCommonVar, 'label', 'only good and non QC''d data');
+          hToolsScatterCommonVar        = uimenu(hToolsMenu, 'label', 'Scatter plot transects'' 1D variables');
+          hToolsScatterCommonVarNonQC   = uimenu(hToolsScatterCommonVar, 'label', 'all data');
+          hToolsScatterCommonVarQC      = uimenu(hToolsScatterCommonVar, 'label', 'only good and non QC''d data');
+          hToolsTimeseriesCommonVar     = uimenu(hToolsMenu, 'label', 'Timeseries plot transects'' 1D variables');
+          hToolsTimeseriesCommonVarNonQC= uimenu(hToolsTimeseriesCommonVar, 'label', 'all data');
+          hToolsTimeseriesCommonVarQC   = uimenu(hToolsTimeseriesCommonVar, 'label', 'only good and non QC''d data');
+          hToolsCleaningOffset          = uimenu(hToolsMenu, 'label', 'Check for cleaning offset plots');
+          hToolsCleaningOffsetNonQC     = uimenu(hToolsCleaningOffset, 'label', 'all data');
+          hToolsCleaningOffsetQC        = uimenu(hToolsCleaningOffset, 'label', 'only good and non QC''d data');
+          
+          %set menu callbacks
+          set(hToolsLineCommonVarNonQC,      'callBack', {@displayLineTransectsVar, false});
+          set(hToolsLineCommonVarQC,         'callBack', {@displayLineTransectsVar, true});
+          set(hToolsScatterCommonVarNonQC,   'callBack', {@displayScatterTransectsVar, false});
+          set(hToolsScatterCommonVarQC,      'callBack', {@displayScatterTransectsVar, true});
+          set(hToolsTimeseriesCommonVarNonQC,'callBack', {@displayTimeseriesTransectsVar, false});
+          set(hToolsTimeseriesCommonVarQC,   'callBack', {@displayTimeseriesTransectsVar, true});
+          set(hToolsCleaningOffsetNonQC,     'callBack', {@displayCleaningOffsetVar, false});
+          set(hToolsCleaningOffsetQC,        'callBack', {@displayCleaningOffsetVar, true});
+          
   end
   hHotKeyMenu = uimenu(fig, 'label', 'Hot Keys');
   uimenu(hHotKeyMenu, 'Label', 'Enable zoom',       'Accelerator', 'z', 'Callback', @(src,evt)zoom(fig, 'on'));
@@ -448,15 +474,20 @@ function mainWindow(...
     graphs2D = findobj('Tag', 'axis2D');
     
     isCurAx1D = false;
+    isCurAx2D = false;
     iGraph1D = (gca == graphs1D);
     if any(iGraph1D)
         isCurAx1D = true;
         graphs1D(iGraph1D) = [];
     else
-        graphs2D(gca == graphs2D) = [];
+        iGraph2D = (gca == graphs2D);
+        if any(iGraph2D)
+            isCurAx2D = true;
+            graphs2D(iGraph2D) = [];
+        end
     end
     
-    graphs = [graphs1D; graphs2D];
+    dataGraphs = [graphs1D; graphs2D];
     
     % reset current axis yTicks
     yLimits = get(gca, 'YLim');
@@ -465,7 +496,7 @@ function mainWindow(...
     set(gca, 'YTick', yTicks);
     
     % sync all other 2D Y axis if needed
-    if ~isCurAx1D && ~isempty(graphs2D)
+    if isCurAx2D && ~isempty(graphs2D)
         set(graphs2D, 'YLim', yLimits);
         set(graphs2D, 'YTick', yTicks);
     end
@@ -480,8 +511,8 @@ function mainWindow(...
     graphName = graphName{get(graphMenu, 'Value')};
     if strcmpi(graphName, 'TimeSeries')
         % sync all other X axis
-        set(graphs, 'XLim', xLimits);
-        set(graphs, 'XTick', xTicks);
+        set(dataGraphs, 'XLim', xLimits);
+        set(dataGraphs, 'XTick', xTicks);
         
         % update other 1D axis yLim / yTick to reflect the
         % change in the Y range of displayed data
@@ -525,14 +556,14 @@ function mainWindow(...
         % tranformation of datenum xticks in datestr
         datetick(gca, 'x', 'dd-mm-yy HH:MM', 'keepticks');
         xTickLabel = get(gca, 'XTickLabel');
-        for i=1:length(graphs)
-            set(graphs(i), 'XTickLabel', xTickLabel); % this is to avoid too many calls to datetick()
+        for i=1:length(dataGraphs)
+            set(dataGraphs(i), 'XTickLabel', xTickLabel); % this is to avoid too many calls to datetick()
         end
         
     elseif strcmpi(graphName, 'DepthProfile')
         % sync all other Y axis
-        set(graphs, 'YLim', yLimits);
-        set(graphs, 'YTick', yTicks);
+        set(dataGraphs, 'YLim', yLimits);
+        set(dataGraphs, 'YTick', yTicks);
     end
   end
 
@@ -643,10 +674,278 @@ function mainWindow(...
 
   end
 
-function disableZoomAndPan(source, ev)
+  function disableZoomAndPan(source, ev)
     pan(fig, 'off');
     zoom(fig, 'off');
-end
+  end
+
+  function displayLineTransectsVar(source,ev, isQC)
+    %DISPLAYLINETRANSECTSVAR Opens a new window where all the previously selected
+    % variables collected by intruments on multiple transects are line-plotted.
+    %
+    stringQC = 'non QC';
+    if isQC, stringQC = 'QC'; end
+
+    % get all params that are in common in at least two datasets
+    lenSampleData = length(sample_data);
+    paramsName = {};
+    paramsCount = [];
+    for i=1:lenSampleData
+        lenParamsSample = length(sample_data{i}.variables);
+        for j=1:lenParamsSample
+            if i==1 && j==1
+                paramsName{1} = sample_data{1}.variables{1}.name;
+                paramsCount(1) = 1;
+            else
+                sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+                if ~any(sameParam)
+                    paramsName{end+1} = sample_data{i}.variables{j}.name;
+                    paramsCount(end+1) = 1;
+                else
+                    paramsCount(sameParam) = paramsCount(sameParam)+1;
+                end
+            end
+        end
+    end
+
+    iParamsToGetRid = (paramsCount == 1);
+    paramsName(iParamsToGetRid) = [];
+
+    % we get rid of TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE and NOMINAL_DEPTH parameters
+    iParam = strcmpi(paramsName, 'TIMESERIES');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'PROFILE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'TRAJECTORY');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'LATITUDE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'LONGITUDE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'NOMINAL_DEPTH');
+    paramsName(iParam) = [];
+    
+    % by default TEMP is selected
+    iTEMP = find(strcmpi(paramsName, 'TEMP'));
+
+    [iSelection, ok] = listdlg(...
+        'ListString', paramsName, ...
+        'SelectionMode', 'single', ...
+        'ListSize', [150 150], ...
+        'InitialValue', iTEMP, ...
+        'Name', ['Line plot a ' stringQC '''d variable accross all transects'], ...
+        'PromptString', 'Select a variable :');
+
+    if ok==0
+        return;
+    else
+        varName = paramsName{iSelection};
+    end
+
+    lineTransectsVar(sample_data, varName, isQC, false, '');
+
+  end
+
+  function displayScatterTransectsVar(source,ev, isQC)
+    %DISPLAYSCATTERTRANSECTSVAR Opens a new window where all the previously selected
+    % variables collected by intruments on multiple transects are scatter-plotted.
+    %
+    stringQC = 'non QC';
+    if isQC, stringQC = 'QC'; end
+
+    % get all params that are in common in at least two datasets
+    lenSampleData = length(sample_data);
+    paramsName = {};
+    paramsCount = [];
+    for i=1:lenSampleData
+        lenParamsSample = length(sample_data{i}.variables);
+        for j=1:lenParamsSample
+            if i==1 && j==1
+                paramsName{1} = sample_data{1}.variables{1}.name;
+                paramsCount(1) = 1;
+            else
+                sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+                if ~any(sameParam)
+                    paramsName{end+1} = sample_data{i}.variables{j}.name;
+                    paramsCount(end+1) = 1;
+                else
+                    paramsCount(sameParam) = paramsCount(sameParam)+1;
+                end
+            end
+        end
+    end
+
+    iParamsToGetRid = (paramsCount == 1);
+    paramsName(iParamsToGetRid) = [];
+
+    % we get rid of TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE and NOMINAL_DEPTH parameters
+    iParam = strcmpi(paramsName, 'TIMESERIES');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'PROFILE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'TRAJECTORY');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'LATITUDE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'LONGITUDE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'NOMINAL_DEPTH');
+    paramsName(iParam) = [];
+    
+    % by default TEMP is selected
+    iTEMP = find(strcmpi(paramsName, 'TEMP'));
+
+    [iSelection, ok] = listdlg(...
+        'ListString', paramsName, ...
+        'SelectionMode', 'single', ...
+        'ListSize', [150 150], ...
+        'InitialValue', iTEMP, ...
+        'Name', ['Scatter plot a ' stringQC '''d variable accross all transects'], ...
+        'PromptString', 'Select a variable :');
+
+    if ok==0
+        return;
+    else
+        varName = paramsName{iSelection};
+    end
+
+    scatterTransectsVar(sample_data, varName, isQC, false, '');
+
+  end
+
+  function displayTimeseriesTransectsVar(source,ev, isQC)
+    %DISPLAYLINETRANSECTSVAR Opens a new window where all the previously selected
+    % variables collected by intruments on multiple transects are line-plotted.
+    %
+    stringQC = 'non QC';
+    if isQC, stringQC = 'QC'; end
+
+    % get all params that are in common in at least two datasets
+    lenSampleData = length(sample_data);
+    paramsName = {};
+    paramsCount = [];
+    for i=1:lenSampleData
+        lenParamsSample = length(sample_data{i}.variables);
+        for j=1:lenParamsSample
+            if i==1 && j==1
+                paramsName{1} = sample_data{1}.variables{1}.name;
+                paramsCount(1) = 1;
+            else
+                sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+                if ~any(sameParam)
+                    paramsName{end+1} = sample_data{i}.variables{j}.name;
+                    paramsCount(end+1) = 1;
+                else
+                    paramsCount(sameParam) = paramsCount(sameParam)+1;
+                end
+            end
+        end
+    end
+
+    iParamsToGetRid = (paramsCount == 1);
+    paramsName(iParamsToGetRid) = [];
+
+    % we get rid of TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE and NOMINAL_DEPTH parameters
+    iParam = strcmpi(paramsName, 'TIMESERIES');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'PROFILE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'TRAJECTORY');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'LATITUDE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'LONGITUDE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'NOMINAL_DEPTH');
+    paramsName(iParam) = [];
+    
+    % by default TEMP is selected
+    iTEMP = find(strcmpi(paramsName, 'TEMP'));
+
+    [iSelection, ok] = listdlg(...
+        'ListString', paramsName, ...
+        'SelectionMode', 'single', ...
+        'ListSize', [150 150], ...
+        'InitialValue', iTEMP, ...
+        'Name', ['Timeseries plot a ' stringQC '''d variable from all transects'], ...
+        'PromptString', 'Select a variable :');
+
+    if ok==0
+        return;
+    else
+        varName = paramsName{iSelection};
+    end
+
+    lineTransectsAsTimeseriesVar(sample_data, varName, isQC, false, '');
+
+  end
+
+  function displayCleaningOffsetVar(source,ev, isQC)
+    %DISPLAYCLEANINGOFFSETVAR Opens a new window where the previously selected
+    % variable collected by intruments on the 5 transects preceding and 1 following a service are line-plotted.
+    %
+    stringQC = 'non QC';
+    if isQC, stringQC = 'QC'; end
+
+    % get all params that are in common in at least two datasets
+    lenSampleData = length(sample_data);
+    paramsName = {};
+    paramsCount = [];
+    for i=1:lenSampleData
+        lenParamsSample = length(sample_data{i}.variables);
+        for j=1:lenParamsSample
+            if i==1 && j==1
+                paramsName{1} = sample_data{1}.variables{1}.name;
+                paramsCount(1) = 1;
+            else
+                sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+                if ~any(sameParam)
+                    paramsName{end+1} = sample_data{i}.variables{j}.name;
+                    paramsCount(end+1) = 1;
+                else
+                    paramsCount(sameParam) = paramsCount(sameParam)+1;
+                end
+            end
+        end
+    end
+
+    iParamsToGetRid = (paramsCount == 1);
+    paramsName(iParamsToGetRid) = [];
+
+    % we get rid of TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE and NOMINAL_DEPTH parameters
+    iParam = strcmpi(paramsName, 'TIMESERIES');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'PROFILE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'TRAJECTORY');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'LATITUDE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'LONGITUDE');
+    paramsName(iParam) = [];
+    iParam = strcmpi(paramsName, 'NOMINAL_DEPTH');
+    paramsName(iParam) = [];
+    
+    % by default TEMP is selected
+    iTEMP = find(strcmpi(paramsName, 'TEMP'));
+
+    [iSelection, ok] = listdlg(...
+        'ListString', paramsName, ...
+        'SelectionMode', 'single', ...
+        'ListSize', [150 150], ...
+        'InitialValue', iTEMP, ...
+        'Name', ['Check for cleaning offset plot on a ' stringQC '''d variable'], ...
+        'PromptString', 'Select a variable :');
+
+    if ok==0
+        return;
+    else
+        varName = paramsName{iSelection};
+    end
+
+    lineTransectsForCleaningOffsetCheckVar(sample_data, varName, isQC, false, '');
+
+  end
 
 function displayLineCastVar(source,ev, isQC)
     %DISPLAYLINECASTVAR Opens a new window where all the 
@@ -891,7 +1190,7 @@ end
             if iDepth ~= 0
                 sam.variables(iDepth) = [];
             end
-        case 'timeSeries'
+        case {'timeSeries', 'trajectory'}
             % we don't want to plot TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE, NOMINAL_DEPTH
             p = getVar(sam.variables, 'NOMINAL_DEPTH');
     end
@@ -949,7 +1248,7 @@ end
             case 'profile'
                 % we don't want to plot TIME, PROFILE, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
                 varOffset = getVar(sam.variables, 'BOT_DEPTH');
-            case 'timeSeries'
+            case {'timeSeries', 'trajectory'}
                 % we don't want to plot TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE, NOMINAL_DEPTH
                 varOffset = getVar(sam.variables, 'NOMINAL_DEPTH');
         end

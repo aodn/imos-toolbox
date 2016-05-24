@@ -179,6 +179,10 @@ function sample_data = populateMetadata( sample_data )
                       sample_data.variables{ivLat}.data = sample_data.variables{ivLat}.typeCastFunc(sample_data.geospatial_lat_min);
                   end
                   
+              case 'trajectory'
+                  % do nothing, a trajectory has as many positions as
+                  % timestamps
+                  
           end
       end
   else
@@ -197,27 +201,31 @@ function sample_data = populateMetadata( sample_data )
                       sample_data.variables{ivLon}.data = sample_data.variables{ivLon}.typeCastFunc(sample_data.geospatial_lon_min);
                   end
                   
+              case 'trajectory'
+                  % do nothing, a trajectory has as many positions as
+                  % timestamps
+                  
           end
       end
   end
   
-  % NOMINAL_DEPTH (so far only supported for timeseries)
+  % NOMINAL_DEPTH
   if ivNomDepth > 0
       if ~isempty(sample_data.instrument_nominal_depth)
           switch mode
-              case 'timeSeries'
+              case {'timeSeries', 'trajectory'}
                   if length(sample_data.variables{ivNomDepth}.data) == 1
                       sample_data.variables{ivNomDepth}.data = sample_data.variables{ivNomDepth}.typeCastFunc(sample_data.instrument_nominal_depth);
                   end
                   
-%               case 'profile'
-%                   sample_data.variables{ivNomDepth}.data = sample_data.variables{ivNomDepth}.typeCastFunc(ones(size(sample_data.variables{ivNomDepth}.data))*sample_data.instrument_nominal_depth);
+              case 'profile'
+                  % do nothing, nominal_depth doesn't make sense for a profile
                   
           end
       end
   end
   
-  % BOT_DEPTH (so far only supported for CTD profiles)
+  % BOT_DEPTH
   if ivBotDepth > 0
       switch mode
           case 'profile'
@@ -227,12 +235,10 @@ function sample_data = populateMetadata( sample_data )
                   sample_data.variables{ivBotDepth}.data = sample_data.variables{ivBotDepth}.typeCastFunc(ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_nominal_depth);
               end
               
-%           case 'timeSeries'
-%               if ~isempty(sample_data.site_depth_at_deployment)
-%                   sample_data.variables{ivBotDepth}.data = sample_data.variables{ivBotDepth}.typeCastFunc(ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_deployment);
-%               elseif ~isempty(sample_data.site_nominal_depth)
-%                   sample_data.variables{ivBotDepth}.data = sample_data.variables{ivBotDepth}.typeCastFunc(ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_nominal_depth);
-%               end
+          case {'timeSeries', 'trajectory'}
+              % do nothing, bot_depth is not introduced in timeseries or
+              % trajectory files
+              
       end
   end
   

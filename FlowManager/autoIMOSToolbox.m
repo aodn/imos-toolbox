@@ -169,7 +169,7 @@ end
 switch mode
     case 'profile'
         [~, deps, sits, dataDir] = getCTDs(true, isCSV);
-    case 'timeSeries'
+    case {'timeSeries', 'trajectory'}
         [~, deps, sits, dataDir] = getDeployments(true, isCSV);
 end
 
