@@ -5,7 +5,7 @@ function sample_data = ECOBB9Parse( filename, mode )
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 

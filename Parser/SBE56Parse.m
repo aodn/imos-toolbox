@@ -18,7 +18,7 @@ function sample_data = SBE56Parse( filename, mode )
 %
 % Inputs:
 %   filename    - cell array of files to import (only one supported).
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - Struct containing sample data.
@@ -109,7 +109,7 @@ if strcmpi(ext, '.CNV')
 else
     % have csv file
     % use SBE56 specific csv data reader function
-    [data, comment, csvHeaderLines] = readSBE56csv(filename, mode);
+    [data, comment, csvHeaderLines] = readSBE56csv(filename);
     instHeader = parseInstrumentHeader(csvHeaderLines);
     procHeader = struct;
 end
@@ -394,7 +394,7 @@ end
 end
 
 %%
-function [data, comment, csvHeaderLines] = readSBE56csv(filename, mode)
+function [data, comment, csvHeaderLines] = readSBE56csv(filename)
 %READSBE56CSV
 
 % So far a typical SBE56 csv file has a number of header lines with '%' as

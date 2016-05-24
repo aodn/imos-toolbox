@@ -92,9 +92,8 @@ if iTime == 0
 end
 time = sample_data.(tTime){iTime}.data;
 
-% get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-% If no value is set then default mode is 'timeSeries'
-mode = lower(readProperty('toolbox.mode'));
+% get the toolbox execution mode
+mode = readProperty('toolbox.mode');
 
 switch mode
     case 'profile'
@@ -110,7 +109,7 @@ switch mode
             error(['TIME value ' datestr(time, 'yyyy-mm-dd HH:MM:SS') ' is greater than time_deployment_end ' datestr(time_out_water, 'yyyy-mm-dd HH:MM:SS') ' => Check ddb station time values against data file time values!']);
         end
         
-    otherwise % 'timeSeries'
+    case 'timeSeries'
         qcSet     = str2double(readProperty('toolbox.qc_set'));
         rawFlag   = imosQCFlag('raw', qcSet, 'flag');
         failFlag  = imosQCFlag('bad', qcSet, 'flag');

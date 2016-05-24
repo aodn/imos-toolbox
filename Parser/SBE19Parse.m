@@ -19,7 +19,7 @@ function sample_data = SBE19Parse( filename, mode )
 %
 % Inputs:
 %   filename    - cell array of files to import (only one supported).
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - Struct containing sample data.
@@ -338,7 +338,7 @@ function sample_data = SBE19Parse( filename, mode )
               end
           end
           
-      otherwise
+      case 'timeSeries'
           % dimensions creation
           sample_data.dimensions{1}.name            = 'TIME';
           sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));

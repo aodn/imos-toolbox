@@ -64,9 +64,8 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   origDeployments = deployments;
   origFiles       = files;
   
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   deploymentDescs = genDepDescriptions(deployments, files);
   
@@ -80,7 +79,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
       case 'profile'
           % for a profile, sort by alphabetical order
           [deploymentDescs, iSort] = sort(deploymentDescs);
-      otherwise
+      case 'timeSeries'
           % for a mooring, sort instruments by depth
           [~, iSort] = sort([deployments.InstrumentDepth]);
           deploymentDescs = deploymentDescs(iSort);
@@ -277,16 +276,9 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   % Opens a dialog, allowing the user to select a file to add to the
   % deployment.
   %
-    switch mode
-        case 'profile'
-            [newFile path] = uigetfile('*', 'Select Data File',...
-                               readProperty('startDialog.dataDir.profile'),...
-                               'MultiSelect', 'on');
-        otherwise
-            [newFile path] = uigetfile('*', 'Select Data File',...
-                               readProperty('startDialog.dataDir.timeSeries'),...
-                               'MultiSelect', 'on');
-    end
+    [newFile path] = uigetfile('*', 'Select Data File',...
+      readProperty(['startDialog.dataDir.' mode]),...
+      'MultiSelect', 'on');
     
     % user cancelled dialog
     if newFile == 0, return; end

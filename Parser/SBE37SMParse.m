@@ -21,7 +21,7 @@ function sample_data = SBE37SMParse( filename, mode )
 %
 % Inputs:
 %   filename    - cell array of files to import (only one supported).
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - Struct containing sample data.

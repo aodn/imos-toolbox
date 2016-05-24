@@ -6,7 +6,7 @@ function sample_data = readWetStarraw( filename, deviceInfo, mode )
 % Inputs:
 %   filename    - name of the input file to be parsed
 %   deviceInfo  - infos retrieved from the relevant device file
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 

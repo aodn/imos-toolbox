@@ -61,15 +61,14 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     return; 
   end
   
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   switch mode
       case 'profile'
           % we don't want to plot TIME, PROFILE, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
           p = getVar(sample_data.variables, 'BOT_DEPTH');
-      otherwise
+      case 'timeSeries'
           % we don't want to plot TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE, NOMINAL_DEPTH
           p = getVar(sample_data.variables, 'NOMINAL_DEPTH');
   end
