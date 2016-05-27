@@ -87,7 +87,6 @@ end
 %     site = sample_data.meta.site_name; % source = ddb
 %     if strcmpi(site, 'UNKNOWN'), site = sample_data.site_code; end % source = global_attributes file
 site = sample_data.site_code;
-site = imosSites(site);
 
 % test if site information exists
 if isempty(site)
@@ -121,11 +120,11 @@ else
     end
     
     % read values from imosRegionalRangeQC properties file
-    [regionalMin, regionalMax, isSite] = getImosRegionalRange(site.name, paramName);
+    [regionalMin, regionalMax, isSite] = getImosRegionalRange(site, paramName);
     
     if ~isSite
         fprintf('%s\n', ['Warning : ' 'File imosRegionalRangeQC.txt is not documented '...
-        'for site ' site.name]);
+        'for site ' site]);
     else
         if ~isnan(regionalMin)
             % get the flag values with which we flag good and out of range data
