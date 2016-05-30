@@ -557,9 +557,8 @@ for k = 1:length(sample_data)
         end
     end
 
-    % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
-    % If no value is set then default mode is 'timeSeries'
-    mode = lower(readProperty('toolbox.mode'));
+    % get the toolbox execution mode
+    mode = readProperty('toolbox.mode');
     
     % add depth data as new variable in data set
     sample_data{k} = addVar(...

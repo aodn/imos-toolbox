@@ -65,27 +65,16 @@ function autoIMOSToolbox(toolboxVersion, fieldTrip, dataDir, ppChain, qcChain, e
 %
 narginchk(1, 6);
 
-% get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-% If no value is set then default mode is 'timeSeries'
-mode = lower(readProperty('toolbox.mode'));
+% get the toolbox execution mode.
+mode = readProperty('toolbox.mode');
     
 % validate and save field trip
 if nargin > 1
     if isnumeric(fieldTrip), error('field trip must be a string'); end
-    switch mode
-        case 'profile'
-            writeProperty('startDialog.fieldTrip.profile', fieldTrip);
-        otherwise
-            writeProperty('startDialog.fieldTrip.timeSeries', fieldTrip);
-    end
+    writeProperty(['startDialog.fieldTrip.' mode], fieldTrip);
 else
     try
-        switch mode
-            case 'profile'
-                fieldTrip = readProperty('startDialog.fieldTrip.profile');
-            otherwise
-                fieldTrip = readProperty('startDialog.fieldTrip.timeSeries');
-        end
+        fieldTrip = readProperty(['startDialog.fieldTrip.' mode]);
     catch e
     end
 end
@@ -95,20 +84,10 @@ if nargin > 2
     if ~ischar(dataDir),       error('dataDir must be a string');    end
     if ~exist(dataDir, 'dir'), error('dataDir must be a directory'); end
 
-    switch mode
-        case 'profile'
-            writeProperty('startDialog.dataDir.profile', dataDir);
-        otherwise
-            writeProperty('startDialog.dataDir.timeSeries', dataDir);
-    end
+    writeProperty(['startDialog.dataDir.' mode], dataDir);
 else
     try
-        switch mode
-            case 'profile'
-                dataDir = readProperty('startDialog.dataDir.profile');
-            otherwise
-                dataDir = readProperty('startDialog.dataDir.timeSeries');
-        end
+        dataDir = readProperty(['startDialog.dataDir.' mode]);
     catch e
     end
 end
@@ -134,12 +113,7 @@ if nargin > 3
         ppChainStr = '';
     end
     
-    switch mode
-        case 'profile'
-            writeProperty('preprocessManager.preprocessChain.profile', ppChainStr);
-        otherwise
-            writeProperty('preprocessManager.preprocessChain.timeSeries', ppChainStr);
-    end
+    writeProperty(['preprocessManager.preprocessChain.' mode], ppChainStr);
 end
 
 % validate and save qc chain
@@ -163,12 +137,7 @@ if nargin > 4
         qcChainStr = '';
     end
     
-    switch mode
-        case 'profile'
-            writeProperty('autoQCManager.autoQCChain.profile', qcChainStr);
-        otherwise
-            writeProperty('autoQCManager.autoQCChain.timeSeries', qcChainStr);
-    end
+    writeProperty(['autoQCManager.autoQCChain.' mode], qcChainStr);
 end
 
 % validate and save export dir
@@ -189,15 +158,11 @@ end
 [~, sourceFolder] = fileparts(dataDir);
 fprintf('%s\n', ['Processing field trip ' fieldTrip ' from folder ' sourceFolder]);
 
-% get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-% If no value is set then default mode is 'timeSeries'
-mode = lower(readProperty('toolbox.mode'));
-
 % get infos from current field trip
 switch mode
     case 'profile'
         [~, deps, sits, dataDir] = getCTDs(true);
-    otherwise
+    case 'timeSeries'
         [~, deps, sits, dataDir] = getDeployments(true);
 end
 

@@ -75,7 +75,7 @@ function qc_data = autoQCManager( sample_data, auto )
 
   % get last filter chain if there is one
   try
-      % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
+      % get the toolbox execution mode
       mode = readProperty('toolbox.mode');
       qcChain = textscan(readProperty(['autoQCManager.autoQCChain.' mode]), '%s');
       qcChain = qcChain{1};
@@ -227,8 +227,7 @@ function [qcRoutines, qcChain] = setDefaultRoutines(filterName)
   qcRoutines = listAutoQCRoutines();
   qcChain    = {};
   
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
+  % get the toolbox execution mode
   mode = readProperty('toolbox.mode');
   
   % get default filter chain if there is one

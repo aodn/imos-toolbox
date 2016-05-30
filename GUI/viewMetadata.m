@@ -24,7 +24,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 %
 %                      function repCallback(location, names, values)
 %
-%   mode           - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode           - Toolbox data type mode.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>

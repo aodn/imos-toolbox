@@ -7,7 +7,7 @@ function sample_data = aquadoppProfilerParse( filename, tMode )
 % Inputs:
 %   filename    - Cell array containing the name of the raw aquadopp profiler 
 %                 file to parse.
-%   tMode       - Toolbox data type mode ('profile' or 'timeSeries').
+%   tMode       - Toolbox data type mode.
 % 
 % Outputs:
 %   sample_data - Struct containing sample data.

@@ -24,8 +24,8 @@ function sample_data = aquatecParse( filename, mode )
 % If the logger was configured to use burst mode, the bursts are averaged.
 %
 % Inputs:
-%   filename - cell array of filename names (Only supports one currently).
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   filename    - cell array of filename names (Only supports one currently).
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - struct containing sample data.

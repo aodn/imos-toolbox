@@ -100,9 +100,8 @@ end
 depthInfos = {'DEPTH', 'PRES_REL', 'PRES'};
 if ~any(strcmpi(paramName, depthInfos)), return; end
 
-% get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-% If no value is set then default mode is 'timeSeries'
-mode = lower(readProperty('toolbox.mode'));
+% get the toolbox execution mode
+mode = readProperty('toolbox.mode');
 
 switch mode
     case 'profile'
@@ -198,7 +197,7 @@ switch mode
             end
         end
         
-    otherwise % 'timeSeries'
+    case 'timeSeries'
         % this test doesn't apply on dimensions
         if ~strcmp(type, 'variables'), return; end
         

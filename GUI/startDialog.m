@@ -10,7 +10,7 @@ function [fieldTrip dataDir] = startDialog(mode, isCSV)
 %
 % Input:
 %
-%   mode - String, toolox execution mode can be 'profile' or 'timeSeries'.
+%   mode - String, toolox execution mode.
 %   isCSV - optional boolean (default = false). True if importing from csv files.
 %   
 % Outputs:
@@ -62,18 +62,10 @@ function [fieldTrip dataDir] = startDialog(mode, isCSV)
   dateFmt     = readProperty('toolbox.dateFormat');
     
   % if values exist for data dir and field trip, use them
-  switch mode
-      case 'profile'
-          dataDir     =            readProperty('startDialog.dataDir.profile');
-          fieldTripId =            readProperty('startDialog.fieldTrip.profile');
-          lowDate     = str2double(readProperty('startDialog.lowDate.profile'));
-          highDate    = str2double(readProperty('startDialog.highDate.profile'));
-      otherwise
-          dataDir     =            readProperty('startDialog.dataDir.timeSeries');
-          fieldTripId =            readProperty('startDialog.fieldTrip.timeSeries');
-          lowDate     = str2double(readProperty('startDialog.lowDate.timeSeries'));
-          highDate    = str2double(readProperty('startDialog.highDate.timeSeries'));
-  end
+  dataDir     =            readProperty(['startDialog.dataDir.' mode]);
+  fieldTripId =            readProperty(['startDialog.fieldTrip.' mode]);
+  lowDate     = str2double(readProperty(['startDialog.lowDate.' mode]));
+  highDate    = str2double(readProperty(['startDialog.highDate.' mode]));
 
   % otherwise use default values
   if isempty(dataDir),      dataDir = pwd;      end
@@ -342,18 +334,10 @@ function [fieldTrip dataDir] = startDialog(mode, isCSV)
   if isempty(dataDir) || isempty(fieldTrip), return; end
   
   % persist the user's directory and field trip selection
-  switch mode
-      case 'profile'
-          writeProperty('startDialog.dataDir.profile',   dataDir);
-          writeProperty('startDialog.fieldTrip.profile', fieldTrip.FieldTripID);
-          writeProperty('startDialog.lowDate.profile',   num2str(lowDate));
-          writeProperty('startDialog.highDate.profile',  num2str(highDate));
-      otherwise
-          writeProperty('startDialog.dataDir.timeSeries',   dataDir);
-          writeProperty('startDialog.fieldTrip.timeSeries', fieldTrip.FieldTripID);
-          writeProperty('startDialog.lowDate.timeSeries',   num2str(lowDate));
-          writeProperty('startDialog.highDate.timeSeries',  num2str(highDate));
-  end
+  writeProperty(['startDialog.dataDir.' mode],   dataDir);
+  writeProperty(['startDialog.fieldTrip.' mode], fieldTrip.FieldTripID);
+  writeProperty(['startDialog.lowDate.' mode],   num2str(lowDate));
+  writeProperty(['startDialog.highDate.' mode],  num2str(highDate));
   
 end
 
