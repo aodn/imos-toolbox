@@ -10,7 +10,7 @@ function sample_data = YSI6SeriesParse( filename, mode )
 % Inputs:
 %   filename    - Cell array of input files; all but the first entry are
 %                 ignored.
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 
 % Outputs:
 %   sample_data - Struct containing sample data.

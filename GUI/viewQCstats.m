@@ -9,7 +9,7 @@ function viewQCstats(parent, sample_data, mode)
 %   parent         - handle to the figure/uipanel in which the metadata should
 %                    be displayed.
 %   sample_data    - struct containing sample data.
-%   mode           - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode           - Toolbox data type mode.
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %

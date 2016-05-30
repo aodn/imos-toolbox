@@ -63,10 +63,8 @@ stringQC = 'non QC';
 if isQC, stringQC = 'QC'; end
 
 %plot depth information
-monitorRec = get(0,'MonitorPosition');
-xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-iBigMonitor = xResolution == max(xResolution);
-if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
 
 title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
 
@@ -129,7 +127,7 @@ for i=1:lenSampleData
     izVar = getVar(sample_data{iSort(i)}.variables, varName);
     
     if izVar > 0 && size(sample_data{iSort(i)}.variables{izVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
-            all(~strcmpi(sample_data{iSort(i)}.variables{izVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}))
+            all(~strncmpi(sample_data{iSort(i)}.variables{izVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}, 4))
         iGood = true(size(sample_data{iSort(i)}.variables{izVar}.data));
         if isQC
             %get time, depth and var QC information
@@ -192,7 +190,7 @@ if any(isPlottable)
                     'Name', title, ...
                     'NumberTitle','off', ...
                     'Visible', visible, ...
-                    'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+                    'OuterPosition', monitorRect(iBigMonitor, :));
                 
                 hAxMooringVar = axes('Parent',   hFigMooringVar);
                 set(hAxMooringVar, 'YDir', 'reverse');

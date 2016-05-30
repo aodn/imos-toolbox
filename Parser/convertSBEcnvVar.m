@@ -11,7 +11,7 @@ function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, instHe
 %   timeOffset  - offset to be applied to time value in SeaBird file.
 %   instHeader  - Struct containing instrument header.
 %   procHeader  - Struct containing processed header.
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   name       - IMOS parameter code.

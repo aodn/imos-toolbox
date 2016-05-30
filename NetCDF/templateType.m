@@ -16,7 +16,7 @@ function t = templateType( templateDir, name, temp, mode )
 %   name - the attribute name
 %   temp - what kind of attribute - 'global', 'time', 'depth', 'latitude', 
 %          'longitude', 'variable', 'qc' or 'qc_coord'
-%   mode - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode - Toolbox data type mode.
 %
 % Outputs:
 %   t    - the type of the attribute, one of 'S', 'N', 'D', or 'Q', or
@@ -70,11 +70,7 @@ persistent var_templates;
 isGlobal = false;
 
 if strcmpi(temp, 'global')
-    if strcmpi(mode, 'profile')
-        temp = [temp '_attributes_profile.txt'];
-    else
-        temp = [temp '_attributes_timeSeries.txt'];
-    end
+    temp = [temp '_attributes_' mode '.txt'];
     isGlobal = true;
 else
     % let's handle the case temp is a parameter name and we have multiple 

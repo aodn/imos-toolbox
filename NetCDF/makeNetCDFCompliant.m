@@ -65,17 +65,11 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % global attributes
   %
 
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   % get infos from current field trip
-  switch mode
-      case 'profile'
-          globalAttributeFile = 'global_attributes_profile.txt';
-      otherwise
-          globalAttributeFile = 'global_attributes_timeSeries.txt';
-  end
+  globalAttributeFile = ['global_attributes_' mode '.txt'];
 
   globAtts = parseNetCDFTemplate(...
     fullfile(path, globalAttributeFile), sample_data);

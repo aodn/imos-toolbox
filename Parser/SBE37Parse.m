@@ -11,7 +11,7 @@ function sample_data = SBE37Parse( filename, mode )
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - struct containing the sample data

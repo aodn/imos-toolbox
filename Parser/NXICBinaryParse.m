@@ -11,7 +11,7 @@ function sample_data = NXICBinaryParse( filename, mode )
 % Inputs:
 %   filename    - cell array of strings, names of the files to import. Only 
 %                 one file is supported.
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - struct containing sample data.

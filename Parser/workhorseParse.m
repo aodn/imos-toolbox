@@ -21,7 +21,7 @@ function sample_data = workhorseParse( filename, tMode )
 % 
 % Inputs:
 %   filename    - raw binary data file retrieved from a Workhorse.
-%   tMode       - Toolbox data type mode ('profile' or 'timeSeries').
+%   tMode       - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - sample_data struct containing the data retrieved from the

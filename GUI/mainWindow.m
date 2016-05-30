@@ -122,14 +122,13 @@ function mainWindow(...
     'Value',  1,...
     'Tag', 'samplePopUpMenu');
   
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   switch mode
       case 'profile'
           graphMenuValue = 2;
-      otherwise
+      case 'timeSeries'
           graphMenuValue = 1;
   end
 
@@ -276,47 +275,48 @@ function mainWindow(...
   
   %set uimenu
   hToolsMenu                        = uimenu(fig, 'label', 'Tools');
-  if strcmpi(mode, 'timeseries')
-      hToolsCheckPlannedDepths      = uimenu(hToolsMenu, 'label', 'Check measured against planned depths');
-      hToolsCheckPlannedDepthsNonQC = uimenu(hToolsCheckPlannedDepths, 'label', 'non QC');
-      hToolsCheckPlannedDepthsQC    = uimenu(hToolsCheckPlannedDepths, 'label', 'QC');
-      hToolsCheckPressDiffs         = uimenu(hToolsMenu, 'label', 'Check pressure differences between selected instrument and nearest neighbours');
-      hToolsCheckPressDiffsNonQC    = uimenu(hToolsCheckPressDiffs, 'label', 'non QC');
-      hToolsCheckPressDiffsQC       = uimenu(hToolsCheckPressDiffs, 'label', 'QC');
-      hToolsLineDepth               = uimenu(hToolsMenu, 'label', 'Line plot mooring''s depths');
-      hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'non QC');
-      hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'QC');
-      hToolsLineCommonVar           = uimenu(hToolsMenu, 'label', 'Line plot mooring''s 1D variables');
-      hToolsLineCommonVarNonQC      = uimenu(hToolsLineCommonVar, 'label', 'non QC');
-      hToolsLineCommonVarQC         = uimenu(hToolsLineCommonVar, 'label', 'QC');
-      hToolsScatterCommonVar        = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 1D variables VS depth');
-      hToolsScatterCommonVarNonQC   = uimenu(hToolsScatterCommonVar, 'label', 'non QC');
-      hToolsScatterCommonVarQC      = uimenu(hToolsScatterCommonVar, 'label', 'QC');
-      hToolsScatter2DCommonVar      = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 2D variables VS depth');
-      hToolsScatter2DCommonVarNonQC = uimenu(hToolsScatter2DCommonVar, 'label', 'non QC');
-      hToolsScatter2DCommonVarQC    = uimenu(hToolsScatter2DCommonVar, 'label', 'QC');
-      
-      %set menu callbacks
-      set(hToolsCheckPlannedDepthsNonQC, 'callBack', {@displayCheckPlannedDepths, false});
-      set(hToolsCheckPlannedDepthsQC,    'callBack', {@displayCheckPlannedDepths, true});
-      set(hToolsCheckPressDiffsNonQC,    'callBack', {@displayCheckPressDiffs, false});
-      set(hToolsCheckPressDiffsQC,       'callBack', {@displayCheckPressDiffs, true});
-      set(hToolsLineDepthNonQC,          'callBack', {@displayLineMooringDepth, false});
-      set(hToolsLineDepthQC,             'callBack', {@displayLineMooringDepth, true});
-      set(hToolsLineCommonVarNonQC,      'callBack', {@displayLineMooringVar, false});
-      set(hToolsLineCommonVarQC,         'callBack', {@displayLineMooringVar, true});
-      set(hToolsScatterCommonVarNonQC,   'callBack', {@displayScatterMooringVar, false, true});
-      set(hToolsScatterCommonVarQC,      'callBack', {@displayScatterMooringVar, true, true});
-      set(hToolsScatter2DCommonVarNonQC, 'callBack', {@displayScatterMooringVar, false, false});
-      set(hToolsScatter2DCommonVarQC,    'callBack', {@displayScatterMooringVar, true, false});
-  else
-      hToolsLineCastVar             = uimenu(hToolsMenu, 'label', 'Line plot profile variables');
-      hToolsLineCastVarNonQC        = uimenu(hToolsLineCastVar, 'label', 'non QC');
-      hToolsLineCastVarQC           = uimenu(hToolsLineCastVar, 'label', 'QC');
-      
-      %set menu callbacks
-      set(hToolsLineCastVarNonQC,       'callBack', {@displayLineCastVar, false});
-      set(hToolsLineCastVarQC,          'callBack', {@displayLineCastVar, true});
+  switch mode
+      case 'timeSeries'
+          hToolsCheckPlannedDepths      = uimenu(hToolsMenu, 'label', 'Check measured against planned depths');
+          hToolsCheckPlannedDepthsNonQC = uimenu(hToolsCheckPlannedDepths, 'label', 'non QC');
+          hToolsCheckPlannedDepthsQC    = uimenu(hToolsCheckPlannedDepths, 'label', 'QC');
+          hToolsCheckPressDiffs         = uimenu(hToolsMenu, 'label', 'Check pressure differences between selected instrument and nearest neighbours');
+          hToolsCheckPressDiffsNonQC    = uimenu(hToolsCheckPressDiffs, 'label', 'non QC');
+          hToolsCheckPressDiffsQC       = uimenu(hToolsCheckPressDiffs, 'label', 'QC');
+          hToolsLineDepth               = uimenu(hToolsMenu, 'label', 'Line plot mooring''s depths');
+          hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'non QC');
+          hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'QC');
+          hToolsLineCommonVar           = uimenu(hToolsMenu, 'label', 'Line plot mooring''s 1D variables');
+          hToolsLineCommonVarNonQC      = uimenu(hToolsLineCommonVar, 'label', 'non QC');
+          hToolsLineCommonVarQC         = uimenu(hToolsLineCommonVar, 'label', 'QC');
+          hToolsScatterCommonVar        = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 1D variables VS depth');
+          hToolsScatterCommonVarNonQC   = uimenu(hToolsScatterCommonVar, 'label', 'non QC');
+          hToolsScatterCommonVarQC      = uimenu(hToolsScatterCommonVar, 'label', 'QC');
+          hToolsScatter2DCommonVar      = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 2D variables VS depth');
+          hToolsScatter2DCommonVarNonQC = uimenu(hToolsScatter2DCommonVar, 'label', 'non QC');
+          hToolsScatter2DCommonVarQC    = uimenu(hToolsScatter2DCommonVar, 'label', 'QC');
+          
+          %set menu callbacks
+          set(hToolsCheckPlannedDepthsNonQC, 'callBack', {@displayCheckPlannedDepths, false});
+          set(hToolsCheckPlannedDepthsQC,    'callBack', {@displayCheckPlannedDepths, true});
+          set(hToolsCheckPressDiffsNonQC,    'callBack', {@displayCheckPressDiffs, false});
+          set(hToolsCheckPressDiffsQC,       'callBack', {@displayCheckPressDiffs, true});
+          set(hToolsLineDepthNonQC,          'callBack', {@displayLineMooringDepth, false});
+          set(hToolsLineDepthQC,             'callBack', {@displayLineMooringDepth, true});
+          set(hToolsLineCommonVarNonQC,      'callBack', {@displayLineMooringVar, false});
+          set(hToolsLineCommonVarQC,         'callBack', {@displayLineMooringVar, true});
+          set(hToolsScatterCommonVarNonQC,   'callBack', {@displayScatterMooringVar, false, true});
+          set(hToolsScatterCommonVarQC,      'callBack', {@displayScatterMooringVar, true, true});
+          set(hToolsScatter2DCommonVarNonQC, 'callBack', {@displayScatterMooringVar, false, false});
+          set(hToolsScatter2DCommonVarQC,    'callBack', {@displayScatterMooringVar, true, false});
+      case 'profile'
+          hToolsLineCastVar             = uimenu(hToolsMenu, 'label', 'Line plot profile variables');
+          hToolsLineCastVarNonQC        = uimenu(hToolsLineCastVar, 'label', 'non QC');
+          hToolsLineCastVarQC           = uimenu(hToolsLineCastVar, 'label', 'QC');
+          
+          %set menu callbacks
+          set(hToolsLineCastVarNonQC,       'callBack', {@displayLineCastVar, false});
+          set(hToolsLineCastVarQC,          'callBack', {@displayLineCastVar, true});
   end
   hHelpMenu                         = uimenu(fig, 'label', 'Help');
   hHelpWiki                         = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
@@ -828,7 +828,7 @@ end
             if iDepth ~= 0
                 sam.variables(iDepth) = [];
             end
-        otherwise
+        case 'timeSeries'
             % we don't want to plot TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE, NOMINAL_DEPTH
             p = getVar(sam.variables, 'NOMINAL_DEPTH');
     end
@@ -886,7 +886,7 @@ end
             case 'profile'
                 % we don't want to plot TIME, PROFILE, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
                 varOffset = getVar(sam.variables, 'BOT_DEPTH');
-            otherwise
+            case 'timeSeries'
                 % we don't want to plot TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE, NOMINAL_DEPTH
                 varOffset = getVar(sam.variables, 'NOMINAL_DEPTH');
         end

@@ -61,10 +61,8 @@ stringQC = 'non QC';
 if isQC, stringQC = 'QC'; end
 
 %plot depth information
-monitorRec = get(0,'MonitorPosition');
-xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-iBigMonitor = xResolution == max(xResolution);
-if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
 
 title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
 
@@ -141,7 +139,7 @@ for i=1:lenSampleData
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
     
     if iVar > 0 && size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 && ... % we're only plotting 1D variables but no current
-            all(~strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}))
+            all(~strncmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}, 4))
         if initiateFigure
             fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
             visible = 'on';
@@ -150,7 +148,7 @@ for i=1:lenSampleData
                 'Name', title, ...
                 'NumberTitle','off', ...
                 'Visible', visible, ...
-                'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+                'OuterPosition', monitorRect(iBigMonitor, :));
             
             hAxMooringVar = axes('Parent',   hFigMooringVar);
             if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'})), set(hAxMooringVar, 'YDir', 'reverse'); end

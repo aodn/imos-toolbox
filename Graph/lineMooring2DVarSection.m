@@ -58,10 +58,8 @@ if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
 if ~ischar(exportDir),      error('exportDir must be a string');        end
 
 %plot depth information
-monitorRec = get(0,'MonitorPosition');
-xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-iBigMonitor = xResolution == max(xResolution);
-if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
 
 iVar = getVar(sample_data.variables, varName);
 title = [sample_data.variables{iVar}.name ' section of ' sample_data.deployment_code ' at ' datestr(timeValue, 'yyyy-mm-dd HH:MM:SS UTC')];
@@ -126,7 +124,7 @@ if iVar > 0
             'Name', title, ...
             'NumberTitle','off', ...
             'Visible', visible, ...
-            'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+            'OuterPosition', monitorRect(iBigMonitor, :));
         
         initiateFigure = false;
     end

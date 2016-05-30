@@ -9,7 +9,7 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader, mode
 %   dataLines  - Cell array of strings, the data lines in the original file.
 %   instHeader - Struct containing instrument header.
 %   procHeader - Struct containing processed header.
-%   mode       - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode       - Toolbox data type mode.
 %
 % Outputs:
 %   data       - Struct containing variable data.

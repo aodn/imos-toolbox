@@ -6,7 +6,7 @@ function sample_data = aquadoppVelocityParse( filename, mode )
 % Inputs:
 %   filename    - Cell array containing the name of the raw aquadopp velocity 
 %                 file to parse.
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 % 
 % Outputs:
 %   sample_data - Struct containing sample data.

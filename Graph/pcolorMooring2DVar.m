@@ -61,10 +61,9 @@ stringQC = 'non QC';
 if isQC, stringQC = 'QC'; end
 
 %plot depth information
-monitorRec = get(0,'MonitorPosition');
-xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-iBigMonitor = xResolution == max(xResolution);
-if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
+
 title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
 
 %sort instruments by depth
@@ -108,7 +107,7 @@ for i=1:lenSampleData
     
     instrumentDesc{i} = [strrep(instrumentDesc{i}, '_', ' ') ' (' num2str(metaDepth(i)) 'm' instrumentSN ')'];
         
-    switch varName
+    switch varName(1:4)
         case {'UCUR', 'VCUR', 'WCUR', 'VEL1', 'VEL2', 'VEL3'}   % 0 centred parameters
             cMap = 'r_b';
             cType = 'centeredOnZero';
@@ -145,7 +144,7 @@ for i=1:lenSampleData
                 'Name', title, ...
                 'NumberTitle', 'off', ...
                 'Visible', visible, ...
-                'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+                'OuterPosition', monitorRect(iBigMonitor, :));
             
             if saveToFile
                 % the default renderer under windows is opengl; for some reason,

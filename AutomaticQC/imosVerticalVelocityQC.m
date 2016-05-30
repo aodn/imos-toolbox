@@ -73,7 +73,7 @@ if any(strcmp(sample_data.(type){k}.name, {'TIMESERIES', 'PROFILE', 'TRAJECTORY'
 % get all necessary dimensions and variables id in sample_data struct
 idWcur = 0;
 paramName = sample_data.(type){k}.name;
-if strcmpi(paramName, 'WCUR'), idWcur = k; end
+if strncmpi(paramName, 'WCUR', 4), idWcur = k; end
 
 % check if the data is compatible with the QC algorithm
 idMandatory = idWcur;
