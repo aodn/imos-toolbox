@@ -81,7 +81,13 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
           [deploymentDescs, iSort] = sort(deploymentDescs);
       case 'timeSeries'
           % for a mooring, sort instruments by depth
-          [~, iSort] = sort([deployments.InstrumentDepth]);
+          
+          % we have to handle the case when InstrumentDepth is not documented
+          instDepths = {deployments.InstrumentDepth};
+          instDepths{cellfun(@isempty, instDepths)} = NaN;
+          instDepths = cell2mat(instDepths);
+          
+          [~, iSort] = sort(instDepths);
           deploymentDescs = deploymentDescs(iSort);
   end
   
