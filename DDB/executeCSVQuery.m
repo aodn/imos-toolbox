@@ -79,11 +79,8 @@ function result = executeCSVQuery( file, field, value)
       end
   end
   
-  %get location of csv files:
-  dirnm = readProperty('toolbox.ddb.connection');
-  if isempty(dirnm)
-      dirnm = pwd;
-  end
+  %get location of csv files
+  dirnm = readProperty('toolbox.ddb');
   
   % complete the file name:
   file = fullfile(dirnm, [file '.csv']);

@@ -1,4 +1,4 @@
-function [fieldTrip ctds sites dataDir] = getCTDs(auto)
+function [fieldTrip ctds sites dataDir] = getCTDs(auto, isCSV)
 %GETCTDS Prompts the user for a field trip ID and data directory.
 % Retrieves and returns the field trip, all ctds from the DDB that
 % are related to the field trip, and the selected data directory.
@@ -7,6 +7,7 @@ function [fieldTrip ctds sites dataDir] = getCTDs(auto)
 %   auto        - if true, the user is not prompted to select a field
 %                 trip/directory; the values in toolboxProperties are
 %                 used.
+%   isCSV       - If true, look for csv files rather than using database.
 %
 % Outputs:
 %   fieldTrip   - field trip struct - the field trip selected by the user.
@@ -54,7 +55,7 @@ sites = struct;
 % prompt the user to select a field trip and
 % directory which contains raw data files
 if ~auto
-    [fieldTrip dataDir] = startDialog('profile');
+    [fieldTrip dataDir] = startDialog('profile', isCSV);
     % if automatic, just get the defaults from toolboxProperties.txt
 else
     dataDir   = readProperty('startDialog.dataDir.profile');
@@ -72,18 +73,23 @@ if isempty(fieldTrip) || isempty(dataDir), return; end
 fId = fieldTrip.FieldTripID;
 
 % query the ddb for all ctds related to this field trip
-ctds = executeDDBQuery('CTDData', 'FieldTrip', fId);
+if isCSV
+    executeQueryFunc = @executeCSVQuery;
+else
+    executeQueryFunc = @executeDDBQuery;
+end
+ctds = executeQueryFunc('CTDData', 'FieldTrip', fId);
 
 % query the ddb for all sites related to these ctds
 lenDep = length(ctds);
 for i=1:lenDep
     if i==1
-        tempVal = executeDDBQuery('Sites', 'Site', ctds(i).Site);
+        tempVal = executeQueryFunc('Sites', 'Site', ctds(i).Site);
         % A CTDData doesn't necessarily has an associated site, 
         % CTDData already contains some site information
         if ~isempty(tempVal), sites = tempVal; end
     else
-        tempVal = executeDDBQuery('Sites', 'Site', ctds(i).Site);
+        tempVal = executeQueryFunc('Sites', 'Site', ctds(i).Site);
         if ~isempty(tempVal), sites(i) = tempVal; end
     end
 end
