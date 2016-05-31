@@ -217,12 +217,18 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
   rawFiles    = {};
   allFiles    = {};
   
+  %check for CSV file import
+  isCSV = false;
+  if isdir(ddb)
+      isCSV = true;
+  end
+
   while true
       switch mode
           case 'profile'
-              [fieldTrip deps sits dataDir] = getCTDs(auto); % one entry is one CTD profile instrument file
+              [fieldTrip deps sits dataDir] = getCTDs(auto, isCSV); % one entry is one CTD profile instrument file
           case 'timeSeries'
-              [fieldTrip deps sits dataDir] = getDeployments(auto); % one entry is one moored instrument file
+              [fieldTrip deps sits dataDir] = getDeployments(auto, isCSV); % one entry is one moored instrument file
       end
       
       if isempty(fieldTrip), return; end
@@ -324,7 +330,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
     % display status dialog to highlight any discrepancies (file not found
     % for a deployment, more than one file found for a deployment)
     if ~auto
-      [deps allFiles] = dataFileStatusDialog(deps, allFiles);
+      [deps allFiles] = dataFileStatusDialog(deps, allFiles, isCSV);
 
       % user cancelled file dialog
       if isempty(deps), continue; end
@@ -362,7 +368,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
           waitbar(k / length(deps), progress, fileDisplay);
       end
       % import data
-      sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt, mode, ddb);
+      sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt, mode, isCSV);
       rawFiles{   end+1} = allFiles{k};
       
       if iscell(sample_data{end})
@@ -419,7 +425,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
   % close progress dialog
   if ~auto, close(progress); end
 
-  function sam = parse(deployment, files, parsers, noParserPrompt, mode, ddb)
+  function sam = parse(deployment, files, parsers, noParserPrompt, mode, isCSV)
   %PARSE Parses a raw data file, returns a sample_data struct.
   %
   % Inputs:
@@ -435,7 +441,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
   %   sam        - Struct containing sample data.
 
     % get the appropriate parser function
-    parser = getParserFunc(deployment, parsers, noParserPrompt, ddb);
+    parser = getParserFunc(deployment, parsers, noParserPrompt, isCSV);
     if isnumeric(parser)
       error(['no parser found for instrument ' deployment.InstrumentID]); 
     end
@@ -444,7 +450,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
     sam = parser(files, mode);
   end
 
-  function parser = getParserFunc(deployment, parsers, noParserPrompt, ddb)
+  function parser = getParserFunc(deployment, parsers, noParserPrompt, isCSV)
   %GETPARSERFUNC Searches for a parser function which is able to parse data 
   % for the given deployment.
   %
@@ -459,13 +465,13 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
   %   parser     - Function handle to the parser function, or 0 if a parser
   %                function wasn't found.
   %
-  if strcmp('csv',ddb)
-      instrument = executeCSVQuery(...
-          'Instruments', 'InstrumentID', deployment.InstrumentID);
-  else
-      instrument = executeDDBQuery(...
-          'Instruments', 'InstrumentID', deployment.InstrumentID);
-  end
+  
+    if isCSV
+      executeQueryFunc = @executeCSVQuery;
+    else
+      executeQueryFunc = @executeDDBQuery;
+    end
+    instrument = executeQueryFunc('Instruments', 'InstrumentID', deployment.InstrumentID);
 
     % there should be exactly one instrument 
     if length(instrument) ~= 1

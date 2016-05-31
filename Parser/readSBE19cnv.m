@@ -80,7 +80,7 @@ function [data, comment] = readSBE19cnv( dataLines, instHeader, procHeader, mode
             % we deliberately overwrite it assuming the last version is the
             % most relevant
             
-        otherwise
+        case 'timeSeries'
             % if the same parameter appears multiple times, 
             % don't overwrite it in the data struct - append
             % a number to the end of the variable name, as
