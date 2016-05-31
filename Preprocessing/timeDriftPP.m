@@ -70,7 +70,12 @@ if strcmpi(qcLevel, 'raw'), return; end
 % auto logical in input to enable running under batch processing
 if nargin<3, auto=false; end
 
+%check for CSV file import
+isCSV = false;
 ddb = readProperty('toolbox.ddb');
+if isdir(ddb)
+    isCSV = true;
+end
 
 descs           = {};
 nSample         = length(sample_data);
@@ -84,13 +89,10 @@ for k = 1:nSample
     descs{k} = genSampleDataDesc(sample_data{k});
     
     %check to see if the offsets are available already from the ddb
-    if strcmp('csv',ddb)
+    if isCSV
         if isfield(sample_data{k}.meta.deployment,'StartOffset')
             startOffsets(k) = sample_data{k}.meta.deployment.StartOffset;
         end
-    end
-    
-    if strcmp('csv',ddb)
         if isfield(sample_data{k}.meta.deployment,'EndOffset')
             endOffsets(k) = sample_data{k}.meta.deployment.EndOffset;
         end
