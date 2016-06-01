@@ -42,8 +42,6 @@ function mainWindow(...
 %                         state          - Currently selected state (String)
 %                         sample_data    - Cell array of sample_data
 %                                          structs
-%                         graphType      - Currently selected graph type 
-%                                          (String)
 %                         set            - Currently selected sample_data
 %                                          struct
 %                         vars           - Currently selected variables
@@ -107,7 +105,7 @@ function mainWindow(...
   fig = figure(...
     'Name',        windowTitle, ...
     'Visible',     'off',...
-    'Color',       [0.92549 0.913725 0.847059],...
+    'Color',       [0.75 0.75 0.75],...
     'MenuBar',     'none',...
     'ToolBar',     'figure',...
     'Resize',      'on',...
@@ -121,22 +119,11 @@ function mainWindow(...
     'String', sampleDataDescs,...
     'Value',  1,...
     'Tag', 'samplePopUpMenu');
-  
-  % get the toolbox execution mode
-  mode = readProperty('toolbox.mode');
-  
-  switch mode
-      case 'profile'
-          graphMenuValue = 2;
-      case {'timeSeries', 'trajectory'}
-          graphMenuValue = 1;
-  end
 
-  % graph type selection menu
-  graphMenu = uicontrol(...
-    'Style',    'popupmenu',...
-    'String',   listGraphs(),...
-    'Value',    graphMenuValue);
+  % geographic display panel
+  geoPanel = uipanel(...
+    'Parent',     fig,...
+    'BorderType', 'none');
   
   % side panel
   sidePanel = uipanel(...
@@ -178,7 +165,7 @@ function mainWindow(...
   set(varPanel,         'Units', 'normalized');
   set(graphButton,      'Units', 'normalized');
   set(sampleMenu,       'Units', 'normalized');
-  set(graphMenu,        'Units', 'normalized');
+  set(geoPanel,         'Units', 'normalized');
   set(stateButtons,     'Units', 'normalized');
   
   % set window position
@@ -199,50 +186,31 @@ function mainWindow(...
   set(sidePanel,  'Position', [0.0,  0.0,  0.15, 0.95]);
   set(mainPanel,  'Position', [0.15, 0.0,  0.85, 0.95]);
   set(sampleMenu, 'Position', [0.0,  0.95, 0.75, 0.05]);
-  set(graphMenu,  'Position', [0.75, 0.95, 0.25, 0.05]);
+  set(geoPanel,   'Position', [0.75, 0.95, 0.25, 0.05]);
   
   set(fig, 'Units', 'normalized');
 
   % set widget positions
-%   set(sidePanel,  'Position', [0.0,  0.0,  0.15, 0.95]);
   set(sidePanel,  'Position', posUi2(fig, 100, 100, 6:100, 1:10, 0));
-%   set(mainPanel,  'Position', [0.15, 0.0,  0.85, 0.95]);
   set(mainPanel,  'Position', posUi2(fig, 100, 100, 6:100, 11:100, 0));
-%   set(sampleMenu, 'Position', [0.0,  0.95, 0.75, 0.05]);
   set(sampleMenu, 'Position', posUi2(fig, 100, 100, 1:5, 1:75, 0));
-%   set(graphMenu,  'Position', [0.75, 0.95, 0.25, 0.05]);
-  set(graphMenu,  'Position', posUi2(fig, 100, 100, 1:5, 76:100, 0));
+  set(geoPanel,   'Position', posUi2(fig, 100, 100, 1:5, 76:100, 0));
   
   % varPanel, graph and stateButtons are positioned relative to sidePanel
-%   set(varPanel, 'Position', [0.0, 0.0, 1.0, 0.5]);
   set(varPanel, 'Position', posUi2(sidePanel, 10, 1, 6:10, 1, 0));
   
   n = length(stateButtons);
   for k = 1:n
-%     set(stateButtons(k), 'Position', ...
-%       [0.0, 0.5+(n+1-k)*(0.5/(n+1)), 1.0, 0.5/(n+1)]);
     set(stateButtons(k), 'Position', ...
       posUi2(sidePanel, 2*(n+1)+1, 1, k, 1, 0));
   end
   
   % graph button is tacked on right below state buttons
-%   set(graphButton, 'Position', [0.0, 0.5, 1.0, 0.5/(n+1)]);
   set(graphButton, 'Position', posUi2(sidePanel, 2*(n+1)+1, 1, n+1, 1, 0));
-  
-  % reset back to pixels
-%   set(fig,          'Units', 'pixels');
-%   set(sidePanel,    'Units', 'pixels');
-%   set(mainPanel,    'Units', 'pixels');
-%   set(varPanel,     'Units', 'pixels');
-%   set(graphButton,  'Units', 'pixels');
-%   set(sampleMenu,   'Units', 'pixels');
-%   set(graphMenu,    'Units', 'pixels');
-%   set(stateButtons, 'Units', 'pixels');
   
   % set callbacks - variable panel widget 
   % callbacks are set in createParamPanel
   set(sampleMenu,   'Callback', @sampleMenuCallback);
-  set(graphMenu,    'Callback', @graphMenuCallback);
   set(stateButtons, 'Callback', @stateButtonCallback);
   set(graphButton,  'Callback', @graphButtonCallback);
   
@@ -279,7 +247,11 @@ function mainWindow(...
   
   %set uimenu
   hToolsMenu                        = uimenu(fig, 'label', 'Tools');
-  switch mode
+  
+  % get the toolbox execution mode
+  tMode = readProperty('toolbox.mode');
+  
+  switch tMode
       case 'timeSeries'
           hToolsCheckPlannedDepths      = uimenu(hToolsMenu, 'label', 'Check measured against planned depths');
           hToolsCheckPlannedDepthsNonQC = uimenu(hToolsCheckPlannedDepths, 'label', 'all data');
@@ -368,7 +340,6 @@ function mainWindow(...
     state = currentState;
     sam   = getSelectedData();
     vars  = getSelectedVars();
-    graph = getSelectedGraphType();
     
     % clear main panel
     children = get(mainPanel, 'Children');
@@ -387,12 +358,11 @@ function mainWindow(...
       @updateCallback, ...
       state, ...
       sample_data, ...
-      graph, ...
       sam.meta.index, vars);
   
     % set data cursor mode custom display
     dcm_obj = datacursormode(fig);
-    set(dcm_obj, 'UpdateFcn', {@customDcm, sam, vars, graph, mode});
+    set(dcm_obj, 'UpdateFcn', {@customDcm, sam, vars, tMode});
   end
   
   function sampleMenuCallback(source,ev)
@@ -425,13 +395,6 @@ function mainWindow(...
         
     if ~isempty(newVars), createVarPanel(sam, newVars); end
     selectionChange('set');
-  end
-
-  function graphMenuCallback(source,ev)
-  %GRAPHMENUCALLBACK Called when the user changes the graph type via the
-  % graph selection menu. Delegates to selectionChange.
-  %
-    selectionChange('graph');
   end
 
   function stateButtonCallback(source, ev)
@@ -507,63 +470,62 @@ function mainWindow(...
     xTicks  = xLimits(1):xStep:xLimits(2);
     set(gca, 'XTick', xTicks);
     
-    graphName = get(graphMenu, 'String');
-    graphName = graphName{get(graphMenu, 'Value')};
-    if strcmpi(graphName, 'TimeSeries')
-        % sync all other X axis
-        set(dataGraphs, 'XLim', xLimits);
-        set(dataGraphs, 'XTick', xTicks);
-        
-        % update other 1D axis yLim / yTick to reflect the
-        % change in the Y range of displayed data
-        if ~isempty(graphs1D)
-            sam = getSelectedData();
-            hTickBoxes = get(varPanel, 'UserData');
+    switch tMode
+        case {'timeSeries', 'trajectory'}
+            % sync all other X axis
+            set(dataGraphs, 'XLim', xLimits);
+            set(dataGraphs, 'XTick', xTicks);
             
-            qcSet     = str2double(readProperty('toolbox.qc_set'));
-            rawFlag   = imosQCFlag('raw',          qcSet, 'flag');
-            goodFlag  = imosQCFlag('good',         qcSet, 'flag');
-            pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
-            okFlags = [rawFlag goodFlag pGoodFlag];
-
-            for i=1:length(graphs1D)
-                userData = get(graphs1D(i), 'UserData');
-                hData = userData{1};
-                iTickBox = userData{2};
+            % update other 1D axis yLim / yTick to reflect the
+            % change in the Y range of displayed data
+            if ~isempty(graphs1D)
+                sam = getSelectedData();
+                hTickBoxes = get(varPanel, 'UserData');
                 
-                varName = get(hTickBoxes(iTickBox), 'String');
-                iVar = getVar(sam.variables, varName);
-                flags = sam.variables{iVar}.flags;
-                iGood = ismember(flags, okFlags);
+                qcSet     = str2double(readProperty('toolbox.qc_set'));
+                rawFlag   = imosQCFlag('raw',          qcSet, 'flag');
+                goodFlag  = imosQCFlag('good',         qcSet, 'flag');
+                pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+                okFlags = [rawFlag goodFlag pGoodFlag];
                 
-                xData = get(hData, 'XData');
-                yData = get(hData, 'YData');
-                
-                xData(~iGood) = [];
-                yData(~iGood) = [];
-                
-                iDataIn = xData >= xLimits(1) & xData <= xLimits(2);
-                yLimits = [min(yData(iDataIn)), max(yData(iDataIn))];
-                set(graphs1D(i), 'YLim', yLimits);
-                
-                yStep   = (yLimits(2) - yLimits(1)) / 5;
-                yTicks  = yLimits(1):yStep:yLimits(2);
-                
-                set(graphs1D(i), 'YTick', yTicks);
+                for i=1:length(graphs1D)
+                    userData = get(graphs1D(i), 'UserData');
+                    hData = userData{1};
+                    iTickBox = userData{2};
+                    
+                    varName = get(hTickBoxes(iTickBox), 'String');
+                    iVar = getVar(sam.variables, varName);
+                    flags = sam.variables{iVar}.flags;
+                    iGood = ismember(flags, okFlags);
+                    
+                    xData = get(hData, 'XData');
+                    yData = get(hData, 'YData');
+                    
+                    xData(~iGood) = [];
+                    yData(~iGood) = [];
+                    
+                    iDataIn = xData >= xLimits(1) & xData <= xLimits(2);
+                    yLimits = [min(yData(iDataIn)), max(yData(iDataIn))];
+                    set(graphs1D(i), 'YLim', yLimits);
+                    
+                    yStep   = (yLimits(2) - yLimits(1)) / 5;
+                    yTicks  = yLimits(1):yStep:yLimits(2);
+                    
+                    set(graphs1D(i), 'YTick', yTicks);
+                end
             end
-        end
-        
-        % tranformation of datenum xticks in datestr
-        datetick(gca, 'x', 'dd-mm-yy HH:MM', 'keepticks');
-        xTickLabel = get(gca, 'XTickLabel');
-        for i=1:length(dataGraphs)
-            set(dataGraphs(i), 'XTickLabel', xTickLabel); % this is to avoid too many calls to datetick()
-        end
-        
-    elseif strcmpi(graphName, 'DepthProfile')
-        % sync all other Y axis
-        set(dataGraphs, 'YLim', yLimits);
-        set(dataGraphs, 'YTick', yTicks);
+            
+            % tranformation of datenum xticks in datestr
+            datetick(gca, 'x', 'dd-mm-yy HH:MM', 'keepticks');
+            xTickLabel = get(gca, 'XTickLabel');
+            for i=1:length(dataGraphs)
+                set(dataGraphs(i), 'XTickLabel', xTickLabel); % this is to avoid too many calls to datetick()
+            end
+            
+        case 'profile'
+            % sync all other Y axis
+            set(dataGraphs, 'YLim',  yLimits);
+            set(dataGraphs, 'YTick', yTicks);
     end
   end
 
@@ -1144,16 +1106,6 @@ end
     sam = sample_data{idx};
   end
 
-  function graphType = getSelectedGraphType()
-  %GETSELECTEDGRAPHTYPE Returns the currently selected graph type.
-  %
-    idx   = get(graphMenu, 'Value');
-    types = get(graphMenu, 'String');
-    
-    graphType = types{idx};
-    
-  end
-
   function vars = getSelectedVars()
   %GETSELECTEDVARS Returns a vector containing the indices of the
   % variables which are selected.
@@ -1180,7 +1132,10 @@ end
     checkboxes = get(varPanel, 'Children');
     for m = 1:length(checkboxes), delete(checkboxes(m)); end
     
-    switch mode
+    % get the toolbox execution mode
+    tMode = readProperty('toolbox.mode');
+  
+    switch tMode
         case 'profile'
             % we don't want to plot TIME, PROFILE, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
             p = getVar(sam.variables, 'BOT_DEPTH');
@@ -1242,33 +1197,29 @@ end
     set(varPanel, 'UserData', checkboxes);
   end
 
-    function txt = customDcm(~, event_obj, sam, vars, graph, mode)
+    function txt = customDcm(~, event_obj, sam, vars, mode)
         % Customizes text of data tips
         switch mode
             case 'profile'
                 % we don't want to plot TIME, PROFILE, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
                 varOffset = getVar(sam.variables, 'BOT_DEPTH');
+                
+                dimLabel = 'DEPTH';
+                dimUnit  = ' m';
+                dimFun = @num2str;
+                
             case {'timeSeries', 'trajectory'}
                 % we don't want to plot TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE, NOMINAL_DEPTH
                 varOffset = getVar(sam.variables, 'NOMINAL_DEPTH');
+                
+                dimLabel = 'TIME';
+                dimUnit  = ' UTC';
+                dimFun = @datestr;
         end
         
         % retrieve x/y click positions + data index
         posClic = get(event_obj, 'Position');
         I       = get(event_obj, 'DataIndex');
-        
-        switch graph
-            case 'Profile'
-                dimLabel = 'DEPTH';
-                dimUnit  = ' m';
-                dimFun = @num2str;
-            case 'TimeSeries'
-                dimLabel = 'TIME';
-                dimUnit  = ' UTC';
-                dimFun = @datestr;
-            otherwise
-                error(['graph type ' graph ' not supported']);
-        end
         
         iDim = getVar(sam.dimensions, dimLabel);
         nRecord = length(sam.dimensions{iDim}.data);

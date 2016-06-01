@@ -125,10 +125,10 @@ function displayManager(windowTitle, sample_data, callbacks)
   mainWindow(windowTitle, sample_data, states, 3, @stateSelectCallback);
       
   function state = stateSelectCallback(event,...
-    panel, updateCallback, state, sample_data, graphType, setIdx, vars)
+    panel, updateCallback, state, sample_data, setIdx, vars)
   %STATESELECTCALLBACK Called when the user interacts with the main 
-  % window, by changing the state, the selected data set, the selected
-  % variables or the selected graph type.
+  % window, by changing the state, the selected data set or the selected
+  % variables.
   %
   % Inputs:
   %   event          - String describing what triggered the callback.
@@ -136,7 +136,6 @@ function displayManager(windowTitle, sample_data, callbacks)
   %   updateCallback - function to be called when data is modified.
   %   state          - selected state (string).
   %   sample_data    - Cell array of sample_data structs
-  %   graphType      - currently selected graph type (string).
   %   setIdx         - currently selected sample_data struct (index)
   %   vars           - currently selected variables (indices).
   %
@@ -177,7 +176,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       for k = 1:length(sample_data), updateCallback(sample_data{k}); end
       
       stateSelectCallback('state', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars);
+        sample_data, setIdx, vars);
       state = lastState;
     end
   
@@ -247,14 +246,14 @@ function displayManager(windowTitle, sample_data, callbacks)
       % display selected raw data
       graphs = [];
       try
-        graphFunc = getGraphFunc(graphType, 'graph', '');
+        graphFunc = getGraphFunc(mode, 'graph', '');
         [graphs lines vars] = graphFunc(panel, sample_data{setIdx}, vars);
       catch e
         errorString = getErrorString(e);
         fprintf('%s\n',   ['Error says : ' errorString]);
         
         errordlg(...
-          ['Could not display this data set using ' graphType ...
+          ['Could not display this data set using ' mode ...
            ' (' e.message '). Try a different graph type.' ], ...
            'Graphing Error');
       end
@@ -269,7 +268,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       end
       
       % add data selection functionality
-      selectFunc = getGraphFunc(graphType, 'select', '');
+      selectFunc = getGraphFunc(mode, 'select', '');
       selectFunc(@dataSelectCallbackDoNothing, @dataClickCallback);
       
       function dataClickCallback(ax, type, point)
@@ -284,7 +283,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           
           varName = sample_data{setIdx}.variables{vars(varIdx)}.name;
           
-          graphFunc = getGraphFunc(graphType, 'graph', varName);
+          graphFunc = getGraphFunc(mode, 'graph', varName);
           if strcmpi(func2str(graphFunc), 'graphTimeSeriesTimeDepth')
               lineMooring2DVarSection(sample_data{setIdx}, varName, point(1), false, false, '')
           end
@@ -324,8 +323,8 @@ function displayManager(windowTitle, sample_data, callbacks)
 
       % redisplay the data
       try 
-        graphFunc = getGraphFunc(graphType, 'graph', '');
-        try flagFunc  = getGraphFunc(graphType, 'flag',  '');
+        graphFunc = getGraphFunc(mode, 'graph', '');
+        try flagFunc  = getGraphFunc(mode, 'flag',  '');
         catch e
           flagFunc = [];
         end
@@ -333,8 +332,8 @@ function displayManager(windowTitle, sample_data, callbacks)
         [graphs lines vars] = graphFunc(panel, sample_data{setIdx}, vars);
         
         if isempty(flagFunc)
-          warning(['Cannot display QC flags using ' graphType ...
-                   '. Try a different graph type.']);
+          warning(['Cannot display QC flags using ' mode ...
+                   ' mode. Try a different toolbox mode.']);
           return;
         else
           flags = flagFunc( panel, graphs, sample_data{setIdx}, vars);
@@ -345,8 +344,8 @@ function displayManager(windowTitle, sample_data, callbacks)
         fprintf('%s\n',   ['Error says : ' errorString]);
         
         errordlg(...
-          ['Could not display this data set using ' graphType ...
-           ' (' e.message '). Try a different graph type.' ], ...
+          ['Could not display this data set using ' mode ...
+           ' (' e.message '). Try a different toolbox mode.' ], ...
            'Graphing Error');
          return;
       end
@@ -360,7 +359,7 @@ function displayManager(windowTitle, sample_data, callbacks)
 
       % add data selection functionality
       highlight = [];
-      selectFunc = getGraphFunc(graphType, 'select', '');
+      selectFunc = getGraphFunc(mode, 'select', '');
       selectFunc(@dataSelectCallback, @dataClickCallback);
 
       function dataClickCallback(ax, type, point)
@@ -375,7 +374,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           
           varName = sample_data{setIdx}.variables{vars(varIdx)}.name;
           
-          graphFunc = getGraphFunc(graphType, 'graph', varName);
+          graphFunc = getGraphFunc(mode, 'graph', varName);
           if strcmpi(func2str(graphFunc), 'graphTimeSeriesTimeDepth')
               lineMooring2DVarSection(sample_data{setIdx}, varName, point(1), true, false, '')
           end
@@ -400,7 +399,7 @@ function displayManager(windowTitle, sample_data, callbacks)
         end
 
         % highlight the data, save the handle and data indices
-        highlightFunc = getGraphFunc(graphType, 'highlight',...
+        highlightFunc = getGraphFunc(mode, 'highlight',...
           sample_data{setIdx}.variables{vars(varIdx)}.name);
         highlight = highlightFunc(...
           range, handle, sample_data{setIdx}.variables{vars(varIdx)}, type);
@@ -415,7 +414,7 @@ function displayManager(windowTitle, sample_data, callbacks)
         varIdx = ud{2};
         
         % get the indices of the data which was highlighted
-        getSelectedFunc = getGraphFunc(graphType, 'getSelected', ...
+        getSelectedFunc = getGraphFunc(mode, 'getSelected', ...
           sample_data{setIdx}.variables{vars(varIdx)}.name);
         dataIdx = getSelectedFunc(...
           sample_data{setIdx}, vars(varIdx), ax, highlight);
@@ -524,9 +523,6 @@ function displayManager(windowTitle, sample_data, callbacks)
     
       % display QC stats viewer
       viewQCstats(panel, sample_data{setIdx}, mode);
-%       viewMetadata(panel, sample_data{setIdx}, ...
-%         @metadataUpdateWrapperCallback,...
-%         @metadataRepWrapperCallback, mode);
     end
     
       function resetManQCCallback()
@@ -632,7 +628,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       callbacks.exportNetCDFRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars);
+        sample_data, setIdx, vars);
       state = lastState;
     end
     
@@ -643,7 +639,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       callbacks.exportRawRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars);
+        sample_data, setIdx, vars);
       state = lastState;
     end
   end

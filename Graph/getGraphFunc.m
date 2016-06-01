@@ -1,5 +1,5 @@
-function func = getGraphFunc( graphType, graphFunc, var )
-%GETGRAPHFUNC Returns a function handle for the given graph type, graph
+function func = getGraphFunc( mode, graphFunc, var )
+%GETGRAPHFUNC Returns a function handle for the given toolbox mode, graph
 % function, and variable.
 %
 % Returns a function handle for the given graph type/function and variable.
@@ -41,7 +41,7 @@ function func = getGraphFunc( graphType, graphFunc, var )
 %                      parent, graphs, sample_data, vars )
 %
 % Inputs:
-%   graphType - Type of graph, e.g. 'TimeSeries'. 
+%   mode      - Toolbox execution mode.
 %   graphFunc - Function - one of 'graph', 'select', 'highlight', 
 %               'getSelected', 'flag'.
 %   var       - IMOS compliant parameter name.
@@ -83,9 +83,18 @@ function func = getGraphFunc( graphType, graphFunc, var )
 %
 narginchk(3,3);
 
-if ~ischar(graphType), error('graphType must be a string'); end
+if ~ischar(mode),      error('mode must be a string'); end
 if ~ischar(graphFunc), error('graphFunc must be a string'); end
 if ~ischar(var),       error('var must be a string');       end
+
+switch mode
+    case 'profile'
+        graphType = 'DepthProfile';
+        
+    case {'timeSeries', 'trajectory'}
+        graphType = 'TimeSeries';
+        
+end
 
 % account for numbered parameters (if the dataset 
 % contains more than one variable of the same name)
