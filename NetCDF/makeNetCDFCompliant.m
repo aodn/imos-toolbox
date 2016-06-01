@@ -226,7 +226,7 @@ for i=1:lenConfig
         end
         if firstTest && secondTest
             % query the ddb for each sensor
-            Sensors = executeDDBQuery('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
+            Sensors = executeQueryFunc('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
             if ~isempty(Sensors)
                 % check if this sensor is associated to the current IMOS parameter
                 parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
