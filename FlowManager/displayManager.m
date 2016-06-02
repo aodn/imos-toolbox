@@ -125,14 +125,15 @@ function displayManager(windowTitle, sample_data, callbacks)
   mainWindow(windowTitle, sample_data, states, 3, @stateSelectCallback);
       
   function state = stateSelectCallback(event,...
-    panel, updateCallback, state, sample_data, setIdx, vars)
+    geoPanel, mainPanel, updateCallback, state, sample_data, setIdx, vars)
   %STATESELECTCALLBACK Called when the user interacts with the main 
   % window, by changing the state, the selected data set or the selected
   % variables.
   %
   % Inputs:
   %   event          - String describing what triggered the callback.
-  %   panel          - uipanel on which things can be drawn.
+  %   geoPanel       - uipanel on which geo-location can be drawn.
+  %   mainPanel      - uipanel on which data can be drawn.
   %   updateCallback - function to be called when data is modified.
   %   state          - selected state (string).
   %   sample_data    - Cell array of sample_data structs
@@ -175,7 +176,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       
       for k = 1:length(sample_data), updateCallback(sample_data{k}); end
       
-      stateSelectCallback('state', panel, updateCallback, lastState, ...
+      stateSelectCallback('state', geoPanel, mainPanel, updateCallback, lastState, ...
         sample_data, setIdx, vars);
       state = lastState;
     end
@@ -186,7 +187,7 @@ function displayManager(windowTitle, sample_data, callbacks)
     %
     
       % display metadata viewer, allowing user to modify metadata
-      viewMetadata(panel, sample_data{setIdx}, ...
+      viewMetadata(mainPanel, sample_data{setIdx}, ...
         @metadataUpdateWrapperCallback,...
         @metadataRepWrapperCallback, mode);
 
@@ -247,7 +248,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       graphs = [];
       try
         graphFunc = getGraphFunc(mode, 'graph', '');
-        [graphs lines vars] = graphFunc(panel, sample_data{setIdx}, vars);
+        [graphs lines vars] = graphFunc(mainPanel, sample_data{setIdx}, vars);
       catch e
         errorString = getErrorString(e);
         fprintf('%s\n',   ['Error says : ' errorString]);
@@ -329,14 +330,14 @@ function displayManager(windowTitle, sample_data, callbacks)
           flagFunc = [];
         end
         
-        [graphs lines vars] = graphFunc(panel, sample_data{setIdx}, vars);
+        [graphs lines vars] = graphFunc(mainPanel, sample_data{setIdx}, vars);
         
         if isempty(flagFunc)
           warning(['Cannot display QC flags using ' mode ...
                    ' mode. Try a different toolbox mode.']);
           return;
         else
-          flags = flagFunc( panel, graphs, sample_data{setIdx}, vars);
+          flags = flagFunc( mainPanel, graphs, sample_data{setIdx}, vars);
         end
         
       catch e
@@ -474,7 +475,7 @@ function displayManager(windowTitle, sample_data, callbacks)
               
               % update graph
               if ~isempty(flags), delete(flags(flags ~= 0)); end
-              flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
+              flags = flagFunc(mainPanel, graphs, sample_data{setIdx}, vars);
               
               % write/update manual QC file for this dataset
               mqcFile = [sample_data{setIdx}.toolbox_input_file, '.mqc'];
@@ -522,7 +523,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       end
     
       % display QC stats viewer
-      viewQCstats(panel, sample_data{setIdx}, mode);
+      viewQCstats(mainPanel, sample_data{setIdx}, mode);
     end
     
       function resetManQCCallback()
@@ -627,7 +628,7 @@ function displayManager(windowTitle, sample_data, callbacks)
     %
       callbacks.exportNetCDFRequestCallback();
       
-      stateSelectCallback('', panel, updateCallback, lastState, ...
+      stateSelectCallback('', mainPanel, updateCallback, lastState, ...
         sample_data, setIdx, vars);
       state = lastState;
     end
@@ -638,7 +639,7 @@ function displayManager(windowTitle, sample_data, callbacks)
     %
       callbacks.exportRawRequestCallback();
       
-      stateSelectCallback('', panel, updateCallback, lastState, ...
+      stateSelectCallback('', mainPanel, updateCallback, lastState, ...
         sample_data, setIdx, vars);
       state = lastState;
     end
