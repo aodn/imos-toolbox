@@ -67,9 +67,6 @@ iBigMonitor = getBiggestMonitor();
 
 title = [sample_data{1}.site_code ' profile on ' datestr(sample_data{1}.time_coverage_start, 'yyyy-mm-dd UTC')];
 
-lineStyle = {'-', '--', ':', '-.'};
-lenLineStyle = length(lineStyle);
-
 initiateFigure = true;
 
 lenVarNames = length(varNames);
@@ -169,8 +166,7 @@ for k=1:lenVarNames
             
             hLineVar(i + 1) = line(dataVar, ...
                 yLine, ...
-                'Color', cMap(i, :), ...
-                'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+                'Color', cMap(i, :));
             
             xLim = get(hAxCastVar, 'XLim');
             yLim = get(hAxCastVar, 'YLim');

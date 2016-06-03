@@ -111,9 +111,6 @@ end
 xMin = min(xMin);
 xMax = max(xMax);
 
-lineStyle = {'-', '--', ':', '-.'};
-lenLineStyle = length(lineStyle);
-
 instrumentDesc = cell(lenSampleData + 1, 1);
 hLineVar = nan(lenSampleData + 1, 1);
 
@@ -223,8 +220,7 @@ for i=1:lenSampleData
             
             hLineVar(i + 1) = line(xLine, ...
                 dataVar, ...
-                'Color', cMap(i, :), ...
-                'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+                'Color', cMap(i, :));
             userData.idx = iSort(i);
             userData.xName = 'TIME';
             userData.yName = varName;
