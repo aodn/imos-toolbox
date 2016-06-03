@@ -54,21 +54,27 @@ if ~islogical(isQC),        error('isQC must be a logical');            end
 if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
 if ~ischar(exportDir),      error('exportDir must be a string');        end
 
-varTitle = imosParameters(varName, 'long_name');
-varUnit = imosParameters(varName, 'uom');
-
 if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'})), return; end
 
-stringQC = 'non QC';
-if isQC, stringQC = 'QC'; end
-
-%plot depth information
 monitorRect = getRectMonitor();
 iBigMonitor = getBiggestMonitor();
 
-title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
+varTitle = imosParameters(varName, 'long_name');
+varUnit = imosParameters(varName, 'uom');
 
-%sort instruments by depth
+stringQC = 'all';
+if isQC, stringQC = 'only good and non QC''d'; end
+
+title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC ' ' varTitle];
+
+% retrieve good flag values
+qcSet     = str2double(readProperty('toolbox.qc_set'));
+rawFlag   = imosQCFlag('raw', qcSet, 'flag');
+goodFlag  = imosQCFlag('good', qcSet, 'flag');
+pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+goodFlags = [rawFlag, goodFlag, pGoodFlag];
+
+% sort instruments by depth
 lenSampleData = length(sample_data);
 metaDepth = nan(lenSampleData, 1);
 xMin = nan(lenSampleData, 1);
@@ -91,7 +97,7 @@ for i=1:lenSampleData
         timeFlags = sample_data{i}.dimensions{iTime}.flags;
         varFlags = sample_data{i}.variables{izVar}.flags;
         
-        iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+        iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
     end
     
     if izVar
@@ -134,11 +140,11 @@ for i=1:lenSampleData
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             varFlags = sample_data{iSort(i)}.variables{izVar}.flags;
             
-            iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+            iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
             
             if iDepth
                 depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
-                iGood = iGood & (depthFlags == 1 | depthFlags == 2);
+                iGood = iGood & ismember(depthFlags, goodFlags);
             end
         end
         
@@ -239,13 +245,13 @@ if any(isPlottable)
                 varFlags = sample_data{iSort(i)}.variables{izVar}.flags;
                 varValues = sample_data{iSort(i)}.variables{izVar}.data;
                 
-                iGood = (timeFlags == 1 | timeFlags == 2) & ...
-                    (varFlags == 1 | varFlags == 2) & ...
+                iGood = ismember(timeFlags, goodFlags) & ...
+                    ismember(varFlags, goodFlags) & ...
                     ~isnan(varValues);
                 
                 if iDepth
                     depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
-                    iGoodDepth = (depthFlags == 1 | depthFlags == 2);
+                    iGoodDepth = ismember(depthFlags, goodFlags);
                 end
             end
             

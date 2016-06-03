@@ -54,23 +54,29 @@ if ~islogical(isQC),        error('isQC must be a logical');            end
 if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
 if ~ischar(exportDir),      error('exportDir must be a string');        end
 
-varTitle = imosParameters(varName, 'long_name');
-varUnit = imosParameters(varName, 'uom');
-
 if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'}))
     return;
 end
 
-stringQC = 'non QC';
-if isQC, stringQC = 'QC'; end
-
-%plot depth information
 monitorRect = getRectMonitor();
 iBigMonitor = getBiggestMonitor();
 
-title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
+varTitle = imosParameters(varName, 'long_name');
+varUnit = imosParameters(varName, 'uom');
 
-%sort instruments by depth
+stringQC = 'all';
+if isQC, stringQC = 'only good and non QC''d'; end
+
+title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC ' ' varTitle];
+
+% retrieve good flag values
+qcSet     = str2double(readProperty('toolbox.qc_set'));
+rawFlag   = imosQCFlag('raw', qcSet, 'flag');
+goodFlag  = imosQCFlag('good', qcSet, 'flag');
+pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+goodFlags = [rawFlag, goodFlag, pGoodFlag];
+
+% sort instruments by depth
 lenSampleData = length(sample_data);
 metaDepth = nan(lenSampleData, 1);
 xMin = nan(lenSampleData, 1);
@@ -93,10 +99,10 @@ for i=1:lenSampleData
         timeFlags = sample_data{i}.dimensions{iTime}.flags;
         varFlags = sample_data{i}.variables{iVar}.flags;
         
-        iGoodTime = (timeFlags == 1 | timeFlags == 2);
+        iGoodTime = ismember(timeFlags, goodFlags);
         
         iGood = repmat(iGoodTime, [1, size(sample_data{i}.variables{iVar}.data, 2)]);
-        iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(sample_data{i}.variables{iVar}.data);
+        iGood = iGood & ismember(varFlags, goodFlags) & ~isnan(sample_data{i}.variables{iVar}.data);
         iGood = max(iGood, [], 2); % we only need one good bin
     end
     
@@ -149,10 +155,10 @@ for i=1:lenSampleData
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGoodTime = (timeFlags == 1 | timeFlags == 2);
+            iGoodTime = ismember(timeFlags, goodFlags);
             
             iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
-            iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
+            iGood = iGood & ismember(varFlags, goodFlags) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
         end
         
         if any(any(iGood))
@@ -169,10 +175,10 @@ for i=1:lenSampleData
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGoodTime = (timeFlags == 1 | timeFlags == 2);
+            iGoodTime = ismember(timeFlags, goodFlags);
             
             iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
-            iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
+            iGood = iGood & ismember(varFlags, goodFlags) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
         end
         
         if any(any(iGood))
@@ -309,13 +315,13 @@ if any(isPlottable)
                 
                 if iDepth
                     depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
-                    iGoodDepth = (depthFlags == 1 | depthFlags == 2);
+                    iGoodDepth = ismember(depthFlags, goodFlags);
                 end
                 
-                iGoodTime = (timeFlags == 1 | timeFlags == 2);
+                iGoodTime = ismember(timeFlags, goodFlags);
                 
                 iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
-                iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(varValues);
+                iGood = iGood & ismember(varFlags, goodFlags) & ~isnan(varValues);
             end
             
             iGoodHeight = any(iGood, 1);

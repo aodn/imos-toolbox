@@ -54,21 +54,27 @@ if ~islogical(isQC),        error('isQC must be a logical');            end
 if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
 if ~ischar(exportDir),      error('exportDir must be a string');        end
 
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
+
 presRelCode = 'PRES_REL';
 presCode = 'PRES';
 varTitle = imosParameters(presRelCode, 'long_name');
 varUnit = imosParameters(presRelCode, 'uom');
 
-stringQC = 'non QC';
-if isQC, stringQC = 'QC'; end
+stringQC = 'all';
+if isQC, stringQC = 'only good and non QC''d'; end
 
-%plot depth information
-monitorRect = getRectMonitor();
-iBigMonitor = getBiggestMonitor();
+title = [sample_data{1}.deployment_code ' mooring ' stringQC ' ' varTitle ' differences'];
 
-title = [sample_data{1}.deployment_code ' mooring pressure differences ' stringQC '''d ' varTitle];
+% retrieve good flag values
+qcSet     = str2double(readProperty('toolbox.qc_set'));
+rawFlag   = imosQCFlag('raw', qcSet, 'flag');
+goodFlag  = imosQCFlag('good', qcSet, 'flag');
+pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+goodFlags = [rawFlag, goodFlag, pGoodFlag];
 
-%sort instruments by depth
+% sort instruments by depth
 lenSampleData = length(sample_data);
 instrumentDesc = cell(lenSampleData, 1);
 metaDepth   = nan(lenSampleData, 1);
@@ -186,7 +192,7 @@ if isQC
     timeFlags = sample_data{iCurrSam}.dimensions{iCurrTime}.flags;
     varFlags = sample_data{iCurrSam}.variables{iCurrPresRel}.flags;
     
-    iGood = (timeFlags == 0 | timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+    iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
 end
 
 curSamTime(~iGood)      = NaN;
@@ -235,7 +241,7 @@ for i=1:nOthers
         timeFlags = sample_data{iOthers(i)}.dimensions{iOtherTime}.flags;
         varFlags = sample_data{iOthers(i)}.variables{iOtherPresRel}.flags;
         
-        iGood = (timeFlags == 0 | timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+        iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
     end
     
     if all(~iGood) && isQC
