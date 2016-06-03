@@ -145,7 +145,7 @@ function displayManager(windowTitle, sample_data, callbacks)
   %                    to update its own state.
   %
   
-    switch(state)
+    switch state
       case 'Import',          importCallback();
       case 'Metadata',        metadataCallback();
       case 'Raw data',        rawDataCallback();
@@ -190,7 +190,10 @@ function displayManager(windowTitle, sample_data, callbacks)
       viewMetadata(mainPanel, sample_data{setIdx}, ...
         @metadataUpdateWrapperCallback,...
         @metadataRepWrapperCallback, mode);
-
+    
+      % display geographic plots
+      geoGraph = graphLocation(geoPanel, sample_data, setIdx);
+    
       function metadataUpdateWrapperCallback(sam)
       %METADATAUPDATEWRAPPERCALLBACK Called by the viewMetadata display when
       % metadata is updated. Calls the two subsequent metadata callback
@@ -248,7 +251,10 @@ function displayManager(windowTitle, sample_data, callbacks)
       graphs = [];
       try
         graphFunc = getGraphFunc(mode, 'graph', '');
-        [graphs lines vars] = graphFunc(mainPanel, sample_data{setIdx}, vars);
+        [graphs, lines, vars] = graphFunc(mainPanel, sample_data{setIdx}, vars);
+        
+        % display geographic plots
+        geoGraph = graphLocation(geoPanel, sample_data, setIdx);
       catch e
         errorString = getErrorString(e);
         fprintf('%s\n',   ['Error says : ' errorString]);
@@ -331,6 +337,9 @@ function displayManager(windowTitle, sample_data, callbacks)
         end
         
         [graphs lines vars] = graphFunc(mainPanel, sample_data{setIdx}, vars);
+        
+        % display geographic plots
+        geoGraph = graphLocation(geoPanel, sample_data, setIdx);
         
         if isempty(flagFunc)
           warning(['Cannot display QC flags using ' mode ...
@@ -524,6 +533,9 @@ function displayManager(windowTitle, sample_data, callbacks)
     
       % display QC stats viewer
       viewQCstats(mainPanel, sample_data{setIdx}, mode);
+      
+      % display geographic plots
+      geoGraph = graphLocation(geoPanel, sample_data, setIdx);
     end
     
       function resetManQCCallback()
@@ -628,7 +640,7 @@ function displayManager(windowTitle, sample_data, callbacks)
     %
       callbacks.exportNetCDFRequestCallback();
       
-      stateSelectCallback('', mainPanel, updateCallback, lastState, ...
+      stateSelectCallback('', geoPanel, mainPanel, updateCallback, lastState, ...
         sample_data, setIdx, vars);
       state = lastState;
     end
@@ -639,7 +651,7 @@ function displayManager(windowTitle, sample_data, callbacks)
     %
       callbacks.exportRawRequestCallback();
       
-      stateSelectCallback('', mainPanel, updateCallback, lastState, ...
+      stateSelectCallback('', geoPanel, mainPanel, updateCallback, lastState, ...
         sample_data, setIdx, vars);
       state = lastState;
     end

@@ -441,9 +441,11 @@ function mainWindow(...
   %
     graphs1D = findobj('Tag', 'axis1D');
     graphs2D = findobj('Tag', 'axis2D');
+    graphGeo = findobj('Tag', 'axisGeo');
     
     isCurAx1D = false;
     isCurAx2D = false;
+    isCurAxGeo = false;
     iGraph1D = (gca == graphs1D);
     if any(iGraph1D)
         isCurAx1D = true;
@@ -453,6 +455,8 @@ function mainWindow(...
         if any(iGraph2D)
             isCurAx2D = true;
             graphs2D(iGraph2D) = [];
+        else
+            isCurAxGeo = true;
         end
     end
     
@@ -464,17 +468,19 @@ function mainWindow(...
     yTicks  = yLimits(1):yStep:yLimits(2);
     set(gca, 'YTick', yTicks);
     
-    % sync all other 2D Y axis if needed
-    if isCurAx2D && ~isempty(graphs2D)
-        set(graphs2D, 'YLim', yLimits);
-        set(graphs2D, 'YTick', yTicks);
-    end
-    
     % reset current axis xTicks
     xLimits = get(gca, 'XLim');
     xStep   = (xLimits(2) - xLimits(1)) / 5;
     xTicks  = xLimits(1):xStep:xLimits(2);
     set(gca, 'XTick', xTicks);
+    
+    if isCurAxGeo, return; end
+    
+    % sync all other 2D Y axis if needed
+    if isCurAx2D && ~isempty(graphs2D)
+        set(graphs2D, 'YLim', yLimits);
+        set(graphs2D, 'YTick', yTicks);
+    end
     
     switch tMode
         case {'timeSeries', 'trajectory'}
