@@ -477,7 +477,7 @@ end
                 xUnits  = sam.variables{ixVar}.units;
             end
             if strcmp(xName, 'TIME')
-                xStr = datestr(posClic(1),'yyyy-mm-dd HH:MM:SS.FFF');
+                xStr = datestr(posClic(1),'dd-mm-yyyy HH:MM:SS.FFF');
             else
                 xStr = [num2str(posClic(1)) ' ' xUnits];
             end
@@ -495,7 +495,7 @@ end
                 yUnits  = sam.variables{iyVar}.units;
             end
             if strcmp(yName, 'TIME')
-                yStr = datestr(posClic(2),'yyyy-mm-dd HH:MM:SS.FFF');
+                yStr = datestr(posClic(2),'dd-mm-yyyy HH:MM:SS.FFF');
             else
                 yStr = [num2str(posClic(2)) ' ' yUnits]; %num2str(posClic(2),4)
             end
@@ -518,7 +518,7 @@ end
             timeData = sam.dimensions{iTime}.data(userData.iGood);
             idx = find(abs(timeData-posClic(1))<eps(10));
             if strcmp(zName, 'TIME')
-                zStr = datestr(zData(idx),'yyyy-mm-dd HH:MM:SS.FFF');
+                zStr = datestr(zData(idx),'dd-mm-yyyy HH:MM:SS.FFF');
             else
                 zStr = [num2str(zData(idx)) ' (' zUnits ')'];
             end
@@ -543,7 +543,11 @@ end
 
 %%
     function zoomDateTick(obj,event_obj,hAx)
-        datetick(hAx,'x','dd-mm-yy HH:MM:SS','keeplimits')
+        xLim = get(hAx, 'XLim');
+        currXTicks = get(hAx, 'xtick');
+        newXTicks = linspace(xLim(1), xLim(2), length(currXTicks));
+        set(hAx, 'xtick', newXTicks);
+        datetick(hAx,'x','dd-mm-yy HH:MM:SS','keepticks');
     end
 
 end
