@@ -57,7 +57,6 @@ if ~islogical(isQC),        error('isQC must be a logical');            end
 if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
 if ~ischar(exportDir),      error('exportDir must be a string');        end
 
-%plot depth information
 monitorRect = getRectMonitor();
 iBigMonitor = getBiggestMonitor();
 

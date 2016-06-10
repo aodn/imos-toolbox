@@ -54,19 +54,25 @@ if ~islogical(isQC),        error('isQC must be a logical');            end
 if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
 if ~ischar(exportDir),      error('exportDir must be a string');        end
 
-varTitle = imosParameters(varName, 'long_name');
-varUnit = imosParameters(varName, 'uom');
-
-stringQC = 'non QC';
-if isQC, stringQC = 'QC'; end
-
-%plot depth information
 monitorRect = getRectMonitor();
 iBigMonitor = getBiggestMonitor();
 
-title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
+varTitle = imosParameters(varName, 'long_name');
+varUnit = imosParameters(varName, 'uom');
 
-%sort instruments by depth
+stringQC = 'all';
+if isQC, stringQC = 'only good and non QC''d'; end
+
+title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC ' ' varTitle];
+
+% retrieve good flag values
+qcSet     = str2double(readProperty('toolbox.qc_set'));
+rawFlag   = imosQCFlag('raw', qcSet, 'flag');
+goodFlag  = imosQCFlag('good', qcSet, 'flag');
+pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+goodFlags = [rawFlag, goodFlag, pGoodFlag];
+
+% sort instruments by depth
 lenSampleData = length(sample_data);
 metaDepth = nan(lenSampleData, 1);
 xMin = nan(lenSampleData, 1);
@@ -90,7 +96,7 @@ for i=1:lenSampleData
         timeFlags = sample_data{i}.dimensions{iTime}.flags;
         varFlags = sample_data{i}.variables{iVar}.flags;
         
-        iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+        iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
     end
     
     if iVar
@@ -104,9 +110,6 @@ end
 [metaDepth, iSort] = sort(metaDepth);
 xMin = min(xMin);
 xMax = max(xMax);
-
-lineStyle = {'-', '--', ':', '-.'};
-lenLineStyle = length(lineStyle);
 
 instrumentDesc = cell(lenSampleData + 1, 1);
 hLineVar = nan(lenSampleData + 1, 1);
@@ -199,7 +202,7 @@ for i=1:lenSampleData
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGood = (timeFlags == 1 | timeFlags == 2) & (varFlags == 1 | varFlags == 2);
+            iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
         end
         
         if all(~iGood) && isQC
@@ -217,8 +220,7 @@ for i=1:lenSampleData
             
             hLineVar(i + 1) = line(xLine, ...
                 dataVar, ...
-                'Color', cMap(i, :), ...
-                'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+                'Color', cMap(i, :));
             userData.idx = iSort(i);
             userData.xName = 'TIME';
             userData.yName = varName;
@@ -346,13 +348,13 @@ end
         end
         
         if strcmp(xName, 'TIME')
-            xStr = datestr(posClic(1),'yyyy-mm-dd HH:MM:SS.FFF');
+            xStr = datestr(posClic(1),'dd-mm-yyyy HH:MM:SS.FFF');
         else
             xStr = [num2str(posClic(1)) ' ' xUnits];
         end
         
         if strcmp(yName, 'TIME')
-            yStr = datestr(posClic(2),'yyyy-mm-dd HH:MM:SS.FFF');
+            yStr = datestr(posClic(2),'dd-mm-yyyy HH:MM:SS.FFF');
         else
             yStr = [num2str(posClic(2)) ' (' yUnits ')']; %num2str(posClic(2),4)
         end
@@ -365,7 +367,11 @@ end
 
 %%
     function zoomDateTick(obj,event_obj,hAx)
-        datetick(hAx,'x','dd-mm-yy HH:MM:SS','keeplimits')
+        xLim = get(hAx, 'XLim');
+        currXTicks = get(hAx, 'xtick');
+        newXTicks = linspace(xLim(1), xLim(2), length(currXTicks));
+        set(hAx, 'xtick', newXTicks);
+        datetick(hAx,'x','dd-mm-yy HH:MM:SS','keepticks');
     end
 
 end

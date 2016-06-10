@@ -75,10 +75,11 @@ function [fieldTrip dataDir] = startDialog(mode, isCSV)
 
   % retrieve all field trip IDs; they are displayed as a drop down menu
   if isCSV
-      fieldTrips = executeCSVQuery('FieldTrip', [], []);
+      executeQueryFunc = @executeCSVQuery;
   else
-      fieldTrips = executeDDBQuery('FieldTrip', [], []);
+      executeQueryFunc = @executeDDBQuery;
   end
+  fieldTrips = executeQueryFunc('FieldTrip', [], []);
   
   if isempty(fieldTrips), error('No field trip entries in DDB'); end
   

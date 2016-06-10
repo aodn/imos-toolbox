@@ -86,7 +86,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files, isCSV )
           
           % we have to handle the case when InstrumentDepth is not documented
           instDepths = {deployments.InstrumentDepth};
-          instDepths{cellfun(@isempty, instDepths)} = NaN;
+          instDepths(cellfun(@isempty, instDepths)) = {NaN};
           instDepths = cell2mat(instDepths);
           
           [~, iSort] = sort(instDepths);
