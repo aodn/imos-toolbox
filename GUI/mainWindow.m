@@ -278,23 +278,23 @@ function mainWindow(...
   switch mode
       case 'timeSeries'
           hToolsCheckPlannedDepths      = uimenu(hToolsMenu, 'label', 'Check measured against planned depths');
-          hToolsCheckPlannedDepthsNonQC = uimenu(hToolsCheckPlannedDepths, 'label', 'non QC');
-          hToolsCheckPlannedDepthsQC    = uimenu(hToolsCheckPlannedDepths, 'label', 'QC');
+          hToolsCheckPlannedDepthsNonQC = uimenu(hToolsCheckPlannedDepths, 'label', 'all data');
+          hToolsCheckPlannedDepthsQC    = uimenu(hToolsCheckPlannedDepths, 'label', 'only good and non QC''d data');
           hToolsCheckPressDiffs         = uimenu(hToolsMenu, 'label', 'Check pressure differences between selected instrument and nearest neighbours');
-          hToolsCheckPressDiffsNonQC    = uimenu(hToolsCheckPressDiffs, 'label', 'non QC');
-          hToolsCheckPressDiffsQC       = uimenu(hToolsCheckPressDiffs, 'label', 'QC');
+          hToolsCheckPressDiffsNonQC    = uimenu(hToolsCheckPressDiffs, 'label', 'all data');
+          hToolsCheckPressDiffsQC       = uimenu(hToolsCheckPressDiffs, 'label', 'only good and non QC''d data');
           hToolsLineDepth               = uimenu(hToolsMenu, 'label', 'Line plot mooring''s depths');
-          hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'non QC');
-          hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'QC');
+          hToolsLineDepthNonQC          = uimenu(hToolsLineDepth, 'label', 'all data');
+          hToolsLineDepthQC             = uimenu(hToolsLineDepth, 'label', 'only good and non QC''d data');
           hToolsLineCommonVar           = uimenu(hToolsMenu, 'label', 'Line plot mooring''s 1D variables');
-          hToolsLineCommonVarNonQC      = uimenu(hToolsLineCommonVar, 'label', 'non QC');
-          hToolsLineCommonVarQC         = uimenu(hToolsLineCommonVar, 'label', 'QC');
+          hToolsLineCommonVarNonQC      = uimenu(hToolsLineCommonVar, 'label', 'all data');
+          hToolsLineCommonVarQC         = uimenu(hToolsLineCommonVar, 'label', 'only good and non QC''d data');
           hToolsScatterCommonVar        = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 1D variables VS depth');
-          hToolsScatterCommonVarNonQC   = uimenu(hToolsScatterCommonVar, 'label', 'non QC');
-          hToolsScatterCommonVarQC      = uimenu(hToolsScatterCommonVar, 'label', 'QC');
+          hToolsScatterCommonVarNonQC   = uimenu(hToolsScatterCommonVar, 'label', 'all data');
+          hToolsScatterCommonVarQC      = uimenu(hToolsScatterCommonVar, 'label', 'only good and non QC''d data');
           hToolsScatter2DCommonVar      = uimenu(hToolsMenu, 'label', 'Scatter plot mooring''s 2D variables VS depth');
-          hToolsScatter2DCommonVarNonQC = uimenu(hToolsScatter2DCommonVar, 'label', 'non QC');
-          hToolsScatter2DCommonVarQC    = uimenu(hToolsScatter2DCommonVar, 'label', 'QC');
+          hToolsScatter2DCommonVarNonQC = uimenu(hToolsScatter2DCommonVar, 'label', 'all data');
+          hToolsScatter2DCommonVarQC    = uimenu(hToolsScatter2DCommonVar, 'label', 'only good and non QC''d data');
           
           %set menu callbacks
           set(hToolsCheckPlannedDepthsNonQC, 'callBack', {@displayCheckPlannedDepths, false});
@@ -311,8 +311,8 @@ function mainWindow(...
           set(hToolsScatter2DCommonVarQC,    'callBack', {@displayScatterMooringVar, true, false});
       case 'profile'
           hToolsLineCastVar             = uimenu(hToolsMenu, 'label', 'Line plot profile variables');
-          hToolsLineCastVarNonQC        = uimenu(hToolsLineCastVar, 'label', 'non QC');
-          hToolsLineCastVarQC           = uimenu(hToolsLineCastVar, 'label', 'QC');
+          hToolsLineCastVarNonQC        = uimenu(hToolsLineCastVar, 'label', 'all data');
+          hToolsLineCastVarQC           = uimenu(hToolsLineCastVar, 'label', 'only good and non QC''d data');
           
           %set menu callbacks
           set(hToolsLineCastVarNonQC,       'callBack', {@displayLineCastVar, false});
@@ -587,8 +587,6 @@ function displayLineCastVar(source,ev, isQC)
     %DISPLAYLINECASTVAR Opens a new window where all the 
     % variables collected by the CTD cast are line-plotted.
     %
-    stringQC = 'non QC';
-    if isQC; stringQC = 'QC'; end
         
     % get all params names
     lenSampleData = length(sample_data);

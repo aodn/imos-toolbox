@@ -52,6 +52,12 @@ function [fieldTrip ctds sites dataDir] = getCTDs(auto, isCSV)
 ctds  = struct;
 sites = struct;
 
+if isCSV
+    executeQueryFunc = @executeCSVQuery;
+else
+    executeQueryFunc = @executeDDBQuery;
+end
+    
 % prompt the user to select a field trip and
 % directory which contains raw data files
 if ~auto
@@ -64,7 +70,7 @@ else
     if isempty(dataDir), error('startDialog.dataDir.profile is not set');   end
     if isnan(fieldTrip), error('startDialog.fieldTrip.profile is not set'); end
     
-    fieldTrip = executeDDBQuery('FieldTrip', 'FieldTripID', fieldTrip);
+    fieldTrip = executeQueryFunc('FieldTrip', 'FieldTripID', fieldTrip);
 end
 
 % user cancelled start dialog
@@ -73,11 +79,6 @@ if isempty(fieldTrip) || isempty(dataDir), return; end
 fId = fieldTrip.FieldTripID;
 
 % query the ddb for all ctds related to this field trip
-if isCSV
-    executeQueryFunc = @executeCSVQuery;
-else
-    executeQueryFunc = @executeDDBQuery;
-end
 ctds = executeQueryFunc('CTDData', 'FieldTrip', fId);
 
 % query the ddb for all sites related to these ctds

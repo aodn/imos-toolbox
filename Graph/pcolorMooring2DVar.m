@@ -60,11 +60,17 @@ varUnit = imosParameters(varName, 'uom');
 stringQC = 'non QC';
 if isQC, stringQC = 'QC'; end
 
-%plot depth information
 monitorRect = getRectMonitor();
 iBigMonitor = getBiggestMonitor();
 
 title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
+
+% retrieve good flag values
+qcSet     = str2double(readProperty('toolbox.qc_set'));
+rawFlag   = imosQCFlag('raw', qcSet, 'flag');
+goodFlag  = imosQCFlag('good', qcSet, 'flag');
+pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+goodFlags = [rawFlag, goodFlag, pGoodFlag];
 
 %sort instruments by depth
 lenSampleData = length(sample_data);
@@ -180,11 +186,11 @@ for i=1:lenSampleData
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGoodTime = (timeFlags == 1 | timeFlags == 2);
+            iGoodTime = ismember(timeFlags, goodFlags);
             nGoodTime = sum(iGoodTime);
             
             iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
-            iGood = iGood & (varFlags == 1 | varFlags == 2);
+            iGood = iGood & ismember(varFlags, goodFlags);
             
             iGoodHeight = any(iGood, 1);
             nGoodHeight = sum(iGoodHeight);

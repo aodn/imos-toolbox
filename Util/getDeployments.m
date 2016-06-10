@@ -55,6 +55,12 @@ narginchk(2,2);
 deployments = struct;
 sites       = struct;
 
+if isCSV
+    executeQueryFunc = @executeCSVQuery;
+else
+    executeQueryFunc = @executeDDBQuery;
+end
+
 % prompt the user to select a field trip and
 % directory which contains raw data files
 if ~auto
@@ -67,7 +73,7 @@ else
     if isempty(dataDir), error('startDialog.dataDir.timeSeries is not set');   end
     if isnan(fieldTrip), error('startDialog.fieldTrip.timeSeries is not set'); end
     
-    fieldTrip = executeDDBQuery('FieldTrip', 'FieldTripID', fieldTrip);
+    fieldTrip = executeQueryFunc('FieldTrip', 'FieldTripID', fieldTrip);
 end
 
 % user cancelled start dialog
@@ -76,11 +82,6 @@ if isempty(fieldTrip) && isempty(dataDir), return; end
 fId = fieldTrip.FieldTripID;
 
 % query the ddb/csv file for all deployments related to this field trip
-if isCSV
-    executeQueryFunc = @executeCSVQuery;
-else
-    executeQueryFunc = @executeDDBQuery;
-end
 deployments = executeQueryFunc('DeploymentData', 'EndFieldTrip', fId);
 
 % query the ddb for all sites related to these deployments

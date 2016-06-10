@@ -286,7 +286,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           
           graphFunc = getGraphFunc(graphType, 'graph', varName);
           if strcmpi(func2str(graphFunc), 'graphTimeSeriesTimeDepth')
-              lineMooring2DVarSection(sample_data{1}, varName, point(1), false, false, '')
+              lineMooring2DVarSection(sample_data{setIdx}, varName, point(1), false, false, '')
           end
       end
       
@@ -377,7 +377,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           
           graphFunc = getGraphFunc(graphType, 'graph', varName);
           if strcmpi(func2str(graphFunc), 'graphTimeSeriesTimeDepth')
-              lineMooring2DVarSection(sample_data{1}, varName, point(1), true, false, '')
+              lineMooring2DVarSection(sample_data{setIdx}, varName, point(1), true, false, '')
           end
       end
       
