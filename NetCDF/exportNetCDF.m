@@ -8,7 +8,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
 % Inputs:
 %   sample_data - a struct containing sample data for one process level.
 %   dest        - Destination directory to save the file.
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   filename    - String containing the absolute path of the saved NetCDF file.
@@ -474,7 +474,7 @@ function vid = addQCVar(...
 %                 coordinate variables and data variables.
 %   netcdfType  - The netCDF type in which the flags should be output.
 %   dateFmt     - Date format in which date attributes should be output.
-%   mode        - Toolbox processing mode ('profile' or 'timeSeries').
+%   mode        - Toolbox processing mode.
 %
 % Outputs:
 %   vid         - NetCDF variable identifier of the QC variable that was 
@@ -545,7 +545,7 @@ function vid = addQCVar(...
       case 'profile'
           iInWater = true(size(sample_data.(type){varIdx}.data));
           
-      otherwise
+      case 'timeSeries'
           % inOutWater test don't apply on dimensions for timeseries data
           if ~strcmp(type, 'variables') || any(strcmp(sample_data.(type){varIdx}.name, {'TIMESERIES', 'PROFILE', 'TRAJECTORY', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'}))
               iInWater = true(size(sample_data.(type){varIdx}.data));
@@ -630,7 +630,7 @@ function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mod
 %                  originated.
 %   netcdfType   - type to use for casting valid_min/valid_max/_FillValue attributes.
 %   dateFmt      - format to use for writing date attributes.
-%   mode         - Toolbox processing mode ('profile' or 'timeSeries').
+%   mode         - Toolbox processing mode.
 %  
 
   % we convert the NetCDF required data type into a casting function towards the

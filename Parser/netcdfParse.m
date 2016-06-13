@@ -5,7 +5,7 @@ function sample_data = netcdfParse( filename, mode )
 %
 % Inputs:
 %   filename    - cell array of file names (only one supported).
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - struct containing the imported data set.

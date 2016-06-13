@@ -65,17 +65,11 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % global attributes
   %
 
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   % get infos from current field trip
-  switch mode
-      case 'profile'
-          globalAttributeFile = 'global_attributes_profile.txt';
-      otherwise
-          globalAttributeFile = 'global_attributes_timeSeries.txt';
-  end
+  globalAttributeFile = ['global_attributes_' mode '.txt'];
 
   globAtts = parseNetCDFTemplate(...
     fullfile(path, globalAttributeFile), sample_data);
@@ -148,10 +142,16 @@ function sample_data = makeNetCDFCompliant( sample_data )
     sample_data.dimensions{k} = mergeAtts(sample_data.dimensions{k}, dimAtts);
   end
 
+  %check for CSV file import
+  isCSV = false;
+  ddb = readProperty('toolbox.ddb');
+  if isdir(ddb)
+      isCSV = true;
+  end
+
   %
   % variables
   %
-  ddb = readProperty('toolbox.ddb');
   for k = 1:length(sample_data.variables)
     
     
@@ -173,11 +173,11 @@ function sample_data = makeNetCDFCompliant( sample_data )
     if isfield(sample_data.meta, 'deployment')
         iTime = getVar(sample_data.dimensions, 'TIME');
         sample_data.variables{k}.sensor_serial_number = ...
-            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.deployment.InstrumentID, sample_data.dimensions{iTime}.data(1), ddb);
+            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.deployment.InstrumentID, sample_data.dimensions{iTime}.data(1), isCSV);
     elseif isfield(sample_data.meta, 'profile')
         iTime = getVar(sample_data.variables, 'TIME');
         sample_data.variables{k}.sensor_serial_number = ...
-            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.profile.InstrumentID, sample_data.variables{iTime}.data(1), ddb);
+            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.profile.InstrumentID, sample_data.variables{iTime}.data(1), isCSV);
     end
   end
 end
@@ -200,7 +200,7 @@ function target = mergeAtts ( target, atts )
   end
 end
 
-function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSample, ddb )
+function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSample, isCSV )
 %GETSENSORSERIALNUMBER gets the sensor serial number associated to an IMOS
 %paramter for a given deployment ID
 %
@@ -208,11 +208,12 @@ function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSamp
 target = '';
 
 % query the ddb for all sensor config related to this instrument ID
-if strcmp('csv',ddb)
-    InstrumentSensorConfig = executeCSVQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
+if isCSV
+    executeQueryFunc = @executeCSVQuery;
 else
-    InstrumentSensorConfig = executeDDBQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
+    executeQueryFunc = @executeDDBQuery;
 end
+InstrumentSensorConfig = executeQueryFunc('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
 lenConfig = length(InstrumentSensorConfig);
 % only consider relevant config based on timeFirstSample
 for i=1:lenConfig
@@ -225,7 +226,7 @@ for i=1:lenConfig
         end
         if firstTest && secondTest
             % query the ddb for each sensor
-            Sensors = executeDDBQuery('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
+            Sensors = executeQueryFunc('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
             if ~isempty(Sensors)
                 % check if this sensor is associated to the current IMOS parameter
                 parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');

@@ -54,22 +54,26 @@ if ~islogical(isQC),        error('isQC must be a logical');            end
 if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
 if ~ischar(exportDir),      error('exportDir must be a string');        end
 
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
+
 varTitle = imosParameters('DEPTH', 'long_name');
 varUnit = imosParameters('DEPTH', 'uom');
 
-stringQC = 'non QC';
-if isQC, stringQC = 'QC'; end
+stringQC = 'all';
+if isQC, stringQC = 'only good and non QC''d'; end
 
-%plot depth information
-monitorRec = get(0,'MonitorPosition');
-xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-iBigMonitor = xResolution == max(xResolution);
-if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+title = [sample_data{1}.deployment_code ' mooring planned vs measured ' stringQC ' ' varTitle];
 
-title = [sample_data{1}.deployment_code ' mooring planned depth vs measured depth ' stringQC '''d good ' varTitle];
+% retrieve good flag values
+qcSet     = str2double(readProperty('toolbox.qc_set'));
+rawFlag   = imosQCFlag('raw', qcSet, 'flag');
+goodFlag  = imosQCFlag('good', qcSet, 'flag');
+pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+goodFlags = [rawFlag, goodFlag, pGoodFlag];
 
-%extract the essential data and
-%sort instruments by depth
+% extract the essential data and
+% sort instruments by depth
 lenSampleData = length(sample_data);
 instrumentDesc = cell(lenSampleData, 1);
 hLineVar = nan(lenSampleData, 1);
@@ -114,8 +118,8 @@ for i=1:lenSampleData
         timeFlags = sample_data{i}.dimensions{iTime}.flags;
         presFlags = sample_data{i}.variables{iPresRel}.flags;
         
-        iGood = (timeFlags == 0 | timeFlags == 1 | timeFlags == 2) ...
-            & (presFlags == 1 | presFlags == 2); 
+        iGood = ismember(timeFlags, goodFlags) ...
+            & ismember(presFlags, goodFlags); 
     end
     
     if all(~iGood) && isQC
@@ -193,7 +197,7 @@ hFigPress = figure(...
     'Name', title, ...
     'NumberTitle','off', ...
     'Visible', visible, ...
-    'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+    'OuterPosition', monitorRect(iBigMonitor, :));
 
 hAxPress = subplot(2,1,1,'Parent', hFigPress);
 hAxDepthDiff = subplot(2,1,2,'Parent', hFigPress);

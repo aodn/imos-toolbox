@@ -24,7 +24,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 %
 %                      function repCallback(location, names, values)
 %
-%   mode           - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode           - Toolbox data type mode.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
@@ -206,7 +206,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
         
         % make sure numeric values are not rounded (too much)
         case 'N',
-          data{i,2} = sprintf('%.10g', data{i,2});
+          data{i,2} = sprintf('%.10g ', data{i,2});
         
         % make everything else a string - i'm assuming that when 
         % num2str is passed a string, it will return that string 
@@ -435,11 +435,15 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 
         % numbers are just numbers
         case 'N'
-          temp = str2double(fieldValue);
+          temp = str2num(fieldValue); %#ok<ST2NM> str2num used on purpose to deal with arrays
 
           % reject anything that is not a number
           if isempty(temp)
             error([fieldName ' must be a number']); 
+          end
+
+          if length(temp) > 1
+            fieldValue = ['[' fieldValue ']'];
           end
 
         % qc flag is different depending on qc set in use

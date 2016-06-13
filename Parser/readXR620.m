@@ -10,7 +10,7 @@ function sample_data = readXR620( filename, mode )
 %
 % Inputs:
 %   filename    - Cell array containing the name of the file to parse.
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - Struct containing imported sample data.
@@ -475,8 +475,7 @@ function sample_data = readXR620( filename, mode )
               end
           end
           
-      otherwise
-          
+      case 'timeSeries'
           sample_data.dimensions{1}.name            = 'TIME';
           sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
           sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(data.time);

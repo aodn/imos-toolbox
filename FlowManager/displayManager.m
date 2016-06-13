@@ -115,9 +115,8 @@ function displayManager(windowTitle, sample_data, callbacks)
   qcSet      = str2double(readProperty('toolbox.qc_set'));
   badFlag    = imosQCFlag('bad', qcSet, 'flag');
   
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   % define the user options, and create the main window
   states = {'Import', 'Metadata', 'Raw data', 'QC data', 'QC stats', 'Reset manual QC' ...
@@ -240,7 +239,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       switch mode
           case 'profile'
               nVar = length(sample_data{setIdx}.variables) - 5;
-          otherwise
+          case 'timeSeries'
               nVar = length(sample_data{setIdx}.variables) - 3;
       end
       vars(vars > nVar) = [];
@@ -287,7 +286,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           
           graphFunc = getGraphFunc(graphType, 'graph', varName);
           if strcmpi(func2str(graphFunc), 'graphTimeSeriesTimeDepth')
-              lineMooring2DVarSection(sample_data{1}, varName, point(1), false, false, '')
+              lineMooring2DVarSection(sample_data{setIdx}, varName, point(1), false, false, '')
           end
       end
       
@@ -378,7 +377,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           
           graphFunc = getGraphFunc(graphType, 'graph', varName);
           if strcmpi(func2str(graphFunc), 'graphTimeSeriesTimeDepth')
-              lineMooring2DVarSection(sample_data{1}, varName, point(1), true, false, '')
+              lineMooring2DVarSection(sample_data{setIdx}, varName, point(1), true, false, '')
           end
       end
       

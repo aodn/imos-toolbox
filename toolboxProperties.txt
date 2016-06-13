@@ -15,8 +15,7 @@ toolbox.ddb.connection =
 toolbox.ddb.user = 
 toolbox.ddb.password = 
 
-% toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-% If no value is set then default mode is 'timeSeries'
+% toolbox execution mode. Values can be 'timeSeries' or 'profile'. 
 toolbox.mode = timeSeries
 
 % directory which contains netcdf templates

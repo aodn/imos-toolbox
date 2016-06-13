@@ -48,9 +48,8 @@ function sample_data = populateMetadata( sample_data )
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
   
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   idDepth = 0;
   idHeight = 0;
@@ -308,7 +307,7 @@ function sample_data = populateMetadata( sample_data )
               case 'profile'
                   sample_data.variables{ivLat}.data = sample_data.variables{ivLat}.typeCastFunc(ones(size(sample_data.variables{ivLat}.data))*sample_data.geospatial_lat_min);
                   
-              otherwise
+              case 'timeSeries'
                   if length(sample_data.variables{ivLat}.data) == 1
                       sample_data.variables{ivLat}.data = sample_data.variables{ivLat}.typeCastFunc(sample_data.geospatial_lat_min);
                   end
@@ -326,7 +325,7 @@ function sample_data = populateMetadata( sample_data )
               case 'profile'
                   sample_data.variables{ivLon}.data = sample_data.variables{ivLon}.typeCastFunc(ones(size(sample_data.variables{ivLon}.data))*sample_data.geospatial_lon_min);
                   
-              otherwise
+              case 'timeSeries'
                   if length(sample_data.variables{ivLon}.data) == 1
                       sample_data.variables{ivLon}.data = sample_data.variables{ivLon}.typeCastFunc(sample_data.geospatial_lon_min);
                   end
@@ -344,7 +343,7 @@ function sample_data = populateMetadata( sample_data )
                       sample_data.variables{ivNomDepth}.data = sample_data.variables{ivNomDepth}.typeCastFunc(sample_data.instrument_nominal_depth);
                   end
                   
-%               otherwise
+%               case 'profile'
 %                   sample_data.variables{ivNomDepth}.data = sample_data.variables{ivNomDepth}.typeCastFunc(ones(size(sample_data.variables{ivNomDepth}.data))*sample_data.instrument_nominal_depth);
                   
           end
@@ -361,7 +360,7 @@ function sample_data = populateMetadata( sample_data )
                   sample_data.variables{ivBotDepth}.data = sample_data.variables{ivBotDepth}.typeCastFunc(ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_nominal_depth);
               end
               
-%           otherwise
+%           case 'timeSeries'
 %               if ~isempty(sample_data.site_depth_at_deployment)
 %                   sample_data.variables{ivBotDepth}.data = sample_data.variables{ivBotDepth}.typeCastFunc(ones(size(sample_data.variables{ivBotDepth}.data))*sample_data.site_depth_at_deployment);
 %               elseif ~isempty(sample_data.site_nominal_depth)

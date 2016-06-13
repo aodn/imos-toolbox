@@ -11,7 +11,7 @@ function updateViewMetadata(parent, sample_data, mode)
 %   parent         - handle to the figure/uipanel in which the metadata should
 %                    be displayed.
 %   sample_data    - struct containing sample data.
-%   mode           - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode           - Toolbox data type mode.
 %
 % Author: Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -152,7 +152,7 @@ function updateViewMetadata(parent, sample_data, mode)
         
         % make sure numeric values are not rounded (too much)
         case 'N',
-          data{i,2} = sprintf('%.10f', data{i,2});
+          data{i,2} = sprintf('%.10f ', data{i,2});
         
         % make everything else a string - i'm assuming that when 
         % num2str is passed a string, it will return that string 

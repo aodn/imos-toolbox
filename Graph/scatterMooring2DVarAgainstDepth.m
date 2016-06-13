@@ -54,25 +54,29 @@ if ~islogical(isQC),        error('isQC must be a logical');            end
 if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
 if ~ischar(exportDir),      error('exportDir must be a string');        end
 
-varTitle = imosParameters(varName, 'long_name');
-varUnit = imosParameters(varName, 'uom');
-
 if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'}))
     return;
 end
 
-stringQC = 'non QC';
-if isQC, stringQC = 'QC'; end
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
 
-%plot depth information
-monitorRec = get(0,'MonitorPosition');
-xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-iBigMonitor = xResolution == max(xResolution);
-if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+varTitle = imosParameters(varName, 'long_name');
+varUnit = imosParameters(varName, 'uom');
 
-title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
+stringQC = 'all';
+if isQC, stringQC = 'only good and non QC''d'; end
 
-%sort instruments by depth
+title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC ' ' varTitle];
+
+% retrieve good flag values
+qcSet     = str2double(readProperty('toolbox.qc_set'));
+rawFlag   = imosQCFlag('raw', qcSet, 'flag');
+goodFlag  = imosQCFlag('good', qcSet, 'flag');
+pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+goodFlags = [rawFlag, goodFlag, pGoodFlag];
+
+% sort instruments by depth
 lenSampleData = length(sample_data);
 metaDepth = nan(lenSampleData, 1);
 xMin = nan(lenSampleData, 1);
@@ -95,10 +99,10 @@ for i=1:lenSampleData
         timeFlags = sample_data{i}.dimensions{iTime}.flags;
         varFlags = sample_data{i}.variables{iVar}.flags;
         
-        iGoodTime = (timeFlags == 1 | timeFlags == 2);
+        iGoodTime = ismember(timeFlags, goodFlags);
         
         iGood = repmat(iGoodTime, [1, size(sample_data{i}.variables{iVar}.data, 2)]);
-        iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(sample_data{i}.variables{iVar}.data);
+        iGood = iGood & ismember(varFlags, goodFlags) & ~isnan(sample_data{i}.variables{iVar}.data);
         iGood = max(iGood, [], 2); % we only need one good bin
     end
     
@@ -151,10 +155,10 @@ for i=1:lenSampleData
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGoodTime = (timeFlags == 1 | timeFlags == 2);
+            iGoodTime = ismember(timeFlags, goodFlags);
             
             iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
-            iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
+            iGood = iGood & ismember(varFlags, goodFlags) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
         end
         
         if any(any(iGood))
@@ -163,7 +167,7 @@ for i=1:lenSampleData
         end
         
     elseif iVar > 0 && ...
-            any(strcmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'})) && ...
+            any(strncmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}, 4)) && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 % we're plotting current metre 1D variables with DEPTH variable.
         iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
         if isQC
@@ -171,10 +175,10 @@ for i=1:lenSampleData
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGoodTime = (timeFlags == 1 | timeFlags == 2);
+            iGoodTime = ismember(timeFlags, goodFlags);
             
             iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
-            iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
+            iGood = iGood & ismember(varFlags, goodFlags) & ~isnan(sample_data{iSort(i)}.variables{iVar}.data);
         end
         
         if any(any(iGood))
@@ -261,7 +265,7 @@ if any(isPlottable)
                     'Name', title, ...
                     'NumberTitle', 'off', ...
                     'Visible', visible, ...
-                    'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+                    'OuterPosition', monitorRect(iBigMonitor, :));
                 
                 hAxMooringVar = axes('Parent',   hFigMooringVar);
                 set(hAxMooringVar, 'YDir', 'reverse');
@@ -311,13 +315,13 @@ if any(isPlottable)
                 
                 if iDepth
                     depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
-                    iGoodDepth = (depthFlags == 1 | depthFlags == 2);
+                    iGoodDepth = ismember(depthFlags, goodFlags);
                 end
                 
-                iGoodTime = (timeFlags == 1 | timeFlags == 2);
+                iGoodTime = ismember(timeFlags, goodFlags);
                 
                 iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
-                iGood = iGood & (varFlags == 1 | varFlags == 2) & ~isnan(varValues);
+                iGood = iGood & ismember(varFlags, goodFlags) & ~isnan(varValues);
             end
             
             iGoodHeight = any(iGood, 1);
@@ -550,7 +554,7 @@ end
                 xUnits  = sam.variables{ixVar}.units;
             end
             if strcmp(xName, 'TIME')
-                xStr = datestr(posClic(1),'yyyy-mm-dd HH:MM:SS.FFF');
+                xStr = datestr(posClic(1),'dd-mm-yyyy HH:MM:SS.FFF');
             else
                 xStr = [num2str(posClic(1)) ' ' xUnits];
             end
@@ -568,7 +572,7 @@ end
                 yUnits  = sam.variables{iyVar}.units;
             end
             if strcmp(yName, 'TIME')
-                yStr = datestr(posClic(2),'yyyy-mm-dd HH:MM:SS.FFF');
+                yStr = datestr(posClic(2),'dd-mm-yyyy HH:MM:SS.FFF');
             else
                 yStr = [num2str(posClic(2)) ' ' yUnits]; %num2str(posClic(2),4)
             end
@@ -592,7 +596,7 @@ end
             timeData = sam.dimensions{iTime}.data;
             idx = find(abs(timeData-posClic(1))<eps(10));
             if strcmp(zName, 'TIME')
-                zStr = datestr(zData(idx),'yyyy-mm-dd HH:MM:SS.FFF');
+                zStr = datestr(zData(idx),'dd-mm-yyyy HH:MM:SS.FFF');
             else
                 zStr = [num2str(zData(idx,userData.jHeight)) ' (' zUnits ')'];
             end
@@ -617,7 +621,11 @@ end
 
 %%
     function zoomDateTick(obj,event_obj,hAx)
-        datetick(hAx,'x','dd-mm-yy HH:MM:SS','keeplimits')
+        xLim = get(hAx, 'XLim');
+        currXTicks = get(hAx, 'xtick');
+        newXTicks = linspace(xLim(1), xLim(2), length(currXTicks));
+        set(hAx, 'xtick', newXTicks);
+        datetick(hAx,'x','dd-mm-yy HH:MM:SS','keepticks');
     end
 
 end
