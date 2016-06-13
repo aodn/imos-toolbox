@@ -175,6 +175,7 @@ if data(idx) ~= 165 % hex a5
     fprintf('%s\n', ['Warning : ' filename ' bad sync (idx '...
         num2str(idx) ', val ' num2str(data(idx)) ')']);
     fprintf('%s\n', ['Sect Type: ' num2str(sectType)]);
+    off = 1;
     return;
 end
 
