@@ -177,7 +177,7 @@ if any(iParam)
             % of 1 or 2 gradients
             threshold(2:end-1) = 2*threshold(2:end-1);
         catch
-            error(['Invalid threshold expression in imosRateOfChangeQC.txt for ' param]);
+            error(['Invalid threshold expression in imosRateOfChangeQC.txt for ' paramName]);
         end
         
         iGoodGrad = false(lenDataTested, 1);
