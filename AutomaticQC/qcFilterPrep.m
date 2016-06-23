@@ -44,11 +44,10 @@ function sam = qcFilterPrep( sam, filtername )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-fun = str2func([filtername 'Prep']);
-fun2 = functions(fun);
-ok = size(fun2.file, 2) > 0;
 
-if ok
+fun = [filtername 'Prep'];
+if exist(fun, 'file') % MATLAB function
+    fun = str2func(fun);
     type{1} = 'dimensions';
     type{2} = 'variables';
     qcPrep=struct;
@@ -57,7 +56,10 @@ if ok
             % check for previously computed stddev
             if isfield(sam.meta, 'qcPrep')
                 if isfield(sam.meta.qcPrep, filtername)
-                    continue;
+                    if isfield(sam.meta.qcPrep.(filtername), type{m})
+                        qcPrep.(type{m}){k} = sam.meta.qcPrep.(filtername).(type{m}){k};
+                        continue;
+                    end
                 end
             end
 
