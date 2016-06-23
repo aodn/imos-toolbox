@@ -184,6 +184,8 @@ function sample_data = netcdfParse( filename, mode )
       sample_data.meta.level = imosFileVersion(sample_data.file_version, 'index');
   end
   
+  sample_data.toolbox_input_file              = filename;
+  
   [~, sample_data.meta.file_name, ext]        = fileparts(filename);
   sample_data.meta.file_name                  = [sample_data.meta.file_name, ext];
   sample_data.meta.site_id                    = '';
