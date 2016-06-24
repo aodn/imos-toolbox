@@ -223,12 +223,20 @@ function sample_data = netcdfParse( filename, mode )
       sample_data.meta.beam_angle = sample_data.instrument_beam_angle;
   end
   
+  if isfield(sample_data, 'instrument_nominal_depth')
+      sample_data.meta.depth = sample_data.instrument_nominal_depth;
+  end
+  
   if isfield(sample_data, 'instrument_sample_interval')
       sample_data.meta.instrument_sample_interval = sample_data.instrument_sample_interval;
   end
   
   if isfield(sample_data, 'featureType')
       sample_data.meta.featureType = sample_data.featureType;
+  end
+  
+  if isfield(sample_data, 'quality_control_log')
+      sample_data.meta.log = sample_data.quality_control_log;
   end
   
   iHeightAboveSensor = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
