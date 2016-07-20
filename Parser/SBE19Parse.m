@@ -102,8 +102,8 @@ function sample_data = SBE19Parse( filename, mode )
   end
   
   % read in the raw instrument header
-  instHeader = parseInstrumentHeader(instHeaderLines);
-  procHeader = parseProcessedHeader( procHeaderLines);
+  instHeader = parseInstrumentHeader(instHeaderLines, mode);
+  procHeader = parseProcessedHeader( procHeaderLines, mode);
   
   % use the appropriate subfunction to read in the data
   % assume that anything with a suffix not equal to .hex
@@ -390,7 +390,7 @@ function sample_data = SBE19Parse( filename, mode )
   end
 end
 
-function header = parseInstrumentHeader(headerLines)
+function header = parseInstrumentHeader(headerLines, mode)
 %PARSEINSTRUMENTHEADER Parses the header lines from a SBE19/37 .cnv file.
 % Returns the header information in a struct.
 %
@@ -527,18 +527,23 @@ for k = 1:length(headerLines)
                     
                 % cast
                 case 14
-                    if isfield(header, 'castStart')
+                    % need to handle multiple hdr|cast strings for profile
+                    % mode only. If timeSeries then only choose the first
+                    % occurence
+                    if isfield(header, 'castStart') && strcmp(mode,'profile')
                         header.castNumber(end+1) = str2double(tkns{1}{1});
                         header.castDate(end+1)   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
                         header.castStart(end+1)  = str2double(tkns{1}{3});
                         header.castEnd(end+1)    = str2double(tkns{1}{4});
                         header.castAvg(end+1)    = str2double(tkns{1}{5});
                     else
-                        header.castNumber = str2double(tkns{1}{1});
-                        header.castDate   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
-                        header.castStart  = str2double(tkns{1}{3});
-                        header.castEnd    = str2double(tkns{1}{4});
-                        header.castAvg    = str2double(tkns{1}{5});
+                        if ~isfield(header, 'castNumber')
+                            header.castNumber = str2double(tkns{1}{1});
+                            header.castDate   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
+                            header.castStart  = str2double(tkns{1}{3});
+                            header.castEnd    = str2double(tkns{1}{4});
+                            header.castAvg    = str2double(tkns{1}{5});
+                        end
                     end
                     
                 % cast2
@@ -592,7 +597,7 @@ for k = 1:length(headerLines)
 end
 end
 
-function header = parseProcessedHeader(headerLines)
+function header = parseProcessedHeader(headerLines, mode)
 %PARSEPROCESSEDHEADER Parses the data contained in the header added by SBE
 % Data Processing. This includes the column layout of the data in the .cnv 
 % file. 
