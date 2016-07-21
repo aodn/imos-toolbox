@@ -77,29 +77,26 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             
             initFlags = sam.(type{m}){k}.flags;
             
-            % Set current flag areas
-            canBeFlagGoodIdx      = sam.(type{m}){k}.flags == rawFlag;
-            
-            canBeFlagProbGoodIdx  = canBeFlagGoodIdx | ...
-                sam.(type{m}){k}.flags == goodFlag;
-            
-            canBeFlagProbBadIdx   = canBeFlagProbGoodIdx | ...
-                sam.(type{m}){k}.flags == probGoodFlag;
-            
-            canBeFlagBadIdx       = canBeFlagProbBadIdx | ...
-                sam.(type{m}){k}.flags == probBadFlag;
-            
             % Look for the current test flags provided
             goodIdx     = fsam.(type{m}){k}.flags == goodFlag;
             probGoodIdx = fsam.(type{m}){k}.flags == probGoodFlag;
             probBadIdx  = fsam.(type{m}){k}.flags == probBadFlag;
             badIdx      = fsam.(type{m}){k}.flags == badFlag;
             
-            % update new flags in current variable
-            goodIdx     = canBeFlagGoodIdx & goodIdx;
-            probGoodIdx = canBeFlagProbGoodIdx & probGoodIdx;
-            probBadIdx  = canBeFlagProbBadIdx & probBadIdx;
-            badIdx      = canBeFlagBadIdx & badIdx;
+            if ~strcmpi(func2str(filter), 'imosHistoricalManualSetQC') % imosHistoricalManualSetQC can downgrade flags
+                % otherwise we can only upgrade flags
+                % set current flag areas
+                canBeFlagGoodIdx     =                        sam.(type{m}){k}.flags == rawFlag;
+                canBeFlagProbGoodIdx = canBeFlagGoodIdx     | sam.(type{m}){k}.flags == goodFlag;
+                canBeFlagProbBadIdx  = canBeFlagProbGoodIdx | sam.(type{m}){k}.flags == probGoodFlag;
+                canBeFlagBadIdx      = canBeFlagProbBadIdx  | sam.(type{m}){k}.flags == probBadFlag;
+            
+                % update new flags in current variable
+                goodIdx     = canBeFlagGoodIdx & goodIdx;
+                probGoodIdx = canBeFlagProbGoodIdx & probGoodIdx;
+                probBadIdx  = canBeFlagProbBadIdx & probBadIdx;
+                badIdx      = canBeFlagBadIdx & badIdx;
+            end
             
             sam.(type{m}){k}.flags(goodIdx)     = fsam.(type{m}){k}.flags(goodIdx);
             sam.(type{m}){k}.flags(probGoodIdx) = fsam.(type{m}){k}.flags(probGoodIdx);
