@@ -119,7 +119,8 @@ function exportManager(dataSets, levelNames, output, auto)
             filenames{end+1} = exportRawData(dataSets{k}, exportDir, setNames{k});
       end
       if ~auto
-          waitbar(k / nDataSets, progress, ['Exported ' filenames{end}]);
+          [~, radFile, ext] = fileparts(filenames{end});
+          waitbar(k / nDataSets, progress, [radFile ext]);
       end
       
     catch e
