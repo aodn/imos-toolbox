@@ -253,10 +253,10 @@ function mainWindow(...
   tb      = findall(fig, 'Type', 'uitoolbar');
   buttons = findall(tb);
   
-  zoomoutb = findobj(buttons, 'TooltipString', 'Zoom Out');
-  zoominb  = findobj(buttons, 'TooltipString', 'Zoom In');
-  panb     = findobj(buttons, 'TooltipString', 'Pan');
-  datacursorb     = findobj(buttons, 'TooltipString', 'Data Cursor');
+  zoomoutb    = findobj(buttons, 'TooltipString', 'Zoom Out');
+  zoominb     = findobj(buttons, 'TooltipString', 'Zoom In');
+  panb        = findobj(buttons, 'TooltipString', 'Pan');
+  datacursorb = findobj(buttons, 'TooltipString', 'Data Cursor');
   
   buttons(buttons == tb)            = [];
   buttons(buttons == zoomoutb)      = [];
@@ -451,13 +451,41 @@ function mainWindow(...
         set(graphs, 'XLim', xLimits);
         set(graphs, 'XTick', xTicks);
         
-        % reset other 1D axis yTicks if needed because the X axis sync causes a
-        % change in the Y range
+        % update other 1D axis yLim / yTick to reflect the
+        % change in the Y range of displayed data
         if ~isempty(graphs1D)
+            sam = getSelectedData();
+            hTickBoxes = get(varPanel, 'UserData');
+            
+            qcSet     = str2double(readProperty('toolbox.qc_set'));
+            rawFlag   = imosQCFlag('raw',          qcSet, 'flag');
+            goodFlag  = imosQCFlag('good',         qcSet, 'flag');
+            pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+            okFlags = [rawFlag goodFlag pGoodFlag];
+
             for i=1:length(graphs1D)
-                yLimits = get(graphs1D(i), 'YLim');
+                userData = get(graphs1D(i), 'UserData');
+                hData = userData{1};
+                iTickBox = userData{2};
+                
+                varName = get(hTickBoxes(iTickBox), 'String');
+                iVar = getVar(sam.variables, varName);
+                flags = sam.variables{iVar}.flags;
+                iGood = ismember(flags, okFlags);
+                
+                xData = get(hData, 'XData');
+                yData = get(hData, 'YData');
+                
+                xData(~iGood) = [];
+                yData(~iGood) = [];
+                
+                iDataIn = xData >= xLimits(1) & xData <= xLimits(2);
+                yLimits = [min(yData(iDataIn)), max(yData(iDataIn))];
+                set(graphs1D(i), 'YLim', yLimits);
+                
                 yStep   = (yLimits(2) - yLimits(1)) / 5;
                 yTicks  = yLimits(1):yStep:yLimits(2);
+                
                 set(graphs1D(i), 'YTick', yTicks);
             end
         end
