@@ -13,8 +13,8 @@ function site = imosSites(name)
 %               -name
 %               -longitude
 %               -latitude
-%               -latitudePlusMinusThreshold
 %               -longitudePlusMinusThreshold
+%               -latitudePlusMinusThreshold
 %               -distanceKmPlusMinusThreshold (optional, 
 %                       if documented overrules previous thresholds values)
 %
@@ -85,8 +85,8 @@ if any(iName)
     site.name                           = params{1}{iName};
     site.longitude                      = params{2}(iName);
     site.latitude                       = params{3}(iName);
-    site.latitudePlusMinusThreshold     = params{4}(iName);
-    site.longitudePlusMinusThreshold    = params{5}(iName);
+    site.longitudePlusMinusThreshold    = params{4}(iName);
+    site.latitudePlusMinusThreshold     = params{5}(iName);
     site.distanceKmPlusMinusThreshold   = params{6}(iName);
 else
     return;
