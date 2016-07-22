@@ -514,7 +514,7 @@ function sample_data = readXR620( filename, mode )
                       data.(fields{k}) = data.(fields{k})/10;
                       
                       %Temperature (Celsius degree)
-                  case 'Temp', name = 'TEMP';
+                  case {'Temp', 'temp02'}, name = 'TEMP';
                       
                       %Pressure (dBar)
                   case {'Pres', 'pres08'}, name = 'PRES';
@@ -836,12 +836,11 @@ function data = readData(fid, header)
   data = struct;
   
   % get the column names
-  header.variables = strrep(header.variables, ' & ', '|');
-  header.variables = strrep(header.variables, '  ', '|');
-  while ~strcmpi(header.variables, strrep(header.variables, '||', '|'))
-      header.variables = strrep(header.variables, '||', '|');
-  end
-  cols = textscan(header.variables, '%s', 'Delimiter', '|');
+  % replace ' & ' or ' ' delimited variable names with a '|' delimiter
+  header.variables = regexprep(header.variables, '(\s+\&\s+|\s+)', '|');
+  cols = textscan(header.variables, '%s', ...
+      'Delimiter', '|', ...
+      'MultipleDelimsAsOne', true); % header.variables might start by a delimiter
   cols = cols{1};
   
   % rename variables with '-', ' ', '&', '(', ')' as Matlab doesn't allow 
@@ -856,7 +855,7 @@ function data = readData(fid, header)
   fmt  = '%s %s';
   
   % figure out number of columns from the number of channels
-  fmt = [fmt repmat(' %f', [1, length(cols)-1])];
+  fmt = [fmt repmat(' %f', [1, length(cols)-2])];
   
   % read in the sample data
   samples = textscan(fid, fmt, 'treatAsEmpty', {'null'});
