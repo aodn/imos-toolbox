@@ -365,7 +365,30 @@ function mainWindow(...
   % menu. Updates the variables panel, then delegates to selectionChange.
   % 
     sam = getSelectedData();
+    
+    % keep track of previously selected variables
+    iTickBox = getSelectedVars();
+    nTickBoxed = length(iTickBox);
+    selectedVarNames = cell(1, nTickBoxed);
+    tickBoxes = get(varPanel, 'UserData');
+    for i=1:nTickBoxed
+        selectedVarNames{i} = get(tickBoxes(iTickBox(i)), 'String');
+    end
+    
+    % reset the varPanel
+    newVars = [];
     createVarPanel(sam, []);
+    
+    % we want to be able to keep the selected variables from one dataset to another if possible
+    newTickBoxes = get(varPanel, 'UserData');
+    for j=1:length(newTickBoxes)
+        varName = get(newTickBoxes(j), 'String');
+        if any(strcmp(varName, selectedVarNames))
+            newVars = [newVars j];
+        end
+    end
+        
+    if ~isempty(newVars), createVarPanel(sam, newVars); end
     selectionChange('set');
   end
 
