@@ -670,11 +670,16 @@ isample=isample(isort);
 [~, usort]=unique(reftimes, 'last');
 isample=isample(usort);
 
+% we only want to read full scans
+isFullScan = isample+len-1 <= rdatlen;
+isample(~isFullScan) = [];
+
 % map data to uniform grid each row contains data channel, each column is a
 % observation.
 D=uint8(zeros(len,length(isample)));
+
 for i=1:len;
-    D(i,:)=msamples.Data(isample+i-1);
+    D(i,:) = msamples.Data(isample+i-1);
 end
 time1 = D(1:4,:);
 t1 = bytecast(time1(:), 'L', 'uint32', cpuEndianness);
