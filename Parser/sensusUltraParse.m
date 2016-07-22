@@ -12,7 +12,7 @@ function sample_data = sensusUltraParse( filename, mode )
 % Author : Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
-% Copyright (c) 2010, Australian Ocean Data Network (AODN) and Integrated 
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 

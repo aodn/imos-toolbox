@@ -27,7 +27,7 @@ function [data, flags, paramsLog] = imosSalinityFromPTQC ( sample_data, data, k,
 %
 
 %
-% Copyright (c) 2009, Australian Ocean Data Network (AODN) and Integrated 
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 

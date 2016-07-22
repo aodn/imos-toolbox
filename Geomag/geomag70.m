@@ -6,7 +6,7 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
 %  **inclination I, horizontal intensity H, and total intensity F as a
 %  **function of Julian day JD, latitude LAT, and longitude LON.
 
-% Copyright (c) 2015, Australian Ocean Data Network (AODN) and Integrated 
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 

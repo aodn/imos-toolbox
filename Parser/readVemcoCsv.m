@@ -17,7 +17,7 @@ function [data, comment] = readVemcoCsv(dataLines, procHeader)
 % Contributor: 	Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
-% Copyright (c) 2009, Australian Ocean Data Network (AODN) and Integrated
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated
 % Marine Observing System (IMOS).
 % All rights reserved.
 %

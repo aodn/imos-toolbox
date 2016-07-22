@@ -33,7 +33,7 @@ function sample_data = echoviewParse( filename, platform, config )
 % Copyright (c) 2010, CSIRO.
 % This source is based on and uses code fragments from code that is:
 %
-% Copyright (c) 2009, Australian Ocean Data Network (AODN) and Integrated 
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 

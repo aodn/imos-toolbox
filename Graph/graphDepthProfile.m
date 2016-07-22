@@ -24,7 +24,7 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
 %
 
 %
-% Copyright (c) 2009, Australian Ocean Data Network (AODN) and Integrated 
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 

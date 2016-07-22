@@ -22,7 +22,7 @@ function parser = getParserNameForInstrument( make, model )
 %
 
 %
-% Copyright (c) 2009, Australian Ocean Data Network (AODN) and Integrated 
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 
