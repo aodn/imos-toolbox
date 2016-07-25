@@ -18,7 +18,7 @@ function sample_data = readXR620( filename, mode )
 % Author : Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
-% Copyright (c) 2010, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 
@@ -30,7 +30,7 @@ function sample_data = readXR620( filename, mode )
 %     * Redistributions in binary form must reproduce the above copyright 
 %       notice, this list of conditions and the following disclaimer in the 
 %       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
+%     * Neither the name of the AODN/IMOS nor the names of its contributors 
 %       may be used to endorse or promote products derived from this software 
 %       without specific prior written permission.
 % 
@@ -514,7 +514,7 @@ function sample_data = readXR620( filename, mode )
                       data.(fields{k}) = data.(fields{k})/10;
                       
                       %Temperature (Celsius degree)
-                  case 'Temp', name = 'TEMP';
+                  case {'Temp', 'temp02'}, name = 'TEMP';
                       
                       %Pressure (dBar)
                   case {'Pres', 'pres08'}, name = 'PRES';
@@ -836,12 +836,11 @@ function data = readData(fid, header)
   data = struct;
   
   % get the column names
-  header.variables = strrep(header.variables, ' & ', '|');
-  header.variables = strrep(header.variables, '  ', '|');
-  while ~strcmpi(header.variables, strrep(header.variables, '||', '|'))
-      header.variables = strrep(header.variables, '||', '|');
-  end
-  cols = textscan(header.variables, '%s', 'Delimiter', '|');
+  % replace ' & ' or ' ' delimited variable names with a '|' delimiter
+  header.variables = regexprep(header.variables, '(\s+\&\s+|\s+)', '|');
+  cols = textscan(header.variables, '%s', ...
+      'Delimiter', '|', ...
+      'MultipleDelimsAsOne', true); % header.variables might start by a delimiter
   cols = cols{1};
   
   % rename variables with '-', ' ', '&', '(', ')' as Matlab doesn't allow 
@@ -856,7 +855,7 @@ function data = readData(fid, header)
   fmt  = '%s %s';
   
   % figure out number of columns from the number of channels
-  fmt = [fmt repmat(' %f', [1, length(cols)-1])];
+  fmt = [fmt repmat(' %f', [1, length(cols)-2])];
   
   % read in the sample data
   samples = textscan(fid, fmt, 'treatAsEmpty', {'null'});

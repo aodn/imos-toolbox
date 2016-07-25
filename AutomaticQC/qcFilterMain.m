@@ -27,7 +27,7 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 
@@ -39,7 +39,7 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
 %     * Redistributions in binary form must reproduce the above copyright 
 %       notice, this list of conditions and the following disclaimer in the 
 %       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
+%     * Neither the name of the AODN/IMOS nor the names of its contributors 
 %       may be used to endorse or promote products derived from this software 
 %       without specific prior written permission.
 % 
@@ -77,29 +77,26 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             
             initFlags = sam.(type{m}){k}.flags;
             
-            % Set current flag areas
-            canBeFlagGoodIdx      = sam.(type{m}){k}.flags == rawFlag;
-            
-            canBeFlagProbGoodIdx  = canBeFlagGoodIdx | ...
-                sam.(type{m}){k}.flags == goodFlag;
-            
-            canBeFlagProbBadIdx   = canBeFlagProbGoodIdx | ...
-                sam.(type{m}){k}.flags == probGoodFlag;
-            
-            canBeFlagBadIdx       = canBeFlagProbBadIdx | ...
-                sam.(type{m}){k}.flags == probBadFlag;
-            
             % Look for the current test flags provided
             goodIdx     = fsam.(type{m}){k}.flags == goodFlag;
             probGoodIdx = fsam.(type{m}){k}.flags == probGoodFlag;
             probBadIdx  = fsam.(type{m}){k}.flags == probBadFlag;
             badIdx      = fsam.(type{m}){k}.flags == badFlag;
             
-            % update new flags in current variable
-            goodIdx     = canBeFlagGoodIdx & goodIdx;
-            probGoodIdx = canBeFlagProbGoodIdx & probGoodIdx;
-            probBadIdx  = canBeFlagProbBadIdx & probBadIdx;
-            badIdx      = canBeFlagBadIdx & badIdx;
+            if ~strcmpi(func2str(filter), 'imosHistoricalManualSetQC') % imosHistoricalManualSetQC can downgrade flags
+                % otherwise we can only upgrade flags
+                % set current flag areas
+                canBeFlagGoodIdx     =                        sam.(type{m}){k}.flags == rawFlag;
+                canBeFlagProbGoodIdx = canBeFlagGoodIdx     | sam.(type{m}){k}.flags == goodFlag;
+                canBeFlagProbBadIdx  = canBeFlagProbGoodIdx | sam.(type{m}){k}.flags == probGoodFlag;
+                canBeFlagBadIdx      = canBeFlagProbBadIdx  | sam.(type{m}){k}.flags == probBadFlag;
+            
+                % update new flags in current variable
+                goodIdx     = canBeFlagGoodIdx & goodIdx;
+                probGoodIdx = canBeFlagProbGoodIdx & probGoodIdx;
+                probBadIdx  = canBeFlagProbBadIdx & probBadIdx;
+                badIdx      = canBeFlagBadIdx & badIdx;
+            end
             
             sam.(type{m}){k}.flags(goodIdx)     = fsam.(type{m}){k}.flags(goodIdx);
             sam.(type{m}){k}.flags(probGoodIdx) = fsam.(type{m}){k}.flags(probGoodIdx);

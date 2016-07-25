@@ -32,7 +32,7 @@ function sample_data = NXICBinaryParse( filename, mode )
 %
 %               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 
@@ -44,7 +44,7 @@ function sample_data = NXICBinaryParse( filename, mode )
 %     * Redistributions in binary form must reproduce the above copyright 
 %       notice, this list of conditions and the following disclaimer in the 
 %       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
+%     * Neither the name of the AODN/IMOS nor the names of its contributors 
 %       may be used to endorse or promote products derived from this software 
 %       without specific prior written permission.
 % 
@@ -670,11 +670,16 @@ isample=isample(isort);
 [~, usort]=unique(reftimes, 'last');
 isample=isample(usort);
 
+% we only want to read full scans
+isFullScan = isample+len-1 <= rdatlen;
+isample(~isFullScan) = [];
+
 % map data to uniform grid each row contains data channel, each column is a
 % observation.
 D=uint8(zeros(len,length(isample)));
+
 for i=1:len;
-    D(i,:)=msamples.Data(isample+i-1);
+    D(i,:) = msamples.Data(isample+i-1);
 end
 time1 = D(1:4,:);
 t1 = bytecast(time1(:), 'L', 'uint32', cpuEndianness);
