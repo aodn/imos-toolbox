@@ -81,7 +81,7 @@ for i=1:nMap/2
     end
     htmp = plot(hAx, x(iv), y(iv), marker, ...
         'Color', map(nc,:), ...
-        'MarkerSize', sqrt(5), varargin{:});
+        varargin{:});
     
     if ~isempty(htmp), h = htmp; end
     
@@ -95,7 +95,7 @@ for i=1:nMap/2
     end
     htmp = plot(hAx, x(iv), y(iv), marker, ...
         'Color', map(nc,:), ...
-        'MarkerSize', sqrt(5), varargin{:});
+        varargin{:});
     
     if ~isempty(htmp), h = htmp; end
 end

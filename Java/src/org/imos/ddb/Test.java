@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+ * Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
  * Marine Observing System (IMOS).
  * All rights reserved.
  * 
@@ -11,7 +11,7 @@
  *     * Redistributions in binary form must reproduce the above copyright 
  *       notice, this list of conditions and the following disclaimer in the 
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the eMII/IMOS nor the names of its contributors 
+ *     * Neither the name of the AODN/IMOS nor the names of its contributors 
  *       may be used to endorse or promote products derived from this software 
  *       without specific prior written permission.
  * 
@@ -66,13 +66,15 @@ public class Test {
 		String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
 //		String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/new_ddb/OceanDB_Unreplicated.mdb";
 
-		String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
+//		String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
+		String driver = "org.postgresql.Driver";
 		String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/OceanDB2015.mdb";
 //		String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
 //		String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener;SingleConnection=true";
-		String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener";
-		String user = "";
-		String password = "";
+//		String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener";
+		String connection = "jdbc:postgresql://localhost/Darren_2016-03-24";
+		String user = "myUser";
+		String password = "myPassword";
 		String[] jdbcArgs = new String[4];
 		jdbcArgs[0] = driver;
 		jdbcArgs[1] = connection;
@@ -104,7 +106,7 @@ public class Test {
 
 		try {
 
-			ArrayList<Object> trips = mdb.executeQuery("FieldTrip", null, null);
+			ArrayList<Object> trips = mdb.executeQuery("FieldTrip", "FieldTripID", "NRSMAI-2015-06-26");
 			for (Object o : trips) printObj(o);
 
 //			ArrayList<Object> deps = mdb.executeQuery("DeploymentData", null, null);

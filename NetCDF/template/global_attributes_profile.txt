@@ -61,13 +61,13 @@ D, time_coverage_start          =
 D, time_coverage_end            = 
 
 % who
-S, data_centre                  = eMarine Information Infrastructure (eMII)
-S, data_centre_email            = info@emii.org.au
+S, data_centre                  = Australian Ocean Data Network (AODN)
+S, data_centre_email            = info@aodn.org.au
 S, author_email                 = 
 S, author                       = 
 S, principal_investigator       = 
 S, principal_investigator_email = 
-S, institution_references       = http://www.imos.org.au/emii.html
+S, institution_references       = http://www.imos.org.au/aodn.html
 
 % how
 S, lineage                 = Data were processed according to standard ANMN-NRS procedures before conversion to NetCDF. See link for details : http://help.aodn.org.au/help/sites/help.aodn.org.au/files/ANMN%20CTD%20Processing%20Procedures.pdf

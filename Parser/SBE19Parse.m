@@ -30,7 +30,7 @@ function sample_data = SBE19Parse( filename, mode )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
 % All rights reserved.
 % 
@@ -42,7 +42,7 @@ function sample_data = SBE19Parse( filename, mode )
 %     * Redistributions in binary form must reproduce the above copyright 
 %       notice, this list of conditions and the following disclaimer in the 
 %       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
+%     * Neither the name of the AODN/IMOS nor the names of its contributors 
 %       may be used to endorse or promote products derived from this software 
 %       without specific prior written permission.
 % 
@@ -102,7 +102,7 @@ function sample_data = SBE19Parse( filename, mode )
   end
   
   % read in the raw instrument header
-  instHeader = parseInstrumentHeader(instHeaderLines);
+  instHeader = parseInstrumentHeader(instHeaderLines, mode);
   procHeader = parseProcessedHeader( procHeaderLines);
   
   % use the appropriate subfunction to read in the data
@@ -390,12 +390,13 @@ function sample_data = SBE19Parse( filename, mode )
   end
 end
 
-function header = parseInstrumentHeader(headerLines)
+function header = parseInstrumentHeader(headerLines, mode)
 %PARSEINSTRUMENTHEADER Parses the header lines from a SBE19/37 .cnv file.
 % Returns the header information in a struct.
 %
 % Inputs:
 %   headerLines - cell array of strings, the lines of the header section.
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   header      - struct containing information that was in the header
@@ -429,7 +430,7 @@ castExpr     = ['(?:cast|hdr)\s+(\d+)\s+' ...
 %Replaced castExpr to be specific to NSW-IMOS PH NRT
 %Note: also replace definitions below in 'case 9'
 %BDM 24/01/2011
-castExpr2    ='Cast Time = (\w+ \d+ \d+ \d+:\d+:\d+)';
+castExpr2    = 'Cast Time = (\w+ \d+ \d+ \d+:\d+:\d+)';
 intervalExpr = 'interval = (.*): ([\d\.\+)$';
 sbe38Expr    = 'SBE 38 = (yes|no), Gas Tension Device = (yes|no)';
 optodeExpr   = 'OPTODE = (yes|no)';
@@ -527,18 +528,22 @@ for k = 1:length(headerLines)
                     
                 % cast
                 case 14
-                    if isfield(header, 'castStart')
-                        header.castNumber(end+1) = str2double(tkns{1}{1});
-                        header.castDate(end+1)   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
-                        header.castStart(end+1)  = str2double(tkns{1}{3});
-                        header.castEnd(end+1)    = str2double(tkns{1}{4});
-                        header.castAvg(end+1)    = str2double(tkns{1}{5});
-                    else
+                    if ~isfield(header, 'castStart')
                         header.castNumber = str2double(tkns{1}{1});
                         header.castDate   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
                         header.castStart  = str2double(tkns{1}{3});
                         header.castEnd    = str2double(tkns{1}{4});
                         header.castAvg    = str2double(tkns{1}{5});
+                    else
+                        % in timeSeries mode we only need the first occurence
+                        % but in profile mode we require all cast dates
+                        if strcmpi(mode, 'profile')
+                            header.castNumber(end+1) = str2double(tkns{1}{1});
+                            header.castDate(end+1)   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
+                            header.castStart(end+1)  = str2double(tkns{1}{3});
+                            header.castEnd(end+1)    = str2double(tkns{1}{4});
+                            header.castAvg(end+1)    = str2double(tkns{1}{5});
+                        end
                     end
                     
                 % cast2
