@@ -117,6 +117,11 @@ function sample_data = readWQMdat( filename, mode )
   % in the input file) to the IMOS compliant parameter name. It also contains 
   % comments for some parameters.
   %
+  % Note that different versions of firmware require different versions of
+  % WQMhost to convert the raw file to a dat file. Some of the headers have
+  % different case. To work around this all tokens are defined upper case 
+  % and header line is converted to upper case when read in
+  %
   params{end+1} = {'WQM',                   {'',     ''}};
   params{end+1} = {'SN',                    {'',     ''}};
   params{end+1} = {'WQM-SN',                {'',     ''}};
@@ -124,51 +129,51 @@ function sample_data = readWQMdat( filename, mode )
   params{end+1} = {'HHMMSS',                {'',     ''}};
   params{end+1} = {'MM/DD/YY',              {'',     ''}};
   params{end+1} = {'HH:MM:SS',              {'',     ''}};
-  params{end+1} = {'Cond(mmho)',            {'CNDC', ''}}; % mmho <=> mS , I think /mm is assumed
-  params{end+1} = {'Cond(S/m)',             {'CNDC', ''}}; 
-  params{end+1} = {'Temp(C)',               {'TEMP', ''}};
-  params{end+1} = {'Pres(dbar)',            {'PRES_REL', ''}};
-  params{end+1} = {'Sal(PSU)',              {'PSAL', ''}};
-  params{end+1} = {'DO(mg/l)',              {'DOX1_3', ''}};
-  params{end+1} = {'DO(mmol/m^3)',          {'DOX1_1', ''}};
-  params{end+1} = {'DO(ml/l)',              {'DOX1_2', ''}};
-  params{end+1} = {'CHL(ug/l)',             {'CPHL', 'Artificial chlorophyll data '...
+  params{end+1} = {'COND(MMHO)',            {'CNDC', ''}}; % mmho <=> mS , I think /mm is assumed
+  params{end+1} = {'COND(S/M)',             {'CNDC', ''}}; 
+  params{end+1} = {'TEMP(C)',               {'TEMP', ''}};
+  params{end+1} = {'PRES(DBAR)',            {'PRES_REL', ''}};
+  params{end+1} = {'SAL(PSU)',              {'PSAL', ''}};
+  params{end+1} = {'DO(MG/L)',              {'DOX1_3', ''}};
+  params{end+1} = {'DO(MMOL/M^3)',          {'DOX1_1', ''}};
+  params{end+1} = {'DO(ML/L)',              {'DOX1_2', ''}};
+  params{end+1} = {'CHL(UG/L)',             {'CPHL', 'Artificial chlorophyll data '...
       'computed from bio-optical sensor raw counts measurements. The '...
       'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
       'photodetector paired with an optical filter which measures everything '...
       'that fluoresces in the region of 695nm. '...
       'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};  
-  params{end+1} = {'CHLa(ug/l)',            {'CPHL', 'Artificial chlorophyll data '...
+  params{end+1} = {'CHLA(UG/L)',            {'CPHL', 'Artificial chlorophyll data '...
       'computed from bio-optical sensor raw counts measurements. The '...
       'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
       'photodetector paired with an optical filter which measures everything '...
       'that fluoresces in the region of 695nm. '...
       'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};  
-  params{end+1} = {'F-Cal-CHL(ug/l)',       {'CHLF', 'Artificial chlorophyll data '...
+  params{end+1} = {'F-CAL-CHL(UG/L)',       {'CHLF', 'Artificial chlorophyll data '...
       'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
       'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
       'photodetector paired with an optical filter which measures everything '...
       'that fluoresces in the region of 695nm. '...
       'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
-  params{end+1} = {'Fact-CHL(ug/l))',       {'CHLF', 'Artificial chlorophyll data '...
+  params{end+1} = {'FACT-CHL(UG/L))',       {'CHLF', 'Artificial chlorophyll data '...
       'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
       'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
       'photodetector paired with an optical filter which measures everything '...
       'that fluoresces in the region of 695nm. '...
       'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}}; % v1.26 of Host software
-  params{end+1} = {'U-Cal-CHL(ug/l)',       {'CHLU', 'Artificial chlorophyll data '...
+  params{end+1} = {'U-CAL-CHL(UG/L)',       {'CHLU', 'Artificial chlorophyll data '...
       'computed from bio-optical sensor raw counts measurements using user calibration coefficient. The '...
       'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
       'photodetector paired with an optical filter which measures everything '...
       'that fluoresces in the region of 695nm. '...
       'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
-  params{end+1} = {'RawCHL(Counts)',        {'FLU2', ''}};
-  params{end+1} = {'CHLa(Counts)',          {'FLU2', ''}};
+  params{end+1} = {'RAWCHL(COUNTS)',        {'FLU2', ''}};
+  params{end+1} = {'CHLA(COUNTS)',          {'FLU2', ''}};
   params{end+1} = {'NTU',                   {'TURB', ''}};
   params{end+1} = {'NTU(NTU)',              {'TURB', ''}};
-  params{end+1} = {'Turbidity(NTU)',        {'TURB', ''}};
-  params{end+1} = {'rho',                   {'DENS', ''}};
-  params{end+1} = {'PAR(umol_phtn/m2/s)',   {'PAR', ''}};
+  params{end+1} = {'TURBIDITY(NTU)',        {'TURB', ''}};
+  params{end+1} = {'RHO',                   {'DENS', ''}};
+  params{end+1} = {'PAR(UMOL_PHTN/M2/S)',   {'PAR', ''}};
 
   %
   % This array contains the column headers which must be in the input file.
@@ -299,12 +304,12 @@ function sample_data = readWQMdat( filename, mode )
         % WQM can provide Dissolved Oxygen in mmol/m3,
         % hopefully 1 mmol/m3 = 1 umol/l
         % exactly like we want it to be!
-        case 'DO(mmol/m^3)' % DOX1_1
+        case 'DO(MMOL/M^3)' % DOX1_1
             comment = 'Originally expressed in mmol/m3, 1l = 0.001m3 was assumed.';
             isUmolPerL = true;
             
         % convert dissolved oxygen in ml/l to umol/l
-        case 'DO(ml/l)' % DOX1_2
+        case 'DO(ML/L)' % DOX1_2
             comment = 'Originally expressed in ml/l, 1ml/l = 44.660umol/l was assumed.';
             isUmolPerL = true;
             
@@ -318,7 +323,7 @@ function sample_data = readWQMdat( filename, mode )
             data = data .* 44.660;
             
         % convert dissolved oxygen in mg/L to umol/l.
-        case 'DO(mg/l)' % DOX1_3
+        case 'DO(MG/L)' % DOX1_3
             data = data * 44.660/1.429; % O2 density = 1.429 kg/m3
             comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
             isUmolPerL = true;
@@ -432,7 +437,7 @@ while ~isThere && ~feof(fid)
     fields = fgetl(fid);
     if isempty(fields), continue; end
     fields = textscan(fields, '%s');
-    fields = fields{1};
+    fields = upper(fields{1});
     
     % test that required fields are present
     iThere = false(size(required, 1), 1);
@@ -477,7 +482,7 @@ end
 
 % serial and time/date
 % try to take into account files with State variable included
-if strcmp('State',fields{2})
+if strcmp('STATE',fields{2})
     switch jThere
         case 2
             nChar = 17;
