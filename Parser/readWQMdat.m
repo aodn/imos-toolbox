@@ -173,11 +173,11 @@ function sample_data = readWQMdat( filename, mode )
   %
   % This array contains the column headers which must be in the input file.
   %
-  required = {
+  required = upper({
     'SN',       'WQM-SN'
     'MMDDYY',   'MM/DD/YY'
     'HHMMSS',   'HH:MM:SS'
-  };
+  });
 
   % open file, get header and use it to generate a 
   % format string which we can pass to textscan
@@ -292,19 +292,19 @@ function sample_data = readWQMdat( filename, mode )
     data = samples{k-1};
     
     % some fields are not in IMOS uom - scale them so that they are
-    switch fields{k}
+    switch upper(fields{k})
         
         % WQM provides conductivity S/m; exactly like we want it to be!
         
         % WQM can provide Dissolved Oxygen in mmol/m3,
         % hopefully 1 mmol/m3 = 1 umol/l
         % exactly like we want it to be!
-        case 'DO(mmol/m^3)' % DOX1_1
+        case upper('DO(mmol/m^3)') % DOX1_1
             comment = 'Originally expressed in mmol/m3, 1l = 0.001m3 was assumed.';
             isUmolPerL = true;
             
         % convert dissolved oxygen in ml/l to umol/l
-        case 'DO(ml/l)' % DOX1_2
+        case upper('DO(ml/l)') % DOX1_2
             comment = 'Originally expressed in ml/l, 1ml/l = 44.660umol/l was assumed.';
             isUmolPerL = true;
             
@@ -318,7 +318,7 @@ function sample_data = readWQMdat( filename, mode )
             data = data .* 44.660;
             
         % convert dissolved oxygen in mg/L to umol/l.
-        case 'DO(mg/l)' % DOX1_3
+        case upper('DO(mg/l)') % DOX1_3
             data = data * 44.660/1.429; % O2 density = 1.429 kg/m3
             comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
             isUmolPerL = true;
@@ -438,8 +438,8 @@ while ~isThere && ~feof(fid)
     iThere = false(size(required, 1), 1);
     jThere = 1;
     for j=1:size(required, 2)
-        if sum(ismember(required(:,j), fields)) > sum(iThere)
-            iThere = ismember(required(:,j), fields);
+        if sum(ismember(required(:,j), upper(fields))) > sum(iThere)
+            iThere = ismember(required(:,j), upper(fields));
             jThere = j;
         end
         if all(iThere)
@@ -470,14 +470,14 @@ end
 format = '';
 
 % WQM column, if present
-if strcmp('WQM', fields{1})
+if strcmpi('WQM', fields{1})
     format = 'WQM ';
     fields(1) = [];
 end
 
 % serial and time/date
 % try to take into account files with State variable included
-if strcmp('State',fields{2})
+if strcmpi('State', fields{2})
     switch jThere
         case 2
             nChar = 17;
@@ -528,7 +528,7 @@ function [name, comment] = getParamDetails(field, params)
   entry = {};
   
   for k = 1:length(params)
-    if strcmp(params{k}{1}, field)
+    if strcmpi(params{k}{1}, field)
       entry = params{k};
       break;
     end
@@ -550,7 +550,7 @@ supported = false;
 
   for k = 1:length(params)
 
-    if strcmp(params{k}{1}, field)
+    if strcmpi(params{k}{1}, field)
       supported = true;
       break;
     end
