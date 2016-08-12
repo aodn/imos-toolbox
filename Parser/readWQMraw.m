@@ -249,10 +249,10 @@ function sample_data = readWQMraw( filename, mode )
     sample_data.variables{end}.comment                = comment;
     
     % WQM uses SeaBird pressure sensor
-    if strncmp('PRES_REL', sample_data.variables{k}.name, 8)
+    if strncmp('PRES_REL', sample_data.variables{end}.name, 8)
         % let's document the constant pressure atmosphere offset previously 
         % applied by SeaBird software on the absolute presure measurement
-        sample_data.variables{k}.applied_offset = sample_data.variables{k}.typeCastFunc(-14.7*0.689476);
+        sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
     end
   end
   
