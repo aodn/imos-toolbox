@@ -249,7 +249,7 @@ function sample_data = readWQMdat( filename, mode )
       if numel(timeBurst)>1 % deals with the case of a file with a single sample in a single burst
           sampleIntervalInBurst(i) = median(diff(timeBurst*24*3600));
           firstTimeBurst(i) = timeBurst(1);
-          durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600;
+          durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600 + sampleIntervalInBurst(i);
       end
   end
   
