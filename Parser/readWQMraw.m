@@ -159,7 +159,7 @@ function sample_data = readWQMraw( filename, mode )
       timeBurst = time(iBurst(i):iBurst(i+1)-1);
       sampleIntervalInBurst(i) = median(diff(timeBurst*24*3600));
       firstTimeBurst(i) = timeBurst(1);
-      durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600;
+      durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600 + sampleIntervalInBurst(i);
   end
   
   sample_data.meta.instrument_sample_interval   = round(median(sampleIntervalInBurst));
