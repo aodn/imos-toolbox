@@ -191,16 +191,17 @@ hLineVar(1) = 0;
 %now plot all the calculated depths on one plot to choose region for comparison:
 %plot
 fileName = genIMOSFileName(sample_data{1}, 'png');
-visible = 'on';
-if saveToFile, visible = 'off'; end
 hFigPress = figure(...
     'Name', title, ...
     'NumberTitle','off', ...
-    'Visible', visible, ...
     'OuterPosition', monitorRect(iBigMonitor, :));
 
-hAxPress = subplot(2,1,1,'Parent', hFigPress);
-hAxDepthDiff = subplot(2,1,2,'Parent', hFigPress);
+% create uipanel within figure so that screencapture can be
+% used on the plot only and without capturing all of the figure
+% (including buttons, menus...)
+hPanelMooringVar = uipanel('Parent', hFigPress);
+hAxPress     = subplot(2,1,1,'Parent', hPanelMooringVar);
+hAxDepthDiff = subplot(2,1,2,'Parent', hPanelMooringVar);
 
 %depth plot for selecting region to compare depth to planned depth
 set(hAxPress, 'YDir', 'reverse')
@@ -316,7 +317,7 @@ if isPlottable
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
         
-        fastSaveas(hFigPress, fullfile(exportDir, fileName));
+        fastSaveas(hFigPress, hPanelMooringVar, fullfile(exportDir, fileName));
         
         close(hFigPress);
     end

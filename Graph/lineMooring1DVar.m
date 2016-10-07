@@ -145,15 +145,17 @@ for i=1:lenSampleData
             all(~strncmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}, 4))
         if initiateFigure
             fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
-            visible = 'on';
-            if saveToFile, visible = 'off'; end
             hFigMooringVar = figure(...
                 'Name', title, ...
                 'NumberTitle','off', ...
-                'Visible', visible, ...
                 'OuterPosition', monitorRect(iBigMonitor, :));
             
-            hAxMooringVar = axes('Parent',   hFigMooringVar);
+            % create uipanel within figure so that screencapture can be
+            % used on the plot only and without capturing all of the figure
+            % (including buttons, menus...)
+            hPanelMooringVar = uipanel('Parent', hFigMooringVar);
+            hAxMooringVar = axes('Parent', hPanelMooringVar);
+            
             if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'})), set(hAxMooringVar, 'YDir', 'reverse'); end
             set(get(hAxMooringVar, 'XLabel'), 'String', 'Time');
             set(get(hAxMooringVar, 'YLabel'), 'String', [varName ' (' varUnit ')'], 'Interpreter', 'none');
@@ -291,7 +293,7 @@ if ~initiateFigure && isPlottable
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
         
-        fastSaveas(hFigMooringVar, fullfile(exportDir, fileName));
+        fastSaveas(hFigMooringVar, hPanelMooringVar, fullfile(exportDir, fileName));
         
         close(hFigMooringVar);
     end

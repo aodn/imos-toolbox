@@ -140,16 +140,18 @@ backgroundColor = [0.75 0.75 0.75];
 
 %plot
 fileName = genIMOSFileName(sample_data{iCurrSam}, 'png');
-visible = 'on';
-if saveToFile, visible = 'off'; end
 hFigPressDiff = figure(...
     'Name', title, ...
     'NumberTitle','off', ...
-    'Visible', visible, ...
     'OuterPosition', monitorRect(iBigMonitor, :));
 
+% create uipanel within figure so that screencapture can be
+% used on the plot only and without capturing all of the figure
+% (including buttons, menus...)
+hPanelMooringVar = uipanel('Parent', hFigPressDiff);
+
 %pressure plot
-hAxPress = subplot(2,1,1,'Parent', hFigPressDiff);
+hAxPress = subplot(2,1,1,'Parent', hPanelMooringVar);
 set(hAxPress, 'YDir', 'reverse')
 set(get(hAxPress, 'XLabel'), 'String', 'Time');
 set(get(hAxPress, 'YLabel'), 'String', [presRelCode ' (' varUnit ')'], 'Interpreter', 'none');
@@ -159,7 +161,7 @@ set(hAxPress, 'XLim', [xMin, xMax]);
 hold(hAxPress, 'on');
 
 %Pressure diff plot
-hAxPressDiff = subplot(2,1,2,'Parent', hFigPressDiff);
+hAxPressDiff = subplot(2,1,2,'Parent', hPanelMooringVar);
 set(get(hAxPressDiff, 'XLabel'), 'String', 'Time');
 set(get(hAxPressDiff, 'YLabel'), 'String', [presRelCode ' (' varUnit ')'], 'Interpreter', 'none');
 set(get(hAxPressDiff, 'Title'), 'String', ...
@@ -332,7 +334,7 @@ if isPlottable
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
         
-        fastSaveas(hFigPressDiff, fullfile(exportDir, fileName));
+        fastSaveas(hFigPressDiff, hPanelMooringVar, fullfile(exportDir, fileName));
         
         close(hFigPressDiff);
     end
