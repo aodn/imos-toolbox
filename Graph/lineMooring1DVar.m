@@ -288,21 +288,11 @@ if ~initiateFigure && isPlottable
     end
     
     if saveToFile
-        % ensure the printed version is the same whatever the screen used.
-        set(hFigMooringVar, 'PaperPositionMode', 'manual');
-        set(hFigMooringVar, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
-        
-        % preserve the color scheme
-        set(hFigMooringVar, 'InvertHardcopy', 'off');
-        
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
         
-        % use hardcopy as a trick to go faster than print.
-        % opengl (hardware or software) should be supported by any platform and go at least just as
-        % fast as zbuffer. With hardware accelaration supported, could even go a
-        % lot faster.
-        imwrite(hardcopy(hFigMooringVar, '-dopengl'), fullfile(exportDir, fileName), 'png');
+        fastSaveas(hFigMooringVar, fullfile(exportDir, fileName));
+        
         close(hFigMooringVar);
     end
 end

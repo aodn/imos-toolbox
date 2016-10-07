@@ -266,20 +266,9 @@ if ~initiateFigure
 end
     
 if saveToFile
-    % ensure the printed version is the same whatever the screen used.
-    set(hFigVarSection, 'PaperPositionMode', 'manual');
-    set(hFigVarSection, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
-    
-    % preserve the color scheme
-    set(hFigVarSection, 'InvertHardcopy', 'off');
-    
     fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_'); % IMOS_[sub-facility_code]_[platform_code]_FV01_[time_coverage_start]_[PLOT-TYPE]_C-[creation_date].png
     
-    % use hardcopy as a trick to go faster than print.
-    % opengl (hardware or software) should be supported by any platform and go at least just as
-    % fast as zbuffer. With hardware accelaration supported, could even go a
-    % lot faster.
-    imwrite(hardcopy(hFigVarSection, '-dopengl'), fullfile(exportDir, fileName), 'png');
+    fastSaveas(hFigVarSection, fullfile(exportDir, fileName));
     
     close(hFigVarSection);
 end
