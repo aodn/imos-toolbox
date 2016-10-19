@@ -144,28 +144,17 @@ for i=1:lenSampleData
             size(sample_data{iSort(i)}.variables{iVar}.data, 3) == 1 % we're only plotting ADCP 2D variables
         if initiateFigure
             fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
-            visible = 'on';
-            if saveToFile, visible = 'off'; end
             hFigMooringVar = figure(...
                 'Name', title, ...
                 'NumberTitle', 'off', ...
-                'Visible', visible, ...
                 'OuterPosition', monitorRect(iBigMonitor, :));
             
-            if saveToFile
-                % the default renderer under windows is opengl; for some reason,
-                % printing pcolor plots fails when using opengl as the renderer
-                set(hFigMooringVar, 'Renderer', 'zbuffer');
-                
-                % ensure the printed version is the same whatever the screen used.
-                set(hFigMooringVar, 'PaperPositionMode', 'manual');
-                set(hFigMooringVar, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
-                
-                % preserve the color scheme
-                set(hFigMooringVar, 'InvertHardcopy', 'off');
-            end
+            % create uipanel within figure so that screencapture can be
+            % used on the plot only and without capturing all of the figure
+            % (including buttons, menus...)
+            hPanelMooringVar = uipanel('Parent', hFigMooringVar);
+            hAxMooringVar = axes('Parent', hPanelMooringVar);
             
-            hAxMooringVar = axes('Parent',   hFigMooringVar);
             set(get(hAxMooringVar, 'XLabel'), 'String', 'Time');
             set(get(hAxMooringVar, 'YLabel'), 'String', [nameHeight ' (m)'], 'Interpreter', 'none');
             set(get(hAxMooringVar, 'Title'), 'String', sprintf('%s\n%s', title, instrumentDesc{i}), 'Interpreter', 'none');
@@ -261,11 +250,8 @@ if ~initiateFigure
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_PCOLOR_');
         
-        % use hardcopy as a trick to go faster than print.
-        % opengl (hardware or software) should be supported by any platform and go at least just as
-        % fast as zbuffer. With hardware accelaration supported, could even go a
-        % lot faster.
-        imwrite(hardcopy(hFigMooringVar, '-dopengl'), fullfile(exportDir, fileName), 'png');
+        fastSaveas(hFigMooringVar, hPanelMooringVar, fullfile(exportDir, fileName));
+        
         close(hFigMooringVar);
     end
 end

@@ -259,15 +259,17 @@ if any(isPlottable)
         if isPlottable(i)
             if initiateFigure
                 fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
-                visible = 'on';
-                if saveToFile, visible = 'off'; end
                 hFigMooringVar = figure(...
                     'Name', title, ...
                     'NumberTitle', 'off', ...
-                    'Visible', visible, ...
                     'OuterPosition', monitorRect(iBigMonitor, :));
                 
-                hAxMooringVar = axes('Parent',   hFigMooringVar);
+                % create uipanel within figure so that screencapture can be
+                % used on the plot only and without capturing all of the figure
+                % (including buttons, menus...)
+                hPanelMooringVar = uipanel('Parent', hFigMooringVar);
+                hAxMooringVar = axes('Parent', hPanelMooringVar);
+            
                 set(hAxMooringVar, 'YDir', 'reverse');
                 set(get(hAxMooringVar, 'XLabel'), 'String', 'Time');
                 set(get(hAxMooringVar, 'YLabel'), 'String', 'DEPTH (m)', 'Interpreter', 'none');
@@ -489,21 +491,11 @@ if ~initiateFigure
     %     set(hLegend, 'Box', 'off', 'Color', 'none');
     
     if saveToFile
-        % ensure the printed version is the same whatever the screen used.
-        set(hFigMooringVar, 'PaperPositionMode', 'manual');
-        set(hFigMooringVar, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
-        
-        % preserve the color scheme
-        set(hFigMooringVar, 'InvertHardcopy', 'off');
-        
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_SCATTER_');
         
-        % use hardcopy as a trick to go faster than print.
-        % opengl (hardware or software) should be supported by any platform and go at least just as
-        % fast as zbuffer. With hardware accelaration supported, could even go a
-        % lot faster.
-        imwrite(hardcopy(hFigMooringVar, '-dopengl'), fullfile(exportDir, fileName), 'png');
+        fastSaveas(hFigMooringVar, hPanelMooringVar, fullfile(exportDir, fileName));
+        
         close(hFigMooringVar);
     end
 end

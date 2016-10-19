@@ -127,19 +127,21 @@ for k=1:lenVarNames
         if iVar > 0
             if initiateFigure
                 fileName = genIMOSFileName(sample_data{i}, 'png');
-                visible = 'on';
-                if saveToFile, visible = 'off'; end
                 hFigCastVar = figure(...
                     'Name', title, ...
                     'NumberTitle','off', ...
-                    'Visible', visible, ...
                     'OuterPosition', monitorRect(iBigMonitor, :));
+                
+                % create uipanel within figure so that screencapture can be
+                % used on the plot only and without capturing all of the figure
+                % (including buttons, menus...)
+                hPanelCastVar = uipanel('Parent', hFigCastVar);
                 
                 initiateFigure = false;
             end
                        
             if i==1
-                hAxCastVar = subplot(1, lenVarNames, k);
+                hAxCastVar = subplot(1, lenVarNames, k, 'Parent', hPanelCastVar);
                 set(hAxCastVar, 'YDir', 'reverse');
                 set(get(hAxCastVar, 'Title'), 'String', title, 'Interpreter', 'none');
                 set(get(hAxCastVar, 'XLabel'), 'String', varName, 'Interpreter', 'none');
@@ -303,20 +305,9 @@ for k=1:lenVarNames
 end
     
 if saveToFile
-    % ensure the printed version is the same whatever the screen used.
-    set(hFigCastVar, 'PaperPositionMode', 'manual');
-    set(hFigCastVar, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
-    
-    % preserve the color scheme
-    set(hFigCastVar, 'InvertHardcopy', 'off');
-    
     fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_'); % IMOS_[sub-facility_code]_[platform_code]_FV01_[time_coverage_start]_[PLOT-TYPE]_C-[creation_date].png
     
-    % use hardcopy as a trick to go faster than print.
-    % opengl (hardware or software) should be supported by any platform and go at least just as
-    % fast as zbuffer. With hardware accelaration supported, could even go a
-    % lot faster.
-    imwrite(hardcopy(hFigCastVar, '-dopengl'), fullfile(exportDir, fileName), 'png');
+    fastSaveas(hFigCastVar, hPanelCastVar, fullfile(exportDir, fileName));
     
     close(hFigCastVar);
 end

@@ -117,23 +117,25 @@ backgroundColor = [0.75 0.75 0.75];
 if iVar > 0
     if initiateFigure
         fileName = genIMOSFileName(sample_data, 'png');
-        visible = 'on';
-        if saveToFile, visible = 'off'; end
         hFigVarSection = figure(...
             'Name', title, ...
             'NumberTitle','off', ...
-            'Visible', visible, ...
             'OuterPosition', monitorRect(iBigMonitor, :));
         
+        % create uipanel within figure so that screencapture can be
+        % used on the plot only and without capturing all of the figure
+        % (including buttons, menus...)
+        hPanelVarSection = uipanel('Parent', hFigVarSection);
+            
         initiateFigure = false;
     end
     
-    hAxCastVar = axes;
-    set(get(hAxCastVar, 'Title'), 'String', title, 'Interpreter', 'none');
-    set(get(hAxCastVar, 'XLabel'), 'String', [varTitle ' (' varUnit ')'], 'Interpreter', 'none');
-    set(get(hAxCastVar, 'YLabel'), 'String', [dimTitle ' (' dimUnit ')'], 'Interpreter', 'none');
+    hAxVarSection = axes('Parent', hPanelVarSection);
+    set(get(hAxVarSection, 'Title'), 'String', title, 'Interpreter', 'none');
+    set(get(hAxVarSection, 'XLabel'), 'String', [varTitle ' (' varUnit ')'], 'Interpreter', 'none');
+    set(get(hAxVarSection, 'YLabel'), 'String', [dimTitle ' (' dimUnit ')'], 'Interpreter', 'none');
     
-    hold(hAxCastVar, 'on');
+    hold(hAxVarSection, 'on');
     
     % dummy entry for first entry in legend
     hLineVar(1) = plot(0, 0, 'o', 'color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
@@ -145,8 +147,8 @@ if iVar > 0
         yLine, ...
         'LineStyle', '-');
     
-    xLim = get(hAxCastVar, 'XLim');
-    yLim = get(hAxCastVar, 'YLim');
+    xLim = get(hAxVarSection, 'XLim');
+    yLim = get(hAxVarSection, 'YLim');
     
     %get var QC information
     varFlags = sample_data.variables{iVar}.flags(iX);
@@ -238,13 +240,13 @@ if iVar > 0
     
     % Let's redefine properties after line to make sure grid lines appear
     % above color data and XTick and XTickLabel haven't changed
-    set(hAxCastVar, ...
+    set(hAxVarSection, ...
         'XGrid',        'on', ...
         'YGrid',        'on', ...
         'Layer',        'top');
     
     % set background to be grey
-    set(hAxCastVar, 'Color', backgroundColor)
+    set(hAxVarSection, 'Color', backgroundColor)
 end
 
 if ~initiateFigure
@@ -258,7 +260,7 @@ if ~initiateFigure
     instrumentDesc = [instrumentDesc; flagDesc];
     % Matlab >R2015 legend entries for data which are not plotted 
 	% will be shown with reduced opacity
-    hLegend = legend(hAxCastVar, ...
+    hLegend = legend(hAxVarSection, ...
         hLineVar,       regexprep(instrumentDesc,'_','\_'), ...
         'Interpreter',  'none', ...
         'Location',     'SouthOutside');
@@ -266,20 +268,9 @@ if ~initiateFigure
 end
     
 if saveToFile
-    % ensure the printed version is the same whatever the screen used.
-    set(hFigVarSection, 'PaperPositionMode', 'manual');
-    set(hFigVarSection, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
-    
-    % preserve the color scheme
-    set(hFigVarSection, 'InvertHardcopy', 'off');
-    
     fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_'); % IMOS_[sub-facility_code]_[platform_code]_FV01_[time_coverage_start]_[PLOT-TYPE]_C-[creation_date].png
     
-    % use hardcopy as a trick to go faster than print.
-    % opengl (hardware or software) should be supported by any platform and go at least just as
-    % fast as zbuffer. With hardware accelaration supported, could even go a
-    % lot faster.
-    imwrite(hardcopy(hFigVarSection, '-dopengl'), fullfile(exportDir, fileName), 'png');
+    fastSaveas(hFigVarSection, hPanelVarSection, fullfile(exportDir, fileName));
     
     close(hFigVarSection);
 end
