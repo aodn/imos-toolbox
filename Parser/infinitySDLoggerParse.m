@@ -58,7 +58,7 @@ try
     fclose(fid);
     
     [header, iData] = readHeader(rawText{1});
-    data            = readData(filename, iData);
+    data            = readData(rawText{1}(iData:end));
 catch e
     if fid ~= -1, fclose(fid); end
     rethrow(e);
@@ -134,39 +134,41 @@ function [header, iData] = readHeader(rawText)
   nFields = length(headerCell);
   for i=1:nFields
       tuple = textscan(headerCell{i}, fmtHeader, 'Delimiter', delimHeader);
-      header.(tuple{1}{1}) = tuple{2}{1};
+      if ~isempty(tuple{2})
+          header.(tuple{1}{1}) = tuple{2}{1};
+      end
   end
 end
 
-function data = readData(filename, iData)
+function data = readData(rawTextData)
 %READDATA Reads the sample data from the file.
 
   data = struct;
   dataDelim = ','; 
   
-  fid = fopen(filename, 'rt');
-  params = textscan(fid, '%s', 1, 'HeaderLines', iData, 'Delimiter', '');
-  params = params{1};
+  params = rawTextData{2};
   iParams = strfind(params, ',');
-  nParams = length(iParams{1});
+  nParams = length(iParams);
   paramsFmt = repmat('%s', 1, nParams);
-  params = textscan(params{1}, paramsFmt, 'Delimiter', dataDelim);
+  params = textscan(params, paramsFmt, 'Delimiter', dataDelim);
   dataFmt = ['%s', repmat('%f', 1, nParams-1)];
-  values = textscan(fid, dataFmt, 'Delimiter', dataDelim);
-  fclose(fid);
+  
+  nData = length(rawTextData(3:end));
+  values = cellfun(@textscan, rawTextData(3:end), repmat({dataFmt}, nData, 1), repmat({'Delimiter'}, nData, 1), repmat({dataDelim}, nData, 1), 'UniformOutput', false);
+  values = vertcat(values{:});
   
   for i=1:nParams
       switch params{i}{1}
-          case 'Date'
-              data.TIME.values = datenum(values{i}, 'yyyy/mm/dd HH:MM:SS');
+          case {'Date', 'Meas date'}
+              data.TIME.values = datenum(vertcat(values{:,i}), 'yyyy/mm/dd HH:MM:SS');
               data.TIME.comment = '';
               
-          case 'Temp.[deg C]'
-              data.TEMP.values = values{i};
+          case {'Temp.[deg C]', 'Temp.[degC]'}
+              data.TEMP.values = vertcat(values{:,i});
               data.TEMP.comment = '';
               
           case 'Chl-a[ug/l]'
-              data.CPHL.values = values{i};
+              data.CPHL.values = vertcat(values{:,i});
               data.CPHL.comment = ['Artificial chlorophyll data '...
                   'computed from bio-optical sensor raw counts measurements. The '...
                   'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
@@ -174,8 +176,8 @@ function data = readData(filename, iData)
                   'that fluoresces in the region of 650nm to 1000nm. '...
                   'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'];
               
-          case 'Turb. -M[FTU]'
-              data.TURBF.values = values{i};
+          case {'Turb. -M[FTU]', 'Turb.-M[FTU]'}
+              data.TURBF.values = vertcat(values{:,i});
               data.TURBF.comment = ['Turbidity data '...
                   'computed from bio-optical sensor raw counts measurements. The '...
                   'turbidity sensor is equipped with a 880nm peak wavelength LED to irradiate and a '...
@@ -183,7 +185,7 @@ function data = readData(filename, iData)
                   'that backscatters in the region of 650nm to 1000nm.'];
               
           case 'Batt.[V]'
-              data.VOLT.values = values{i};
+              data.VOLT.values = vertcat(values{:,i});
               data.VOLT.comment = '';
               
       end
