@@ -1,18 +1,21 @@
 % filename or ODBC DSN of MS-ACCESS deployment database
 % ex. : /home/ggalibert/OceanDB.mdb or imos-ddb
-toolbox.ddb = 
+%toolbox.ddb = IMOS-DEPLOY
+toolbox.ddb =
 
 % or full connection details to other kind of deployment database :
 % class name of JDBC database driver
 % ex. : net.ucanaccess.jdbc.UcanaccessDriver
-toolbox.ddb.driver = 
+%toolbox.ddb.driver =
+toolbox.ddb.driver = org.postgresql.Driver
 
 % database connection string, must include user and password if required by the database
 % ex. : "jdbc:ucanaccess:///home/ggalibert/OceanDB.mdb;jackcessOpener=org.imos.ddb.CryptCodecOpener"
-toolbox.ddb.connection = 
+toolbox.ddb.connection = jdbc:postgresql://localhost/IMOS-DEPLOY
 
 % user's login and password to database
-toolbox.ddb.user = 
+%toolbox.ddb.user = 
+toolbox.ddb.user = pete
 toolbox.ddb.password = 
 
 % toolbox execution mode. Values can be 'timeSeries' or 'profile'. 
@@ -40,7 +43,7 @@ autoQCManager.autoQCDefaultChain.timeSeries = imosImpossibleDateQC imosImpossibl
 autoQCManager.autoQCDefaultChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
 
 % last selected set of auto QC routines
-autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosCorrMagVelocitySetQC imosHistoricalManualSetQC
+autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosSalinityFromPTQC imosHistoricalManualSetQC
 autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
 
 % prompt for preprocessing (if false, 
@@ -63,20 +66,20 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % last selected values for start dialog
-startDialog.dataDir.timeSeries = 
+startDialog.dataDir.timeSeries = /Users/pete/ABOS/git/imos-toolbox
 startDialog.dataDir.profile = 
-startDialog.fieldTrip.timeSeries = 
+startDialog.fieldTrip.timeSeries = SOTS-2016-04-14
 startDialog.fieldTrip.profile = 
-startDialog.lowDate.timeSeries = 
+startDialog.lowDate.timeSeries = 0
 startDialog.lowDate.profile = 
-startDialog.highDate.timeSeries = 
+startDialog.highDate.timeSeries = 736626.1097
 startDialog.highDate.profile = 
 
 % last selected directory for manual data import
 importManager.manualDir = 
 
 % last selected directory for file export
-exportDialog.defaultDir = 
+exportDialog.defaultDir = /Users/pete/ABOS/git/imos-toolbox/data
 
 % prompt user to select parser if an appropriate one 
 % cannot be found (if false, the data is not imported)
