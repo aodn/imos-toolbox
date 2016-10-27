@@ -171,6 +171,29 @@ for k = 1:length(sample_data)
         end
     end
     
+    % let's look for remaining variables assigned to DIST_ALONG_BEAMS,
+    % if none we can remove this dimension
+    isDistAlongBeamsUsed = false;
+    for j=1:length(sample_data{k}.variables)
+        if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx)
+            isDistAlongBeamsUsed = true;
+            break;
+        end
+    end
+    if ~isDistAlongBeamsUsed
+        if length(sample_data{k}.dimensions) > distAlongBeamsIdx
+            for j=1:length(sample_data{k}.variables)
+                dimToUpdate = sample_data{k}.variables{j}.dimensions > distAlongBeamsIdx;
+                if any(dimToUpdate)
+                    sample_data{k}.variables{j}.dimensions(dimToUpdate) = sample_data{k}.variables{j}.dimensions(dimToUpdate) - 1;
+                end
+            end
+        end
+        sample_data{k}.dimensions(distAlongBeamsIdx) = [];
+        
+        Beam2EnuComment = [Beam2EnuComment ' DIST_ALONG_BEAMS is not used by any variable left and has been removed.'];
+    end
+    
     if ~isfield(sample_data{k}, 'history')
         sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), Beam2EnuComment);
     else

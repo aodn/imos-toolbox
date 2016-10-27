@@ -148,9 +148,10 @@ for k = 1:length(sample_data)
     % impacted parameter
     isBinMapApplied = false;
     for j=1:length(sample_data{k}.variables)
-        if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx) ... % only process variables that are function of DIST_ALONG_BEAMS
+        if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx) % only process variables that are function of DIST_ALONG_BEAMS
             
-            beamNumber = sample_data{k}.variables{j}.name(end);
+            % only process variables that are in beam coordinates
+            beamNumber = sample_data{k}.variables{j}.long_name(end);
             switch beamNumber
                 case '1'
                     nonMappedHeightAboveSensor = nonMappedHeightAboveSensorBeam1;
@@ -187,23 +188,26 @@ for k = 1:length(sample_data)
 %                 mappedData(i,iLastGoodBin) = interp1(nonMappedHeightAboveSensor(i,:), nonMappedData(i,:), mappedHeightAboveSensor(i,iLastGoodBin), 'spline');
             end
             
-            binMappingComment = ['adcpBinMappingPP.m: data in beam coordinates originally referenced to DISTANCE_ALONG_BEAMS ' ...
+            binMappingComment = ['adcpBinMappingPP.m: data in beam coordinates originally referenced to DIST_ALONG_BEAMS ' ...
                 'has been vertically bin-mapped to HEIGHT_ABOVE_SENSOR using tilt information.'];
             
-            % we create the HEIGHT_ABOVE_SENSOR dimension if needed
             if ~heightAboveSensorIdx
-                sample_data{k}.dimensions{end+1}            = sample_data{k}.dimensions{distAlongBeamsIdx};
-                sample_data{k}.dimensions{end}.name         = 'HEIGHT_ABOVE_SENSOR';
-                sample_data{k}.dimensions{end}.long_name    = 'height_above_sensor';
-                sample_data{k}.dimensions{end}.axis         = 'Z';
-                sample_data{k}.dimensions{end}.positive     = 'up';
-                sample_data{k}.dimensions{end}.comment      = ['Data has been vertically bin-mapped using tilt information so that the cells ' ...
+                % we create the HEIGHT_ABOVE_SENSOR dimension if needed
+                sample_data{k}.dimensions{end+1}             = sample_data{k}.dimensions{distAlongBeamsIdx};
+                
+                % attributes units, reference_datum, valid_min/max and _FillValue are the same as with DIST_ALONG_BEAMS, the rest differs
+                sample_data{k}.dimensions{end}.name            = 'HEIGHT_ABOVE_SENSOR';
+                sample_data{k}.dimensions{end}.long_name       = 'height_above_sensor';
+                sample_data{k}.dimensions{end}.standard_name   = imosParameters('HEIGHT_ABOVE_SENSOR', 'standard_name');
+                sample_data{k}.dimensions{end}.axis            = 'Z';
+                sample_data{k}.dimensions{end}.positive        = imosParameters('HEIGHT_ABOVE_SENSOR', 'positive');
+                sample_data{k}.dimensions{end}.comment         = ['Data has been vertically bin-mapped using tilt information so that the cells ' ...
                     'have consistant heights above sensor in time.'];
                 
                 heightAboveSensorIdx = getVar(sample_data{k}.dimensions, 'HEIGHT_ABOVE_SENSOR');
             end
             
-            % we re-assign the parameter to this dimension
+            % we re-assign the parameter to the HEIGHT_ABOVE_SENSOR dimension
             sample_data{k}.variables{j}.dimensions(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx) = heightAboveSensorIdx;
                 
             sample_data{k}.variables{j}.data = mappedData;
@@ -220,6 +224,29 @@ for k = 1:length(sample_data)
     end
     
     if isBinMapApplied
+        % let's look for remaining variables assigned to DIST_ALONG_BEAMS,
+        % if none we can remove this dimension (RDI for example)
+        isDistAlongBeamsUsed = false;
+        for j=1:length(sample_data{k}.variables)
+            if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx)
+                isDistAlongBeamsUsed = true;
+                break;
+            end
+        end
+        if ~isDistAlongBeamsUsed
+            if length(sample_data{k}.dimensions) > distAlongBeamsIdx
+                for j=1:length(sample_data{k}.variables)
+                    dimToUpdate = sample_data{k}.variables{j}.dimensions > distAlongBeamsIdx;
+                    if any(dimToUpdate)
+                        sample_data{k}.variables{j}.dimensions(dimToUpdate) = sample_data{k}.variables{j}.dimensions(dimToUpdate) - 1;
+                    end
+                end
+            end
+            sample_data{k}.dimensions(distAlongBeamsIdx) = [];
+            
+            binMappingComment = [binMappingComment ' DIST_ALONG_BEAMS is not used by any variable left and has been removed.'];
+        end
+        
         history = sample_data{k}.history;
         if isempty(history)
             sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), binMappingComment);
