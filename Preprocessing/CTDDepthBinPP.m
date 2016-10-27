@@ -87,7 +87,10 @@ for k=1:length(sample_data) % going through different casts
        zend = zbin(2:end);
        
        z = (zstart + zend)/2; % depth of the actual centre of each bin
-       curSam.dimensions{iDepth}.data = z(:);
+       
+       curSam.dimensions{iDepth}.data = z(:); % update dimension and global attribute values
+       curSam.geospatial_vertical_min = min(z(:));
+       curSam.geospatial_vertical_max = max(z(:));
        
        [Z, ZSTART] = meshgrid(depth, zstart);
        [~, ZEND] = meshgrid(depth, zend);
