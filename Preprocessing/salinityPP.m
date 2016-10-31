@@ -125,6 +125,10 @@ for k = 1:length(sample_data)
           presName = 'instrument_nominal_depth';
       end
       
+      % any depth values <= -5 are discarded (reminder, depth is
+      % positive down), this allow use of gsw_p_from_z without error.
+      depth(depth <= -5) = NaN;
+      
       % pressure information needed for Salinity computation is either
       % retrieved from gsw_p_from_z when latitude is available or by 
       % simply assuming 1dbar ~= 1m
