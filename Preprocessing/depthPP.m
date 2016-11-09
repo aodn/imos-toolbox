@@ -568,6 +568,12 @@ for k = 1:length(sample_data)
         dimensions, ...
         computedDepthComment, ...
         coordinates);
+    
+    % update vertical min/max from new computed DEPTH
+    sample_data{k}.geospatial_vertical_min = min(computedDepth);
+    sample_data{k}.geospatial_vertical_max = max(computedDepth);
+    sample_data{k}.comment = strrep(sample_data{k}.comment, 'NOMINAL_DEPTH', 'DEPTH min and max');
+    
     clear computedDepth;
     
     history = sample_data{k}.history;
@@ -591,8 +597,6 @@ for k = 1:length(sample_data)
             end
             
     end
-    
-    % update vertical min/max from new computed DEPTH
-    sample_data{k} = populateMetadata(sample_data{k});
+
     clear curSam;
 end
