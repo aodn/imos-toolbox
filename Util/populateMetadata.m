@@ -143,159 +143,26 @@ function sample_data = populateMetadata( sample_data )
       
       metadataChanged = true;
   else
-      % Update from PRES if available
-      if ivPres > 0 || ivPresRel > 0
-          if ivPresRel == 0
-              % update from a relative pressure like SeaBird computes
-              % it in its processed files, substracting a constant value
-              % 10.1325 dbar for nominal atmospheric pressure
-              relPres = sample_data.variables{ivPres}.data - gsw_P0/10^4;
-              presComment = ['absolute '...
-                  'pressure measurements to which a nominal '...
-                  'value for atmospheric pressure (10.1325 dbar) '...
-                  'has been substracted'];
-              iNanRelPres = isnan(relPres);
-          else
-              % update from a relative measured pressure
-              relPres = sample_data.variables{ivPresRel}.data;
-              presComment = ['relative '...
-                  'pressure measurements (calibration offset '...
-                  'usually performed to balance current '...
-                  'atmospheric pressure and acute sensor '...
-                  'precision at a deployed depth)'];
-              iNanRelPres = isnan(relPres);
-          end
-          if ~isempty(sample_data.geospatial_lat_min) && ~isempty(sample_data.geospatial_lat_max)
-              % compute vertical min/max with Gibbs-SeaWater toolbox (TEOS-10)
-              if sample_data.geospatial_lat_min == sample_data.geospatial_lat_max
-                  computedDepth         = - gsw_z_from_p(relPres, ...
-                      sample_data.geospatial_lat_min);
-                  computedMinDepth      = - gsw_z_from_p(min(relPres(~iNanRelPres)), ...
-                      sample_data.geospatial_lat_min);
-                  computedMaxDepth      = - gsw_z_from_p(max(relPres(~iNanRelPres)), ...
-                      sample_data.geospatial_lat_min);
-                  computedDepthComment  = ['depthPP: Depth computed using the '...
-                      'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from latitude and '...
-                      presComment '.'];
-              else
-                  meanLat = sample_data.geospatial_lat_min + ...
-                      (sample_data.geospatial_lat_max - sample_data.geospatial_lat_min)/2;
-                  
-                  computedDepth         = - gsw_z_from_p(relPres, meanLat);
-                  computedMinDepth      = - gsw_z_from_p(min(relPres(~iNanRelPres)), meanLat);
-                  computedMaxDepth      = - gsw_z_from_p(max(relPres(~iNanRelPres)), meanLat);
-                  computedDepthComment  = ['depthPP: Depth computed using the '...
-                      'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from mean latitude and '...
-                      presComment '.'];
-              end
-          else
-              % without latitude information, we assume 1dbar ~= 1m
-              computedDepth         = relPres;
-              computedMinDepth      = min(relPres(~iNanRelPres));
-              computedMaxDepth      = max(relPres(~iNanRelPres));
-              computedDepthComment  = ['depthPP: Depth computed from '...
-                  presComment ', assuming 1dbar ~= 1m.'];
+      % Update from NOMINAL_DEPTH if available
+      if ivNomDepth > 0
+          % Update from NOMINAL_DEPTH data
+          dataNominalDepth = sample_data.variables{ivNomDepth}.data;
+          iNan = isnan(dataNominalDepth);
+          dataNominalDepth = dataNominalDepth(~iNan);
+          
+          verticalComment = ['Geospatial vertical min/max information has '...
+              'been filled using the NOMINAL_DEPTH.'];
+          
+          sample_data.geospatial_vertical_min = dataNominalDepth;
+          sample_data.geospatial_vertical_max = dataNominalDepth;
+          
+          if isempty(sample_data.comment)
+              sample_data.comment = verticalComment;
+          elseif ~strcmpi(sample_data.comment, verticalComment)
+              sample_data.comment = [sample_data.comment ' ' verticalComment];
           end
           
-          if idHeight > 0
-              % ADCP
-              if all(sample_data.dimensions{idHeight}.data >= 0) % upward looking configuration
-                  maxDistance = max(sample_data.dimensions{idHeight}.data); % HEIGHT_ABOVE_SENSOR is positive when upward
-                  % update vertical min/max metadata from data
-                  % we assume that depth data is reliable
-                  if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
-                      
-                      sample_data.geospatial_vertical_min = computedMinDepth - maxDistance;
-                      sample_data.geospatial_vertical_max = computedMaxDepth;
-                      comment = computedDepthComment;
-                      
-                      if isempty(sample_data.comment)
-                          sample_data.comment = comment;
-                      elseif ~strcmpi(sample_data.comment, comment)
-                          sample_data.comment = [sample_data.comment ' ' comment];
-                      end
-                      
-                      metadataChanged = true;
-                  end
-              else % downward looking configuration
-                  maxDistance = - min(sample_data.dimensions{idHeight}.data); % HEIGHT_ABOVE_SENSOR is negative when downward
-                  % update vertical min/max metadata from data
-                  % we assume that depth data is reliable
-                  if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
-                      
-                      sample_data.geospatial_vertical_min = computedMinDepth;
-                      sample_data.geospatial_vertical_max = computedMaxDepth + maxDistance;
-                      comment = computedDepthComment;
-                      
-                      if isempty(sample_data.comment)
-                          sample_data.comment = comment;
-                      elseif ~strcmpi(sample_data.comment, comment)
-                          sample_data.comment = [sample_data.comment ' ' comment];
-                      end
-                      
-                      metadataChanged = true;
-                  end
-              end
-          else
-              % Not an ADCP, so we can update existing DEPTH dimension/variable from PRES data
-              if idDepth > 0
-                  sample_data.dimensions{idDepth}.data = sample_data.dimensions{idDepth}.typeCastFunc(computedDepth);
-                  comment = sample_data.dimensions{idDepth}.comment;
-                  if isempty(comment)
-                      sample_data.dimensions{idDepth}.comment = computedDepthComment;
-                  elseif ~strcmpi(computedDepthComment, comment)
-                      sample_data.dimensions{idDepth}.comment = [comment ' ' computedDepthComment];
-                  end
-                  metadataChanged = true;
-              end
-              if ivDepth > 0
-                  sample_data.variables{ivDepth}.data = sample_data.variables{ivDepth}.typeCastFunc(computedDepth);
-                  comment = sample_data.variables{ivDepth}.comment;
-                  if isempty(comment)
-                      sample_data.variables{ivDepth}.comment = computedDepthComment;
-                  elseif ~strcmpi(computedDepthComment, comment)
-                      sample_data.variables{ivDepth}.comment = [comment ' ' computedDepthComment];
-                  end
-                  metadataChanged = true;
-              end
-          
-              if isempty(sample_data.geospatial_vertical_min) && isempty(sample_data.geospatial_vertical_max)
-                  
-                  sample_data.geospatial_vertical_min = computedMinDepth;
-                  sample_data.geospatial_vertical_max = computedMaxDepth;
-                  comment = computedDepthComment;
-                  
-                  metadataChanged = true;
-                  
-                  if isempty(sample_data.comment)
-                      sample_data.comment = comment;
-                  elseif ~strcmpi(sample_data.comment, comment)
-                      sample_data.comment = [sample_data.comment ' ' comment];
-                  end
-              end
-          end
-      else
-          % Update from NOMINAL_DEPTH if available
-          if ivNomDepth > 0
-              % Update from NOMINAL_DEPTH data
-              dataNominalDepth = sample_data.variables{ivNomDepth}.data;
-              iNan = isnan(dataNominalDepth);
-              dataNominalDepth = dataNominalDepth(~iNan);
-              
-              verticalComment = ['Geospatial vertical min/max information has '...
-                  'been filled using the NOMINAL_DEPTH.'];
-              
-              sample_data.geospatial_vertical_min = dataNominalDepth;
-              sample_data.geospatial_vertical_max = dataNominalDepth;
-              
-              if isempty(sample_data.comment)
-                  sample_data.comment = verticalComment;
-              elseif ~strcmpi(sample_data.comment, verticalComment)
-                  sample_data.comment = [sample_data.comment ' ' verticalComment];
-              end
-              
-              metadataChanged = true;
-          end
+          metadataChanged = true;
       end
   end
   
