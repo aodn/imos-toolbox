@@ -177,6 +177,9 @@ function sample_data = timeMetaOffsetPP(sample_data, qcLevel, auto)
       % this set has been deselected
       if ~sets(k), continue; end
       
+      % no offset to be applied on this dataset
+      if offsets(k) == 0, continue; end
+      
       % otherwise apply the offset
       sample_data{k}.time_deployment_start = ...
           sample_data{k}.time_deployment_start      + (offsets(k) / 24);

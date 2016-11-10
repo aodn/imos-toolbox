@@ -197,6 +197,9 @@ function sample_data = timeOffsetPP(sample_data, qcLevel, auto)
       % no time dimension nor variable in this dataset
       if timeIdx == 0, continue; end
       
+      % no offset to be applied on this dataset
+      if offsets(k) == 0, continue; end
+      
       signOffset = sign(offsets(k));
       if signOffset >= 0
           signOffset = '+';
