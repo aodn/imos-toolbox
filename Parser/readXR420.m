@@ -178,7 +178,7 @@ function sample_data = readXR420( filename, mode )
           sample_data.variables{end}.name         = 'TIME';
           sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc([descendingTime, ascendingTime]);
-          sample_data.variables{end}.comment      = 'First value over profile measurement';
+          sample_data.variables{end}.comment      = 'First value over profile measurement.';
           
           sample_data.variables{end+1}.dimensions = dimensions;
           sample_data.variables{end}.name         = 'DIRECTION';
