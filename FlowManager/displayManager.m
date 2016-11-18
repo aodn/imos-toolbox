@@ -478,8 +478,16 @@ function displayManager(windowTitle, sample_data, callbacks)
               flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
               
               % write/update manual QC file for this dataset
-              [mqcPath, mqcFile, ~] = fileparts(sample_data{setIdx}.toolbox_input_file);
-              mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
+              mqcFile = [sample_data{setIdx}.toolbox_input_file, '.mqc'];
+              
+              % we need to check first that there is not any remnants from
+              % the old .mqc file naming convention
+              [mqcPath, oldMqcFile, ~] = fileparts(sample_data{setIdx}.toolbox_input_file);
+              oldMqcFile = fullfile(mqcPath, [oldMqcFile, '.mqc']);
+              if exist(oldMqcFile, 'file')
+                  movefile(oldMqcFile, mqcFile);
+              end
+              
               mqc = struct([]);
               
               if exist(mqcFile, 'file'), load(mqcFile, '-mat', 'mqc'); end
@@ -552,8 +560,15 @@ function displayManager(windowTitle, sample_data, callbacks)
                   end
               end
               
-              [mqcPath, mqcFile, ~] = fileparts(sample_data{resetIdx(j)}.toolbox_input_file);
-              mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
+              mqcFile = [sample_data{resetIdx(j)}.toolbox_input_file, '.mqc'];
+              
+              % we need to migrate any remnants of the old file naming convention
+              % for .mqc files.
+              [mqcPath, oldMqcFile, ~] = fileparts(sample_data{resetIdx(j)}.toolbox_input_file);
+              oldMqcFile = fullfile(mqcPath, [oldMqcFile, '.mqc']);
+              if exist(oldMqcFile, 'file')
+                  movefile(oldMqcFile, mqcFile);
+              end
               
               if exist(mqcFile, 'file')
                   delete(mqcFile);
@@ -594,8 +609,15 @@ function displayManager(windowTitle, sample_data, callbacks)
                   end
               end
               
-              [pqcPath, pqcFile, ~] = fileparts(sample_data{resetIdx(j)}.toolbox_input_file);
-              pqcFile = fullfile(pqcPath, [pqcFile, '.pqc']);
+              pqcFile = [sample_data{resetIdx(j)}.toolbox_input_file, '.pqc'];
+              
+              % we need to migrate any remnants of the old file naming convention
+              % for .pqc files.
+              [pqcPath, oldPqcFile, ~] = fileparts(sample_data{resetIdx(j)}.toolbox_input_file);
+              oldPqcFile = fullfile(pqcPath, [oldPqcFile, '.pqc']);
+              if exist(oldPqcFile, 'file')
+                  movefile(oldPqcFile, pqcFile);
+              end
               
               if exist(pqcFile, 'file')
                   delete(pqcFile);

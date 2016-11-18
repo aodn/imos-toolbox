@@ -64,8 +64,16 @@ if ~ischar(rawDataFile), error('rawDataFile must be a string'); end
 if ~ischar(QCtest),      error('QCtest must be a string');      end
 if ~ischar(param),       error('param must be a string');       end
 
-[pqcPath, pqcFile, ~] = fileparts(rawDataFile);
-pqcFile = fullfile(pqcPath, [pqcFile, '.pqc']);
+pqcFile = [rawDataFile, '.pqc'];
+
+% we need to migrate any remnants of the old file naming convention
+% for .pqc files.
+[pqcPath, oldPqcFile, ~] = fileparts(rawDataFile);
+oldPqcFile = fullfile(pqcPath, [oldPqcFile, '.pqc']);
+if exist(oldPqcFile, 'file')
+    movefile(oldPqcFile, pqcFile);
+end
+
 pqc = struct([]);
 
 if exist(pqcFile, 'file')
