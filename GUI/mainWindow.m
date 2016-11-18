@@ -254,8 +254,8 @@ function mainWindow(...
   buttons = findall(tb);
   
   zoomoutb    = findobj(buttons, 'TooltipString', 'Zoom Out');
-  zoominb     = findobj(buttons, 'TooltipString', 'Zoom In');
-  panb        = findobj(buttons, 'TooltipString', 'Pan');
+  zoominb     = findobj(buttons, 'TooltipString', 'Zoom In (Ctrl+z)');
+  panb        = findobj(buttons, 'TooltipString', 'Pan (Ctrl+a)');
   datacursorb = findobj(buttons, 'TooltipString', 'Data Cursor');
   
   buttons(buttons == tb)            = [];
@@ -318,11 +318,16 @@ function mainWindow(...
           set(hToolsLineCastVarNonQC,       'callBack', {@displayLineCastVar, false});
           set(hToolsLineCastVarQC,          'callBack', {@displayLineCastVar, true});
   end
-  hHelpMenu                         = uimenu(fig, 'label', 'Help');
-  hHelpWiki                         = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
+  hHotKeyMenu = uimenu(fig, 'label', 'Hot Keys');
+  uimenu(hHotKeyMenu, 'Label', 'Enable zoom',       'Accelerator', 'z', 'Callback', @(src,evt)zoom(fig, 'on'));
+  uimenu(hHotKeyMenu, 'Label', 'Enable pan',        'Accelerator', 'a', 'Callback', @(src,evt)pan( fig, 'on'));
+  uimenu(hHotKeyMenu, 'Label', 'Disable zoom/pan',  'Accelerator', 'q', 'Callback', @disableZoomAndPan);
+
+  hHelpMenu = uimenu(fig, 'label', 'Help');
+  hHelpWiki = uimenu(hHelpMenu, 'label', 'IMOS Toolbox Wiki');
   
   %set menu callbacks
-  set(hHelpWiki,                        'callBack', @openWikiPage);
+  set(hHelpWiki, 'callBack', @openWikiPage);
   
   %% Widget Callbacks
   
@@ -633,6 +638,11 @@ function mainWindow(...
     lineMooring1DVar(sample_data, varName, isQC, false, '');
 
   end
+
+function disableZoomAndPan(source, ev)
+    pan(fig, 'off');
+    zoom(fig, 'off');
+end
 
 function displayLineCastVar(source,ev, isQC)
     %DISPLAYLINECASTVAR Opens a new window where all the 

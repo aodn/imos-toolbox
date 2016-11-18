@@ -57,8 +57,15 @@ varChecked = {};
 paramsLog  = [];
 
 % read manual QC file for this dataset
-[mqcPath, mqcFile, ~] = fileparts(sample_data.toolbox_input_file);
-mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
+mqcFile = [sample_data.toolbox_input_file, '.mqc'];
+
+% we need to migrate any remnants of the old file naming convention
+% for .mqc files.
+[mqcPath, oldMqcFile, ~] = fileparts(sample_data.toolbox_input_file);
+oldMqcFile = fullfile(mqcPath, [oldMqcFile, '.mqc']);
+if exist(oldMqcFile, 'file')
+    movefile(oldMqcFile, mqcFile);
+end
 
 if exist(mqcFile, 'file')
     load(mqcFile, '-mat', 'mqc');
