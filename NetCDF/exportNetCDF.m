@@ -53,7 +53,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
   if ~ischar(dest),          error('dest must be a string');        end
 
   % check that destination is a directory
-  [stat atts] = fileattrib(dest);
+  [stat, atts] = fileattrib(dest);
   if ~stat || ~atts.directory || ~atts.UserWrite
     error([dest ' does not exist, is not a directory, or is not writeable']);
   end
@@ -644,6 +644,10 @@ function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mod
 
   % each att is a struct field
   atts = fieldnames(template);
+  
+  % let's process them in the alphabetical order regardless of the case
+  [~, iSort] = sort(lower(atts));
+  atts = atts(iSort);
   for k = 1:length(atts)
 
     name = atts{k};
