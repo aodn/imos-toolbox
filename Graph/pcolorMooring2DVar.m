@@ -199,7 +199,7 @@ for i=1:lenSampleData
             dataVar(~iGoodHeight) = [];
             dataVar = reshape(dataVar, nGoodTime, nGoodHeight);
             
-            hPcolorVar(i) = pcolor(hAxMooringVar, xPcolor, yPcolor, double(dataVar'));
+            hPcolorVar(i) = pcolor(hAxMooringVar, double(xPcolor), double(yPcolor), double(dataVar'));
             set(hPcolorVar(i), 'FaceColor', 'flat', 'EdgeColor', 'none');
 
             % Let's redefine properties after pcolor to make sure grid lines appear
