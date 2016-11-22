@@ -73,7 +73,7 @@ for j = 1 : length(jars)
 end
 
 % Set current toolbox version
-toolboxVersion = ['2.5.20 - ' computer];
+toolboxVersion = ['2.5.21 - ' computer];
 
 switch auto  
   case 'auto', autoIMOSToolbox(toolboxVersion, varargin{:});
