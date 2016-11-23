@@ -254,8 +254,8 @@ function mainWindow(...
   buttons = findall(tb);
   
   zoomoutb    = findobj(buttons, 'TooltipString', 'Zoom Out');
-  zoominb     = findobj(buttons, 'TooltipString', 'Zoom In (Ctrl+z)');
-  panb        = findobj(buttons, 'TooltipString', 'Pan (Ctrl+a)');
+  zoominb     = findobj(buttons, 'TooltipString', 'Zoom In');
+  panb        = findobj(buttons, 'TooltipString', 'Pan');
   datacursorb = findobj(buttons, 'TooltipString', 'Data Cursor');
   
   buttons(buttons == tb)            = [];
