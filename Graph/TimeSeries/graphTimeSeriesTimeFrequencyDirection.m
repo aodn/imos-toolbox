@@ -92,7 +92,7 @@ for i=1:nDir+1
     X(i, :) = r*sin(theta(i));
 end
 
-h = pcolor(ax, X, Y, double([squeeze(sswvData(iTime, :, :)), sswvData(iTime, :, 1)']')); % we need to repeat the first values at the end
+h = pcolor(ax, double(X), double(Y), double([squeeze(sswvData(iTime, :, :)), sswvData(iTime, :, 1)']')); % we need to repeat the first values at the end
 axis equal tight
 shading flat
 set(ax, ...
