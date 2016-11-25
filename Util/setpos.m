@@ -48,7 +48,9 @@ function setpos(h,fmt,href)
 %
 
 % Check the number of input arguments
-error(nargchk(2,3, nargin));
+
+narginchk(2,3);
+
 
 % Check if H is a graphics object handle
 if ~ishandle(h)
