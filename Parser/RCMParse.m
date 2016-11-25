@@ -313,7 +313,8 @@ function [name, data, comment] = convertData(name, data, procHeader)
 
          %'SP Std'
         case {'SPStd'};
-            name = 'STD';
+            name = 'CSPD_STD';
+            data = data / 100; % current in cm/s
             comment = '';
 
          %'Strength'
