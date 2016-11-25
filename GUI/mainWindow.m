@@ -254,8 +254,8 @@ function mainWindow(...
   buttons = findall(tb);
   
   zoomoutb    = findobj(buttons, 'TooltipString', 'Zoom Out');
-  zoominb     = findobj(buttons, 'TooltipString', 'Zoom In (Ctrl+z)');
-  panb        = findobj(buttons, 'TooltipString', 'Pan (Ctrl+a)');
+  zoominb     = findobj(buttons, 'TooltipString', 'Zoom In');
+  panb        = findobj(buttons, 'TooltipString', 'Pan');
   datacursorb = findobj(buttons, 'TooltipString', 'Data Cursor');
   
   buttons(buttons == tb)            = [];
@@ -272,6 +272,10 @@ function mainWindow(...
   hPan = pan(fig);
   set(hZoom, 'ActionPostCallback', @zoomPostCallback);
   set(hPan, 'ActionPostCallback', @zoomPostCallback);
+  
+  % update zoom in and pan's tooltips to display hot keys
+  set(zoominb, 'TooltipString', 'Zoom In (Ctrl+z)');
+  set(panb,    'TooltipString', 'Pan (Ctrl+a)');
   
   %set uimenu
   hToolsMenu                        = uimenu(fig, 'label', 'Tools');
