@@ -1,6 +1,6 @@
 %
 % A list of all IMOS compliant parameter names, associated standard names from version 20
-% (http://cf-pcmdi.llnl.gov/documents/cf-standard-names/standard-name-table/20/cf-standard-name-table.html/),
+% (http://cfconventions.org/Data/cf-standard-names/20/build/cf-standard-name-table.html),
 % units of measurement, fill values, and valid min/max values. Entries are in the following format:
 % 
 %   parameter name, is cf parameter, standard/long name, units of measurement, direction positive, reference datum, data code, fillValue, validMin, validMax, NetCDF C type
@@ -11,6 +11,7 @@
 % of a comment.
 %
 
+ABSI,                0, backscatter_intensity_from_acoustic_beam,                                                 decibel,       ,              ,                                  A, 999999.0, 0.0,      150.0,    float
 ABSI1,               0, backscatter_intensity_from_acoustic_beam_1,                                               decibel,       ,              ,                                  A, 999999.0, 0.0,      150.0,    float
 ABSI2,               0, backscatter_intensity_from_acoustic_beam_2,                                               decibel,       ,              ,                                  A, 999999.0, 0.0,      150.0,    float
 ABSI3,               0, backscatter_intensity_from_acoustic_beam_3,                                               decibel,       ,              ,                                  A, 999999.0, 0.0,      150.0,    float
@@ -42,6 +43,7 @@ CPHL,                0, mass_concentration_of_inferred_chlorophyll_from_relative
 CHLF,                0, mass_concentration_of_inferred_chlorophyll_from_relative_fluorescence_units_in_sea_water, mg m-3,        ,              ,                                  K, 999999.0, 0.0,      100.0,    float
 CHLU,                0, mass_concentration_of_inferred_chlorophyll_from_relative_fluorescence_units_in_sea_water, mg m-3,        ,              ,                                  K, 999999.0, 0.0,      100.0,    float
 CSPD,                1, sea_water_speed,                                                                          m s-1,         ,              ,                                  V, 999999.0, 0.0,      10.0,     float
+CSPD_STD,            0, sea_water_speed_standard_deviation,                                                       m s-1,         ,              ,                                  V, 999999.0, 0.0,      10.0,     float
 DENS,                1, sea_water_density,                                                                        kg m-3,        ,              ,                                  D, 999999.0, ,         ,         float
 DEPTH,               1, depth,                                                                                    m,             down,          sea surface,                       Z, 999999.0, -5.0,     12000.0,  float
 DESC,                0, profiling_descent_rate_of_instrument,                                                     m s-1,         ,              ,                                  E, 999999.0, 0.0,      5.0,      float

@@ -166,7 +166,22 @@ function varargout = legendflex(varargin)
 %               spacing typical of a regular legend, but occassionally the
 %               extent properties wrap a little too close to text, making
 %               things look crowded; in these cases you can try unsquishing
-%               things via this parameter. [2 1 1]    
+%               (or squishing, via use of negative values) things via this
+%               parameter. [2 1 1]   
+%
+%   nolisten:   logical scalar.  If true, don't add the event listeners.
+%               The event listeners update the legend objects when you
+%               change a property of the labeled objects (such as line
+%               style, color, etc.).  However, the updating requires the
+%               legend to be redrawn, which can really slow things down,
+%               especially if you're labelling lots of objects that get
+%               changed together (if you change the line width of 100
+%               labeled lines, the legend gets redrawn 100 times).  In more
+%               recent releases, this also occurs when printing to file, so
+%               I recommend setting this to true if you plan to print a
+%               legend with a large number of labeled objects.  The legend
+%               will still be redrawn on figure resize regardless of the
+%               value of this parameter. [false]
 %
 %   In addition to these legendflex-specific parameters, this function will
 %   accept any parameter accepted by the original legend function (e.g.
@@ -215,6 +230,8 @@ function varargout = legendflex(varargin)
 % Detemine whether HG2 is in use
 
 hg2flag = ~verLessThan('matlab', '8.4.0');
+r2013bflag = ~verLessThan('matlab', '8.2.0');
+r2016aflag = ~verLessThan('matlab', '9.0.0');
 
 %-------------------
 % Parse input
@@ -262,16 +279,23 @@ else
 end
 
 p = inputParser;
-p.addParamValue('xscale',     1,         @(x) validateattributes(x, {'numeric'}, {'nonnegative','scalar'}));
-p.addParamValue('ncol',       0,         @(x) validateattributes(x, {'numeric'}, {'scalar', 'integer'}));
-p.addParamValue('nrow',       0,         @(x) validateattributes(x, {'numeric'}, {'scalar', 'integer'}));
-p.addParamValue('ref',        defref,    @(x) validateattributes(x, {'numeric','handle'}, {'scalar'}));
-p.addParamValue('anchor',     [3 3],     @(x) validateattributes(x, {'numeric','cell'}, {'size', [1 2]}));
-p.addParamValue('buffer',     [-10 -10], @(x) validateattributes(x, {'numeric'}, {'size', [1 2]}));
-p.addParamValue('bufferunit', 'pixels',  @(x) validateattributes(x, {'char'}, {}));
-p.addParamValue('box',        'on',      @(x) validateattributes(x, {'char'}, {}));
-p.addParamValue('title',      '',        @(x) validateattributes(x, {'char','cell'}, {}));
-p.addParamValue('padding',    [2 1 1],   @(x) validateattributes(x, {'numeric'}, {'nonnegative', 'size', [1 3]}));
+if r2013bflag
+    addParamMethodName = 'addParameter';
+else
+    addParamMethodName = 'addParamValue';
+end
+p.(addParamMethodName)('xscale',     1,         @(x) validateattributes(x, {'numeric'}, {'nonnegative','scalar'}));
+p.(addParamMethodName)('ncol',       0,         @(x) validateattributes(x, {'numeric'}, {'scalar', 'integer'}));
+p.(addParamMethodName)('nrow',       0,         @(x) validateattributes(x, {'numeric'}, {'scalar', 'integer'}));
+p.(addParamMethodName)('ref',        defref,    @(x) validateattributes(x, {'numeric','handle'}, {'scalar'}));
+p.(addParamMethodName)('anchor',     [3 3],     @(x) validateattributes(x, {'numeric','cell'}, {'size', [1 2]}));
+p.(addParamMethodName)('buffer',     [-10 -10], @(x) validateattributes(x, {'numeric'}, {'size', [1 2]}));
+p.(addParamMethodName)('bufferunit', 'pixels',  @(x) validateattributes(x, {'char'}, {}));
+p.(addParamMethodName)('box',        'on',      @(x) validateattributes(x, {'char'}, {}));
+p.(addParamMethodName)('title',      '',        @(x) validateattributes(x, {'char','cell'}, {}));
+p.(addParamMethodName)('padding',    [2 1 1],   @(x) validateattributes(x, {'numeric'}, {'size', [1 3]})); % 'nonnegative'
+p.(addParamMethodName)('nolisten',   false,     @(x) validateattributes(x, {'logical'}, {'scalar'}));
+p.(addParamMethodName)('parent',     gcf);
 
 p.KeepUnmatched = true;
 
@@ -304,8 +328,30 @@ end
 % Create a temporary legend to get all the objects
 
 S = warning('off', 'MATLAB:legend:PlotEmpty');
-[h.leg, h.obj, h.labeledobj, h.textstr] = legend(legin{:}, extra{:}, 'location', 'northeast');
-nobj = length(h.labeledobj);
+if r2016aflag
+    % The new legend objects are pretty opaque... even diving into the 
+    % undocumented properties, I haven't been able to find the handles of 
+    % the legend sub-components (lines, text, etc).  So I need to stick to 
+    % the legacy version, which creates an axis object rather than legend 
+    % object. Legacy version has bug in text properties parsing, though, so 
+    % need to work around that too: use the new-style legend object to get
+    % proper text properties, then use those to alter the buggy old-style
+    % legend.
+    tmp = legend(legin{:}, extra{:}, 'location', 'northeast');
+    textProps = {'FontAngle','FontName','FontSize','FontUnits','FontWeight','Interpreter'};
+    tprop = get(tmp, textProps);
+    delete(tmp);
+    wtmp = warning('off', 'MATLAB:handle_graphics:exceptions:SceneNode'); % silence Latex interpreter thing
+    [h.leg, h.obj, h.labeledobj, h.textstr] = legend(legin{:}, extra{:}, 'location', 'northeast');
+    warning(wtmp);
+    nobj = length(h.labeledobj);
+    for it = 1:length(textProps)
+        set(h.obj(1:nobj), textProps{it}, tprop{it});
+    end
+else
+    [h.leg, h.obj, h.labeledobj, h.textstr] = legend(legin{:}, extra{:}, 'location', 'northeast');
+    nobj = length(h.labeledobj);
+end
 warning(S);
 
 if nobj == 0
@@ -318,10 +364,11 @@ end
 % output. For some reason, the rendering issues disappear only if the
 % contour object(s) is listed last in the legend.  So for now, my
 % workaround for this is to change the order of the legend labels as
-% necessary.
+% necessary.  Issue appears to be fixed in 2015b.
 
 iscont = strcmp(get(h.labeledobj, 'type'), 'contour');
-cbugflag = ~verLessThan('matlab', '8.4.0') && any(iscont);
+cbugflag = ~verLessThan('matlab', '8.4.0') && verLessThan('matlab', '8.6.0') && any(iscont);
+
 if cbugflag
     
     if length(legin) == 1
@@ -508,7 +555,7 @@ hnew.leg = axes('units', 'pixels', ...
                'xtick', [], ...
                'ytick', [], ...
                'box', 'on', ...
-               'parent', figh);
+               'parent', Opt.parent);
 
 % Copy the text strings to the new legend
            
@@ -601,6 +648,33 @@ delete(h.leg);
 set(figh, 'currentaxes', currax);
 drawnow; % Not sure why this is necessary for the currentaxes to take effect, but it is
 
+% Fix for vertical-alignment issue: This solution still isn't perfect, but
+% it seems to help for most Interpreter-none and Interpreter-latex cases.
+% The TeX interpreter still places sub- and superscripts too high/low... no
+% robust fix found for that yet.
+%
+% TODO: need to add proper calcs for when title included
+%
+% Thanks to S�ren Enemark for this suggestion.
+
+if ~addtitle
+    try % TODO: Crashing on some edge cases
+        textobj = hnew.obj(1:nobj);
+        yheight = get(hnew.leg, 'ylim');
+        yheight = yheight(2);
+
+        ylo = get(textobj(Opt.nrow), 'extent');
+        ylo = ylo(2);
+        yhi = get(textobj(1), 'extent');
+        yhi = sum(yhi([2 4]));
+        dy = yheight/2 - 0.5*(ylo + yhi);
+        for ii = 1:length(textobj)
+            pos = get(textobj(ii), 'position');
+            set(textobj(ii), 'position', pos + [0 dy 0]);
+        end
+    end
+end
+
 %-------------------
 % Callbacks and 
 % listeners
@@ -623,8 +697,9 @@ setappdata(hnew.leg, 'legflex', Lf);
 % Resize listeners
 
 addlistener(hnew.leg, 'Position', 'PostSet', @(src,evt) updatelegappdata(src,evt,hnew.leg));
-if hg2flag && strcmp(Lf.ref.Type, 'figure')
+if hg2flag && (strcmp(Lf.ref.Type, 'figure') || (strcmp(Lf.ref.Type, 'uipanel')))
     addlistener(Lf.ref, 'SizeChanged', @(src,evt) updatelegpos(src,evt,hnew.leg));
+    addlistener(Lf.ref, 'LocationChanged', @(src,evt) updatelegpos(src,evt,hnew.leg));
 else
     addlistener(Lf.ref, 'Position', 'PostSet', @(src,evt) updatelegpos(src,evt,hnew.leg));
 end
@@ -642,19 +717,23 @@ else
     end
 end
 
-% Run the resync function if anything changes with the labeled objects
+if ~Opt.nolisten
 
-objwatch = findall(h.labeledobj, 'type', 'line', '-or', 'type', 'patch');
+    % Run the resync function if anything changes with the labeled objects
 
-for ii = 1:length(objwatch)
-    switch lower(get(objwatch(ii), 'type'))
-        case 'line'
-            triggerprops = {'Color','LineStyle','LineWidth','Marker','MarkerSize','MarkerEdgeColor','MarkerFaceColor'};
-            addlistener(objwatch(ii), triggerprops, 'PostSet', @(h,ed) resyncprops(h,ed,hnew.leg));
-        case 'patch'
-            triggerprops = {'CData','CDataMapping','EdgeAlpha','EdgeColor','FaceAlpha','FaceColor','LineStyle','LineWidth','Marker','MarkerEdgeColor','MarkerFaceColor','MarkerSize'};
-            addlistener(objwatch(ii), triggerprops, 'PostSet', @(h,ed) resyncprops(h,ed,hnew.leg));
+    objwatch = findall(h.labeledobj, 'type', 'line', '-or', 'type', 'patch');
+
+    for ii = 1:length(objwatch)
+        switch lower(get(objwatch(ii), 'type'))
+            case 'line'
+                triggerprops = {'Color','LineStyle','LineWidth','Marker','MarkerSize','MarkerEdgeColor','MarkerFaceColor'};
+                addlistener(objwatch(ii), triggerprops, 'PostSet', @(h,ed) resyncprops(h,ed,hnew.leg));
+            case 'patch'
+                triggerprops = {'CData','CDataMapping','EdgeAlpha','EdgeColor','FaceAlpha','FaceColor','LineStyle','LineWidth','Marker','MarkerEdgeColor','MarkerFaceColor','MarkerSize'};
+                addlistener(objwatch(ii), triggerprops, 'PostSet', @(h,ed) resyncprops(h,ed,hnew.leg));
+        end
     end
+
 end
 
     
