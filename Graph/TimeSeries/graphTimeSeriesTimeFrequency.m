@@ -72,7 +72,7 @@ yPcolor = freq.data;
 
 h = pcolor(ax, double(xPcolor), double(yPcolor), double(var.data'));
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
-cb = colorbar();
+cb = colorbar('peer',ax);
 
 % Attach the context menu to colorbar
 hMenu = setTimeSerieColorbarContextMenu(var);
