@@ -89,32 +89,6 @@ if ~isempty(climatologyRange)
     end
 end
 
-% Set axis position so that 1D data and 2D data vertically matches on X axis
-mainPanel = findobj('Tag', 'mainPanel');
-last_pos_with_colorbar = get(mainPanel, 'UserData');
-if isempty(last_pos_with_colorbar) % this is to avoid too many calls to colorbar()
-    cb = colorbar();
-    set(get(cb, 'YLabel'), 'String', 'TEST');
-    pos_with_colorbar = get(ax, 'Position');
-    last_pos_with_colorbar = pos_with_colorbar;
-    colorbar(cb, 'off');
-    set(mainPanel, 'UserData', last_pos_with_colorbar);
-else
-    pos_with_colorbar = get(ax, 'Position');
-    
-    if pos_with_colorbar(1) == last_pos_with_colorbar(1)
-        pos_with_colorbar(3) = last_pos_with_colorbar(3);
-    else
-        cb = colorbar();
-        set(get(cb, 'YLabel'), 'String', 'TEST');
-        pos_with_colorbar = get(ax, 'Position');
-        last_pos_with_colorbar = pos_with_colorbar;
-        colorbar(cb, 'off');
-        set(mainPanel, 'UserData', last_pos_with_colorbar);
-    end
-end
-set(ax, 'Position', pos_with_colorbar);
-
 % set background to be grey
 set(ax, 'Color', [0.75 0.75 0.75])
 
