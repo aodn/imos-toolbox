@@ -193,13 +193,35 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
         xlabel(graphs(k), labels{1});
         
         % set y label and ticks
-        try      uom = [' (' imosParameters(labels{2}, 'uom') ')'];
+        try      uom = ['(' imosParameters(labels{2}, 'uom') ')'];
         catch e, uom = '';
         end
-        yLabel = strrep([labels{2} uom], '_', ' ');
-        if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
+        yLabel=regexp(labels{2},'\_','split');
+        if numel(yLabel) < 4
+            ii = min(2,numel(yLabel));
+        elseif numel(yLabel) < 6
+            ii = 3;
+        else
+            ii = 4;
+        end
+        % MATLAB strjoin R2013a onwards, use private function
+        yLabel={strjoin(yLabel(1:ii),' '), strjoin(yLabel(ii+1:end),' ')};
+        yLabel = yLabel(~cellfun(@isempty,yLabel));
+        yLabel{end+1} = strrep(uom, '_', ' ');
+        iLength = 12; % arbitrary string cutoff length
+        %iLong = strlength(yLabel) > iLength; % only R2016b onwards
+        iLong = cellfun(@length, yLabel) > iLength;
+        yLabel(iLong) = cellfun(@(x) [x(1:iLength) '...'], yLabel(iLong), 'UniformOutput', false);
         ylabel(graphs(k), yLabel);
     end
   end
-  
+
+    function str = strjoin(strCell, sep)
+        %STRJOIN Join strings in a cell array.
+        % http://stackoverflow.com/questions/5292437/how-can-i-concatenate-strings-in-a-cell-array-with-spaces-between-them-in-matlab
+        
+        nCells = numel(strCell);
+        strCell(1:nCells-1) = strcat(strCell(1:nCells-1),{' '});
+        str = [strCell{:}];
+    end
 end
