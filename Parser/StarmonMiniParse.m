@@ -4,9 +4,9 @@ function sample_data = StarmonMiniParse( filename, mode )
 %
 % The files consist of two sections:
 %
-%   - file headerContent       - headerContent information with description of the data structure and content.
-%                         These lines are suffixed with a #.
-%   - data              - rows of data.
+%   - file headerContent - headerContent information with description of the data structure and content.
+%                        These lines are suffixed with a #.
+%   - data               - rows of data.
 %
 % Inputs:
 %   filename    - cell array of files to import (only one supported).
@@ -252,13 +252,14 @@ for i=1:header.nLines
         case 14 % channel 3 info
             channelInfo = textscan(headerContent{3}{i}, '%s%s%d%d%*s', 'Delimiter', '\t');
             header.param(3).axis = channelInfo{1}{1};
-            header.param(3).column = channelInfo{2}{1};
+            header.param(3).column = genvarname(channelInfo{2}{1});
             header.param(3).nDec = channelInfo{3};
             if channelInfo{4} == 1
                 header.param(3).isPositiveUp = true;
             else
                 header.param(3).isPositiveUp = false;
             end
+            
     end
 end
 end
@@ -318,7 +319,6 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
         case {'Temp0x280xB0C0x29', 'Temp0x280xFFFDC0x29'} %degrees C
             var = 'TEMP';
             values = strrep(DataContent{iContent}, ',', '.');
-%             values = cellfun(@str2double, values);
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
             comment = '';
             if header.isReconverted
@@ -352,7 +352,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).values = (values - 32) * 5/9;
             data.(var).comment = comment;
             
-        case 'Pres(dbar)'
+        case 'Pres0x28dbar0x29'
             var = 'PRES';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
@@ -372,7 +372,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).comment = comment;
             data.(var).applied_offset = applied_offset;
             
-        case 'Depth(m)'
+        case 'Depth0x28m0x29'
             var = 'DEPTH';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
@@ -390,7 +390,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).values = values;
             data.(var).comment = comment;
             
-        case 'Sal(psu)'
+        case 'Sal0x28psu0x29'
             var = 'PSAL';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
