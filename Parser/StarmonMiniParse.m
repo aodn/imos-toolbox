@@ -16,6 +16,8 @@ function sample_data = StarmonMiniParse( filename, mode )
 %   sample_data - Struct containing sample data.
 %
 % Author: Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Contributor: Peter Jansen <peter.jansen@csiro.au> 
+%              Extend to read DST tilt sensor
 %
 
 %
@@ -259,6 +261,17 @@ for i=1:header.nLines
             else
                 header.param(3).isPositiveUp = false;
             end
+            
+        case 18 % channel 4 info
+            channelInfo = textscan(headerContent{3}{i}, '%s%s%d%d%*s', 'Delimiter', '\t');
+            header.param(4).axis = channelInfo{1}{1};
+            header.param(4).column = channelInfo{2}{1};
+            header.param(4).nDec = channelInfo{3};
+            if channelInfo{4} == 1
+                header.param(4).isPositiveUp = true;
+            else
+                header.param(4).isPositiveUp = false;
+            end
     end
 end
 end
@@ -373,6 +386,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).applied_offset = applied_offset;
             
         case 'Depth(m)'
+        case 'Depth0x28m0x29'
             var = 'DEPTH';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
@@ -412,6 +426,22 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
                     end
                 end
             end
+            data.(var).values = values;
+            data.(var).comment = comment;
+            
+        case 'Roll(°)'
+            var = 'ROLL';
+            values = strrep(DataContent{iContent}, ',', '.');
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
+            comment = '';
+            data.(var).values = values;
+            data.(var).comment = comment;
+            
+        case 'Pitch(°)'
+            var = 'PITCH';
+            values = strrep(DataContent{iContent}, ',', '.');
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
+            comment = '';
             data.(var).values = values;
             data.(var).comment = comment;
             
