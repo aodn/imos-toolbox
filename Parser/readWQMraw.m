@@ -137,15 +137,6 @@ function sample_data = readWQMraw( filename, mode )
   % convert and save the time data
   time = wqmdata.datenumber;
   
-  % WQM instrumensts (or the .DAT conversion sofware) have a habit of
-  % generating erroneous data sometimes, either missing a character , or 
-  % inserting a 0 instead of the correct in the output to .DAT files.
-  % This is a simple check to make sure that all of the timestamps appear
-  % to be correct; there's only so much we can do though.
-  iBadTime = (diff(time) <= 0);
-  iBadTime = [false; iBadTime];
-  time(iBadTime) = [];
-  
   % Let's find each start of bursts
   dt = [0; diff(time)];
   iBurst = [1; find(dt>(1/24/60)); length(time)+1];
