@@ -126,8 +126,8 @@ function qc_data = autoQCManager( sample_data, auto )
       end
   end
 
-  % we reset QC flags to 0
   for k = 1:length(sample_data)
+      % reset QC flags to 0
       type{1} = 'dimensions';
       type{2} = 'variables';
       for m = 1:length(type)
@@ -136,6 +136,9 @@ function qc_data = autoQCManager( sample_data, auto )
               sample_data{k}.(type{m}){l}.flags(:) = 0;
           end
       end
+      
+      % reset QC results
+      sample_data{k}.meta.QCres = {};
   end
   
   % run each data set through the chain
