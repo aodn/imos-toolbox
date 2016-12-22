@@ -200,7 +200,7 @@ uicontrol(mainPanel, ...
     'Position'  , posUi2(mainPanel, 50, 1, 50, 1, 0), ...
     'String'    ,'Time cursor');
     
-cb = colorbar();
+cb = colorbar('peer',ax);
 
 % Attach the context menu to colorbar
 hMenu = setTimeSerieColorbarContextMenu(myVar);

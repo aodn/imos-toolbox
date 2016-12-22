@@ -1,4 +1,4 @@
-function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
+function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
 %GRAPHTIMESERIES Graphs the given data in a time series style using subplots.
 %
 % Graphs the selected variables from the given data set. Each variable is
@@ -186,20 +186,46 @@ function [graphs lines vars] = graphTimeSeries( parent, sample_data, vars )
     col = col(mod(vars(k),length(col))+1,:);
                
     % plot the variable
-    [lines(k,:) labels] = plotFunc(graphs(k), sample_data, k, col, xTickProp);
+    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, k, col, xTickProp);
     
     if ~isempty(labels)
         % set x labels and ticks
         xlabel(graphs(k), labels{1});
         
         % set y label and ticks
-        try      uom = [' (' imosParameters(labels{2}, 'uom') ')'];
+        try      uom = ['(' imosParameters(labels{2}, 'uom') ')'];
         catch e, uom = '';
         end
-        yLabel = strrep([labels{2} uom], '_', ' ');
-        if length(yLabel) > 20, yLabel = [yLabel(1:17) '...']; end
+        
+        % decide where to cut the Y label to display it on 1 or 2 lines 
+        % depending on the number of words obtained from the variable name
+        yLabel = regexp(labels{2}, '\_', 'split');
+        if numel(yLabel) < 4
+            nthWordToCut = min(2, numel(yLabel));
+        elseif numel(yLabel) < 6
+            nthWordToCut = 3;
+        else
+            nthWordToCut = 4;
+        end
+        yLabel = {strjoin(yLabel(1:nthWordToCut),     ' '), ...
+                  strjoin(yLabel(nthWordToCut+1:end), ' ')};
+        yLabel = yLabel(~cellfun(@isempty, yLabel));
+        
+        yLabel{end+1} = strrep(uom, '_', ' ');
+        iLength = 12; % arbitrary string cutoff length
+        %iLong = strlength(yLabel) > iLength; % only R2016b onwards
+        iLong = cellfun(@length, yLabel) > iLength;
+        yLabel(iLong) = cellfun(@(x) [x(1:iLength) '...'], yLabel(iLong), 'UniformOutput', false);
         ylabel(graphs(k), yLabel);
     end
   end
-  
+
+    function str = strjoin(strCell, sep)
+        %STRJOIN Join strings in a cell array.
+        % http://stackoverflow.com/questions/5292437/how-can-i-concatenate-strings-in-a-cell-array-with-spaces-between-them-in-matlab
+        % R2012b onwards
+        nCells = numel(strCell);
+        strCell(1:nCells-1) = strcat(strCell(1:nCells-1), {sep});
+        str = [strCell{:}];
+    end
 end

@@ -70,9 +70,15 @@ yPcolor = depth.data;
 % xPcolor = [time.data(1:end-1) - diff(time.data)/2; time.data(end) - (time.data(end)-time.data(end-1))/2];
 % yPcolor = [depth.data(1:end-1) - diff(depth.data)/2; depth.data(end) - (depth.data(end)-depth.data(end-1))/2];
 
+posWithoutCb = get(ax, 'Position');
+
 h = pcolor(ax, double(xPcolor), double(yPcolor), double(var.data'));
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
-cb = colorbar();
+cb = colorbar('peer', ax);
+
+% reset position to what it was without the colorbar so that it aligns with
+% 1D datasets
+set(ax, 'Position', posWithoutCb);
 
 % Attach the context menu to colorbar
 hMenu = setTimeSerieColorbarContextMenu(var);
