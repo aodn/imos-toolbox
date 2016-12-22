@@ -96,6 +96,10 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
       end
   end
   
+  % CF requires DEPTH/TIME coordinate variables must be monotonic (strictly increasing 
+  % or decreasing)
+  sam = forceMonotonic(sam, mode);
+  
   % add empty QC flags for all variables
   for k = 1:length(sam.variables)
     
@@ -181,13 +185,13 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   % set the time coverage period from the data
   switch mode
       case 'profile'
-          time = getVar(sam.variables, 'TIME');
-          if time ~= 0
+          iTime = getVar(sam.variables, 'TIME');
+          if iTime ~= 0
               if isempty(sam.time_coverage_start),
-                  sam.time_coverage_start = sam.variables{time}.data(1);
+                  sam.time_coverage_start = sam.variables{iTime}.data(1);
               end
               if isempty(sam.time_coverage_end),
-                  sam.time_coverage_end   = sam.variables{time}.data(end);
+                  sam.time_coverage_end   = sam.variables{iTime}.data(end);
               end
           else
               if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
@@ -195,19 +199,102 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
           end
           
       case 'timeSeries'
-          time = getVar(sam.dimensions, 'TIME');
-          if time ~= 0
+          iTime = getVar(sam.dimensions, 'TIME');
+          if iTime ~= 0
               if isempty(sam.time_coverage_start),
-                  sam.time_coverage_start = sam.dimensions{time}.data(1);
+                  sam.time_coverage_start = sam.dimensions{iTime}.data(1);
               end
               if isempty(sam.time_coverage_end),
-                  sam.time_coverage_end   = sam.dimensions{time}.data(end);
+                  sam.time_coverage_end   = sam.dimensions{iTime}.data(end);
               end
           else
               if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
               if isempty(sam.time_coverage_end),   sam.time_coverage_end   = []; end
           end
   
+  end
+  
+end
+
+function sam = forceMonotonic(sam, mode)
+  % We make sure that DEPTH/TIME coordinate variables appear
+  % ordered and that there is no redundant value.
+  switch mode
+      case 'profile'
+          if strcmpi(sam.dimensions{1}.name, 'MAXZ'), return; end % this case produces non compliant files anyway
+          
+          dimensionName = 'DEPTH'; % so far we only produce downcasts to be compliant
+          sortMode = 'ascend';
+          sortModeStr = 'increasingly';
+          
+      case 'timeSeries'
+          dimensionName = 'TIME';
+          sortMode = 'ascend';
+          sortModeStr = 'increasingly';
+  
+  end
+  iDim = getVar(sam.dimensions, dimensionName);
+  
+  fixStr = ['Try to re-play and fix this dataset when possible using the ' ...
+      'manufacturer''s software before processing it with the toolbox.'];
+  currentDateStr = datestr(now_utc, readProperty('exportNetCDF.dateFormat'));
+  
+  [sam.dimensions{iDim}.data, iSort] = sort(sam.dimensions{iDim}.data, sortMode);
+  if any(iSort ~= (1:length(sam.dimensions{iDim}.data))')
+      % We need to sort variables that are functions of this
+      % dimension accordingly
+      for k = 1:length(sam.variables)
+          iFunOfDim = sam.variables{k}.dimensions == iDim;
+          if any(iFunOfDim)
+              sam.variables{k}.data = sam.variables{k}.data(iSort,:); % data(iSort,:) works because we know that the sorted dimension is the first one!
+          end
+      end
+      
+      sortedStr = [dimensionName ' values (and their corresponding measurements) had ' ...
+          'to be sorted ' sortModeStr];
+      disp(['Info : ' sortedStr ' in ' sam.toolbox_input_file '. ' fixStr]);
+      if isfield(sam.dimensions{iDim}, 'comment')
+          sam.dimensions{iDim}.comment = [sam.dimensions{iDim}.comment ' ' sortedStr '.'];
+      else
+          sam.dimensions{iDim}.comment = [sortedStr '.'];
+      end
+      if isfield(sam, 'history')
+          sam.history = sprintf('%s\n%s - %s', sam.history, currentDateStr, [sortedStr '.']);
+      else
+          sam.history = sprintf('%s - %s', currentDateStr, [sortedStr '.']);
+      end
+  end
+  
+  iRedundantDim = [(diff(sam.dimensions{iDim}.data) == 0); false];
+  if any(iRedundantDim)
+      sam.dimensions{iDim}.data(iRedundantDim) = []; % removing first duplicate values
+      
+      % We need to remove duplicates for variables that are functions of this
+      % dimension accordingly
+      for k = 1:length(sam.variables)
+          iFunOfDim = sam.variables{k}.dimensions == iDim;
+          if any(iFunOfDim)
+              extraDims = size(sam.variables{k}.data);
+              extraDims(iFunOfDim) = 1;
+              sam.variables{k}.data(repmat(iRedundantDim, extraDims)) = [];
+              extraDims(iFunOfDim) = length(sam.dimensions{iDim}.data);
+              sam.variables{k}.data = reshape(sam.variables{k}.data, extraDims);
+          end
+      end
+      
+      redundantStr = [num2str(sum(iRedundantDim)) ' ' dimensionName ' first duplicate values ' ...
+          '(and their corresponding measurements) had to be discarded'];
+      disp(['Info : ' redundantStr ' in ' sam.toolbox_input_file '. ' fixStr]);
+      if isfield(sam.dimensions{iDim}, 'comment')
+          sam.dimensions{iDim}.comment = [sam.dimensions{iDim}.comment ' ' redundantStr '.'];
+      else
+          sam.dimensions{iDim}.comment = [redundantStr '.'];
+      end
+      if isfield(sam, 'history')
+          sam.history = sprintf('%s\n%s - %s', sam.history, currentDateStr, [redundantStr '.']);
+      else
+          sam.history = sprintf('%s - %s', currentDateStr, [redundantStr '.']);
+      end
   end
   
 end

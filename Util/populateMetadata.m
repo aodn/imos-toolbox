@@ -68,8 +68,6 @@ function sample_data = populateMetadata( sample_data )
   
   ivDepth = 0;
   ivNomDepth = 0;
-  ivPres = 0;
-  ivPresRel = 0;
   ivLat = 0;
   ivLon = 0;
   ivBotDepth = 0;
@@ -85,12 +83,6 @@ function sample_data = populateMetadata( sample_data )
       end
       if strcmpi(sample_data.variables{i}.name, 'DEPTH')
           ivDepth = i;
-      end
-      if strcmpi(sample_data.variables{i}.name, 'PRES')
-          ivPres = i;
-      end
-      if strcmpi(sample_data.variables{i}.name, 'PRES_REL')
-          ivPresRel = i;
       end
       if strcmpi(sample_data.variables{i}.name, 'BOT_DEPTH')
           ivBotDepth = i;

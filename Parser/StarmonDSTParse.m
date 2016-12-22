@@ -1,6 +1,6 @@
-function sample_data = StarmonMiniParse( filename, mode )
-%STARMONMINIPARSE Parses an ASCII file from Starmon Mini .DAT file format
-% as described in http://imos-toolbox.googlecode.com/svn/wiki/documents/Instruments/Star_ODDI/StarmonT.pdf
+function sample_data = StarmonDSTParse( filename, mode )
+%STARMONMINIPARSE Parses an ASCII file from Starmon DST Tilt or CTD .DAT
+%file format. Based on StarmonMiniParse.m.
 %
 % The files consist of two sections:
 %
@@ -15,9 +15,9 @@ function sample_data = StarmonMiniParse( filename, mode )
 % Outputs:
 %   sample_data - Struct containing sample data.
 %
-% Author: Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Author:      Peter Jansen <peter.jansen@csiro.au>
+% Contributor: Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
-
 %
 % Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated
 % Marine Observing System (IMOS).
@@ -70,7 +70,11 @@ sample_data.toolbox_input_file  = filename;
 sample_data.meta.header         = header;
 
 sample_data.meta.instrument_make            = 'Star ODDI';
-sample_data.meta.instrument_model           = 'Starmon Mini';
+if isfield(data, 'PITCH')
+    sample_data.meta.instrument_model           = 'DST Tilt';
+else
+    sample_data.meta.instrument_model           = 'DST CTD';
+end
 sample_data.meta.instrument_sample_interval = median(diff(data.TIME.values*24*3600));
 sample_data.meta.instrument_serial_no       = header.serialNo;
 sample_data.meta.featureType                = mode;
@@ -127,7 +131,7 @@ end
 end
 
 function header = getHeader(filename)
-%GETHEADER Reads a Starmon Mini .DAT header and return usefull content in a
+%GETHEADER Reads any Starmon Mini / DST tilt / DST CTD .DAT header and return usefull content in a
 % structure.
 %
 % Each header item is contained in one line, and all header lines start with a #
@@ -139,133 +143,132 @@ header = struct;
 
 fileId = fopen(filename);
 
-headerFormat = '#%d\t%[^:]:\t%[^\r\n]';
-headerContent = textscan(fileId, headerFormat, 'Delimiter', '');
+headerFormat = '#%[^\r]';
+headerContent = textscan(fileId, headerFormat);
 
 fclose(fileId);
 
-header.nLines = length(headerContent{1});
-for i=1:header.nLines
-    switch headerContent{1}(i)
-        case 1 % sequence + serial number of the recorder
-            header.serialNo = headerContent{3}{i}(end-4:end);
-            
-        case 2 % joined Date and Time
-            joinInfo = textscan(headerContent{3}{i}, '%d%d%*s', 'Delimiter', '\t');
-            if joinInfo{1} == 0
-                header.isDateJoined = false;
-            else
-                header.isDateJoined = true;
-            end
-            
-        case 3 % total number of columns
-            header.nCol = str2double(headerContent{3}{i});
-            
-        case 4 % number of measured parameters
-            header.nParam = str2double(headerContent{3}{i});
-            
-        case 5 % field separation
-            if strcmpi(headerContent{3}{i}, '0')
-                header.fieldSep = '\t';
-            else
-                header.fieldSep = ' ';
-            end
-            
-        case 6 % decimal point
-            if strcmpi(headerContent{3}{i}, '0')
-                header.decimalChar = ',';
-            else
-                header.decimalChar = '.';
-            end
-            
-        case 7 % date format
-            dateInfo = textscan(headerContent{3}{i}, '%d%d%*s', 'Delimiter', '\t');
-            if dateInfo{1} == 0 && dateInfo{2} == 0
-                header.dateFormat = 'dd.mm.yy';
-            elseif dateInfo{1} == 1 && dateInfo{2} == 0
-                header.dateFormat = 'mm.dd.yy';
-            elseif dateInfo{1} == 0 && dateInfo{2} == 1
-                header.dateFormat = 'dd/mm/yy';
-            elseif dateInfo{1} == 1 && dateInfo{2} == 1
-                header.dateFormat = 'mm/dd/yy';
-            elseif dateInfo{1} == 0 && dateInfo{2} == 2
-                header.dateFormat = 'dd-mm-yy';
-            elseif dateInfo{1} == 1 && dateInfo{2} == 2
-                header.dateFormat = 'mm-dd-yy';
-            end
+decimalPointExpr    = '6\tDecimal point:\t(\S+)';
+fieldSepExpr        = '5\tField separation:\t(\d+)';
+recorderExpr        = '#\tRecorder\t(\d+)\t([^\t]*)\t([^\t]*)';
+dateTimeExpr        = '2\tDate & Time:\t(\d+)';
+axisExpr            = '#\tAxis\t(\d+)\t([^\(]*)\(([^\)]*)\)';
+reconversionExpr    = '11\tReconvertion:\t(\d+)';
+dateDefExpr         = '7\tDate def.:\t([^\t]*)\t\/';
+recorder2Expr       = '1\tRecorder:\t(\S+)';
+decimalPtExpr       = '6\tDecimal point:\t(\d+)';
+timeDefExpr         = '8\tTime def.:\t(\d+)';
+channelExpr         = '(\d+)\tChannel (\d+):\t([^\(]*)\(([^\)]*)\)';
+dateDef2Expr         = '7\tDate def.:\t(\d+)\t(\d+)';
 
-            
-        case 8 % time format
-            if strcmpi(headerContent{3}{i}, '0')
-                header.timeFormat = 'HH:MM:SS';
-            else
-                header.timeFormat = 'HH.MM.SS';
-            end
-            
-        case 9 % channel 1 info
-            channelInfo = textscan(headerContent{3}{i}, '%s%s%d%d%*s', 'Delimiter', '\t');
-            header.param(1).axis = channelInfo{1}{1};
-            header.param(1).column = genvarname(channelInfo{2}{1});
-            header.param(1).nDec = channelInfo{3};
-            if channelInfo{4} == 1
-                header.param(1).isPositiveUp = true;
-            else
-                header.param(1).isPositiveUp = false;
-            end
-            
-        case 10 % channel 2 info
-            channelInfo = textscan(headerContent{3}{i}, '%s%s%d%d%*s', 'Delimiter', '\t');
-            header.param(2).axis = channelInfo{1}{1};
-            header.param(2).column = genvarname(channelInfo{2}{1});
-            header.param(2).nDec = channelInfo{3};
-            if channelInfo{4} == 1
-                header.param(2).isPositiveUp = true;
-            else
-                header.param(2).isPositiveUp = false;
-            end
-            
-        case 11 % re-conversion
-            if strcmpi(headerContent{3}{i}, '0')
-                header.isReconverted = false;
-            else
-                header.isReconverted = true;
-            end
-            
-        case 12 % no temperature correction
-            if strcmpi(headerContent{3}{i}, '0')
-                header.isTempCorr = true;
-            else
-                header.isTempCorr = false;
-            end
-            
-        case 13 % pressure offset correction
-            pressureInfo = textscan(headerContent{3}{i}, '%d%d%*s', 'Delimiter', '\t');
-            if pressureInfo{1} == 0
-                header.isPresCorr = false;
-            else
-                header.isPresCorr = true;
-            end
-            if ~isempty(pressureInfo{2})
-                header.presCorrValue = pressureInfo{2};
-            end
-            
-        case 14 % channel 3 info
-            channelInfo = textscan(headerContent{3}{i}, '%s%s%d%d%*s', 'Delimiter', '\t');
-            header.param(3).axis = channelInfo{1}{1};
-            header.param(3).column = genvarname(channelInfo{2}{1});
-            header.param(3).nDec = channelInfo{3};
-            if channelInfo{4} == 1
-                header.param(3).isPositiveUp = true;
-            else
-                header.param(3).isPositiveUp = false;
-            end
-            
+exprs = {decimalPointExpr,fieldSepExpr,recorderExpr,dateTimeExpr,axisExpr,reconversionExpr,dateDefExpr,recorder2Expr,decimalPtExpr,timeDefExpr,channelExpr,dateDef2Expr};
+header.nParam = 0;
+
+header.nLines = length(headerContent{1});
+header.isReconverted = false;
+header.dateFormat = 'dd/mm/yyyy';
+header.timeFormat = 'HH:MM:SS';
+header.isDateJoined = true;
+                
+% try each of the expressions
+for m = 1:length(exprs)
+    tkns = regexp(headerContent{1}, exprs{m}, 'tokens');
+    matches = find(~cellfun(@isempty,tkns));
+    if (~isempty(matches))
+        % yes, ugly, but easiest way to figure out which regex we're on
+        switch exprs{m}
+            case decimalPointExpr
+                header.decimalChar = char(tkns{matches}{1});
+                
+            case fieldSepExpr
+                if strcmpi(tkns{matches}{1}, '0')
+                    header.fieldSep = '\t';
+                else
+                    header.fieldSep = ' ';
+                end
+                
+            case recorderExpr
+                header.instrument_model     = tkns{matches}{1}{2};
+                header.serialNo = tkns{matches}{1}{3};
+                
+            case dateTimeExpr
+                if cell2mat(tkns{matches}{1}) == 0
+                    header.isDateJoined = false;
+                else
+                    header.isDateJoined = true;
+                end
+                
+            case axisExpr
+                for x=1:length(matches)
+                    if ~isempty(tkns{matches(x)})
+                        header.param(x).axis = str2double(tkns{matches(x)}{1}{1});
+                        header.param(x).column = genvarname(tkns{matches(x)}{1}{2});
+                        header.param(x).units = genvarname(tkns{matches(x)}{1}{3});
+                        header.nParam = max(header.nParam, header.param(x).axis);
+                    end
+                end
+                
+            case reconversionExpr
+                if ~strcmpi(char(tkns{matches}{1}), '0')
+                    header.isReconverted = true;
+                end
+                
+            case dateDefExpr
+                header.dateFormat = char(tkns{matches}{1});
+                
+            case recorder2Expr
+                header.instrument_model     = 'Starmon Mini';
+                header.serialNo = tkns{matches}{1}{1};
+                
+            case decimalPtExpr
+                if strcmpi(char(tkns{matches}{1}), '0')
+                    header.decimalChar = ',';
+                else
+                    header.decimalChar = '.';
+                end
+                
+            case timeDefExpr
+                if strcmpi(char(tkns{matches}{1}), '0')
+                    header.timeFormat = 'HH:MM:SS';
+                else
+                    header.timeFormat = 'HH.MM.SS';
+                end
+                
+            case channelExpr
+                for x=1:length(matches)
+                    if ~isempty(tkns{matches(x)})
+                        header.param(x).axis = str2double(tkns{matches(x)}{1}{2});
+                        header.param(x).column = genvarname(tkns{matches(x)}{1}{3});
+                        header.param(x).units = genvarname(tkns{matches(x)}{1}{4});
+                        header.nParam = max(header.nParam, header.param(x).axis);
+                    end
+                end
+                
+            case dateDef2Expr
+                if tkns{matches}{1}{1} == '0' && tkns{matches}{1}{2} == '0'
+                    header.dateFormat = 'dd.mm.yy';
+                elseif tkns{matches}{1}{1} == '1' && tkns{matches}{1}{2} == '0'
+                    header.dateFormat = 'mm.dd.yy';
+                elseif tkns{matches}{1}{1} == '0' && tkns{matches}{1}{2} == '1'
+                    header.dateFormat = 'dd/mm/yy';
+                elseif tkns{matches}{1}{1} == '1' && tkns{matches}{1}{2} == '1'
+                    header.dateFormat = 'mm/dd/yy';
+                elseif tkns{matches}{1}{1} == '0' && tkns{matches}{1}{2} == '2'
+                    header.dateFormat = 'dd-mm-yy';
+                elseif tkns{matches}{1}{1} == '1' && tkns{matches}{1}{2} == '2'
+                    header.dateFormat = 'mm-dd-yy';
+                end
+                
+        end
     end
 end
+
+header.nCol = header.nParam+2;
+
 end
 
 function data = getData(filename, header)
-%GETDATA Reads a Starmon Mini .DAT file data based on the header content
+%GETDATA Reads any Starmon Mini / DST Tilt / DST CTD .DAT file data based on the header content
 %
 % The first column is the measurement number, 
 % the second column the date and the time, depending on the set-up. 
@@ -286,7 +289,7 @@ else
 end
 
 dataFormat = ['%*d%s' extraColumnTime];
-for i=3:header.nCol
+for i=1:header.nCol
     if header.isReconverted
         dataFormat = [dataFormat '%s%s'];
     else
@@ -316,7 +319,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
     iContent = i + nColumnTime;
     
     switch header.param(iParam).column
-        case {'Temp0x280xB0C0x29', 'Temp0x280xFFFDC0x29'} %degrees C
+        case {'Temperature'} 
             var = 'TEMP';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
@@ -331,28 +334,14 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
                     end
                 end
             end
-            data.(var).values = values;
-            data.(var).comment = comment;
-            
-        case {'Temp0x280xB0F0x29', 'Temp0x280xFFFDF0x29'} % ([degreesF] - 32) * 5/9
-            var = 'TEMP';
-            values = strrep(DataContent{iContent}, ',', '.');
-            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
-            comment = 'Originaly expressed in Fahrenheit.';
-            if header.isReconverted
-                if header.isTempCorr
-                    if rem(i, 2) == 1
-                        var = [var '_1'];
-                    else
-                        var = [var '_2'];
-                        comment = [comment ' Normal temperature correction applied.'];
-                    end
-                end
+            if strcmpi(header.param(iParam).units, 'x0xFFFDF')
+                data.(var).values = (values - 32) * 5/9; % conversion from Fahrenheit to Celsius
+            else
+                data.(var).values = values;
             end
-            data.(var).values = (values - 32) * 5/9;
             data.(var).comment = comment;
-            
-        case 'Pres0x28dbar0x29'
+                        
+        case 'Pressure'
             var = 'PRES';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
@@ -372,11 +361,11 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).comment = comment;
             data.(var).applied_offset = applied_offset;
             
-        case 'Depth0x28m0x29'
+        case 'Depth'
             var = 'DEPTH';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
-            comment = '';
+            comment = 'depth calculated from pressure, using g=9.81 m/s/s';
             if header.isReconverted
                 if header.isPresCorr
                     if rem(i, 2) == 1
@@ -390,7 +379,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).values = values;
             data.(var).comment = comment;
             
-        case 'Sal0x28psu0x29'
+        case 'Salinity'
             var = 'PSAL';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
@@ -412,6 +401,38 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
                     end
                 end
             end
+            data.(var).values = values;
+            data.(var).comment = comment;
+
+        case 'Conductivity'
+            var = 'CNDC';
+            values = strrep(DataContent{iContent}, ',', '.');
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
+            comment = '';
+            data.(var).values = values;
+            data.(var).comment = comment;
+                        
+        case 'Sound Velocity'
+            var = 'SOUND_VEL';
+            values = strrep(DataContent{iContent}, ',', '.');
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
+            comment = '';
+            data.(var).values = values;
+            data.(var).comment = comment;
+                        
+        case 'Roll'
+            var = 'ROLL';
+            values = strrep(DataContent{iContent}, ',', '.');
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
+            comment = '';
+            data.(var).values = values;
+            data.(var).comment = comment;
+            
+        case 'Pitch'
+            var = 'PITCH';
+            values = strrep(DataContent{iContent}, ',', '.');
+            values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
+            comment = '';
             data.(var).values = values;
             data.(var).comment = comment;
             
