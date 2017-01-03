@@ -93,60 +93,19 @@ dIdx    = 1;
 structures = struct;
 [~, ~, cpuEndianness] = computer;
 
-% list of Ids that have variables that can vary in size, so cannot just
-% concatenate them
-specialIds{1}.id = 'Id66';
-specialIds{1}.vars = { 'Amp' };
-specialIds{2}.id = 'Id98';
-specialIds{2}.vars = { 'Energy' };
-
 while dIdx < dataLen
     
     [sect, len] = readSection(filename, data, dIdx, cpuEndianness);
     if ~isempty(sect)
         curField = ['Id' sprintf('%d', sect.Id)];
-        theFieldNames = fieldnames(sect);
-        nField = length(theFieldNames);
-
-        iSpecialId = cellfun(@(x) strcmp(curField, x.id), specialIds);
-        notSpecial = false;
-        if all(~iSpecialId)
-            notSpecial = true;
-        else
-            specialId = specialIds{iSpecialId};
-            specialVars = specialId.vars;
-            iSpecialVars = logical(cell2mat(cellfun(@(x) any(strcmp(x, specialVars)), theFieldNames, 'UniformOutput', false)));
-        end
         
         if ~isfield(structures, curField)
             % copy first instance of IdX structure
-            if notSpecial
-                structures.(curField) = sect;
-            else
-                for i=1:nField
-                    if ~iSpecialVars(i)
-                        structures.(curField).(theFieldNames{i}) = sect.(theFieldNames{i});
-                    else
-                        structures.(curField).(theFieldNames{i}){1} = sect.(theFieldNames{i});
-                    end
-                end
-            end
+            structures.(curField) = sect;
         else
             % append current IdX structure to existing
             % no pre-allocation is still faster than allocating more than needed and then removing the excess
-            if notSpecial
-                for i=1:nField
-                    structures.(curField).(theFieldNames{i})(:, end+1) = sect.(theFieldNames{i});
-                end
-            else
-                for i=1:nField
-                    if ~iSpecialVars(i)
-                        structures.(curField).(theFieldNames{i})(:, end+1) = sect.(theFieldNames{i});
-                    else
-                        structures.(curField).(theFieldNames{i}){end+1} = sect.(theFieldNames{i});
-                    end
-                end
-            end
+            structures.(curField)(end+1) = sect;
         end
     end
     
