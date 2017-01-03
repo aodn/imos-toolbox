@@ -94,7 +94,7 @@ function [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] =
   fclose(inputId);
     
   % we run the geomag program and read its output
-  geomagCmd = sprintf('%s %s f %s %s %s', geomagExeFull, geomagModelFile, geomagInputFile, geomagOutputFile, stdOutRedirection);
+  geomagCmd = sprintf('"%s" "%s" f "%s" "%s" %s', geomagExeFull, geomagModelFile, geomagInputFile, geomagOutputFile, stdOutRedirection);
   system(geomagCmd);
   
   geomagFormat = '%s D M%f %f %f %fd %fm %*s %*s %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f';
