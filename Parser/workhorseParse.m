@@ -531,11 +531,3 @@ function direction = getDirectionFromUV(uvel, vvel)
     direction(sw) = 180 + direction(sw);
     direction(nw) = 360 - direction(nw);
 end
-
-function angle = make0To360(angle)
-    iLower = angle < 0;
-    angle(iLower) = 360 + angle(iLower);
-    
-    iHigher = angle >= 360;
-    angle(iHigher) = angle(iHigher) - 360;
-end

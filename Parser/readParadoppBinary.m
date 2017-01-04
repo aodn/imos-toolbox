@@ -1156,13 +1156,12 @@ end
 function [sect, len, off] = readGeneric(data, idx, cpuEndianness)
 %READGENERIC Skip past an unknown sector type
 
-Sync        = data(idx);
 Id          = data(idx+1);
 Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len              = Size * 2;
 off              = len;
 sect = [];
-%warning(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
+
 disp(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
 
 end
