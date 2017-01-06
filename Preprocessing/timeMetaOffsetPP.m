@@ -62,10 +62,6 @@ function sample_data = timeMetaOffsetPP(sample_data, qcLevel, auto)
   
   % auto logical in input to enable running under batch processing
   if nargin<3, auto=false; end
-  
-  % time offsets are already performed on raw FV00 dataset which then go through
-  % this pp to generate the qc'd FV01 dataset.
-  if strcmpi(qcLevel, 'qc'), return; end
       
   offsetFile = ['Preprocessing' filesep 'timeOffsetPP.txt'];
 
