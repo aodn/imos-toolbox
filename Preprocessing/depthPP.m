@@ -1,6 +1,6 @@
 function sample_data = depthPP( sample_data, qcLevel, auto )
 %DEPTHPP Adds a depth variable to the given data sets, if they contain a
-% pressure variable.
+% pressure variable or if there are neighbouring pressure sensor on their same mooring.
 %
 % This function uses the Gibbs-SeaWater toolbox (TEOS-10) to derive depth data
 % from pressure. It adds the depth data as a new variable in the data sets.
@@ -134,19 +134,16 @@ for iCurSam = 1:nDatasets
     depthIdx(iCurSam) = getVar(sample_data{iCurSam}.(depthVarType), 'DEPTH');
     if depthIdx(iCurSam)
         useItsOwnDepth(iCurSam) = true;
-        continue;
     end
     
     presIdx(iCurSam) = getVar(sample_data{iCurSam}.variables, 'PRES');
     if presIdx(iCurSam)
         useItsOwnPres(iCurSam) = true;
-        continue;
     end
     
     presRelIdx(iCurSam) = getVar(sample_data{iCurSam}.variables, 'PRES_REL');
     if presRelIdx(iCurSam)
         useItsOwnPresRel(iCurSam) = true;
-        continue;
     end
     
     % look for nearest instruments with depth or pressure information
@@ -311,26 +308,32 @@ end
 
 %% create GUI to show default settings
 % create descriptions, get methodology and nearest P sensors for each data set
-descSam      = cell(nDatasets, 1);
-descOtherSam = cell(nDatasets, 1);
-methodSam    = zeros(nDatasets, 1);
-methodString = {'from DEPTH measurements', ...
+descSam       = cell(nDatasets, 1);
+descOtherSam  = cell(nDatasets, 1);
+methodsString = {'from DEPTH measurements', ...
     'from PRES measurements', ...
     'from PRES_REL measurements', ...
     'from nearest pressure sensors'};
+methodsSamString  = cell(nDatasets, 1); % cell array of strings of possible methods per dataset
+iMethodsSamString = false(nDatasets, 4); % logical array with methodsString of possible methods per dataset
+iMethodSam        = zeros(nDatasets, 1); % index of selected method within methodsSamString per dataset
+
 for iCurSam = 1:nDatasets
     descSam{iCurSam} = genSampleDataDesc(sample_data{iCurSam}, 'medium');
     
-    methodSam(iCurSam) = 4;
+    iMethodsSamString(iCurSam, 4) = true;
     if useItsOwnPresRel(iCurSam)
-        methodSam(iCurSam) = 3;
+        iMethodsSamString(iCurSam, 3) = true;
     end
     if useItsOwnPres(iCurSam)
-        methodSam(iCurSam) = 2;
+        iMethodsSamString(iCurSam, 2) = true;
     end
     if useItsOwnDepth(iCurSam)
-        methodSam(iCurSam) = 1;
+        iMethodsSamString(iCurSam, 1) = true;
     end
+    
+    % given the order of definition, the first methodology is the default one
+    iMethodSam(iCurSam) = 1;
     
     descOtherSam{iCurSam}{1} = ' - ';
     nOtherSam = length(nearestInsts{iCurSam});
@@ -359,24 +362,23 @@ if ~auto
     secondNearestInstUic = nan(nDatasets, 1);
     for iCurSam = 1:nDatasets
         descSamUic(iCurSam) = uicontrol( ...
-            'Style',  'text', ...
+            'Style',               'text', ...
             'HorizontalAlignment', 'left', ...
-            'String', descSam{iCurSam});
+            'String',              descSam{iCurSam});
         
+        methodsSamString{iCurSam} = methodsString(iMethodsSamString(iCurSam, :));
         methodSamUic(iCurSam) = uicontrol( ...
-            'Style',  'popupmenu', ...
-            'Enable', 'inactive', ...
-            'String', methodString, ...
-            'Value',  methodSam(iCurSam));
+            'Style',    'popupmenu', ...
+            'String',   methodsSamString{iCurSam}, ...
+            'Value',    iMethodSam(iCurSam), ...
+            'Callback', {@methodSamCallback, iCurSam});
         
-        switch methodSam(iCurSam)
-            case {1, 2, 3}
-                nearestInstVisibility = 'off';
-                andStr = '';
+        switch methodsSamString{iCurSam}{iMethodSam(iCurSam)}
+            case methodsString{end}
+                nearestInstVisibility = 'on';
                 
             otherwise
-                nearestInstVisibility = 'on';
-                andStr = 'and';
+                nearestInstVisibility = 'off';
         end
         
         firstNearestInstUic(iCurSam) = uicontrol( ...
@@ -387,7 +389,8 @@ if ~auto
         
         andStrUic(iCurSam) = uicontrol( ...
             'Style',  'text', ...
-            'String', andStr);
+            'String', 'and', ...
+            'Visible', nearestInstVisibility);
         
         secondNearestInstUic(iCurSam) = uicontrol( ...
             'Style',   'popupmenu', ...
@@ -407,12 +410,14 @@ if ~auto
     set(andStrUic,            'Units', 'normalized');
     set(secondNearestInstUic, 'Units', 'normalized');
     
-    set(f,             'Position', [0.2 0.35 0.6 0.3]);
-    set(cancelButton,  'Position', [0.0 0.0  0.3 0.1]);
-    set(resetButton,   'Position', [0.3 0.0  0.3 0.1]);
-    set(confirmButton, 'Position', [0.6 0.0  0.4 0.1]);
+    set(f,             'Position', [0.2 0.35 0.6 0.0222 * (nDatasets +1 )]); % need to include 1 extra space for the row of buttons
     
-    rowHeight = 0.9 / nDatasets;
+    rowHeight = 1 / (nDatasets + 1);
+    
+    set(cancelButton,  'Position', [0.0 0.0  0.3 rowHeight]);
+    set(resetButton,   'Position', [0.3 0.0  0.3 rowHeight]);
+    set(confirmButton, 'Position', [0.6 0.0  0.4 rowHeight]);
+    
     for k = 1:nDatasets
         rowStart = 1.0 - k * rowHeight;
         
@@ -735,14 +740,27 @@ for iCurSam = 1:nDatasets
         coordinates = sample_data{iCurSam}.variables{end}.coordinates;
     end
     
-    % add depth data as new variable in data set
-    sample_data{iCurSam} = addVar( ...
-        sample_data{iCurSam}, ...
-        'DEPTH', ...
-        computedDepth, ...
-        dimensions, ...
-        computedDepthComment, ...
-        coordinates);
+    if depthIdx(iCurSam)
+        % update existing depth data in data set
+        sample_data{iCurSam}.(depthVarType).data = computedDepth;
+        
+        depthComment = sample_data{iCurSam}.(depthVarType).comment;
+        if isempty(depthComment)
+            sample_data{iCurSam}.(depthVarType).comment = computedDepthComment;
+        else
+            sample_data{iCurSam}.(depthVarType).comment = [comment ' ' computedDepthComment];
+        end
+        
+    else
+        % add depth data as new variable in data set
+        sample_data{iCurSam} = addVar( ...
+            sample_data{iCurSam}, ...
+            'DEPTH', ...
+            computedDepth, ...
+            dimensions, ...
+            computedDepthComment, ...
+            coordinates);
+    end
     
     % update vertical min/max from newly computed DEPTH variable
     sample_data{iCurSam}.geospatial_vertical_min = min(computedDepth);
@@ -777,6 +795,22 @@ for iCurSam = 1:nDatasets
 end
 
 %% Callbacks
+    function methodSamCallback(source,ev,j)
+        %RESETCALLBACK Reset to default choices in the GUI.
+        %
+        iMethod = get(methodSamUic(j), 'Value');
+        switch methodsSamString{j}{iMethod}
+            case methodsString{end}
+                nearestInstVisibility = 'on';
+                
+            otherwise
+                nearestInstVisibility = 'off';
+        end
+        
+        set([firstNearestInstUic(j), andStrUic(j), secondNearestInstUic(j)], ...
+            'Visible', nearestInstVisibility);
+    end
+
     function keyPressCallback(source,ev)
         %KEYPRESSCALLBACK If the user pushes escape/return while the dialog has
         % focus, the dialog is cancelled/confirmed. This is done by delegating
@@ -799,11 +833,11 @@ end
         %RESETCALLBACK Reset to default choices in the GUI.
         %
         for j = 1:nDatasets
-            set(firstNearestInstUic(j), ...
-                'Value',   firstNearestInst(j) + 1);
+            set(methodSamUic(j),         'Value', iMethodSam(j));
+            methodSamCallback(source,ev,j)
             
-            set(secondNearestInstUic(j), ...
-                'Value',   secondNearestInst(j) + 1);
+            set(firstNearestInstUic(j),  'Value', firstNearestInst(j)  + 1);
+            set(secondNearestInstUic(j), 'Value', secondNearestInst(j) + 1);
         end
     end
 
@@ -811,6 +845,25 @@ end
         %CONFIRMCALLBACK Set choices as they appear on the GUI and closes the dialog.
         %
         for j = 1:nDatasets
+            useItsOwnDepth(j)   = false;
+            useItsOwnPres(j)    = false;
+            useItsOwnPresRel(j) = false;
+            
+            strings = get(methodSamUic(j), 'String');
+            value   = get(methodSamUic(j), 'Value');
+            
+            switch strings{value}
+                case methodsString{1} % from DEPTH measurements
+                    useItsOwnDepth(j)   = true;
+                    
+                case methodsString{2} % from PRES measurements
+                    useItsOwnPres(j)    = true;
+                    
+                case methodsString{3} % from PRES_REL measurements
+                    useItsOwnPresRel(j) = true;
+                    
+            end
+            
             firstNearestInst(j)  = get(firstNearestInstUic(j),  'Value') - 1;
             secondNearestInst(j) = get(secondNearestInstUic(j), 'Value') - 1;
         end
