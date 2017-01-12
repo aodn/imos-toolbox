@@ -1,4 +1,4 @@
-function desc = genSampleDataDesc( sam )
+function desc = genSampleDataDesc( sam, detailLevel )
 %GENSAMPLEDATADESC Generates a string description of the given sample_data
 % struct.
 %
@@ -6,7 +6,9 @@ function desc = genSampleDataDesc( sam )
 % be used throughout the toolbox.
 % 
 % Inputs:
-%   sam  - struct containing a data set
+%   sam          - struct containing a data set
+%   detailLevel  - string either 'full', 'medium' or 'short', dictates the level of
+%                details for output sample description
 %
 % Outputs:
 %   desc - a string describing the given data set.
@@ -43,23 +45,43 @@ function desc = genSampleDataDesc( sam )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(1,1);
+narginchk(1,2);
 
 if ~isstruct(sam), error('sam must be a struct'); end
+
+if nargin == 1
+    detailLevel = 'full';
+end
 
 timeFmt = readProperty('toolbox.timeFormat');
 
 timeRange = ['from ' datestr(sam.time_coverage_start, timeFmt) ' to ' ...
              datestr(sam.time_coverage_end,   timeFmt)];
 
-[fPath fName fSuffix] = fileparts(sam.toolbox_input_file);
+[~, fName, fSuffix] = fileparts(sam.toolbox_input_file);
 
 fName = [fName fSuffix];
 
-desc = [      sam.meta.site_id ...
-        ' - '  sam.meta.instrument_make ...
-        ' '   sam.meta.instrument_model ...
-        ' SN='   sam.meta.instrument_serial_no ...
-        ' @' num2str(sam.meta.depth) 'm' ...
-        ' '   timeRange ...
-        ' (' fName ')'];
+switch detailLevel
+    case 'short'
+        desc = [   sam.meta.instrument_make ...
+            ' '    sam.meta.instrument_model ...
+            ' @'   num2str(sam.meta.depth) 'm'];
+        
+    case 'medium'
+        desc = [   sam.meta.instrument_make ...
+            ' '    sam.meta.instrument_model ...
+            ' SN=' sam.meta.instrument_serial_no ...
+            ' @'   num2str(sam.meta.depth) 'm' ...
+            ' ('   fName ')'];
+        
+    otherwise
+        % full details
+        desc = [   sam.meta.site_id ...
+            ' - '  sam.meta.instrument_make ...
+            ' '    sam.meta.instrument_model ...
+            ' SN=' sam.meta.instrument_serial_no ...
+            ' @'   num2str(sam.meta.depth) 'm' ...
+            ' '    timeRange ...
+            ' ('   fName ')'];
+end
