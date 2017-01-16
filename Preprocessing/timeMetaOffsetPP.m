@@ -65,13 +65,14 @@ function sample_data = timeMetaOffsetPP(sample_data, qcLevel, auto)
       
   offsetFile = ['Preprocessing' filesep 'timeOffsetPP.txt'];
 
+  nSample = length(sample_data);
   descs     = {};
   timezones = {};
   offsets   = [];
-  sets      = ones(length(sample_data), 1);
+  sets      = ones(nSample, 1);
   
   % create descriptions, and get timezones/offsets for each data set
-  for k = 1:length(sample_data)
+  for k = 1:nSample
     
     descs{k} = genSampleDataDesc(sample_data{k});
     
@@ -106,7 +107,7 @@ function sample_data = timeMetaOffsetPP(sample_data, qcLevel, auto)
       timezoneLabels = [];
       offsetFields   = [];
       
-      for k = 1:length(sample_data)
+      for k = 1:nSample
           
           setCheckboxes(k) = uicontrol(...
               'Style',    'checkbox',...
@@ -132,12 +133,14 @@ function sample_data = timeMetaOffsetPP(sample_data, qcLevel, auto)
       set(timezoneLabels, 'Units', 'normalized');
       set(offsetFields,   'Units', 'normalized');
       
-      set(f,             'Position', [0.2 0.35 0.6 0.3]);
-      set(cancelButton,  'Position', [0.0 0.0  0.5 0.1]);
-      set(confirmButton, 'Position', [0.5 0.0  0.5 0.1]);
+      set(f,             'Position', [0.2 0.35 0.6 0.0222 * (nSample +1 )]); % need to include 1 extra space for the row of buttons
       
-      rowHeight = 0.9 / length(sample_data);
-      for k = 1:length(sample_data)
+      rowHeight = 1 / (nSample + 1);
+      
+      set(cancelButton,  'Position', [0.0 0.0  0.5 rowHeight]);
+      set(confirmButton, 'Position', [0.5 0.0  0.5 rowHeight]);
+      
+      for k = 1:nSample
           
           rowStart = 1.0 - k * rowHeight;
           
@@ -168,7 +171,7 @@ function sample_data = timeMetaOffsetPP(sample_data, qcLevel, auto)
   end
   
   % apply the time offset to the selected datasets
-  for k = 1:length(sample_data)
+  for k = 1:nSample
       
       % this set has been deselected
       if ~sets(k), continue; end
