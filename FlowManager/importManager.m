@@ -308,9 +308,9 @@ function [sample_data, rawFiles] = ddbImport(auto, iMooring, ddb, mode)
 
       hits = fsearch(rawFile, dataDir, 'files');
       
-      % we remove any potential .pqc or .mqc files found (reserved for use
+      % we remove any potential .ppp, .pqc or .mqc files found (reserved for use
       % by the toolbox)
-      reservedExts = {'.pqc', '.mqc'};
+      reservedExts = {'.ppp', '.pqc', '.mqc'};
       for l=1:length(hits)
           [~, ~, ext] = fileparts(hits{l});
           if all(~strcmp(ext, reservedExts))
