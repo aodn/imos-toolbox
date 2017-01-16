@@ -1,5 +1,5 @@
-function value = readQCparameter(rawDataFile, QCtest, param, value)
-%READQCPARAMETER Return the value of the specified parameter from the QC 
+function value = readDatasetParameter(rawDataFile, QCtest, param, value)
+%READDATASETPARAMETER Return the value of the specified parameter from the QC 
 %parameter file associated to the raw data file.
 %
 % This function provides a simple interface to retrieve the values of

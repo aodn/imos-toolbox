@@ -1,5 +1,5 @@
-function writeQCparameter(rawDataFile, QCtest, param, value)
-%WRITEQCPARAMETER Writes the value of the specified QC parameter to a QC 
+function writeDatasetParameter(rawDataFile, QCtest, param, value)
+%WRITEDATASETPARAMETER Writes the value of the specified QC parameter to a QC 
 %parameter file associated to the raw data file.
 %
 % This function provides a simple interface to store the values of
