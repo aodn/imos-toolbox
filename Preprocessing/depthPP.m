@@ -76,7 +76,23 @@ switch mode
         depthVarType = 'variables';
         
 end
-    
+
+% check wether height or target depth information is documented
+isSensorHeight = false;
+isSensorTargetDepth = false;
+
+if isfield(sample_data{1}, 'instrument_nominal_height')
+    if ~isempty(sample_data{1}.instrument_nominal_height)
+        isSensorHeight = true;
+    end
+end
+
+if isfield(sample_data{1}, 'instrument_nominal_depth')
+    if ~isempty(sample_data{1}.instrument_nominal_depth)
+        isSensorTargetDepth = true;
+    end
+end
+
 % read options from parameter file
 depthFile       = ['Preprocessing' filesep 'depthPP.txt'];
 same_family     = readProperty('same_family', depthFile, ',');
@@ -98,22 +114,6 @@ if ~isempty(exclude)
     exclude = exclude{1};
 end
 
-% check wether height or target depth information is documented
-isSensorHeight = false;
-isSensorTargetDepth = false;
-
-if isfield(sample_data{1}, 'instrument_nominal_height')
-    if ~isempty(sample_data{1}.instrument_nominal_height)
-        isSensorHeight = true;
-    end
-end
-
-if isfield(sample_data{1}, 'instrument_nominal_depth')
-    if ~isempty(sample_data{1}.instrument_nominal_depth)
-        isSensorTargetDepth = true;
-    end
-end
-
 %% loop on every data sets and find out default choices
 nDatasets = length(sample_data);
 
@@ -129,7 +129,15 @@ nearestInsts      = cell(nDatasets, 1);
 firstNearestInst  = zeros(nDatasets, 1);
 secondNearestInst = zeros(nDatasets, 1);
 
+currentPProutine = mfilename;
+
 for iCurSam = 1:nDatasets
+    % read dataset specific PP parameters if exist and override previous entries from
+    % parameter file depth.txt
+    same_family = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'same_family', same_family); % although we store / define these for each dataset, they are usually the same for a whole mooring
+    include     = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'include',     include);
+    exclude     = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'exclude',     exclude);
+    
     % look for already existing DEPTH, PRES or PRES_REL variables
     depthIdx(iCurSam) = getVar(sample_data{iCurSam}.(depthVarType), 'DEPTH');
     if depthIdx(iCurSam)
@@ -145,6 +153,11 @@ for iCurSam = 1:nDatasets
     if presRelIdx(iCurSam)
         useItsOwnPresRel(iCurSam) = true;
     end
+    
+    % read dataset specific PP parameters if exist and override previous default entries
+    useItsOwnDepth(iCurSam)   = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnDepth',   useItsOwnDepth(iCurSam));
+    useItsOwnPres(iCurSam)    = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPres',    useItsOwnPres(iCurSam));
+    useItsOwnPresRel(iCurSam) = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPresRel', useItsOwnPresRel(iCurSam));
     
     % look for nearest instruments with depth or pressure information
     if isSensorHeight || isSensorTargetDepth
@@ -290,6 +303,10 @@ for iCurSam = 1:nDatasets
             
             firstNearestInst(iCurSam)  = iFirst;
             secondNearestInst(iCurSam) = iSecond;
+            
+            % read dataset specific PP parameters if exist and override previous default entries
+            firstNearestInst(iCurSam)  = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'firstNearestInst',  firstNearestInst(iCurSam));
+            secondNearestInst(iCurSam) = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'secondNearestInst', secondNearestInst(iCurSam));
         end
     else
         fprintf('%s\n', ['Warning : ' sample_data{iCurSam}.toolbox_input_file ...
@@ -298,12 +315,6 @@ for iCurSam = 1:nDatasets
             'computed from other pressure sensors in the mooring']);
         continue;
     end
-    
-    % variable DEPTH will be a function of dimension TIME
-    dimensions = getVar(sample_data{iCurSam}.dimensions, 'TIME');
-    
-    % hopefully the last variable in the file is a data variable
-    coordinates = sample_data{iCurSam}.variables{end}.coordinates;
 end
 
 %% create GUI to show default settings
@@ -351,9 +362,10 @@ if ~auto
         'WindowStyle', 'Modal',...
         'NumberTitle', 'off');
     
-    cancelButton  = uicontrol('Style',  'pushbutton', 'String', 'Cancel');
-    resetButton   = uicontrol('Style',  'pushbutton', 'String', 'Reset to Default');
-    confirmButton = uicontrol('Style',  'pushbutton', 'String', 'Ok');
+    cancelButton       = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
+    resetParamsButton  = uicontrol('Style', 'pushbutton', 'String', 'Reset parameters, restart from depthPP.txt');
+    resetMappingButton = uicontrol('Style', 'pushbutton', 'String', 'Reset to current default mapping');
+    confirmButton      = uicontrol('Style', 'pushbutton', 'String', 'Ok');
     
     descSamUic           = nan(nDatasets, 1);
     methodSamUic         = nan(nDatasets, 1);
@@ -399,27 +411,50 @@ if ~auto
             'Visible', nearestInstVisibility);
     end
     
+    paramsString = 'Look within same kind of instruments: ';
+    if same_family
+        paramsString = [paramsString, 'Yes.'];
+    else
+        paramsString = [paramsString, 'No.'];
+    end
+    
+    if ~isempty(include)
+        includeStr = [include,[repmat({' '},numel(include)-1,1);{[]}]]';
+        includeStr = [includeStr{:}];
+        paramsString = [paramsString, ' Include: ' includeStr '.'];
+    end
+    
+    if ~isempty(exclude)
+        excludeStr = [exclude,[repmat({' '},numel(exclude)-1,1);{[]}]]';
+        excludeStr = [excludeStr{:}];
+        paramsString = [paramsString, ' Exclude: ' excludeStr '.'];
+    end
+    paramsStringUic = uicontrol('Style', 'text', 'String', paramsString);
+    
     % set all widgets to normalized for positioning
     set(f,                    'Units', 'normalized');
     set(cancelButton,         'Units', 'normalized');
-    set(resetButton,          'Units', 'normalized');
+    set(resetParamsButton,    'Units', 'normalized');
+    set(resetMappingButton,   'Units', 'normalized');
     set(confirmButton,        'Units', 'normalized');
     set(descSamUic,           'Units', 'normalized');
     set(methodSamUic,         'Units', 'normalized');
     set(firstNearestInstUic,  'Units', 'normalized');
     set(andStrUic,            'Units', 'normalized');
     set(secondNearestInstUic, 'Units', 'normalized');
+    set(paramsStringUic,      'Units', 'normalized');
     
-    set(f,             'Position', [0.2 0.35 0.6 0.0222 * (nDatasets +1 )]); % need to include 1 extra space for the row of buttons
+    set(f,             'Position', [0.2 0.35 0.6 0.0222 * (nDatasets + 2 )]); % need to include 2 extra space for the depth.txt parameters and the row of buttons
     
-    rowHeight = 1 / (nDatasets + 1);
+    rowHeight = 1 / (nDatasets + 2);
     
-    set(cancelButton,  'Position', [0.0 0.0  0.3 rowHeight]);
-    set(resetButton,   'Position', [0.3 0.0  0.3 rowHeight]);
-    set(confirmButton, 'Position', [0.6 0.0  0.4 rowHeight]);
+    set(cancelButton,       'Position', [0.0  0.0  0.25 rowHeight]);
+    set(resetParamsButton,  'Position', [0.25 0.0  0.25 rowHeight]);
+    set(resetMappingButton, 'Position', [0.5  0.0  0.25 rowHeight]);
+    set(confirmButton,      'Position', [0.75 0.0  0.25 rowHeight]);
     
     for k = 1:nDatasets
-        rowStart = 1.0 - k * rowHeight;
+        rowStart = 1.0 - (k + 1) * rowHeight;
         
         set(descSamUic (k),          'Position', [0.0   rowStart 0.4   rowHeight]);
         set(methodSamUic(k),         'Position', [0.4   rowStart 0.2   rowHeight]);
@@ -428,21 +463,30 @@ if ~auto
         set(secondNearestInstUic(k), 'Position', [0.825 rowStart 0.175 rowHeight]);
     end
     
+    set(paramsStringUic, 'Position', [0.0 (1.0 - rowHeight) 1 rowHeight]);
+    
     % set widget callbacks
     set(f,             'CloseRequestFcn',   @cancelCallback);
     set(f,             'WindowKeyPressFcn', @keyPressCallback);
     
-    set(cancelButton,  'Callback',          @cancelCallback);
-    set(resetButton,   'Callback',          @resetCallback);
-    set(confirmButton, 'Callback',          @confirmCallback);
+    set(cancelButton,       'Callback',     @cancelCallback);
+    set(resetParamsButton,  'Callback',     @resetParamsCallback);
+    set(resetMappingButton, 'Callback',     @resetMappingCallback);
+    set(confirmButton,      'Callback',     @confirmCallback);
     
     cancel = false;
+    reset  = false;
     
     set(f, 'Visible', 'on');
     
     uiwait(f);
     
     if cancel
+        return;
+    end
+    
+    if reset
+        sample_data = depthPP(sample_data, qcLevel, auto);
         return;
     end
 end
@@ -792,6 +836,16 @@ for iCurSam = 1:nDatasets
             end
         end
     end
+    
+    % write/update dataset PP parameters
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'same_family',       same_family);
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'include',           include);
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'exclude',           exclude);
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnDepth',    useItsOwnDepth(iCurSam));
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPres',     useItsOwnPres(iCurSam));
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPresRel',  useItsOwnPresRel(iCurSam));
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'firstNearestInst',  firstNearestInst(iCurSam));
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'secondNearestInst', secondNearestInst(iCurSam));
 end
 
 %% Callbacks
@@ -826,11 +880,26 @@ end
         % dialog.
         %
         cancel = true;
+        reset  = false;
         delete(f);
     end
 
-    function resetCallback(source,ev)
-        %RESETCALLBACK Reset to default choices in the GUI.
+    function resetParamsCallback(source,ev)
+        %RESETPARAMSCALLBACK Reset dataset specific parameters re-start
+        %from depthPP.txt parameters
+        %
+        for j = 1:nDatasets
+            pppFile = [sample_data{j}.toolbox_input_file '.ppp'];
+            if exist(pppFile, 'file')
+                delete(pppFile);
+            end
+        end
+        reset = true;
+        delete(f);
+    end
+
+    function resetMappingCallback(source,ev)
+        %RESETMAPPINGCALLBACK Reset to current default choices in the GUI.
         %
         for j = 1:nDatasets
             set(methodSamUic(j),         'Value', iMethodSam(j));
@@ -839,6 +908,7 @@ end
             set(firstNearestInstUic(j),  'Value', firstNearestInst(j)  + 1);
             set(secondNearestInstUic(j), 'Value', secondNearestInst(j) + 1);
         end
+        reset = false;
     end
 
     function confirmCallback(source,ev)
@@ -867,6 +937,7 @@ end
             firstNearestInst(j)  = get(firstNearestInstUic(j),  'Value') - 1;
             secondNearestInst(j) = get(secondNearestInstUic(j), 'Value') - 1;
         end
+        reset = false;
         delete(f);
     end
 end
