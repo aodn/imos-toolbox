@@ -148,11 +148,13 @@ set(setCheckboxes,  'Units', 'normalized');
 set(startOffsetFields,   'Units', 'normalized');
 set(endOffsetFields,   'Units', 'normalized');
 
-set(f,             'Position', [0.2 0.35 0.6 0.0222*nSample]);
-set(cancelButton,  'Position', [0.0 0.0  0.5 0.1]);
-set(confirmButton, 'Position', [0.5 0.0  0.5 0.1]);
+set(f,             'Position', [0.2 0.35 0.6 0.0222 * (nSample + 1)]); % need to include 1 extra space for the row of buttons
 
-rowHeight = 0.9 / nSample;
+rowHeight = 1 / (nSample + 1);
+
+set(cancelButton,  'Position', [0.0 0.0  0.5 rowHeight]);
+set(confirmButton, 'Position', [0.5 0.0  0.5 rowHeight]);
+
 for k = 1:nSample
     
     rowStart = 1.0 - k * rowHeight;
@@ -277,7 +279,7 @@ end
         else    val = 'off';
         end
         
-        set(startOffsetFields(idx), 'Enable', val);
+        set([startOffsetFields(idx), endOffsetFields(idx)], 'Visible', val);
         
     end
 

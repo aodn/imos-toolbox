@@ -93,65 +93,45 @@ dIdx    = 1;
 structures = struct;
 [~, ~, cpuEndianness] = computer;
 
-% list of Ids that have variables that can vary in size, so cannot just
-% concatenate them
-specialIds{1}.id = 'Id66';
-specialIds{1}.vars = { 'Amp' };
-specialIds{2}.id = 'Id98';
-specialIds{2}.vars = { 'Energy' };
+% the while loop below involves poor performances so we display a waitbar 
+% dialog to make sure the user knows the toolbox is doing something
+[~, fName, ext] = fileparts(filename);
+lastStepProgress = 0;
+hWaitbar = waitbar(lastStepProgress,    '  0 %', ...
+    'Name',                             ['Reading file ' fName ext],...
+    'DefaultTextInterpreter',           'none');
 
 while dIdx < dataLen
     
     [sect, len] = readSection(filename, data, dIdx, cpuEndianness);
     if ~isempty(sect)
         curField = ['Id' sprintf('%d', sect.Id)];
-        theFieldNames = fieldnames(sect);
-        nField = length(theFieldNames);
-
-        iSpecialId = cellfun(@(x) strcmp(curField, x.id), specialIds);
-        notSpecial = false;
-        if all(~iSpecialId)
-            notSpecial = true;
-        else
-            specialId = specialIds{iSpecialId};
-            specialVars = specialId.vars;
-            iSpecialVars = logical(cell2mat(cellfun(@(x) any(strcmp(x, specialVars)), theFieldNames, 'UniformOutput', false)));
-        end
         
         if ~isfield(structures, curField)
             % copy first instance of IdX structure
-            if notSpecial
-                structures.(curField) = sect;
-            else
-                for i=1:nField
-                    if ~iSpecialVars(i)
-                        structures.(curField).(theFieldNames{i}) = sect.(theFieldNames{i});
-                    else
-                        structures.(curField).(theFieldNames{i}){1} = sect.(theFieldNames{i});
-                    end
-                end
-            end
+            structures.(curField) = sect;
         else
             % append current IdX structure to existing
             % no pre-allocation is still faster than allocating more than needed and then removing the excess
-            if notSpecial
-                for i=1:nField
-                    structures.(curField).(theFieldNames{i})(:, end+1) = sect.(theFieldNames{i});
-                end
-            else
-                for i=1:nField
-                    if ~iSpecialVars(i)
-                        structures.(curField).(theFieldNames{i})(:, end+1) = sect.(theFieldNames{i});
-                    else
-                        structures.(curField).(theFieldNames{i}){end+1} = sect.(theFieldNames{i});
-                    end
-                end
-            end
+            structures.(curField)(end+1) = sect;
         end
+    end
+    
+    % we don't want to update the waitbar for every single section (too
+    % slow) instead we update it every percent of a step
+    progress = dIdx/dataLen;
+    percentProgress = floor(progress * 100);
+    stepProgress = percentProgress/100;
+    if stepProgress > lastStepProgress
+        lastStepProgress = stepProgress;
+        waitbar(stepProgress, hWaitbar, [sprintf('%3u', percentProgress) ' %']);
     end
     
     dIdx = dIdx + len; % if len is empty, then dIdx is going to be empty and will fail the while test
 end
+
+waitbar(1, hWaitbar, '100 %');
+close(hWaitbar);
 
 return;
 end
@@ -1176,13 +1156,12 @@ end
 function [sect, len, off] = readGeneric(data, idx, cpuEndianness)
 %READGENERIC Skip past an unknown sector type
 
-Sync        = data(idx);
 Id          = data(idx+1);
 Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len              = Size * 2;
 off              = len;
 sect = [];
-%warning(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
+
 disp(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
 
 end

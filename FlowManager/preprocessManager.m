@@ -115,7 +115,7 @@ function [sample_data, cancel] = preprocessManager( sample_data, qcLevel, mode, 
   if ~isempty(ppChain)
       % let user know what is going on in batch mode
       if auto 
-          if strcmpi(qcLevel, 'raw')
+          if strcmpi(qcLevel, 'qc') % so that we only display this once
               ppChainStr = cellfun(@(x)([x ' ']), ppChain, 'UniformOutput', false);
               fprintf('%s\n', ['Preprocessing using : ' ppChainStr{:}]);
           end

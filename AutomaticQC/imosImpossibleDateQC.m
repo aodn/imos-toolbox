@@ -101,8 +101,8 @@ if ~isempty(dataTime)
     % read dataset QC parameters if exist and override previous 
     % parameters file
     currentQCtest = mfilename;
-    dateMin = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'dateMin', dateMin);
-    dateMax = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'dateMax', dateMax);
+    dateMin = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'dateMin', dateMin);
+    dateMax = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'dateMax', dateMax);
     
     paramsLog = ['dateMin=' datestr(dateMin, 'dd/mm/yyyy') ...
         ', dateMax=' datestr(dateMax, 'dd/mm/yyyy')];
@@ -122,6 +122,6 @@ if ~isempty(dataTime)
     end
     
     % write/update dataset QC parameters
-    writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'dateMin', dateMin);
-    writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'dateMax', dateMax);
+    writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'dateMin', dateMin);
+    writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'dateMax', dateMax);
 end

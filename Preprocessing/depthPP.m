@@ -1,6 +1,6 @@
 function sample_data = depthPP( sample_data, qcLevel, auto )
 %DEPTHPP Adds a depth variable to the given data sets, if they contain a
-% pressure variable.
+% pressure variable or if there are neighbouring pressure sensor on their same mooring.
 %
 % This function uses the Gibbs-SeaWater toolbox (TEOS-10) to derive depth data
 % from pressure. It adds the depth data as a new variable in the data sets.
@@ -66,6 +66,33 @@ if nargin<3, auto=false; end
 % local time to UTC conversion
 if strcmpi(qcLevel, 'raw'), return; end
 
+% get the toolbox execution mode
+mode = readProperty('toolbox.mode');
+switch mode
+    case 'profile'
+        depthVarType = 'dimensions';
+        
+    otherwise
+        depthVarType = 'variables';
+        
+end
+
+% check wether height or target depth information is documented
+isSensorHeight = false;
+isSensorTargetDepth = false;
+
+if isfield(sample_data{1}, 'instrument_nominal_height')
+    if ~isempty(sample_data{1}.instrument_nominal_height)
+        isSensorHeight = true;
+    end
+end
+
+if isfield(sample_data{1}, 'instrument_nominal_depth')
+    if ~isempty(sample_data{1}.instrument_nominal_depth)
+        isSensorTargetDepth = true;
+    end
+end
+
 % read options from parameter file
 depthFile       = ['Preprocessing' filesep 'depthPP.txt'];
 same_family     = readProperty('same_family', depthFile, ',');
@@ -87,213 +114,479 @@ if ~isempty(exclude)
     exclude = exclude{1};
 end
 
-% check wether height or target depth information is documented
-isSensorHeight = false;
-isSensorTargetDepth = false;
+%% loop on every data sets and find out default choices
+nDatasets = length(sample_data);
 
-if isfield(sample_data{1}, 'instrument_nominal_height')
-    if ~isempty(sample_data{1}.instrument_nominal_height)
-        isSensorHeight = true;
+depthIdx   = zeros(nDatasets, 1);
+presIdx    = zeros(nDatasets, 1);
+presRelIdx = zeros(nDatasets, 1);
+
+useItsOwnDepth   = false(nDatasets, 1);
+useItsOwnPresRel = false(nDatasets, 1);
+useItsOwnPres    = false(nDatasets, 1);
+
+nearestInsts      = cell(nDatasets, 1);
+firstNearestInst  = zeros(nDatasets, 1);
+secondNearestInst = zeros(nDatasets, 1);
+
+currentPProutine = mfilename;
+
+for iCurSam = 1:nDatasets
+    % read dataset specific PP parameters if exist and override previous entries from
+    % parameter file depth.txt
+    same_family = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'same_family', same_family); % although we store / define these for each dataset, they are usually the same for a whole mooring
+    include     = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'include',     include);
+    exclude     = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'exclude',     exclude);
+    
+    % look for already existing DEPTH, PRES or PRES_REL variables
+    depthIdx(iCurSam) = getVar(sample_data{iCurSam}.(depthVarType), 'DEPTH');
+    if depthIdx(iCurSam)
+        useItsOwnDepth(iCurSam) = true;
     end
-else
     
-end
-
-if isfield(sample_data{1}, 'instrument_nominal_depth')
-    if ~isempty(sample_data{1}.instrument_nominal_depth)
-        isSensorTargetDepth = true;
+    presIdx(iCurSam) = getVar(sample_data{iCurSam}.variables, 'PRES');
+    if presIdx(iCurSam)
+        useItsOwnPres(iCurSam) = true;
     end
-else
     
-end
-
-% loop on every data sets
-for k = 1:length(sample_data)
-    % current data set
-    curSam = sample_data{k};
+    presRelIdx(iCurSam) = getVar(sample_data{iCurSam}.variables, 'PRES_REL');
+    if presRelIdx(iCurSam)
+        useItsOwnPresRel(iCurSam) = true;
+    end
     
-    % if data set already contains depth data then next sample data
-    if getVar(curSam.variables, 'DEPTH'), continue; end
-    if getVar(curSam.dimensions, 'DEPTH'), continue; end
+    % read dataset specific PP parameters if exist and override previous default entries
+    useItsOwnDepth(iCurSam)   = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnDepth',   useItsOwnDepth(iCurSam));
+    useItsOwnPres(iCurSam)    = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPres',    useItsOwnPres(iCurSam));
+    useItsOwnPresRel(iCurSam) = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPresRel', useItsOwnPresRel(iCurSam));
     
-    presIdx     = getVar(curSam.variables, 'PRES');
-    presRelIdx  = getVar(curSam.variables, 'PRES_REL');
-    
-    % if no pressure data, try to compute it from other sensors in the
-    % mooring, otherwise go to next sample data
-    if presIdx == 0 && presRelIdx == 0
-        if isSensorHeight || isSensorTargetDepth
-            % let's see if part of a mooring with pressure data from other
-            % sensors
-            m = 0;
-            otherSam = [];
-            % loop on every other data sets
-            for l = 1:length(sample_data)
-                sam = sample_data{l};
-                
-                presCurIdx      = getVar(sam.variables, 'PRES');
-                presRelCurIdx   = getVar(sam.variables, 'PRES_REL');
-                
-                % samples without pressure information are excluded
-                if (presCurIdx == 0 && presRelCurIdx == 0), continue; end
-                
-                if isSensorTargetDepth
-                    samSensorZ = sam.instrument_nominal_depth;
-                else
-                    samSensorZ = sam.instrument_nominal_height;
-                end
-                
-                % current sample or samples without vertical nominal 
-                % information are excluded
-                if l == k || isempty(samSensorZ), continue; end
-                
+    % look for nearest instruments with depth or pressure information
+    if isSensorHeight || isSensorTargetDepth
+        % let's see if part of a mooring with pressure data from other
+        % sensors
+        for iOtherSam = 1:nDatasets
+            % loop on every data sets to find other compatible ones
+            presCurIdx      = getVar(sample_data{iOtherSam}.variables, 'PRES');
+            presRelCurIdx   = getVar(sample_data{iOtherSam}.variables, 'PRES_REL');
+            
+            % samples without pressure information are excluded
+            if (presCurIdx == 0 && presRelCurIdx == 0), continue; end
+            
+            if isSensorTargetDepth
+                samSensorZ = sample_data{iOtherSam}.instrument_nominal_depth;
+            else
+                samSensorZ = sample_data{iOtherSam}.instrument_nominal_height;
+            end
+            
+            % current sample or samples without vertical nominal
+            % information are excluded
+            if iOtherSam == iCurSam || isempty(samSensorZ), continue; end
+            
+            % we look at the instrument family/ brand of the sample
+            samSource = textscan(sample_data{iOtherSam}.instrument, '%s');
+            samSource = samSource{1};
+            p = 0;
+            if same_family
                 % only samples that are from the same instrument
                 % family/brand of the current sample are selected
-                samSource = textscan(sam.instrument, '%s');
-                samSource = samSource{1};
-                p = 0;
-                % is from the same family
-                if same_family
-                    % loop on every words composing the instrument global
-                    % attribute of current other data set
-                    for n = 1:length(samSource)
-                        if ~isempty(strfind(curSam.instrument, samSource{n}))
-                            p = 1;
-                        end
-                    end
-                else
-                    p = 1;
-                end
-                
-                % loop on every words that would include current other data set
-                for n = 1:length(include)
-                    % is included
-                    if ~isempty(strfind(sam.instrument, include{n}))
+                for n = 1:length(samSource)
+                    % loop on every words composing the 'instrument' global
+                    % attribute of other sample
+                    if ~isempty(strfind(sample_data{iCurSam}.instrument, samSource{n}))
                         p = 1;
                     end
                 end
-                
-                % loop on every words that would exclude current other data set
-                for n = 1:length(exclude)
-                    % is excluded
-                    if ~isempty(strfind(sam.instrument, exclude{n}))
-                        p = 0;
-                    end
-                end
-                
-                if p > 0
-                    m = m+1;
-                    otherSam{m} = sam;
-                end
-                clear sam;
+            else
+                p = 1;
             end
             
-            if m == 0
-                fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ...
-                    ' there is no pressure sensor on this mooring from '...
-                    'which an actual depth can be computed']);
+            % we look at the including option
+            for n = 1:length(include)
+                % loop on every words that would include other data set
+                if ~isempty(strfind(sample_data{iOtherSam}.instrument, include{n}))
+                    p = 1;
+                end
+            end
+            
+            % we look at the excluding option
+            for n = 1:length(exclude)
+                % loop on every words that would exclude other data set
+                if ~isempty(strfind(sample_data{iOtherSam}.instrument, exclude{n}))
+                    p = 0;
+                end
+            end
+            
+            if p > 0
+                nearestInsts{iCurSam}(end+1) = iOtherSam;
+            end
+        end
+        
+        if isempty(nearestInsts{iCurSam})
+            % there is no neighbouring pressure sensor on this mooring from
+            % which an actual depth can be computed
+            continue;
+        else
+            nOtherSam = length(nearestInsts{iCurSam});
+            % find the nearests pressure data
+            diffWithOthers = nan(nOtherSam, 1);
+            iFirst  = 0;
+            iSecond = 0;
+            for iOtherSam = 1:nOtherSam
+                if isSensorTargetDepth
+                    diffWithOthers(iOtherSam) = sample_data{iCurSam}.instrument_nominal_depth - sample_data{nearestInsts{iCurSam}(iOtherSam)}.instrument_nominal_depth;
+                else
+                    % below is reversed so that sign convention is the
+                    % same
+                    diffWithOthers(iOtherSam) = sample_data{nearestInsts{iCurSam}(iOtherSam)}.instrument_nominal_height - sample_data{iCurSam}.instrument_nominal_height;
+                end
+            end
+            
+            iAbove = diffWithOthers(diffWithOthers >= 0);
+            iBelow = diffWithOthers(diffWithOthers < 0);
+            
+            if ~isempty(iAbove)
+                iAbove = find(diffWithOthers == min(iAbove), 1);
+            end
+            
+            if ~isempty(iBelow)
+                iBelow = find(diffWithOthers == max(iBelow), 1);
+            end
+            
+            if isempty(iAbove) && ~isempty(iBelow)
+                iFirst = iBelow;
+                
+                % let's find the second nearest below
+                newDiffWithOthers = diffWithOthers;
+                newDiffWithOthers(iFirst) = NaN;
+                distance = 0;
+                
+                % if those two sensors are too close to each other then
+                % the calculated depth could be too far off the truth
+                distMin = 10;
+                while distance < distMin && ~all(isnan(newDiffWithOthers))
+                    iNextBelow = diffWithOthers == max(newDiffWithOthers(newDiffWithOthers < 0));
+                    iNextBelow(isnan(newDiffWithOthers)) = 0; % deals with the case of same depth instrument previously found
+                    iNextBelow = find(iNextBelow, 1, 'first');
+                    distance = abs(diffWithOthers(iNextBelow) - diffWithOthers(iBelow));
+                    if distance >= distMin
+                        iSecond = iNextBelow;
+                        break;
+                    end
+                    newDiffWithOthers(iNextBelow) = NaN;
+                end
+            elseif isempty(iBelow) && ~isempty(iAbove)
+                iFirst = iAbove;
+                
+                % extending reseach to further nearest above didn't
+                % lead to better results
+                
+                %                     % let's find the second nearest above
+                %                     newDiffWithOthers = diffWithOthers;
+                %                     newDiffWithOthers(iFirst) = NaN;
+                %                     distance = 0;
+                %
+                %                     % if those two sensors are too close to each other then
+                %                     % the calculated depth could be too far off the truth
+                %                     distMin = 10;
+                %                     while distance < distMin && ~all(isnan(newDiffWithOthers))
+                %                         iNextAbove = find(diffWithOthers == min(newDiffWithOthers(newDiffWithOthers > 0)), 1);
+                %                         distance = abs(diffWithOthers(iNextAbove) - diffWithOthers(iAbove));
+                %                         if distance >= distMin
+                %                             iSecond = iNextAbove;
+                %                             break;
+                %                         end
+                %                         newDiffWithOthers(iNextAbove) = NaN;
+                %                     end
+            else
+                iFirst  = iAbove;
+                iSecond = iBelow;
+            end
+            
+            firstNearestInst(iCurSam)  = iFirst;
+            secondNearestInst(iCurSam) = iSecond;
+            
+            % read dataset specific PP parameters if exist and override previous default entries
+            firstNearestInst(iCurSam)  = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'firstNearestInst',  firstNearestInst(iCurSam));
+            secondNearestInst(iCurSam) = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'secondNearestInst', secondNearestInst(iCurSam));
+        end
+    else
+        fprintf('%s\n', ['Warning : ' sample_data{iCurSam}.toolbox_input_file ...
+            ' please document either instrument_nominal_height or instrument_nominal_depth '...
+            'global attributes so that an actual depth can be '...
+            'computed from other pressure sensors in the mooring']);
+        continue;
+    end
+end
+
+%% create GUI to show default settings
+% create descriptions, get methodology and nearest P sensors for each data set
+descSam       = cell(nDatasets, 1);
+descOtherSam  = cell(nDatasets, 1);
+methodsString = {'from DEPTH measurements', ...
+    'from PRES measurements', ...
+    'from PRES_REL measurements', ...
+    'from nearest pressure sensors'};
+methodsSamString  = cell(nDatasets, 1); % cell array of strings of possible methods per dataset
+iMethodsSamString = false(nDatasets, 4); % logical array with methodsString of possible methods per dataset
+iMethodSam        = zeros(nDatasets, 1); % index of selected method within methodsSamString per dataset
+
+for iCurSam = 1:nDatasets
+    descSam{iCurSam} = genSampleDataDesc(sample_data{iCurSam}, 'medium');
+    
+    iMethodsSamString(iCurSam, 4) = true;
+    if useItsOwnPresRel(iCurSam)
+        iMethodsSamString(iCurSam, 3) = true;
+    end
+    if useItsOwnPres(iCurSam)
+        iMethodsSamString(iCurSam, 2) = true;
+    end
+    if useItsOwnDepth(iCurSam)
+        iMethodsSamString(iCurSam, 1) = true;
+    end
+    
+    % given the order of definition, the first methodology is the default one
+    iMethodSam(iCurSam) = 1;
+    
+    descOtherSam{iCurSam}{1} = ' - ';
+    nOtherSam = length(nearestInsts{iCurSam});
+    for iOtherSam = 1:nOtherSam
+        descOtherSam{iCurSam}{iOtherSam+1} = genSampleDataDesc(sample_data{nearestInsts{iCurSam}(iOtherSam)}, 'short');
+    end
+end
+
+if ~auto
+    f = figure(...
+        'Name',        'Depth Computation',...
+        'Visible',     'off',...
+        'MenuBar'  ,   'none',...
+        'Resize',      'off',...
+        'WindowStyle', 'Modal',...
+        'NumberTitle', 'off');
+    
+    cancelButton       = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
+    resetParamsButton  = uicontrol('Style', 'pushbutton', 'String', 'Reset parameters, restart from depthPP.txt');
+    resetMappingButton = uicontrol('Style', 'pushbutton', 'String', 'Reset to current default mapping');
+    confirmButton      = uicontrol('Style', 'pushbutton', 'String', 'Ok');
+    
+    descSamUic           = nan(nDatasets, 1);
+    methodSamUic         = nan(nDatasets, 1);
+    firstNearestInstUic  = nan(nDatasets, 1);
+    andStrUic            = nan(nDatasets, 1);
+    secondNearestInstUic = nan(nDatasets, 1);
+    for iCurSam = 1:nDatasets
+        descSamUic(iCurSam) = uicontrol( ...
+            'Style',               'text', ...
+            'HorizontalAlignment', 'left', ...
+            'String',              descSam{iCurSam});
+        
+        methodsSamString{iCurSam} = methodsString(iMethodsSamString(iCurSam, :));
+        methodSamUic(iCurSam) = uicontrol( ...
+            'Style',    'popupmenu', ...
+            'String',   methodsSamString{iCurSam}, ...
+            'Value',    iMethodSam(iCurSam), ...
+            'Callback', {@methodSamCallback, iCurSam});
+        
+        switch methodsSamString{iCurSam}{iMethodSam(iCurSam)}
+            case methodsString{end}
+                nearestInstVisibility = 'on';
+                
+            otherwise
+                nearestInstVisibility = 'off';
+        end
+        
+        firstNearestInstUic(iCurSam) = uicontrol( ...
+            'Style',   'popupmenu', ...
+            'String',  descOtherSam{iCurSam}, ...
+            'Value',   firstNearestInst(iCurSam) + 1, ...
+            'Visible', nearestInstVisibility);
+        
+        andStrUic(iCurSam) = uicontrol( ...
+            'Style',  'text', ...
+            'String', 'and', ...
+            'Visible', nearestInstVisibility);
+        
+        secondNearestInstUic(iCurSam) = uicontrol( ...
+            'Style',   'popupmenu', ...
+            'String',  descOtherSam{iCurSam}, ...
+            'Value',   secondNearestInst(iCurSam) + 1, ...
+            'Visible', nearestInstVisibility);
+    end
+    
+    paramsString = 'Look within same kind of instruments: ';
+    if same_family
+        paramsString = [paramsString, 'Yes.'];
+    else
+        paramsString = [paramsString, 'No.'];
+    end
+    
+    if ~isempty(include)
+        includeStr = [include,[repmat({' '},numel(include)-1,1);{[]}]]';
+        includeStr = [includeStr{:}];
+        paramsString = [paramsString, ' Include: ' includeStr '.'];
+    end
+    
+    if ~isempty(exclude)
+        excludeStr = [exclude,[repmat({' '},numel(exclude)-1,1);{[]}]]';
+        excludeStr = [excludeStr{:}];
+        paramsString = [paramsString, ' Exclude: ' excludeStr '.'];
+    end
+    paramsStringUic = uicontrol('Style', 'text', 'String', paramsString);
+    
+    % set all widgets to normalized for positioning
+    set(f,                    'Units', 'normalized');
+    set(cancelButton,         'Units', 'normalized');
+    set(resetParamsButton,    'Units', 'normalized');
+    set(resetMappingButton,   'Units', 'normalized');
+    set(confirmButton,        'Units', 'normalized');
+    set(descSamUic,           'Units', 'normalized');
+    set(methodSamUic,         'Units', 'normalized');
+    set(firstNearestInstUic,  'Units', 'normalized');
+    set(andStrUic,            'Units', 'normalized');
+    set(secondNearestInstUic, 'Units', 'normalized');
+    set(paramsStringUic,      'Units', 'normalized');
+    
+    set(f,             'Position', [0.2 0.35 0.6 0.0222 * (nDatasets + 2 )]); % need to include 2 extra space for the depth.txt parameters and the row of buttons
+    
+    rowHeight = 1 / (nDatasets + 2);
+    
+    set(cancelButton,       'Position', [0.0  0.0  0.25 rowHeight]);
+    set(resetParamsButton,  'Position', [0.25 0.0  0.25 rowHeight]);
+    set(resetMappingButton, 'Position', [0.5  0.0  0.25 rowHeight]);
+    set(confirmButton,      'Position', [0.75 0.0  0.25 rowHeight]);
+    
+    for k = 1:nDatasets
+        rowStart = 1.0 - (k + 1) * rowHeight;
+        
+        set(descSamUic (k),          'Position', [0.0   rowStart 0.4   rowHeight]);
+        set(methodSamUic(k),         'Position', [0.4   rowStart 0.2   rowHeight]);
+        set(firstNearestInstUic(k),  'Position', [0.6   rowStart 0.175 rowHeight]);
+        set(andStrUic(k),            'Position', [0.775 rowStart 0.05  rowHeight]);
+        set(secondNearestInstUic(k), 'Position', [0.825 rowStart 0.175 rowHeight]);
+    end
+    
+    set(paramsStringUic, 'Position', [0.0 (1.0 - rowHeight) 1 rowHeight]);
+    
+    % set widget callbacks
+    set(f,             'CloseRequestFcn',   @cancelCallback);
+    set(f,             'WindowKeyPressFcn', @keyPressCallback);
+    
+    set(cancelButton,       'Callback',     @cancelCallback);
+    set(resetParamsButton,  'Callback',     @resetParamsCallback);
+    set(resetMappingButton, 'Callback',     @resetMappingCallback);
+    set(confirmButton,      'Callback',     @confirmCallback);
+    
+    cancel = false;
+    reset  = false;
+    
+    set(f, 'Visible', 'on');
+    
+    uiwait(f);
+    
+    if cancel
+        return;
+    end
+    
+    if reset
+        sample_data = depthPP(sample_data, qcLevel, auto);
+        return;
+    end
+end
+
+%% loop on every data sets again and apply choices
+for iCurSam = 1:nDatasets
+    % if data set already contains depth data then next sample data
+    if useItsOwnDepth(iCurSam), continue; end
+    
+    if useItsOwnPres(iCurSam) || useItsOwnPresRel(iCurSam)
+        % we can compute DEPTH straight from the instrument pressure
+        % measurements
+        if presRelIdx(iCurSam)
+            % update from a relative measured pressure
+            relPres = sample_data{iCurSam}.variables{presRelIdx(iCurSam)}.data;
+            presComment = ['relative ' ...
+                'pressure measurements (calibration offset ' ...
+                'usually performed to balance current ' ...
+                'atmospheric pressure and acute sensor ' ...
+                'precision at a deployed depth)'];
+            dimensions  = sample_data{iCurSam}.variables{presRelIdx(iCurSam)}.dimensions;
+            coordinates = sample_data{iCurSam}.variables{presRelIdx(iCurSam)}.coordinates;
+        else
+            % update from an absolute measured pressure, substracting a 
+            % constant value 10.1325 dbar for nominal atmospheric pressure
+            % like SeaBird does in its processed files
+            relPres = sample_data{iCurSam}.variables{presIdx(iCurSam)}.data - gsw_P0/10^4;
+            presComment = ['absolute ' ...
+                'pressure measurements to which a nominal ' ...
+                'value for atmospheric pressure (10.1325 dbar) ' ...
+                'has been substracted'];
+            dimensions  = sample_data{iCurSam}.variables{presIdx(iCurSam)}.dimensions;
+            coordinates = sample_data{iCurSam}.variables{presIdx(iCurSam)}.coordinates;
+        end
+        
+        if ~isempty(sample_data{iCurSam}.geospatial_lat_min) && ~isempty(sample_data{iCurSam}.geospatial_lat_max)
+            % compute depth with Gibbs-SeaWater toolbox
+            if sample_data{iCurSam}.geospatial_lat_min == sample_data{iCurSam}.geospatial_lat_max
+                % latitude doesn't change in the dataset
+                computedDepth = - gsw_z_from_p(relPres, sample_data{iCurSam}.geospatial_lat_min);
+                clear relPres;
+                computedDepthComment = ['depthPP: Depth computed using the ' ...
+                    'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from latitude and ' ...
+                    presComment '.'];
+            else
+                % latitude does change in the dataset, so we use the mean
+                % latitude with Gibbs-Seawater toolbox
+                meanLat = sample_data{iCurSam}.geospatial_lat_min + ...
+                    (sample_data{iCurSam}.geospatial_lat_max - sample_data{iCurSam}.geospatial_lat_min)/2;
+                
+                computedDepth = - gsw_z_from_p(relPres, meanLat);
+                clear relPres;
+                computedDepthComment = ['depthPP: Depth computed using the ' ...
+                    'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from mean latitude and ' ...
+                    presComment '.'];
+            end
+        else
+            % without latitude information, we assume 1dbar ~= 1m
+            computedDepth = relPres;
+            clear relPres;
+            computedDepthComment = ['depthPP: Depth computed from ' ...
+                presComment ', assuming 1dbar ~= 1m.'];
+        end
+    else
+        % if no pressure data, try to compute it from other sensors in the
+        % mooring, otherwise go to next sample data
+        if isSensorHeight || isSensorTargetDepth
+            if isempty(nearestInsts{iCurSam})
+                fprintf('%s\n', ['Warning : ' descSam{iCurSam} ...
+                    ' has no neighbouring pressure sensor on this mooring from ' ...
+                    'which an actual depth can be inferred']);
                 continue;
             else
-                % find the nearests pressure data
-                diffWithOthers = nan(m,1);
-                iFirst  = [];
-                iSecond = [];
-                for l = 1:m
-                    if isSensorTargetDepth
-                        diffWithOthers(l) = curSam.instrument_nominal_depth - otherSam{l}.instrument_nominal_depth;
-                    else
-                        % below is reversed so that sign convention is the
-                        % same
-                        diffWithOthers(l) = otherSam{l}.instrument_nominal_height - curSam.instrument_nominal_height;
-                    end
-                end
+                iFirst  = firstNearestInst(iCurSam);
+                iSecond = secondNearestInst(iCurSam);
                 
-                iAbove = diffWithOthers(diffWithOthers >= 0);
-                iBelow = diffWithOthers(diffWithOthers < 0);
-                
-                if ~isempty(iAbove)
-                    iAbove = find(diffWithOthers == min(iAbove), 1);
-                end
-                
-                if ~isempty(iBelow)
-                    iBelow = find(diffWithOthers == max(iBelow), 1);
-                end
-                
-                if isempty(iAbove) && ~isempty(iBelow)
-                    iFirst = iBelow;
-                    
-                    % let's find the second nearest below
-                    newDiffWithOthers = diffWithOthers;
-                    newDiffWithOthers(iFirst) = NaN;
-                    distance = 0;
-                    
-                    % if those two sensors are too close to each other then
-                    % the calculated depth could be too far off the truth
-                    distMin = 10;
-                    while distance < distMin && ~all(isnan(newDiffWithOthers))
-                        iNextBelow = diffWithOthers == max(newDiffWithOthers(newDiffWithOthers < 0));
-                        iNextBelow(isnan(newDiffWithOthers)) = 0; % deals with the case of same depth instrument previously found
-                        iNextBelow = find(iNextBelow, 1, 'first');
-                        distance = abs(diffWithOthers(iNextBelow) - diffWithOthers(iBelow));
-                        if distance >= distMin
-                            iSecond = iNextBelow;
-                            break;
-                        end
-                        newDiffWithOthers(iNextBelow) = NaN;
-                    end
-                elseif isempty(iBelow) && ~isempty(iAbove)
-                    iFirst = iAbove;
-                    
-                    % extending reseach to further nearest above didn't
-                    % lead to better results
-                    
-%                     % let's find the second nearest above
-%                     newDiffWithOthers = diffWithOthers;
-%                     newDiffWithOthers(iFirst) = NaN;
-%                     distance = 0;
-%                     
-%                     % if those two sensors are too close to each other then
-%                     % the calculated depth could be too far off the truth
-%                     distMin = 10;
-%                     while distance < distMin && ~all(isnan(newDiffWithOthers))
-%                         iNextAbove = find(diffWithOthers == min(newDiffWithOthers(newDiffWithOthers > 0)), 1);
-%                         distance = abs(diffWithOthers(iNextAbove) - diffWithOthers(iAbove));
-%                         if distance >= distMin
-%                             iSecond = iNextAbove;
-%                             break;
-%                         end
-%                         newDiffWithOthers(iNextAbove) = NaN;
-%                     end
-                else
-                    iFirst  = iAbove;
-                    iSecond = iBelow;
-                end
-                
-                if isempty(iSecond)
-                    fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ...
-                        ' computing actual depth from only one pressure sensor '...
+                if iSecond == 0
+                    fprintf('%s\n', ['Warning : ' descSam{iCurSam} ...
+                        ' has its actual depth inferred from only one neighbouring pressure sensor ' ...
                         'on mooring']);
                     % we found only one sensor
-                    otherSam = otherSam{iFirst};
-                    presIdxOther = getVar(otherSam.variables, 'PRES');
-                    presRelIdxOther = getVar(otherSam.variables, 'PRES_REL');
+                    presIdxOther    = getVar(sample_data{nearestInsts{iCurSam}(iFirst)}.variables, 'PRES');
+                    presRelIdxOther = getVar(sample_data{nearestInsts{iCurSam}(iFirst)}.variables, 'PRES_REL');
                     
                     if presRelIdxOther == 0
                         % update from an absolute pressure like SeaBird computes
                         % a relative pressure in its processed files, substracting a constant value
                         % 10.1325 dbar for nominal atmospheric pressure
-                        relPresOther = otherSam.variables{presIdxOther}.data - gsw_P0/10^4;
-                        presComment = ['absolute '...
-                            'pressure measurements to which a nominal '...
-                            'value for atmospheric pressure (10.1325 dbar) '...
+                        relPresOther = sample_data{nearestInsts{iCurSam}(iFirst)}.variables{presIdxOther}.data - gsw_P0/10^4;
+                        presComment = ['absolute ' ...
+                            'pressure measurements to which a nominal ' ...
+                            'value for atmospheric pressure (10.1325 dbar) ' ...
                             'has been substracted'];
                     else
                         % update from a relative pressure measurement
-                        relPresOther = otherSam.variables{presRelIdxOther}.data;
-                        presComment = ['relative '...
-                            'pressure measurements (calibration offset '...
-                            'usually performed to balance current '...
-                            'atmospheric pressure and acute sensor '...
+                        relPresOther = sample_data{nearestInsts{iCurSam}(iFirst)}.variables{presRelIdxOther}.data;
+                        presComment = ['relative ' ...
+                            'pressure measurements (calibration offset ' ...
+                            'usually performed to balance current ' ...
+                            'atmospheric pressure and acute sensor ' ...
                             'precision at a deployed depth)'];
                     end
                     
@@ -311,12 +604,12 @@ for k = 1:length(sample_data)
                     % depth
                     %
                     if isSensorTargetDepth
-                        distOtherCurSensor = curSam.instrument_nominal_depth - otherSam.instrument_nominal_depth;
+                        distOtherCurSensor = sample_data{iCurSam}.instrument_nominal_depth - sample_data{nearestInsts{iCurSam}(iFirst)}.instrument_nominal_depth;
                         signOtherCurSensor = sign(distOtherCurSensor);
                         
                         distOtherCurSensor = abs(distOtherCurSensor);
                     else
-                        distOtherCurSensor = otherSam.instrument_nominal_height - curSam.instrument_nominal_height;
+                        distOtherCurSensor = sample_data{nearestInsts{iCurSam}(iFirst)}.instrument_nominal_height - sample_data{iCurSam}.instrument_nominal_height;
                         signOtherCurSensor = -sign(distOtherCurSensor);
                         %  0 => two sensors at the same depth
                         %  1 => current sensor is deeper than other sensor
@@ -325,41 +618,32 @@ for k = 1:length(sample_data)
                         distOtherCurSensor = abs(distOtherCurSensor);
                     end
                     
-                    if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
+                    if ~isempty(sample_data{iCurSam}.geospatial_lat_min) && ~isempty(sample_data{iCurSam}.geospatial_lat_max)
                         % compute depth with Gibbs-SeaWater toolbox
                         % depth ~= - gsw_z_from_p(relative_pressure, latitude)
-                        if curSam.geospatial_lat_min == curSam.geospatial_lat_max
-                            zOther = - gsw_z_from_p(relPresOther, curSam.geospatial_lat_min);
-                            clear relPresOther;
-                            
-                            computedDepthComment  = ['depthPP: Depth computed from '...
-                                'the only pressure sensor available, using the '...
-                                'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from latitude and '...
-                                presComment '.'];
+                        if sample_data{iCurSam}.geospatial_lat_min == sample_data{iCurSam}.geospatial_lat_max
+                            zOther = - gsw_z_from_p(relPresOther, sample_data{iCurSam}.geospatial_lat_min);
+                            computedDepthComment  = ['depthPP: Depth inferred from only one neighbouring pressure sensor ' ...
+                                descOtherSam{iCurSam}{iFirst + 1} ', using the Gibbs-SeaWater toolbox ' ...
+                                '(TEOS-10) v3.05 from latitude and ' presComment '.'];
                         else
-                            meanLat = curSam.geospatial_lat_min + ...
-                                (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
+                            meanLat = sample_data{iCurSam}.geospatial_lat_min + ...
+                                (sample_data{iCurSam}.geospatial_lat_max - sample_data{iCurSam}.geospatial_lat_min)/2;
                             zOther = - gsw_z_from_p(relPresOther, meanLat);
-                            clear relPresOther;
-                            
-                            computedDepthComment  = ['depthPP: Depth computed from '...
-                                'the only pressure sensor available, using the '...
-                                'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from mean latitude and '...
-                                presComment '.'];
+                            computedDepthComment  = ['depthPP: Depth inferred from only one neighbouring pressure sensor ' ...
+                                descOtherSam{iCurSam}{iFirst + 1} ', using the Gibbs-SeaWater toolbox ' ...
+                                '(TEOS-10) v3.05 from mean latitude and ' presComment '.'];
                         end
                     else
                         % without latitude information, we assume 1dbar ~= 1m
                         zOther = relPresOther;
-                        clear relPresOther;
-                        
-                        computedDepthComment  = ['depthPP: Depth computed from '...
-                            'the only pressure sensor available with '...
-                            presComment ', assuming 1dbar ~= 1m.'];
+                        computedDepthComment  = ['depthPP: Depth inferred from only one neighbouring pressure sensor ' ...
+                            descOtherSam{iCurSam}{iFirst + 1} ' with ' presComment ', assuming 1dbar ~= 1m.'];
                     end
+                    clear relPresOther;
                     
-                    tOther = otherSam.dimensions{getVar(otherSam.dimensions, 'TIME')}.data;
-                    tCur = curSam.dimensions{getVar(curSam.dimensions, 'TIME')}.data;
-                    clear otherSam;
+                    tOther = sample_data{nearestInsts{iCurSam}(iFirst)}.dimensions{getVar(sample_data{nearestInsts{iCurSam}(iFirst)}.dimensions, 'TIME')}.data;
+                    tCur   = sample_data{iCurSam}.dimensions{getVar(sample_data{iCurSam}.dimensions, 'TIME')}.data;
                     
                     % let's interpolate the other data set depth values in time
                     % to fit with the current data set time values
@@ -369,47 +653,44 @@ for k = 1:length(sample_data)
                     computedDepth = zOther + signOtherCurSensor*distOtherCurSensor;
                     clear zOther;
                 else
-                    samFirst            = otherSam{iFirst};
-                    presIdxFirst        = getVar(samFirst.variables, 'PRES');
-                    presRelIdxFirst     = getVar(samFirst.variables, 'PRES_REL');
+                    presIdxFirst     = getVar(sample_data{nearestInsts{iCurSam}(iFirst)}.variables, 'PRES');
+                    presRelIdxFirst  = getVar(sample_data{nearestInsts{iCurSam}(iFirst)}.variables, 'PRES_REL');
                     
-                    samSecond           = otherSam{iSecond};
-                    presIdxSecond       = getVar(samSecond.variables, 'PRES');
-                    presRelIdxSecond    = getVar(samSecond.variables, 'PRES_REL');
-                    clear otherSam;
+                    presIdxSecond    = getVar(sample_data{nearestInsts{iCurSam}(iSecond)}.variables, 'PRES');
+                    presRelIdxSecond = getVar(sample_data{nearestInsts{iCurSam}(iSecond)}.variables, 'PRES_REL');
                     
                     if presIdxFirst ~= 0 && presIdxSecond ~= 0
                         % update from an absolute pressure like SeaBird computes
                         % a relative pressure in its processed files, substracting a constant value
                         % 10.1325 dbar for nominal atmospheric pressure
-                        relPresFirst    = samFirst.variables{presIdxFirst}.data - gsw_P0/10^4;
-                        relPresSecond   = samSecond.variables{presIdxSecond}.data - gsw_P0/10^4;
-                        presComment     = ['absolute '...
-                            'pressure measurements to which a nominal '...
-                            'value for atmospheric pressure (10.1325 dbar) '...
+                        relPresFirst  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presIdxFirst }.data - gsw_P0/10^4;
+                        relPresSecond = sample_data{nearestInsts{iCurSam}(iSecond)}.variables{presIdxSecond}.data - gsw_P0/10^4;
+                        presComment   = ['absolute ' ...
+                            'pressure measurements to which a nominal ' ...
+                            'value for atmospheric pressure (10.1325 dbar) ' ...
                             'has been substracted'];
                     elseif presIdxFirst ~= 0 && presIdxSecond == 0
-                        relPresFirst    = samFirst.variables{presIdxFirst}.data - gsw_P0/10^4;
-                        relPresSecond   = samSecond.variables{presRelIdxSecond}.data;
-                        presComment     = ['relative and absolute '...
-                            'pressure measurements to which a nominal '...
-                            'value for atmospheric pressure (10.1325 dbar) '...
+                        relPresFirst  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presIdxFirst    }.data - gsw_P0/10^4;
+                        relPresSecond = sample_data{nearestInsts{iCurSam}(iSecond)}.variables{presRelIdxSecond}.data;
+                        presComment   = ['relative and absolute ' ...
+                            'pressure measurements to which a nominal ' ...
+                            'value for atmospheric pressure (10.1325 dbar) ' ...
                             'has been substracted'];
                     elseif presIdxFirst == 0 && presIdxSecond ~= 0
-                        relPresFirst    = samFirst.variables{presRelIdxFirst}.data;
-                        relPresSecond   = samSecond.variables{presIdxSecond}.data - gsw_P0/10^4;
-                        presComment     = ['relative and absolute '...
-                            'pressure measurements to which a nominal '...
-                            'value for atmospheric pressure (10.1325 dbar) '...
+                        relPresFirst  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presRelIdxFirst}.data;
+                        relPresSecond = sample_data{nearestInsts{iCurSam}(iSecond)}.variables{presIdxSecond  }.data - gsw_P0/10^4;
+                        presComment   = ['relative and absolute ' ...
+                            'pressure measurements to which a nominal ' ...
+                            'value for atmospheric pressure (10.1325 dbar) ' ...
                             'has been substracted'];
                     else
                         % update from a relative measured pressure
-                        relPresFirst    = samFirst.variables{presRelIdxFirst}.data;
-                        relPresSecond   = samSecond.variables{presRelIdxSecond}.data;
-                        presComment     = ['relative '...
-                            'pressure measurements (calibration offset '...
-                            'usually performed to balance current '...
-                            'atmospheric pressure and acute sensor '...
+                        relPresFirst  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presRelIdxFirst }.data;
+                        relPresSecond = sample_data{nearestInsts{iCurSam}(iSecond)}.variables{presRelIdxSecond}.data;
+                        presComment   = ['relative ' ...
+                            'pressure measurements (calibration offset ' ...
+                            'usually performed to balance current ' ...
+                            'atmospheric pressure and acute sensor ' ...
                             'precision at a deployed depth)'];
                     end
                     
@@ -417,11 +698,11 @@ for k = 1:length(sample_data)
                     % assuming sensors repartition on a line between the two
                     % nearest pressure sensors
                     if isSensorTargetDepth
-                        distFirstSecond     = samSecond.instrument_nominal_depth - samFirst.instrument_nominal_depth;
-                        distFirstCurSensor  = curSam.instrument_nominal_depth - samFirst.instrument_nominal_depth;
+                        distFirstSecond    = sample_data{nearestInsts{iCurSam}(iSecond)}.instrument_nominal_depth - sample_data{nearestInsts{iCurSam}(iFirst)}.instrument_nominal_depth;
+                        distFirstCurSensor = sample_data{iCurSam}.instrument_nominal_depth - sample_data{nearestInsts{iCurSam}(iFirst)}.instrument_nominal_depth;
                     else
-                        distFirstSecond     = samFirst.instrument_nominal_height - samSecond.instrument_nominal_height;
-                        distFirstCurSensor  = samFirst.instrument_nominal_height - curSam.instrument_nominal_height;
+                        distFirstSecond    = sample_data{nearestInsts{iCurSam}(iFirst)}.instrument_nominal_height - sample_data{nearestInsts{iCurSam}(iSecond)}.instrument_nominal_height;
+                        distFirstCurSensor = sample_data{nearestInsts{iCurSam}(iFirst)}.instrument_nominal_height - sample_data{iCurSam}.instrument_nominal_height;
                     end
                     
                     % theta is the angle between the vertical and line
@@ -436,50 +717,50 @@ for k = 1:length(sample_data)
                     %
                     % pressure = density*gravity*depth
                     %
-                    if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
+                    if ~isempty(sample_data{iCurSam}.geospatial_lat_min) && ~isempty(sample_data{iCurSam}.geospatial_lat_max)
                         % compute depth with Gibbs-SeaWater toolbox
                         % depth ~= - gsw_z_from_p(relative_pressure, latitude)
-                        if curSam.geospatial_lat_min == curSam.geospatial_lat_max
-                            zFirst = - gsw_z_from_p(relPresFirst, curSam.geospatial_lat_min);
-                            zSecond = - gsw_z_from_p(relPresSecond, curSam.geospatial_lat_min);
-                            clear relPresFirst relPresSecond;
+                        if sample_data{iCurSam}.geospatial_lat_min == sample_data{iCurSam}.geospatial_lat_max
+                            zFirst  = - gsw_z_from_p(relPresFirst,  sample_data{iCurSam}.geospatial_lat_min);
+                            zSecond = - gsw_z_from_p(relPresSecond, sample_data{iCurSam}.geospatial_lat_min);
                             
-                            computedDepthComment  = ['depthPP: Depth computed from '...
-                                'the 2 nearest pressure sensors available, using the '...
-                                'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from latitude and '...
+                            computedDepthComment = ['depthPP: Depth inferred from ' ...
+                                '2 neighbouring pressure sensors ' descOtherSam{iCurSam}{iFirst + 1} ...
+                                ' and ' descOtherSam{iCurSam}{iSecond + 1} ', using the ' ...
+                                'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from latitude and ' ...
                                 presComment '.'];
                         else
-                            meanLat = curSam.geospatial_lat_min + ...
-                                (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
+                            meanLat = sample_data{iCurSam}.geospatial_lat_min + ...
+                                (sample_data{iCurSam}.geospatial_lat_max - sample_data{iCurSam}.geospatial_lat_min)/2;
                             
-                            zFirst = - gsw_z_from_p(relPresFirst, meanLat);
+                            zFirst  = - gsw_z_from_p(relPresFirst,  meanLat);
                             zSecond = - gsw_z_from_p(relPresSecond, meanLat);
-                            clear relPresFirst relPresSecond;
                             
-                            computedDepthComment  = ['depthPP: Depth computed from '...
-                                'the 2 nearest pressure sensors available, using the '...
-                                'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from mean latitude and '...
+                            computedDepthComment = ['depthPP: Depth inferred from ' ...
+                                '2 neighbouring pressure sensors ' descOtherSam{iCurSam}{iFirst + 1} ...
+                                ' and ' descOtherSam{iCurSam}{iSecond + 1} ', using the ' ...
+                                'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from mean latitude and ' ...
                                 presComment '.'];
                         end
                     else
                         % without latitude information, we assume 1dbar ~= 1m
-                        zFirst = relPresFirst;
+                        zFirst  = relPresFirst;
                         zSecond = relPresSecond;
-                        clear relPresFirst relPresSecond;
                         
-                        computedDepthComment  = ['depthPP: Depth computed from '...
-                            'the 2 nearest pressure sensors available with '...
+                        computedDepthComment = ['depthPP: Depth inferred from ' ...
+                            '2 neighbouring pressure sensors ' descOtherSam{iCurSam}{iFirst + 1} ...
+                            ' and ' descOtherSam{iCurSam}{iSecond + 1} ', with ' ...
                             presComment ', assuming 1dbar ~= 1m.'];
                     end
+                    clear relPresFirst relPresSecond;
                     
-                    tFirst = samFirst.dimensions{getVar(samFirst.dimensions, 'TIME')}.data;
-                    tSecond = samSecond.dimensions{getVar(samSecond.dimensions, 'TIME')}.data;
-                    tCur = curSam.dimensions{getVar(curSam.dimensions, 'TIME')}.data;
-                    clear samFirst samSecond;
+                    tCur    = sample_data{iCurSam}.dimensions{getVar(sample_data{iCurSam}.dimensions, 'TIME')}.data;                    
+                    tFirst  = sample_data{nearestInsts{iCurSam}(iFirst )}.dimensions{getVar(sample_data{nearestInsts{iCurSam}(iFirst )}.dimensions, 'TIME')}.data;
+                    tSecond = sample_data{nearestInsts{iCurSam}(iSecond)}.dimensions{getVar(sample_data{nearestInsts{iCurSam}(iSecond)}.dimensions, 'TIME')}.data;
                     
                     % let's interpolate data so we have consistent period
                     % sample and time sample over the 3 data sets
-                    zFirst = interp1(tFirst, zFirst, tCur);
+                    zFirst  = interp1(tFirst,  zFirst,  tCur);
                     zSecond = interp1(tSecond, zSecond, tCur);
                     clear tFirst tSecond tCur;
                     
@@ -489,114 +770,174 @@ for k = 1:length(sample_data)
                 end
             end
         else
-            fprintf('%s\n', ['Warning : ' curSam.toolbox_input_file ...
-                ' please document either instrument_nominal_height or instrument_nominal_depth '...
-                'global attributes so that an actual depth can be '...
+            fprintf('%s\n', ['Warning : ' sample_data{iCurSam}.toolbox_input_file ...
+                ' please document either instrument_nominal_height or instrument_nominal_depth ' ...
+                'global attributes so that an actual depth can be ' ...
                 'computed from other pressure sensors in the mooring']);
             continue;
         end
         
-        % variable Depth will be a function of T
-        dimensions = getVar(curSam.dimensions, 'TIME');
+        % variable DEPTH will be a function of dimension TIME
+        dimensions = getVar(sample_data{iCurSam}.dimensions, 'TIME');
         
         % hopefully the last variable in the file is a data variable
-        coordinates = curSam.variables{end}.coordinates;
-    else
-        if presRelIdx == 0
-            % update from a relative pressure like SeaBird computes
-            % it in its processed files, substracting a constant value
-            % 10.1325 dbar for nominal atmospheric pressure
-            relPres = curSam.variables{presIdx}.data - gsw_P0/10^4;
-            presComment = ['absolute '...
-                'pressure measurements to which a nominal '...
-                'value for atmospheric pressure (10.1325 dbar) '...
-                'has been substracted'];
-        else
-            % update from a relative measured pressure
-            relPres = curSam.variables{presRelIdx}.data;
-            presComment = ['relative '...
-                'pressure measurements (calibration offset '...
-                'usually performed to balance current '...
-                'atmospheric pressure and acute sensor '...
-                'precision at a deployed depth)'];
-        end
-        
-        if ~isempty(curSam.geospatial_lat_min) && ~isempty(curSam.geospatial_lat_max)
-            % compute vertical min/max with Gibbs-SeaWater toolbox
-            if curSam.geospatial_lat_min == curSam.geospatial_lat_max
-                computedDepth         = - gsw_z_from_p(relPres, ...
-                    curSam.geospatial_lat_min);
-                clear relPres;
-                computedDepthComment  = ['depthPP: Depth computed using the '...
-                    'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from latitude and '...
-                    presComment '.'];
-            else
-                meanLat = curSam.geospatial_lat_min + ...
-                    (curSam.geospatial_lat_max - curSam.geospatial_lat_min)/2;
-                
-                computedDepth         = - gsw_z_from_p(relPres, meanLat);
-                clear relPres;
-                computedDepthComment  = ['depthPP: Depth computed using the '...
-                    'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from mean latitude and '...
-                    presComment '.'];
-            end
-        else
-            % without latitude information, we assume 1dbar ~= 1m
-            computedDepth         = relPres;
-            clear relPres;
-            computedDepthComment  = ['depthPP: Depth computed from '...
-                presComment ', assuming 1dbar ~= 1m.'];
-        end
-        
-        if presRelIdx == 0
-            dimensions = curSam.variables{presIdx}.dimensions;
-            coordinates = curSam.variables{presIdx}.coordinates;
-        else
-            dimensions = curSam.variables{presRelIdx}.dimensions;
-            coordinates = curSam.variables{presRelIdx}.coordinates;
-        end
+        coordinates = sample_data{iCurSam}.variables{end}.coordinates;
     end
-
-    % get the toolbox execution mode
-    mode = readProperty('toolbox.mode');
     
-    % add depth data as new variable in data set
-    sample_data{k} = addVar(...
-        curSam, ...
-        'DEPTH', ...
-        computedDepth, ...
-        dimensions, ...
-        computedDepthComment, ...
-        coordinates);
+    if depthIdx(iCurSam)
+        % update existing depth data in data set
+        sample_data{iCurSam}.(depthVarType).data = computedDepth;
+        
+        depthComment = sample_data{iCurSam}.(depthVarType).comment;
+        if isempty(depthComment)
+            sample_data{iCurSam}.(depthVarType).comment = computedDepthComment;
+        else
+            sample_data{iCurSam}.(depthVarType).comment = [comment ' ' computedDepthComment];
+        end
+        
+    else
+        % add depth data as new variable in data set
+        sample_data{iCurSam} = addVar( ...
+            sample_data{iCurSam}, ...
+            'DEPTH', ...
+            computedDepth, ...
+            dimensions, ...
+            computedDepthComment, ...
+            coordinates);
+    end
     
-    % update vertical min/max from new computed DEPTH
-    sample_data{k}.geospatial_vertical_min = min(computedDepth);
-    sample_data{k}.geospatial_vertical_max = max(computedDepth);
-    sample_data{k}.comment = strrep(sample_data{k}.comment, 'NOMINAL_DEPTH', 'DEPTH min and max');
-    
+    % update vertical min/max from newly computed DEPTH variable
+    sample_data{iCurSam}.geospatial_vertical_min = min(computedDepth);
+    sample_data{iCurSam}.geospatial_vertical_max = max(computedDepth);
     clear computedDepth;
     
-    history = sample_data{k}.history;
+    sample_data{iCurSam}.comment = strrep(sample_data{iCurSam}.comment, 'NOMINAL_DEPTH', 'DEPTH min and max');
+    
+    history = sample_data{iCurSam}.history;
     if isempty(history)
-        sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), computedDepthComment);
+        sample_data{iCurSam}.history = sprintf('%s - %s', ...
+            datestr(now_utc, readProperty('exportNetCDF.dateFormat')), ...
+            computedDepthComment);
     else
-        sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), computedDepthComment);
+        sample_data{iCurSam}.history = sprintf('%s\n%s - %s', history, ...
+            datestr(now_utc, readProperty('exportNetCDF.dateFormat')), ...
+            computedDepthComment);
     end
     
     % update the keywords with variable DEPTH
-    sample_data{k}.keywords = [sample_data{k}.keywords, ', DEPTH'];
+    sample_data{iCurSam}.keywords = [sample_data{iCurSam}.keywords, ', DEPTH'];
     
-    switch mode
-        case 'profile'
-            %let's redefine the coordinates attribute for each variables
-            nVars = length(sample_data{k}.variables);
-            for i=1:nVars
-                if isfield(sample_data{k}.variables{i}, 'coordinates')
-                  sample_data{k}.variables{i}.coordinates = [sample_data{k}.variables{i}.coordinates ' DEPTH'];
-                end
+    if strcmpi(mode, 'profile')
+        %let's redefine the coordinates attribute for each variables
+        nVars = length(sample_data{iCurSam}.variables);
+        for i=1:nVars
+            if isfield(sample_data{iCurSam}.variables{i}, 'coordinates')
+                sample_data{iCurSam}.variables{i}.coordinates = [sample_data{iCurSam}.variables{i}.coordinates ' DEPTH'];
             end
-            
+        end
+    end
+    
+    % write/update dataset PP parameters
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'same_family',       same_family);
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'include',           include);
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'exclude',           exclude);
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnDepth',    useItsOwnDepth(iCurSam));
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPres',     useItsOwnPres(iCurSam));
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPresRel',  useItsOwnPresRel(iCurSam));
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'firstNearestInst',  firstNearestInst(iCurSam));
+    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'secondNearestInst', secondNearestInst(iCurSam));
+end
+
+%% Callbacks
+    function methodSamCallback(source,ev,j)
+        %RESETCALLBACK Reset to default choices in the GUI.
+        %
+        iMethod = get(methodSamUic(j), 'Value');
+        switch methodsSamString{j}{iMethod}
+            case methodsString{end}
+                nearestInstVisibility = 'on';
+                
+            otherwise
+                nearestInstVisibility = 'off';
+        end
+        
+        set([firstNearestInstUic(j), andStrUic(j), secondNearestInstUic(j)], ...
+            'Visible', nearestInstVisibility);
     end
 
-    clear curSam;
+    function keyPressCallback(source,ev)
+        %KEYPRESSCALLBACK If the user pushes escape/return while the dialog has
+        % focus, the dialog is cancelled/confirmed. This is done by delegating
+        % to the cancelCallback/confirmCallback functions.
+        %
+        if     strcmp(ev.Key, 'escape'), cancelCallback( source,ev);
+        elseif strcmp(ev.Key, 'return'), confirmCallback(source,ev);
+        end
+    end
+
+    function cancelCallback(source,ev)
+        %CANCELCALLBACK Cancel button callback. Set cancel to true and closes the
+        % dialog.
+        %
+        cancel = true;
+        reset  = false;
+        delete(f);
+    end
+
+    function resetParamsCallback(source,ev)
+        %RESETPARAMSCALLBACK Reset dataset specific parameters re-start
+        %from depthPP.txt parameters
+        %
+        for j = 1:nDatasets
+            pppFile = [sample_data{j}.toolbox_input_file '.ppp'];
+            if exist(pppFile, 'file')
+                delete(pppFile);
+            end
+        end
+        reset = true;
+        delete(f);
+    end
+
+    function resetMappingCallback(source,ev)
+        %RESETMAPPINGCALLBACK Reset to current default choices in the GUI.
+        %
+        for j = 1:nDatasets
+            set(methodSamUic(j),         'Value', iMethodSam(j));
+            methodSamCallback(source,ev,j)
+            
+            set(firstNearestInstUic(j),  'Value', firstNearestInst(j)  + 1);
+            set(secondNearestInstUic(j), 'Value', secondNearestInst(j) + 1);
+        end
+        reset = false;
+    end
+
+    function confirmCallback(source,ev)
+        %CONFIRMCALLBACK Set choices as they appear on the GUI and closes the dialog.
+        %
+        for j = 1:nDatasets
+            useItsOwnDepth(j)   = false;
+            useItsOwnPres(j)    = false;
+            useItsOwnPresRel(j) = false;
+            
+            strings = get(methodSamUic(j), 'String');
+            value   = get(methodSamUic(j), 'Value');
+            
+            switch strings{value}
+                case methodsString{1} % from DEPTH measurements
+                    useItsOwnDepth(j)   = true;
+                    
+                case methodsString{2} % from PRES measurements
+                    useItsOwnPres(j)    = true;
+                    
+                case methodsString{3} % from PRES_REL measurements
+                    useItsOwnPresRel(j) = true;
+                    
+            end
+            
+            firstNearestInst(j)  = get(firstNearestInstUic(j),  'Value') - 1;
+            secondNearestInst(j) = get(secondNearestInstUic(j), 'Value') - 1;
+        end
+        reset = false;
+        delete(f);
+    end
 end

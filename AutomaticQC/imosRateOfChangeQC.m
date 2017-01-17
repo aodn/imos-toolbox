@@ -91,7 +91,7 @@ values = readProperty('*', fullfile('AutomaticQC', 'imosRateOfChangeQC.txt'));
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest = mfilename;
-values = readQCparameter(sample_data.toolbox_input_file, currentQCtest, '*', values);
+values = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, '*', values);
 
 param = strtrim(values{1});
 thresholdExpr = strtrim(values{2});
@@ -225,6 +225,6 @@ if any(iParam)
     
     % write/update dataset QC parameters
     for i=1:length(param)
-        writeQCparameter(sample_data.toolbox_input_file, currentQCtest, param{i}, thresholdExpr{i});
+        writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, param{i}, thresholdExpr{i});
     end
 end

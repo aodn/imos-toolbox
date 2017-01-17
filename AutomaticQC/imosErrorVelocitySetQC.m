@@ -97,7 +97,7 @@ err_vel  = str2double(readProperty('err_vel',   propFile));
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest = mfilename;
-err_vel = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel', err_vel);
+err_vel = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel', err_vel);
 
 paramsLog = ['err_vel=' num2str(err_vel)];
 
@@ -141,6 +141,6 @@ if idCspd
 end
 
 % write/update dataset QC parameters
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel', err_vel);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel', err_vel);
 
 end

@@ -94,7 +94,7 @@ vvel      = str2double(readProperty('vvel',      propFile));
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest = mfilename;
-vvel = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'vvel', vvel);
+vvel = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'vvel', vvel);
 
 paramsLog = ['vvel=' num2str(vvel)];
 
@@ -112,6 +112,6 @@ flags(iFail) = badFlag;
 flags(iPass) = goodFlag;
 
 % write/update dataset QC parameters
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'vvel', vvel);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'vvel', vvel);
 
 end

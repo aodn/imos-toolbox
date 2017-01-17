@@ -125,9 +125,9 @@ narginchk(1, 2);
   
   % note this is actually distance between the ADCP's transducers and the
   % middle of each cell
-  distance = (cellStart):  ...
-      (cellLength): ...
-      (cellStart + (numCells-1) * cellLength);
+  distance = (cellStart:  ...
+      cellLength: ...
+      cellStart + (numCells-1) * cellLength)';
   
   % rearrange the sample data
   time = datenum(...
@@ -276,8 +276,8 @@ narginchk(1, 2);
   iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
   dims = {
       'TIME',                   time(iWellOriented),    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(sample_data.meta.instrument_average_interval) ' seconds.']; ...
-      'HEIGHT_ABOVE_SENSOR',    height(:),              'Data has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.'; ...
-      'DIST_ALONG_BEAMS',       distance(:),            'Data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
+      'HEIGHT_ABOVE_SENSOR',    height,              'Data has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.'; ...
+      'DIST_ALONG_BEAMS',       distance,            'Data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
       };
   clear time height distance;
   
@@ -530,12 +530,4 @@ function direction = getDirectionFromUV(uvel, vvel)
     direction(se) = 180 - direction(se);
     direction(sw) = 180 + direction(sw);
     direction(nw) = 360 - direction(nw);
-end
-
-function angle = make0To360(angle)
-    iLower = angle < 0;
-    angle(iLower) = 360 + angle(iLower);
-    
-    iHigher = angle >= 360;
-    angle(iHigher) = angle(iHigher) - 360;
 end

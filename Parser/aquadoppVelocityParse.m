@@ -60,26 +60,6 @@ user     = structures.Id0;
 
 % the rest of the sections are aquadopp velocity data, diagnostic header
 % and diagnostic data. We will only keep the velocity data (Id == 1) .
-nsamples = length(structures.Id1);
-ncells   = user.NBins;
-
-% preallocate memory for all sample data
-time         = zeros(nsamples, 1);
-distance     = zeros(ncells,   1);
-analn1       = zeros(nsamples, 1);
-battery      = zeros(nsamples, 1);
-analn2       = zeros(nsamples, 1);
-heading      = zeros(nsamples, 1);
-pitch        = zeros(nsamples, 1);
-roll         = zeros(nsamples, 1);
-pressure     = zeros(nsamples, 1);
-temperature  = zeros(nsamples, 1);
-velocity1    = zeros(nsamples, ncells);
-velocity2    = zeros(nsamples, ncells);
-velocity3    = zeros(nsamples, ncells);
-backscatter1 = zeros(nsamples, ncells);
-backscatter2 = zeros(nsamples, ncells);
-backscatter3 = zeros(nsamples, ncells);
 
 %
 % calculate distance values from metadata. See continentalParse.m 
@@ -90,6 +70,7 @@ backscatter3 = zeros(nsamples, ncells);
 freq       = head.Frequency; % this is in KHz
 cellStart  = user.T2;        % counts
 cellLength = user.BinLength; % counts
+ncells     = user.NBins;
 factor     = 0;              % used for conversion
 
 switch freq
@@ -100,9 +81,9 @@ cellLength = (cellLength / 256) * factor * cos(25 * pi / 180);
 cellStart  =  cellStart         * 0.0229 * cos(25 * pi / 180) - cellLength;
 
 % generate distance values
-distance(:) = (cellStart):  ...
-           (cellLength): ...
-           (cellStart + (ncells-1) * cellLength);
+distance = (cellStart:  ...
+           cellLength: ...
+           cellStart + (ncells-1) * cellLength)';
 
 % Note this is actually the distance between the ADCP's transducers and the
 % middle of each cell
@@ -112,21 +93,21 @@ distance(:) = (cellStart):  ...
 distance = distance + cellLength;
        
 % retrieve sample data
-time         = structures.Id1.Time';
-analn1       = structures.Id1.Analn1';
-battery      = structures.Id1.Battery';
-analn2       = structures.Id1.Analn2';
-heading      = structures.Id1.Heading';
-pitch        = structures.Id1.Pitch';
-roll         = structures.Id1.Roll';
-pressure     = structures.Id1.PressureMSB'*65536 + structures.Id1.PressureLSW';
-temperature  = structures.Id1.Temperature';
-velocity1    = structures.Id1.Vel1';
-velocity2    = structures.Id1.Vel2';
-velocity3    = structures.Id1.Vel3';
-backscatter1 = structures.Id1.Amp1';
-backscatter2 = structures.Id1.Amp2';
-backscatter3 = structures.Id1.Amp3';
+time         = [structures.Id1(:).Time]';
+analn1       = [structures.Id1(:).Analn1]';
+battery      = [structures.Id1(:).Battery]';
+analn2       = [structures.Id1(:).Analn2]';
+heading      = [structures.Id1(:).Heading]';
+pitch        = [structures.Id1(:).Pitch]';
+roll         = [structures.Id1(:).Roll]';
+pressure     = [structures.Id1(:).PressureMSB]'*65536 + [structures.Id1(:).PressureLSW]';
+temperature  = [structures.Id1(:).Temperature]';
+velocity1    = [structures.Id1(:).Vel1]';
+velocity2    = [structures.Id1(:).Vel2]';
+velocity3    = [structures.Id1(:).Vel3]';
+backscatter1 = [structures.Id1(:).Amp1]';
+backscatter2 = [structures.Id1(:).Amp2]';
+backscatter3 = [structures.Id1(:).Amp3]';
 clear structures;
 
 % battery     / 10.0   (0.1 V    -> V)
