@@ -76,6 +76,14 @@ dIdx    = 1;
 structures = struct;
 [~, ~, cpuEndianness] = computer;
 
+% the while loop below involves poor performances so we display a waitbar 
+% dialog to make sure the user knows the toolbox is doing something
+[~, fName, ext] = fileparts(filename);
+lastStepProgress = 0;
+hWaitbar = waitbar(lastStepProgress,    '  0 %', ...
+    'Name',                             ['Reading file ' fName ext],...
+    'DefaultTextInterpreter',           'none');
+
 while dIdx < dataLen
     [sect, len] = readSection(filename, data, dIdx, cpuEndianness);
     
@@ -100,8 +108,21 @@ while dIdx < dataLen
         end
     end
     
+    % we don't want to update the waitbar for every single section (too
+    % slow) instead we update it every percent of a step
+    progress = dIdx/dataLen;
+    percentProgress = floor(progress * 100);
+    stepProgress = percentProgress/100;
+    if stepProgress > lastStepProgress
+        lastStepProgress = stepProgress;
+        waitbar(stepProgress, hWaitbar, [sprintf('%3u', percentProgress) ' %']);
+    end
+    
     dIdx = dIdx + len; % if len is empty, then dIdx is going to be empty and will fail the while test
 end
+
+waitbar(1, hWaitbar, '100 %');
+close(hWaitbar);
 
 return;
 end
@@ -141,15 +162,15 @@ end
 id = dec2hex(data(idx+2));
 switch id
     case '15'
-        [sect, len, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x15
+        [sect, ~, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x15
     case '16'
-        [sect, len, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x16
+        [sect, ~, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x16
     case '17'
-        [sect, len, off] = readBottomTrack         (data, idx, cpuEndianness); % 0x17
+        [sect, ~, off] = readBottomTrack         (data, idx, cpuEndianness); % 0x17
     case '18'
-        [sect, len, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x18
+        [sect, ~, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x18
     case 'A0'
-        [sect, len, off] = readString              (data, idx, cpuEndianness); % 0xA0
+        [sect, ~, off] = readString              (data, idx, cpuEndianness); % 0xA0
     otherwise
         disp('Unknown section type');
         disp(['ID : hex ' id ' at offset ' num2str(idx+2)]);
@@ -298,7 +319,6 @@ end
 
 if isCorrelation
     sect.CorrelationData    = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells), 'L', 'uint8', cpuEndianness), sect.nCells, sect.nBeams)'; % [0-100]
-    off = off+sect.nBeams*sect.nCells;
 end
 
 end
@@ -367,7 +387,6 @@ end
 
 if isCorrelation
     sect.CorrelationData    = reshape(bytecast(data(idx+off+1:idx+off+sect.nBeams*sect.nCells), 'L', 'uint8', cpuEndianness), sect.nCells, sect.nBeams)'; % [0-100]
-    off = off+sect.nBeams*sect.nCells;
 end
 
 end
@@ -467,7 +486,6 @@ if isAST
     sect.ASTPressure        = bytecast(data(idx+off+1:idx+off+4), 'L', 'single', cpuEndianness); % dbar
     off = off + 4;
     sect.ASTSpare           = bytecast(data(idx+off+1:idx+off+8), 'L', 'int8', cpuEndianness); % spare
-    off = off + 8;
 end
 
 end
@@ -477,12 +495,9 @@ function sect = readBottomTrack(data, idx, cpuEndianness)
 % Id=0x17, Bottom Track Data Record
 
 sect = struct;
-[sect.Header, len, off] = readHeader(data, idx, cpuEndianness);
+[sect.Header, ~, off] = readHeader(data, idx, cpuEndianness);
 
 idx = idx+off;
-
-len = len + sect.Header.DataSize;
-off = len;
 
 sect.Data.Version           = bytecast(data(idx), 'L', 'uint8', cpuEndianness);
 sect.Data.OffsetOfData      = bytecast(data(idx+1), 'L', 'uint8', cpuEndianness);
@@ -541,7 +556,6 @@ end
 
 if isFigureOfMerit
     sect.FigureOfMeritData  = bytecast(data(idx+off+1:idx+off+sect.nBeams*2), 'L', 'uint16', cpuEndianness);
-    off = off+sect.nBeams*2;
 end
 
 end

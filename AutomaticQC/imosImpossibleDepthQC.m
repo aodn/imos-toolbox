@@ -254,8 +254,8 @@ switch mode
         % read dataset QC parameters if exist and override previous 
         % parameters file
         currentQCtest   = mfilename;
-        zNominalMargin  = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'zNominalMargin', zNominalMargin);
-        maxAngle        = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'maxAngle', maxAngle);
+        zNominalMargin  = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'zNominalMargin', zNominalMargin);
+        maxAngle        = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'maxAngle', maxAngle);
         
         paramsLog = ['zNominalMargin=' num2str(zNominalMargin) ', maxAngle=' num2str(maxAngle)];
         
@@ -365,8 +365,8 @@ switch mode
         end
         
         % write/update dataset QC parameters
-        writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'zNominalMargin', zNominalMargin);
-        writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'maxAngle', maxAngle);
+        writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'zNominalMargin', zNominalMargin);
+        writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'maxAngle', maxAngle);
         
         % update climatologyRange info for display
         climatologyRange(p).(['range' paramName]) = [instrumentNominalDepth; instrumentNominalDepth];

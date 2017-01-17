@@ -145,12 +145,12 @@ qcthresh.ea_thresh = str2double(readProperty('ea_thresh', propFile));
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest   = mfilename;
-qcthresh.err_vel    = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel',     qcthresh.err_vel);
-qcthresh.pgood      = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'pgood',       qcthresh.pgood);
-qcthresh.cmag       = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'cmag',        qcthresh.cmag);
-qcthresh.vvel       = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'vvel',        qcthresh.vvel);
-qcthresh.hvel       = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'hvel',        qcthresh.hvel);
-qcthresh.ea_thresh  = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh',   qcthresh.ea_thresh);
+qcthresh.err_vel    = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel',     qcthresh.err_vel);
+qcthresh.pgood      = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'pgood',       qcthresh.pgood);
+qcthresh.cmag       = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'cmag',        qcthresh.cmag);
+qcthresh.vvel       = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'vvel',        qcthresh.vvel);
+qcthresh.hvel       = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'hvel',        qcthresh.hvel);
+qcthresh.ea_thresh  = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh',   qcthresh.ea_thresh);
 
 paramsLog = ['err_vel=' num2str(qcthresh.err_vel) ', pgood=' num2str(qcthresh.pgood) ...
     ', cmag=' num2str(qcthresh.cmag) ', vvel=' num2str(qcthresh.vvel) ...
@@ -195,12 +195,12 @@ if idCspd
 end
 
 % write/update dataset QC parameters
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel',  qcthresh.err_vel);
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'pgood',    qcthresh.pgood);
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'cmag',     qcthresh.cmag);
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'vvel',     qcthresh.vvel);
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'hvel',     qcthresh.hvel);
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh',qcthresh.ea_thresh);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel',  qcthresh.err_vel);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'pgood',    qcthresh.pgood);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'cmag',     qcthresh.cmag);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'vvel',     qcthresh.vvel);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'hvel',     qcthresh.hvel);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh',qcthresh.ea_thresh);
         
 end
 

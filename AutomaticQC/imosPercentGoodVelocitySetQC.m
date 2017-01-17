@@ -109,7 +109,7 @@ pgood    = str2double(readProperty('pgood',   propFile));
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest = mfilename;
-pgood = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'pgood', pgood);
+pgood = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'pgood', pgood);
 
 paramsLog = ['pgood=' num2str(pgood)];
 
@@ -148,6 +148,6 @@ if idCspd
 end
 
 % write/update dataset QC parameters
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'pgood', pgood);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'pgood', pgood);
 
 end

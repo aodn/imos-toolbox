@@ -1,30 +1,30 @@
-function value = readQCparameter(rawDataFile, QCtest, param, value)
-%READQCPARAMETER Return the value of the specified parameter from the QC 
-%parameter file associated to the raw data file.
+function value = readDatasetParameter(rawDataFile, routine, param, value)
+%READDATASETPARAMETER Returns the value of a specified parameter from the PP or QC 
+%parameter file associated to a raw data file.
 %
 % This function provides a simple interface to retrieve the values of
-% parameters stored in a QC parameter file.
+% parameters stored in a PP or QC parameter file.
 %
-% A 'QC parameter' file is a 'mat' file which contains a pqc struct which 
-% fields are the name of a QC test and subfields the name of their parameters 
+% A 'parameter' file is a 'mat' file which contains a p structure which 
+% fields are the name of a PP or QC routine and subfields the name of their parameters 
 % which contain this parameter value.
 %
 % Inputs:
 %
-%   rawDataFile - Name of the raw data file. Is used to build the QC
-%               property file name (same root but different extension).
+%   rawDataFile - Name of the raw data file. Is used to build the parameter
+%               file name (same root but different extension).
 %
-%   QCtest      - Name of the QC test. If the name does not map to a QC 
-%               test then the default value from (QCtest).txt is returned.
+%   routine     - Name of the PP or QC routine. If the name does not map to any 
+%               existing routine then the default value is returned.
 %
-%   param       - Name of the QC test parameter to be retrieved. If the
-%               name does not map to a parameter listed in the QC test of 
-%               the QC parameter file, an error is raised.
+%   param       - Name of the routine parameter to be retrieved. If the
+%               name does not map to a parameter listed in the routine of 
+%               the parameter file, an error is raised.
 %
-%   value       - Value of the default QC parameter.
+%   value       - Value of the default parameter.
 %
 % Outputs:
-%   value       - Value of the dataset QC parameter.
+%   value       - Value of the dataset parameter.
 %
 % Author: Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -61,35 +61,54 @@ function value = readQCparameter(rawDataFile, QCtest, param, value)
 narginchk(4,4);
 
 if ~ischar(rawDataFile), error('rawDataFile must be a string'); end
-if ~ischar(QCtest),      error('QCtest must be a string');      end
+if ~ischar(routine),     error('routine must be a string');     end
 if ~ischar(param),       error('param must be a string');       end
 
-pqcFile = [rawDataFile, '.pqc'];
+switch lower(routine(end-1:end))
+    case 'qc'
+        pType = 'pqc';
+        
+    case 'pp'
+        pType = 'ppp';
+        
+    otherwise
+        return;
+end
+pFile = [rawDataFile, '.', pType];
 
 % we need to migrate any remnants of the old file naming convention
 % for .pqc files.
-[pqcPath, oldPqcFile, ~] = fileparts(rawDataFile);
-oldPqcFile = fullfile(pqcPath, [oldPqcFile, '.pqc']);
-if exist(oldPqcFile, 'file')
-    movefile(oldPqcFile, pqcFile);
+[pPath, oldPFile, ~] = fileparts(rawDataFile);
+oldPFile = fullfile(pPath, [oldPFile, '.', pType]);
+if exist(oldPFile, 'file')
+    movefile(oldPFile, pFile);
 end
 
+ppp = struct([]);
 pqc = struct([]);
 
-if exist(pqcFile, 'file')
-    load(pqcFile, '-mat', 'pqc');
+if exist(pFile, 'file')
+    load(pFile, '-mat', pType);
     
-    if isfield(pqc, QCtest)
+    switch pType
+        case 'pqc'
+            p = pqc;
+            
+        case 'ppp'
+            p = ppp;
+    end
+    
+    if isfield(p, routine)
         if strcmpi(param, '*')
-            value{1} = fieldnames(pqc.(QCtest));
+            value{1} = fieldnames(p.(routine));
             for i=1:length(value{1})
-                value{2}{i} = pqc.(QCtest).(value{1}{i});
+                value{2}{i} = p.(routine).(value{1}{i});
             end
         else
-            if isfield(pqc.(QCtest), param)
-                value = pqc.(QCtest).(param);
+            if isfield(p.(routine), param)
+                value = p.(routine).(param);
             else
-                error([param ' is not a parameter of ' QCtest]);
+                error([param ' is not a parameter of ' routine]);
             end
         end
     end

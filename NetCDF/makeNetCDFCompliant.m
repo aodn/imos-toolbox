@@ -229,11 +229,13 @@ for i=1:lenConfig
             Sensors = executeQueryFunc('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
             if ~isempty(Sensors)
                 % check if this sensor is associated to the current IMOS parameter
-                parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
-                if ~isempty(parameters)
-                    parameters = parameters{1};
-                    if any(strcmpi(IMOSParam, parameters))
-                        target = Sensors.SerialNumber;
+                if isfield(Sensors, 'Parameter')
+                    parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
+                    if ~isempty(parameters)
+                        parameters = parameters{1};
+                        if any(strcmpi(IMOSParam, parameters))
+                            target = Sensors.SerialNumber;
+                        end
                     end
                 end
             end

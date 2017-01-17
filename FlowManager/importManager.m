@@ -85,16 +85,15 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   rawFiles    = {};
   
   if ~isempty(ddb) || (~isempty(driver) && ~isempty(connection))
-      [structs rawFiles] = ddbImport(auto, iMooring, ddb, mode);
+      [structs, rawFiles] = ddbImport(auto, iMooring, ddb, mode);
   else
       if auto, error('manual import cannot be automated without deployment database'); end
-      [structs rawFiles] = manualImport(mode);
+      [structs, rawFiles] = manualImport(mode);
   end
   
   % user cancelled
   if isempty(structs), return; end
   
-  dateFmt = readProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readProperty('toolbox.qc_set'));
   rawFlag = imosQCFlag('raw', qcSet, 'flag');
   
@@ -118,7 +117,7 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   end
 end
 
-function [sample_data rawFile]= manualImport(mode)
+function [sample_data, rawFile]= manualImport(mode)
 %MANUALIMPORT Imports a data set by manually prompting the user to select a 
 % raw file, and a parser with which to import it.
 %
@@ -140,7 +139,7 @@ function [sample_data rawFile]= manualImport(mode)
   while true
 
     % prompt the user to select a data file
-    [rawFile path] = uigetfile('*', 'Select Data File', manualDir);
+    [rawFile, path] = uigetfile('*', 'Select Data File', manualDir);
 
     if rawFile == 0, return; end;
 
@@ -158,7 +157,7 @@ function [sample_data rawFile]= manualImport(mode)
 
     % display progress dialog
     progress = waitbar(0,      rawFile, ...
-      'Name',                  'Importing file',...
+      'Name',                  'Importing files',...
       'DefaultTextInterpreter','none');
 
     % import the data
@@ -193,7 +192,7 @@ function [sample_data rawFile]= manualImport(mode)
   end
 end
 
-function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
+function [sample_data, rawFiles] = ddbImport(auto, iMooring, ddb, mode)
 %DDBIMPORT Imports data sets using metadata retrieved from a deployment
 % database.
 %
@@ -226,9 +225,9 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
   while true
       switch mode
           case 'profile'
-              [fieldTrip deps sits dataDir] = getCTDs(auto, isCSV); % one entry is one CTD profile instrument file
+              [fieldTrip, deps, sits, dataDir] = getCTDs(auto, isCSV); % one entry is one CTD profile instrument file
           case 'timeSeries'
-              [fieldTrip deps sits dataDir] = getDeployments(auto, isCSV); % one entry is one moored instrument file
+              [fieldTrip, deps, sits, dataDir] = getDeployments(auto, isCSV); % one entry is one moored instrument file
       end
       
       if isempty(fieldTrip), return; end
@@ -304,21 +303,14 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
     % find physical files for each deployed instrument
     allFiles = cell(size(deps));
     for k = 1:length(deps)
-
-        switch mode
-            case 'profile'
-                id   = deps(k).FieldTrip;
-            case 'timeSeries'
-                id   = deps(k).DeploymentId;
-        end
         
       rawFile = deps(k).FileName;
 
       hits = fsearch(rawFile, dataDir, 'files');
       
-      % we remove any potential .pqc or .mqc files found (reserved for use
+      % we remove any potential .ppp, .pqc or .mqc files found (reserved for use
       % by the toolbox)
-      reservedExts = {'.pqc', '.mqc'};
+      reservedExts = {'.ppp', '.pqc', '.mqc'};
       for l=1:length(hits)
           [~, ~, ext] = fileparts(hits{l});
           if all(~strcmp(ext, reservedExts))
@@ -327,17 +319,36 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring, ddb, mode)
       end
     end
     
+    % Sort data_samples
+    %
+    % [B, iX] = sort(A);
+    % =>
+    % A(iX) == B
+    %
+    switch mode
+        case 'timeSeries'
+            % for a mooring, sort instruments by depth
+            % we have to handle the case when InstrumentDepth is not documented
+            instDepths = {deps.InstrumentDepth};
+            instDepths(cellfun(@isempty, instDepths)) = {NaN};
+            instDepths = cell2mat(instDepths);
+            
+            [~, iSort] = sort(instDepths);
+            deps = deps(iSort);
+            allFiles = allFiles(iSort);
+    end
+  
     % display status dialog to highlight any discrepancies (file not found
     % for a deployment, more than one file found for a deployment)
     if ~auto
-      [deps allFiles] = dataFileStatusDialog(deps, allFiles, isCSV);
+      [deps, allFiles] = dataFileStatusDialog(deps, allFiles, isCSV);
 
       % user cancelled file dialog
       if isempty(deps), continue; end
 
       % display progress dialog
-      progress = waitbar(0,      'Importing file', ...
-        'Name',                  'Importing file',...
+      progress = waitbar(0,      'Importing files', ...
+        'Name',                  'Importing files',...
         'DefaultTextInterpreter','none');
     end
     

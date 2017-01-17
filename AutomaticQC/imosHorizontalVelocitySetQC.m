@@ -93,7 +93,7 @@ hvel     = str2double(readProperty('hvel',      propFile));
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest = mfilename;
-hvel = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'hvel', hvel);
+hvel = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'hvel', hvel);
 
 paramsLog = ['hvel=' num2str(hvel)];
 
@@ -127,6 +127,6 @@ if idCspd
 end
 
 % write/update dataset QC parameters
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'hvel', hvel);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'hvel', hvel);
 
 end

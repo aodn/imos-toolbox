@@ -63,51 +63,10 @@ user     = structures.Id0;
 % the rest of the sections are continental data (which have 
 % the same structure as awac velocity profile data sections).
 
-nsamples = length(structures.Id36.Sync);
-ncells   = user.NBins;
-
-% preallocate memory for all sample data
-time         = nan(nsamples, 1);
-distance     = nan(ncells,   1);
-analn1       = nan(nsamples, 1);
-battery      = nan(nsamples, 1);
-analn2       = nan(nsamples, 1);
-heading      = nan(nsamples, 1);
-pitch        = nan(nsamples, 1);
-roll         = nan(nsamples, 1);
-status       = zeros(nsamples, 8, 'uint8');
-pressure     = nan(nsamples, 1);
-temperature  = nan(nsamples, 1);
-velocity1    = nan(nsamples, ncells);
-velocity2    = nan(nsamples, ncells);
-velocity3    = nan(nsamples, ncells);
-backscatter1 = nan(nsamples, ncells);
-backscatter2 = nan(nsamples, ncells);
-backscatter3 = nan(nsamples, ncells);
-
 velocityProcessed = false;
 if isfield(structures, 'Id106')
     % velocity has been processed
     velocityProcessed = true;
-    nsamplesProc = length(structures.Id106.Sync);
-    timeProc         = nan(nsamplesProc, 1);
-    velocity1Proc    = nan(nsamples, ncells);
-    velocity2Proc    = nan(nsamples, ncells);
-    velocity3Proc    = nan(nsamples, ncells);
-    sig2noise1       = nan(nsamples, ncells);
-    sig2noise2       = nan(nsamples, ncells);
-    sig2noise3       = nan(nsamples, ncells);
-    stdDev1          = nan(nsamples, ncells);
-    stdDev2          = nan(nsamples, ncells);
-    stdDev3          = nan(nsamples, ncells);
-    errorCode1       = nan(nsamples, ncells);
-    errorCode2       = nan(nsamples, ncells);
-    errorCode3       = nan(nsamples, ncells);
-    speed            = nan(nsamples, ncells);
-    direction        = nan(nsamples, ncells);
-    verticalDist     = nan(nsamples, ncells);
-    profileErrorCode = nan(nsamples, ncells);
-    qcFlag           = nan(nsamples, ncells);
 end
 
 %
@@ -129,6 +88,7 @@ end
 freq       = head.Frequency; % this is in KHz
 blankDist  = user.T2;        % counts
 cellSize   = user.BinLength; % counts
+ncells     = user.NBins;
 factor     = 0;              % used for conversion
 
 switch freq
@@ -140,9 +100,9 @@ cellSize  = (cellSize / 256) * factor * cos(25 * pi / 180);
 blankDist = blankDist        * 0.0229 * cos(25 * pi / 180) - cellSize;
 
 % generate distance values
-distance(:) = (blankDist):  ...
-           (cellSize): ...
-           (blankDist + (ncells-1) * cellSize);
+distance = (blankDist:  ...
+           cellSize: ...
+           blankDist + (ncells-1) * cellSize)';
 
 % Note this is actually the distance between the ADCP's transducers and the
 % middle of each cell along the beams axis (no tilt correction applied)
@@ -150,45 +110,45 @@ distance(:) = (blankDist):  ...
 distance = distance + cellSize;
 
 % retrieve sample data
-time            = structures.Id36.Time';
-analn1          = structures.Id36.Analn1';
-battery         = structures.Id36.Battery';
-analn2          = structures.Id36.Analn2';
-heading         = structures.Id36.Heading';
-pitch           = structures.Id36.Pitch';
-roll            = structures.Id36.Roll';
-status          = structures.Id36.Status';
-pressure        = structures.Id36.PressureMSB'*65536 + structures.Id36.PressureLSW';
-temperature     = structures.Id36.Temperature';
-velocity1       = structures.Id36.Vel1';
-velocity2       = structures.Id36.Vel2';
-velocity3       = structures.Id36.Vel3';
-backscatter1    = structures.Id36.Amp1';
-backscatter2    = structures.Id36.Amp2';
-backscatter3    = structures.Id36.Amp3';
+time            = [structures.Id36(:).Time]';
+analn1          = [structures.Id36(:).Analn1]';
+battery         = [structures.Id36(:).Battery]';
+analn2          = [structures.Id36(:).Analn2]';
+heading         = [structures.Id36(:).Heading]';
+pitch           = [structures.Id36(:).Pitch]';
+roll            = [structures.Id36(:).Roll]';
+status          = [structures.Id36(:).Status]';
+pressure        = [structures.Id36(:).PressureMSB]'*65536 + [structures.Id36(:).PressureLSW]';
+temperature     = [structures.Id36(:).Temperature]';
+velocity1       = [structures.Id36(:).Vel1]';
+velocity2       = [structures.Id36(:).Vel2]';
+velocity3       = [structures.Id36(:).Vel3]';
+backscatter1    = [structures.Id36(:).Amp1]';
+backscatter2    = [structures.Id36(:).Amp2]';
+backscatter3    = [structures.Id36(:).Amp3]';
 
 if velocityProcessed
     % velocity has been processed
-    timeProc = structures.Id106.Time';
+    timeProc = [structures.Id106(:).Time]';
     iCommonTime = ismember(time, timeProc); % timeProc can be shorter than time
     
-    velocity1Proc(iCommonTime, :)    = structures.Id106.Vel1'; % tilt effect corrected velocity
-    velocity2Proc(iCommonTime, :)    = structures.Id106.Vel2';
-    velocity3Proc(iCommonTime, :)    = structures.Id106.Vel3';
-    sig2noise1(iCommonTime, :)       = structures.Id106.Snr1';
-    sig2noise2(iCommonTime, :)       = structures.Id106.Snr2';
-    sig2noise3(iCommonTime, :)       = structures.Id106.Snr3';
-    stdDev1(iCommonTime, :)          = structures.Id106.Std1'; % currently not used
-    stdDev2(iCommonTime, :)          = structures.Id106.Std2';
-    stdDev3(iCommonTime, :)          = structures.Id106.Std3';
-    errorCode1(iCommonTime, :)       = structures.Id106.Erc1'; % error codes for each cell in one beam, values between 0 and 4.
-    errorCode2(iCommonTime, :)       = structures.Id106.Erc2';
-    errorCode3(iCommonTime, :)       = structures.Id106.Erc3';
-    speed(iCommonTime, :)            = structures.Id106.speed';
-    direction(iCommonTime, :)        = structures.Id106.direction';
-    verticalDist(iCommonTime, :)     = structures.Id106.verticalDistance'; % ? no idea what this is, always same values between 6000 and 65534 for each profile.
-    profileErrorCode(iCommonTime, :) = structures.Id106.profileErrorCode'; % error codes for each cell of a velocity profile inferred from the 3 beams. 0=good; otherwise error. See http://www.nortek-as.com/en/knowledge-center/forum/waves/20001875?b_start=0#769595815
-    qcFlag(iCommonTime, :)           = structures.Id106.qcFlag'; % QUARTOD QC result. 0=not eval; 1=bad; 2=questionable; 3=good.
+    velocity1Proc(iCommonTime, :)    = [structures.Id106(:).Vel1]'; % tilt effect corrected velocity
+    velocity2Proc(iCommonTime, :)    = [structures.Id106(:).Vel2]';
+    velocity3Proc(iCommonTime, :)    = [structures.Id106(:).Vel3]';
+    sig2noise1(iCommonTime, :)       = [structures.Id106(:).Snr1]';
+    sig2noise2(iCommonTime, :)       = [structures.Id106(:).Snr2]';
+    sig2noise3(iCommonTime, :)       = [structures.Id106(:).Snr3]';
+    stdDev1(iCommonTime, :)          = [structures.Id106(:).Std1]'; % currently not used
+    stdDev2(iCommonTime, :)          = [structures.Id106(:).Std2]';
+    stdDev3(iCommonTime, :)          = [structures.Id106(:).Std3]';
+    errorCode1(iCommonTime, :)       = [structures.Id106(:).Erc1]'; % error codes for each cell in one beam, values between 0 and 4.
+    errorCode2(iCommonTime, :)       = [structures.Id106(:).Erc2]';
+    errorCode3(iCommonTime, :)       = [structures.Id106(:).Erc3]';
+    speed(iCommonTime, :)            = [structures.Id106(:).speed]';
+    direction(iCommonTime, :)        = [structures.Id106(:).direction]';
+    verticalDist(iCommonTime, :)     = [structures.Id106(:).verticalDistance]'; % ? no idea what this is, always same values between 6000 and 65534 for each profile.
+    profileErrorCode(iCommonTime, :) = [structures.Id106(:).profileErrorCode]'; % error codes for each cell of a velocity profile inferred from the 3 beams. 0=good; otherwise error. See http://www.nortek-as.com/en/knowledge-center/forum/waves/20001875?b_start=0#769595815
+    qcFlag(iCommonTime, :)           = [structures.Id106(:).qcFlag]'; % QUARTOD QC result. 0=not eval; 1=bad; 2=questionable; 3=good.
 end
 clear structures;
 

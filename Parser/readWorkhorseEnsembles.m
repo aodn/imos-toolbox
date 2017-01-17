@@ -218,7 +218,6 @@ if any(idodgy)
         igood = (nBytes == nBytes0(1));
         
         idx     = idx(igood);
-        nBytes  = nBytes(igood);
     else
         error('This file looks corrupted. Try open it with WinADCP and save it again.');
     end
@@ -344,7 +343,7 @@ dsub(ibad) = nan;
 
 end
 
-function [sect len] = parseFixedLeader(data, idx, cpuEndianness)
+function [sect, len] = parseFixedLeader(data, idx, cpuEndianness)
 %PARSEFIXEDLEADER Parses a fixed leader section from an ADCP ensemble.
 %
 % Inputs:
@@ -451,7 +450,7 @@ function [sect len] = parseFixedLeader(data, idx, cpuEndianness)
   end
 end
 
-function [sect len] = parseVariableLeader( data, idx, cpuEndianness )
+function [sect, len] = parseVariableLeader( data, idx, cpuEndianness )
 %PARSEVARIABLELEADER Parses a variable leader section from an ADCP ensemble.
 %
 % Inputs:
@@ -555,7 +554,7 @@ function [sect len] = parseVariableLeader( data, idx, cpuEndianness )
   sect.y2kHundredth           = double(data(idx+64));
 end
 
-function [sect len] = parseVelocity( data, numCells, idx, cpuEndianness )
+function [sect, len] = parseVelocity( data, numCells, idx, cpuEndianness )
 %PARSEVELOCITY Parses a velocity section from an ADCP ensemble.
 %
 % Inputs:
@@ -588,7 +587,7 @@ function [sect len] = parseVelocity( data, numCells, idx, cpuEndianness )
   
 end
 
-function [sect len] = parseX( data, numCells, name, idx, cpuEndianness )
+function [sect, len] = parseX( data, numCells, name, idx, cpuEndianness )
 %PARSEX Parses one of the correlation magnitude, echo intensity or percent 
 % good sections from an ADCP ensemble. They all have the same format. 
 %
@@ -624,7 +623,7 @@ sect.field4 = fields(:, ibeam+3);
     
 end
 
-function [sect length] = parseBottomTrack( data, idx, cpuEndianness )
+function [sect, length] = parseBottomTrack( data, idx, cpuEndianness )
 %PARSEBOTTOMTRACK Parses a bottom track data section from an ADCP
 % ensemble.
 %

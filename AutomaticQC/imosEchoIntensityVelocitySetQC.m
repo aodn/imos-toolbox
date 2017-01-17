@@ -116,7 +116,7 @@ ea_thresh = str2double(readProperty('ea_thresh',   propFile));
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest = mfilename;
-ea_thresh = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
+ea_thresh = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
 
 paramsLog = ['ea_thresh=' num2str(ea_thresh)];
 
@@ -189,6 +189,6 @@ if idCspd
 end
 
 % write/update dataset QC parameters
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
 
 end

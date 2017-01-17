@@ -81,22 +81,10 @@ function [deployments files] = dataFileStatusDialog( deployments, files, isCSV )
       case 'profile'
           % for a profile, sort by alphabetical order
           [deploymentDescs, iSort] = sort(deploymentDescs);
-      case 'timeSeries'
-          % for a mooring, sort instruments by depth
-          
-          % we have to handle the case when InstrumentDepth is not documented
-          instDepths = {deployments.InstrumentDepth};
-          instDepths(cellfun(@isempty, instDepths)) = {NaN};
-          instDepths = cell2mat(instDepths);
-          
-          [~, iSort] = sort(instDepths);
-          deploymentDescs = deploymentDescs(iSort);
+          deployments = deployments(iSort);
+          files = files(iSort);
+      
   end
-  
-  
-  
-  deployments = deployments(iSort);
-  files = files(iSort);
   
   nofile   = readProperty('dataFileStatusDialog.noFileFormat');
   multiple = readProperty('dataFileStatusDialog.multipleFileFormat');

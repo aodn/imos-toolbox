@@ -106,7 +106,7 @@ for k = 1:length(sample_data)
     % while beams 2 and 3 get further away. When roll is positive beam 3 is
     % closer to the surface while beam 2 gets further away.
     %
-    distAlongBeams = sample_data{k}.dimensions{distAlongBeamsIdx}.data;
+    distAlongBeams = sample_data{k}.dimensions{distAlongBeamsIdx}.data';
     pitch = sample_data{k}.variables{pitchIdx}.data*pi/180;
     roll  = sample_data{k}.variables{rollIdx}.data*pi/180;
     
@@ -115,34 +115,34 @@ for k = 1:length(sample_data)
     
     if isRDI
         % RDI 4 beams
-        nonMappedHeightAboveSensorBeam1 = (cos(beamAngle + roll)/cos(beamAngle)) * distAlongBeams';
+        nonMappedHeightAboveSensorBeam1 = (cos(beamAngle + roll)/cos(beamAngle)) * distAlongBeams;
         nonMappedHeightAboveSensorBeam1 = repmat(cos(pitch), 1, nBins) .* nonMappedHeightAboveSensorBeam1;
         
-        nonMappedHeightAboveSensorBeam2 = (cos(beamAngle - roll)/cos(beamAngle)) * distAlongBeams';
+        nonMappedHeightAboveSensorBeam2 = (cos(beamAngle - roll)/cos(beamAngle)) * distAlongBeams;
         nonMappedHeightAboveSensorBeam2 = repmat(cos(pitch), 1, nBins) .* nonMappedHeightAboveSensorBeam2;
         
-        nonMappedHeightAboveSensorBeam3 = (cos(beamAngle - pitch)/cos(beamAngle)) * distAlongBeams';
+        nonMappedHeightAboveSensorBeam3 = (cos(beamAngle - pitch)/cos(beamAngle)) * distAlongBeams;
         nonMappedHeightAboveSensorBeam3 = repmat(cos(roll), 1, nBins) .* nonMappedHeightAboveSensorBeam3;
         
-        nonMappedHeightAboveSensorBeam4 = (cos(beamAngle + pitch)/cos(beamAngle)) * distAlongBeams';
+        nonMappedHeightAboveSensorBeam4 = (cos(beamAngle + pitch)/cos(beamAngle)) * distAlongBeams;
         nonMappedHeightAboveSensorBeam4 = repmat(cos(roll), 1, nBins) .* nonMappedHeightAboveSensorBeam4;
     else
         % Nortek 3 beams
-        nonMappedHeightAboveSensorBeam1 = (cos(beamAngle - pitch)/cos(beamAngle)) * distAlongBeams';
+        nonMappedHeightAboveSensorBeam1 = (cos(beamAngle - pitch)/cos(beamAngle)) * distAlongBeams;
         nonMappedHeightAboveSensorBeam1 = repmat(cos(roll), 1, nBins) .* nonMappedHeightAboveSensorBeam1;
         
         beamAngleX = atan(tan(beamAngle) * cos(60*pi/180)); % beams 2 and 3 angle projected on the X axis
         beamAngleY = atan(tan(beamAngle) * cos(30*pi/180)); % beams 2 and 3 angle projected on the Y axis
         
-        nonMappedHeightAboveSensorBeam2 = (cos(beamAngleX + pitch)/cos(beamAngleX)) * distAlongBeams';
+        nonMappedHeightAboveSensorBeam2 = (cos(beamAngleX + pitch)/cos(beamAngleX)) * distAlongBeams;
         nonMappedHeightAboveSensorBeam2 = repmat(cos(beamAngleY + roll)/cos(beamAngleY), 1, nBins) .* nonMappedHeightAboveSensorBeam2;
         
-        nonMappedHeightAboveSensorBeam3 = (cos(beamAngleX + pitch)/cos(beamAngleX)) * distAlongBeams';
+        nonMappedHeightAboveSensorBeam3 = (cos(beamAngleX + pitch)/cos(beamAngleX)) * distAlongBeams;
         nonMappedHeightAboveSensorBeam3 = repmat(cos(beamAngleY - roll)/cos(beamAngleY), 1, nBins) .* nonMappedHeightAboveSensorBeam3;
     end
     
     nSamples = length(pitch);
-    mappedHeightAboveSensor = repmat(distAlongBeams', nSamples, 1);
+    mappedHeightAboveSensor = repmat(distAlongBeams, nSamples, 1);
   
     % we can now interpolate mapped values per bin when needed for each
     % impacted parameter

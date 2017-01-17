@@ -111,7 +111,7 @@ cmag     = str2double(readProperty('cmag',   propFile));
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest = mfilename;
-cmag = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'cmag', cmag);
+cmag = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'cmag', cmag);
 
 paramsLog = ['cmag=' num2str(cmag)];
 
@@ -158,6 +158,6 @@ if idCspd
 end
 
 % write/update dataset QC parameters
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'cmag', cmag);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'cmag', cmag);
 
 end
