@@ -319,6 +319,25 @@ function [sample_data, rawFiles] = ddbImport(auto, iMooring, ddb, mode)
       end
     end
     
+    % Sort data_samples
+    %
+    % [B, iX] = sort(A);
+    % =>
+    % A(iX) == B
+    %
+    switch mode
+        case 'timeSeries'
+            % for a mooring, sort instruments by depth
+            % we have to handle the case when InstrumentDepth is not documented
+            instDepths = {deps.InstrumentDepth};
+            instDepths(cellfun(@isempty, instDepths)) = {NaN};
+            instDepths = cell2mat(instDepths);
+            
+            [~, iSort] = sort(instDepths);
+            deps = deps(iSort);
+            allFiles = allFiles(iSort);
+    end
+  
     % display status dialog to highlight any discrepancies (file not found
     % for a deployment, more than one file found for a deployment)
     if ~auto
