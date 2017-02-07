@@ -60,13 +60,22 @@ if ~ischar(exportDir),      error('exportDir must be a string');        end
 monitorRect = getRectMonitor();
 iBigMonitor = getBiggestMonitor();
 
-iVar = getVar(sample_data.variables, varName);
-title = [sample_data.variables{iVar}.name ' section of ' sample_data.deployment_code ' at ' datestr(timeValue, 'yyyy-mm-dd HH:MM:SS UTC')];
-
 initiateFigure = true;
     
 varTitle = imosParameters(varName, 'long_name');
 varUnit  = imosParameters(varName, 'uom');
+
+varDesc = cell(3, 1);
+hLineVar = nan(3, 1);
+flagDesc = cell(4, 1);
+hLineFlag = ones(4, 1);
+
+% instrument description
+if ~isempty(strtrim(sample_data.instrument))
+    instrumentDesc = sample_data.instrument;
+elseif ~isempty(sample_data.toolbox_input_file)
+    [~, instrumentDesc] = fileparts(sample_data.toolbox_input_file);
+end
 
 if ~isempty(sample_data.meta.depth)
     metaDepth = sample_data.meta.depth;
@@ -76,27 +85,14 @@ else
     metaDepth = NaN;
 end
 
-instrumentDesc = cell(2, 1);
-hLineVar = nan(2, 1);
-flagDesc = cell(4, 1);
-hLineFlag = ones(4, 1);
-
-instrumentDesc{1} = 'Make Model (nominal_depth - instrument SN)';
-hLineVar(1) = 0;
-
-% instrument description
-if ~isempty(strtrim(sample_data.instrument))
-    instrumentDesc{2} = sample_data.instrument;
-elseif ~isempty(sample_data.toolbox_input_file)
-    [~, instrumentDesc{2}] = fileparts(sample_data.toolbox_input_file);
-end
-
 instrumentSN = '';
 if ~isempty(strtrim(sample_data.instrument_serial_number))
     instrumentSN = sample_data.instrument_serial_number;
 end
 
-instrumentDesc{2} = [strrep(instrumentDesc{2}, '_', ' ') ' (' num2str(metaDepth) 'm - ' instrumentSN ')'];
+instrumentDesc = [strrep(instrumentDesc, '_', ' ') ' (' num2str(metaDepth) 'm - ' instrumentSN ')'];
+
+title = [varName ' section of ' instrumentDesc ' from ' sample_data.deployment_code ' @ ' datestr(timeValue, 'yyyy-mm-dd HH:MM:SS UTC')];
 
 %look for 2nd dimension and relevant variable
 iVar = getVar(sample_data.variables, varName);
@@ -137,19 +133,20 @@ if iVar > 0
     
     hold(hAxVarSection, 'on');
     
-    % dummy entry for first entry in legend
-    hLineVar(1) = plot(0, 0, 'o', 'color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
-    
     yLine = sample_data.dimensions{i2Ddim}.data;
-    dataVar = sample_data.variables{iVar}.data(iX);
+    dataVar = sample_data.variables{iVar}.data;
+    dataVarProfile = dataVar(iX);
     
     % plot data profile
-    hLineVar(2) = line(dataVar, ...
+    hLineVar(1) = line(dataVarProfile, ...
         yLine, ...
         'LineStyle', '-');
     
+    varDesc{1} = [varName ' @ ' datestr(timeValue, 'yyyy-mm-dd HH:MM:SS UTC')];
+    
     % get var QC information
-    varFlags = sample_data.variables{iVar}.flags(iX);
+    flagsVar = sample_data.variables{iVar}.flags;
+    flagsVarProfile = flagsVar(iX);
     
     qcSet = str2double(readProperty('toolbox.qc_set'));
     
@@ -158,18 +155,49 @@ if iVar > 0
     flagPBad    = imosQCFlag('probablyBad', qcSet, 'flag');
     flagBad     = imosQCFlag('bad',         qcSet, 'flag');
     
-    iGood    = varFlags == flagGood;
-    iPGood   = varFlags == flagPGood;
-    iPBad    = varFlags == flagPBad;
-    iBad     = varFlags == flagBad;
+    iBad            = flagsVar == flagBad;
+    iPBad           = flagsVar == flagPBad;
     
-    if all(~iGood & ~iPGood) && isQC
+    iGoodProfile    = flagsVarProfile == flagGood;
+    iPGoodProfile   = flagsVarProfile == flagPGood;
+    iPBadProfile    = flagsVarProfile == flagPBad;
+    iBadProfile     = flagsVarProfile == flagBad;
+    
+    if all(iPBadProfile | iBadProfile) && isQC
         fprintf('%s\n', ['Warning : in ' sample_data.toolbox_input_file ...
             ', there is not any ' varName ' data with good flags.']);
     end
     
-    flags  = [flagGood, flagPGood, flagPBad, flagBad];
-    iFlags = [iGood,    iPGood,    iPBad,    iBad];
+    iMean = ~iBad & ~iPBad;
+    nRows = size(dataVar, 2);
+    dataVarMean = NaN(nRows, 1);
+    dataVarStd  = NaN(nRows, 1);
+    for j=1:nRows
+        dataVarMean(j) = mean(dataVar(iMean(:, j), j));
+        dataVarStd (j) = std (dataVar(iMean(:, j), j));
+    end
+    
+    hLineVar(2) = line(dataVarMean, ...
+        yLine, ...
+        'LineStyle',    '--', ...
+        'Color',        'g');
+    
+    varDesc{2} = [varName ' mean'];
+    
+    hLineVar(3) = line(dataVarMean + 3*dataVarStd, ...
+        yLine, ...
+        'LineStyle',    '--', ...
+        'Color',        'r');
+    
+    line(dataVarMean - 3*dataVarStd, ...
+        yLine, ...
+        'LineStyle',    '--', ...
+        'Color',        'r');
+    
+    varDesc{3} = [varName ' mean +/- 3*standard deviation'];
+    
+    flags         = [flagGood,     flagPGood,     flagPBad,     flagBad];
+    iFlagsProfile = [iGoodProfile, iPGoodProfile, iPBadProfile, iBadProfile];
     
     % plot flags on top of data profile
     for i=1:4
@@ -181,9 +209,9 @@ if iVar > 0
             'MarkerFaceColor', fc, ...
             'MarkerEdgeColor', 'none', ...
             'Visible', 'off'); % this is to make sure all flags are properly displayed within legend
-        if any(iFlags(:, i))
-            hLineFlag(1) = line(dataVar(iFlags(:, i)), ...
-                yLine(iFlags(:, i)), ...
+        if any(iFlagsProfile(:, i))
+            hLineFlag(i) = line(dataVarProfile(iFlagsProfile(:, i)), ...
+                yLine(iFlagsProfile(:, i)), ...
                 'LineStyle', 'none', ...
                 'Marker', 'o', ...
                 'MarkerFaceColor', fc, ...
@@ -206,15 +234,15 @@ if ~initiateFigure
     iNan = isnan(hLineVar);
     if any(iNan)
         hLineVar(iNan) = [];
-        instrumentDesc(iNan) = [];
+        varDesc(iNan) = [];
     end
     
     hLineVar = [hLineVar; hLineFlag];
-    instrumentDesc = [instrumentDesc; flagDesc];
+    varDesc = [varDesc; flagDesc];
     % Matlab >R2015 legend entries for data which are not plotted 
 	% will be shown with reduced opacity
     legend(hAxVarSection, ...
-        hLineVar,       regexprep(instrumentDesc,'_','\_'), ...
+        hLineVar,       regexprep(varDesc,'_','\_'), ...
         'Interpreter',  'none', ...
         'Location',     'SouthOutside');
 end
