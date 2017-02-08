@@ -578,24 +578,21 @@ function mainWindow(...
     stringQC = 'non QC';
     if isQC, stringQC = 'QC'; end
 
-    % get all params that are in common in at least two datasets
     lenSampleData = length(sample_data);
     paramsName = {};
     paramsCount = [];
+    paramsName{1} = 'diff(TIME)';
+    paramsCount(1) = lenSampleData;
+    % get all params that are in common in at least two datasets
     for i=1:lenSampleData
         lenParamsSample = length(sample_data{i}.variables);
         for j=1:lenParamsSample
-            if i==1 && j==1
-                paramsName{1} = sample_data{1}.variables{1}.name;
-                paramsCount(1) = 1;
+            sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+            if ~any(sameParam)
+                paramsName{end+1} = sample_data{i}.variables{j}.name;
+                paramsCount(end+1) = 1;
             else
-                sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
-                if ~any(sameParam)
-                    paramsName{end+1} = sample_data{i}.variables{j}.name;
-                    paramsCount(end+1) = 1;
-                else
-                    paramsCount(sameParam) = paramsCount(sameParam)+1;
-                end
+                paramsCount(sameParam) = paramsCount(sameParam)+1;
             end
         end
     end
@@ -622,14 +619,14 @@ function mainWindow(...
     iParam = strcmpi(paramsName, 'NOMINAL_DEPTH');
     paramsName(iParam) = [];
     
-    % by default TEMP is selected
-    iTEMP = find(strcmpi(paramsName, 'TEMP'));
+    % by default diff(TIME) is selected
+    iDiffTIME = find(strcmpi(paramsName, 'diff(TIME)'));
 
     [iSelection, ok] = listdlg(...
         'ListString', paramsName, ...
         'SelectionMode', 'single', ...
         'ListSize', [150 150], ...
-        'InitialValue', iTEMP, ...
+        'InitialValue', iDiffTIME, ...
         'Name', ['Plot a ' stringQC '''d variable accross all instruments in the mooring'], ...
         'PromptString', 'Select a variable :');
 
