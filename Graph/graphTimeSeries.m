@@ -177,7 +177,8 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
     % multiple axes, this is not done automatically for us
     col = get(graphs(k), 'ColorOrder');
     
-    % we get rid of the red color
+    % we get rid of the red color which is used for global range boundaries
+    % and in/out water boundaries
     iRed = (col == repmat([1 0 0], [size(col, 1), 1]));
     iRed = sum(iRed, 2);
     iRed = iRed == 3;

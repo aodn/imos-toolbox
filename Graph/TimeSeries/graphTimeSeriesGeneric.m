@@ -64,28 +64,34 @@ if ischar(var.data), var.data = str2num(var.data); end % we assume data is an ar
 h    = line(time.data, var.data, 'Parent', ax, 'Color', color);
 set(ax, 'Tag', 'axis1D');
 
-% for global/regional range display
+% for global/regional range and in/out water display
 mWh = findobj('Tag', 'mainWindow');
 sMh = findobj('Tag', 'samplePopUpMenu');
 iSample = get(sMh, 'Value');
-climatologyRange = get(mWh, 'UserData');
-if ~isempty(climatologyRange)
-    if isfield(climatologyRange, ['rangeMin' var.name])
+qcParam = get(mWh, 'UserData');
+if ~isempty(qcParam)
+    if isfield(qcParam, ['rangeMin' var.name])
         hold(ax, 'on');
-        if (length(climatologyRange(iSample).(['rangeMin' var.name])) == 2)
+        if (length(qcParam(iSample).(['rangeMin' var.name])) == 2)
             timeToPlot = [time.data(1); time.data(end)];
         else
             timeToPlot = time.data;
         end
         
-        if isfield(climatologyRange, ['range' var.name])
-            hNominal = line(timeToPlot, climatologyRange(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k');
+        if isfield(qcParam, ['range' var.name])
+            line(timeToPlot, qcParam(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k');
         end
-        hRegMinMax = line([timeToPlot; NaN; timeToPlot], ...
-            [climatologyRange(iSample).(['rangeMin' var.name]); NaN; climatologyRange(iSample).(['rangeMax' var.name])], ...
+        line([timeToPlot; NaN; timeToPlot], ...
+            [qcParam(iSample).(['rangeMin' var.name]); NaN; qcParam(iSample).(['rangeMax' var.name])], ...
             'Parent', ax, 'Color', 'r');
-%         set(ax, 'YLim', [min(climatologyRange(iSample).(['rangeMin' var.name])) - min(climatologyRange(iSample).(['rangeMin' var.name]))/10, ...
-%             max(climatologyRange(iSample).(['rangeMax' var.name])) + max(climatologyRange(iSample).(['rangeMax' var.name]))/10]);
+    end
+    
+    if isfield(qcParam, 'inWater')
+        hold(ax, 'on');
+        yLim = get(ax, 'YLim');
+        line([qcParam(iSample).inWater, qcParam(iSample).inWater, NaN, qcParam(iSample).outWater, qcParam(iSample).outWater], ...
+            [yLim, NaN, yLim], ...
+            'Parent', ax, 'Color', 'r');
     end
 end
 

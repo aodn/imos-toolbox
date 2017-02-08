@@ -220,14 +220,14 @@ for i=1:lenSampleData
             dataVar = sample_data{iSort(i)}.variables{iVar}.data;
             dataVar(~iGood) = NaN;
             
-            hLineVar(i + 1) = line(xLine, ...
-                dataVar, ...
+            hLineVar(i + 1) = line(xLine, dataVar, ...
                 'Color', cMap(i, :));
             userData.idx = iSort(i);
             userData.xName = 'TIME';
             userData.yName = varName;
             set(hLineVar(i + 1), 'UserData', userData);
             clear('userData');
+            
             % Let's redefine properties after pcolor to make sure grid lines appear
             % above color data and XTick and XTickLabel haven't changed
             set(hAxMooringVar, ...
@@ -243,6 +243,36 @@ for i=1:lenSampleData
 end
 
 if ~initiateFigure && isPlottable
+    if ~isQC
+        % we add the in/out water boundaries
+        % for global/regional range and in/out water display
+        mWh = findobj('Tag', 'mainWindow');
+        qcParam = get(mWh, 'UserData');
+        yLim = get(hAxMooringVar, 'YLim');
+        for i=1:lenSampleData
+            if isfield(qcParam, 'inWater')
+                line([qcParam(iSort(i)).inWater, qcParam(iSort(i)).inWater, NaN, qcParam(iSort(i)).outWater, qcParam(iSort(i)).outWater], ...
+                    [yLim, NaN, yLim], ...
+                    'Parent', hAxMooringVar, ...
+                    'Color', 'r', ...
+                    'LineStyle', '--');
+                
+                iTime = getVar(sample_data{i}.dimensions, 'TIME');
+                xLine = sample_data{iSort(i)}.dimensions{iTime}.data;
+                
+                iVar = getVar(sample_data{iSort(i)}.variables, varName);
+                dataVar = sample_data{iSort(i)}.variables{iVar}.data;
+                
+                text(qcParam(iSort(i)).inWater, double(dataVar(find(xLine >= qcParam(iSort(i)).inWater, 1, 'first'))), ...
+                    ['inWater @ ' datestr(qcParam(iSort(i)).inWater, 'yyyy-mm-dd HH:MM:SS UTC') ' - ' instrumentDesc{i + 1}], ...
+                    'Parent', hAxMooringVar);
+                text(qcParam(iSort(i)).outWater, double(dataVar(find(xLine <= qcParam(iSort(i)).outWater, 1, 'last'))), ...
+                    ['outWater @ ' datestr(qcParam(iSort(i)).outWater, 'yyyy-mm-dd HH:MM:SS UTC') ' - ' instrumentDesc{i + 1}], ...
+                    'Parent', hAxMooringVar);
+            end
+        end
+    end
+    
     iNan = isnan(hLineVar);
     if any(iNan)
         hLineVar(iNan) = [];
