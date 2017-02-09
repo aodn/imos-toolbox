@@ -165,7 +165,7 @@ hAxPressDiff = subplot(2,1,2,'Parent', hPanelMooringVar);
 set(get(hAxPressDiff, 'XLabel'), 'String', 'Time');
 set(get(hAxPressDiff, 'YLabel'), 'String', [presRelCode ' (' varUnit ')'], 'Interpreter', 'none');
 set(get(hAxPressDiff, 'Title'), 'String', ...
-    ['Pressure Differences from ' instrumentDesc{iCurrSam} ' (in black above)'] , 'Interpreter', 'none');
+    ['Pressure Differences between ' instrumentDesc{iCurrSam} ' (in black above) and nearest neighbours'] , 'Interpreter', 'none');
 set(hAxPressDiff, 'XTick', (xMin:(xMax-xMin)/4:xMax));
 set(hAxPressDiff, 'XLim', [xMin, xMax]);
 hold(hAxPressDiff, 'on');
@@ -215,12 +215,12 @@ end
 % nearest (blue) to farthest (yellow)
 try
     defaultColormapFh = str2func(readProperty('visualQC.defaultColormap'));
-    cMap = colormap(hAxPress, defaultColormapFh(nOthers - 1));
+    cMap = colormap(hAxPress, defaultColormapFh(nOthers));
 catch e
-    cMap = colormap(hAxPress, parula(nOthers - 1));
+    cMap = colormap(hAxPress, parula(nOthers));
 end
 % current sample is black
-cMap = [0, 0, 0; cMap];
+cMap(iOthers == iCurrSam, :) = [0, 0, 0];
 
 %now add the other data:
 for i=1:nOthers
