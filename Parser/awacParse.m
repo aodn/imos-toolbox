@@ -408,7 +408,7 @@ for i=1:nVars
     sample_data{2}.variables{i}.name         = vars{i, 1};
     sample_data{2}.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
     sample_data{2}.variables{i}.dimensions   = vars{i, 2};
-    if ~isempty(vars{i, 2}) && ~strcmpi(vars{i, 1}, 'SPCT') % we don't want this for scalar variables nor SPCT
+    if ~isempty(vars{i, 2}) % we don't want this for scalar variables
         if any(strcmpi(vars{i, 1}, {'VDEN', 'SSWD_MAG', 'WSSH', 'VAVT', 'VDIR_MAG', 'SSDS_MAG', 'SSWV_MAG'}))
             sample_data{2}.variables{i}.coordinates = 'TIME LATITUDE LONGITUDE'; % data at the surface, can be inferred from standard/long names
         else
