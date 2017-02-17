@@ -65,9 +65,9 @@ idVcur = 0;
 idWcur = 0;
 idCspd = 0;
 idCdir = 0;
-idABSI = cell(4, 1);
+idABSIC = cell(4, 1);
 for j=1:4
-    idABSI{j}  = 0;
+    idABSIC{j}  = 0;
 end
 lenVar = length(sample_data.variables);
 for i=1:lenVar
@@ -80,21 +80,21 @@ for i=1:lenVar
     if strncmpi(paramName, 'CDIR', 4),  idCdir = i; end
     for j=1:4
         cc = int2str(j);
-        if strcmpi(paramName, ['ABSI' cc]), idABSI{j} = i; end
+        if strcmpi(paramName, ['ABSIC' cc]), idABSIC{j} = i; end
     end
 end
 
 % check if the data is compatible with the QC algorithm
 idMandatory = (idUcur | idVcur | idWcur | idCspd | idCdir);
 for j=1:4
-    idMandatory = idMandatory & idABSI{j};
+    idMandatory = idMandatory & idABSIC{j};
 end
 if ~idMandatory, return; end
 
 % let's get the associated vertical dimension
-idVertDim = sample_data.variables{idABSI{1}}.dimensions(2);
+idVertDim = sample_data.variables{idABSIC{1}}.dimensions(2);
 if strcmpi(sample_data.dimensions{idVertDim}.name, 'DIST_ALONG_BEAMS')
-    disp(['Warning : imosEchoIntensityVelocitySetQC applied with a non tilt-corrected ABSIn (no bin mapping) on dataset ' sample_data.toolbox_input_file]);
+    disp(['Warning : imosEchoIntensityVelocitySetQC applied with a non tilt-corrected ABSICn (no bin mapping) on dataset ' sample_data.toolbox_input_file]);
 end
 
 qcSet           = str2double(readProperty('toolbox.qc_set'));
@@ -103,10 +103,10 @@ goodFlag        = imosQCFlag('good',            qcSet, 'flag');
 rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
 
 %Pull out echo intensity
-sizeData = size(sample_data.variables{idABSI{1}}.data);
+sizeData = size(sample_data.variables{idABSIC{1}}.data);
 ea = nan(4, sizeData(1), sizeData(2));
-for j=1:4;
-    ea(j, :, :) = sample_data.variables{idABSI{j}}.data;
+for j=1:4
+    ea(j, :, :) = sample_data.variables{idABSIC{j}}.data;
 end
 
 % read in filter parameters
