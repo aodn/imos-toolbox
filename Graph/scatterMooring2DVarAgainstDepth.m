@@ -204,7 +204,7 @@ if any(isPlottable)
         case {'UCUR', 'VCUR', 'WCUR', 'ECUR', 'VEL1', 'VEL2', 'VEL3'}   % 0 centred parameters
             cMap = 'r_b';
             cType = 'centeredOnZero';
-            CLim = [-yLimMax yLimMax];
+            CLim = [-max(abs(yLimMin), abs(yLimMax)) max(abs(yLimMax), abs(yLimMin))];
         case {'CDIR', 'SSWD'}           % directions [0; 360[
             cMap = 'rkbwr';
             cType = 'direction';
