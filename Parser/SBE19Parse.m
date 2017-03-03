@@ -437,8 +437,10 @@ optodeExpr   = 'OPTODE = (yes|no)';
 voltCalExpr  = 'volt (\d): offset = (\S+), slope = (\S+)';
 otherExpr    = '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
 firmExpr     = '<FirmwareVersion>(\S+)</FirmwareVersion>';
+firmExpr2     = '^\*\s*FirmwareVersion:\s*(\S+)'; %SBE39plus
 sensorId     = '<Sensor id=''(.*\S+.*)''>';
 sensorType   = '<[tT]ype>(.*\S+.*)</[tT]ype>';
+serialExpr = '^\*\s*SerialNumber:\s*(\S+)'; %SBE39plus
 
 exprs = {...
     headerExpr   headerExpr2    headerExpr3    scanExpr     ...
@@ -448,7 +450,7 @@ exprs = {...
     castExpr     castExpr2   intervalExpr ...
     sbe38Expr    optodeExpr   ...
     voltCalExpr  otherExpr ...
-    firmExpr     sensorId   sensorType};
+    firmExpr     sensorId   sensorType firmExpr2 serialExpr};
 
 for k = 1:length(headerLines)
     
@@ -590,6 +592,15 @@ for k = 1:length(headerLines)
                         header.sensorTypes = {};
                     end
                     header.sensorTypes{end+1}  = tkns{1}{1};
+
+                %FirmwareVersion, SBE39plus cnv
+                case 24
+                    header.instrument_firmware  = tkns{1}{1};
+                    
+                % SerialNumber, SBE39plus cnv
+                case 25
+                    header.instrument_serial_no = tkns{1}{1};
+
             end
             break;
         end
