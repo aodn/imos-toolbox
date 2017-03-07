@@ -81,7 +81,6 @@ public abstract class DDB {
 				return new ODBCDDB(name);
 			else {
 				System.err.println(name + " is not a valid filepath!");
-				System.exit(1);
 			}
 
 		}
