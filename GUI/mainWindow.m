@@ -498,9 +498,10 @@ function mainWindow(...
             for i=1:length(graphs1D)
                 userData = get(graphs1D(i), 'UserData');
                 hData = userData{1};
-                iTickBox = userData{2};
+                iTickBox = userData{2}; % index into currently ticked boxes
+                iAllTickedBox = find(cell2mat(get(hTickBoxes, 'Value')) == 1);
                 
-                varName = get(hTickBoxes(iTickBox), 'String');
+                varName = get(hTickBoxes(iAllTickedBox(iTickBox)), 'String');
                 iVar = getVar(sam.variables, varName);
                 flags = sam.variables{iVar}.flags;
                 iGood = ismember(flags, okFlags);
