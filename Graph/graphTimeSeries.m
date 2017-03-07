@@ -78,8 +78,13 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
   sample_data.variables = sample_data.variables(vars);
   lenVar = length(sample_data.variables);
   
-  graphs = nan(lenVar, 1);
-  lines = nan(lenVar, 1);
+  if verLessThan('matlab','8.1') %R2013a
+      graphs = nan(lenVar, 1);
+      lines  = nan(lenVar, 1);
+  else
+      graphs = gobjects(lenVar, 1);
+      lines  = gobjects(lenVar, 1);
+  end
   
   iTimeDim = getVar(sample_data.dimensions, 'TIME');
   xLimits = [min(sample_data.dimensions{iTimeDim}.data), max(sample_data.dimensions{iTimeDim}.data)];
