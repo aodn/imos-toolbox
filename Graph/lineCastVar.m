@@ -98,7 +98,7 @@ for k=1:lenVarNames
     hLineFlag = ones(4, 1);
     
     instrumentDesc{1} = 'Make Model (instrument SN - cast time)';
-    hLineVar(1) = 0;
+    hLineVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none');
     
     for i=1:lenSampleData
         % instrument description

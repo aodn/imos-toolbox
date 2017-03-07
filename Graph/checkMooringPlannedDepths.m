@@ -186,7 +186,7 @@ xMin = min(xMin);
 xMax = max(xMax);
 
 instrumentDesc = [{'Make Model (nominal depth - instrument SN)'}; instrumentDesc];
-hLineVar(1) = 0;
+hLineVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none');
 
 %now plot all the calculated depths on one plot to choose region for comparison:
 %plot

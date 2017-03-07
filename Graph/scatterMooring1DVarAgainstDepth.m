@@ -119,7 +119,7 @@ instrumentDesc = cell(lenSampleData + 1, 1);
 hScatterVar = nan(lenSampleData + 1, 1);
 
 instrumentDesc{1} = 'Make Model (nominal depth - instrument SN)';
-hScatterVar(1) = 0;
+hScatterVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none');
 
 % we need to go through every instruments to figure out the CLim properties
 % on which the subset plots happen below.
