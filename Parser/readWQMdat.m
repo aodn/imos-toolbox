@@ -497,6 +497,9 @@ for k = 4:length(fields)
     end
 end
 
+% handle potential unlabelled last column
+format=strcat(format,'%*s');
+
 %remove unsupported fields from header list
 fields(unsupported) = [];
 end
