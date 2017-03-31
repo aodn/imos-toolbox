@@ -947,68 +947,84 @@ end
             case 'profile'
                 % we don't want to plot TIME, PROFILE, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
                 varOffset = getVar(sam.variables, 'BOT_DEPTH');
+                dimLabel = 'DEPTH';
+                dimUnit  = ' m';
+                dimFun = @num2str;
+                
             case 'timeSeries'
                 % we don't want to plot TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE, NOMINAL_DEPTH
                 varOffset = getVar(sam.variables, 'NOMINAL_DEPTH');
+                dimLabel = 'TIME';
+                dimUnit  = ' UTC';
+                dimFun = @datestr;
         end
         
         % retrieve x/y click positions + data index
         posClic = get(event_obj, 'Position');
         I       = get(event_obj, 'DataIndex');
         
-        switch graph
-            case 'Profile'
-                dimLabel = 'DEPTH';
-                dimUnit  = ' m';
-                dimFun = @num2str;
-            case 'TimeSeries'
-                dimLabel = 'TIME';
-                dimUnit  = ' UTC';
-                dimFun = @datestr;
-            otherwise
-                error(['graph type ' graph ' not supported']);
-        end
-        
         iDim = getVar(sam.dimensions, dimLabel);
         nRecord = length(sam.dimensions{iDim}.data);
         
+        xLabel = get(get(gca, 'XLabel'), 'String');
+        
         nVar = length(vars);
-        txt = cell(1, nVar+1);
-        txt{1} = [dimLabel ': ' dimFun(posClic(1)) dimUnit];
-        for iVar=1:nVar
-            iVarCorr  = vars(iVar)+varOffset;
-            varLabel  = sam.variables{iVarCorr}.name;
-            varUnit   = [' ' sam.variables{iVarCorr}.units];
-            
-            nSample   = numel(sam.variables{iVarCorr}.data);
-            iSample   = I;
-            zInfo = '';
-            if I < nRecord && nSample > nRecord
-                % we've clicked on a 1D plot so don't want to display
-                % information from 2D plots
-                txt{iVar+1} = [];
-                continue;
-            else
-                % we've clicked on a 2D plot
-                nDim = sam.variables{iVarCorr}.dimensions;
-                if nDim==1
-                    % and are dealing with a 1D info
-                    iSample = sam.dimensions{iDim}.data == posClic(1);
-                else
-                    % and are dealing with a 2D info
-                    iZ = sam.variables{iVarCorr}.dimensions(2);
-                    nZ = length(sam.dimensions{iZ}.data);
-                    iSample = repmat(sam.dimensions{iDim}.data == posClic(1), 1, nZ) & repmat((sam.dimensions{iZ}.data == posClic(2))', nRecord, 1);
+        switch graph
+            case 'DepthProfile'
+                txt = cell(1, nVar+1);
+                % impossible to retrieve an exact TIME value, unfortunately
+                % DataIndex doesn't make sense
+                txt{1} = ['DEPTH: ' num2str(posClic(2)) ' m'];
+                
+                for iVar=1:nVar
+                    iVarCorr  = vars(iVar)+varOffset;
+                    varLabel  = sam.variables{iVarCorr}.name;
+                    varUnit   = [' ' sam.variables{iVarCorr}.units];
                     
-                    zLabel = sam.dimensions{iZ}.name;
-                    zUnit  = [' ' sam.dimensions{iZ}.units];
-                    zData  = num2str(posClic(2));
-                    zInfo  = [' @' zLabel ': ' zData zUnit];
+                    varData   = num2str(posClic(1));
+                    
+                    if ~isempty(strfind(xLabel, varLabel))
+                        txt{iVar+1} = [varLabel ': ' varData varUnit];
+                    end
                 end
-            end
-            varData   = num2str(sam.variables{iVarCorr}.data(iSample));
-            
-            txt{iVar+1} = [varLabel ': ' varData varUnit zInfo];
+                
+            case 'TimeSeries'
+                txt = cell(1, nVar+1);
+                txt{1} = [dimLabel ': ' dimFun(posClic(1)) dimUnit];
+                
+                for iVar=1:nVar
+                    iVarCorr  = vars(iVar)+varOffset;
+                    varLabel  = sam.variables{iVarCorr}.name;
+                    varUnit   = [' ' sam.variables{iVarCorr}.units];
+                    
+                    nSample   = numel(sam.variables{iVarCorr}.data);
+                    zInfo = '';
+                    if strcmpi(get(gca, 'Tag'), 'axis1D') && nSample > nRecord
+                        % we've clicked on a 1D plot and are dealing with 2D information
+                        % we don't want to display
+                        txt{iVar+1} = [];
+                        continue;
+                    else
+                        nDim = length(sam.variables{iVarCorr}.dimensions);
+                        if nDim == 1
+                            % we've clicked on a 1D plot and are dealing with a 1D info
+                            iSample = sam.dimensions{iDim}.data == posClic(1);
+                        else
+                            % we've clicked on a 2D plot and are dealing with a 2D info
+                            iZ = sam.variables{iVarCorr}.dimensions(2);
+                            nZ = length(sam.dimensions{iZ}.data);
+                            iSample = repmat(sam.dimensions{iDim}.data == posClic(1), 1, nZ) & repmat((sam.dimensions{iZ}.data == posClic(2))', nRecord, 1);
+                            
+                            zLabel = sam.dimensions{iZ}.name;
+                            zUnit  = [' ' sam.dimensions{iZ}.units];
+                            zData  = num2str(posClic(2));
+                            zInfo  = [' @' zLabel ': ' zData zUnit];
+                        end
+                    end
+                    varData   = num2str(sam.variables{iVarCorr}.data(iSample));
+                    
+                    txt{iVar+1} = [varLabel ': ' varData varUnit zInfo];
+                end
         end
         
         % clean up empty cells
