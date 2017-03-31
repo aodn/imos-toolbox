@@ -1,5 +1,4 @@
-function dataIdx = getSelectedTimeSeriesGeneric( ...
-  sample_data, var, ax, highlight )
+function dataIdx = getSelectedTimeSeriesGeneric( sample_data, var, ax, highlight )
 %GETSELECTEDTIMESERIESGENERIC Returns the indices of the currently selected 
 % (highlighted) data on the given axis.
 %
@@ -54,10 +53,4 @@ if ~isnumeric(var),        error('var must be numeric');                 end
 if ~ishandle(ax),          error('ax must be a graphics handle');        end
 if ~ishandle(highlight),   error('highlight must be a graphics handle'); end
 
-iTimeDim = getVar(sample_data.dimensions, 'TIME');
-time = sample_data.dimensions{iTimeDim};
-
-highlightX = get(highlight, 'XData');
-
-% find the indices of the selected points
-dataIdx = find(ismember(time.data, highlightX));
+dataIdx = get(highlight, 'UserData');
