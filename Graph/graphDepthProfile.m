@@ -83,24 +83,8 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
   depth = getVar(sample_data.variables, 'DEPTH');
     
   if depth ~= 0
-    % we don't want to plot depth against itself, so if depth has been
-    % passed in as one of the variables to plot, remove it from the list
-    iAfterDepth = vars >= depth;
-    if any(iAfterDepth)
-      vars(iAfterDepth) = vars(iAfterDepth)+1;
-      iOutnumber = vars > length(sample_data.variables);
-      if any(iOutnumber)
-          vars(iOutnumber) = [];
-          if isempty(vars)
-              warning('no variables to graph');
-              return;
-          end
-      end
-    end
-    
     depth = sample_data.variables{depth};
   else
-    
     depth = getVar(sample_data.dimensions, 'DEPTH');
     
     if depth == 0, error('data set contains no depth data'); end
