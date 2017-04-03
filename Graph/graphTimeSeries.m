@@ -53,9 +53,12 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
 %
   narginchk(3,3);
   
-  if ~ishandle( parent),       error('parent must be a handle');      end
-  if ~isstruct( sample_data),  error('sample_data must be a struct'); end
+  if ~ishandle(parent),        error('parent must be a handle');      end
+  if ~isstruct(sample_data),   error('sample_data must be a struct'); end
   if ~isnumeric(vars),         error('vars must be a numeric');       end
+  
+  graphs = [];
+  lines  = [];
   
   if isempty(vars)
     return; 
