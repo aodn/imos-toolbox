@@ -165,6 +165,13 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
         curDepth = depth.data;
         curFlag = sample_data.variables{vars(k)}.flags;
         iGood = (curFlag == goodFlag) | (curFlag == pGoodFlag) | (curFlag == rawFlag);
+
+        [nSamples, nBins] = size(curData);
+        if strcmpi(mode, 'timeSeries') && nBins > 1
+            % ADCP data, we look for vertical dimension
+            iVertDim = sample_data.variables{vars(k)}.dimensions(2);
+            curDepth = repmat(curDepth, 1, nBins) - repmat(sample_data.dimensions{iVertDim}.data', nSamples, 1);
+        end
         
         yLimits = [floor(min(curDepth(iGood))*10)/10, ceil(max(curDepth(iGood))*10)/10];
         xLimits = [floor(min(curData(iGood))*10)/10,  ceil(max(curData(iGood))*10)/10];
@@ -184,7 +191,7 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
             end
         end
         
-        if any(iGood)
+        if any(any(iGood))
             set(graphs(k), 'YLim', yLimits);
             set(graphs(k), 'XLim', xLimits);
         end

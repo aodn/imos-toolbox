@@ -57,6 +57,9 @@ if ~isnumeric(var),        error('var must be numeric');          end
 qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
+% get the toolbox execution mode
+mode = readProperty('toolbox.mode');
+
 % find the depth data, either a variable or dimension
 depth = getVar(sample_data.variables, 'DEPTH');
 
@@ -70,9 +73,17 @@ else
   depth = sample_data.dimensions{depth};
 end
 
-dim   = depth.data;
-fl    = sample_data.variables{var}.flags;
 data  = sample_data.variables{var}.data;
+fl    = sample_data.variables{var}.flags;
+
+[nSamples, nBins] = size(data);
+if strcmpi(mode, 'timeSeries') && nBins > 1
+    % ADCP data, we look for vertical dimension
+    iVertDim = sample_data.variables{var}.dimensions(2);
+    dim = repmat(depth.data, 1, nBins) - repmat(sample_data.dimensions{iVertDim}.data', nSamples, 1);
+else
+    dim = depth.data;
+end
 
 % get a list of the different flag types to be graphed
 flagTypes = unique(fl);

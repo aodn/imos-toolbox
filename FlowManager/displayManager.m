@@ -264,7 +264,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       if ~isempty(graphs)
           for k = 1:length(graphs)
               
-              set(graphs(k), 'UserData', {lines(k), k});
+              set(graphs(k), 'UserData', {lines(k,:), k});
           end
       end
       
@@ -355,7 +355,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       % so the data select callback can retrieve them
       for k = 1:length(graphs)
         
-        set(graphs(k), 'UserData', {lines(k), k});
+        set(graphs(k), 'UserData', {lines(k,:), k});
       end
 
       % add data selection functionality
