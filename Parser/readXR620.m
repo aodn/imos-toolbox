@@ -723,7 +723,7 @@ function header = readHeader(fid)
   
   line = fgetl(fid);
   
-  while isempty(strfind(line, 'Date & Time'))
+  while isempty(strfind(line, 'Date & Time')) && ischar(line)
     lines = [lines line];
     line  = fgetl(fid);
   end

@@ -144,7 +144,7 @@ function header = readHeader(fid)
   line = fgetl(fid);
   
   % a single blank line separates the header from the data
-  while ~isempty(line)
+  while ~isempty(line) && ischar(line)
     
     lines = [lines line];
     line  = fgetl(fid);
