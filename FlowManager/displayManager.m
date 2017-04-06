@@ -248,7 +248,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       graphs = [];
       try
         graphFunc = getGraphFunc(graphType, 'graph', '');
-        [graphs lines vars] = graphFunc(panel, sample_data{setIdx}, vars);
+        [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars);
       catch e
         errorString = getErrorString(e);
         fprintf('%s\n',   ['Error says : ' errorString]);
@@ -264,7 +264,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       if ~isempty(graphs)
           for k = 1:length(graphs)
               
-              set(graphs(k), 'UserData', {lines(k), k});
+              set(graphs(k), 'UserData', {lines(k,:), k});
           end
       end
       
@@ -330,7 +330,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           flagFunc = [];
         end
         
-        [graphs lines vars] = graphFunc(panel, sample_data{setIdx}, vars);
+        [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars);
         
         if isempty(flagFunc)
           warning(['Cannot display QC flags using ' graphType ...
@@ -355,7 +355,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       % so the data select callback can retrieve them
       for k = 1:length(graphs)
         
-        set(graphs(k), 'UserData', {lines(k), k});
+        set(graphs(k), 'UserData', {lines(k,:), k});
       end
 
       % add data selection functionality

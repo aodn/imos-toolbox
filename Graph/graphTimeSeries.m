@@ -53,9 +53,12 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
 %
   narginchk(3,3);
   
-  if ~ishandle( parent),       error('parent must be a handle');      end
-  if ~isstruct( sample_data),  error('sample_data must be a struct'); end
+  if ~ishandle(parent),        error('parent must be a handle');      end
+  if ~isstruct(sample_data),   error('sample_data must be a struct'); end
   if ~isnumeric(vars),         error('vars must be a numeric');       end
+  
+  graphs = [];
+  lines  = [];
   
   if isempty(vars)
     return; 
@@ -78,8 +81,13 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
   sample_data.variables = sample_data.variables(vars);
   lenVar = length(sample_data.variables);
   
-  graphs = nan(lenVar, 1);
-  lines = nan(lenVar, 1);
+  if verLessThan('matlab','8.1') %R2013a
+      graphs = nan(lenVar, 1);
+      lines  = nan(lenVar, 1);
+  else
+      graphs = gobjects(lenVar, 1);
+      lines  = gobjects(lenVar, 1);
+  end
   
   iTimeDim = getVar(sample_data.dimensions, 'TIME');
   xLimits = [min(sample_data.dimensions{iTimeDim}.data), max(sample_data.dimensions{iTimeDim}.data)];
@@ -113,11 +121,13 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
             
             if sample_data.meta.level == 1
                 qcSet     = str2double(readProperty('toolbox.qc_set'));
-                goodFlag  = imosQCFlag('good',  qcSet, 'flag');
-                rawFlag   = imosQCFlag('raw',  qcSet, 'flag');
+                goodFlag  = imosQCFlag('good',          qcSet, 'flag');
+                pGoodFlag = imosQCFlag('probablyGood',  qcSet, 'flag');
+                rawFlag   = imosQCFlag('raw',           qcSet, 'flag');
                 
-                % set x and y limits so that axis are optimised for good/raw data only
+                % set x and y limits so that axis are optimised for good/probably good/raw data only
                 iGood = sample_data.variables{k}.flags == goodFlag;
+                iGood = iGood | (sample_data.variables{k}.flags == pGoodFlag);
                 iGood = iGood | (sample_data.variables{k}.flags == rawFlag);
                 if any(iGood)
                     varData = sample_data.variables{k}.data(iGood);
@@ -125,8 +135,7 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
                     
                     minData = min(varData);
                     maxData = max(varData);
-                    yLimits = [floor(minData*10)/10, ...
-                        ceil(maxData*10)/10];
+                    yLimits = [floor(minData*10)/10, ceil(maxData*10)/10];
                 end
             end
         case 'graphTimeSeriesTimeDepth'
@@ -177,7 +186,8 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
     % multiple axes, this is not done automatically for us
     col = get(graphs(k), 'ColorOrder');
     
-    % we get rid of the red color
+    % we get rid of the red color which is used for global range boundaries
+    % and in/out water boundaries
     iRed = (col == repmat([1 0 0], [size(col, 1), 1]));
     iRed = sum(iRed, 2);
     iRed = iRed == 3;

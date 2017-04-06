@@ -1,4 +1,4 @@
-function [data flags paramsLog] = imosInOutWaterQC( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = imosInOutWaterQC( sample_data, data, k, type, auto )
 %IMOSINOUTWATERQC Flags samples which were taken before and after the instrument was placed
 % in the water.
 %
@@ -110,6 +110,29 @@ switch mode
         end
         
     case 'timeSeries'
+        % for test in display
+        sampleFile = sample_data.toolbox_input_file;
+        
+        mWh = findobj('Tag', 'mainWindow');
+        qcParam = get(mWh, 'UserData');
+        p = 0;
+        if ~isempty(qcParam)
+            for i=1:length(qcParam)
+                if strcmp(qcParam(i).dataSet, sampleFile)
+                    p = i;
+                    break;
+                end
+            end
+        end
+        if p == 0
+            p = length(qcParam) + 1;
+        end
+        qcParam(p).dataSet = sampleFile;
+        qcParam(p).('inWater')  = time_in_water;
+        qcParam(p).('outWater') = time_out_water;
+        % update qcParam for display
+        set(mWh, 'UserData', qcParam);
+        
         qcSet     = str2double(readProperty('toolbox.qc_set'));
         rawFlag   = imosQCFlag('raw', qcSet, 'flag');
         failFlag  = imosQCFlag('bad', qcSet, 'flag');

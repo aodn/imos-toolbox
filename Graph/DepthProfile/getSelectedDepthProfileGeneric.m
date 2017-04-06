@@ -1,5 +1,4 @@
-function dataIdx = getSelectedDepthProfileGeneric( ...
-  sample_data, var, ax, highlight, click )
+function dataIdx = getSelectedDepthProfileGeneric( sample_data, var, ax, highlight )
 %GETSELECTEDDEPTHPROFILEGENERIC Returns the indices of the currently selected 
 % (highlighted) data on the given axis.
 %
@@ -50,22 +49,4 @@ function dataIdx = getSelectedDepthProfileGeneric( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(4,4);
-
-if ~isstruct(sample_data), error('sample_data must be a struct');        end
-if ~isnumeric(var),        error('var must be numeric');                 end
-if ~ishandle(ax),          error('ax must be a graphics handle');        end
-if ~ishandle(highlight),   error('highlight must be a graphics handle'); end
-
-depth = getVar(sample_data.dimensions, 'DEPTH');
-if depth ~= 0
-  depth = sample_data.dimensions{depth};
-else
-  depth = getVar(sample_data.variables, 'DEPTH');
-  depth = sample_data.variables{depth};
-end
-
-highlightY = get(highlight, 'YData');
-
-% find the indices of the selected points
-dataIdx = find(ismember(depth.data, highlightY));
+dataIdx = getSelectedTimeSeriesGeneric(sample_data, var, ax, highlight);

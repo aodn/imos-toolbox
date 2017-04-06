@@ -92,10 +92,13 @@ function result = executeDDBQuery( table, field, value)
   
   % execute the query - the java method returns 
   % an ArrayList of org.imos.ddb.schema.* objects.
+  source     = '';
+  driver     = '';
   connection = '';
   dbuser     = '';
   dbpassword = '';
   try 
+      source     = readProperty('toolbox.ddb');
       driver     = readProperty('toolbox.ddb.driver');
       connection = readProperty('toolbox.ddb.connection');
       dbuser     = readProperty('toolbox.ddb.user');
@@ -104,7 +107,7 @@ function result = executeDDBQuery( table, field, value)
   end
   
   if isempty(connection)
-      ddb = org.imos.ddb.DDB.getDDB(readProperty('toolbox.ddb'));
+      ddb = org.imos.ddb.DDB.getDDB(source);
   else
       ddb = org.imos.ddb.DDB.getDDB(driver, connection, dbuser, dbpassword);
   end

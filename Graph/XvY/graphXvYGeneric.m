@@ -1,14 +1,11 @@
-function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var, color, xTickProp )
-%GRAPHTIMESERIESGENERIC Plots the given variable as normal, single dimensional, 
-% time series data. If the data are multi-dimensional, multiple lines will be
-% plotted and returned.
+function [h, labels] = graphXvYGeneric( ax, sample_data, vars )
+%GRAPHXVYGENERIC Plots the given variable (x axis) against another 
+% (y axis).
 %
 % Inputs:
 %   ax          - Parent axis.
 %   sample_data - The data set.
-%   var         - The variable to plot.
-%   color       - The color to be used to plot the variable.
-%   xTickProp   - Not used here.
+%   vars        - The variables to plot.
 %
 % Outputs:
 %   h           - Handle(s) to the line(s)  which was/were plotted.
@@ -47,59 +44,36 @@ function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var, color, xTick
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(5, 5);
+narginchk(3,3);
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
-if ~isnumeric(var),        error('var must be a numeric');        end
-if ~isvector(color),       error('color must be a vector');       end
+if ~isnumeric(vars),       error('var must be a numeric');        end
 
-iTimeDim = getVar(sample_data.dimensions, 'TIME');
+xdata = sample_data.variables{vars(1)}.data;
+ydata = sample_data.variables{vars(2)}.data;
 
-time = sample_data.dimensions{iTimeDim};
-var  = sample_data.variables {var};
-
-if ischar(var.data), var.data = str2num(var.data); end % we assume data is an array of one single character
-
-h    = line(time.data, var.data, 'Parent', ax, 'Color', color);
+h = line(xdata, ydata);
 set(ax, 'Tag', 'axis1D');
 
-% for global/regional range and in/out water display
+% for global/regional range display
 mWh = findobj('Tag', 'mainWindow');
 sMh = findobj('Tag', 'samplePopUpMenu');
 iSample = get(sMh, 'Value');
-qcParam = get(mWh, 'UserData');
-if ~isempty(qcParam)
-    if isfield(qcParam, ['rangeMin' var.name])
-        hold(ax, 'on');
-        if (length(qcParam(iSample).(['rangeMin' var.name])) == 2)
-            timeToPlot = [time.data(1); time.data(end)];
-        else
-            timeToPlot = time.data;
-        end
-        
-        if isfield(qcParam, ['range' var.name])
-            line(timeToPlot, qcParam(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k');
-        end
-        line([timeToPlot; NaN; timeToPlot], ...
-            [qcParam(iSample).(['rangeMin' var.name]); NaN; qcParam(iSample).(['rangeMax' var.name])], ...
-            'Parent', ax, 'Color', 'r');
+climatologyRange = get(mWh, 'UserData');
+if ~isempty(climatologyRange)
+    if isfield(climatologyRange, ['rangeMin' sample_data.variables{vars(1)}.name])
+        xLim = get(ax, 'XLim');
+        line(climatologyRange(iSample).(['rangeMin' sample_data.variables{vars(1)}.name]), [sample_data.variables{vars(2)}.data(1); sample_data.variables{vars(2)}.data(end)], 'Parent', ax, 'Color', 'r');
+        line(climatologyRange(iSample).(['rangeMax' sample_data.variables{vars(1)}.name]), [sample_data.variables{vars(2)}.data(1); sample_data.variables{vars(2)}.data(end)], 'Parent', ax, 'Color', 'r');
+        set(ax, 'XLim', xLim);
     end
-    
-    if isfield(qcParam, 'inWater')
-        hold(ax, 'on');
+    if isfield(climatologyRange, ['rangeMin' sample_data.variables{vars(2)}.name])
         yLim = get(ax, 'YLim');
-        line([qcParam(iSample).inWater, qcParam(iSample).inWater, NaN, qcParam(iSample).outWater, qcParam(iSample).outWater], ...
-            [yLim, NaN, yLim], ...
-            'Parent', ax, 'Color', 'r');
+        line([sample_data.variables{vars(1)}.data(1); sample_data.variables{vars(1)}.data(end)], climatologyRange(iSample).(['rangeMin' sample_data.variables{vars(2)}.name]), 'Parent', ax, 'Color', 'r');
+        line([sample_data.variables{vars(1)}.data(1); sample_data.variables{vars(1)}.data(end)], climatologyRange(iSample).(['rangeMax' sample_data.variables{vars(2)}.name]), 'Parent', ax, 'Color', 'r');
+        set(ax, 'YLim', yLim);
     end
 end
 
-% set background to be grey
-set(ax, 'Color', [0.75 0.75 0.75])
-
-if strncmp(var.name, 'DEPTH', 4) || strncmp(var.name, 'PRES', 4) || strncmp(var.name, 'PRES_REL', 8)
-    set(ax, 'YDir', 'reverse');
-end
-
-labels = {time.name, var.name};
+labels = {sample_data.variables{vars(1)}.name, sample_data.variables{vars(2)}.name};

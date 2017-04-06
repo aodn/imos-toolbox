@@ -1,14 +1,17 @@
-function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
-  sample_data, var, ax, highlight )
-%GETSELECTEDTIMESERIESTIMEFREQUENCY Returns the currently selected data on the 
-% given time/frequency axis.
+function dataIdx = getSelectedXvYGeneric( sample_data, var, ax, highlight )
+%GETSELECTEDXVYGENERIC Returns the indices of the currently selected 
+% (highlighted) data on the given axis.
+%
+% This function is nearly identical to
+% Graph/TimeSeries/getSelectedTimeSeriesGeneric.m.
 %
 % Inputs:
 %   sample_data - Struct containing the data set.
 %   var         - Variable in question (index into sample_data.variables).
 %   ax          - Axis in question.
 %   highlight   - Handle to the highlight object.
-% 
+%   
+%
 % Outputs:
 %   dataIdx     - Vector of indices into the data, defining the indices
 %                 which are selected (and which were clicked on).

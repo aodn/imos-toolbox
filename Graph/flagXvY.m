@@ -1,17 +1,16 @@
-function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
-  sample_data, var, ax, highlight )
-%GETSELECTEDTIMESERIESTIMEFREQUENCY Returns the currently selected data on the 
-% given time/frequency axis.
+function flags = flagXvY( parent, graphs, sample_data, vars )
+%FLAGXY Overlays flags for the given sample data variables on the 
+% given XvY graphs.
 %
 % Inputs:
-%   sample_data - Struct containing the data set.
-%   var         - Variable in question (index into sample_data.variables).
-%   ax          - Axis in question.
-%   highlight   - Handle to the highlight object.
-% 
+%   parent      - handle to parent figure/uipanel.
+%   graphs      - vector handles to axis objects (one for each variable).
+%   sample_data - struct containing the sample data.
+%   vars        - vector of indices into the sample_data.variables array.
+%                 Must be the same length as graphs.
+%
 % Outputs:
-%   dataIdx     - Vector of indices into the data, defining the indices
-%                 which are selected (and which were clicked on).
+%   flags       - handles to line objects that make up the flag overlays.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
@@ -46,4 +45,39 @@ function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-dataIdx = getSelectedTimeSeriesGeneric(sample_data, var, ax, highlight);
+
+narginchk(4,4);
+
+if ~ishandle(parent),      error('parent must be a graphic handle');    end
+if ~ishandle(graphs),      error('graphs must be a graphic handle(s)'); end
+if ~isstruct(sample_data), error('sample_data must be a struct');       end
+if ~isnumeric(vars),       error('vars must be a numeric');             end
+
+flags = [];
+
+if isempty(vars), return; end
+if length(vars) ~=2, return; end
+
+hold on;
+
+% apply the flag function for this combination of XvY variables
+flagFunc = getGraphFunc('XvY', 'flag', sample_data.variables{vars(1)}.name);
+f = flagFunc(graphs, sample_data, vars);
+
+% if the flag function returned nothing, insert a dummy handle
+if isempty(f), f = 0.0; end
+
+%
+% the following is some ugly code which takes the flag handle(s) returned
+% from the variable-specific flag function, and saves it/them in the
+% flags matrix, accounting for differences in size.
+%
+
+fl = length(f);
+fs = size(flags,2);
+
+if     fl > fs, flags(:,fs+1:fl) = 0.0;
+elseif fl < fs, f    (  fl+1:fs) = 0.0;
+end
+
+flags(1,:) = f;

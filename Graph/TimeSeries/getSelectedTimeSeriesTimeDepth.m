@@ -46,31 +46,4 @@ function dataIdx = getSelectedTimeSeriesTimeDepth( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(4, 4);
-
-if ~isstruct(sample_data), error('sample_data must be a struct');        end
-if ~isnumeric(var),        error('var must be numeric');                 end
-if ~ishandle(ax),          error('ax must be a graphics handle');        end
-if ~ishandle(highlight),   error('highlight must be a graphics handle'); end
-
-dataIdx = [];
-
-iTimeDim = getVar(sample_data.dimensions, 'TIME');
-depth = sample_data.variables{var}.dimensions(2);
-
-time  = sample_data.dimensions{iTimeDim} .data;
-depth = sample_data.dimensions{depth}.data;
-
-highlightX = get(highlight, 'XData');
-highlightY = get(highlight, 'YData');
- 
-% turn the highlight into data indices
-for k = 1:length(highlightX)
-    
-    % get the indices, on each dimension, of each point in the highlight
-    timeIdx  = find(time  == highlightX(k));
-    depthIdx = find(depth == highlightY(k));
-    
-    % 'flatten' those indices
-    dataIdx = [dataIdx ((depthIdx - 1) * length(time) + timeIdx)];
-end
+dataIdx = getSelectedTimeSeriesGeneric(sample_data, var, ax, highlight);
