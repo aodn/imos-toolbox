@@ -65,7 +65,7 @@ varUnit = imosParameters(presRelCode, 'uom');
 stringQC = 'all';
 if isQC, stringQC = 'only good and non QC''d'; end
 
-title = [sample_data{1}.deployment_code ' mooring ' stringQC ' ' varTitle ' differences'];
+title = [sample_data{1}.deployment_code ' mooring ' stringQC ' ' varTitle ' (' varUnit ') differences'];
 
 % retrieve good flag values
 qcSet     = str2double(readProperty('toolbox.qc_set'));
@@ -155,7 +155,7 @@ hAxPress = subplot(2,1,1,'Parent', hPanelMooringVar);
 set(hAxPress, 'YDir', 'reverse')
 set(get(hAxPress, 'XLabel'), 'String', 'Time');
 set(get(hAxPress, 'YLabel'), 'String', [presRelCode ' (' varUnit ')'], 'Interpreter', 'none');
-set(get(hAxPress, 'Title'), 'String', varTitle, 'Interpreter', 'none');
+set(get(hAxPress, 'Title'), 'String', [varTitle '( ' varUnit ')'], 'Interpreter', 'none');
 set(hAxPress, 'XTick', (xMin:(xMax-xMin)/4:xMax));
 set(hAxPress, 'XLim', [xMin, xMax]);
 hold(hAxPress, 'on');
@@ -163,9 +163,9 @@ hold(hAxPress, 'on');
 %Pressure diff plot
 hAxPressDiff = subplot(2,1,2,'Parent', hPanelMooringVar);
 set(get(hAxPressDiff, 'XLabel'), 'String', 'Time');
-set(get(hAxPressDiff, 'YLabel'), 'String', [presRelCode ' (' varUnit ')'], 'Interpreter', 'none');
+set(get(hAxPressDiff, 'YLabel'), 'String', ['Pressure differences (' varUnit ')'], 'Interpreter', 'none');
 set(get(hAxPressDiff, 'Title'), 'String', ...
-    ['Pressure Differences from ' instrumentDesc{iCurrSam} ' (in black above)'] , 'Interpreter', 'none');
+    ['Pressure differences in ' varUnit ' (minus respective median over 1st quarter) between ' instrumentDesc{iCurrSam} ' (in black above) and nearest neighbours'] , 'Interpreter', 'none');
 set(hAxPressDiff, 'XTick', (xMin:(xMax-xMin)/4:xMax));
 set(hAxPressDiff, 'XLim', [xMin, xMax]);
 hold(hAxPressDiff, 'on');
@@ -215,12 +215,12 @@ end
 % nearest (blue) to farthest (yellow)
 try
     defaultColormapFh = str2func(readProperty('visualQC.defaultColormap'));
-    cMap = colormap(hAxPress, defaultColormapFh(nOthers - 1));
+    cMap = colormap(hAxPress, defaultColormapFh(nOthers));
 catch e
-    cMap = colormap(hAxPress, parula(nOthers - 1));
+    cMap = colormap(hAxPress, parula(nOthers));
 end
 % current sample is black
-cMap = [0, 0, 0; cMap];
+cMap(iOthers == iCurrSam, :) = [0, 0, 0];
 
 %now add the other data:
 for i=1:nOthers
@@ -259,18 +259,27 @@ for i=1:nOthers
         %add pressure to the pressure plot
         hLineVar(iOthers(i)) = line(otherSamTime, ...
             otherSamPresRel, ...
-            'Color', cMap(i, :), ...
-            'LineStyle', '-','Parent',hAxPress);
+            'Color',     cMap(i, :), ...
+            'LineStyle', '-', ...
+            'Parent',    hAxPress);
                 
         %now put the data on the same timebase as the instrument of
         %interest
-        newdat = interp1(otherSamTime,otherSamPresRel,curSamTime);
-        pdiff = curSamPresRel - newdat;
+        otherSamPresRel = interp1(otherSamTime, otherSamPresRel, curSamTime);
+        
+        curSamTimeFirstQuarter = min(curSamTime) + (max(curSamTime) - min(curSamTime))/4;
+        iCurSamTimeFirstQuarter = curSamTime < curSamTimeFirstQuarter;
+        
+        otherSamPresRelMedianFirstQuarter = median(otherSamPresRel(~isnan(otherSamPresRel) & iCurSamTimeFirstQuarter));
+        curSamPresRelMedianFirstQuarter = median(curSamPresRel(~isnan(curSamPresRel) & iCurSamTimeFirstQuarter));
+        
+        pdiff = (curSamPresRel - curSamPresRelMedianFirstQuarter) - (otherSamPresRel - otherSamPresRelMedianFirstQuarter);
         
         hLineVar2(iOthers(i)) = line(curSamTime, ...
             pdiff, ...
-            'Color', cMap(i, :), ...
-            'LineStyle', '-','Parent',hAxPressDiff);
+            'Color',     cMap(i, :), ...
+            'LineStyle', '-', ...
+            'Parent',    hAxPressDiff);
         
         % set background to be grey
         set(hAxPress, 'Color', backgroundColor)

@@ -1,4 +1,4 @@
-function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
+function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
 %GRAPHDEPTHPROFILE Graphs the given data in a depth profile style using 
 % subplots.
 %
@@ -9,7 +9,7 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
 % Inputs:
 %   parent             - handle to the parent container.
 %   sample_data        - struct containing sample data.
-%   vars               - Indices of variables that should be graphed..
+%   vars               - Indices of variables that should be graphed.
 %
 % Outputs:
 %   graphs             - A vector of handles to axes on which the data has 
@@ -83,24 +83,8 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
   depth = getVar(sample_data.variables, 'DEPTH');
     
   if depth ~= 0
-    % we don't want to plot depth against itself, so if depth has been
-    % passed in as one of the variables to plot, remove it from the list
-    iAfterDepth = vars >= depth;
-    if any(iAfterDepth)
-      vars(iAfterDepth) = vars(iAfterDepth)+1;
-      iOutnumber = vars > length(sample_data.variables);
-      if any(iOutnumber)
-          vars(iOutnumber) = [];
-          if isempty(vars)
-              warning('no variables to graph');
-              return;
-          end
-      end
-    end
-    
     depth = sample_data.variables{depth};
   else
-    
     depth = getVar(sample_data.dimensions, 'DEPTH');
     
     if depth == 0, error('data set contains no depth data'); end
@@ -143,8 +127,8 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     col = col(mod(k, length(col))+1, :);
     
     % plot the variable
-    plotFunc            = getGraphFunc('DepthProfile', 'graph', name);
-    [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, vars(k));
+    plotFunc             = getGraphFunc('DepthProfile', 'graph', name);
+    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, vars(k));
     
     % set the line colour - wrap in a try block, 
     % as surface plot colour cannot be set
@@ -172,32 +156,42 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     
     if sample_data.meta.level == 1 && strcmp(func2str(plotFunc), 'graphDepthProfileGeneric')
         qcSet     = str2double(readProperty('toolbox.qc_set'));
-        
-        % set x and y limits so that axis are optimised for data below surface only
+        goodFlag  = imosQCFlag('good',          qcSet, 'flag');
+        pGoodFlag = imosQCFlag('probablyGood',  qcSet, 'flag');
+        rawFlag   = imosQCFlag('raw',           qcSet, 'flag');
+                
+        % set x and y limits so that axis are optimised for good/probably good/raw data only
         curData = sample_data.variables{vars(k)}.data;
         curDepth = depth.data;
         curFlag = sample_data.variables{vars(k)}.flags;
-        iGood = curDepth>=0;
+        iGood = (curFlag == goodFlag) | (curFlag == pGoodFlag) | (curFlag == rawFlag);
 
-        yLimits = [floor(min(curDepth(iGood))), ceil(max(curDepth(iGood)))];
-        xLimits = [floor(min(curData(iGood))),  ceil(max(curData(iGood)))];
+        [nSamples, nBins] = size(curData);
+        if strcmpi(mode, 'timeSeries') && nBins > 1
+            % ADCP data, we look for vertical dimension
+            iVertDim = sample_data.variables{vars(k)}.dimensions(2);
+            curDepth = repmat(curDepth, 1, nBins) - repmat(sample_data.dimensions{iVertDim}.data', nSamples, 1);
+        end
+        
+        yLimits = [floor(min(curDepth(iGood))*10)/10, ceil(max(curDepth(iGood))*10)/10];
+        xLimits = [floor(min(curData(iGood))*10)/10,  ceil(max(curData(iGood))*10)/10];
         
         %check for my surface soak flags - and set xLimits to flag range
-        if ismember(name,{'tempSoakStatus','cndSoakStatus','oxSoakStatus'})
-            xLimits=[min(imosQCFlag('flag',qcSet,'values')) max(imosQCFlag('flag',qcSet,'values'))];
+        if ismember(name, {'tempSoakStatus', 'cndSoakStatus', 'oxSoakStatus'})
+            xLimits = [min(imosQCFlag('flag', qcSet, 'values')) max(imosQCFlag('flag', qcSet, 'values'))];
         end
         
         %check for xLimits max=min
-        if diff(xLimits)==0;
+        if diff(xLimits) == 0;
             if xLimits(1) == 0
                 xLimits = [-1, 1];
             else
-                eps=0.01*xLimits(1);
-                xLimits=[xLimits(1)-eps, xLimits(1)+eps];
+                eps = 0.01 * xLimits(1);
+                xLimits = [xLimits(1) - eps, xLimits(1) + eps];
             end
         end
         
-        if any(iGood)
+        if any(any(iGood))
             set(graphs(k), 'YLim', yLimits);
             set(graphs(k), 'XLim', xLimits);
         end
@@ -209,34 +203,4 @@ function [graphs lines vars] = graphDepthProfile( parent, sample_data, vars )
     set(graphs(k), 'YTick', yTicks);
     
   end
-  
-    % GLT : Eventually I prefered not displaying the QC legend as it
-    % influences too badly the quality of the plots. I didn't manage to have
-    % a satisfying result with a ghost axis hosting the legend... So for now
-    % I added the possiblity to the user to right-click on a QC'd data point
-    % and it displays the description of the color flag.
-    % compile variable names for the legend
-%   names = {};
-%   for k = 1:length(vars)
-%     
-%     names{k} = sample_data.variables{vars(k)}.name;
-%   end
-%   
-%   % link axes for panning/zooming, and add a legend - matlab has a habit of
-%   % throwing 'Invalid handle object' errors for no apparent reason (i think 
-%   % when the user changes selections too quickly, matlab is too slow, and 
-%   % ends up confusing itself), so absorb any errors which are thrown
-%   try
-%     linkaxes(graphs, 'y');
-%     
-%     % When adding a single legend for multiple subplots, by default the legend 
-%     % is added to the axis which corresponds to the first handle in the vector 
-%     % that is passed in ('lines' in this case). This is a problem in our case, 
-%     % because it means that the legend will be added to the left most axis, 
-%     % whereas we want it to be added to the right-most axis. To get around 
-%     % this, I'm reversing the order of the line handles (and names) before 
-%     % passing them to the legend function.
-%     legend(flipud(lines(:,1)), fliplr(names));
-%   catch e
-%   end
 end

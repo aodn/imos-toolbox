@@ -1,5 +1,5 @@
-function flags = flagDepthProfileGeneric( ax, sample_data, var )
-%FLAGDEPTHPROFILEGENERIC Draws overlays on the given depth profile axis, to 
+function hFlags = flagXvYGeneric( ax, sample_data, var )
+%FLAGXVYGENERIC Draws overlays on the given XvY axis, to 
 % display QC flag data for the given variable.
 %
 % Draws a set of line objects on the given axis, to display the QC flags
@@ -57,36 +57,14 @@ if ~isnumeric(var),        error('var must be numeric');          end
 qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag = imosQCFlag('raw', qcSet, 'flag');
 
-% get the toolbox execution mode
-mode = readProperty('toolbox.mode');
-
-% find the depth data, either a variable or dimension
-depth = getVar(sample_data.variables, 'DEPTH');
-
-if depth ~= 0, depth = sample_data.variables{depth};
-else
-  
-  depth = getVar(sample_data.dimensions, 'DEPTH');
-  
-  if depth == 0, error('data set contains no depth data'); end
-  
-  depth = sample_data.dimensions{depth};
-end
-
-data  = sample_data.variables{var}.data;
-fl    = sample_data.variables{var}.flags;
-
-[nSamples, nBins] = size(data);
-if strcmpi(mode, 'timeSeries') && nBins > 1
-    % ADCP data, we look for vertical dimension
-    iVertDim = sample_data.variables{var}.dimensions(2);
-    dim = repmat(depth.data, 1, nBins) - repmat(sample_data.dimensions{iVertDim}.data', nSamples, 1);
-else
-    dim = depth.data;
-end
+flags1 = sample_data.variables{var(1)}.flags;
+flags2 = sample_data.variables{var(2)}.flags;
+flags  = max(flags1, flags2);
+dataX  = sample_data.variables{var(1)}.data;
+dataY  = sample_data.variables{var(2)}.data;
 
 % get a list of the different flag types to be graphed
-flagTypes = unique(fl);
+flagTypes = unique(flags);
 
 % don't display raw data flags
 iRawFlag = (flagTypes == rawFlag);
@@ -96,23 +74,23 @@ lenFlag = length(flagTypes);
 
 % if no flags to plot, put a dummy handle in - the 
 % caller is responsible for checking and ignoring
-flags = nan(lenFlag, 1);
-if isempty(flags)
-    flags = 0.0;
+hFlags = nan(lenFlag, 1);
+if isempty(hFlags)
+    hFlags = 0.0;
 end
 
 % a different line for each flag type
 for m = 1:lenFlag
 
-  f = (fl == flagTypes(m));
+  f = (flags == flagTypes(m));
 
   fc = imosQCFlag(flagTypes(m), qcSet, 'color');
   fn = strrep(imosQCFlag(flagTypes(m),  qcSet, 'desc'), '_', ' ');
 
-  fx = data(f);
-  fy = dim(f);
+  fx = dataX(f);
+  fy = dataY(f);
 
-  flags(m) = line(fx, fy,...
+  hFlags(m) = line(fx, fy,...
     'Parent', ax,...
     'LineStyle', 'none',...
     'Marker', 'o',...
@@ -124,7 +102,7 @@ for m = 1:lenFlag
     hMenu = uimenu('parent',hContext);
 
     % Set the UICONTEXTMENU to the line object
-    set(flags(m),'uicontextmenu',hContext);
+    set(hFlags(m),'uicontextmenu',hContext);
 
     % Create a WindowButtonDownFcn callback that will update
     % the label on the UICONTEXTMENU's UIMENU

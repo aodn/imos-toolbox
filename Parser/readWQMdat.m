@@ -25,7 +25,7 @@ function sample_data = readWQMdat( filename, mode )
 %   CHL(ug/l)           (floating point chlorophyll, micrograms/Litre)
 %   CHLa(ug/l)          (floating point chlorophyll, micrograms/Litre)
 %   F-Cal-CHL(ug/l)     (floating point factory coefficient chlorophyll, micrograms/Litre)
-%   Fact-CHL(ug/l))     (floating point factory coefficient chlorophyll, micrograms/Litre)
+%   Fact-CHL(ug/l)      (floating point factory coefficient chlorophyll, micrograms/Litre)
 %   U-Cal-CHL(ug/l)     (floating point user coefficient chlorophyll, micrograms/Litre)
 %   RawCHL(Counts)      (integer fluorescence in raw counts)
 %   CHLa(Counts)        (integer fluorescence in raw counts)
@@ -150,7 +150,7 @@ function sample_data = readWQMdat( filename, mode )
       'photodetector paired with an optical filter which measures everything '...
       'that fluoresces in the region of 695nm. '...
       'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
-  params{end+1} = {'Fact-CHL(ug/l))',       {'CHLF', 'Artificial chlorophyll data '...
+  params{end+1} = {'Fact-CHL(ug/l)',        {'CHLF', 'Artificial chlorophyll data '...
       'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
       'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
       'photodetector paired with an optical filter which measures everything '...
@@ -496,6 +496,9 @@ for k = 4:length(fields)
         unsupported = [unsupported k];
     end
 end
+
+% handle potential unlabelled last column
+format=strcat(format,'%*s');
 
 %remove unsupported fields from header list
 fields(unsupported) = [];

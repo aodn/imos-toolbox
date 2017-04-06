@@ -57,8 +57,16 @@ if ~ischar(exportDir),      error('exportDir must be a string');        end
 monitorRect = getRectMonitor();
 iBigMonitor = getBiggestMonitor();
 
-varTitle = imosParameters(varName, 'long_name');
-varUnit = imosParameters(varName, 'uom');
+if strcmp(varName, 'diff(TIME)')
+    varName = 'TIME';
+    typeVar = 'dimensions';
+    varTitle = ['diff ' imosParameters(varName, 'long_name')];
+    varUnit = 's';
+else
+    typeVar = 'variables';
+    varTitle = imosParameters(varName, 'long_name');
+    varUnit = imosParameters(varName, 'uom');
+end
 
 stringQC = 'all';
 if isQC, stringQC = 'only good and non QC''d'; end
@@ -87,14 +95,14 @@ for i=1:lenSampleData
     end
     
     iTime = getVar(sample_data{i}.dimensions, 'TIME');
-    iVar = getVar(sample_data{i}.variables, varName);
+    iVar = getVar(sample_data{i}.(typeVar), varName);
     iGood = true(size(sample_data{i}.dimensions{iTime}.data));
     
     % the variable exists, is QC'd and is 1D
-    if isQC && iVar && size(sample_data{i}.variables{iVar}.data, 2) == 1
+    if isQC && iVar && size(sample_data{i}.(typeVar){iVar}.data, 2) == 1
         %get time and var QC information
         timeFlags = sample_data{i}.dimensions{iTime}.flags;
-        varFlags = sample_data{i}.variables{iVar}.flags;
+        varFlags = sample_data{i}.(typeVar){iVar}.flags;
         
         iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
     end
@@ -115,7 +123,7 @@ instrumentDesc = cell(lenSampleData + 1, 1);
 hLineVar = nan(lenSampleData + 1, 1);
 
 instrumentDesc{1} = 'Make Model (nominal depth - instrument SN)';
-hLineVar(1) = 0;
+hLineVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none');
 
 initiateFigure = true;
 isPlottable = false;
@@ -139,10 +147,10 @@ for i=1:lenSampleData
     
     %look for time and relevant variable
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
-    iVar = getVar(sample_data{iSort(i)}.variables, varName);
+    iVar = getVar(sample_data{iSort(i)}.(typeVar), varName);
     
-    if iVar > 0 && size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 && ... % we're only plotting 1D variables but no current
-            all(~strncmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}, 4))
+    if iVar > 0 && size(sample_data{iSort(i)}.(typeVar){iVar}.data, 2) == 1 && ... % we're only plotting 1D variables but no current
+            all(~strncmpi(sample_data{iSort(i)}.(typeVar){iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}, 4))
         if initiateFigure
             fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
             hFigMooringVar = figure(...
@@ -158,7 +166,9 @@ for i=1:lenSampleData
             
             if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'})), set(hAxMooringVar, 'YDir', 'reverse'); end
             set(get(hAxMooringVar, 'XLabel'), 'String', 'Time');
-            set(get(hAxMooringVar, 'YLabel'), 'String', [varName ' (' varUnit ')'], 'Interpreter', 'none');
+            yLabel = [varName ' (' varUnit ')'];
+            if strcmpi(varName, 'TIME'), yLabel = ['diff ' yLabel]; end
+            set(get(hAxMooringVar, 'YLabel'), 'String', yLabel, 'Interpreter', 'none');
             set(get(hAxMooringVar, 'Title'), 'String', title, 'Interpreter', 'none');
             set(hAxMooringVar, 'XTick', (xMin:(xMax-xMin)/4:xMax));
             set(hAxMooringVar, 'XLim', [xMin, xMax]);
@@ -197,12 +207,12 @@ for i=1:lenSampleData
             set(get(get(hNominalDepth,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
         end
         
-        iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
+        iGood = true(size(sample_data{iSort(i)}.(typeVar){iVar}.data));
         
         if isQC
             %get time and var QC information
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-            varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
+            varFlags = sample_data{iSort(i)}.(typeVar){iVar}.flags;
             
             iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
         end
@@ -217,17 +227,26 @@ for i=1:lenSampleData
             xLine = sample_data{iSort(i)}.dimensions{iTime}.data;
             xLine(~iGood) = NaN;
             
-            dataVar = sample_data{iSort(i)}.variables{iVar}.data;
+            dataVar = sample_data{iSort(i)}.(typeVar){iVar}.data;
             dataVar(~iGood) = NaN;
             
-            hLineVar(i + 1) = line(xLine, ...
-                dataVar, ...
+            if strcmpi(varName, 'TIME')
+                xLine(1) = [];
+                dataVar = diff(dataVar)*24*3600;
+            end
+            
+            hLineVar(i + 1) = line(xLine, dataVar, ...
                 'Color', cMap(i, :));
             userData.idx = iSort(i);
             userData.xName = 'TIME';
-            userData.yName = varName;
+            if strcmpi(varName, 'TIME')
+                userData.yName = 'diff(TIME)';
+            else
+                userData.yName = varName;
+            end
             set(hLineVar(i + 1), 'UserData', userData);
             clear('userData');
+            
             % Let's redefine properties after pcolor to make sure grid lines appear
             % above color data and XTick and XTickLabel haven't changed
             set(hAxMooringVar, ...
@@ -243,6 +262,41 @@ for i=1:lenSampleData
 end
 
 if ~initiateFigure && isPlottable
+    if ~isQC
+        % we add the in/out water boundaries
+        % for global/regional range and in/out water display
+        mWh = findobj('Tag', 'mainWindow');
+        qcParam = get(mWh, 'UserData');
+        yLim = get(hAxMooringVar, 'YLim');
+        for i=1:lenSampleData
+            if isfield(qcParam, 'inWater')
+                line([qcParam(iSort(i)).inWater, qcParam(iSort(i)).inWater, NaN, qcParam(iSort(i)).outWater, qcParam(iSort(i)).outWater], ...
+                    [yLim, NaN, yLim], ...
+                    'Parent', hAxMooringVar, ...
+                    'Color', 'r', ...
+                    'LineStyle', '--');
+                
+                iTime = getVar(sample_data{i}.dimensions, 'TIME');
+                xLine = sample_data{iSort(i)}.dimensions{iTime}.data;
+                
+                iVar = getVar(sample_data{iSort(i)}.(typeVar), varName);
+                dataVar = sample_data{iSort(i)}.(typeVar){iVar}.data;
+                
+                if strcmpi(varName, 'TIME')
+                    xLine(1) = [];
+                    dataVar = diff(dataVar)*24*3600;
+                end
+                
+                text(qcParam(iSort(i)).inWater, double(dataVar(find(xLine >= qcParam(iSort(i)).inWater, 1, 'first'))), ...
+                    ['inWater @ ' datestr(qcParam(iSort(i)).inWater, 'yyyy-mm-dd HH:MM:SS UTC') ' - ' instrumentDesc{i + 1}], ...
+                    'Parent', hAxMooringVar);
+                text(qcParam(iSort(i)).outWater, double(dataVar(find(xLine <= qcParam(iSort(i)).outWater, 1, 'last'))), ...
+                    ['outWater @ ' datestr(qcParam(iSort(i)).outWater, 'yyyy-mm-dd HH:MM:SS UTC') ' - ' instrumentDesc{i + 1}], ...
+                    'Parent', hAxMooringVar);
+            end
+        end
+    end
+    
     iNan = isnan(hLineVar);
     if any(iNan)
         hLineVar(iNan) = [];
@@ -320,6 +374,8 @@ end
         xName = userData.xName;
         yName = userData.yName;
         
+        if strcmp(yName, 'diff(TIME)'), yName = 'TIME'; end
+        
         sam = sample_data{userData.idx};
         
         ixVar = getVar(sam.dimensions, xName);
@@ -346,15 +402,17 @@ end
             xStr = [num2str(posClic(1)) ' ' xUnits];
         end
         
-        if strcmp(yName, 'TIME')
+        if strcmp(userData.yName, 'TIME')
             yStr = datestr(posClic(2),'dd-mm-yyyy HH:MM:SS.FFF');
+        elseif strcmp(userData.yName, 'diff(TIME)')
+            yStr = [num2str(posClic(2)) ' (s)']; %num2str(posClic(2),4)
         else
             yStr = [num2str(posClic(2)) ' (' yUnits ')']; %num2str(posClic(2),4)
         end
         
         datacursorText = {get(p,'DisplayName'),...
             [xName ': ' xStr],...
-            [yName ': ' yStr]};
+            [userData.yName ': ' yStr]};
         %datacursorText{end+1} = ['FileName: ',get(p,'Tag')];
     end
 

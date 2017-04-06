@@ -67,7 +67,6 @@ if depth == 0
     if depth == 0, error('data set contains no depth data'); end
 end
 
-vars(vars == depth) = [];
 if isempty(vars), return; end
 
 hold on;

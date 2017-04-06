@@ -1,17 +1,23 @@
-function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
-  sample_data, var, ax, highlight )
-%GETSELECTEDTIMESERIESTIMEFREQUENCY Returns the currently selected data on the 
-% given time/frequency axis.
+function highlight = highlightXvYGeneric( ...
+  region, data, variable, type )
+%HIGHLIGHTXVYGENERIC Highlights the given region on the given data 
+% axes, using a line overlaid on the points in the region.
 %
-% Inputs:
-%   sample_data - Struct containing the data set.
-%   var         - Variable in question (index into sample_data.variables).
-%   ax          - Axis in question.
-%   highlight   - Handle to the highlight object.
+% This function delegates to Graph/TimeSeries/highlightTimeSeriesGeneric.m.
 % 
+% Inputs:
+%   region    - a vector of length 4, containing the selected data region. 
+%               Must be in the format: [lx ly hx hy]
+%   data      - A handle, or vector of handles, to the graphics object(s) 
+%               displaying the data (e.g. line, scatter). Must contain 
+%               'XData' and 'YData' properties.
+%   variable  - The variable displayed on the axes.
+%   type      - The highlight type.
+%
 % Outputs:
-%   dataIdx     - Vector of indices into the data, defining the indices
-%                 which are selected (and which were clicked on).
+%   highlight - Handle to a line object which overlays the highlighted
+%               data. If no data points lie within the highlight region, 
+%               an empty matrix is returned.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
@@ -46,4 +52,4 @@ function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-dataIdx = getSelectedTimeSeriesGeneric(sample_data, var, ax, highlight);
+highlight = highlightTimeSeriesGeneric(region, data, variable, type);

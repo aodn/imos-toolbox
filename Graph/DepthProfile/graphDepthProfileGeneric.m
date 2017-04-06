@@ -50,6 +50,9 @@ if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 
+% get the toolbox execution mode
+mode = readProperty('toolbox.mode');
+
 % look for a depth variable
 iDepthVar = getVar(sample_data.variables, 'DEPTH');
 if iDepthVar ~= 0
@@ -66,9 +69,24 @@ end
 
 var  = sample_data.variables{var};
 
-h        = line(var.data(:, 1), depth.data(:, 1), 'Parent', ax, 'LineStyle', '-'); % downcast
-if size(var.data, 2) > 1
-h(end+1) = line(var.data(:, 2), depth.data(:, 2), 'Parent', ax, 'LineStyle', '--'); %upcast
+switch mode
+    case 'profile'
+        h            = line(var.data(:, 1), depth.data(:, 1), 'Parent', ax, 'LineStyle', '-'); % downcast
+        if size(var.data, 2) > 1
+            h(end+1) = line(var.data(:, 2), depth.data(:, 2), 'Parent', ax, 'LineStyle', '--'); % upcast
+        end
+        
+    case 'timeSeries'
+        if size(var.data, 2) > 1
+            % ADCP data, we look for vertical dimension
+            iVertDim = var.dimensions(2);
+            for i=1:size(var.data, 2)
+                h(i) = line(var.data(:, i), depth.data - sample_data.dimensions{iVertDim}.data(i), 'Parent', ax, 'LineStyle', '-');
+            end
+        else
+            h        = line(var.data, depth.data, 'Parent', ax, 'LineStyle', '-');
+        end
+        
 end
 set(ax, 'Tag', 'axis1D');
 
@@ -80,8 +98,8 @@ climatologyRange = get(mWh, 'UserData');
 if ~isempty(climatologyRange)
     if isfield(climatologyRange, ['rangeMin' var.name])
         xLim = get(ax, 'XLim');
-        hRMin = line(climatologyRange(iSample).(['rangeMin' var.name]), [depth.data(1); depth.data(end)], 'Parent', ax, 'Color', 'r');
-        hRMax = line(climatologyRange(iSample).(['rangeMax' var.name]), [depth.data(1); depth.data(end)], 'Parent', ax, 'Color', 'r');
+        line(climatologyRange(iSample).(['rangeMin' var.name]), [depth.data(1); depth.data(end)], 'Parent', ax, 'Color', 'r');
+        line(climatologyRange(iSample).(['rangeMax' var.name]), [depth.data(1); depth.data(end)], 'Parent', ax, 'Color', 'r');
         set(ax, 'XLim', xLim);
     end
 end

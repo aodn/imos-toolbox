@@ -1,17 +1,15 @@
-function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
-  sample_data, var, ax, highlight )
-%GETSELECTEDTIMESERIESTIMEFREQUENCY Returns the currently selected data on the 
-% given time/frequency axis.
+function selectXvYGeneric( selectCallback, clickCallback )
+%SELECTXVYGENERIC Adds callbacks to the current figure, allowing the 
+% user to interact with data in the current XvY axis using the mouse.
+%
+% This function delegates to Graph/TimeSeries/selectTimeSeriesGeneric.m.
 %
 % Inputs:
-%   sample_data - Struct containing the data set.
-%   var         - Variable in question (index into sample_data.variables).
-%   ax          - Axis in question.
-%   highlight   - Handle to the highlight object.
-% 
-% Outputs:
-%   dataIdx     - Vector of indices into the data, defining the indices
-%                 which are selected (and which were clicked on).
+%   selectCallback - function handle which is called when the user selects
+%                    a region.
+%
+%   clickCallback  - function handle which is called when the user clicks
+%                    on a point. 
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
@@ -46,4 +44,4 @@ function dataIdx = getSelectedTimeSeriesTimeFrequency( ...
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-dataIdx = getSelectedTimeSeriesGeneric(sample_data, var, ax, highlight);
+selectTimeSeriesGeneric( selectCallback, clickCallback );

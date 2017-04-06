@@ -2,7 +2,7 @@ function selectDepthProfileGeneric( selectCallback, clickCallback )
 %SELECTDEPTHPROFILEGENERIC Adds callbacks to the current figure, allowing the 
 % user to interact with data in the current depth profile axis using the mouse.
 %
-% See Graph/TimeSeries/selectTimeSeriesGeneric for more documentation
+% This function delegates to Graph/TimeSeries/selectTimeSeriesGeneric.m.
 %
 % Inputs:
 %   selectCallback - function handle which is called when the user selects
@@ -43,101 +43,4 @@ function selectDepthProfileGeneric( selectCallback, clickCallback )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(2,2);
-
-  if ~isa(selectCallback, 'function_handle')
-    error('selectCallback must be a function handle');
-  end
-  if ~isa(clickCallback, 'function_handle')
-    error('clickCallback must be a function handle');
-  end
-  
-  % get handle to the current figure
-  f = gcf;
-  
-  % add callbacks for dragging over an area of data/flags - 
-  % this also accounts for click events
-  set(f, 'WindowButtonDownFcn',   @buttonDown);
-  set(f, 'WindowButtonMotionFcn', @buttonMove);
-  set(f, 'WindowButtonUpFcn',     @buttonUp);
-  
-  % state variables used during dragging
-  drag       = false;
-  startPoint = [];
-  endPoint   = [];
-  rect       = [];
-  rectPos    = [];
-  
-  function buttonDown(source,ev)
-  %BUTTONDOWN Captures the coordinates when the mouse is clicked on an
-  % axes.
-  % 
-    % bail if the user clicks another mouse button while dragging
-    if drag
-      startPoint = [];
-      endPoint   = [];
-      drag       = false;
-      delete(rect);
-      rect       = [];
-      return; 
-    end
-    
-    startPoint = get(gca, 'CurrentPoint');
-    startPoint = startPoint([1 3]);
-    
-    rectPos = [startPoint 0.0001 0.0001];
-    
-    rect = rectangle(...
-      'Parent',    gca,...
-      'Position',  rectPos,...
-      'EdgeColor', [1 1 1],...
-      'LineStyle', '--',...
-      'LineWidth', 0.25);
-    
-    drag = true;
-  end
-
-  function buttonMove(source,ev)
-  %BUTTONMOVE Captures the coordinates when the mouse is dragged. Draws a
-  % rectangle from where the mouse was clicked to the current mouse location.
-  % 
-    if ~drag, return; end
-    
-    endPoint = get(gca, 'CurrentPoint');
-    endPoint = endPoint([1 3]);
-    
-    rectPos([1 2]) = min(startPoint,  endPoint);
-    rectPos([3 4]) = abs(endPoint - startPoint);
-    
-    % guard against negative/zero width/height
-    if ~any(rectPos([3 4]) <= 0), set(rect, 'Position', rectPos); end
-  end
-
-  function buttonUp(source,ev)
-  %BUTTONUP Captures coordinates when the mouse button is released.
-  % Calls the selectCallback.
-  %
-    if ~drag, return; end
-    
-    endPoint = get(gca, 'CurrentPoint');
-    endPoint = endPoint([1 3]);
-    
-    range = [min(startPoint, endPoint), max(startPoint, endPoint)];
-    
-    type = get(gcbf, 'SelectionType');
-    
-    % click or drag?
-    click = false;
-    if startPoint == endPoint, click = true; end
-    
-    startPoint = [];
-    endPoint   = [];
-    drag       = false;
-    delete(rect);
-    rect       = [];
-    
-    if click, clickCallback( gca, type, startPoint);
-    else      selectCallback(gca, type, range);
-    end
-  end
-end
+selectTimeSeriesGeneric( selectCallback, clickCallback );

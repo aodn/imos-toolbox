@@ -214,7 +214,7 @@ sample_data.meta.featureType            = mode;
 %   name = value
 %
 line = fgetl(fid);
-while isempty(line) || line(1) == '*' || line(1) == 's'
+while (isempty(line) || line(1) == '*' || line(1) == 's') && ischar(line)
   
   if isempty(line) || line(1) == 's'
     line = fgetl(fid);

@@ -62,15 +62,19 @@ if ~ischar(type),       error('type must be a string');          end
 xdata = get(data, 'XData');
 ydata = get(data, 'YData');
 
+if iscell(xdata)
+   xdata = cell2mat(xdata)'; 
+   ydata = cell2mat(ydata)';
+end
+
 % on right click highlight, only highlight 
 % unflagged data points in the region
-if strcmp(type, 'alt')
-  
-  f = variable.flags;
-  f = f == 0;
-  
-  xdata = xdata(f);
-  ydata = ydata(f);
+if strcmp(type, 'alt')    
+    f = variable.flags;
+    f = f == 0;
+    
+    xdata = xdata(f);
+    ydata = ydata(f);
 end
 
 % figure out indices of all data points within the range
@@ -80,16 +84,16 @@ yidx  = (ydata >= region(2) & ydata <= region(4));
 % figure out indices of all the points to be highlighted
 idx = xidx & yidx;
 
-% return nothing if no points to plot
-if ~any(idx), highlight = [];
-    
-% create the highlight
+if ~any(idx)
+    % return nothing if no points to plot
+    highlight = [];
 else
-
-  highlight = line(xdata(idx),ydata(idx),...
-    'Parent',          gca,...
-    'LineStyle',       'none',...
-    'Marker',          'o',...
-    'MarkerEdgeColor', 'white', ...
-    'MarkerFaceColor', 'white');
+    % create the highlight
+    highlight = line(xdata(idx),ydata(idx), ...
+        'UserData',        idx, ...
+        'Parent',          gca, ...
+        'LineStyle',       'none', ...
+        'Marker',          'o', ...
+        'MarkerEdgeColor', 'white', ...
+        'MarkerFaceColor', 'white');
 end
