@@ -563,7 +563,7 @@ for iCurSam = 1:nDatasets
                 iFirst  = firstNearestInst(iCurSam);
                 iSecond = secondNearestInst(iCurSam);
                 
-                if iSecond == 0
+                if iSecond == 0 && iFirst ~= 0 
                     fprintf('%s\n', ['Warning : ' descSam{iCurSam} ...
                         ' has its actual depth inferred from only one neighbouring pressure sensor ' ...
                         'on mooring']);
@@ -652,7 +652,7 @@ for iCurSam = 1:nDatasets
                     
                     computedDepth = zOther + signOtherCurSensor*distOtherCurSensor;
                     clear zOther;
-                else
+                elseif iSecond ~= 0 && iFirst ~= 0
                     presIdxFirst     = getVar(sample_data{nearestInsts{iCurSam}(iFirst)}.variables, 'PRES');
                     presRelIdxFirst  = getVar(sample_data{nearestInsts{iCurSam}(iFirst)}.variables, 'PRES_REL');
                     
@@ -767,6 +767,22 @@ for iCurSam = 1:nDatasets
                     computedDepth = (distFirstCurSensor/distFirstSecond) ...
                         * (zSecond - zFirst) + zFirst;
                     clear zFirst zSecond;
+                else
+                    fprintf('%s\n', ['Warning : ' descSam{iCurSam} ...
+                        ' will not have its depth inferred from any neighbouring pressure sensor ' ...
+                        'on mooring']);
+                    
+                    % write/update dataset PP parameters before moving to
+                    % the next sample_data
+                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'same_family',       same_family);
+                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'include',           include);
+                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'exclude',           exclude);
+                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnDepth',    useItsOwnDepth(iCurSam));
+                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPres',     useItsOwnPres(iCurSam));
+                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPresRel',  useItsOwnPresRel(iCurSam));
+                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'firstNearestInst',  firstNearestInst(iCurSam));
+                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'secondNearestInst', secondNearestInst(iCurSam));
+                    continue;
                 end
             end
         else
