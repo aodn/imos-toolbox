@@ -80,9 +80,6 @@ catch e
     rethrow e;
 end
 
-dataLen = length(data);
-dIdx    = 1;
-
 % read in all of the structures contained in the file
 % all files should start off with the following sections,
 % although this is not checked:
@@ -93,17 +90,128 @@ dIdx    = 1;
 structures = struct;
 [~, ~, cpuEndianness] = computer;
 
-% the while loop below involves poor performances so we display a waitbar 
-% dialog to make sure the user knows the toolbox is doing something
-[~, fName, ext] = fileparts(filename);
-lastStepProgress = 0;
-hWaitbar = waitbar(lastStepProgress,    '  0 %', ...
-    'Name',                             ['Reading file ' fName ext],...
-    'DefaultTextInterpreter',           'none');
+% list of sectors with their Ids and their Size
+genericIds  = [ 5;   4;   0];
+genericSize = [48; 224; 512];
 
-while dIdx < dataLen
+continentalIds  = 36;
+continentalSize = NaN; % NaN means variable
+
+aquadoppVelocityIds  = [ 1;  6; 128];
+aquadoppVelocitySize = [42; 36;  42];
+
+aquadoppProfilerIds  = [ 33; 48; 49;  42];
+aquadoppProfilerSize = [NaN; 24; 60; NaN];
+
+awacIds  = [ 32; 54;  66];
+awacSize = [NaN; 24; NaN];
+
+prologIds  = [96; 97;  98;  99; 101; 106];
+prologSize = [80; 48; NaN; NaN; NaN; NaN]; % Wave fourier coefficient spectrum (id99) is actually not fixed length of 816!
+
+knownIds   = [genericIds;  continentalIds;  aquadoppVelocityIds;  aquadoppProfilerIds;  awacIds;  prologIds];
+knownSizes = [genericSize; continentalSize; aquadoppVelocitySize; aquadoppProfilerSize; awacSize; prologSize];
+
+noSizeIds  = [16; 54; 81]; % a few sectors do not include their size in their data
+noSizeSize = [24; 24; 22]; % yet for these sectors the size is known
+
+% we look for any start of record structure
+% Sync = 165 % hex a5
+iSync = data == 165;
+
+% we check that the id following any Sync is known
+% otherwise we get rid of those false Syncs
+iId = ismember(data, knownIds);
+iSync = [iSync(1:end-1) & iId(2:end); false];
+
+% we check that the size read in data record (when exist) is consistent 
+% with the expected one (when known) otherwise we get rid of those false Syncs.
+iIds = [false; iSync(1:end-1)];
+ids = data(iIds);
+uniqIds = unique(sort(ids));
+
+iSizes = [false; false; iSync(1:end-2)] | [false; false; false; iSync(1:end-3)];
+sizesFromData = bytecast(data(iSizes), 'L', 'uint16', cpuEndianness)*2; % 1 word = 2 bytes
+
+% when size info not available from sector we replace it with its expected value
+for i=1:length(noSizeIds), sizesFromData(ids == noSizeIds(i)) = noSizeSize(i); end
+
+sizesExpected = NaN(size(ids)); % when size is not known, set to NaN
+for i = 1:length(uniqIds)
+    sectorType = uniqIds(i);
+    sizesExpected(ids == sectorType) = knownSizes(sectorType == knownIds);
+end
+iUnkownSize = isnan(sizesExpected);
+sizesExpected(iUnkownSize) = sizesFromData(iUnkownSize);
+
+iSizeConsistent = sizesFromData == sizesExpected;
+iSync(iSync) = iSizeConsistent;
+clear sizesExpected;
+
+% we check that the size read in data record (when exist) is consistent 
+% with the one found between 2 Sync
+iIds = [false; iSync(1:end-1)];
+ids = data(iIds);
+uniqIds = unique(sort(ids));
+
+iSizes = [false; false; iSync(1:end-2)] | [false; false; false; iSync(1:end-3)];
+sizesFromData = bytecast(data(iSizes), 'L', 'uint16', cpuEndianness)*2; % 1 word = 2 bytes
+
+% when size info not available from sector we replace it with its expected value
+for i=1:length(noSizeIds), sizesFromData(ids == noSizeIds(i)) = noSizeSize(i); end
+
+sizesFromSync = diff(find([iSync; true]));
+isSizeConsistent = sizesFromData == sizesFromSync;
+
+% most of the time inconsistencies are due to false Sync detection,
+% a false Sync will divide a section in multiple pairs
+isPairInconsistent = [false; (~isSizeConsistent(1:end-1) & ~isSizeConsistent(2:end))];
+
+% when several inconsistent pairs in a row (next to each other), we only 
+% want to remove one at a time (the last one)
+isPairInconsistent = [xor(isPairInconsistent(1:end-1), isPairInconsistent(2:end)); false] & isPairInconsistent;
+
+while any(isPairInconsistent)
+    iSync(iSync) = ~isPairInconsistent;
     
-    [sect, len] = readSection(filename, data, dIdx, cpuEndianness);
+    iIds = [false; iSync(1:end-1)];
+    ids = data(iIds);
+    uniqIds = unique(sort(ids));
+   
+    iSizes = [false; false; iSync(1:end-2)] | [false; false; false; iSync(1:end-3)];
+    sizesFromData = bytecast(data(iSizes), 'L', 'uint16', cpuEndianness)*2; % 1 word = 2 bytes
+    
+    % when size info not available from sector we replace it with its expected value
+    for i=1:length(noSizeIds), sizesFromData(ids == noSizeIds(i)) = noSizeSize(i); end
+
+    sizesFromSync = diff(find([iSync; true]));
+    isSizeConsistent = sizesFromData == sizesFromSync;
+    isPairInconsistent = [false; ~isSizeConsistent(1:end-1) & ~isSizeConsistent(2:end)];
+    
+    isPairInconsistent = [xor(isPairInconsistent(1:end-1), isPairInconsistent(2:end)); false] & isPairInconsistent;
+end
+
+% sometimes, inconsistencies are due to the file simply being corrupted
+% in this case we just remove the faulty Sync (also handles the case when 
+% the last section has been truncated so that we don't try to read it at all)
+iSync(iSync) = isSizeConsistent;
+
+iIds = [false; iSync(1:end-1)];
+ids = data(iIds);
+uniqIds = unique(sort(ids));
+
+iSizes = [false; false; iSync(1:end-2)] | [false; false; false; iSync(1:end-3)];
+sizesFromData = bytecast(data(iSizes), 'L', 'uint16', cpuEndianness)*2; % 1 word = 2 bytes
+
+% when size info not available from sector we replace it with its expected value
+for i=1:length(noSizeIds), sizesFromData(ids == noSizeIds(i)) = noSizeSize(i); end
+clear iIds iSizes sizesFromSync;
+
+iSections = find(iSync);
+for i=1:length(iSections)
+    dIdx = iSections(i);
+    
+    sect = readSection(filename, data, dIdx, cpuEndianness);
     if ~isempty(sect)
         curField = ['Id' sprintf('%d', sect.Id)];
         
@@ -116,22 +224,7 @@ while dIdx < dataLen
             structures.(curField)(end+1) = sect;
         end
     end
-    
-    % we don't want to update the waitbar for every single section (too
-    % slow) instead we update it every percent of a step
-    progress = dIdx/dataLen;
-    percentProgress = floor(progress * 100);
-    stepProgress = percentProgress/100;
-    if stepProgress > lastStepProgress
-        lastStepProgress = stepProgress;
-        waitbar(stepProgress, hWaitbar, [sprintf('%3u', percentProgress) ' %']);
-    end
-    
-    dIdx = dIdx + len; % if len is empty, then dIdx is going to be empty and will fail the while test
 end
-
-waitbar(1, hWaitbar, '100 %');
-close(hWaitbar);
 
 return;
 end
@@ -141,25 +234,13 @@ end
 % specified in the System integrator Manual.
 %
 
-function [sect, off] = readSection(filename, data, idx, cpuEndianness)
+function sect = readSection(filename, data, idx, cpuEndianness)
 %READSECTION Reads the next data structure in the data array, starting at
 % the given index.
 %
 sect = [];
-off = [];
 
 sectType = data(idx+1);
-
-% check sync byte
-if data(idx) ~= 165 % hex a5
-    fprintf('%s\n', ['Warning : ' filename ' bad sync (idx '...
-        num2str(idx) ', val ' num2str(data(idx)) ')']);
-    fprintf('%s\n', ['Sect Type: ' num2str(sectType)]);
-    off = 1; % continue to the next byte
-    return;
-end
-
-%disp(['sectType : hex ' dec2hex(sectType) ' == ' num2str(sectType) ' at offset ' num2str(idx+1)]);
 
 % if a section (typically the last one) is shorter than expected, 
 % abort further data read
@@ -173,41 +254,41 @@ end
 
 % read the section in
 switch sectType
-    case 0,   [sect, len, off] = readUserConfiguration            (data, idx, cpuEndianness); % 0x00
-    case 1,   [sect, len, off] = readAquadoppVelocity             (data, idx, cpuEndianness); % 0x01
-    case 2,   [sect, len, off] = readVectrinoDistance             (data, idx, cpuEndianness); % 0x02
-    case 4,   [sect, len, off] = readHeadConfiguration            (data, idx, cpuEndianness); % 0x04
-    case 5,   [sect, len, off] = readHardwareConfiguration        (data, idx, cpuEndianness); % 0x05
-    case 6,   [sect, len, off] = readAquadoppDiagHeader           (data, idx, cpuEndianness); % 0x06
-    case 7,   [sect, len, off] = readVectorProbeCheck             (data, idx, cpuEndianness); % 0x07
-    case 16,  [sect, len, off] = readVectorVelocity               (data, idx, cpuEndianness); % 0x10
-    case 17,  [sect, len, off] = readVectorSystem                 (data, idx, cpuEndianness); % 0x11
-    case 18,  [sect, len, off] = readVectorVelocityHeader         (data, idx, cpuEndianness); % 0x12
-    case 32,  [sect, len, off] = readAwacVelocityProfile          (data, idx, cpuEndianness); % 0x20
-    case 33,  [sect, len, off] = readAquadoppProfilerVelocity     (data, idx, cpuEndianness); % 0x21, 3-beam aquadopp
-%    case 34,  [sect, len, off] = readAquadoppProfilerVelocity     (data, idx, cpuEndianness); % 0x22, 2-beam aquadopp
-%    case 35,  [sect, len, off] = readAquadoppProfilerVelocity     (data, idx, cpuEndianness); % 0x23, 1-beam aquadopp
-    case 36,  [sect, len, off] = readContinental                  (data, idx, cpuEndianness); % 0x24, 3-beam continental
-%    case 37,  [sect, len, off] = readContinental                  (data, idx, cpuEndianness); % 0x25, 2-beam continental
-%    case 38,  [sect, len, off] = readContinental                  (data, idx, cpuEndianness); % 0x26, 1-beam continental
-    case 42,  [sect, len, off] = readHRAquadoppProfile            (data, idx, cpuEndianness); % 0x2A
-    case 48,  [sect, len, off] = readAwacWaveData                 (data, idx, cpuEndianness); % 0x30
-    case 49,  [sect, len, off] = readAwacWaveHeader               (data, idx, cpuEndianness); % 0x31
-    case 54,  [sect, len, off] = readAwacWaveDataSUV              (data, idx, cpuEndianness); % 0x36
-    case 66,  [sect, len, off] = readAwacStageData                (data, idx, cpuEndianness); % 0x42
-    case 80,  [sect, len, off] = readVectrinoVelocityHeader       (data, idx, cpuEndianness); % 0x50
-    case 81,  [sect, len, off] = readVectrinoVelocity             (data, idx, cpuEndianness); % 0x51
-    case 96,  [sect, len, off] = readWaveParameterEstimates       (data, idx, cpuEndianness); % 0x60
-    case 97,  [sect, len, off] = readWaveBandEstimates            (data, idx, cpuEndianness); % 0x61
-    case 98,  [sect, len, off] = readWaveEnergySpectrum           (data, idx, cpuEndianness); % 0x62
-    case 99,  [sect, len, off] = readWaveFourierCoefficentSpectrum(data, idx, cpuEndianness); % 0x63
-    case 101, [sect, len, off] = readAwacAST                      (data, idx, cpuEndianness); % 0x65
-    case 106, [sect, len, off] = readAwacProcessedVelocity        (data, idx, cpuEndianness); % 0x6A
-    case 128, [sect, len, off] = readAquadoppDiagnostics          (data, idx, cpuEndianness); % 0x80
+    case 0,   [sect, len] = readUserConfiguration            (data, idx, cpuEndianness); % 0x00
+    case 1,   [sect, len] = readAquadoppVelocity             (data, idx, cpuEndianness); % 0x01
+    case 2,   [sect, len] = readVectrinoDistance             (data, idx, cpuEndianness); % 0x02
+    case 4,   [sect, len] = readHeadConfiguration            (data, idx, cpuEndianness); % 0x04
+    case 5,   [sect, len] = readHardwareConfiguration        (data, idx, cpuEndianness); % 0x05
+    case 6,   [sect, len] = readAquadoppDiagHeader           (data, idx, cpuEndianness); % 0x06
+    case 7,   [sect, len] = readVectorProbeCheck             (data, idx, cpuEndianness); % 0x07
+    case 16,  [sect, len] = readVectorVelocity               (data, idx, cpuEndianness); % 0x10
+    case 17,  [sect, len] = readVectorSystem                 (data, idx, cpuEndianness); % 0x11
+    case 18,  [sect, len] = readVectorVelocityHeader         (data, idx, cpuEndianness); % 0x12
+    case 32,  [sect, len] = readAwacVelocityProfile          (data, idx, cpuEndianness); % 0x20
+    case 33,  [sect, len] = readAquadoppProfilerVelocity     (data, idx, cpuEndianness); % 0x21, 3-beam aquadopp
+%    case 34,  [sect, len] = readAquadoppProfilerVelocity     (data, idx, cpuEndianness); % 0x22, 2-beam aquadopp
+%    case 35,  [sect, len] = readAquadoppProfilerVelocity     (data, idx, cpuEndianness); % 0x23, 1-beam aquadopp
+    case 36,  [sect, len] = readContinental                  (data, idx, cpuEndianness); % 0x24, 3-beam continental
+%    case 37,  [sect, len] = readContinental                  (data, idx, cpuEndianness); % 0x25, 2-beam continental
+%    case 38,  [sect, len] = readContinental                  (data, idx, cpuEndianness); % 0x26, 1-beam continental
+    case 42,  [sect, len] = readHRAquadoppProfile            (data, idx, cpuEndianness); % 0x2A
+    case 48,  [sect, len] = readAwacWaveData                 (data, idx, cpuEndianness); % 0x30
+    case 49,  [sect, len] = readAwacWaveHeader               (data, idx, cpuEndianness); % 0x31
+    case 54,  [sect, len] = readAwacWaveDataSUV              (data, idx, cpuEndianness); % 0x36
+    case 66,  [sect, len] = readAwacStageData                (data, idx, cpuEndianness); % 0x42
+    case 80,  [sect, len] = readVectrinoVelocityHeader       (data, idx, cpuEndianness); % 0x50
+    case 81,  [sect, len] = readVectrinoVelocity             (data, idx, cpuEndianness); % 0x51
+    case 96,  [sect, len] = readWaveParameterEstimates       (data, idx, cpuEndianness); % 0x60
+    case 97,  [sect, len] = readWaveBandEstimates            (data, idx, cpuEndianness); % 0x61
+    case 98,  [sect, len] = readWaveEnergySpectrum           (data, idx, cpuEndianness); % 0x62
+    case 99,  [sect, len] = readWaveFourierCoefficentSpectrum(data, idx, cpuEndianness); % 0x63
+    case 101, [sect, len] = readAwacAST                      (data, idx, cpuEndianness); % 0x65
+    case 106, [sect, len] = readAwacProcessedVelocity        (data, idx, cpuEndianness); % 0x6A
+    case 128, [sect, len] = readAquadoppDiagnostics          (data, idx, cpuEndianness); % 0x80
     otherwise
 %        disp('Unknown sector type');
 %        disp(['sectType : hex ' dec2hex(sectType) ' == ' num2str(sectType) ' at offset ' num2str(idx+1)]);        
-        [sect, len, off] = readGeneric(data, idx, cpuEndianness);
+        [sect, len] = readGeneric(data, idx, cpuEndianness);
 end
 
 %disp('Just read sector type');
@@ -251,14 +332,13 @@ end
 cd = datenummx(year, month, day, hour, minute, second); % direct access to MEX function, faster
 end
 
-function [sect, len, off] = readHardwareConfiguration(data, idx, cpuEndianness)
+function [sect, len] = readHardwareConfiguration(data, idx, cpuEndianness)
 %READHARDWARECONFIGURATION
 % Id=0x05, Hardware Configuration
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 28-29
 
 sect = struct;
 len = 48;
-off = len;
 
 sect.Sync       = data(idx);
 sect.Id         = data(idx+1);
@@ -283,14 +363,13 @@ sect.Status     = blocks(7);
 sect.Checksum   = blocks(8);
 end
 
-function [sect, len, off] = readHeadConfiguration(data, idx, cpuEndianness)
+function [sect, len] = readHeadConfiguration(data, idx, cpuEndianness)
 %READHEADCONFIGURATION Reads a head configuration section.
 % Id=0x04, Head Configuration
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 29
 
 sect = struct;
 len = 224;
-off = len;
 
 sect.Sync      = data(idx);
 sect.Id        = data(idx+1);
@@ -334,14 +413,13 @@ sect.Checksum  = blocks(6);
 
 end
 
-function [sect, len, off] = readUserConfiguration(data, idx, cpuEndianness)
+function [sect, len] = readUserConfiguration(data, idx, cpuEndianness)
 %readUserConfiguration Reads a user configuration section.
 % Id=0x00, User Configuration
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 30-32
 
 sect = struct;
 len = 512;
-off = len;
 
 sect.Sync           = data(idx);
 sect.Id             = data(idx+1);
@@ -408,14 +486,13 @@ sect.TiLag2         = blocks(42);
 sect.Checksum       = blocks(43);
 end
 
-function [sect, len, off] = readAquadoppVelocity(data, idx, cpuEndianness)
+function [sect, len] = readAquadoppVelocity(data, idx, cpuEndianness)
 %READAQUADOPPVELOCITY Reads an Aquadopp velocity data section.
 % Id=0x01, Aquadopp Velocity Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 34-35
 
 sect = struct;
 len = 42;
-off = len;
 
 sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
@@ -466,14 +543,13 @@ sect.Amp3        = blocks(4);
 sect.Fill        = blocks(5);
 end
 
-function [sect, len, off] = readAquadoppDiagHeader(data, idx, cpuEndianness)
+function [sect, len] = readAquadoppDiagHeader(data, idx, cpuEndianness)
 %READAQUADOPPDIAGHEADER Reads an Aquadopp diagnostics header section.
 % Id=0x06, Aquadopp Diagnostics Data Header
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 35
 
 sect = struct;
 len = 36;
-off = len;
 
 sect.Sync      = data(idx);
 sect.Id        = data(idx+1);
@@ -506,22 +582,21 @@ sect.Noise3    = blocks(3);
 sect.Noise4    = blocks(4);
 end
 
-function [sect, len, off] = readAquadoppDiagnostics(data, idx, cpuEndianness)
+function [sect, len] = readAquadoppDiagnostics(data, idx, cpuEndianness)
 %READAQUADOPPDIAGNOSTICS Reads an Aquadopp diagnostics data section.
 % Id=0x80, Aquadopp Diagnostics Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 36
 %
 % same structure as velocity section
-[sect, len, off] = readAquadoppVelocity(data, idx, cpuEndianness);
+[sect, len] = readAquadoppVelocity(data, idx, cpuEndianness);
 end
 
-function [sect, len, off] = readVectorVelocityHeader(data, idx, cpuEndianness)
+function [sect, len] = readVectorVelocityHeader(data, idx, cpuEndianness)
 %READVECTORVELOCITYHEADER Reads a Vector velocity data header section.
 % Id=0x12, Vector Velocity Data Header
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 36
 sect = struct;
 len = 42;
-off = len;
 
 sect.Sync         = data(idx);
 sect.Id           = data(idx+1);
@@ -550,13 +625,12 @@ sect.Correlation3 = blocks(7);
 sect.Correlation4 = blocks(8);
 end
 
-function [sect, len, off] = readVectorVelocity(data, idx, cpuEndianness)
+function [sect, len] = readVectorVelocity(data, idx, cpuEndianness)
 %READVECTORVELOCITY Reads a vector velocity data section.
 % Id=0x10, Vector Velocity Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 37
 sect = struct;
 len = 24;
-off = len;
 
 sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
@@ -592,13 +666,12 @@ sect.CorrB2      = blocks(9);
 sect.CorrB3      = blocks(10);
 end
 
-function [sect, len, off] = readVectorSystem(data, idx, cpuEndianness)
+function [sect, len] = readVectorSystem(data, idx, cpuEndianness)
 %READVECTORSYSTEM Reads a vector system data section.
 % Id=0x11, Vector System Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 37-38
 sect = struct;
 len = 28;
-off = len;
 
 sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
@@ -631,7 +704,7 @@ sect.Roll        = blocks(3);
 sect.Temperature = blocks(4);
 end
 
-function [sect, len, off] = readAquadoppProfilerVelocity(data, idx, cpuEndianness)
+function [sect, len] = readAquadoppProfilerVelocity(data, idx, cpuEndianness)
 %READAQUADOPPPROFILERVELOCITY Reads an Aquadopp Profiler velocity data
 % section.
 % Id=0x21, Aquadopp Profiler Velocity Data
@@ -655,7 +728,6 @@ sect.PressureLSW = data(idx+26:idx+27); % uint16
 sect.Temperature = data(idx+28:idx+29); % int16
 
 len              = sect.Size * 2;
-off              = len;
 
 % calculate number of cells from structure size
 % (* 2 because size is specified in 16 bit words)
@@ -705,7 +777,7 @@ sect.Vel2        = blocks(6+nCells   :6+nCells*2-1);
 sect.Vel3        = blocks(6+nCells*2 :6+nCells*3-1);
 end
 
-function [sect, len, off] = readHRAquadoppProfile(data, idx, cpuEndianness)
+function [sect, len] = readHRAquadoppProfile(data, idx, cpuEndianness)
 %READHRAQUADOPPPROFILERVELOCITY Reads a HR Aquadopp Profile data section
 % (pg 38 of system integrator manual).
 % Id=0x2A, High Resolution Aquadopp Profiler Data
@@ -717,7 +789,6 @@ sect.Id           = data(idx+1);
 sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness); % uint16
 
 len              = sect.Size * 2;
-off              = len;
 
 sect.Time         = readClockData(data, idx+4);
 block1            = data(idx+10:idx+13); % int16
@@ -788,7 +859,7 @@ end
 
 end
 
-function [sect, len, off] = readAwacVelocityProfile(data, idx, cpuEndianness)
+function [sect, len] = readAwacVelocityProfile(data, idx, cpuEndianness)
 %READAWACVELOCITYPROFILE Reads an AWAC Velocity Profile data section (pg 39
 % of the system integrator manual).
 % Id=0x20, AWAC Velocity Profile Data
@@ -799,7 +870,7 @@ sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
 sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness); % uint16
 len              = sect.Size * 2;
-off              = len;
+
 sect.Time        = readClockData(data, idx+4);
 sect.Error       = bytecast(data(idx+10:idx+11), 'L', 'int16', cpuEndianness); % int16
 block            = bytecast(data(idx+12:idx+17), 'L', 'uint16', cpuEndianness); % uint16
@@ -845,7 +916,7 @@ sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness); % u
 
 end
 
-function [sect, len, off] = readAwacWaveHeader(data, idx, cpuEndianness)
+function [sect, len] = readAwacWaveHeader(data, idx, cpuEndianness)
 %READAWACWAVEHEADER Reads an AWAC wave header section.
 % Id=0x31, Awac Wave Data Header
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 49
@@ -856,7 +927,7 @@ sect.Sync         = data(idx);
 sect.Id           = data(idx+1);
 sect.Size         = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len               = sect.Size * 2;
-off               = len;
+
 sect.Time         = readClockData(data, idx+4);
 block             = bytecast(data(idx+10:idx+17), 'L', 'uint16', cpuEndianness);
 sect.NRecords     = block(1); % number of wave data records to follow
@@ -894,7 +965,7 @@ sect.ProcMagn4    = block(4);
 sect.Checksum     = bytecast(data(idx+58:idx+59), 'L', 'uint16', cpuEndianness);
 end
 
-function [sect, len, off] = readAwacWaveData(data, idx, cpuEndianness)
+function [sect, len] = readAwacWaveData(data, idx, cpuEndianness)
 %READAWACWAVEDATA Reads an AWAC Wave data section.
 % Id=0x30, Awac Wave Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 49
@@ -904,7 +975,7 @@ sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
 sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len              = sect.Size * 2;
-off              = len;
+
 block            = bytecast(data(idx+4:idx+9), 'L', 'uint16', cpuEndianness);
 sect.Pressure    = block(1); % pressure (0.001 dbar)
 sect.Distance    = block(2); % distance 1 to surface vertical beam (mm)
@@ -923,7 +994,7 @@ sect.Amp4ASTQual = block(4); % AST quality Counts). For non-AST amplitude beam 4
 sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16', cpuEndianness);
 end
 
-function [sect, len, off] = readAwacWaveDataSUV(data, idx, cpuEndianness)
+function [sect, len] = readAwacWaveDataSUV(data, idx, cpuEndianness)
 %READAWACWAVEDATASUV Reads an AWAC Wave data SUV section.
 % Id=0x36, Awac Wave Data for SUV
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 49-50
@@ -932,7 +1003,7 @@ sect = struct;
 sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
 len = 24; % no size variable in this structure
-off = len;
+
 block            = bytecast(data(idx+2:idx+7), 'L', 'uint16', cpuEndianness);
 sect.Heading     = block(1); % heading (0.1deg)
 sect.Pressure    = block(2); % pressure (0.001 dbar)
@@ -954,7 +1025,7 @@ sect.Checksum    = bytecast(data(idx+22:idx+23), 'L', 'uint16', cpuEndianness);
 
 end
 
-function [sect, len, off] = readAwacStageData(data, idx, cpuEndianness)
+function [sect, len] = readAwacStageData(data, idx, cpuEndianness)
 %READAWACSTAGEDATA Reads an AWAC Stage data section.
 % Id=0x42, Awac Stage Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 48
@@ -973,7 +1044,6 @@ sect.Sync         = data(idx);
 sect.Id           = data(idx+1);
 sect.Size        = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len              = sect.Size * 2;
-off              = len;
 
 % idx+4 uint16 spare, (AST distance1 duplicate)
 block = bytecast(data(idx+6:idx+9), 'L', 'uint8', cpuEndianness);
@@ -1006,16 +1076,16 @@ sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
 end
 
-function [sect, len, off] = readContinental(data, idx, cpuEndianness)
+function [sect, len] = readContinental(data, idx, cpuEndianness)
 %READCONTINENTAL Reads a Continental Data section.
 % Id=0x42, Continental Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 50
 % structure is same as awac velocity profile data
-[sect, len, off] = readAwacVelocityProfile(data, idx, cpuEndianness);
+[sect, len] = readAwacVelocityProfile(data, idx, cpuEndianness);
 end
 
 
-function [sect, len, off] = readVectrinoVelocityHeader(data, idx, cpuEndianness)
+function [sect, len] = readVectrinoVelocityHeader(data, idx, cpuEndianness)
 %READVECTRINOVELOCITYHEADER Reads a Vectrino velocity data header section
 % (pg 42 of system integrator manual).
 % Id=0x12, Vectrino velocity data header
@@ -1023,7 +1093,6 @@ function [sect, len, off] = readVectrinoVelocityHeader(data, idx, cpuEndianness)
 
 sect = struct;
 len = 42;
-off = len;
 
 sect.Sync         = data(idx);
 sect.Id           = data(idx+1);
@@ -1062,7 +1131,7 @@ sect.AmpZ0PLag24  = bytecast(data(idx+39), 'L', 'uint8', cpuEndianness);
 sect.Checksum     = bytecast(data(idx+40:idx+41), 'L', 'uint16', cpuEndianness);
 end
 
-function [sect, len, off] = readVectrinoVelocity(data, idx, cpuEndianness)
+function [sect, len] = readVectrinoVelocity(data, idx, cpuEndianness)
 %READVECTRINOVELOCITY Reads a Vectrino Velocity data section (pg 43 of
 % system integrator manual).
 % Id=0x51, Vectrino velocity data Size Name Offset Description
@@ -1089,7 +1158,7 @@ nCells = bitor(bitshift(sect.Status, 2), 7) + 1;
 
 len = 4 + (4*2 + 4 + 4)*nCells + 2;
 sect.Size = len;
-off = len;
+
 
 velOff  = idx + 4;
 ampOff  = velOff  + nCells*nBeams*2;
@@ -1130,13 +1199,12 @@ sect.Checksum = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
 end
 
-function [sect, len, off] = readVectrinoDistance(data, idx, cpuEndianness)
+function [sect, len] = readVectrinoDistance(data, idx, cpuEndianness)
 %READVECTRINODISTANCE Reads a Vectrino distance data section.
 % Id=0x02, Vectrino distance data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 58-59
 sect = struct;
 len = 16;
-off = len;
 
 sect.Sync        = data(idx);
 sect.Id          = data(idx+1);
@@ -1153,20 +1221,20 @@ sect.Checksum    = blocks(6);
 
 end
 
-function [sect, len, off] = readGeneric(data, idx, cpuEndianness)
+function [sect, len] = readGeneric(data, idx, cpuEndianness)
 %READGENERIC Skip past an unknown sector type
 
 Id          = data(idx+1);
 Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len              = Size * 2;
-off              = len;
+
 sect = [];
 
 disp(['Skipping sector type ' num2str(Id) ' at ' num2str(idx) ' size ' num2str(Size)]);
 
 end
 
-function [sect, len, off] = readAwacAST(data, idx, cpuEndianness)
+function [sect, len] = readAwacAST(data, idx, cpuEndianness)
 %READAWACAST
 % Awac Cleaned Up AST Time Series
 % Id=0x65 SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 54-55
@@ -1177,7 +1245,6 @@ sect.Id     = data(idx+1);
 sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 sect.Time   = readClockData(data, idx+4);
 len         = sect.Size * 2;
-off         = len;
 
 sect.Samples   = bytecast(data(idx+10:idx+11), 'L', 'uint16', cpuEndianness);
 sect.Spare   = bytecast(data(idx+12:idx+23), 'L', 'uint8', cpuEndianness);
@@ -1192,7 +1259,7 @@ sect.Checksum  = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
 end
 
-function [sect, len, off] = readAwacProcessedVelocity(data, idx, cpuEndianness)
+function [sect, len] = readAwacProcessedVelocity(data, idx, cpuEndianness)
 % Awac Processed Velocity Profile Data
 % Id=0x6A SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 55-56
 
@@ -1201,8 +1268,7 @@ sect.Sync    = data(idx);
 sect.Id      = data(idx+1);
 sect.Size    = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len          = sect.Size * 2;
-off          = len;
- 
+
 sect.Time    = readClockData(data, idx+4);
 milliSeconds = bytecast(data(idx+10:idx+11), 'L', 'uint16', cpuEndianness);
 sect.Time    = sect.Time + (milliSeconds/1000/60/60/24);
@@ -1274,7 +1340,7 @@ sect.direction(sect.qcFlag == 1) = NaN;
 
 end
 
-function [sect, len, off] = readVectorProbeCheck(data, idx, cpuEndianness)
+function [sect, len] = readVectorProbeCheck(data, idx, cpuEndianness)
 %READVECTORPROBECHECK Reads an Vector Probe Check section.
 % Id=0x07, Vector and Vectrino Probe Check Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 38
@@ -1284,13 +1350,13 @@ function [sect, len, off] = readVectorProbeCheck(data, idx, cpuEndianness)
 
 Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len              = Size * 2;
-off              = len;
+
 sect = [];
 %warning('readVectorProbeCheck not implemented yet.');
 
 end
 
-function [sect, len, off] = readWaveParameterEstimates(data, idx, cpuEndianness)
+function [sect, len] = readWaveParameterEstimates(data, idx, cpuEndianness)
 %READWAVEPARAMETERESTIMATES Reads an AWAC Wave Parameter Estimates section.
 % Id=0x60, Wave parameter estimates
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 52-53
@@ -1300,7 +1366,7 @@ sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len         = sect.Size * 2;
-off         = len;
+
 sect.Time = readClockData(data, idx+4);
 % Spectrum basis type
 % 0-pressure,
@@ -1346,7 +1412,7 @@ sect.Checksum = bytecast(data(idx+78:idx+79), 'L', 'uint16', cpuEndianness);
 
 end
 
-function [sect, len, off] = readWaveBandEstimates(data, idx, cpuEndianness)
+function [sect, len] = readWaveBandEstimates(data, idx, cpuEndianness)
 %READWAVEBANDESTIMATES Reads an AWAC Wave Band Estimates section.
 % Id=0x61, Wave band estimates
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 53
@@ -1356,7 +1422,7 @@ sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len         = sect.Size * 2;
-off         = len;
+
 sect.Time   = readClockData(data, idx+4);
 % Spectrum basis type
 % 0-pressure,
@@ -1386,7 +1452,7 @@ sect.Checksum = bytecast(data(idx+46:idx+47), 'L', 'uint16', cpuEndianness);
 
 end
 
-function [sect, len, off] = readWaveEnergySpectrum(data, idx, cpuEndianness)
+function [sect, len] = readWaveEnergySpectrum(data, idx, cpuEndianness)
 %READWAVEENERGYSPECTRUM Reads an AWAC Wave Energy Spectrum section.
 % Id=0x62, Wave energy spectrum
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 53-54
@@ -1396,7 +1462,7 @@ sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len         = sect.Size * 2;
-off         = len;
+
 sect.Time   = readClockData(data, idx+4);
 % Spectrum basis type
 % 0-pressure,
@@ -1425,7 +1491,7 @@ sect.Checksum     = bytecast(data(csOff:csOff+1), 'L', 'uint16', cpuEndianness);
 
 end
 
-function [sect, len, off] = readWaveFourierCoefficentSpectrum(data, idx, cpuEndianness)
+function [sect, len] = readWaveFourierCoefficentSpectrum(data, idx, cpuEndianness)
 %READWAVEFOURIERCOEFFICIENTSSPECTRUM Reads an AWAC Wave Fourier Coefficient Spectrum section.
 % Id=0x63, Wave fourier coefficient spectrum
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 54
@@ -1435,7 +1501,7 @@ sect.Sync   = data(idx);
 sect.Id     = data(idx+1);
 sect.Size   = bytecast(data(idx+2:idx+3), 'L', 'uint16', cpuEndianness);
 len         = sect.Size * 2;
-off         = len;
+
 sect.Time   = readClockData(data, idx+4);
 
 % idx+10 is cSpare
