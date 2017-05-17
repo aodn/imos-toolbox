@@ -742,7 +742,7 @@ sect.SpeedOfSound = blocks(2);
 sect.PressureLSW  = blocks(3);
 sect.Analn1       = blocks(4);
 sect.Analn2       = blocks(5);
-sect.VelLag2      = blocks(6);
+sect.VelLag2      = blocks(6:end);
 
 % let's process int16s in one call
 blocks = bytecast([block1; block3; sect.Temperature], 'L', 'int16', cpuEndianness);
