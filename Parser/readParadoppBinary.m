@@ -335,7 +335,10 @@ SerialNo   = data(:, 5:18);
 SerialNo(SerialNo == 0) = 32; % replace 0 by 32: code for whitespace
 SerialNo   = char(SerialNo);
 block      = data(:, 19:30); % uint16
-% bytes 30-41 are free
+% bytes 30-41 are free, but
+% data(idx+30:idx+31) == (103,103) if HR
+Spare      = data(:, 31:42);
+
 FWversion  = data(:, 43:46);
 FWversion(FWversion == 0) = 32; % replace 0 by 32: code for whitespace
 FWversion  = char(FWversion);
@@ -349,7 +352,7 @@ Frequency  = blocks(3:8:end);
 PICversion = blocks(4:8:end);
 HWrevision = blocks(5:8:end);
 RecSize    = blocks(6:8:end);
-Status     = blocks(7:8:end);
+Status     = uint16(blocks(7:8:end));
 Checksum   = blocks(8:8:end);
 
 if nRecords > 1
@@ -370,6 +373,31 @@ end
 SerialNo = strtrim(SerialNo);
 FWversion = strtrim(FWversion);
 
+% safety check that if instrument type is HR then the returned
+% structure should contain Id42 sectors.
+instrumentType = 'UNKNOWN';
+if any(strfind(SerialNo, 'VNO'))
+    instrumentType = 'VECTRINO';
+elseif any(strfind(SerialNo, 'VEC'))
+    instrumentType = 'VECTOR';
+elseif any(strfind(SerialNo, 'AQD'))
+    %https://github.com/pjrusello/Nortek-Binary-Ready-Utilities/blob/master/NortekDataStructure.py
+    %hrFlag == '\x67\x67', hex 0x67 = dec 103
+    if Spare(1, 1) == 103 && Spare(1, 2) == 103
+        instrumentType = 'HR_PROFILER';
+    else
+        instrumentType = 'AQUADOPP_PROFILER';
+    end
+elseif any(strfind(SerialNo, 'WPR'))
+    instrumentType = 'AWAC';
+end
+
+if nRecords > 1
+    nChar = length(instrumentType);
+    instrumentType = repmat(instrumentType, nRecords, 1);
+    instrumentType = mat2cell(instrumentType, ones(1, nRecords), nChar);
+end
+
 sect = struct('Sync', Sync, ...
     'Id', Id, ...
     'Size', Size, ...
@@ -381,7 +409,8 @@ sect = struct('Sync', Sync, ...
     'PICversion', PICversion, ...
     'HWrevision', HWrevision, ...
     'RecSize', RecSize, ...
-    'Status', Status);
+    'Status', Status, ...
+    'instrumentType', instrumentType);
 
 end
 
@@ -555,8 +584,8 @@ T5             = blocks(6:43:end);
 NPings         = blocks(7:43:end);
 AvgInterval    = blocks(8:43:end);
 NBeams         = blocks(9:43:end);
-TimCtrlReg     = blocks(10:43:end);
-PwrCtrlReg     = blocks(11:43:end);
+TimCtrlReg     = uint16(blocks(10:43:end));
+PwrCtrlReg     = uint16(blocks(11:43:end));
 A1_1           = blocks(12:43:end);
 B0_1           = blocks(13:43:end);
 B1_1           = blocks(14:43:end);
@@ -566,12 +595,12 @@ NBins          = blocks(17:43:end);
 BinLength      = blocks(18:43:end);
 MeasInterval   = blocks(19:43:end);
 WrapMode       = blocks(20:43:end);
-Mode           = dec2bin(blocks(21:43:end), 8);
+Mode           = uint16(blocks(21:43:end));
 AdjSoundSpeed  = blocks(22:43:end);
 NSampDiag      = blocks(23:43:end);
 NBeamsCellDiag = blocks(24:43:end);
 NPingsDiag     = blocks(25:43:end);
-ModeTest       = blocks(26:43:end);
+ModeTest       = uint16(blocks(26:43:end));
 AnalnAddr      = blocks(27:43:end);
 SWVersion      = blocks(28:43:end);
 WMMode         = blocks(29:43:end);
@@ -716,7 +745,7 @@ block2      = data(:, 19:24); % int16
 
 PressureMSB = data(:, 25); % uint8
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-Status      = dec2bin(bytecast(data(:, 26), 'L', 'uint8', cpuEndianness), 8)';
+Status      = uint8(data(:, 26));
 
 PressureLSW = data(:, 27:28); % uint16
 % !!! temperature and velocity can be negative
@@ -759,7 +788,7 @@ if nRecords > 1
     Time = num2cell(Time);
     Error = num2cell(Error);
     PressureMSB = num2cell(PressureMSB);
-    Status = mat2cell(Status, 8, ones(1, nRecords))';
+    Status = num2cell(Status);
     PressureLSW = num2cell(PressureLSW);
     Checksum = num2cell(Checksum);
     Analn1 = num2cell(Analn1);
@@ -1059,7 +1088,7 @@ block2      = data(:, 15:22); % int16
 
 Error       = bytecast(data(:, 23), 'L', 'int8', cpuEndianness);
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-Status      = dec2bin(bytecast(data(:, 24), 'L', 'uint8', cpuEndianness), 8)';
+Status      = uint8(data(:, 24));
 Analn       = data(:, 25:26); % uint16
 
 Checksum    = data(:, 27:28); % uint16
@@ -1084,7 +1113,7 @@ if nRecords > 1
     Size = num2cell(Size);
     Time = num2cell(Time);
     Error = num2cell(Error);
-    Status = mat2cell(Status, 8, ones(1, nRecords))';
+    Status = num2cell(Status);
     Analn = num2cell(Analn);
     Checksum = num2cell(Checksum);
     Size = num2cell(Size);
@@ -1134,7 +1163,7 @@ block2      = data(:, 19:24); % int16
 
 PressureMSB = bytecast(data(:, 25), 'L', 'uint8', cpuEndianness); % uint8
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-Status      = dec2bin(bytecast(data(:, 26), 'L', 'uint8', cpuEndianness), 8)';
+Status      = uint8(data(:, 26));
 PressureLSW = data(:, 27:28); % uint16
 Temperature = data(:, 29:30); % int16
 
@@ -1196,7 +1225,7 @@ if nRecords > 1
     Time        = num2cell(Time);
     Error       = num2cell(Error);
     PressureMSB = num2cell(PressureMSB);
-    Status      = mat2cell(Status, 8, ones(1, nRecords))';
+    Status      = num2cell(Status);
     PressureLSW = num2cell(PressureLSW);
     Temperature = num2cell(Temperature);
     Checksum    = num2cell(Checksum);
@@ -1256,7 +1285,7 @@ block2       = data(:, 15:18); % uint16
 % !!! Heading, pitch and roll can be negative
 block3       = data(:, 19:24); % int16
 PressureMSB  = data(:, 25); % uint8
-% byte 25 is a fill byte
+Status       = uint8(data(:, 26));
 PressureLSW  = data(:, 27:28); % uint16
 Temperature  = data(:, 29:30); % int16
 block4       = data(:, 31:34); % uint16
@@ -1356,6 +1385,7 @@ if nRecords > 1
     Size = num2cell(Size);
     Time = num2cell(Time);
     PressureMSB = num2cell(PressureMSB);
+    Status = num2cell(Status);
     PressureLSW = num2cell(PressureLSW);
     Temperature = num2cell(Temperature);
     Beams = num2cell(Beams);
@@ -1389,6 +1419,7 @@ sect = struct('Sync', Sync, ...
     'Size', Size, ...
     'Time', Time, ...
     'PressureMSB', PressureMSB, ...
+    'Status', Status, ...
     'PressureLSW', PressureLSW, ...
     'Temperature', Temperature, ...
     'Beams', Beams, ...
@@ -1448,7 +1479,7 @@ Pitch       = block(:, 2);
 Roll        = block(:, 3);
 PressureMSB = bytecast(data(:, 25), 'L', 'uint8', cpuEndianness); % uint8
 % 8 bits status code http://cs.nortek.no/scripts/customer.fcgi?_sf=0&custSessionKey=&customerLang=en&noCookies=true&action=viewKbEntry&id=7
-Status      = dec2bin(bytecast(data(:, 26), 'L', 'uint8', cpuEndianness), 8)';
+Status      = uint8(data(:, 26));
 PressureLSW = bytecast(reshape(data(:, 27:28)', [], 1), 'L', 'uint16', cpuEndianness); % uint16
 Temperature = bytecast(reshape(data(:, 29:30)', [], 1), 'L', 'int16', cpuEndianness); % int16
 % bytes 30-117 are spare
@@ -1499,7 +1530,7 @@ if nRecords > 1
     Pitch       = num2cell(Pitch);
     Roll        = num2cell(Roll);
     PressureMSB = num2cell(PressureMSB);
-    Status      = mat2cell(Status, 8, ones(1, nRecords))';
+    Status      = num2cell(Status);
     PressureLSW = num2cell(PressureLSW);
     Temperature = num2cell(Temperature);
     Vel1        = mat2cell(Vel1, nCells, ones(1, nRecords))';
@@ -1858,7 +1889,7 @@ end
 
 function sect = readContinental(data, cpuEndianness)
 %READCONTINENTAL Reads a Continental Data section.
-% Id=0x42, Continental Data
+% Id=0x24, Continental Data
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 50
 % structure is same as awac velocity profile data
 sect = readAwacVelocityProfile(data, cpuEndianness);
@@ -1868,7 +1899,7 @@ end
 function sect = readVectrinoVelocityHeader(data, cpuEndianness)
 %READVECTRINOVELOCITYHEADER Reads a Vectrino velocity data header section
 % (pg 42 of system integrator manual).
-% Id=0x12, Vectrino velocity data header
+% Id=0x50, Vectrino velocity data header
 % SYSTEM INTEGRATOR MANUAL (Dec 2014) pg 57-58
 
 nRecords = size(data, 1);
@@ -2012,7 +2043,8 @@ Id       = data(:, 2);
 % v = velocity scaling (0 = mm/s, 1 = 0.1mm/s)
 % ccc = #cells -1
 % bb = #beams -1
-Status   = dec2bin(bytecast(data(:, 3), 'L', 'uint8', cpuEndianness), 8)';
+% is 'e' bit0 or bit7?
+Status   = uint8(data(:, 3));
 
 Count    = data(:, 4);
 
@@ -2043,7 +2075,7 @@ Checksum = bytecast(reshape(Checksum', [], 1), 'L', 'uint16', cpuEndianness);
 if nRecords > 1
     Sync = num2cell(Sync);
     Id = num2cell(Id);
-    Status = mat2cell(Status, 8, ones(1, nRecords))';
+    Status = num2cell(Status);
     Count = num2cell(Count);
     Vel1 = num2cell(Vel1);
     Vel2 = num2cell(Vel2);
