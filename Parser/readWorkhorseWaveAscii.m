@@ -19,7 +19,7 @@ function waveData = readWorkhorseWaveAscii( filename )
 %   and VSpec*.txt with * being a date of format yyyymmddHHMM.
 %   - That the log file is of format 9 and with a name such as
 %   '*_LOG9.TXT'. See this URL below for more details on the format :
-% https://imos-toolbox.googlecode.com/svn/wiki/documents/Instruments/RDI/WavesMon_Users_Guide.pdf
+% https://raw.githubusercontent.com/wiki/aodn/imos-toolbox/documents/Instruments/RDI/WavesMon_Users_Guide.pdf
 %
 % Inputs:
 %   filename - The name of a binary RDI wave file (.WVS).
