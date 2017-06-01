@@ -130,7 +130,6 @@ if ~any(iSkip)
     
     % transform flags to the appropriate output shape
     sizeData = size(data);
-    sizeData(sizeData == lenData) = 1;
-    flags = repmat(flags, sizeData);
+    flags = repmat(flags, [1 sizeData(2:end)]);
 end
 end
