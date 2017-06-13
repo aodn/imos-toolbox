@@ -105,85 +105,87 @@ for k = 1:nSample
     end
 end
 
-f = figure(...
-    'Name',        'Time start and end drift calculations in seconds',...
-    'Visible',     'off',...
-    'MenuBar'  ,   'none',...
-    'Resize',      'off',...
-    'WindowStyle', 'Modal',...
-    'NumberTitle', 'off');
-
-cancelButton  = uicontrol('Style',  'pushbutton', 'String', 'Cancel');
-confirmButton = uicontrol('Style',  'pushbutton', 'String', 'Ok');
-
-setCheckboxes  = [];
-startOffsetFields   = [];
-endOffsetFields = [];
-
-for k = 1:nSample
+if ~auto
+    f = figure(...
+        'Name',        'Time start and end drift calculations in seconds',...
+        'Visible',     'off',...
+        'MenuBar'  ,   'none',...
+        'Resize',      'off',...
+        'WindowStyle', 'Modal',...
+        'NumberTitle', 'off');
     
-    setCheckboxes(k) = uicontrol(...
-        'Style',    'checkbox',...
-        'String',   descs{k},...
-        'Value',    1, ...
-        'UserData', k);
+    cancelButton  = uicontrol('Style',  'pushbutton', 'String', 'Cancel');
+    confirmButton = uicontrol('Style',  'pushbutton', 'String', 'Ok');
     
-    startOffsetFields(k) = uicontrol(...
-        'Style',    'edit',...
-        'UserData', k, ...
-        'String',   num2str(startOffsets(k)));
+    setCheckboxes  = [];
+    startOffsetFields   = [];
+    endOffsetFields = [];
     
-    endOffsetFields(k) = uicontrol(...
-        'Style',    'edit',...
-        'UserData', k, ...
-        'String',   num2str(endOffsets(k)));
+    for k = 1:nSample
+        
+        setCheckboxes(k) = uicontrol(...
+            'Style',    'checkbox',...
+            'String',   descs{k},...
+            'Value',    1, ...
+            'UserData', k);
+        
+        startOffsetFields(k) = uicontrol(...
+            'Style',    'edit',...
+            'UserData', k, ...
+            'String',   num2str(startOffsets(k)));
+        
+        endOffsetFields(k) = uicontrol(...
+            'Style',    'edit',...
+            'UserData', k, ...
+            'String',   num2str(endOffsets(k)));
+        
+    end
     
+    % set all widgets to normalized for positioning
+    set(f,              'Units', 'normalized');
+    set(cancelButton,   'Units', 'normalized');
+    set(confirmButton,  'Units', 'normalized');
+    set(setCheckboxes,  'Units', 'normalized');
+    set(startOffsetFields,   'Units', 'normalized');
+    set(endOffsetFields,   'Units', 'normalized');
+    
+    set(f,             'Position', [0.2 0.35 0.6 0.0222 * (nSample + 1)]); % need to include 1 extra space for the row of buttons
+    
+    rowHeight = 1 / (nSample + 1);
+    
+    set(cancelButton,  'Position', [0.0 0.0  0.5 rowHeight]);
+    set(confirmButton, 'Position', [0.5 0.0  0.5 rowHeight]);
+    
+    for k = 1:nSample
+        
+        rowStart = 1.0 - k * rowHeight;
+        
+        set(setCheckboxes (k), 'Position', [0.0 rowStart 0.6 rowHeight]);
+        set(startOffsetFields  (k), 'Position', [0.6 rowStart 0.2 rowHeight]);
+        set(endOffsetFields  (k), 'Position', [0.8 rowStart 0.2 rowHeight]);
+    end
+    
+    % set back to pixels
+    set(f,              'Units', 'normalized');
+    set(cancelButton,   'Units', 'normalized');
+    set(confirmButton,  'Units', 'normalized');
+    set(setCheckboxes,  'Units', 'normalized');
+    set(startOffsetFields,   'Units', 'normalized');
+    set(endOffsetFields,   'Units', 'normalized');
+    
+    % set widget callbacks
+    set(f,             'CloseRequestFcn',   @cancelCallback);
+    set(f,             'WindowKeyPressFcn', @keyPressCallback);
+    set(setCheckboxes, 'Callback',          @checkboxCallback);
+    set(startOffsetFields,  'Callback',     @startoffsetFieldCallback);
+    set(endOffsetFields,  'Callback',       @endoffsetFieldCallback);
+    set(cancelButton,  'Callback',          @cancelCallback);
+    set(confirmButton, 'Callback',          @confirmCallback);
+    
+    set(f, 'Visible', 'on');
+    
+    uiwait(f);
 end
-
-% set all widgets to normalized for positioning
-set(f,              'Units', 'normalized');
-set(cancelButton,   'Units', 'normalized');
-set(confirmButton,  'Units', 'normalized');
-set(setCheckboxes,  'Units', 'normalized');
-set(startOffsetFields,   'Units', 'normalized');
-set(endOffsetFields,   'Units', 'normalized');
-
-set(f,             'Position', [0.2 0.35 0.6 0.0222 * (nSample + 1)]); % need to include 1 extra space for the row of buttons
-
-rowHeight = 1 / (nSample + 1);
-
-set(cancelButton,  'Position', [0.0 0.0  0.5 rowHeight]);
-set(confirmButton, 'Position', [0.5 0.0  0.5 rowHeight]);
-
-for k = 1:nSample
-    
-    rowStart = 1.0 - k * rowHeight;
-    
-    set(setCheckboxes (k), 'Position', [0.0 rowStart 0.6 rowHeight]);
-    set(startOffsetFields  (k), 'Position', [0.6 rowStart 0.2 rowHeight]);
-    set(endOffsetFields  (k), 'Position', [0.8 rowStart 0.2 rowHeight]);
-end
-
-% set back to pixels
-set(f,              'Units', 'normalized');
-set(cancelButton,   'Units', 'normalized');
-set(confirmButton,  'Units', 'normalized');
-set(setCheckboxes,  'Units', 'normalized');
-set(startOffsetFields,   'Units', 'normalized');
-set(endOffsetFields,   'Units', 'normalized');
-
-% set widget callbacks
-set(f,             'CloseRequestFcn',   @cancelCallback);
-set(f,             'WindowKeyPressFcn', @keyPressCallback);
-set(setCheckboxes, 'Callback',          @checkboxCallback);
-set(startOffsetFields,  'Callback',     @startoffsetFieldCallback);
-set(endOffsetFields,  'Callback',       @endoffsetFieldCallback);
-set(cancelButton,  'Callback',          @cancelCallback);
-set(confirmButton, 'Callback',          @confirmCallback);
-
-set(f, 'Visible', 'on');
-
-uiwait(f);
 
 % calculate the drift and apply to the selected datasets
 for k = 1:nSample
