@@ -4,7 +4,8 @@ function imosToolbox(auto, varargin)
 % This function is the entry point for the IMOS toolbox.
 %
 % Inputs:
-%   auto     - optional String parameter - if 'auto', the toolbox is executed
+%   auto     - optional String parameter - if 'version', the version of the
+%              toolbox is output. if 'auto', the toolbox is executed
 %              automatically, with no user interaction. Any other string will
 %              result in the toolbox being executed normally.
 %   varargin - In 'auto' mode, any other parameters passed in are passed 
@@ -76,6 +77,7 @@ end
 toolboxVersion = ['2.5.26 - ' computer];
 
 switch auto  
-  case 'auto', autoIMOSToolbox(toolboxVersion, varargin{:});
-  otherwise,   flowManager(toolboxVersion);
+  case 'auto',    autoIMOSToolbox(toolboxVersion, varargin{:});
+  case 'version', disp(toolboxVersion);
+  otherwise,      flowManager(toolboxVersion);
 end
