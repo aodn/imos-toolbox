@@ -8,8 +8,8 @@ function [data, flags, paramsLog] = imosRateOfChangeQC( sample_data, data, k, ty
 % ascribed to the current data point of the set.
 % 
 % Action: PARAMETER values are flagged if
-% |Vi � Vi-1| + |Vi � Vi+1| > 2�(threshold)
-% where Vi is the current value of the parameter, Vi�1
+% |Vi - Vi-1| + |Vi - Vi+1| > 2*(threshold)
+% where Vi is the current value of the parameter, Vi-1
 % is the previous and Vi+1 the next one. If
 % the one parameter is missing, the relative part of
 % the formula is omitted and the comparison term

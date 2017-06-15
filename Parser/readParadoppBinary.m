@@ -191,20 +191,26 @@ while any(isPairInconsistent)
     isPairInconsistent = [xor(isPairInconsistent(1:end-1), isPairInconsistent(2:end)); false] & isPairInconsistent;
 end
 
-% sometimes, inconsistencies are due to the file simply being corrupted
-% in this case we just remove the faulty Sync (also handles the case when 
-% the last section has been truncated so that we don't try to read it at all)
-iSync(iSync) = isSizeConsistent;
-
-iIds = [false; iSync(1:end-1)];
-ids = data(iIds);
-uniqIds = unique(sort(ids));
-
-iSizes = [false; false; iSync(1:end-2)] | [false; false; false; iSync(1:end-3)];
-sizesFromData = bytecast(data(iSizes), 'L', 'uint16', cpuEndianness)*2; % 1 word = 2 bytes
-
-% when size info not available from sector we replace it with its expected value
-for i=1:length(noSizeIds), sizesFromData(ids == noSizeIds(i)) = noSizeSize(i); end
+% now we need to deal with any fault sync detection left alone
+if any(~isSizeConsistent)
+    iSync(iSync) = [true; isSizeConsistent(1:end-1)];
+    
+    % we also handle the case when the last section has been truncated so 
+    % that we don't try to read it at all
+    if ~isSizeConsistent(end)
+        iSync(iSync) = [true(sum(iSync)-1, 1); false];
+    end
+    
+    iIds = [false; iSync(1:end-1)];
+    ids = data(iIds);
+    uniqIds = unique(sort(ids));
+    
+    iSizes = [false; false; iSync(1:end-2)] | [false; false; false; iSync(1:end-3)];
+    sizesFromData = bytecast(data(iSizes), 'L', 'uint16', cpuEndianness)*2; % 1 word = 2 bytes
+    
+    % when size info not available from sector we replace it with its expected value
+    for i=1:length(noSizeIds), sizesFromData(ids == noSizeIds(i)) = noSizeSize(i); end
+end
 clear iIds iSizes sizesFromSync;
 
 % now we can read data sectors by type
@@ -280,8 +286,10 @@ for i = 1:length(uniqIds)
     clear dataSection;
     iBadChecksum = cs ~= vertcat(sect(:).Checksum);
     if any(iBadChecksum)
-        % we don't want a keep a section with erroneous data in it
+        % we don't want to keep a record with erroneous data in it
         sect(iBadChecksum) = [];
+        
+        if isempty(sect), continue; end
     end
     clear cs iBadChecksum;
     

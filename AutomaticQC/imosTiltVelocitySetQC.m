@@ -186,7 +186,7 @@ end
 
 if isempty(firstTiltThreshold)
     % couldn't find this instrument so quit the test
-    disp(['Info: imosTiltVelositySetQC could not be performed on ' sample_data.toolbox_input_file ...
+    disp(['Warning: imosTiltVelositySetQC could not be performed on ' sample_data.toolbox_input_file ...
         ' instrument = "' instrument '" => Fill imosTiltVelositySetQC.txt with relevant make/model information if you wish to run this test on this dataset.']);
     return;
 end
