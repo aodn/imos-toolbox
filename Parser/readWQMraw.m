@@ -187,7 +187,6 @@ function sample_data = readWQMraw( filename, mode )
     [name, comment] = getParamDetails(varlabel{k}, params);  
 
     data = wqmdata.(varlabel{k});
-    data(iBadTime) = [];
 
     % some fields are not in IMOS uom - scale them so that they are
     switch varlabel{k}

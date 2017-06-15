@@ -15,7 +15,8 @@ function checkMooringPresDiffs(sample_data, iSampleMenu, isQC, saveToFile, expor
 %   exportDir   - string containing the destination folder to where the
 %               plot is saved on disk.
 %
-% Author: Rebecca Cowley <rebecca.cowley@csiro.au>
+% Author:       Rebecca Cowley <rebecca.cowley@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -165,7 +166,7 @@ hAxPressDiff = subplot(2,1,2,'Parent', hPanelMooringVar);
 set(get(hAxPressDiff, 'XLabel'), 'String', 'Time');
 set(get(hAxPressDiff, 'YLabel'), 'String', ['Pressure differences (' varUnit ')'], 'Interpreter', 'none');
 set(get(hAxPressDiff, 'Title'), 'String', ...
-    ['Pressure differences in ' varUnit ' (minus respective median over 1st quarter) between ' instrumentDesc{iCurrSam} ' (in black above) and nearest neighbours'] , 'Interpreter', 'none');
+    ['Pressure differences in ' varUnit ' (minus respective median over 1st quarter) between ' instrumentDesc{iCurrSam} ' (in black above) and 4 (max) nearest neighbours'] , 'Interpreter', 'none');
 set(hAxPressDiff, 'XTick', (xMin:(xMax-xMin)/4:xMax));
 set(hAxPressDiff, 'XLim', [xMin, xMax]);
 hold(hAxPressDiff, 'on');

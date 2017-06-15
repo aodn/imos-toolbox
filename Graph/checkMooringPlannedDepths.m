@@ -291,18 +291,18 @@ end
 %comparison
 %This could be done better, with more finesse - could allow zooming in
 %before going straight to the time period selection. For now, this will do.
-hMsgbox = msgbox('Select the time period for comparison using the mouse', 'Time Period Selection', 'help', 'modal');
+hMsgbox = msgbox('Select (drag & drop) a time period on the top graph for comparison, preferably at the start of deployment, when the mooring is standing vertical', 'Time Period Selection', 'help', 'modal');
 uiwait(hMsgbox);
 
 %select the area to use for comparison
-[x,y] = select_points(hAxPress);
+[x, ~] = select_points(hAxPress);
 
 %now plot the difference from planned depth data:
 iGood = timeVar >= x(1) & timeVar <= x(2);
 dataVar(~iGood) = NaN;
 minDep = min(dataVar,[],2);
 
-hLineVar2 = scatter(hAxDepthDiff, ...
+scatter(hAxDepthDiff, ...
     metaDepth, ...
     minDep - metaDepth, ...
     15, ...
