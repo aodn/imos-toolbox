@@ -247,10 +247,10 @@ function sample_data = readXR620( filename, mode )
                       data.(vars{k}) = data.(vars{k})/10;
                       
                       %Temperature (Celsius degree)
-                  case {'Temp', 'temp02'}, name = 'TEMP';
+                  case {'Temp', 'temp02', 'temp12'}, name = 'TEMP';
                       
                       %Pressure (dBar)
-                  case {'Pres', 'pres20'}, name = 'PRES';
+                  case {'Pres', 'pres20', 'pres21'}, name = 'PRES';
                       
                       %Relative Pressure (dBar)
                   case {'pres08'}, name = 'PRES_REL';
@@ -514,7 +514,7 @@ function sample_data = readXR620( filename, mode )
                       data.(fields{k}) = data.(fields{k})/10;
                       
                       %Temperature (Celsius degree)
-                  case {'Temp', 'temp02'}, name = 'TEMP';
+                  case {'Temp', 'temp02', 'temp12'}, name = 'TEMP';
                       
                       %Pressure (dBar)
                   case {'Pres', 'pres08'}, name = 'PRES';
@@ -881,7 +881,11 @@ function data = readData(fid, header)
       if isempty(strfind(data.Date{1}, '-'))
           data.time = datenum(data.Date, 'yyyy/mmm/dd') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
       else
-          data.time = datenum(data.Date, 'dd-mmm-yyyy') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
+          % Ruskin version number <= 1.12 date format 'dd-mmm-yyyy'
+          % Ruskin version number 1.13 date format 'yyyy-mm-dd'
+          % can either do some simple date format test or see if datenum
+          % can figure it out
+          data.time = datenum(data.Date) + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
       end
   end
   
