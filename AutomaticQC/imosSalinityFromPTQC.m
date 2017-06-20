@@ -1,7 +1,8 @@
 function [data, flags, paramsLog] = imosSalinityFromPTQC ( sample_data, data, k, type, auto )
-%IMOSSALINITYFROMPTQC Flags salinity data which is flagged in pressure/depth and temperature.
+%IMOSSALINITYFROMPTQC Flags salinity data which is flagged in pressure/depth, conductivity
+% and temperature.
 %
-% Looks for highest flags from pressure/depth and temperature variables and give
+% Looks for highest flags from pressure/depth, conductivity and temperature variables and give
 % them to salinity
 %
 % Inputs:
@@ -105,9 +106,9 @@ if any(iParam)
     % initialise all flags to non QC'd
     flags = ones(lenData, 1, 'int8')*rawFlag;
     
-    % we look for flags from pressure and temperature data to give them
+    % we look for flags from pressure, conductivity and temperature data to give them
     % to salinity as well
-    paramNames = {'DEPTH', 'PRES_REL', 'PRES', 'TEMP'};
+    paramNames = {'DEPTH', 'PRES_REL', 'PRES', 'TEMP', 'CNDC'};
     
     for i=1:length(sample_data.(type))
         % let's handle the case we have multiple same param distinguished by "_1",
