@@ -68,12 +68,13 @@ if strcmpi(qcLevel, 'raw'), return; end
 
 % get the toolbox execution mode
 mode = readProperty('toolbox.mode');
+
+depthVarType = 'variables';
+isProfile = false;
 switch mode
     case 'profile'
         depthVarType = 'dimensions';
-        
-    otherwise
-        depthVarType = 'variables';
+        isProfile = true;
         
 end
 
@@ -160,7 +161,7 @@ for iCurSam = 1:nDatasets
     useItsOwnPresRel(iCurSam) = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPresRel', useItsOwnPresRel(iCurSam));
     
     % look for nearest instruments with depth or pressure information
-    if isSensorHeight || isSensorTargetDepth
+    if ~isProfile && (isSensorHeight || isSensorTargetDepth)
         % let's see if part of a mooring with pressure data from other
         % sensors
         for iOtherSam = 1:nDatasets
@@ -309,10 +310,12 @@ for iCurSam = 1:nDatasets
             secondNearestInst(iCurSam) = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'secondNearestInst', secondNearestInst(iCurSam));
         end
     else
-        fprintf('%s\n', ['Warning : ' sample_data{iCurSam}.toolbox_input_file ...
-            ' please document either instrument_nominal_height or instrument_nominal_depth '...
-            'global attributes so that an actual depth can be '...
-            'computed from other pressure sensors in the mooring']);
+        if ~isProfile
+            fprintf('%s\n', ['Warning : ' sample_data{iCurSam}.toolbox_input_file ...
+                ' please document either instrument_nominal_height or instrument_nominal_depth '...
+                'global attributes so that an actual depth can be '...
+                'computed from other pressure sensors in the mooring']);
+        end
         continue;
     end
 end
@@ -353,7 +356,7 @@ for iCurSam = 1:nDatasets
     end
 end
 
-if ~auto
+if ~auto && ~isProfile
     f = figure(...
         'Name',        'Depth Computation',...
         'Visible',     'off',...

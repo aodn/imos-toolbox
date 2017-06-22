@@ -217,20 +217,21 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
 end
 
 function sam = forceMonotonic(sam, mode)
-  % We make sure that DEPTH/TIME coordinate variables appear
-  % ordered and that there is no redundant value.
+  % We make sure that TIME coordinate variable appears
+  % ordered monotically and that there is no redundant value.
   switch mode
-      case 'profile'
-          if strcmpi(sam.dimensions{1}.name, 'MAXZ'), return; end % this case produces non compliant files anyway
-          
-          dimensionName = 'DEPTH'; % so far we only produce downcasts to be compliant
-          sortMode = 'ascend';
-          sortModeStr = 'increasingly';
-          
       case 'timeSeries'
           dimensionName = 'TIME';
           sortMode = 'ascend';
           sortModeStr = 'increasingly';
+          
+      otherwise
+          % we do nothing, profile data should already be ordered 
+          % monotically either because pre-processing Tim Ingleton's 
+          % protocol was followed using SeaBird software or because
+          % CTDDepthBinPP is being used in the toolbox for non binned 
+          % profiles.
+          return;
   
   end
   iDim = getVar(sam.dimensions, dimensionName);
