@@ -379,7 +379,7 @@ function sample_data = readWQMdat( filename, mode )
               cndc = sample_data.variables{cndc};
               % conductivity is in S/m and gsw_C3515 in mS/cm
               crat = 10*cndc.data ./ gsw_C3515;
-              
+              psal = struct;
               psal.data = gsw_SP_from_R(crat, temp.data, pres.data);
           end
           
