@@ -1,7 +1,7 @@
 % what
 S, project                      = Integrated Marine Observing System (IMOS)
 S, Conventions                  = CF-1.6,IMOS-1.4
-S, standard_name_vocabulary     = NetCDF Climate and Forecast (CF) Metadata Convention Standard Name Table 27
+S, standard_name_vocabulary     = NetCDF Climate and Forecast (CF) Metadata Convention Standard Name Table 45
 S, title                        = 
 S, institution                  = 
 D, date_created                 = [mat now_utc]

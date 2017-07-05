@@ -118,6 +118,7 @@ switch upper(columnsInfo.type)
         
     case 'CDOM' %ppb
         name = 'CDOM';
+        comment = 'Expressed as equivalent mass fraction (ppb) of quinine sulfate dihydrate.';
         data = (sample - columnsInfo.offset)*columnsInfo.scale;
         calibration(1).formula = 'value_engineering_units = (counts - calibration_dark_count) x calibration_scale_factor';
         calibration(1).dark_count = columnsInfo.offset;
