@@ -48,7 +48,15 @@ function imosToolbox(auto, varargin)
 % POSSIBILITY OF SUCH DAMAGE.
 %
 
+% Set current toolbox version
+toolboxVersion = ['2.5.28 - ' computer];
+
 if nargin == 0, auto = 'manual'; end
+
+if strcmpi(auto, 'version')
+    disp(toolboxVersion);
+    return;
+end
 
 path = '';
 if ~isdeployed
@@ -73,11 +81,7 @@ for j = 1 : length(jars)
     javaaddpath(jars{j});
 end
 
-% Set current toolbox version
-toolboxVersion = ['2.5.28 - ' computer];
-
 switch auto  
   case 'auto',    autoIMOSToolbox(toolboxVersion, varargin{:});
-  case 'version', disp(toolboxVersion);
   otherwise,      flowManager(toolboxVersion);
 end
