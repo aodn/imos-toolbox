@@ -66,9 +66,8 @@ set(ax, 'Tag', 'axis1D');
 
 % for global/regional range and in/out water display
 mWh = findobj('Tag', 'mainWindow');
-sMh = findobj('Tag', 'samplePopUpMenu');
-iSample = get(sMh, 'Value');
 qcParam = get(mWh, 'UserData');
+iSample = find(arrayfun(@(x) strcmp(x.dataSet, sample_data.toolbox_input_file), qcParam));
 if ~isempty(qcParam)
     if isfield(qcParam, ['rangeMin' var.name])
         hold(ax, 'on');
