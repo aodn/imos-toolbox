@@ -366,8 +366,8 @@ if ~auto && ~isProfile
         'NumberTitle', 'off');
     
     cancelButton       = uicontrol('Style', 'pushbutton', 'String', 'Cancel');
-    resetParamsButton  = uicontrol('Style', 'pushbutton', 'String', 'Reset parameters, restart from depthPP.txt');
-    resetMappingButton = uicontrol('Style', 'pushbutton', 'String', 'Reset to current default mapping');
+    resetParamsButton  = uicontrol('Style', 'pushbutton', 'String', 'Reset to default mapping (delete last saved)');
+    resetMappingButton = uicontrol('Style', 'pushbutton', 'String', 'Reset to last performed mapping (saved) if any');
     confirmButton      = uicontrol('Style', 'pushbutton', 'String', 'Ok');
     
     descSamUic           = nan(nDatasets, 1);
@@ -907,10 +907,24 @@ end
         %RESETPARAMSCALLBACK Reset dataset specific parameters re-start
         %from depthPP.txt parameters
         %
+        fieldsToBeDeleted = {'same_family', 'include', 'exclude', ...
+            'useItsOwnDepth', 'useItsOwnPres', 'useItsOwnPresRel', ...
+            'firstNearestInst', 'secondNearestInst'};
         for j = 1:nDatasets
+            ppp = struct([]);
             pppFile = [sample_data{j}.toolbox_input_file '.ppp'];
             if exist(pppFile, 'file')
-                delete(pppFile);
+                load(pppFile, '-mat', 'ppp')
+            end
+            if ~isempty(ppp)
+                if isfield(ppp, currentPProutine)
+                    for l = 1:length(fieldsToBeDeleted)
+                        if isfield(ppp.(currentPProutine), fieldsToBeDeleted{l})
+                            ppp.(currentPProutine) = rmfield(ppp.(currentPProutine), fieldsToBeDeleted{l});
+                        end
+                    end
+                end
+                save(pppFile, 'ppp');
             end
         end
         reset = true;

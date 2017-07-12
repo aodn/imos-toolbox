@@ -501,26 +501,26 @@ narginchk(1, 2);
           'LATITUDE',       [],         NaN; ...
           'LONGITUDE',      [],         NaN; ...
           'NOMINAL_DEPTH',  [],         NaN; ...
-          'WSSH',           1,          waveData.param.Hs; ...   % sea_surface_wave_spectral_significant_height
-          'WPPE',           1,          waveData.param.Tp; ...   % sea_surface_wave_period_at_variance_spectral_density_maximum
-          ['WPDI' magExt],  1,          waveData.param.Dp; ...   % sea_surface_wave_from_direction_at_variance_spectral_density_maximum
-          'WWSH',           1,          waveData.param.Hs_W; ... % sea_surface_wind_wave_significant_height
-          'WWPP',           1,          waveData.param.Tp_W; ... % sea_surface_peak_wind_sea_wave_period
-          ['WWPD' magExt],  1,          waveData.param.Dp_W; ... % sea_surface_peak_wind_sea_wave_from_direction
-          'SWSH',           1,          waveData.param.Hs_S; ... % sea_surface_swell_wave_significant_height
-          'SWPP',           1,          waveData.param.Tp_S; ... % sea_surface_peak_swell_wave_period
-          ['SWPD' magExt],  1,          waveData.param.Dp_S; ... % sea_surface_peak_swell_wave_from_direction
+          'WSSH',           1,          waveData.param.Hs; ...   % Significant Wave Height Hs = 4 sqrt(M0)
+          'WPPE',           1,          waveData.param.Tp; ...   % Peak Wave Period (seconds) - period associated with the largest peak in the power spectrum
+          ['WPDI' magExt],  1,          waveData.param.Dp; ...   % Peak Wave Direction (degrees) - peak direction at the peak period
+          'WWSH',           1,          waveData.param.Hs_W; ... % Significant Wave Height in the sea region of the power spectrum
+          'WWPP',           1,          waveData.param.Tp_W; ... % Peak Sea Wave Period (seconds) - period associated with the largest peak in the sea region of the power spectrum
+          ['WWPD' magExt],  1,          waveData.param.Dp_W; ... % Peak Sea Wave Direction (degrees) - peak sea direction at the peak period in the sea region
+          'SWSH',           1,          waveData.param.Hs_S; ... % Significant Wave Height in the swell region of the power spectrum
+          'SWPP',           1,          waveData.param.Tp_S; ... % Peak Swell Wave Period (seconds) - period associated with the largest peak in the swell region of the power spectrum
+          ['SWPD' magExt],  1,          waveData.param.Dp_S; ... % Peak Swell Wave Direction (degrees) - peak swell direction at the peak period in the swell region
           % ht is in mm
           'DEPTH',          1,          waveData.param.ht/1000; ...
-          'WMXH',           1,          waveData.param.Hmax; ...  % sea_surface_wave_maximum_height
-          'WMPP',           1,          waveData.param.Tmax; ...  % sea_surface_wave_maximum_zero_crossing_period
-          'WHTH',           1,          waveData.param.Hth; ...   % sea_surface_wave_significant_height_of_highest_one_third
-          'WPTH',           1,          waveData.param.Tth; ...   % sea_surface_wave_period_of_highest_one_third
-          'WMSH',           1,          waveData.param.Hmn; ...   % sea_surface_wave_zero_crossing_mean_height
-          'WPMH',           1,          waveData.param.Tmn; ...   % sea_surface_wave_zero_crossing_period
-          'WHTE',           1,          waveData.param.Hte; ...   % sea_surface_wave_significant_height_of_highest_one_tenth
-          'WPTE',           1,          waveData.param.Tte; ...   % sea_surface_wave_period_of_highest_one_tenth
-          ['VDIR' magExt],  1,          waveData.param.Dmn; ...   % sea_surface_wave_from_direction
+          'WMXH',           1,          waveData.param.Hmax; ...  % Maximum wave height (meters) as determined by Zero-Crossing analysis of the surface track time series
+          'WMPP',           1,          waveData.param.Tmax; ...  % Maximum Peak Wave Period (seconds) as determined by Zero-Crossing analysis of the surface track time series
+          'WHTH',           1,          waveData.param.Hth; ...   % Significant wave height of the largest 1/3 of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          'WPTH',           1,          waveData.param.Tth; ...   % The period associated with the peak wave height of the largest 1/3 of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          'WMSH',           1,          waveData.param.Hmn; ...   % The mean significant wave height of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          'WPMH',           1,          waveData.param.Tmn; ...   % The period associated with the mean significant wave height of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          'WHTE',           1,          waveData.param.Hte; ...   % Significant wave height of the largest 1/10 of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          'WPTE',           1,          waveData.param.Tte; ...   % The period associated with the peak wave height of the largest 1/10 of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          ['VDIR' magExt],  1,          waveData.param.Dmn; ...   % Mean Peak Wave Direction
           % Vspec is in mm/sqrt(Hz)
           'VDEV',           [1 2],      (waveData.Vspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_velocity
           'VDEP',           [1 2],      (waveData.Pspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_pressure

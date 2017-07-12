@@ -95,7 +95,7 @@ switch pType
         end
         
     case 'ppp'
-        if isempty(pqc)
+        if isempty(ppp)
             ppp(1).(routine).(param) = value;
         else
             ppp.(routine).(param) = value;

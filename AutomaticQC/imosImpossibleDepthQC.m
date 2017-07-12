@@ -311,7 +311,7 @@ switch mode
         % possibleMin shouldn't be above the surface (~global range value)
         % possibleMax cannot be below the site depth
         possibleMin = max(possibleMin, imosParameters('DEPTH', 'valid_min')); % value from global range
-        possibleMax = min(possibleMax, siteNominalDepth + 20*siteNominalDepth/100); % we allow +20% to the nominal site depth
+        possibleMax = min(possibleMax, siteNominalDepth + zNominalMargin); % we allow the same flexibility for nominal site depth as for instrument nominal_depth
         
         if any(strcmpi(paramName, {'PRES', 'PRES_REL'}))
             if ~isempty(sample_data.geospatial_lat_min) && ~isempty(sample_data.geospatial_lat_max)

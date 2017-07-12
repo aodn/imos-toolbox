@@ -156,13 +156,13 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
                       % we make sure values fall within [0; 360[
                       data = make0To360(data);
                       
-                  case 'VCUR_MAG' % magnetic_northward_sea_water_velocity (m s-1)
+                  case 'VCUR_MAG' % northward_sea_water_velocity (m s-1) referenced to magnetic north
                       data = vcur_mag*cos(geomagDeclin(i) * pi/180) - ucur_mag*sin(geomagDeclin(i) * pi/180);
                       
-                  case 'UCUR_MAG' % magnetic_eastward_sea_water_velocity (m s-1)
+                  case 'UCUR_MAG' % eastward_sea_water_velocity (m s-1) referenced to magnetic north
                       data = vcur_mag*sin(geomagDeclin(i) * pi/180) + ucur_mag*cos(geomagDeclin(i) * pi/180);
                       
-                  case 'SSWV_MAG' % sea_surface_wave_magnetic_directional_variance_spectral_density (m2 s deg-1)
+                  case 'SSWV_MAG' % sea_surface_wave_directional_variance_spectral_density (m2 s deg-1) referenced to magnetic north
                       % data stays "the same" but we modify the dimension
                       % from DIR_MAG to DIR
                       iDim = sample_data{iMagDataSet(i)}.variables{j}.dimensions(end);

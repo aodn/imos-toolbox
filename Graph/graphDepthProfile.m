@@ -109,6 +109,7 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
     depth = sample_data.dimensions{depth};
   end
   
+  yLimits = [NaN, NaN];
   for k = 1:length(vars)
     
     name = sample_data.variables{vars(k)}.name;
@@ -164,7 +165,11 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
         curData = sample_data.variables{vars(k)}.data;
         curDepth = depth.data;
         curFlag = sample_data.variables{vars(k)}.flags;
-        iGood = (curFlag == goodFlag) | (curFlag == pGoodFlag) | (curFlag == rawFlag);
+        
+        iGood = curDepth >= 0;
+        if strcmpi(mode, 'timeSeries')
+            iGood = (curFlag == goodFlag) | (curFlag == pGoodFlag) | (curFlag == rawFlag);
+        end
 
         [nSamples, nBins] = size(curData);
         if strcmpi(mode, 'timeSeries') && nBins > 1
@@ -173,7 +178,7 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
             curDepth = repmat(curDepth, 1, nBins) - repmat(sample_data.dimensions{iVertDim}.data', nSamples, 1);
         end
         
-        yLimits = [floor(min(curDepth(iGood))*10)/10, ceil(max(curDepth(iGood))*10)/10];
+        yLimits = [min(floor(min(curDepth(iGood))*10)/10, yLimits(1)), max(ceil(max(curDepth(iGood))*10)/10, yLimits(2))];
         xLimits = [floor(min(curData(iGood))*10)/10,  ceil(max(curData(iGood))*10)/10];
         
         %check for my surface soak flags - and set xLimits to flag range
