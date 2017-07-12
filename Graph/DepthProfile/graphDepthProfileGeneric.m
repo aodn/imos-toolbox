@@ -1,4 +1,4 @@
-function [h labels] = graphDepthProfileGeneric( ax, sample_data, var )
+function [h, labels] = graphDepthProfileGeneric( ax, sample_data, var )
 %GRAPHDEPTHPROFILEGENERIC Plots the given variable (x axis) against depth 
 % (y axis).
 %
@@ -92,9 +92,10 @@ set(ax, 'Tag', 'axis1D');
 
 % for global/regional range display
 mWh = findobj('Tag', 'mainWindow');
-sMh = findobj('Tag', 'samplePopUpMenu');
-iSample = get(sMh, 'Value');
 climatologyRange = get(mWh, 'UserData');
+
+iSample = find(arrayfun(@(x) strcmp(x.dataSet, sample_data.toolbox_input_file), climatologyRange));
+
 if ~isempty(climatologyRange)
     if isfield(climatologyRange, ['rangeMin' var.name])
         xLim = get(ax, 'XLim');

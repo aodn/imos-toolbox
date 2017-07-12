@@ -19,7 +19,7 @@ function value = readDatasetParameter(rawDataFile, routine, param, value)
 %
 %   param       - Name of the routine parameter to be retrieved. If the
 %               name does not map to a parameter listed in the routine of 
-%               the parameter file, an error is raised.
+%               the parameter file, the value of the default parameter is returned.
 %
 %   value       - Value of the default parameter.
 %
@@ -107,8 +107,6 @@ if exist(pFile, 'file')
         else
             if isfield(p.(routine), param)
                 value = p.(routine).(param);
-            else
-                error([param ' is not a parameter of ' routine]);
             end
         end
     end

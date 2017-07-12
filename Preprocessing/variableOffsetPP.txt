@@ -1,9 +1,0 @@
-% Default scale/offset values used by variableOffsetPP for different variable 
-% types. Each entry is of the form:
-%
-%   variable_name = offset_value, scale_value
-%
-% If a variable is not listed in this file, offset/scale values of 0.0/1.0 
-% are used.
-%
-

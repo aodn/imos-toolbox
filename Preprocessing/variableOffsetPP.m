@@ -62,6 +62,16 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
   % local time to UTC conversion
   if strcmpi(qcLevel, 'raw'), return; end
   
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
+  
+  isTimeSeries = false;
+  switch mode
+      case 'timeSeries'
+          isTimeSeries = true;
+          
+  end
+  
   % generate descriptions for each data set
   nSampleData = length(sample_data);
   descs = cell(1, nSampleData);
@@ -69,14 +79,29 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
     descs{k} = genSampleDataDesc(sample_data{k});
   end
   
-  offsetFile = ['Preprocessing' filesep 'variableOffsetPP.txt'];
-  
   % cell arrays of numeric arrays, representing the 
   % offsets/scales to  be applied to each variable 
   % in each data set; populated when the panels for 
   % each data set are populated
-  offsets = cell(1, nSampleData);
-  scales  = cell(1, nSampleData);
+  defaultOffsets = cell(1, nSampleData);
+  defaultScales  = cell(1, nSampleData);
+  
+  currentPProutine = mfilename;
+  
+  % populate default values for offsets and scales
+  for k = 1:nSampleData
+      nVars = length(sample_data{k}.variables);
+      
+      defaultOffsets{k} = zeros(nVars,1);
+      defaultScales{ k} = ones( nVars,1);
+      
+      % read dataset specific PP parameters if exist and override previous entries from
+      % parameter file depth.txt
+      defaultOffsets{k} = readDatasetParameter(sample_data{k}.toolbox_input_file, currentPProutine, 'offset', defaultOffsets{k});
+      defaultScales{k}  = readDatasetParameter(sample_data{k}.toolbox_input_file, currentPProutine, 'scale',  defaultScales{k});
+  end
+  appliedOffsets = defaultOffsets;
+  appliedScales  = defaultScales;
   
   if ~auto
       % dialog figure
@@ -106,10 +131,10 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
       set(tabPanel,      'Units', 'normalized');
       
       % position widgets
-      set(f,             'Position', [0.25, 0.25,  0.5, 0.5]);
-      set(cancelButton,  'Position', [0.0,  0.0,  0.5,  0.1]);
-      set(confirmButton, 'Position', [0.5,  0.0,  0.5,  0.1]);
-      set(tabPanel,      'Position', [0.0,  0.1,  1.0,  0.9]);
+      set(f,             'Position', [0.25, 0.25, 0.5, 0.5]);
+      set(cancelButton,  'Position', [0.0,  0.0,  0.5, 0.1]);
+      set(confirmButton, 'Position', [0.5,  0.0,  0.5, 0.1]);
+      set(tabPanel,      'Position', [0.0,  0.1,  1.0, 0.9]);
       
       % reset back to pixels
       set(f,             'Units', 'pixels');
@@ -128,21 +153,53 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
       
       % populate the data set panels
       for k = 1:nSampleData
-          
           nVars = length(sample_data{k}.variables);
           rh    = 0.95 / (nVars + 1);
-          offsets{k} = zeros(nVars,1);
-          scales{ k} = ones( nVars,1);
+          
+          diffHeaderLabelStr = '';
+          if isTimeSeries
+              % we might want to see the difference for this variable with
+              % the nearest instrument on the mooring
+              iTimeCurrent = getVar(sample_data{k}.dimensions, 'TIME');
+              timeCurrent = sample_data{k}.dimensions{iTimeCurrent}.data;
+              nominalDepthCurrent = inf;
+              if isfield(sample_data{k}, 'instrument_nominal_depth')
+                  nominalDepthCurrent = sample_data{k}.instrument_nominal_depth;
+              else
+                  fprintf('%s\n', ['Info : ' sample_data{k}.toolbox_input_file ...
+                      ' please document instrument_nominal_depth global attributes'...
+                      ' so that a nearest instrument can be found in the mooring']);
+              end
+              
+              % we will be looking at differences over a day from 1/4 of the
+              % deployment
+              timeForDiff = timeCurrent(1) + (timeCurrent(end)-timeCurrent(1))/4;
+              if isfield(sample_data{k}, 'time_deployment_start')
+                  % or preferably from the moment the mooring is in position
+                  timeForDiff = sample_data{k}.time_deployment_start;
+              else
+                  fprintf('%s\n', ['Info : ' sample_data{k}.toolbox_input_file ...
+                      ' please document time_deployment_start global attributes'...
+                      ' so that difference with a nearest instrument can be better calculated']);
+              end
+              iForDiff = timeCurrent >= timeForDiff & ...
+                  timeCurrent <= timeForDiff + 1;
+              timeCurrentForDiff = timeCurrent(iForDiff);
+              
+              diffHeaderLabelStr = ['Mean diff from ' datestr(timeCurrentForDiff(1), 'dd-mm-yyyy HH:MM:SS UTC') ' over 24h'];
+          end
           
           % column headers
           varHeaderLabel    = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
               'String', 'Variable', 'FontWeight', 'bold');
           minHeaderLabel    = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
               'String', 'Minimum',  'FontWeight', 'bold');
-          meanHeaderLabel   = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
-              'String', 'Mean',     'FontWeight', 'bold');
           maxHeaderLabel    = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
               'String', 'Maximum',  'FontWeight', 'bold');
+          meanHeaderLabel   = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+              'String', 'Mean',     'FontWeight', 'bold');
+          diffHeaderLabel   = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
+              'String', diffHeaderLabelStr, 'FontWeight', 'bold');
           offsetHeaderLabel = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
               'String', 'Offset',   'FontWeight', 'bold');
           scaleHeaderLabel  = uicontrol('Parent', setPanels(k), 'Style', 'text', ...
@@ -151,53 +208,103 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
           % position headers
           set(varHeaderLabel,    'Units', 'normalized');
           set(minHeaderLabel,    'Units', 'normalized');
-          set(meanHeaderLabel,   'Units', 'normalized');
           set(maxHeaderLabel,    'Units', 'normalized');
+          set(meanHeaderLabel,   'Units', 'normalized');
+          set(diffHeaderLabel,   'Units', 'normalized');
           set(offsetHeaderLabel, 'Units', 'normalized');
           set(scaleHeaderLabel,  'Units', 'normalized');
           
-          set(varHeaderLabel,    'Position', [0.0,  0.95 - rh, 0.16, rh]);
-          set(minHeaderLabel,    'Position', [0.16, 0.95 - rh, 0.16, rh]);
-          set(meanHeaderLabel,   'Position', [0.32, 0.95 - rh, 0.16, rh]);
-          set(maxHeaderLabel,    'Position', [0.48, 0.95 - rh, 0.16, rh]);
-          set(offsetHeaderLabel, 'Position', [0.64, 0.95 - rh, 0.16, rh]);
-          set(scaleHeaderLabel,  'Position', [0.80, 0.95 - rh, 0.16, rh]);
+          set(varHeaderLabel,    'Position', [0.0,  0.95 - rh, 0.14, rh]);
+          set(minHeaderLabel,    'Position', [0.14, 0.95 - rh, 0.14, rh]);
+          set(maxHeaderLabel,    'Position', [0.28, 0.95 - rh, 0.14, rh]);
+          set(meanHeaderLabel,   'Position', [0.42, 0.95 - rh, 0.14, rh]);
+          set(diffHeaderLabel,   'Position', [0.56, 0.95 - rh, 0.14, rh]);
+          set(offsetHeaderLabel, 'Position', [0.70, 0.95 - rh, 0.14, rh]);
+          set(scaleHeaderLabel,  'Position', [0.84, 0.95 - rh, 0.14, rh]);
           
           set(varHeaderLabel,    'Units', 'pixels');
           set(minHeaderLabel,    'Units', 'pixels');
-          set(meanHeaderLabel,   'Units', 'pixels');
           set(maxHeaderLabel,    'Units', 'pixels');
+          set(meanHeaderLabel,   'Units', 'pixels');
+          set(diffHeaderLabel,   'Units', 'pixels');
           set(offsetHeaderLabel, 'Units', 'pixels');
           set(scaleHeaderLabel,  'Units', 'pixels');
           
           % column values (one row for each variable)
           for m = 1:nVars
+              notRelevantParams = {'TIMESERIES', 'PROFILE', 'TRAJECTORIES', 'TIME', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH', 'BOT_DEPTH', 'DIRECTION'};
+              if any(strcmpi(sample_data{k}.variables{m}.name, notRelevantParams)), continue; end
               
-              v = sample_data{k}.variables{m};
+              offsetVal = num2str(defaultOffsets{k}(m));
+              scaleVal  = num2str(defaultScales{k}(m));
+          
+              sizeData = size(sample_data{k}.variables{m}.data);
               
-              notRelevantParams = {'DIRECTION'};
-              if any(strcmpi(v.name, notRelevantParams)), continue; end
-              
-              try
-                  str              = readProperty(v.name, offsetFile);
-                  [offsetVal, str] = strtok(str, ',');
-                  [scaleVal,  str] = strtok(str, ',');
-              catch
-                  offsetVal = '0.0';
-                  scaleVal  = '1.0';
+              dataDiffStr = '';
+              if isTimeSeries && length(sizeData) == 2 && any(sizeData == 1)
+                  % look for nearest instrument with the same 1D variable
+                  distInstruments = inf(1, nSampleData);
+                  for kk=1:nSampleData
+                      if kk == k, continue; end
+                      nominalDepthOther = inf;
+                      if isfield(sample_data{kk}, 'instrument_nominal_depth')
+                          nominalDepthOther = sample_data{kk}.instrument_nominal_depth;
+                      else
+                          continue;
+                      end
+                      distInstruments(kk) = abs(nominalDepthCurrent - nominalDepthOther);
+                  end
+                  distInstruments(isnan(distInstruments)) = inf;
+                  
+                  [~, iNearest] = min(distInstruments);
+                  varName = sample_data{k}.variables{m}.name;
+                  iVarNearest = getVar(sample_data{iNearest}.variables, varName);
+                  signPresAtm = 0;
+                  if strcmpi(varName, 'PRES') && iVarNearest == 0
+                      iVarNearest = getVar(sample_data{iNearest}.variables, 'PRES_REL');
+                      signPresAtm = -1;
+                  elseif strcmpi(varName, 'PRES_REL') && iVarNearest == 0
+                      iVarNearest = getVar(sample_data{iNearest}.variables, 'PRES');
+                      signPresAtm = 1;
+                  end
+                  while iVarNearest == 0 && ~all(isinf(distInstruments))
+                      distInstruments(iNearest) = inf;
+                      [~, iNearest] = min(distInstruments);
+                      iVarNearest = getVar(sample_data{iNearest}.variables, sample_data{k}.variables{m}.name);
+                      signPresAtm = 0;
+                      if strcmpi(varName, 'PRES') && iVarNearest == 0
+                          iVarNearest = getVar(sample_data{iNearest}.variables, 'PRES_REL');
+                          signPresAtm = -1;
+                      elseif strcmpi(varName, 'PRES_REL') && iVarNearest == 0
+                          iVarNearest = getVar(sample_data{iNearest}.variables, 'PRES');
+                          signPresAtm = 1;
+                      end
+                  end
+                  
+                  if iVarNearest && ~isinf(distInstruments(iNearest))
+                      dataNearest = sample_data{iNearest}.variables{iVarNearest}.data;
+                      iTimeNearest = getVar(sample_data{iNearest}.dimensions, 'TIME');
+                      timeNearest = sample_data{iNearest}.dimensions{iTimeNearest}.data;
+                      
+                      dataDiff = sample_data{k}.variables{m}.data(iForDiff) + signPresAtm*(14.7*0.689476) - interp1(timeNearest, dataNearest, timeCurrentForDiff);
+                      
+                      iNanDataDiff = isnan(dataDiff);
+                      dataDiffStr = [num2str(mean(dataDiff(~iNanDataDiff))) ' @ ' num2str(distInstruments(iNearest)) 'm away (nominal)'];
+                  end
               end
               
-              offsets{k}(m) = str2double(offsetVal);
-              scales{ k}(m) = str2double(scaleVal);
-          
+              iNanDataCurrent = isnan(sample_data{k}.variables{m}.data);
+              
               varLabel    = uicontrol(...
-                  'Parent', setPanels(k), 'Style', 'text', 'String', v.name);
+                  'Parent', setPanels(k), 'Style', 'text', 'String', sample_data{k}.variables{m}.name);
               minLabel    = uicontrol(...
-                  'Parent', setPanels(k), 'Style', 'text', 'String', min(v.data(:)));
-              meanLabel   = uicontrol(...
-                  'Parent', setPanels(k), 'Style', 'text', 'String', mean(v.data(:)));
+                  'Parent', setPanels(k), 'Style', 'text', 'String', num2str(min(sample_data{k}.variables{m}.data(~iNanDataCurrent))));
               maxLabel    = uicontrol(...
-                  'Parent', setPanels(k), 'Style', 'text', 'String', max(v.data(:)));
+                  'Parent', setPanels(k), 'Style', 'text', 'String', num2str(max(sample_data{k}.variables{m}.data(~iNanDataCurrent))));
+              meanLabel   = uicontrol(...
+                  'Parent', setPanels(k), 'Style', 'text', 'String', num2str(mean(sample_data{k}.variables{m}.data(~iNanDataCurrent))));
+              diffLabel = uicontrol(...
+                  'Parent', setPanels(k), 'Style', 'text', 'String', dataDiffStr);
               offsetField = uicontrol(...
                   'Parent', setPanels(k), 'Style', 'edit', 'String', offsetVal);
               scaleField  = uicontrol(...
@@ -214,8 +321,9 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
                   color = color - 0.05;
                   set(varLabel,    'BackgroundColor', color);
                   set(minLabel,    'BackgroundColor', color);
-                  set(meanLabel,   'BackgroundColor', color);
                   set(maxLabel,    'BackgroundColor', color);
+                  set(meanLabel,   'BackgroundColor', color);
+                  set(diffLabel,   'BackgroundColor', color);
                   set(offsetField, 'BackgroundColor', color);
                   set(scaleField,  'BackgroundColor', color);
               end
@@ -223,22 +331,25 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
               % position column values
               set(varLabel,    'Units', 'normalized');
               set(minLabel,    'Units', 'normalized');
-              set(meanLabel,   'Units', 'normalized');
               set(maxLabel,    'Units', 'normalized');
+              set(meanLabel,   'Units', 'normalized');
+              set(diffLabel,   'Units', 'normalized');
               set(offsetField, 'Units', 'normalized');
               set(scaleField,  'Units', 'normalized');
               
-              set(varLabel,    'Position', [0.0, 0.95 - (rh*(m+1)),  0.16, rh]);
-              set(minLabel,    'Position', [0.16, 0.95 - (rh*(m+1)), 0.16, rh]);
-              set(meanLabel,   'Position', [0.32, 0.95 - (rh*(m+1)), 0.16, rh]);
-              set(maxLabel,    'Position', [0.48, 0.95 - (rh*(m+1)), 0.16, rh]);
-              set(offsetField, 'Position', [0.64, 0.95 - (rh*(m+1)), 0.16, rh]);
-              set(scaleField,  'Position', [0.80, 0.95 - (rh*(m+1)), 0.16, rh]);
+              set(varLabel,    'Position', [0.0,  0.95 - (rh*(m+1)), 0.14, rh]);
+              set(minLabel,    'Position', [0.14, 0.95 - (rh*(m+1)), 0.14, rh]);
+              set(maxLabel,    'Position', [0.28, 0.95 - (rh*(m+1)), 0.14, rh]);
+              set(meanLabel,   'Position', [0.42, 0.95 - (rh*(m+1)), 0.14, rh]);
+              set(diffLabel,   'Position', [0.56, 0.95 - (rh*(m+1)), 0.14, rh]);
+              set(offsetField, 'Position', [0.70, 0.95 - (rh*(m+1)), 0.14, rh]);
+              set(scaleField,  'Position', [0.84, 0.95 - (rh*(m+1)), 0.14, rh]);
               
               set(varLabel,    'Units', 'pixels');
               set(minLabel,    'Units', 'pixels');
-              set(meanLabel,   'Units', 'pixels');
               set(maxLabel,    'Units', 'pixels');
+              set(meanLabel,   'Units', 'pixels');
+              set(diffLabel,   'Units', 'pixels');
               set(offsetField, 'Units', 'pixels');
               set(scaleField,  'Units', 'pixels');
           end
@@ -251,69 +362,45 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
       
       set(f, 'Visible', 'on');
       uiwait(f);
-  else
-      for k = 1:nSampleData
-          
-          nVars = length(sample_data{k}.variables);
-          offsets{k} = zeros(nVars,1);
-          scales{ k} = ones( nVars,1);
-          
-          for m = 1:nVars
-              
-              v = sample_data{k}.variables{m};
-              try
-                  str              = readProperty(v.name, offsetFile);
-                  [offsetVal, str] = strtok(str, ',');
-                  [scaleVal,  str] = strtok(str, ',');
-              catch
-                  offsetVal = '0.0';
-                  scaleVal  = '1.0';
-              end
-              
-              offsets{k}(m) = str2double(offsetVal);
-              scales{ k}(m) = str2double(scaleVal);
-          end
-      end
   end
   
   % user cancelled dialog
-  if isempty(offsets) ||  isempty(scales), return; end
+  if isempty(appliedOffsets) ||  isempty(appliedScales), return; end
   
   % otherwise, apply the offsets/scales
   for k = 1:nSampleData
-    
-    history = sample_data{k}.history;
-      
     vars = sample_data{k}.variables;
-    for m = 1:length(vars)
-      
-      d = vars{m}.data;
-      o = offsets{k}(m);
-      s = scales{k}(m);
-      
-      if ~isnan(offsets{k}(m)) && ~isnan(scales{k}(m)) && ...
-              (offsets{k}(m) ~= 0 || scales{k}(m) ~= 1)
-          vars{m}.data = o + (s .* d);
-          
-          variableOffsetComment = ['variableOffsetPP: variable values modified applying '...
-                  'the following offset : ' num2str(offsets{k}(m)) ' and scale : ' num2str(scales{k}(m)) '.'];
-          
-          comment = vars{m}.comment;
-          if isempty(comment)
-              vars{m}.comment = variableOffsetComment;
-          else
-              vars{m}.comment = [comment ' ' variableOffsetComment];
-          end
-          
-          str = sprintf('%0.6f,%0.6f', offsets{k}(m), scales{k}(m));
-          writeProperty(vars{m}.name, str, offsetFile);
-          
-          if isempty(history)
-              history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
-          else
-              history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
-          end
-      end
+    
+    for m = 1:length(vars)  
+        if ~isnan(appliedOffsets{k}(m)) && ~isnan(appliedScales{k}(m))
+            if (appliedOffsets{k}(m) ~= 0 || appliedScales{k}(m) ~= 1)
+                % apply offsets and scales
+                vars{m}.data = appliedOffsets{k}(m) + (appliedScales{k}(m) .* vars{m}.data);
+                
+                variableOffsetComment = ['variableOffsetPP: variable values modified applying '...
+                    'the following formula: new_data = offset + (scale * data) with offset = ' ...
+                    num2str(appliedOffsets{k}(m)) ' and scale = ' num2str(appliedScales{k}(m)) '.'];
+                
+                comment = vars{m}.comment;
+                if isempty(comment)
+                    vars{m}.comment = variableOffsetComment;
+                else
+                    vars{m}.comment = [comment ' ' variableOffsetComment];
+                end
+                
+                history = sample_data{k}.history;
+                if isempty(history)
+                    sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
+                else
+                    sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
+                end
+            end
+            if (appliedOffsets{k}(m) ~= defaultOffsets{k}(m) || appliedScales{k}(m) ~= defaultScales{k}(m))
+                % write/update dataset PP parameters
+                writeDatasetParameter(sample_data{k}.toolbox_input_file, currentPProutine, 'offset', appliedOffsets{k});
+                writeDatasetParameter(sample_data{k}.toolbox_input_file, currentPProutine, 'scale',  appliedScales{k});
+            end
+        end
     end
     sample_data{k}.variables = vars;
   end
@@ -331,8 +418,8 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
   function cancelButtonCallback(source,ev)
   %CANCELBUTTONCALLBACK Discards user input, and closes the dialog.
   % 
-    offsets = {};
-    scales  = {};
+    appliedOffsets = {};
+    appliedScales  = {};
     delete(f);
   end
 
@@ -355,8 +442,8 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
     
     % reset the offset value on non-numerical 
     % input, otherwise save the new value
-    if isnan(val), set(source, 'String', num2str(offsets{setIdx}(varIdx)));
-    else           offsets{setIdx}(varIdx) = val;
+    if isnan(val), set(source, 'String', num2str(defaultOffsets{setIdx}(varIdx)));
+    else           appliedOffsets{setIdx}(varIdx) = val;
     end
   end
 
@@ -373,8 +460,8 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
     
     % reset the scale value on non-numerical 
     % input, otherwise save the new value
-    if isnan(val), set(source, 'String', num2str(scales{setIdx}(varIdx)));
-    else           scales{setIdx}(varIdx) = val;
+    if isnan(val), set(source, 'String', num2str(defaultScales{setIdx}(varIdx)));
+    else           appliedScales{setIdx}(varIdx) = val;
     end
   end
 end

@@ -1,4 +1,4 @@
-function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var, color, xTickProp )
+function [h, labels] = graphTimeSeriesGeneric( ax, sample_data, var, color, xTickProp )
 %GRAPHTIMESERIESGENERIC Plots the given variable as normal, single dimensional, 
 % time series data. If the data are multi-dimensional, multiple lines will be
 % plotted and returned.
@@ -66,9 +66,10 @@ set(ax, 'Tag', 'axis1D');
 
 % for global/regional range and in/out water display
 mWh = findobj('Tag', 'mainWindow');
-sMh = findobj('Tag', 'samplePopUpMenu');
-iSample = get(sMh, 'Value');
 qcParam = get(mWh, 'UserData');
+
+iSample = find(arrayfun(@(x) strcmp(x.dataSet, sample_data.toolbox_input_file), qcParam));
+
 if ~isempty(qcParam)
     if isfield(qcParam, ['rangeMin' var.name])
         hold(ax, 'on');
