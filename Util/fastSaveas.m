@@ -3,17 +3,30 @@ function fastSaveas( hFig, fileDestination )
 % It is used to save diagnostic plots when exporting netCDF files.
 
 % ensure the printed version is the same whatever the screen used.
-set(hFig, 'PaperPositionMode', 'manual');
-set(hFig, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
+set(hFig, ...
+    'PaperPositionMode',    'manual', ...
+    'PaperType',            'A4', ...
+    'PaperOrientation',     'landscape', ...
+    'InvertHardcopy',       'off'); % preserve the color scheme
 
-% preserve the color scheme
-set(hFig, 'InvertHardcopy', 'off');
+switch computer
+    case 'GLNXA64'
+        set(hFig, ...
+            'Position',         [10 10 1920 1200]); % set static figure resolution (some linux go fullscreen across every screen!)
+        
+    otherwise
+        set(hFig, ...
+            'PaperUnits',       'normalized', ...
+            'PaperPosition',    [0 0 1 1]); % set figure resolution to full screen (as big as possible to fit the legend)
+        
+end
 
-% use hardcopy as a trick to go faster than saveas.
-% opengl (hardware or software) should be supported by any platform and go at least just as
-% fast as zbuffer. With hardware accelaration supported, could even go a
-% lot faster.
-imwrite(hardcopy(hFig, '-dopengl'), fileDestination);
+% use hgexport to print to file as close as possible as what we see
+myStyle = hgexport('factorystyle');
+myStyle.Format     = 'png'; % (default is eps)
+myStyle.Background = [0.75 0.75 0.75]; % grey (default is white)
+
+hgexport(hFig, fileDestination, myStyle);
 
 end
 
