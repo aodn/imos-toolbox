@@ -144,16 +144,15 @@ for i=1:lenSampleData
             size(sample_data{iSort(i)}.variables{iVar}.data, 3) == 1 % we're only plotting ADCP 2D variables
         if initiateFigure
             fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
+            visible = 'on';
+            if saveToFile, visible = 'off'; end
             hFigMooringVar = figure(...
-                'Name', title, ...
-                'NumberTitle', 'off', ...
-                'OuterPosition', monitorRect(iBigMonitor, :));
+                'Name',             title, ...
+                'NumberTitle',      'off', ...
+                'Visible',          visible, ...
+                'OuterPosition',    monitorRect(iBigMonitor, :));
             
-            % create uipanel within figure so that screencapture can be
-            % used on the plot only and without capturing all of the figure
-            % (including buttons, menus...)
-            hPanelMooringVar = uipanel('Parent', hFigMooringVar);
-            hAxMooringVar = axes('Parent', hPanelMooringVar);
+            hAxMooringVar = axes('Parent',   hFigMooringVar);
             
             set(get(hAxMooringVar, 'XLabel'), 'String', 'Time');
             set(get(hAxMooringVar, 'YLabel'), 'String', [nameHeight ' (m)'], 'Interpreter', 'none');
@@ -250,7 +249,7 @@ if ~initiateFigure
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_PCOLOR_');
         
-        fastSaveas(hFigMooringVar, hPanelMooringVar, fullfile(exportDir, fileName));
+        fastSaveas(hFigMooringVar, fullfile(exportDir, fileName));
         
         close(hFigMooringVar);
     end

@@ -190,16 +190,15 @@ if any(isPlottable)
         if isPlottable(i)
             if initiateFigure
                 fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
+                visible = 'on';
+                if saveToFile, visible = 'off'; end
                 hFigMooringVar = figure(...
-                    'Name', title, ...
-                    'NumberTitle','off', ...
-                    'OuterPosition', monitorRect(iBigMonitor, :));
+                    'Name',             title, ...
+                    'NumberTitle',      'off', ...
+                    'Visible',          visible, ...
+                    'OuterPosition',    monitorRect(iBigMonitor, :));
                 
-                % create uipanel within figure so that screencapture can be
-                % used on the plot only and without capturing all of the figure
-                % (including buttons, menus...)
-                hPanelMooringVar = uipanel('Parent', hFigMooringVar);
-                hAxMooringVar = axes('Parent', hPanelMooringVar);
+                hAxMooringVar = axes('Parent',   hFigMooringVar);
             
                 set(hAxMooringVar, 'YDir', 'reverse');
                 set(get(hAxMooringVar, 'XLabel'), 'String', 'Time');
@@ -383,8 +382,7 @@ if ~initiateFigure
             'buffer', [0 -hYBuffer], ...
             'ncol', nCols,...
             'FontSize', fontSizeAx, ...
-            'xscale', xscale, ...
-            'parent', hPanelMooringVar);
+            'xscale', xscale);
         entries = get(hLegend,'children');
         % if used mesh for scatter plot then have to clean up legend
         % entries
@@ -421,7 +419,7 @@ if ~initiateFigure
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_SCATTER_');
         
-        fastSaveas(hFigMooringVar, hPanelMooringVar, fullfile(exportDir, fileName));
+        fastSaveas(hFigMooringVar, fullfile(exportDir, fileName));
         
         close(hFigMooringVar);
     end

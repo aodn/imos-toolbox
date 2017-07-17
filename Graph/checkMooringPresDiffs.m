@@ -141,18 +141,16 @@ backgroundColor = [0.75 0.75 0.75];
 
 %plot
 fileName = genIMOSFileName(sample_data{iCurrSam}, 'png');
+visible = 'on';
+if saveToFile, visible = 'off'; end
 hFigPressDiff = figure(...
-    'Name', title, ...
-    'NumberTitle','off', ...
-    'OuterPosition', monitorRect(iBigMonitor, :));
-
-% create uipanel within figure so that screencapture can be
-% used on the plot only and without capturing all of the figure
-% (including buttons, menus...)
-hPanelMooringVar = uipanel('Parent', hFigPressDiff);
+    'Name',             title, ...
+    'NumberTitle',      'off', ...
+    'Visible',          visible, ...
+    'OuterPosition',    monitorRect(iBigMonitor, :));
 
 %pressure plot
-hAxPress = subplot(2,1,1,'Parent', hPanelMooringVar);
+hAxPress = subplot(2,1,1,'Parent', hFigPressDiff);
 set(hAxPress, 'YDir', 'reverse')
 set(get(hAxPress, 'XLabel'), 'String', 'Time');
 set(get(hAxPress, 'YLabel'), 'String', [presRelCode ' (' varUnit ')'], 'Interpreter', 'none');
@@ -162,7 +160,7 @@ set(hAxPress, 'XLim', [xMin, xMax]);
 hold(hAxPress, 'on');
 
 %Pressure diff plot
-hAxPressDiff = subplot(2,1,2,'Parent', hPanelMooringVar);
+hAxPressDiff = subplot(2,1,2,'Parent', hFigPressDiff);
 set(get(hAxPressDiff, 'XLabel'), 'String', 'Time');
 set(get(hAxPressDiff, 'YLabel'), 'String', ['Pressure differences (' varUnit ')'], 'Interpreter', 'none');
 set(get(hAxPressDiff, 'Title'), 'String', ...
@@ -332,8 +330,7 @@ if isPlottable
         'buffer', [0 -hYBuffer], ...
         'ncol', nCols,...
         'FontSize', fontSizeAx,...
-        'xscale', xscale, ...
-        'parent', hPanelMooringVar);
+        'xscale', xscale);
     posAx = get(hAxPress, 'Position');
     set(hLegend, 'Units', 'Normalized', 'color', backgroundColor);
 
@@ -345,7 +342,7 @@ if isPlottable
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
         
-        fastSaveas(hFigPressDiff, hPanelMooringVar, fullfile(exportDir, fileName));
+        fastSaveas(hFigPressDiff, fullfile(exportDir, fileName));
         
         close(hFigPressDiff);
     end

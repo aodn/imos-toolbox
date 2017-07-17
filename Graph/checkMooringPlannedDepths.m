@@ -191,17 +191,16 @@ hLineVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none'
 %now plot all the calculated depths on one plot to choose region for comparison:
 %plot
 fileName = genIMOSFileName(sample_data{1}, 'png');
+visible = 'on';
+if saveToFile, visible = 'off'; end
 hFigPress = figure(...
-    'Name', title, ...
-    'NumberTitle','off', ...
-    'OuterPosition', monitorRect(iBigMonitor, :));
+    'Name',             title, ...
+    'NumberTitle',      'off', ...
+    'Visible',          visible, ...
+    'OuterPosition',    monitorRect(iBigMonitor, :));
 
-% create uipanel within figure so that screencapture can be
-% used on the plot only and without capturing all of the figure
-% (including buttons, menus...)
-hPanelMooringVar = uipanel('Parent', hFigPress);
-hAxPress     = subplot(2,1,1,'Parent', hPanelMooringVar);
-hAxDepthDiff = subplot(2,1,2,'Parent', hPanelMooringVar);
+hAxPress     = subplot(2,1,1,'Parent', hFigPress);
+hAxDepthDiff = subplot(2,1,2,'Parent', hFigPress);
 
 %depth plot for selecting region to compare depth to planned depth
 set(hAxPress, 'YDir', 'reverse')
@@ -277,8 +276,7 @@ if isPlottable
         'buffer', [0 -hYBuffer], ...
         'ncol', nCols,...
         'FontSize', fontSizeAx,...
-        'xscale', xscale, ...
-        'parent', hPanelMooringVar);
+        'xscale', xscale);
     posAx = get(hAxPress, 'Position');
     set(hLegend, 'Units', 'Normalized', 'color', backgroundColor);
 
@@ -318,7 +316,7 @@ if isPlottable
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
         
-        fastSaveas(hFigPress, hPanelMooringVar, fullfile(exportDir, fileName));
+        fastSaveas(hFigPress, fullfile(exportDir, fileName));
         
         close(hFigPress);
     end

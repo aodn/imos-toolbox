@@ -113,20 +113,18 @@ backgroundColor = [0.75 0.75 0.75];
 if iVar > 0
     if initiateFigure
         fileName = genIMOSFileName(sample_data, 'png');
+        visible = 'on';
+        if saveToFile, visible = 'off'; end
         hFigVarSection = figure(...
-            'Name', title, ...
-            'NumberTitle','off', ...
-            'OuterPosition', monitorRect(iBigMonitor, :));
-        
-        % create uipanel within figure so that screencapture can be
-        % used on the plot only and without capturing all of the figure
-        % (including buttons, menus...)
-        hPanelVarSection = uipanel('Parent', hFigVarSection);
+            'Name',             title, ...
+            'NumberTitle',      'off', ...
+            'Visible',          visible, ...
+            'OuterPosition',    monitorRect(iBigMonitor, :));
             
         initiateFigure = false;
     end
     
-    hAxVarSection = axes('Parent', hPanelVarSection);
+    hAxVarSection = axes;
     set(get(hAxVarSection, 'Title'), 'String', title, 'Interpreter', 'none');
     set(get(hAxVarSection, 'XLabel'), 'String', [varTitle ' (' varUnit ')'], 'Interpreter', 'none');
     set(get(hAxVarSection, 'YLabel'), 'String', [dimTitle ' (' dimUnit ')'], 'Interpreter', 'none');
@@ -250,7 +248,7 @@ end
 if saveToFile
     fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_'); % IMOS_[sub-facility_code]_[platform_code]_FV01_[time_coverage_start]_[PLOT-TYPE]_C-[creation_date].png
     
-    fastSaveas(hFigVarSection, hPanelVarSection, fullfile(exportDir, fileName));
+    fastSaveas(hFigVarSection, fullfile(exportDir, fileName));
     
     close(hFigVarSection);
 end
