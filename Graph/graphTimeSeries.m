@@ -181,22 +181,9 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
                         'XTickLabel', xTickLabels, ...
                         'YLim',   yLimits, ...
                         'YTick',  yTicks);
-                    
-	% make sure line colour alternate; because we are creating 
-    % multiple axes, this is not done automatically for us
-    col = get(graphs(k), 'ColorOrder');
-    
-    % we get rid of the red color which is used for global range boundaries
-    % and in/out water boundaries
-    iRed = (col == repmat([1 0 0], [size(col, 1), 1]));
-    iRed = sum(iRed, 2);
-    iRed = iRed == 3;
-    col(iRed, :) = [];
-    
-    col = col(mod(vars(k),length(col))+1,:);
                
     % plot the variable
-    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, k, col, xTickProp);
+    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, k, 'b', xTickProp); % current variable is always plotted in blue
     
     if ~isempty(labels)
         % set x labels and ticks

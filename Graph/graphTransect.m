@@ -1,4 +1,4 @@
-function [graphs lines vars] = graphTransect( parent, sample_data, vars )
+function [graphs, lines, vars] = graphTransect( parent, sample_data, vars )
 %GRAPHTRANSECT Graphs the given data in a 2D transect manner, using subplot.
 %
 % Inputs:
@@ -89,13 +89,13 @@ function [graphs lines vars] = graphTransect( parent, sample_data, vars )
     
     set(graphs(k), 'Parent', parent,...
                    'XGrid',  'on',...
-                   'Color', 'none',...
+                   'Color',  'none',...
                    'YGrid',  'on', ...
                    'ZGrid',  'on');
     
     % plot the variable
-    plotFunc            = getGraphFunc('Transect', 'graph', name);
-    [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, vars(k));
+    plotFunc             = getGraphFunc('Transect', 'graph', name);
+    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, vars(k));
     
     % set labels
     set(get(graphs(k), 'XLabel'), 'String', labels{1}, 'Interpreter', 'none');

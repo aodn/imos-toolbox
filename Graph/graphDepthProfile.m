@@ -122,20 +122,9 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
                    'Color', 'none',...
                    'YGrid',  'on');
     
-    % make sure line colour alternate; because we are creating 
-    % multiple axes, this is not done automatically for us
-    col = get(graphs(k), 'ColorOrder');
-    col = col(mod(k, length(col))+1, :);
-    
     % plot the variable
     plotFunc             = getGraphFunc('DepthProfile', 'graph', name);
-    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, vars(k));
-    
-    % set the line colour - wrap in a try block, 
-    % as surface plot colour cannot be set
-    try set(lines(k,:), 'Color', col);
-    catch e
-    end
+    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, vars(k), 'b'); % current variable is always plotted in blue
     
     % set x label
     uom = '';

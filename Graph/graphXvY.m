@@ -90,9 +90,7 @@ function [graphs, lines, vars] = graphXvY( parent, sample_data, vars )
   
   % plot the variable
   plotFunc        = getGraphFunc('XvY', 'graph', xname);
-  [lines, labels] = plotFunc(graphs, sample_data, vars);
-  
-  set(lines, 'Color', 'blue');
+  [lines, labels] = plotFunc(graphs, sample_data, vars, 'b'); % current variable is always plotted in blue
   
   % set x label
   uom = '';

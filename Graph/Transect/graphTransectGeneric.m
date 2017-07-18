@@ -1,4 +1,4 @@
-function [h labels] = graphTransectGeneric( ax, sample_data, var )
+function [h, labels] = graphTransectGeneric( ax, sample_data, var )
 %GRAPHTRANSECTGENERIC Plots the given variable as 2d transect data. Assumes
 % that the sample data struct contains latitude and longitude variable data.
 %

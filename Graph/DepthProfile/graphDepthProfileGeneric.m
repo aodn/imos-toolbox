@@ -1,4 +1,4 @@
-function [h, labels] = graphDepthProfileGeneric( ax, sample_data, var )
+function [h, labels] = graphDepthProfileGeneric( ax, sample_data, var, color )
 %GRAPHDEPTHPROFILEGENERIC Plots the given variable (x axis) against depth 
 % (y axis).
 %
@@ -6,6 +6,7 @@ function [h, labels] = graphDepthProfileGeneric( ax, sample_data, var )
 %   ax          - Parent axis.
 %   sample_data - The data set.
 %   var         - The variable to plot.
+%   color       - The color to be used to plot the variable.
 %
 % Outputs:
 %   h           - Handle(s) to the line(s)  which was/were plotted.
@@ -44,7 +45,7 @@ function [h, labels] = graphDepthProfileGeneric( ax, sample_data, var )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(3,3);
+narginchk(4,4);
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
@@ -71,9 +72,9 @@ var  = sample_data.variables{var};
 
 switch mode
     case 'profile'
-        h            = line(var.data(:, 1), depth.data(:, 1), 'Parent', ax, 'LineStyle', '-'); % downcast
+        h            = line(var.data(:, 1), depth.data(:, 1), 'Parent', ax, 'LineStyle', '-', 'Color', color); % downcast
         if size(var.data, 2) > 1
-            h(end+1) = line(var.data(:, 2), depth.data(:, 2), 'Parent', ax, 'LineStyle', '--'); % upcast
+            h(end+1) = line(var.data(:, 2), depth.data(:, 2), 'Parent', ax, 'LineStyle', '--', 'Color', color); % upcast
         end
         
     case 'timeSeries'
@@ -81,10 +82,10 @@ switch mode
             % ADCP data, we look for vertical dimension
             iVertDim = var.dimensions(2);
             for i=1:size(var.data, 2)
-                h(i) = line(var.data(:, i), depth.data - sample_data.dimensions{iVertDim}.data(i), 'Parent', ax, 'LineStyle', '-');
+                h(i) = line(var.data(:, i), depth.data - sample_data.dimensions{iVertDim}.data(i), 'Parent', ax, 'LineStyle', '-', 'Color', color);
             end
         else
-            h        = line(var.data, depth.data, 'Parent', ax, 'LineStyle', '-');
+            h        = line(var.data, depth.data, 'Parent', ax, 'LineStyle', '-', 'Color', color);
         end
         
 end
