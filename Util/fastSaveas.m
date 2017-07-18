@@ -1,28 +1,32 @@
-function fastSaveas( hFig, hPanel, fileDestination )
+function fastSaveas( hFig, fileDestination )
 %FASTSAVEAS is a faster alternative to saveas. 
 % It is used to save diagnostic plots when exporting netCDF files.
 
-% preserve the color scheme
-set(hFig, 'InvertHardcopy', 'off');
+% ensure the printed version is the same whatever the screen used.
+set(hFig, ...
+    'PaperPositionMode',    'manual', ...
+    'PaperType',            'A4', ...
+    'PaperOrientation',     'landscape', ...
+    'InvertHardcopy',       'off'); % preserve the color scheme
 
-drawnow;
-
-% force figure full screen
-try
-    warning('off', 'MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
-    frame_h = get(handle(hFig), 'JavaFrame');
-    set(frame_h, 'Maximized', 1);
-catch
-    disp(['Warning : JavaFrame feature not supported. Figure is going full ' ...
-        'screen using normalised units which does not give best results.']);
-    oldUnits = get(hFig, 'Units');
-    set(hFig, 'Units', 'norm', 'Pos', [0, 0, 1, 1]);
-    set(hFig, 'Units', oldUnits);
+switch computer
+    case 'GLNXA64'
+        set(hFig, ...
+            'Position',         [10 10 1920 1200]); % set static figure resolution (some linux go fullscreen across every screen!)
+        
+    otherwise
+        set(hFig, ...
+            'PaperUnits',       'normalized', ...
+            'PaperPosition',    [0 0 1 1]); % set figure resolution to full screen (as big as possible to fit the legend)
+        
 end
 
-% screencapture creates an image of what is really displayed on
-% screen.
-imwrite(screencapture(hPanel), fileDestination);
+% use hgexport to print to file as close as possible as what we see
+myStyle = hgexport('factorystyle');
+myStyle.Format     = 'png'; % (default is eps)
+myStyle.Background = [0.75 0.75 0.75]; % grey (default is white)
+
+hgexport(hFig, fileDestination, myStyle);
 
 end
 

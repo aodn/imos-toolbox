@@ -58,6 +58,13 @@ end
 if ~ishandle(data),     error('data must be a graphics handle'); end
 if ~isstruct(variable), error('variable must be a struct');      end
 if ~ischar(type),       error('type must be a string');          end
+
+if any(size(variable.data) == 1)
+    % we actually deal with a single point in depth instrument (ex.:
+    % current metre)
+    highlight = highlightTimeSeriesGeneric(region, data, variable, type);
+    return;
+end
   
 xdata = get(data, 'XData');
 ydata = get(data, 'YData');

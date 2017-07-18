@@ -176,8 +176,13 @@ function displayManager(windowTitle, sample_data, callbacks)
       
       for k = 1:length(sample_data), updateCallback(sample_data{k}); end
       
-      stateSelectCallback('state', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars);
+      switch(lastState)
+          case 'Metadata',        metadataCallback();
+          case 'Raw data',        rawDataCallback();
+          case 'QC data',         qcDataCallback();
+          case 'QC stats',        qcStatsCallback();
+          otherwise,              rawDataCallback();
+      end
       state = lastState;
     end
   
