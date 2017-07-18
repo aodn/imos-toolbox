@@ -78,22 +78,22 @@ function flowManager(toolboxVersion)
   function importRequestCallback()
   %IMPORTREQUESTCALLBACK Called when the user wishes to import more data.
   % Prompts the user to import more data, then adds the new data to the
-  % data sets. Forces a run of the auto QC routines over the new data if
+  % data sets. Forces a run of the PP and QC routines over the new data if
   % necessary.
   %
   
     % prompt user to import more data
-    importedData = importManager(toolboxVersion);
+    importedNonUTCRawData = importManager(toolboxVersion);
     
-    if isempty(importedData), return; end
+    if isempty(importedNonUTCRawData), return; end
     
     % check for and remove duplicates
     remove = [];
-    for k = 1:length(importedData)
+    for i = 1:length(importedNonUTCRawData)
       for m = 1:length(rawData)
         if strcmp(     rawData{m}.meta.raw_data_file,...
-                  importedData{k}.meta.raw_data_file)
-          remove(end+1) = k;
+                  importedNonUTCRawData{i}.meta.raw_data_file)
+          remove(end+1) = i;
         end
       end
     end
@@ -101,27 +101,32 @@ function flowManager(toolboxVersion)
     if ~isempty(remove)
       uiwait(msgbox('Duplicate data sets were removed during the import', ...
              'Duplicate data sets removed', 'non-modal'));
-      importedData(remove) = [];
+      importedNonUTCRawData(remove) = [];
     end
     
     
     % add index to the newly imported data
-    for k = 1:length(importedData)
-      importedData{k}.meta.index = k + length(rawData);
+    for i = 1:length(importedNonUTCRawData)
+      importedNonUTCRawData{i}.meta.index = i + length(rawData);
     end
     
     % preprocess new data
-    importedRawData = preprocessManager(importedData, mode, 'raw');
-    importedQCData  = preprocessManager(importedData, mode, 'qc');
+    [importedAutoQCData, importedCancel] = preprocessManager(importedNonUTCRawData, 'qc', mode, false);
+    if importedCancel
+        importedRawData = importedNonUTCRawData;
+    else
+        importedRawData = preprocessManager(importedNonUTCRawData, 'raw',  mode, true);  % only apply TIME to UTC conversion pre-processing routines, auto is true so that GUI only appears once
+    end
+    clear importedNonUTCRawData;
     
     % insert the new data into the rawData array, and run QC if necessary
-    startIdx = (length(rawData)+1);
-    endIdx   = startIdx + length(importedData) - 1;
+    startIdx = length(rawData) + 1;
+    endIdx   = startIdx + length(importedRawData) - 1;
     rawData     = [rawData importedRawData];
-    autoQCData  = [autoQCData importedQCData];
-    clear importedRawData importedQCData;
+    autoQCData  = [autoQCData importedAutoQCData];
+    clear importedAutoQCData;
     
-    if autoQCData{end}.meta.level == 1 % previously imported datasets have been QC'd already
+    if autoQCData{startIdx - 1}.meta.level == 1 % previously imported datasets have been QC'd already
       autoQCRequestCallback(startIdx:endIdx, 0); 
       
       % if user cancelled auto QC process, the autoQCData and rawData arrays
@@ -129,17 +134,17 @@ function flowManager(toolboxVersion)
       % which ensures that the arrays will stay synced.
       if length(autoQCData) ~= length(rawData)
         
-        autoQCData(startIdx:endIdx) = importedData;
+        autoQCData(startIdx:endIdx) = importedRawData;
         
-        for k = startIdx:endIdx
-          autoQCData{k}.meta.level = 1; 
-          autoQCData{k}.file_version = imosFileVersion(1, 'name');
-          autoQCData{k}.file_version_quality_control = ...
+        for i = startIdx:endIdx
+          autoQCData{i}.meta.level = 1; 
+          autoQCData{i}.file_version = imosFileVersion(1, 'name');
+          autoQCData{i}.file_version_quality_control = ...
             imosFileVersion(1, 'desc');
         end
       end
     end
-    clear importedData;
+    clear importedRawData;
   end
               
   function metadataUpdateCallback(sample_data)
@@ -284,44 +289,39 @@ function flowManager(toolboxVersion)
     sample_data = autoQCData;
     
     % save data set selection
-    lastSetIdx = lastAutoQCSetIdx;
     lastAutoQCSetIdx = setIdx;
 
+    qcLevel = cellfun(@(x) x(:).meta.level, autoQCData, 'UniformOutput', false);
+    qcLevel = [qcLevel{:}];
+    
     % if QC has not been run before, run QC over every data set
-    if autoQCData{1}.meta.level == 0
-      
-      setIdx = 1:length(sample_data);
-    
-    % if just a state  change, return previous QC data
-    elseif stateChange, return;
-      
-    % if QC has already been executed, passed-in set index is the same as 
-    % that which was previoously passed, and state has not changed, prompt 
-    % user if they want to keep old QC data, or redo QC, for this set only
-    elseif lastSetIdx == setIdx
-      
-      response = questdlg(...
-        ['Re-run auto-QC routines '...
-        '(existing flags/mods will be discarded)?'],...
-        'Re-run QC Routines?', ...
-        'No', ...
-        'Re-run for this data set',...
-        'Re-run for all data sets',...
-        'No');
-      
-      if ~strncmp(response, 'Re-run', 6), return; end
-      
-      if strcmp(response, 'Re-run for all data sets')
+    if all(qcLevel == 0)
+
         setIdx = 1:length(sample_data);
-      end
-    
-    % otherwise if no new data sets, return the existing auto QC data
-    elseif ~any(setIdx > length(sample_data))
-        return;
+        
+    % if just a state change, return previous QC data
+    elseif stateChange, return;
+        
+    % if QC has already been executed, prompt
+    % user if they want to keep old QC data, or redo QC, for this set only
+    elseif all(qcLevel == 1)
+        
+        response = questdlg(...
+            ['Re-run auto-QC routines '...
+            '(existing flags/mods will be discarded)?'],...
+            'Re-run QC Routines?', ...
+            'No', ...
+            'Re-run for this data set',...
+            'Re-run for all data sets',...
+            'No');
+        
+        if ~strncmp(response, 'Re-run', 6), return; end
+        
+        if strcmp(response, 'Re-run for all data sets')
+            setIdx = 1:length(sample_data);
+        end
+        
     end
-    
-    % save data set selection
-    lastSetIdx = setIdx;
 
     % run QC routines over raw data
     aqc = autoQCManager(sample_data(setIdx));
