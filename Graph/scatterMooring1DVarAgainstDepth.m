@@ -156,7 +156,7 @@ for i=1:lenSampleData
     end
 end
 
-backgroundColor = [0.75 0.75 0.75];
+backgroundColor = [0.85 0.85 0.85];
 
 if any(isPlottable)
     % collect visualQC config

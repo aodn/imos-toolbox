@@ -128,7 +128,7 @@ hLineVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none'
 initiateFigure = true;
 isPlottable = false;
 
-backgroundColor = [0.75 0.75 0.75];
+backgroundColor = [0.85 0.85 0.85];
 
 for i=1:lenSampleData
     % instrument description

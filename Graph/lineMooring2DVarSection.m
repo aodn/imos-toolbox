@@ -108,7 +108,7 @@ dimName = sample_data.dimensions{i2Ddim}.name;
 dimTitle = imosParameters(dimName, 'long_name');
 dimUnit  = imosParameters(dimName, 'uom');
 
-backgroundColor = [0.75 0.75 0.75];
+backgroundColor = [0.85 0.85 0.85];
 
 if iVar > 0
     if initiateFigure

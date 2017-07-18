@@ -274,7 +274,7 @@ for k=1:lenVarNames
                 'Layer',        'top');
             
             % set background to be grey
-            set(hAxCastVar, 'Color', [0.75 0.75 0.75])
+            set(hAxCastVar, 'Color', [0.85 0.85 0.85])
         end
     end
         

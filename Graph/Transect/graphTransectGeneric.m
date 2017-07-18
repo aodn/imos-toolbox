@@ -72,4 +72,7 @@ cbLabel = [var.name ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel, 'Interpreter', 'none');
 
+% set background to be grey
+set(ax, 'Color', [0.85 0.85 0.85])
+
 labels = {'LATITUDE', 'LONGITUDE'};

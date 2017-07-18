@@ -106,6 +106,9 @@ if ~isempty(climatologyRange)
     end
 end
 
+% set background to be grey
+set(ax, 'Color', [0.85 0.85 0.85])
+
 labels = {var.name, 'DEPTH'};
 
 % assume that the depth data is ascending - we want to display 

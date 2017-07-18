@@ -84,7 +84,7 @@ dataVar = nan(lenSampleData,800000);
 timeVar = dataVar;
 isPlottable = false;
 
-backgroundColor = [0.75 0.75 0.75];
+backgroundColor = [0.85 0.85 0.85];
 
 for i=1:lenSampleData
     %only look at instruments with pressure
