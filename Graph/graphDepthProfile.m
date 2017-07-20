@@ -1,4 +1,4 @@
-function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
+function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars, extra_sample_data )
 %GRAPHDEPTHPROFILE Graphs the given data in a depth profile style using 
 % subplots.
 %
@@ -10,6 +10,7 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
 %   parent             - handle to the parent container.
 %   sample_data        - struct containing sample data.
 %   vars               - Indices of variables that should be graphed.
+%   extra_sample_data  - struct containing extra sample data.
 %
 % Outputs:
 %   graphs             - A vector of handles to axes on which the data has 
@@ -52,11 +53,13 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(3,3);
+  narginchk(4,4);
   
-  if ~ishandle( parent),       error('parent must be a handle');      end
-  if ~isstruct( sample_data),  error('sample_data must be a struct'); end
-  if ~isnumeric(vars),         error('vars must be a numeric');       end
+  if ~ishandle( parent),                error('parent must be a handle');                       end
+  if ~isstruct( sample_data),           error('sample_data must be a struct');                  end
+  if ~isnumeric(vars),                  error('vars must be a numeric');                        end
+  if ~isstruct(extra_sample_data) && ...
+          ~isempty(extra_sample_data),  error('extra_sample_data must be a struct or empty');   end
   
   graphs = [];
   lines  = [];
@@ -114,6 +117,18 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
     
     name = sample_data.variables{vars(k)}.name;
     
+    iExtraVar = 0;
+    if ~isempty(extra_sample_data)
+        iExtraVar = getVar(extra_sample_data.variables, name);
+        iExtraDepth = getVar(extra_sample_data.variables, 'DEPTH');
+        if iExtraDepth == 0
+            iExtraDepth = getVar(extra_sample_data.dimensions, 'DEPTH');
+            extraDepth = extra_sample_data.dimensions{iExtraDepth}.data;
+        else
+            extraDepth = extra_sample_data.variables{iExtraDepth}.data;
+        end
+    end
+    
     % create the axes; the subplots are laid out horizontally
     graphs(k) = subplot(1, length(vars), k);
     
@@ -124,7 +139,22 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
     
     % plot the variable
     plotFunc             = getGraphFunc('DepthProfile', 'graph', name);
-    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, vars(k), 'b'); % current variable is always plotted in blue
+    if iExtraVar
+        if extra_sample_data.meta.level == 1
+            qcSet     = str2double(readProperty('toolbox.qc_set'));
+            goodFlag  = imosQCFlag('good',          qcSet, 'flag');
+            pGoodFlag = imosQCFlag('probablyGood',  qcSet, 'flag');
+            rawFlag   = imosQCFlag('raw',           qcSet, 'flag');
+            
+            iGoodExtra = (extra_sample_data.variables{iExtraVar}.flags == goodFlag) | ...
+                (extra_sample_data.variables{iExtraVar}.flags == pGoodFlag) | ...
+                (extra_sample_data.variables{iExtraVar}.flags == rawFlag);
+            extra_sample_data.variables{iExtraVar}.data(~iGoodExtra) = NaN;
+        end
+        plotFunc(graphs(k), extra_sample_data, iExtraVar, 'k'); % extra instrument is always plotted in black
+    end
+    % we plot the current instrument last so that it appears on top
+    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, vars(k), 'b'); % current instrument is always plotted in blue
     
     % set x label
     uom = '';
@@ -144,6 +174,30 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
         set(get(graphs(k), 'YLabel'), 'String', yLabel, 'Interpreter', 'none');
     end
     
+    curData  = sample_data.variables{vars(k)}.data;
+    curDepth = depth.data;
+    
+    [nSamples, nBins] = size(curData);
+    if strcmpi(mode, 'timeSeries') && nBins > 1
+        % ADCP data, we look for vertical dimension
+        iVertDim = sample_data.variables{vars(k)}.dimensions(2);
+        curDepth = repmat(curDepth, 1, nBins) - repmat(sample_data.dimensions{iVertDim}.data', nSamples, 1);
+    end
+    
+    if iExtraVar
+        curData  = [curData(:);  extra_sample_data.variables{iExtraVar}.data(:)];
+        
+        [nSamples, nBins] = size(extra_sample_data.variables{iExtraVar}.data);
+        if strcmpi(mode, 'timeSeries') && nBins > 1
+            % ADCP data, we look for vertical dimension
+            iVertDim = extra_sample_data.variables{iExtraVar}.dimensions(2);
+            extraDepth = repmat(extraDepth, 1, nBins) - repmat(extra_sample_data.dimensions{iVertDim}.data', nSamples, 1);
+        end
+        curDepth = [curDepth(:); extraDepth(:)];
+    end
+        
+    iGood = curDepth >= 0;
+    
     if sample_data.meta.level == 1 && strcmp(func2str(plotFunc), 'graphDepthProfileGeneric')
         qcSet     = str2double(readProperty('toolbox.qc_set'));
         goodFlag  = imosQCFlag('good',          qcSet, 'flag');
@@ -151,50 +205,39 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars )
         rawFlag   = imosQCFlag('raw',           qcSet, 'flag');
                 
         % set x and y limits so that axis are optimised for good/probably good/raw data only
-        curData = sample_data.variables{vars(k)}.data;
-        curDepth = depth.data;
-        curFlag = sample_data.variables{vars(k)}.flags;
+        curFlag  = sample_data.variables{vars(k)}.flags;
+        if iExtraVar
+            curFlag  = [curFlag(:);  extra_sample_data.variables{iExtraVar}.flags(:)];
+        end
         
-        iGood = curDepth >= 0;
         if strcmpi(mode, 'timeSeries')
             iGood = (curFlag == goodFlag) | (curFlag == pGoodFlag) | (curFlag == rawFlag);
         end
-
-        [nSamples, nBins] = size(curData);
-        if strcmpi(mode, 'timeSeries') && nBins > 1
-            % ADCP data, we look for vertical dimension
-            iVertDim = sample_data.variables{vars(k)}.dimensions(2);
-            curDepth = repmat(curDepth, 1, nBins) - repmat(sample_data.dimensions{iVertDim}.data', nSamples, 1);
-        end
-        
-        yLimits = [min(floor(min(curDepth(iGood))*10)/10, yLimits(1)), max(ceil(max(curDepth(iGood))*10)/10, yLimits(2))];
-        xLimits = [floor(min(curData(iGood))*10)/10,  ceil(max(curData(iGood))*10)/10];
-        
-        %check for my surface soak flags - and set xLimits to flag range
-        if ismember(name, {'tempSoakStatus', 'cndSoakStatus', 'oxSoakStatus'})
-            xLimits = [min(imosQCFlag('flag', qcSet, 'values')) max(imosQCFlag('flag', qcSet, 'values'))];
-        end
-        
-        %check for xLimits max=min
-        if diff(xLimits) == 0;
-            if xLimits(1) == 0
-                xLimits = [-1, 1];
-            else
-                eps = 0.01 * xLimits(1);
-                xLimits = [xLimits(1) - eps, xLimits(1) + eps];
-            end
-        end
-        
-        if any(any(iGood))
-            set(graphs(k), 'YLim', yLimits);
-            set(graphs(k), 'XLim', xLimits);
+    end
+    
+    yLimits = [min(floor(min(curDepth(iGood))*10)/10, yLimits(1)), max(ceil(max(curDepth(iGood))*10)/10, yLimits(2))];
+    xLimits = [floor(min(curData(iGood))*10)/10,  ceil(max(curData(iGood))*10)/10];
+    
+    %check for my surface soak flags - and set xLimits to flag range
+    if ismember(name, {'tempSoakStatus', 'cndSoakStatus', 'oxSoakStatus'})
+        xLimits = [min(imosQCFlag('flag', qcSet, 'values')) max(imosQCFlag('flag', qcSet, 'values'))];
+    end
+    
+    %check for xLimits max=min
+    if diff(xLimits) == 0;
+        if xLimits(1) == 0
+            xLimits = [-1, 1];
+        else
+            eps = 0.01 * xLimits(1);
+            xLimits = [xLimits(1) - eps, xLimits(1) + eps];
         end
     end
     
-    yLimits = get(graphs(k), 'YLim');
-    yStep   = (yLimits(2) - yLimits(1)) / 5;
-    yTicks  = yLimits(1):yStep:yLimits(2);
-    set(graphs(k), 'YTick', yTicks);
-    
+    set(graphs(k), 'XLim', xLimits);
   end
+  
+  % update all graphs with greater Y range found over each variable
+  yStep   = (yLimits(2) - yLimits(1)) / 5;
+  yTicks  = yLimits(1):yStep:yLimits(2);
+  set(graphs, 'YLim', yLimits, 'YTick', yTicks);
 end

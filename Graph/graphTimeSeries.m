@@ -1,4 +1,4 @@
-function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
+function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars, extra_sample_data )
 %GRAPHTIMESERIES Graphs the given data in a time series style using subplots.
 %
 % Graphs the selected variables from the given data set. Each variable is
@@ -8,7 +8,8 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
 % Inputs:
 %   parent             - handle to the parent container.
 %   sample_data        - struct containing sample data.
-%   vars               - Indices of variables that should be graphed..
+%   vars               - Indices of variables that should be graphed.
+%   extra_sample_data  - struct containing extra sample data.
 %
 % Outputs:
 %   graphs             - A vector of handles to axes on which the data has 
@@ -51,22 +52,23 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(3,3);
+  narginchk(4,4);
   
-  if ~ishandle(parent),        error('parent must be a handle');      end
-  if ~isstruct(sample_data),   error('sample_data must be a struct'); end
-  if ~isnumeric(vars),         error('vars must be a numeric');       end
+  if ~ishandle(parent),                 error('parent must be a handle');                       end
+  if ~isstruct(sample_data),            error('sample_data must be a struct');                  end
+  if ~isnumeric(vars),                  error('vars must be a numeric');                        end
+  if ~isstruct(extra_sample_data) && ...
+          ~isempty(extra_sample_data),  error('extra_sample_data must be a struct or empty');   end
   
   graphs = [];
   lines  = [];
-  
+      
   if isempty(vars)
-    return; 
+      return;
   end
   
   % get the toolbox execution mode
   mode = readProperty('toolbox.mode');
-  
   switch mode
       case 'profile'
           % we don't want to plot TIME, PROFILE, DIRECTION, LATITUDE, LONGITUDE, BOT_DEPTH
@@ -80,7 +82,7 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
   % get rid of variables that we should ignore
   sample_data.variables = sample_data.variables(vars);
   lenVar = length(sample_data.variables);
-  
+      
   if verLessThan('matlab','8.1') %R2013a
       graphs = nan(lenVar, 1);
       lines  = nan(lenVar, 1);
@@ -102,6 +104,11 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
     name = sample_data.variables{k}.name;
     dims = sample_data.variables{k}.dimensions;
     
+    iExtraVar = 0;
+    if ~isempty(extra_sample_data)
+        iExtraVar = getVar(extra_sample_data.variables, name);
+    end
+    
     if length(dims) == 1
         % 1D display
         plotFunc = @graphTimeSeriesGeneric;
@@ -112,12 +119,10 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
     switch func2str(plotFunc)
         case 'graphTimeSeriesGeneric'
             varData = sample_data.variables{k}.data;
+            if iExtraVar
+                varData = [varData; extra_sample_data.variables{iExtraVar}.data];
+            end
             if ischar(varData), varData = str2num(varData); end % we assume data is an array of one single character
-            
-            minData = min(varData);
-            maxData = max(varData);
-            yLimits = [floor(minData*10)/10, ...
-                ceil(maxData*10)/10];
             
             if sample_data.meta.level == 1
                 qcSet     = str2double(readProperty('toolbox.qc_set'));
@@ -126,18 +131,21 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
                 rawFlag   = imosQCFlag('raw',           qcSet, 'flag');
                 
                 % set x and y limits so that axis are optimised for good/probably good/raw data only
-                iGood = sample_data.variables{k}.flags == goodFlag;
-                iGood = iGood | (sample_data.variables{k}.flags == pGoodFlag);
-                iGood = iGood | (sample_data.variables{k}.flags == rawFlag);
+                varFlags = sample_data.variables{k}.flags;
+                if iExtraVar
+                    varFlags = [varFlags; extra_sample_data.variables{iExtraVar}.flags];
+                end
+                iGood = (varFlags == goodFlag) | (varFlags == pGoodFlag) | (varFlags == rawFlag);
                 if any(iGood)
-                    varData = sample_data.variables{k}.data(iGood);
+                    varData = varData(iGood);
                     if ischar(varData), varData = str2num(varData); end % we assume data is an array of one single character
-                    
-                    minData = min(varData);
-                    maxData = max(varData);
-                    yLimits = [floor(minData*10)/10, ceil(maxData*10)/10];
                 end
             end
+            
+            minData = min(varData);
+            maxData = max(varData);
+            yLimits = [floor(minData*10)/10, ceil(maxData*10)/10];
+                    
         case 'graphTimeSeriesTimeDepth'
             iZDim = sample_data.variables{k}.dimensions(2);
             yLimits = [floor(min(sample_data.dimensions{iZDim}.data)*10)/10, ...
@@ -171,19 +179,34 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars )
     
     % create the axes
     graphs(k) = subplot(lenVar, 1, k, ...
-                        'Parent', parent, ...
-                        'XGrid',  'on', ...
-                        'Color',  'none', ...
-                        'YGrid',  'on', ...
-                        'Layer',  'top', ...
-                        'XLim',   xLimits, ...
-                        'XTick',  xTicks, ...
-                        'XTickLabel', xTickLabels, ...
-                        'YLim',   yLimits, ...
-                        'YTick',  yTicks);
+        'Parent',       parent, ...
+        'XGrid',        'on', ...
+        'Color',        'none', ...
+        'YGrid',        'on', ...
+        'Layer',        'top', ...
+        'XLim',         xLimits, ...
+        'XTick',        xTicks, ...
+        'XTickLabel',   xTickLabels, ...
+        'YLim',         yLimits, ...
+        'YTick',        yTicks);
                
     % plot the variable
-    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, k, 'b', xTickProp); % current variable is always plotted in blue
+    if iExtraVar
+        if extra_sample_data.meta.level == 1
+            qcSet     = str2double(readProperty('toolbox.qc_set'));
+            goodFlag  = imosQCFlag('good',          qcSet, 'flag');
+            pGoodFlag = imosQCFlag('probablyGood',  qcSet, 'flag');
+            rawFlag   = imosQCFlag('raw',           qcSet, 'flag');
+            
+            iGoodExtra = (extra_sample_data.variables{iExtraVar}.flags == goodFlag) | ...
+                (extra_sample_data.variables{iExtraVar}.flags == pGoodFlag) | ...
+                (extra_sample_data.variables{iExtraVar}.flags == rawFlag);
+            extra_sample_data.variables{iExtraVar}.data(~iGoodExtra) = NaN;
+        end
+        plotFunc(graphs(k), extra_sample_data, iExtraVar, 'k', xTickProp); % extra instrument is always plotted in black
+    end
+    % we plot the current instrument last so that it appears on top
+    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, k, 'b', xTickProp); % current instrument is always plotted in blue
     
     if ~isempty(labels)
         % set x labels and ticks

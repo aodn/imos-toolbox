@@ -135,6 +135,21 @@ graphMenu = uicontrol(...
     'String',   listGraphs(),...
     'Value',    graphMenuValue);
 
+% extra instrument check box
+extraSampleCb = uicontrol(...
+    'Style',    'checkbox',...
+    'String',   'Graph extra instrument (black)',...
+    'Value',    0,...
+    'Tag',      'extraSampleCheckBox');
+
+% extra sample data selection menu
+extraSampleMenu = uicontrol(...
+    'Style',  'popupmenu',...
+    'String', sampleDataDescs,...
+    'Value',  1,...
+    'Enable', 'off',...
+    'Tag',    'extraSamplePopUpMenu');
+
 % side panel
 sidePanel = uipanel(...
     'Parent',     fig,...
@@ -175,6 +190,8 @@ set(varPanel,         'Units', 'normalized');
 set(graphButton,      'Units', 'normalized');
 set(sampleMenu,       'Units', 'normalized');
 set(graphMenu,        'Units', 'normalized');
+set(extraSampleCb,    'Units', 'normalized');
+set(extraSampleMenu,  'Units', 'normalized');
 set(stateButtons,     'Units', 'normalized');
 
 % set window position
@@ -192,10 +209,12 @@ end
 set(fig, 'Units', 'normalized');
 
 % set widget positions
-set(sidePanel,  'Position', posUi2(fig, 100, 100, 6:100,  1:10,  0));
-set(mainPanel,  'Position', posUi2(fig, 100, 100, 6:100, 11:100, 0));
-set(sampleMenu, 'Position', posUi2(fig, 100, 100, 1:5,    1:75,  0));
-set(graphMenu,  'Position', posUi2(fig, 100, 100, 1:5,   76:100, 0));
+set(sidePanel,          'Position', posUi2(fig, 100, 100, 11:100,  1:10,  0));
+set(mainPanel,          'Position', posUi2(fig, 100, 100, 11:100, 11:100, 0));
+set(sampleMenu,         'Position', posUi2(fig, 100, 100,  1:5,    1:75,  0));
+set(graphMenu,          'Position', posUi2(fig, 100, 100,  1:5,   76:100, 0));
+set(extraSampleMenu,    'Position', posUi2(fig, 100, 100,  6:10,   1:75,  0));
+set(extraSampleCb,      'Position', posUi2(fig, 100, 100,  6:10,  76:100, 0));
 
 % varPanel, graph and stateButtons are positioned relative to sidePanel
 set(varPanel, 'Position', posUi2(sidePanel, 10, 1, 6:10, 1, 0));
@@ -210,10 +229,12 @@ set(graphButton, 'Position', posUi2(sidePanel, 2*(n+1)+1, 1, n+1, 1, 0));
 
 % set callbacks - variable panel widget
 % callbacks are set in createParamPanel
-set(sampleMenu,   'Callback', @sampleMenuCallback);
-set(graphMenu,    'Callback', @graphMenuCallback);
-set(stateButtons, 'Callback', @stateButtonCallback);
-set(graphButton,  'Callback', @graphButtonCallback);
+set(sampleMenu,         'Callback', @sampleMenuCallback);
+set(graphMenu,          'Callback', @graphMenuCallback);
+set(extraSampleCb,      'Callback', @sampleMenuCallback);
+set(extraSampleMenu,    'Callback', @sampleMenuCallback);
+set(stateButtons,       'Callback', @stateButtonCallback);
+set(graphButton,        'Callback', @graphButtonCallback);
 
 set(fig, 'Visible', 'on');
 createVarPanel(sample_data{1}, []);
@@ -313,6 +334,12 @@ set(hHelpWiki, 'callBack', @openWikiPage);
         vars  = getSelectedVars();
         graph = getSelectedGraphType();
         
+        if get(extraSampleCb, 'value')
+            extraSam = getExtraSelectedData();
+        else
+            extraSam.meta.index = 0;
+        end
+        
         % clear main panel
         children = get(mainPanel, 'Children');
         delete(children);
@@ -325,13 +352,15 @@ set(hHelpWiki, 'callBack', @openWikiPage);
         set(fig, 'WindowButtonUpFcn',     []);
         
         currentState = selectionCallback(...
-            event,...
-            mainPanel, ...
-            @updateCallback, ...
-            state, ...
-            sample_data, ...
-            graph, ...
-            sam.meta.index, vars);
+            event,...               % string describing what triggered the callback.
+            mainPanel, ...          % uipanel on which things can be drawn.
+            @updateCallback, ...    % function to be called when data is modified.
+            state, ...              % selected state (string).
+            sample_data, ...        % cell array of sample_data structs
+            graph, ...              % currently selected graph type (string).
+            sam.meta.index, ...     % currently selected sample_data struct (index)
+            vars, ...               % currently selected variables (indices).
+            extraSam.meta.index);   % currently selected extra sample_data struct (index)
         
         % set data cursor mode custom display
         dcm_obj = datacursormode(fig);
@@ -343,6 +372,11 @@ set(hHelpWiki, 'callBack', @openWikiPage);
         % menu. Updates the variables panel, then delegates to selectionChange.
         %
         sam = getSelectedData();
+        if get(extraSampleCb, 'value')
+            set(extraSampleMenu, 'Enable', 'on');
+        else
+            set(extraSampleMenu, 'Enable', 'off');
+        end
         
         % keep track of previously selected variables
         iTickBox = getSelectedVars();
@@ -454,6 +488,7 @@ set(hHelpWiki, 'callBack', @openWikiPage);
             % change in the Y range of displayed data
             if ~isempty(graphs1D)
                 sam = getSelectedData();
+                
                 hTickBoxes = get(varPanel, 'UserData');
                 
                 qcSet     = str2double(readProperty('toolbox.qc_set'));
@@ -464,7 +499,11 @@ set(hHelpWiki, 'callBack', @openWikiPage);
                 
                 for i=1:length(graphs1D)
                     userData = get(graphs1D(i), 'UserData');
+                    
                     hData = userData{1};
+                    xData = get(hData, 'XData');
+                    yData = get(hData, 'YData');
+                    
                     iTickBox = userData{2}; % index into currently ticked boxes
                     iAllTickedBox = find(cell2mat(get(hTickBoxes, 'Value')) == 1);
                     
@@ -472,9 +511,6 @@ set(hHelpWiki, 'callBack', @openWikiPage);
                     iVar = getVar(sam.variables, varName);
                     flags = sam.variables{iVar}.flags;
                     iGood = ismember(flags, okFlags);
-                    
-                    xData = get(hData, 'XData');
-                    yData = get(hData, 'YData');
                     
                     xData(~iGood) = [];
                     yData(~iGood) = [];
@@ -793,7 +829,8 @@ set(hHelpWiki, 'callBack', @openWikiPage);
             sampleDataDescs{i} = genSampleDataDesc(sample_data{i});
         end
         
-        set(sampleMenu, 'String', sampleDataDescs);
+        set(sampleMenu,         'String', sampleDataDescs);
+        set(extraSampleMenu,    'String', sampleDataDescs);
         
     end
 
@@ -803,6 +840,14 @@ set(hHelpWiki, 'callBack', @openWikiPage);
         %GETSELECTEDDATA Returns the currently selected sample_data.
         %
         idx = get(sampleMenu, 'Value');
+        
+        sam = sample_data{idx};
+    end
+
+    function sam = getExtraSelectedData()
+        %GETEXTRASELECTEDDATA Returns the currently selected extra sample_data.
+        %
+        idx = get(extraSampleMenu, 'Value');
         
         sam = sample_data{idx};
     end
