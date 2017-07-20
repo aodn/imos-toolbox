@@ -62,7 +62,7 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars, ext
   
   graphs = [];
   lines  = [];
-      
+  
   if isempty(vars)
       return;
   end
@@ -82,13 +82,19 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars, ext
   % get rid of variables that we should ignore
   sample_data.variables = sample_data.variables(vars);
   lenVar = length(sample_data.variables);
+  
+  if ~isempty(extra_sample_data)
+      nInst = 2;
+  else
+      nInst = 1;
+  end
       
   if verLessThan('matlab','8.1') %R2013a
       graphs = nan(lenVar, 1);
-      lines  = nan(lenVar, 1);
+      lines  = nan(lenVar, nInst);
   else
       graphs = gobjects(lenVar, 1);
-      lines  = gobjects(lenVar, 1);
+      lines  = gobjects(lenVar, nInst);
   end
   
   iTimeDim = getVar(sample_data.dimensions, 'TIME');
@@ -203,10 +209,10 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars, ext
                 (extra_sample_data.variables{iExtraVar}.flags == rawFlag);
             extra_sample_data.variables{iExtraVar}.data(~iGoodExtra) = NaN;
         end
-        plotFunc(graphs(k), extra_sample_data, iExtraVar, 'k', xTickProp); % extra instrument is always plotted in black
+        [lines(k,2), ~] = plotFunc(graphs(k), extra_sample_data, iExtraVar, 'k', xTickProp); % extra instrument is always plotted in black
     end
     % we plot the current instrument last so that it appears on top
-    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, k, 'b', xTickProp); % current instrument is always plotted in blue
+    [lines(k,1), labels] = plotFunc(graphs(k), sample_data, k, 'b', xTickProp); % current instrument is always plotted in blue
     
     if ~isempty(labels)
         % set x labels and ticks

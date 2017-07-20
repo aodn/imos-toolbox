@@ -488,6 +488,7 @@ set(hHelpWiki, 'callBack', @openWikiPage);
             % change in the Y range of displayed data
             if ~isempty(graphs1D)
                 sam = getSelectedData();
+                extraSam = getExtraSelectedData();
                 
                 hTickBoxes = get(varPanel, 'UserData');
                 
@@ -501,8 +502,8 @@ set(hHelpWiki, 'callBack', @openWikiPage);
                     userData = get(graphs1D(i), 'UserData');
                     
                     hData = userData{1};
-                    xData = get(hData, 'XData');
-                    yData = get(hData, 'YData');
+                    xData = get(hData(1), 'XData');
+                    yData = get(hData(1), 'YData');
                     
                     iTickBox = userData{2}; % index into currently ticked boxes
                     iAllTickedBox = find(cell2mat(get(hTickBoxes, 'Value')) == 1);
@@ -510,6 +511,14 @@ set(hHelpWiki, 'callBack', @openWikiPage);
                     varName = get(hTickBoxes(iAllTickedBox(iTickBox)), 'String');
                     iVar = getVar(sam.variables, varName);
                     flags = sam.variables{iVar}.flags;
+                    if get(extraSampleCb, 'value')
+                        iExtraVar = getVar(extraSam.variables, varName);
+                        if iExtraVar
+                            flags = [flags; extraSam.variables{iExtraVar}.flags];
+                            xData = [xData, get(hData(2), 'XData')];
+                            yData = [yData, get(hData(2), 'YData')];
+                        end
+                    end
                     iGood = ismember(flags, okFlags);
                     
                     xData(~iGood) = [];

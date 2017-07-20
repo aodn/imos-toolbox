@@ -59,8 +59,8 @@ if ~ishandle(data),     error('data must be a graphics handle'); end
 if ~isstruct(variable), error('variable must be a struct');      end
 if ~ischar(type),       error('type must be a string');          end
 
-xdata = get(data, 'XData');
-ydata = get(data, 'YData');
+xdata = get(data(1), 'XData'); % data(1) retrieves the first graphic handle only in case extra sample is selected
+ydata = get(data(1), 'YData');
 
 if iscell(xdata)
    xdata = cell2mat(xdata)'; 
