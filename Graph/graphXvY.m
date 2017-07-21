@@ -76,11 +76,6 @@ function [graphs, lines, vars] = graphXvY( parent, sample_data, vars, extra_samp
   end
   vars = vars + p;
   
-  if length(sample_data.variables{vars(1)}.dimensions) > 1 ...
-          || length(sample_data.variables{vars(2)}.dimensions) > 1
-      error('XvY only supports single dimensional data');
-  end
-  
   xname = sample_data.variables{vars(1)}.name;
   yname = sample_data.variables{vars(2)}.name;
   
