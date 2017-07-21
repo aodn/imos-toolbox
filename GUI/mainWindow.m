@@ -155,21 +155,20 @@ sidePanel = uipanel(...
     'Parent',     fig,...
     'BorderType', 'none');
 
+% buttons panel
+butPanel = uipanel(...
+    'Parent',     sidePanel,...
+    'BorderType', 'none');
+
 % state buttons
 lenStates = length(states);
 stateButtons = nan(lenStates, 1);
 for k = 1:lenStates
     stateButtons(k) = uicontrol(...
-        'Parent', sidePanel,...
+        'Parent', butPanel,...
         'Style',  'pushbutton',...
         'String', states{k});
 end
-
-% button to save current graph as an image
-graphButton = uicontrol(...
-    'Parent',  sidePanel,  ...
-    'Style',  'pushbutton',...
-    'String', 'Save Graph');
 
 % variable selection panel - created in createVarPanel
 varPanel = uipanel(...
@@ -186,8 +185,8 @@ mainPanel = uipanel(...
 set(fig,              'Units', 'normalized');
 set(sidePanel,        'Units', 'normalized');
 set(mainPanel,        'Units', 'normalized');
+set(butPanel,         'Units', 'normalized');
 set(varPanel,         'Units', 'normalized');
-set(graphButton,      'Units', 'normalized');
 set(sampleMenu,       'Units', 'normalized');
 set(graphMenu,        'Units', 'normalized');
 set(extraSampleCb,    'Units', 'normalized');
@@ -216,16 +215,15 @@ set(graphMenu,          'Position', posUi2(fig, 100, 100,  1:5,   76:100, 0));
 set(extraSampleMenu,    'Position', posUi2(fig, 100, 100,  6:10,   1:75,  0));
 set(extraSampleCb,      'Position', posUi2(fig, 100, 100,  6:10,  76:100, 0));
 
-% varPanel, graph and stateButtons are positioned relative to sidePanel
+% varPanel and butPanel are positioned relative to sidePanel
+set(butPanel, 'Position', posUi2(sidePanel, 10, 1, 1:5,  1, 0));
 set(varPanel, 'Position', posUi2(sidePanel, 10, 1, 6:10, 1, 0));
 
+% set state buttons position relative to butPanel
 n = length(stateButtons);
 for k = 1:n
-    set(stateButtons(k), 'Position', posUi2(sidePanel, 2*(n+1)+1, 1, k, 1, 0));
+    set(stateButtons(k), 'Position', posUi2(butPanel, n, 1, k, 1, 0));
 end
-
-% graph button is tacked on right below state buttons
-set(graphButton, 'Position', posUi2(sidePanel, 2*(n+1)+1, 1, n+1, 1, 0));
 
 % set callbacks - variable panel widget
 % callbacks are set in createParamPanel
@@ -234,7 +232,6 @@ set(graphMenu,          'Callback', @graphMenuCallback);
 set(extraSampleCb,      'Callback', @sampleMenuCallback);
 set(extraSampleMenu,    'Callback', @sampleMenuCallback);
 set(stateButtons,       'Callback', @stateButtonCallback);
-set(graphButton,        'Callback', @graphButtonCallback);
 
 set(fig, 'Visible', 'on');
 createVarPanel(sample_data{1}, []);
@@ -243,18 +240,23 @@ selectionChange('state');
 tb      = findall(fig, 'Type', 'uitoolbar');
 buttons = findall(tb);
 
-zoomoutb    = findobj(buttons, 'TooltipString', 'Zoom Out');
+savefigb    = findobj(buttons, 'TooltipString', 'Save Figure');
 zoominb     = findobj(buttons, 'TooltipString', 'Zoom In');
+zoomoutb    = findobj(buttons, 'TooltipString', 'Zoom Out');
 panb        = findobj(buttons, 'TooltipString', 'Pan');
 datacursorb = findobj(buttons, 'TooltipString', 'Data Cursor');
 
 buttons(buttons == tb)            = [];
-buttons(buttons == zoomoutb)      = [];
+buttons(buttons == savefigb)      = [];
 buttons(buttons == zoominb)       = [];
+buttons(buttons == zoomoutb)      = [];
 buttons(buttons == panb)          = [];
 buttons(buttons == datacursorb)   = [];
 
 delete(buttons);
+
+% reset save figure callback with the FileSaveAs one instead of FileSave
+set(savefigb, 'ClickedCallback', 'filemenufcn(gcbf,''FileSaveAs'')');
 
 %set zoom/pan post-callback
 %zoom v6 off; % undocumented Matlab to make sure zoom function prior to R14 is not used. Seems to not be supported from R2015a.
@@ -422,17 +424,6 @@ set(hHelpWiki, 'callBack', @openWikiPage);
         sam = getSelectedData();
         vars = getSelectedVars();
         createVarPanel(sam, vars);
-    end
-
-    function graphButtonCallback(source, ev)
-        %GRAPHBUTTONCALLBACK Called when the user pushes the 'Save Graph' button.
-        % Prompts the user to save the current graph.
-        
-        % find all axes objects on the main panel
-        ax = findobj(mainPanel, 'Type', 'axes');
-        
-        % save the axes
-        saveGraph(fig, ax);
     end
 
     function varPanelCallback(source, ev)
