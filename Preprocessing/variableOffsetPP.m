@@ -164,8 +164,12 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
               timeCurrent = sample_data{k}.dimensions{iTimeCurrent}.data;
               nominalDepthCurrent = inf;
               if isfield(sample_data{k}, 'instrument_nominal_depth')
-                  nominalDepthCurrent = sample_data{k}.instrument_nominal_depth;
-              else
+                  if ~isempty(sample_data{k}.instrument_nominal_depth)
+                      nominalDepthCurrent = sample_data{k}.instrument_nominal_depth;
+                  end
+              end
+              
+              if isinf(nominalDepthCurrent)
                   fprintf('%s\n', ['Info : ' sample_data{k}.toolbox_input_file ...
                       ' please document instrument_nominal_depth global attributes'...
                       ' so that a nearest instrument can be found in the mooring']);
@@ -175,13 +179,20 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
               % deployment
               timeForDiff = timeCurrent(1) + (timeCurrent(end)-timeCurrent(1))/4;
               if isfield(sample_data{k}, 'time_deployment_start')
-                  % or preferably from the moment the mooring is in position
-                  timeForDiff = sample_data{k}.time_deployment_start;
+                  if ~isempty(sample_data{k}.time_deployment_start)
+                      % or preferably from the moment the mooring is in position
+                      timeForDiff = sample_data{k}.time_deployment_start;
+                  else
+                      fprintf('%s\n', ['Info : ' sample_data{k}.toolbox_input_file ...
+                      ' please document time_deployment_start global attributes'...
+                      ' so that difference with a nearest instrument can be better calculated']);
+                  end
               else
                   fprintf('%s\n', ['Info : ' sample_data{k}.toolbox_input_file ...
                       ' please document time_deployment_start global attributes'...
                       ' so that difference with a nearest instrument can be better calculated']);
               end
+              
               iForDiff = timeCurrent >= timeForDiff & ...
                   timeCurrent <= timeForDiff + 1;
               timeCurrentForDiff = timeCurrent(iForDiff);
