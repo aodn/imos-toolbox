@@ -49,7 +49,7 @@ function imosToolbox(auto, varargin)
 %
 
 % Set current toolbox version
-toolboxVersion = ['2.5.30 - ' computer];
+toolboxVersion = ['2.5.31 - ' computer];
 
 if nargin == 0, auto = 'manual'; end
 

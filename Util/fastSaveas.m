@@ -21,6 +21,8 @@ switch computer
         
 end
 
+drawnow; % Forces GUI to update itself, otherwise colorbar might be missing
+
 % use hgexport to print to file as close as possible as what we see
 myStyle = hgexport('factorystyle');
 myStyle.Format     = 'png'; % (default is eps)

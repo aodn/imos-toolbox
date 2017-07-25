@@ -156,7 +156,7 @@ for i=1:lenSampleData
     end
 end
 
-backgroundColor = [0.75 0.75 0.75];
+backgroundColor = [0.85 0.85 0.85];
 
 if any(isPlottable)
     % collect visualQC config
@@ -265,7 +265,13 @@ if any(isPlottable)
                     depth = sample_data{iSort(i)}.variables{iDepth}.data;
                 else
                     if isfield(sample_data{iSort(i)}, 'instrument_nominal_depth')
-                        depth = sample_data{iSort(i)}.instrument_nominal_depth*ones(size(iGood));
+                        if ~isempty(sample_data{iSort(i)}.instrument_nominal_depth)
+                            depth = sample_data{iSort(i)}.instrument_nominal_depth*ones(size(iGood));
+                        else
+                            fprintf('%s\n', ['Error : in ' sample_data{iSort(i)}.toolbox_input_file ...
+                                ', global attribute instrument_nominal_depth is not documented.']);
+                            continue;
+                        end
                     else
                         fprintf('%s\n', ['Error : in ' sample_data{iSort(i)}.toolbox_input_file ...
                             ', global attribute instrument_nominal_depth is not documented.']);

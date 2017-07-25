@@ -1,4 +1,4 @@
-function [h, labels] = graphXvYGeneric( ax, sample_data, vars )
+function [h, labels] = graphXvYGeneric( ax, sample_data, vars, color )
 %GRAPHXVYGENERIC Plots the given variable (x axis) against another 
 % (y axis).
 %
@@ -6,6 +6,7 @@ function [h, labels] = graphXvYGeneric( ax, sample_data, vars )
 %   ax          - Parent axis.
 %   sample_data - The data set.
 %   vars        - The variables to plot.
+%   color       - The color to be used to plot the variable.
 %
 % Outputs:
 %   h           - Handle(s) to the line(s)  which was/were plotted.
@@ -44,7 +45,7 @@ function [h, labels] = graphXvYGeneric( ax, sample_data, vars )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-narginchk(3,3);
+narginchk(4,4);
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
@@ -53,7 +54,7 @@ if ~isnumeric(vars),       error('var must be a numeric');        end
 xdata = sample_data.variables{vars(1)}.data;
 ydata = sample_data.variables{vars(2)}.data;
 
-h = line(xdata, ydata);
+h = line(xdata, ydata, 'Color', color);
 set(ax, 'Tag', 'axis1D');
 
 % for global/regional range display
@@ -76,5 +77,8 @@ if ~isempty(climatologyRange)
         set(ax, 'YLim', yLim);
     end
 end
+
+% set background to be grey
+set(ax, 'Color', [0.85 0.85 0.85])
 
 labels = {sample_data.variables{vars(1)}.name, sample_data.variables{vars(2)}.name};

@@ -1,10 +1,11 @@
-function [graphs lines vars] = graphTransect( parent, sample_data, vars )
+function [graphs, lines, vars] = graphTransect( parent, sample_data, vars, extra_sample_data )
 %GRAPHTRANSECT Graphs the given data in a 2D transect manner, using subplot.
 %
 % Inputs:
 %   parent             - handle to the parent container.
 %   sample_data        - struct containing sample data.
-%   vars               - Indices of variables that should be graphed..
+%   vars               - Indices of variables that should be graphed.
+%   extra_sample_data  - struct containing extra sample data.
 %
 % Outputs:
 %   graphs             - A vector of handles to axes on which the data has 
@@ -47,11 +48,13 @@ function [graphs lines vars] = graphTransect( parent, sample_data, vars )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(3,3);
+  narginchk(4,4);
   
-  if ~ishandle( parent),       error('parent must be a handle');      end
-  if ~isstruct( sample_data),  error('sample_data must be a struct'); end
-  if ~isnumeric(vars),         error('vars must be a numeric');       end
+  if ~ishandle( parent),                error('parent must be a handle');                       end
+  if ~isstruct( sample_data),           error('sample_data must be a struct');                  end
+  if ~isnumeric(vars),                  error('vars must be a numeric');                        end
+  if ~isstruct(extra_sample_data) && ...
+          ~isempty(extra_sample_data),  error('extra_sample_data must be a struct or empty');   end
   
   graphs = [];
   lines  = [];
@@ -89,13 +92,13 @@ function [graphs lines vars] = graphTransect( parent, sample_data, vars )
     
     set(graphs(k), 'Parent', parent,...
                    'XGrid',  'on',...
-                   'Color', 'none',...
+                   'Color',  'none',...
                    'YGrid',  'on', ...
                    'ZGrid',  'on');
     
     % plot the variable
-    plotFunc            = getGraphFunc('Transect', 'graph', name);
-    [lines(k,:) labels] = plotFunc(   graphs(k), sample_data, vars(k));
+    plotFunc             = getGraphFunc('Transect', 'graph', name);
+    [lines(k,:), labels] = plotFunc(graphs(k), sample_data, vars(k));
     
     % set labels
     set(get(graphs(k), 'XLabel'), 'String', labels{1}, 'Interpreter', 'none');
