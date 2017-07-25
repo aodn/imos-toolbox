@@ -1,4 +1,4 @@
-function [h labels] = graphTransectGeneric( ax, sample_data, var )
+function [h, labels] = graphTransectGeneric( ax, sample_data, var )
 %GRAPHTRANSECTGENERIC Plots the given variable as 2d transect data. Assumes
 % that the sample data struct contains latitude and longitude variable data.
 %
@@ -71,5 +71,8 @@ cbLabel = imosParameters(var.name, 'uom');
 cbLabel = [var.name ' (' cbLabel ')'];
 if length(cbLabel) > 20, cbLabel = [cbLabel(1:17) '...']; end
 set(get(cb, 'YLabel'), 'String', cbLabel, 'Interpreter', 'none');
+
+% set background to be grey
+set(ax, 'Color', [0.85 0.85 0.85])
 
 labels = {'LATITUDE', 'LONGITUDE'};

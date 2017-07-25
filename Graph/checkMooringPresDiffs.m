@@ -137,7 +137,7 @@ hLineVar2 = hLineVar;
 
 isPlottable = false;
 
-backgroundColor = [0.75 0.75 0.75];
+backgroundColor = [0.85 0.85 0.85];
 
 %plot
 fileName = genIMOSFileName(sample_data{iCurrSam}, 'png');

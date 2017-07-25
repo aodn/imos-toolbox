@@ -111,7 +111,6 @@ function displayManager(windowTitle, sample_data, callbacks)
   end
   
   lastState  = '';
-  lastSetIdx = [];
   qcSet      = str2double(readProperty('toolbox.qc_set'));
   badFlag    = imosQCFlag('bad', qcSet, 'flag');
   
@@ -125,7 +124,7 @@ function displayManager(windowTitle, sample_data, callbacks)
   mainWindow(windowTitle, sample_data, states, 3, @stateSelectCallback);
       
   function state = stateSelectCallback(event,...
-    panel, updateCallback, state, sample_data, graphType, setIdx, vars)
+    panel, updateCallback, state, sample_data, graphType, setIdx, vars, extraSetIdx)
   %STATESELECTCALLBACK Called when the user interacts with the main 
   % window, by changing the state, the selected data set, the selected
   % variables or the selected graph type.
@@ -139,6 +138,7 @@ function displayManager(windowTitle, sample_data, callbacks)
   %   graphType      - currently selected graph type (string).
   %   setIdx         - currently selected sample_data struct (index)
   %   vars           - currently selected variables (indices).
+  %   extraSetIdx    - currently selected extra sample_data struct (index)
   %
   % Outputs:
   %   state          - If a state change was forced, tells the main window
@@ -157,7 +157,6 @@ function displayManager(windowTitle, sample_data, callbacks)
     end
     
     lastState  = state;
-    lastSetIdx = setIdx;
     
     function importCallback()
     %IMPORTCALLBACK Called when the user clicks the 'Import' button. Calls
@@ -248,12 +247,18 @@ function displayManager(windowTitle, sample_data, callbacks)
               nVar = length(sample_data{setIdx}.variables) - 3;
       end
       vars(vars > nVar) = [];
+      
+      if extraSetIdx
+          extra_sample_data = sample_data{extraSetIdx};
+      else
+          extra_sample_data = [];
+      end
     
       % display selected raw data
       graphs = [];
       try
         graphFunc = getGraphFunc(graphType, 'graph', '');
-        [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars);
+        [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars, extra_sample_data);
       catch e
         errorString = getErrorString(e);
         fprintf('%s\n',   ['Error says : ' errorString]);
@@ -268,7 +273,6 @@ function displayManager(windowTitle, sample_data, callbacks)
       % so the data select callback can retrieve them
       if ~isempty(graphs)
           for k = 1:length(graphs)
-              
               set(graphs(k), 'UserData', {lines(k,:), k});
           end
       end
@@ -326,6 +330,12 @@ function displayManager(windowTitle, sample_data, callbacks)
         for k = 1:length(sample_data), updateCallback(sample_data{k}); end
 
       end
+      
+      if extraSetIdx
+          extra_sample_data = sample_data{extraSetIdx};
+      else
+          extra_sample_data = [];
+      end
 
       % redisplay the data
       try 
@@ -335,7 +345,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           flagFunc = [];
         end
         
-        [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars);
+        [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars, extra_sample_data);
         
         if isempty(flagFunc)
           warning(['Cannot display QC flags using ' graphType ...
@@ -637,7 +647,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       callbacks.exportNetCDFRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars);
+        sample_data, graphType, setIdx, vars, extraSetIdx);
       state = lastState;
     end
     
@@ -648,7 +658,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       callbacks.exportRawRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars);
+        sample_data, graphType, setIdx, vars, extraSetIdx);
       state = lastState;
     end
   end

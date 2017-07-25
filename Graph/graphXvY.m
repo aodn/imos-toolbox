@@ -1,4 +1,4 @@
-function [graphs, lines, vars] = graphXvY( parent, sample_data, vars )
+function [graphs, lines, vars] = graphXvY( parent, sample_data, vars, extra_sample_data )
 %GRAPHTRANSECT Graphs the two variables selected from the given data set
 % against each other on an X-Y axis.
 %
@@ -6,6 +6,7 @@ function [graphs, lines, vars] = graphXvY( parent, sample_data, vars )
 %   parent             - handle to the parent container.
 %   sample_data        - struct containing sample data.
 %   vars               - Indices of variables that should be graphed.
+%   extra_sample_data  - struct containing extra sample data.
 %
 % Outputs:
 %   graphs             - A vector of handles to the axes on which the data has 
@@ -46,11 +47,13 @@ function [graphs, lines, vars] = graphXvY( parent, sample_data, vars )
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(3,3);
+  narginchk(4,4);
   
-  if ~ishandle( parent),       error('parent must be a handle');      end
-  if ~isstruct( sample_data),  error('sample_data must be a struct'); end
-  if ~isnumeric(vars),         error('vars must be a numeric');       end
+  if ~ishandle( parent),                error('parent must be a handle');                       end
+  if ~isstruct( sample_data),           error('sample_data must be a struct');                  end
+  if ~isnumeric(vars),                  error('vars must be a numeric');                        end
+  if ~isstruct(extra_sample_data) && ...
+          ~isempty(extra_sample_data),  error('extra_sample_data must be a struct or empty');   end
   
   graphs = [];
   lines  = [];
@@ -73,13 +76,15 @@ function [graphs, lines, vars] = graphXvY( parent, sample_data, vars )
   end
   vars = vars + p;
   
-  if length(sample_data.variables{vars(1)}.dimensions) > 1 ...
-  || length(sample_data.variables{vars(2)}.dimensions) > 1
-    error('XvY only supports single dimensional data');
-  end
-  
   xname = sample_data.variables{vars(1)}.name;
   yname = sample_data.variables{vars(2)}.name;
+  
+  ixExtraVar = 0;
+  iyExtraVar = 0;
+  if ~isempty(extra_sample_data)
+      ixExtraVar = getVar(extra_sample_data.variables, xname);
+      iyExtraVar = getVar(extra_sample_data.variables, yname);
+  end
   
   % create the axes
   graphs = axes('Parent', parent,...
@@ -89,10 +94,28 @@ function [graphs, lines, vars] = graphXvY( parent, sample_data, vars )
       'ZGrid',  'on');
   
   % plot the variable
-  plotFunc        = getGraphFunc('XvY', 'graph', xname);
-  [lines, labels] = plotFunc(graphs, sample_data, vars);
-  
-  set(lines, 'Color', 'blue');
+  plotFunc = getGraphFunc('XvY', 'graph', xname);
+  if ixExtraVar && iyExtraVar
+      if extra_sample_data.meta.level == 1
+          qcSet     = str2double(readProperty('toolbox.qc_set'));
+          goodFlag  = imosQCFlag('good',          qcSet, 'flag');
+          pGoodFlag = imosQCFlag('probablyGood',  qcSet, 'flag');
+          rawFlag   = imosQCFlag('raw',           qcSet, 'flag');
+          
+          iGoodExtra = (extra_sample_data.variables{ixExtraVar}.flags == goodFlag) | ...
+              (extra_sample_data.variables{ixExtraVar}.flags == pGoodFlag) | ...
+              (extra_sample_data.variables{ixExtraVar}.flags == rawFlag);
+          extra_sample_data.variables{ixExtraVar}.data(~iGoodExtra) = NaN;
+          
+          iGoodExtra = (extra_sample_data.variables{iyExtraVar}.flags == goodFlag) | ...
+              (extra_sample_data.variables{iyExtraVar}.flags == pGoodFlag) | ...
+              (extra_sample_data.variables{iyExtraVar}.flags == rawFlag);
+          extra_sample_data.variables{iyExtraVar}.data(~iGoodExtra) = NaN;
+      end
+      plotFunc(graphs, extra_sample_data, [ixExtraVar, iyExtraVar], 'k'); % extra instrument is always plotted in black
+  end
+  % we plot the current instrument last so that it appears on top
+  [lines, labels] = plotFunc(graphs, sample_data, vars, 'b'); % current instrument is always plotted in blue
   
   % set x label
   uom = '';
@@ -121,6 +144,13 @@ function [graphs, lines, vars] = graphXvY( parent, sample_data, vars )
       curDataY = sample_data.variables{vars(2)}.data;
       curFlagX = sample_data.variables{vars(1)}.flags;
       curFlagY = sample_data.variables{vars(2)}.flags;
+      
+      if ixExtraVar && iyExtraVar
+          curDataX = [curDataX; extra_sample_data.variables{ixExtraVar}.data];
+          curDataY = [curDataY; extra_sample_data.variables{iyExtraVar}.data];
+          curFlagX = [curFlagX; extra_sample_data.variables{ixExtraVar}.flags];
+          curFlagY = [curFlagY; extra_sample_data.variables{iyExtraVar}.flags];
+      end
       
       curFlag = max(curFlagX, curFlagY);
       iGood = (curFlag == goodFlag) | (curFlag == pGoodFlag) | (curFlag == rawFlag);
