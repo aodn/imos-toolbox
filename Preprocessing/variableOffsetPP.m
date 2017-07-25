@@ -92,16 +92,22 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
   for k = 1:nSampleData
       nVars = length(sample_data{k}.variables);
       
-      defaultOffsets{k} = zeros(nVars,1);
-      defaultScales{ k} = ones( nVars,1);
+      defaultOffsets{k} = cell(1, nVars);
+      defaultScales{ k} = cell(1, nVars);
+      
+      defaultOffsets{k}(:) = {'0'};
+      defaultScales{ k}(:) = {'1'};
       
       % read dataset specific PP parameters if exist and override previous entries from
       % parameter file depth.txt
       defaultOffsets{k} = readDatasetParameter(sample_data{k}.toolbox_input_file, currentPProutine, 'offset', defaultOffsets{k});
       defaultScales{k}  = readDatasetParameter(sample_data{k}.toolbox_input_file, currentPProutine, 'scale',  defaultScales{k});
   end
-  appliedOffsets = defaultOffsets;
-  appliedScales  = defaultScales;
+  appliedOffsetsStr = defaultOffsets;
+  appliedScalesStr  = defaultScales;
+  
+  appliedOffsetsNum = defaultOffsets;
+  appliedScalesNum  = defaultScales;
   
   if ~auto
       % dialog figure
@@ -246,8 +252,8 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
               notRelevantParams = {'TIMESERIES', 'PROFILE', 'TRAJECTORIES', 'TIME', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH', 'BOT_DEPTH', 'DIRECTION'};
               if any(strcmpi(sample_data{k}.variables{m}.name, notRelevantParams)), continue; end
               
-              offsetVal = num2str(defaultOffsets{k}(m));
-              scaleVal  = num2str(defaultScales{k}(m));
+              offsetVal = defaultOffsets{k}{m};
+              scaleVal  = defaultScales{k}{m};
           
               sizeData = size(sample_data{k}.variables{m}.data);
               
@@ -307,7 +313,7 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
               iNanDataCurrent = isnan(sample_data{k}.variables{m}.data);
               
               varLabel    = uicontrol(...
-                  'Parent', setPanels(k), 'Style', 'text', 'String', sample_data{k}.variables{m}.name);
+                  'Parent', setPanels(k), 'Style', 'text', 'String', [sample_data{k}.variables{m}.name ' or sam.variables{' num2str(m) '}.data']);
               minLabel    = uicontrol(...
                   'Parent', setPanels(k), 'Style', 'text', 'String', num2str(min(sample_data{k}.variables{m}.data(~iNanDataCurrent))));
               maxLabel    = uicontrol(...
@@ -376,41 +382,59 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
   end
   
   % user cancelled dialog
-  if isempty(appliedOffsets) ||  isempty(appliedScales), return; end
+  if isempty(appliedOffsetsStr) || isempty(appliedScalesStr), return; end
   
   % otherwise, apply the offsets/scales
   for k = 1:nSampleData
-    vars = sample_data{k}.variables;
+    sam = sample_data{k};
+    vars = sam.variables;
     
-    for m = 1:length(vars)  
-        if ~isnan(appliedOffsets{k}(m)) && ~isnan(appliedScales{k}(m))
-            if (appliedOffsets{k}(m) ~= 0 || appliedScales{k}(m) ~= 1)
-                % apply offsets and scales
-                vars{m}.data = appliedOffsets{k}(m) + (appliedScales{k}(m) .* vars{m}.data);
-                
-                variableOffsetComment = ['variableOffsetPP: variable values modified applying '...
-                    'the following formula: new_data = offset + (scale * data) with offset = ' ...
-                    num2str(appliedOffsets{k}(m)) ' and scale = ' num2str(appliedScales{k}(m)) '.'];
-                
-                comment = vars{m}.comment;
-                if isempty(comment)
-                    vars{m}.comment = variableOffsetComment;
-                else
-                    vars{m}.comment = [comment ' ' variableOffsetComment];
-                end
-                
-                history = sample_data{k}.history;
-                if isempty(history)
-                    sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
-                else
-                    sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
-                end
+    for m = 1:length(vars)
+        appliedOffsetsNum{k}{m} = str2double(appliedOffsetsStr{k}{m});
+        if isnan(appliedOffsetsNum{k}{m})
+            % we have a string value which is a valid Matlab formula
+            appliedOffsetsNum{k}{m} = eval(appliedOffsetsStr{k}{m});
+        end
+        
+        appliedScalesNum{k}{m} = str2double(appliedScalesStr{k}{m});
+        if isnan(appliedOffsetsNum{k}{m})
+            % we have a string value which is a valid Matlab formula
+            appliedScalesNum{k}{m} = eval(appliedScalesStr{k}{m});
+        end
+        
+        if any(any(appliedOffsetsNum{k}{m} ~= 0)) || any(any(appliedScalesNum{k}{m} ~= 1))
+            % apply offsets and scales
+            vars{m}.data = appliedOffsetsNum{k}{m} + (appliedScalesNum{k}{m} .* vars{m}.data);
+            
+            variableOffsetComment = ['variableOffsetPP: ' vars{m}.name ' values modified '...
+                'following new_data = offset + (scale * data) with offset = ' ...
+                appliedOffsetsStr{k}{m} ' and scale = ' appliedScalesStr{k}{m} '.'];
+            
+            % replace Matlab sam structure with actual variable names in comment
+            variableOffsetComment = strrep(variableOffsetComment, 'sam.', '');
+            for n = 1:length(vars)
+                variableOffsetComment = strrep(variableOffsetComment, ['variables{' num2str(n) '}.data'], sam.variables{n}.name);
+                variableOffsetComment = strrep(variableOffsetComment, ['variables{' num2str(n) '}'], sam.variables{n}.name);
             end
-            if (appliedOffsets{k}(m) ~= defaultOffsets{k}(m) || appliedScales{k}(m) ~= defaultScales{k}(m))
-                % write/update dataset PP parameters
-                writeDatasetParameter(sample_data{k}.toolbox_input_file, currentPProutine, 'offset', appliedOffsets{k});
-                writeDatasetParameter(sample_data{k}.toolbox_input_file, currentPProutine, 'scale',  appliedScales{k});
+            
+            comment = vars{m}.comment;
+            if isempty(comment)
+                vars{m}.comment = variableOffsetComment;
+            else
+                vars{m}.comment = [comment ' ' variableOffsetComment];
             end
+            
+            history = sample_data{k}.history;
+            if isempty(history)
+                sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
+            else
+                sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), variableOffsetComment);
+            end
+        end
+        if ~strcmpi(appliedOffsetsStr{k}{m}, defaultOffsets{k}{m}) || ~strcmpi(appliedScalesStr{k}{m}, defaultScales{k}{m})
+            % write/update dataset PP parameters
+            writeDatasetParameter(sample_data{k}.toolbox_input_file, currentPProutine, 'offset', appliedOffsetsStr{k});
+            writeDatasetParameter(sample_data{k}.toolbox_input_file, currentPProutine, 'scale',  appliedScalesStr{k});
         end
     end
     sample_data{k}.variables = vars;
@@ -429,8 +453,8 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
   function cancelButtonCallback(source,ev)
   %CANCELBUTTONCALLBACK Discards user input, and closes the dialog.
   % 
-    appliedOffsets = {};
-    appliedScales  = {};
+    appliedOffsetsStr = {};
+    appliedScalesStr  = {};
     delete(f);
   end
 
@@ -442,37 +466,73 @@ function sample_data = variableOffsetPP( sample_data, qcLevel, auto )
 
   function offsetFieldCallback(source, ev)
   %OFFSETFIELDCALLBACK Called when the user edits one of the offset fields.
-  % Verifies that the text entered is a number.
+  % Verifies that the text entered is a number or a valid Matlab statement.
   %
   
-    val    = get(source, 'String');
+    valStr = get(source, 'String');
     setIdx = get(get(source, 'Parent'), 'UserData');
     varIdx = get(source, 'UserData');
     
-    val = str2double(val);
+    valNum = str2double(valStr);
     
-    % reset the offset value on non-numerical 
-    % input, otherwise save the new value
-    if isnan(val), set(source, 'String', num2str(defaultOffsets{setIdx}(varIdx)));
-    else           appliedOffsets{setIdx}(varIdx) = val;
+    if isnan(valNum)
+        % we have a string value
+        isValid = true;
+        try
+            sam = sample_data{setIdx};
+            valNum = eval(valStr);
+        catch e
+            isValid = false;
+        end
+        
+        if isValid
+            % we have a valid Matlab formula
+            appliedOffsetsStr{setIdx}{varIdx} = valStr;
+            appliedOffsetsNum{setIdx}{varIdx} = valNum;
+        else
+            % we reset to default value
+            set(source, 'String', defaultOffsets{setIdx}{varIdx});
+        end
+    else
+        % we have a numerical value
+        appliedOffsetsStr{setIdx}{varIdx} = valStr;
+        appliedOffsetsNum{setIdx}{varIdx} = valNum;
     end
   end
 
   function scaleFieldCallback(source, ev)
   %SCALEFIELDCALLBACK Called when the user edits one of the scale fields.
-  % Verifies that the text entered is a number.
+  % Verifies that the text entered is a number or a valid Matlab statement.
   %
   
-    val    = get(source, 'String');
+    valStr = get(source, 'String');
     setIdx = get(get(source, 'Parent'), 'UserData');
     varIdx = get(source, 'UserData');
     
-    val = str2double(val);
+    valNum = str2double(valStr);
     
-    % reset the scale value on non-numerical 
-    % input, otherwise save the new value
-    if isnan(val), set(source, 'String', num2str(defaultScales{setIdx}(varIdx)));
-    else           appliedScales{setIdx}(varIdx) = val;
+    if isnan(valNum)
+        % we have a string value
+        isValid = true;
+        try
+            sam = sample_data{setIdx};
+            valNum = eval(valStr);
+        catch e
+            isValid = false;
+        end
+        
+        if isValid
+            % we have a valid Matlab formula
+            appliedScalesStr{setIdx}{varIdx} = valStr;
+            appliedScalesNum{setIdx}{varIdx} = valNum;
+        else
+            % we reset to default value
+            set(source, 'String', defaultScales{setIdx}{varIdx});
+        end
+    else
+        % we have a numerical value
+        appliedScalesStr{setIdx}{varIdx} = valStr;
+        appliedScalesNum{setIdx}{varIdx} = valNum;
     end
   end
 end
