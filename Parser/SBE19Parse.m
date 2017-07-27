@@ -412,7 +412,7 @@ header = struct;
 headerExpr   = '^\*\s*(SBE \S+|SeacatPlus)\s+V\s+(\S+)\s+SERIAL NO.\s+(\d+)';
 %BDM (18/2/2011) - new header expressions to reflect newer SBE header info
 headerExpr2  = '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>';
-headerExpr3  = 'Sea-Bird (\S+) Data File:';
+headerExpr3  = 'Sea-Bird\s+(\S+)\s+Data File:';
 scanExpr     = 'number of scans to average = (\d+)';
 scanExpr2    = '*\s+ <ScansToAverage>(\d+)</ScansToAverage>';
 memExpr      = 'samples = (\d+), free = (\d+), casts = (\d+)';
