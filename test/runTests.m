@@ -46,7 +46,9 @@ searchPath = cellfun(@(x)([x pathsep]), searchPath, 'UniformOutput', false);
 searchPath = [searchPath{:}];
 addpath(searchPath);
 
+% run the unit tests
 testOxygenPP();
+testSBE19Parse();
 
 end
 

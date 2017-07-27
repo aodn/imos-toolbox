@@ -1,0 +1,128 @@
+* Sea-Bird SBE19plus Data File:
+* FileName = C:\Moorings\Instruments\Seabird\SBE19+\#4550\Test_#4550_16102007.hex
+* Software Version 1.53
+* Temperature SN =  4550
+* Conductivity SN =  4550
+* System UpLoad Time = Oct 15 2007 22:44:30
+** #4550 test dip n16102007
+* ds
+* SeacatPlus V 1.4D  SERIAL NO. 4550    15 Oct 2007  22:45:32
+* vbatt = 13.7, vlith =  8.3, ioper =  63.2 ma, ipump =  86.2 ma, 
+* iext01 =  78.2 ma, iext23 =  48.5 ma, 
+* status = not logging
+* number of scans to average = 1
+* samples = 3136, free = 438369, casts = 1
+* mode = profile, minimum cond freq = 3220, pump delay = 40 sec
+* autorun = no, ignore magnetic switch = no
+* battery type = ALKALINE, battery cutoff =  7.5 volts
+* pressure sensor = strain gauge, range = 508.0
+* SBE 38 = no, Gas Tension Device = no
+* Ext Volt 0 = yes, Ext Volt 1 = yes, Ext Volt 2 = yes, Ext Volt 3 = yes
+* echo commands = yes
+* output format = raw HEX
+* S>
+* 
+* SeacatPlus V 1.4D  SERIAL NO. 4550    15 Oct 2007  22:45:39
+* temperature:  04-jan-04
+*     TA0 = 1.252846e-03
+*     TA1 = 2.602469e-04
+*     TA2 = 9.298618e-08
+*     TA3 = 1.414404e-07
+*     TOFFSET = 0.000000e+00
+* conductivity:  04-jan-04
+*     G = -1.008771e+00
+*     H = 1.367372e-01
+*     I = -2.165181e-04
+*     J = 3.426306e-05
+*     CF0 = 2.719748e+03
+*     CPCOR = -9.570000e-08
+*     CTCOR = 3.250000e-06
+*     CSLOPE = 1.000000e+00
+* pressure S/N = 4712, range = 508 psia:  22-jan-04 
+*     PA0 = -5.251767e-02
+*     PA1 = 1.548220e-03
+*     PA2 = 7.906893e-12
+*     PTCA0 = 5.244425e+05
+*     PTCA1 = 1.017406e+00
+*     PTCA2 = -1.383457e-01
+*     PTCB0 = 2.503050e+01
+*     PTCB1 = -1.700000e-03
+*     PTCB2 = 0.000000e+00
+*     PTEMPA0 = -7.909481e+01
+*     PTEMPA1 = 4.898603e+01
+*     PTEMPA2 = -4.618534e-01
+*     POFFSET = 0.000000e+00
+* volt 0: offset = -4.624333e-02, slope = 1.247090e+00
+* volt 1: offset = -4.609000e-02, slope = 1.249782e+00
+* volt 2: offset = -4.606667e-02, slope = 1.249771e+00
+* volt 3: offset = -4.582333e-02, slope = 1.249673e+00
+*     EXTFREQSF = 9.999982e-01
+* cast   1 15 Oct 2007 22:32:14 samples 1 to 3136, avg = 1, stop = mag switch
+* S> 
+# nquan = 8
+# nvalues = 3136                    
+# units = specified
+# name 0 = tv290C: Temperature [ITS-90, deg C]
+# name 1 = c0S/m: Conductivity [S/m]
+# name 2 = prdM: Pressure, Strain Gauge [db]
+# name 3 = par: PAR/Irradiance, Biospherical/Licor
+# name 4 = sbeox0Mg/L: Oxygen, SBE 43 [mg/l]
+# name 5 = flECO-AFL: Fluorescence, Wetlab ECO-AFL/FL [mg/m^3]
+# name 6 = upoly0: Upoly 0, turbidity
+# name 7 = flag:  0.000e+00
+# span 0 =    11.0565,    13.6879       
+# span 1 =   0.000030,   3.949913       
+# span 2 =     -0.104,     10.762       
+# span 3 = 2.4298e+00, 1.2431e+03       
+# span 4 =    4.64806,    6.71399       
+# span 5 =    -0.0736,     5.4021       
+# span 6 =  0.3002258,  16.136039       
+# span 7 = 0.0000e+00, 0.0000e+00       
+# interval = seconds: 0.25                        
+# start_time = Oct 15 2007 22:32:14
+# bad_flag = -9.990e-29
+# sensor 0 = Frequency 0  temperature, 4550, 04-Jan-04
+# sensor 1 = Frequency 1  conductivity, 4550, 04-Jan-04, cpcor = -9.5700e-08
+# sensor 2 = Pressure Number
+# sensor 3 = Extrnl Volt  0  irradiance (PAR), primary, 4686, 1/29/04
+# sensor 4 = Extrnl Volt  1  Oxygen, SBE, primary, 0606, 1/31/04
+# sensor 5 = Extrnl Volt  2  WET Labs, ECO_AFL
+# sensor 6 = Extrnl Volt  3  userpoly 0, 0096, 8/16/07
+# datcnv_date = Oct 15 2007 22:59:53, 5.37e
+# datcnv_in = C:\Moorings\Instruments\Seabird\SBE19+\#4550\Test_#4550_16102007.hex C:\Moorings\Instruments\Seabird\SBE19+\#4550\4550_15102007.con
+# datcnv_skipover = 0
+# file_type = ascii
+*END*
+    13.6717   0.000045     -0.093 3.6466e+02    6.26102    -0.0095  0.3639322  0.000e+00
+    13.6724   0.000039     -0.096 3.6071e+02    6.26093    -0.0087  0.3650767  0.000e+00
+    13.6731   0.000039     -0.093 3.6626e+02    6.26174    -0.0065  0.3662211  0.000e+00
+    13.6743   0.000048     -0.094 3.6924e+02    6.26335    -0.0538  0.3456214  0.000e+00
+    13.6753   0.000039     -0.096 3.7184e+02    6.26146    -0.0591  0.3479103  0.000e+00
+    13.6762   0.000039     -0.095 3.7473e+02    6.25957    -0.0583  0.3475288  0.000e+00
+    13.6774   0.000039     -0.094 3.7591e+02    6.26326    -0.0324  0.3326513  0.000e+00
+    13.6784   0.000039     -0.094 3.7684e+02    6.26018    -0.0347  0.3345586  0.000e+00
+    13.6793   0.000048     -0.095 3.7657e+02    6.26154    -0.0332  0.3330327  0.000e+00
+    13.6802   0.000048     -0.092 3.7737e+02    6.26349    -0.0347  0.3402808  0.000e+00
+    13.6813   0.000039     -0.091 3.7459e+02    6.26069    -0.0324  0.3414252  0.000e+00
+    13.6825   0.000039     -0.094 3.7413e+02    6.26231    -0.0347  0.3402808  0.000e+00
+    13.6833   0.000039     -0.097 3.7374e+02    6.26251     1.9482  13.889148  0.000e+00
+    13.6843   0.000039     -0.095 3.7591e+02    6.26032     1.9497  13.884570  0.000e+00
+    13.6847   0.000039     -0.093 3.7512e+02    6.26263     1.9490  13.885333  0.000e+00
+    13.6852   0.000039     -0.094 3.6891e+02    6.26315     5.3990  16.132605  0.000e+00
+    13.6861   0.000048     -0.095 3.5337e+02    6.26215     5.4021  16.136039  0.000e+00
+    13.6874   0.000039     -0.094 3.3061e+02    6.26170     5.4013  16.122687  0.000e+00
+    13.6879   0.000039     -0.093 3.1713e+02    6.25955    -0.0019  0.3479103  0.000e+00
+    13.6878   0.000048     -0.093 3.3688e+02    6.26194     0.0004  0.3467659  0.000e+00
+    13.6847   0.000039     -0.097 3.5250e+02    6.26027     0.0004  0.3479103  0.000e+00
+    13.6802   0.000039     -0.093 3.1089e+02    6.26438    -0.0416  0.3715618  0.000e+00
+    13.6738   0.000039     -0.095 3.3125e+02    6.26193    -0.0446  0.3727062  0.000e+00
+    13.6661   0.000039     -0.094 3.1998e+02    6.26439    -0.0454  0.3707988  0.000e+00
+    13.6625   0.000048     -0.095 3.0817e+02    6.26396    -0.0301  0.3700359  0.000e+00
+    13.6619   0.000039     -0.095 3.0510e+02    6.26670    -0.0332  0.3707988  0.000e+00
+    13.6622   0.000039     -0.094 3.2933e+02    6.26459    -0.0324  0.3704173  0.000e+00
+    13.6603   0.000048     -0.095 3.3382e+02    6.26573    -0.0530  0.3528695  0.000e+00
+    13.6571   0.000039     -0.094 3.3842e+02    6.26672    -0.0568  0.3528695  0.000e+00
+    13.6548   0.000039     -0.094 3.8030e+02    6.26612    -0.0591  0.3501991  0.000e+00
+    13.6511   0.000039     -0.095 3.5331e+02    6.26719    -0.0721  0.3578286  0.000e+00
+    13.6456   0.000048     -0.094 3.8765e+02    6.26937    -0.0736  0.3574472  0.000e+00
+    13.6422   0.000039     -0.096 3.7657e+02    6.26862    -0.0713  0.3589731  0.000e+00
