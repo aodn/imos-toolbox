@@ -48,12 +48,12 @@ autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationS
 preprocessManager.preprocessPrompt = true
 
 % default set of preprocessing routines
-preprocessManager.preprocessDefaultChain.timeSeries = depthPP salinityPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP
-preprocessManager.preprocessDefaultChain.profile = depthPP salinityPP
+preprocessManager.preprocessDefaultChain.timeSeries = depthPP salinityPP oxygenPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP
+preprocessManager.preprocessDefaultChain.profile = depthPP salinityPP oxygenPP
 
 % last selected set of preprocessing routines
-preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP
-preprocessManager.preprocessChain.profile = depthPP salinityPP
+preprocessManager.preprocessChain.timeSeries = depthPP salinityPP oxygenPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP
+preprocessManager.preprocessChain.profile = depthPP salinityPP oxygenPP
 
 % file status dialog formatting styles
 % can be one of 'bold', 'normal', 'italic', or an HTML colour (e.g. 'red', 

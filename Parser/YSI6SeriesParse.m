@@ -222,144 +222,15 @@ function sample_data = YSI6SeriesParse( filename, mode )
         sample_data.variables{end}.comment        = ...
           'Dissolved oxygen saturation from ROX optical sensor.';
         
-      % mg/l => umol/l
+      % mg/l
       case 'odo2'
-        sample_data.variables{end}.name           = 'DOX1';
+        sample_data.variables{end}.name           = 'DOXY';
         sample_data.variables{end}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-        sample_data.variables{end}.data           = sample_data.variables{end}.typeCastFunc(field' * 44.660/1.429); % O2 density = 1.429kg/m3
+        sample_data.variables{end}.data           = sample_data.variables{end}.typeCastFunc(field');
         sample_data.variables{end}.comment        = ...
-          ['Dissolved oxygen from ROX optical sensor originally expressed '...
-          'in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.'];
+          'Dissolved oxygen from ROX optical sensor.';
     end
     sample_data.variables{end}.coordinates = coordinates;
-  end
-  
-  % Let's add DOX1/DOX2 if PSAL/CNDC, TEMP and DOXS are present and DOX1 not
-  % already present
-  doxs = getVar(sample_data.variables, 'DOXS');
-  dox1 = getVar(sample_data.variables, 'DOX1');
-  if doxs ~= 0 && dox1 == 0
-      doxs = sample_data.variables{doxs};
-      name = 'DOX1';
-      
-      % to perform this conversion, we need temperature,
-      % and salinity/conductivity+pressure data to be present
-      temp = getVar(sample_data.variables, 'TEMP');
-      psal = getVar(sample_data.variables, 'PSAL');
-      cndc = getVar(sample_data.variables, 'CNDC');
-      pres = getVar(sample_data.variables, 'PRES');
-      
-      % if any of this data isn't present,
-      % we can't perform the conversion
-      if temp ~= 0 && (psal ~= 0 || (cndc ~= 0 && pres ~= 0))
-          temp = sample_data.variables{temp};
-          if psal ~= 0
-              psal = sample_data.variables{psal};
-          else
-              cndc = sample_data.variables{cndc};
-              pres = sample_data.variables{pres};
-              % conductivity is in S/m and gsw_C3515 in mS/cm
-              crat = 10*cndc.data ./ gsw_C3515;
-              
-              % we need to use relative pressure using gsw_P0 = 101325 Pa 
-              psal.data = gsw_SP_from_R(crat, temp.data, pres.data - gsw_P0/10^4);
-          end
-          
-          % O2 solubility (Garcia and Gordon, 1992-1993)
-          %
-          solubility = O2sol(psal.data, temp.data, 'ml/l');
-          
-          % O2 saturation to O2 concentration measured
-          % O2 saturation (per cent) = 100* [O2/O2sol]
-          %
-          % that is to say : O2 = O2sol * O2sat / 100
-          data = solubility .* doxs.data / 100;
-          
-          % conversion from ml/l to umol/l
-          data = data * 44.660;
-          comment = ['Originally expressed in % of saturation, using Garcia '...
-              'and Gordon equations (1992-1993) and ml/l coefficients, assuming 1ml/l = 44.660umol/l.'];
-          
-          sample_data.variables{end+1}.dimensions           = 1;
-          sample_data.variables{end}.comment                = comment;
-          sample_data.variables{end}.name                   = name;
-          sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-          sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
-          sample_data.variables{end}.coordinates            = coordinates;
-          
-          % Let's add DOX2
-          name = 'DOX2';
-          
-          % O2 solubility (Garcia and Gordon, 1992-1993)
-          %
-          solubility = O2sol(psal.data, temp.data, 'umol/kg');
-          
-          % O2 saturation to O2 concentration measured
-          % O2 saturation (per cent) = 100* [O2/O2sol]
-          %
-          % that is to say : O2 = O2sol * O2sat / 100
-          data = solubility .* doxs.data / 100;
-          comment = ['Originally expressed in % of saturation, using Garcia '...
-              'and Gordon equations (1992-1993) and umol/kg coefficients.'];
-          
-          sample_data.variables{end+1}.dimensions           = 1;
-          sample_data.variables{end}.comment                = comment;
-          sample_data.variables{end}.name                   = name;
-          sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-          sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
-          sample_data.variables{end}.coordinates            = coordinates;
-      end
-  end
-  
-  % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are present
-  dox1 = getVar(sample_data.variables, 'DOX1');
-  dox2 = getVar(sample_data.variables, 'DOX2');
-  if dox1 ~= 0 && dox2 == 0
-      dox1 = sample_data.variables{dox1};
-      name = 'DOX2';
-      
-      % umol/l -> umol/kg
-      %
-      % to perform this conversion, we need to calculate the
-      % density of sea water; for this, we need temperature,
-      % salinity, and pressure data to be present
-      temp = getVar(sample_data.variables, 'TEMP');
-      pres = getVar(sample_data.variables, 'PRES');
-      psal = getVar(sample_data.variables, 'PSAL');
-      cndc = getVar(sample_data.variables, 'CNDC');
-      
-      % if any of this data isn't present,
-      % we can't perform the conversion to umol/kg
-      if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
-          temp = sample_data.variables{temp};
-          pres = sample_data.variables{pres};
-          if psal ~= 0
-              psal = sample_data.variables{psal};
-          else
-              cndc = sample_data.variables{cndc};
-              % conductivity is in S/m and gsw_C3515 in mS/cm
-              crat = 10*cndc.data ./ gsw_C3515;
-              
-              % we need to use relative pressure using gsw_P0 = 101325 Pa 
-              psal.data = gsw_SP_from_R(crat, temp.data, pres.data - gsw_P0/10^4);
-          end
-          
-          % calculate density from salinity, temperature and pressure
-          dens = sw_dens(psal.data, temp.data, pres.data - gsw_P0/10^4); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
-          
-          % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
-          data = dox1.data .* 1000.0 ./ dens;
-          comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
-          'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-          
-          sample_data.variables{end+1}.dimensions           = 1;
-          sample_data.variables{end}.comment                = comment;
-          sample_data.variables{end}.name                   = name;
-          sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-          sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
-          sample_data.variables{end}.coordinates            = coordinates;
-      end
   end
 end
 

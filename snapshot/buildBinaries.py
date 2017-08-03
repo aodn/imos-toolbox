@@ -53,9 +53,9 @@ if compiled is not 0:
 #
 # create snapshot
 #
-print('\n--building Matlab binaries')
-matlabOpts = '-nodisplay -nojvm -wait -logfile "%s"' % compilerLog
-matlabCmd = "addpath('Util'); try, imosCompile(); exit(); catch e, disp(e.message); end;"
+print('\n--running Matlab unit tests and building binaries')
+matlabOpts = '-nosplash -wait -logfile "%s"' % compilerLog
+matlabCmd = "addpath('Util', 'test'); try, runTests(); imosCompile(); exit(); catch e, disp(e.message); end;"
 os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 
 print('\n--removing local git tree')

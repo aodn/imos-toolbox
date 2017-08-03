@@ -17,9 +17,9 @@ function sample_data = readWQMraw( filename, mode )
 %                   Temperature       ('TEMP'): Degrees Celsius
 %                   Pressure          ('PRES_REL'): Decibars
 %                   Salinity          ('PSAL'): 1e^(-3) (PSS)
-%                   Dissolved Oxygen  ('DOXY'): kg/m^3
+%                   Dissolved Oxygen  ('DOXY'): mg/l
 %                   Dissolved Oxygen  ('DOX1'): mmol/m^3
-%                   Dissolved Oxygen  ('DOX2'): mol/kg
+%                   Dissolved Oxygen  ('DOX'): ml/l
 %                   fluorescence      ('CPHL'): mg/m^3
 %                   Chlorophyll       ('CHLU'): mg/m^3   (user coefficient)
 %                   Chlorophyll       ('CHLF'): mg/m^3   (factory coefficient)
@@ -87,9 +87,9 @@ function sample_data = readWQMraw( filename, mode )
   params{end+1} = {'temperature',     {'TEMP', ''}};
   params{end+1} = {'pressure',        {'PRES_REL', ''}};
   params{end+1} = {'salinity',        {'PSAL', ''}};
-  params{end+1} = {'DO(mg/l)',        {'DOX1_3', ''}};
-  params{end+1} = {'DO(mmol/m^3)',    {'DOX1_1', ''}};
-  params{end+1} = {'oxygen',          {'DOX1_2', ''}};
+  params{end+1} = {'DO(mg/l)',        {'DOXY', ''}};
+  params{end+1} = {'DO(mmol/m^3)',    {'DOX1', ''}}; % mmol/m3 <=> umol/l
+  params{end+1} = {'oxygen',          {'DOX', ''}};
   params{end+1} = {'fluorescence',    {'FLU2', ''}};
   params{end+1} = {'F_Cal_CHL',       {'CHLF', 'Artificial chlorophyll data '...
       'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
@@ -187,47 +187,6 @@ function sample_data = readWQMraw( filename, mode )
     [name, comment] = getParamDetails(varlabel{k}, params);  
 
     data = wqmdata.(varlabel{k});
-
-    % some fields are not in IMOS uom - scale them so that they are
-    switch varlabel{k}
-        
-        % WQM provides conductivity in S/m; exactly like we want it to be!
-        
-        % convert dissolved oxygen in mg/L to umol/l.
-        case 'DO(mg/l)'
-            data = data * 44.660/1.429; % O2 density = 1.429kg/m3
-            comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
-            isUmolPerL = true;
-        
-        % WQM can provide Dissolved Oxygen in mmol/m3,
-        % hopefully 1 mmol/m3 = 1 umol/l
-        % exactly like we want it to be!
-        case 'DO(mmol/m^3)'
-            comment = 'Originally expressed in mmol/m3, 1l = 0.001m3 was assumed.';
-            isUmolPerL = true;
-            
-        % convert dissolved oxygen in ml/l to umol/l
-        case 'oxygen'
-            comment = 'Originally expressed in ml/l, 1ml/l = 44.660umol/l was assumed.';
-            isUmolPerL = true;
-            
-            % ml/l -> umol/l
-            %
-            % Conversion factors from Saunders (1986) :
-            % https://darchive.mblwhoilibrary.org/bitstream/handle/1912/68/WHOI-89-23.pdf?sequence=3
-            % 1ml/l = 43.57 umol/kg (with dens = 1.025 kg/l)
-            % 1ml/l = 44.660 umol/l
-            
-            data = data .* 44.660;
-            
-            % WQM provides chlorophyll in ug/L; we need it in mg/m^3,
-            % hopefully it is equivalent.
-            
-        case 'PAR'
-            % don't seem to know what to do with PAR yet
-            continue;
-
-    end
         
     % dimensions definition must stay in this order : T, Z, Y, X, others;
     % to be CF compliant
@@ -250,67 +209,6 @@ function sample_data = readWQMraw( filename, mode )
   % present, but temp/pressure/salinity data is not)
   sample_data.variables(cellfun(@isempty, sample_data.variables)) = [];
   
-  % Let's add a new parameter
-  if isUmolPerL
-      data = getVar(sample_data.variables, 'DOX1_1');
-      comment = ['Originally expressed in mmol/m3, assuming 1l = 0.001m3 '...
-          'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-      if data == 0
-          data = getVar(sample_data.variables, 'DOX1_2');
-          comment = ['Originally expressed in ml/l, assuming 1ml/l = 44.660umol/l '...
-          'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-          if data == 0
-              data = getVar(sample_data.variables, 'DOX1_3');
-              comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
-                  'and using density computed from Temperature, Salinity and Pressure '...
-                  'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-          end
-      end
-      data = sample_data.variables{data};
-      data = data.data;
-      name = 'DOX2';
-      
-      % umol/l -> umol/kg
-      %
-      % to perform this conversion, we need to calculate the
-      % density of sea water; for this, we need temperature,
-      % salinity, and pressure data to be present
-      temp = getVar(sample_data.variables, 'TEMP');
-      pres = getVar(sample_data.variables, 'PRES_REL');
-      psal = getVar(sample_data.variables, 'PSAL');
-      cndc = getVar(sample_data.variables, 'CNDC');
-      
-      % if any of this data isn't present,
-      % we can't perform the conversion to umol/kg
-      if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
-          temp = sample_data.variables{temp};
-          pres = sample_data.variables{pres};
-          if psal ~= 0
-              psal = sample_data.variables{psal};
-          else
-              cndc = sample_data.variables{cndc};
-              % conductivity is in S/m and gsw_C3515 in mS/cm
-              crat = 10*cndc.data ./ gsw_C3515;
-              
-              psal.data = gsw_SP_from_R(crat, temp.data, pres.data);
-          end
-          
-          % calculate density from salinity, temperature and pressure
-          dens = sw_dens(psal.data, temp.data, pres.data); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
-          
-          % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
-          data = data .* 1000.0 ./ dens;
-          
-          sample_data.variables{end+1}.dimensions           = 1;
-          sample_data.variables{end}.comment                = comment;
-          sample_data.variables{end}.name                   = name;
-          sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-          sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
-          sample_data.variables{end}.coordinates            = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
-      end
-  end
 end
 
 function [name, comment] = getParamDetails(field, params)

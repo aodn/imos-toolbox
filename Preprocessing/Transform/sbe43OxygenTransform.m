@@ -16,8 +16,8 @@ function [data, name, comment, history] = sbe43OxygenTransform( sam, varIdx )
 %             the raw oxygen voltage data.
 %
 % Outputs:
-%   data    - array of oxygen concentration values, umol/l
-%   name    - new variable name 'DOX1'
+%   data    - array of oxygen concentration values, ml/l
+%   name    - new variable name 'DOX'
 %   comment - string which can be used for variable comment
 %   history - string which can be used for the dataset history
 %
@@ -65,13 +65,13 @@ function [data, name, comment, history] = sbe43OxygenTransform( sam, varIdx )
   if presRel == 0
       pres    = getVar(sam.variables, 'PRES');
   end
-  doxy    = varIdx;
+  doVolt    = varIdx;
   
-  if ~(temp && psal && (presRel || pres) && doxy), return; end
+  if ~(temp && psal && (presRel || pres) && doVolt), return; end
   
-  data    = sam.variables{doxy}.data;
-  name    = sam.variables{doxy}.name;
-  comment = sam.variables{doxy}.comment;
+  data    = sam.variables{doVolt}.data;
+  name    = sam.variables{doVolt}.name;
+  comment = sam.variables{doVolt}.comment;
   history = sam.history;
   
   % measured parameters
@@ -83,7 +83,7 @@ function [data, name, comment, history] = sbe43OxygenTransform( sam, varIdx )
       P = sam.variables{presRel}.data;
   end
   S = sam.variables{psal}.data;
-  V = sam.variables{doxy}.data;
+  V = sam.variables{doVolt}.data;
   
   % calibration coefficients
   params.Soc   = 1.0;
@@ -108,17 +108,8 @@ function [data, name, comment, history] = sbe43OxygenTransform( sam, varIdx )
   V    = hysteresisCorrection(V, T, P, params);
   data = oxygenConcentration(V, T, S, P, params);
   
-  % convert from ml/l to umol/l
-  %
-  % Conversion factors from Saunders (1986) :
-  % https://darchive.mblwhoilibrary.org/bitstream/handle/1912/68/WHOI-89-23.pdf?sequence=3
-  % 1ml/l = 43.57 umol/kg (with dens = 1.025 kg/l)
-  % 1ml/l = 44.660 umol/l
-  
-  data = data .* 44.660;
-  
-  name    = 'DOX1';
-  sbe43OxygenTransformComment = ['sbe43OxygenTransform: ' name ' derived from ' sam.variables{doxy}.name '.'];
+  name = 'DOX';
+  sbe43OxygenTransformComment = ['sbe43OxygenTransform: ' name ' derived from ' sam.variables{doVolt}.name '.'];
   if isempty(comment)
       comment = sbe43OxygenTransformComment;
   else
