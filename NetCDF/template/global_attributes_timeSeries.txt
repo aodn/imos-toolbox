@@ -2,19 +2,19 @@
 S, project                      = Integrated Marine Observing System (IMOS)
 S, Conventions                  = CF-1.6,IMOS-1.4
 S, standard_name_vocabulary     = NetCDF Climate and Forecast (CF) Metadata Convention Standard Name Table 45
-S, title                        = 
-S, institution                  = 
+S, title                        = [ddb Site Sites SiteName]
+S, institution                  = [ddb Site Sites FacilityCode]
 D, date_created                 = [mat now_utc]
 D, date_modified                = 
-S, abstract                     = 
+S, abstract                     = [ddb Site Sites Description]
 S, comment                      = [ddb Comment]
 S, source                       = [ddb DeploymentType]
 S, instrument                   = [ddb InstrumentID Instruments Make] [ddb InstrumentID Instruments Model]
 S, keywords                     = [ddb InstrumentID Instruments Model], [mat cellStructCons(sample_data.dimensions, 'name', ', ')], [mat cellStructCons(sample_data.variables, 'name', ', ')]
 S, keywords_vocabulary          = IMOS parameter names. See https://github.com/aodn/imos-toolbox/blob/master/IMOS/imosParameters.txt
 S, references                   = http://www.imos.org.au
-S, site_code                    = 
-S, platform_code                = 
+S, site_code                    = [ddb Site Sites SiteCode]
+S, platform_code                = [ddb Site Sites PlatformCode]
 S, deployment_code              = [ddb Site]
 S, featureType                  = [mat sample_data.meta.featureType]
 S, cdm_data_type                = 
@@ -42,8 +42,8 @@ N, geospatial_lat_max       = [ddb Site Sites Latitude]
 N, geospatial_lon_min       = [ddb Site Sites Longitude]
 N, geospatial_lon_max       = [ddb Site Sites Longitude]
 N, instrument_nominal_height= 
-N, instrument_nominal_depth = 
-N, site_nominal_depth       = 
+N, instrument_nominal_depth = [ddb InstrumentDepth]
+N, site_nominal_depth       = [ddb Site Sites Depth]
 N, site_depth_at_deployment = 
 
 % if left empty, these fields are automatically populated upon import 
@@ -66,9 +66,9 @@ D, time_coverage_end            =
 % who
 S, data_centre                  = Australian Ocean Data Network (AODN)
 S, data_centre_email            = info@aodn.org.au
-S, author_email                 = 
-S, author                       = 
-S, principal_investigator       = 
+S, author_email                 = peter.jansen@csiro.au
+S, author                       = Jansen, Peter
+S, principal_investigator       = [ddb Site Sites PI]
 S, principal_investigator_email = 
 S, institution_references       = http://www.imos.org.au/aodn.html
 
