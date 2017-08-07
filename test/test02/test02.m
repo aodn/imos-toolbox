@@ -12,12 +12,12 @@ sample_data.toolbox_input_file          = 'test02.m';
 % sample_data.geospatial_lat_min          = -46;
 % sample_data.geospatial_long_min         = 142;
 
-time = [datenum(2017,1,1) datenum(2017,1,2) datenum(2017,1,3) datenum(2017,1,4)];
+time = [ datenum(2017,1,1) datenum(2017,1,2) datenum(2017,1,3) datenum(2017,1,4) ];
 sample_data.dimensions{1}.name          = 'TIME';
 sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
 sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(time);
 
-temp = [ 12.2532  12.2532  14.996401  14.996401];
+temp = [ 12.2532  12.2532  14.996401  14.996401 ];
 sample_data.variables{end+1}.dimensions = 1;
 sample_data.variables{end}.name         = 'TEMP';
 sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{end}.name, 'type')));
@@ -35,7 +35,7 @@ sample_data.variables{end}.name         = 'PSAL';
 sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{end}.name, 'type')));
 sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(psal);
 
-dox = [  5.6252  5.6252  5.6252  5.6252];
+dox = [  5.6252  5.6252  5.6252  5.6252 ];
 sample_data.variables{end+1}.dimensions = 1;
 sample_data.variables{end}.name         = 'DOX';
 sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{end}.name, 'type')));
