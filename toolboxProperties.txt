@@ -1,27 +1,19 @@
 % filename or ODBC DSN of MS-ACCESS deployment database
 % ex. : /home/ggalibert/OceanDB.mdb or imos-ddb
 toolbox.ddb = 
-%toolbox.ddb = IMOS-DEPLOY
 
 % or full connection details to other kind of deployment database :
 % class name of JDBC database driver
 % ex. : net.ucanaccess.jdbc.UcanaccessDriver
-%toolbox.ddb.driver = 
-toolbox.ddb.driver = org.postgresql.Driver
+toolbox.ddb.driver = 
 
 % database connection string, must include user and password if required by the database
 % ex. : "jdbc:ucanaccess:///home/ggalibert/OceanDB.mdb;jackcessOpener=org.imos.ddb.CryptCodecOpener"
-%toolbox.ddb.connection = 
-toolbox.ddb.connection = jdbc:postgresql://localhost/IMOS-DEPLOY
-%toolbox.ddb.connection = jdbc:postgresql://cmar-cmd-cdc.it.csiro.au/IMOS-DEPLOY
+toolbox.ddb.connection = 
 
 % user's login and password to database
-%toolbox.ddb.user = 
-%toolbox.ddb.user = pete
-toolbox.ddb.user = jan079
+toolbox.ddb.user = 
 toolbox.ddb.password = 
-%toolbox.ddb.user = csiro
-%toolbox.ddb.password = imosHV00112j
 
 % toolbox execution mode. Values can be 'timeSeries' or 'profile'. 
 toolbox.mode = timeSeries
@@ -60,7 +52,7 @@ preprocessManager.preprocessDefaultChain.timeSeries = depthPP salinityPP magneti
 preprocessManager.preprocessDefaultChain.profile = depthPP salinityPP
 
 % last selected set of preprocessing routines
-preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP 
+preprocessManager.preprocessChain.timeSeries = depthPP salinityPP magneticDeclinationPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP
 preprocessManager.preprocessChain.profile = depthPP salinityPP
 
 % file status dialog formatting styles
@@ -71,20 +63,20 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % last selected values for start dialog
-startDialog.dataDir.timeSeries = /Users/pete/ABOS/git/imos-toolbox/data
+startDialog.dataDir.timeSeries = 
 startDialog.dataDir.profile = 
-startDialog.fieldTrip.timeSeries = SOTS-2016-04-14
+startDialog.fieldTrip.timeSeries = 
 startDialog.fieldTrip.profile = 
-startDialog.lowDate.timeSeries = 0
+startDialog.lowDate.timeSeries = 
 startDialog.lowDate.profile = 
-startDialog.highDate.timeSeries = 736909.3097
+startDialog.highDate.timeSeries = 
 startDialog.highDate.profile = 
 
 % last selected directory for manual data import
-importManager.manualDir = /Users/pete/ABOS/git/imos-toolbox/test/test03/
+importManager.manualDir = 
 
 % last selected directory for file export
-exportDialog.defaultDir = /Users/pete/ABOS/git/imos-toolbox/data/netcdf
+exportDialog.defaultDir = 
 
 % prompt user to select parser if an appropriate one 
 % cannot be found (if false, the data is not imported)
