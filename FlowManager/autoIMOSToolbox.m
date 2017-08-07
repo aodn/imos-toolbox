@@ -158,19 +158,12 @@ end
 [~, sourceFolder] = fileparts(dataDir);
 fprintf('%s\n', ['Processing field trip ' fieldTrip ' from folder ' sourceFolder]);
 
-%check for CSV file import
-isCSV = false;
-ddb = readProperty('toolbox.ddb');
-if isdir(ddb)
-    isCSV = true;
-end
-
 % get infos from current field trip
 switch mode
     case 'profile'
-        [~, deps, sits, dataDir] = getCTDs(true, isCSV);
+        [~, deps, sits, dataDir] = getCTDs(true);
     case 'timeSeries'
-        [~, deps, sits, dataDir] = getDeployments(true, isCSV);
+        [~, deps, sits, dataDir] = getDeployments(true);
 end
 
 if isempty(deps)
