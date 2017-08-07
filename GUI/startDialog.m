@@ -1,4 +1,4 @@
-function [fieldTrip dataDir] = startDialog(mode)
+function [fieldTrip dataDir] = startDialog(mode, isCSV)
 %STARTDIALOG Displays a dialog prompting the user to select a Field Trip 
 % and a directory which contains raw data files.
 %
@@ -11,6 +11,7 @@ function [fieldTrip dataDir] = startDialog(mode)
 % Input:
 %
 %   mode - String, toolox execution mode.
+%   isCSV - optional boolean (default = false). True if importing from csv files.
 %   
 % Outputs:
 %
@@ -52,7 +53,11 @@ function [fieldTrip dataDir] = startDialog(mode)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(1, 1);
+  narginchk(1,2);
+  
+  if nargin == 1
+      isCSV = false;
+  end
   
   dateFmt     = readProperty('toolbox.dateFormat');
     
@@ -69,7 +74,12 @@ function [fieldTrip dataDir] = startDialog(mode)
   if isnan(highDate),       highDate = now_utc; end
 
   % retrieve all field trip IDs; they are displayed as a drop down menu
-  fieldTrips = executeQuery('FieldTrip', [], []);
+  if isCSV
+      executeQueryFunc = @executeCSVQuery;
+  else
+      executeQueryFunc = @executeDDBQuery;
+  end
+  fieldTrips = executeQueryFunc('FieldTrip', [], []);
   
   if isempty(fieldTrips), error('No field trip entries in DDB'); end
   

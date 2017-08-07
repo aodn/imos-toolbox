@@ -1,4 +1,4 @@
-function [deployments files] = dataFileStatusDialog( deployments, files)
+function [deployments files] = dataFileStatusDialog( deployments, files, isCSV )
 %DATAFILESTATUSDIALOG Displays a list of deployments, and raw files for
 % each, allowing the user to verify/change which raw data files map to which
 % deployment.
@@ -16,6 +16,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files)
 %
 %   files       - Cell array of cell arrays of strings, each containing the
 %                 list of file names corresponding to each deployment.
+%   isCSV       - Logical for whether we use a ddb in .csv format or not.
 %
 % Outputs:
 %   deployments - Same as input, potentially with some deployments removed.
@@ -55,10 +56,11 @@ function [deployments files] = dataFileStatusDialog( deployments, files)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 % POSSIBILITY OF SUCH DAMAGE.
 %
-  narginchk(2, 2);
+  narginchk(3,3);
 
   if ~isstruct(deployments), error('deployments must be a struct'); end
   if ~iscell  (files),       error('files must be a cell array');   end
+  if ~islogical(isCSV),      error('isCSV must be a logical');   end
 
   % copy the inputs so we can rollback if the user cancels
   origDeployments = deployments;
@@ -67,7 +69,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files)
   % get the toolbox execution mode
   mode = readProperty('toolbox.mode');
   
-  deploymentDescs = genDepDescriptions(deployments, files);
+  deploymentDescs = genDepDescriptions(deployments, files, isCSV);
   
   % Sort data_samples
   %
@@ -295,7 +297,7 @@ function [deployments files] = dataFileStatusDialog( deployments, files)
 
   %% Description generation
 
-  function descs = genDepDescriptions(deployments, files)
+  function descs = genDepDescriptions(deployments, files, isCSV)
   %GENDEPDESCRIPTIONS Creates a cell array of descriptions of the given
   % deployments, suitable for use in the deployments list.
   %
@@ -322,7 +324,12 @@ function [deployments files] = dataFileStatusDialog( deployments, files)
       
 
       % get some site information if it exists
-      site = executeQuery('Sites', 'Site', dep.Site);
+      if isCSV
+          executeQueryFunc = @executeCSVQuery;
+      else
+          executeQueryFunc = @executeDDBQuery;
+      end
+      site = executeQueryFunc('Sites', 'Site', dep.Site);
 
       if ~isempty(site)
 

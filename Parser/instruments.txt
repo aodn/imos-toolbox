@@ -61,6 +61,3 @@ RDI, ADCP-WORKHORSE-SENTINEL, workhorse
 AQUATEC, AQUALOGGER MODEL 520, aquatec
 FSI, NXIC-CTD-BIO, NXICBinary
 NORTEK, ADCP - AWAC AST, awac
-Satlantic, MBARI-ISUS V3, Satlantic
-Satlantic, MBARI-ISUSX V3, Satlantic
-Sea-Bird Electronics, SBE37SMP-ODO, SBE37

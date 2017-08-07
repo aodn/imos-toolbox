@@ -63,7 +63,7 @@ public class Test {
 
 //		String odbcArgs = "imos-ddb_bmorris";
 //		String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/NSW/OceanDB2015.mdb";
-//		String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
+		String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
 //		String odbcArgs = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/new_ddb/OceanDB_Unreplicated.mdb";
 
 //		String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
@@ -72,10 +72,8 @@ public class Test {
 //		String mdbFile = "/home/ggalibert/Documents/IMOS_toolbox/data_files_examples/AIMS/Paul_Rigby/OceanDB.mdb";
 //		String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener;SingleConnection=true";
 //		String connection = "jdbc:ucanaccess://" + mdbFile + ";jackcessOpener=org.imos.ddb.CryptCodecOpener";
-//		String connection = "jdbc:postgresql://localhost/Darren_2016-03-24";
-		String connection = "jdbc:postgresql://localhost/IMOS-DEPLOY";
-//		String user = "myUser";
-		String user = "csiro";
+		String connection = "jdbc:postgresql://localhost/Darren_2016-03-24";
+		String user = "myUser";
 		String password = "myPassword";
 		String[] jdbcArgs = new String[4];
 		jdbcArgs[0] = driver;
