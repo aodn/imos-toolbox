@@ -108,7 +108,7 @@ for k = 1:length(sample_data)
   % indexs of other variables that might be needed
   psalIdx       = getVar(sam.variables, 'PSAL');
   
-  [presRel, presName] = presRefFromSampleData(sam);
+  [presRel, presName] = presRelFromSampleData(sam);
     
   % oxygen parameters that maybe in the dataset
   doxIdx        = getVar(sam.variables, 'DOX');
@@ -130,7 +130,7 @@ for k = 1:length(sample_data)
   % calculate oxygen solability
   if ~(oxsolIdx)
       oxsol = gsw_O2sol_SP_pt(psal, ptmp); % Should this be potential temperature?
-      oxsolComment = 'oxsolPP.m: derived from PSAL, TEMP using Garcia and Gordon (1992, 1993)';
+      oxsolComment = 'oxsolPP.m: derived from PSAL, TEMP using Garcia and Gordon (1992, 1993), calculated using teos-10 function gsw_O2sol_SP_pt(SP,pt)';
   else
       oxsol = sam.variables{oxsolIdx}.data;
   end
