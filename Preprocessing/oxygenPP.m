@@ -139,6 +139,7 @@ for k = 1:length(sample_data)
 
   % calculate oxygen solability
   if ~(oxsolIdx)
+      oxsol = gsw_O2sol_SP_pt(psal, ptmp); % sea bird calculates this using psal, temp, not potential temperature
       oxsolComment = 'oxsolPP.m: derived from PSAL, TEMP using Garcia and Gordon (1992, 1993), calculated using teos-10 function gsw_O2sol_SP_pt(SP,pt)';
   else
       oxsol = sam.variables{oxsolIdx}.data;
