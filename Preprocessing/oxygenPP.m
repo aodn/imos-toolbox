@@ -139,7 +139,6 @@ for k = 1:length(sample_data)
 
   % calculate oxygen solability
   if ~(oxsolIdx)
-      oxsol = gsw_O2sol_SP_pt(psal, ptmp); % Should this be potential temperature?
       oxsolComment = 'oxsolPP.m: derived from PSAL, TEMP using Garcia and Gordon (1992, 1993), calculated using teos-10 function gsw_O2sol_SP_pt(SP,pt)';
   else
       oxsol = sam.variables{oxsolIdx}.data;
@@ -149,23 +148,23 @@ for k = 1:length(sample_data)
   if (doxsIdx) && ~(dox2Idx)
     doxs = sam.variables{doxsIdx}.data;
     dox2 = doxs .* oxsol;
-    dox2Comment = 'oxsolPP.m: derived from doxs * oxsol(PSAL, TEMP)';
+    dox2Comment = 'oxsolPP.m: derived using dox2 = doxs * oxsol(PSAL, TEMP)';
   end
   if (doxyIdx) && ~(dox2Idx) && ~(dox1Idx)
     doxy = sam.variables{doxyIdx}.data;
     dox1 = doxy * 31.9988 ;
-    dox2Comment = 'oxsolPP.m: derived dox2 = doxy (kg/m^3) * 31.9988 / sw_dens0(PSAL, PTEMP)';
+    dox2Comment = 'oxsolPP.m: derived using dox2 = doxy (kg/m^3) * 31.9988 / sw_dens0(PSAL, PTEMP)';
     dox2 = dox1 ./ dens;
+  end
+  if (dox1Idx) && ~(dox2Idx)
+    dox1 = sam.variables{dox1Idx}.data;
+    dox2 = dox1 ./ (dens/1000);
+    dox2Comment = 'oxsolPP.m: derived using dox2 = dox (umol/l) / sw_dens0(PSAL, PTEMP)';
   end
   if (doxIdx) && ~(dox2Idx)
     dox = sam.variables{doxIdx}.data;
     dox2 = dox * 44659.6 ./ dens;
-    dox2Comment = 'oxsolPP.m: derived from dox2 = dox (ml/l) * 44659.6 / sw_dens0(PSAL, PTEMP)';
-  end
-  if (dox1Idx) && ~(dox2Idx)
-    dox1 = sam.variables{dox1Idx}.data;
-    dox2 = dox1 ./ dens;
-    dox2Comment = 'oxsolPP.m: derived from dox2 = dox (umol/l) / sw_dens0(PSAL, PTEMP)';
+    dox2Comment = 'oxsolPP.m: derived using dox2 = dox (ml/l) * 44659.6 / sw_dens0(PSAL, PTEMP)';
   end
   
   if ~(dox2Idx)
@@ -192,7 +191,7 @@ for k = 1:length(sample_data)
       sam.variables{end}.coordinates  = coordinates;
   
       sam.variables{end}.data = sam.variables{end}.typeCastFunc(doxs);
-      sam.variables{end}.comment       = dox2Comment;
+      sam.variables{end}.comment       = 'oxsolPP.m: derived using doxs = dox2 / oxsol';
   end
   if (~oxsolIdx)   
       sam.variables{end+1}.dimensions = dimensions;
@@ -204,7 +203,10 @@ for k = 1:length(sample_data)
       sam.variables{end}.comment       = oxsolComment;
   end
 
-  history = sam.history;
+  history = [];
+  if (isfield(sam, 'history'))
+    history = sam.history;
+  end
   if isempty(history)
       sam.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), dox2Comment);
   else
