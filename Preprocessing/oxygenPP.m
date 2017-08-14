@@ -29,7 +29,7 @@ function sample_data = oxygenPP( sample_data, qcLevel, auto )
 % Output Parameters
 %       DOX2
 %       DOXS
-%       OXSOL
+%       OXSOL_SURFACE
 %
 % Author:       Peter Jansen <peter.jansen@csiro.au>
 %
@@ -125,7 +125,6 @@ for k = 1:length(sample_data)
   dox2Idx       = getVar(sam.variables, 'DOX2');
   doxsIdx       = getVar(sam.variables, 'DOXS');
   doxyIdx       = getVar(sam.variables, 'DOXY');
-  oxsolIdx      = getVar(sam.variables, 'OXSOL');
   
   % check is psal and some dox measurement present, if not skip
   if ~(psalIdx && (doxIdx || dox1Idx || dox2Idx || doxsIdx)), continue; end
@@ -138,12 +137,8 @@ for k = 1:length(sample_data)
   dens = sw_dens0(psal, ptmp);
 
   % calculate oxygen solability
-  if ~(oxsolIdx)
-      oxsol = gsw_O2sol_SP_pt(psal, ptmp); % sea bird calculates this using psal, temp, not potential temperature
-      oxsolComment = 'oxsolPP.m: derived from PSAL, TEMP using Garcia and Gordon (1992, 1993), calculated using teos-10 function gsw_O2sol_SP_pt(SP,pt)';
-  else
-      oxsol = sam.variables{oxsolIdx}.data;
-  end
+  oxsol = gsw_O2sol_SP_pt(psal, ptmp); % sea bird calculates this using psal, temp, not potential temperature
+  oxsolComment = 'oxsolPP.m: derived from PSAL, TEMP using Garcia and Gordon (1992, 1993), calculated using teos-10 function gsw_O2sol_SP_pt(SP, pt)';
 
   % derive DOX2 from DOX1, DOX, DOXY, or DOXS in that preference order DOX1 first preference, so is calculated last
   if (doxsIdx) && ~(dox2Idx)
@@ -196,7 +191,7 @@ for k = 1:length(sample_data)
   end
   if (~oxsolIdx)   
       sam.variables{end+1}.dimensions = dimensions;
-      sam.variables{end}.name         = 'OXSOL';
+      sam.variables{end}.name         = 'OXSOL_SURFACE';
       sam.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sam.variables{end}.name, 'type')));
       sam.variables{end}.coordinates  = coordinates;
   
