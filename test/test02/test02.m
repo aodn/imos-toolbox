@@ -102,7 +102,7 @@ sam{1} = sample_data;
 
 sam = oxygenPP(sam, 'qc');
 
-oxsol = sam{1}.variables{getVar(sam{1}.variables, 'OXSOL')}.data;
+oxsol = sam{1}.variables{getVar(sam{1}.variables, 'OXSOL_SURFACE')}.data;
 dox2 = sam{1}.variables{getVar(sam{1}.variables, 'DOX2')}.data;
 doxs = sam{1}.variables{getVar(sam{1}.variables, 'DOXS')}.data;
 
@@ -152,7 +152,7 @@ sam{1} = sample_data;
 
 sam = oxygenPP(sam, 'qc');
 
-oxsol = sam{1}.variables{getVar(sam{1}.variables, 'OXSOL')}.data;
+oxsol = sam{1}.variables{getVar(sam{1}.variables, 'OXSOL_SURFACE')}.data;
 dox2 = sam{1}.variables{getVar(sam{1}.variables, 'DOX2')}.data;
 doxs = sam{1}.variables{getVar(sam{1}.variables, 'DOXS')}.data;
 
