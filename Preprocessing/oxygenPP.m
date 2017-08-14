@@ -20,7 +20,7 @@ function sample_data = oxygenPP( sample_data, qcLevel, auto )
 %       DOX
 %       DOXS
 %       DOX1
-%       DOX2 (calculate DOX2, OXSOL only)
+%       DOX2 (calculate DOX2, OXSOL_SURFACE only)
 %
 % Outputs:
 %   sample_data - the same data sets, with oxygen (umol/kg) 
@@ -117,7 +117,6 @@ for k = 1:length(sample_data)
 	% DOXS,                1, fractional_saturation_of_oxygen_in_sea_water,                                             percent,       ,              ,                                  O, 999999.0, ,         ,         float
 	% DOXY,                1, mass_concentration_of_oxygen_in_sea_water,                                                kg m-3,        ,              ,                                  O, 999999.0, 0.0,      29.0,     float
 	% DOXY_TEMP,           1, temperature_of_sensor_for_oxygen_in_sea_water,                                            degrees_Celsius,,             ,                                  T, 999999.0, 0.0,      50.0,     float
-	% OXSOL,               0, oxygen_solubility,                                                                        umol kg-1,     ,              ,                                  O, 999999.0, 0.0,      1000.0, float
 
   % oxygen parameters that maybe in the dataset
   doxIdx        = getVar(sam.variables, 'DOX');
