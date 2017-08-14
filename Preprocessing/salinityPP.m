@@ -66,13 +66,12 @@ if nargin<3, auto=false; end
 for k = 1:length(sample_data)
   
   sam = sample_data{k};
+
+  % data set already contains salinity
+  if getVar(sam.variables, 'PSAL'), continue; end
   
   cndcIdx       = getVar(sam.variables, 'CNDC');
   tempIdx       = getVar(sam.variables, 'TEMP');
-  
-  presIdx       = getVar(sam.variables, 'PRES');
-  presRelIdx    = getVar(sam.variables, 'PRES_REL');
-  isPresVar     = logical(presIdx || presRelIdx);
   
   isDepthInfo   = false;
   depthType     = 'variables';
@@ -92,62 +91,10 @@ for k = 1:length(sample_data)
   % cndc, temp, and pres/pres_rel or nominal depth not present in data set
   if ~(cndcIdx && tempIdx && (isPresVar || isDepthInfo)), continue; end
   
-  % data set already contains salinity
-  if getVar(sam.variables, 'PSAL'), continue; end
-  
   cndc = sam.variables{cndcIdx}.data;
   temp = sam.variables{tempIdx}.data;
   
-  % pressure information used for Salinity computation is from the
-  % PRES or PRES_REL variables in priority
-  if isPresVar
-      if presRelIdx > 0
-          presRel = sam.variables{presRelIdx}.data;
-          presName = 'PRES_REL';
-      else
-          % update from a relative pressure like SeaBird computes
-          % it in its processed files, substracting a constant value
-          % 10.1325 dbar for nominal atmospheric pressure
-          presRel = sam.variables{presIdx}.data - gsw_P0/10^4;
-          presName = 'PRES substracting a constant value 10.1325 dbar for nominal atmospheric pressure';
-      end
-  else
-      % when no pressure variable exists, we use depth information either 
-      % from the DEPTH variable or from the instrument_nominal_depth 
-      % global attribute
-      if depthIdx > 0
-          % with depth data
-          depth = sam.(depthType){depthIdx}.data;
-          presName = 'DEPTH';
-      else
-          % with nominal depth information
-          depth = sam.instrument_nominal_depth*ones(size(temp));
-          presName = 'instrument_nominal_depth';
-      end
-      
-      % any depth values <= -5 are discarded (reminder, depth is
-      % positive down), this allow use of gsw_p_from_z without error.
-      depth(depth <= -5) = NaN;
-      
-      % pressure information needed for Salinity computation is either
-      % retrieved from gsw_p_from_z when latitude is available or by 
-      % simply assuming 1dbar ~= 1m
-      if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
-          % compute depth with Gibbs-SeaWater toolbox
-          % relative_pressure ~= gsw_p_from_z(-depth, latitude)
-          if sam.geospatial_lat_min == sam.geospatial_lat_max
-              presRel = gsw_p_from_z(-depth, sam.geospatial_lat_min);
-          else
-              meanLat = sam.geospatial_lat_min + ...
-                  (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
-              presRel = gsw_p_from_z(-depth, meanLat);
-          end
-      else
-          % without latitude information, we assume 1dbar ~= 1m
-          presRel = depth;
-          presName = [presName ' (assuming 1 m ~ 1 dbar)'];
-      end
-  end
+  [presRel, presName] = presRefFromSampleData(sam);
   
   % calculate C(S,T,P)/C(35,15,0) ratio
   % conductivity is in S/m and gsw_C3515 in mS/cm
