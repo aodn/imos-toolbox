@@ -89,17 +89,19 @@ for k = 1:nSample
     descs{k} = genSampleDataDesc(sample_data{k});
     
     %check to see if the offsets are available already from the ddb
-    if isCSV
-        if isfield(sample_data{k}.meta.deployment,'StartOffset')
-            startOffsets(k) = sample_data{k}.meta.deployment.StartOffset;
-        end
-        if isfield(sample_data{k}.meta.deployment,'EndOffset')
-            endOffsets(k) = sample_data{k}.meta.deployment.EndOffset;
-        end
-    else
-        if all(isfield(sample_data{k}.meta.deployment,{'TimeDriftInstrument', 'TimeDriftGPS'}))
-            if ~isempty(sample_data{k}.meta.deployment.TimeDriftInstrument) && ~isempty(sample_data{k}.meta.deployment.TimeDriftGPS)
-                endOffsets(k) = (sample_data{k}.meta.deployment.TimeDriftInstrument - sample_data{k}.meta.deployment.TimeDriftGPS)*3600*24;
+    if ~isempty(ddb)
+        if isCSV
+            if isfield(sample_data{k}.meta.deployment,'StartOffset')
+                startOffsets(k) = sample_data{k}.meta.deployment.StartOffset;
+            end
+            if isfield(sample_data{k}.meta.deployment,'EndOffset')
+                endOffsets(k) = sample_data{k}.meta.deployment.EndOffset;
+            end
+        else
+            if all(isfield(sample_data{k}.meta.deployment,{'TimeDriftInstrument', 'TimeDriftGPS'}))
+                if ~isempty(sample_data{k}.meta.deployment.TimeDriftInstrument) && ~isempty(sample_data{k}.meta.deployment.TimeDriftGPS)
+                    endOffsets(k) = (sample_data{k}.meta.deployment.TimeDriftInstrument - sample_data{k}.meta.deployment.TimeDriftGPS)*3600*24;
+                end
             end
         end
     end
