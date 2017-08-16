@@ -76,6 +76,23 @@ function waveData = readAWACWaveAscii( filename )
 %     30   Current direction (wave cell)    (degrees)
 %     31   Error Code
 %
+% OR%
+%      1   Month                            (1-12)
+%      2   Day                              (1-31)
+%      3   Year
+%      4   Hour                             (0-23)
+%      5   Minute                           (0-59)
+%      6   Second                           (0-59)
+%      7   Significant height (Hs)          (m)
+%      8   Mean zerocrossing period (Tm02)  (s)
+%      9   Peak period (Tp)                 (s)
+%     10   Peak direction (DirTp)           (deg)
+%     11   Directional spread (Spr1)        (deg)
+%     12   Mean direction (Mdir)            (deg)
+%     13   Mean Pressure                    (m)
+%     14   Unidirectivity index
+%     15   Error Code
+%
 % Assumed file layout for power spectra data file (.was):
 %
 %       Frequency Vector                 (Hz)
@@ -240,15 +257,26 @@ try
     waveData.MeanPressure           = nan(nTime, 1);
     waveData.UnidirectivityIndex    = nan(nTime, 1);
     
-    waveData.SpectraType(iWave)            = wave(:,7);
-    waveData.SignificantHeight(iWave)      = wave(:,8);
-    waveData.PeakPeriod(iWave)             = wave(:,14);
-    waveData.MeanZeroCrossingPeriod(iWave) = wave(:,15);
-    waveData.PeakDirection(iWave)          = wave(:,19);
-    waveData.DirectionalSpread(iWave)      = wave(:,20);
-    waveData.MeanDirection(iWave)          = wave(:,21);
-    waveData.UnidirectivityIndex(iWave)    = wave(:,22);
-    waveData.MeanPressure(iWave)           = wave(:,23);
+    if size(wave,2) == 31
+        waveData.SpectraType(iWave)            = wave(:,7);
+        waveData.SignificantHeight(iWave)      = wave(:,8);
+        waveData.PeakPeriod(iWave)             = wave(:,14);
+        waveData.MeanZeroCrossingPeriod(iWave) = wave(:,15);
+        waveData.PeakDirection(iWave)          = wave(:,19);
+        waveData.DirectionalSpread(iWave)      = wave(:,20);
+        waveData.MeanDirection(iWave)          = wave(:,21);
+        waveData.UnidirectivityIndex(iWave)    = wave(:,22);
+        waveData.MeanPressure(iWave)           = wave(:,23);
+    else
+        waveData.SignificantHeight(iWave)      = wave(:,7);
+        waveData.PeakPeriod(iWave)             = wave(:,9);
+        waveData.MeanZeroCrossingPeriod(iWave) = wave(:,8);
+        waveData.PeakDirection(iWave)          = wave(:,10);
+        waveData.DirectionalSpread(iWave)      = wave(:,11);
+        waveData.MeanDirection(iWave)          = wave(:,12);
+        waveData.MeanPressure(iWave)           = wave(:,13);
+        waveData.UnidirectivityIndex(iWave)    = wave(:,14);
+    end
     clear wave;
     
     % let's have a look at the different frequency given in each file
@@ -272,14 +300,18 @@ try
     waveData.fullSpectrum = nan(nTime, nDirFreq, nDir);
     
     % we should have nTime samples so :
-    nFreqFullSpectrum = length(pwrFreqDir(2:end,:)) / nTime;
+    nFreqFullSpectrum = round(length(pwrFreqDir(2:end,:)) / nTime);
     
     % rearrange full power spectrum matrix so dimensions
     % are ordered: time, frequency, direction
     start = 2;
     for i=1:nTime
-        waveData.fullSpectrum(i, :, :) = pwrFreqDir(start:start+nFreqFullSpectrum-1,:);
-        start = start+nFreqFullSpectrum;
+        if start+nFreqFullSpectrum-1 <= size(pwrFreqDir,1)
+            waveData.fullSpectrum(i, :, :) = pwrFreqDir(start:start+nFreqFullSpectrum-1,:);
+            start = start+nFreqFullSpectrum;
+        else
+            break;
+        end
     end
     clear pwrFreqDir
 catch e
