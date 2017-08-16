@@ -142,7 +142,7 @@ switch name
       
     % oxygen (mg/l)
     % mg/l
-    case {'oxsolMg0x2FL', 'oxsatMg0x2FL', 'sbeox0Mg0x2FL'}
+    case 'sbeox0Mg0x2FL'
       name = 'DOXY';
       comment = '';
       
@@ -160,7 +160,7 @@ switch name
       
     % oxygen (umol/Kg)
     % umol/Kg
-    case {'oxsolMm0x2FKg', 'oxsatMm0x2FKg', 'sbeox0Mm0x2FKg', 'sbeopoxMm0x2FKg'}
+    case {'sbeox0Mm0x2FKg', 'sbeopoxMm0x2FKg'}
       name = 'DOX2';
       comment = '';
     
@@ -219,7 +219,7 @@ switch name
       origName = name;
       name = getVoltageName(origName, instHeader);
       if ~strcmpi(name, 'not_assigned')
-          name = ['volt_', getVoltageName(origName, instHeader)];
+          name = ['volt_', name];
           comment = getVoltageComment(origName, procHeader);
       else
           name = '';
@@ -328,6 +328,6 @@ switch origName
         end
 end
 
-name = strrep(name, ' ', '_');
+name = regexprep(name, '[^a-zA-Z0-9]', '_'); % to make a valid var name for structure, only keep word characters
 
 end
