@@ -218,7 +218,7 @@ for i=1:lenConfig
             if ~isempty(Sensors)
                 % check if this sensor is associated to the current IMOS parameter
                 if isfield(Sensors, 'Parameter')
-                    if ~isempty(Sensor.Parameters)
+                    if ~isempty(Sensor.Parameter)
                         parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
                         if ~isempty(parameters)
                             parameters = parameters{1};
