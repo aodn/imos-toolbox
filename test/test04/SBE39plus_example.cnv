@@ -1,0 +1,30 @@
+* Sea-Bird SBE39plus Data File:
+* SerialNumber: 03907660
+* FirmwareVersion: 4.2.0
+* PressureInstalled: yes
+# nquan = 4
+# nvalues = 288277                       
+# units = specified
+# name 0 = t090C: Temperature [ITS-90, deg C]
+# name 1 = prM: Pressure [db]
+# name 2 = timeJ: Julian Days
+# name 3 = flag: Flag
+# span 0 =      7.9006,    30.4858       
+# span 1 =      -0.236,    421.222       
+# span 2 =  211.000012, 411.191678       
+# span 3 =  0.0000e+00, 0.0000e+00       
+# interval = seconds: 60.000000
+# start_time = Jul 29 2016 00:00:01
+# bad_flag = -9.990e-29
+# datcnv_date = Feb 14 2017 06:13:13, SeatermV2 version 2.6.1.12
+# datcnv_in = C:\Field\Data\Seabird\76601702.xml
+# file_type = ascii
+*END*
+    22.1976     -0.025 211.000012 0.0000e+00
+    22.2136     -0.040 211.000706 0.0000e+00
+    22.2250     -0.041 211.001400 0.0000e+00
+    22.2350     -0.034 211.002095 0.0000e+00
+    22.2447     -0.038 211.002789 0.0000e+00
+    22.2573     -0.025 211.003484 0.0000e+00
+    22.2669     -0.031 211.004178 0.0000e+00
+    22.2784     -0.022 211.004873 0.0000e+00
