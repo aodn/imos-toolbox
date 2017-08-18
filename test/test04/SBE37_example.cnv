@@ -1,0 +1,292 @@
+* Sea-Bird SBE37SM-RS232  Data File:
+* FileName = C:\FIELD\Trip6634\SBE37\SBE37087421702.hex
+* Software version SeatermV2 2.4.1
+* Temperature SN = 8742
+* Conductivity SN = 8742
+* System UpLoad Time = Feb 13 2017 23:41:28
+* sample interval = 10 seconds
+* <ApplicationData>
+* <Seaterm232>
+* <SoftwareVersion>2.4.1</SoftwareVersion>
+* <BuildDate>24-Jul-2014</BuildDate>
+* </Seaterm232>
+* </ApplicationData>
+* <InstrumentState>
+* <HardwareData DeviceType='SBE37SM-RS232' SerialNumber='03708742'>
+*
+*    <Manufacturer>Sea-Bird Electronics, Inc.</Manufacturer>
+*
+*    <FirmwareVersion>3.0j</FirmwareVersion>
+*
+*    <FirmwareDate>22 June 2010 14:30</FirmwareDate>
+*
+*    <PCBAssembly>41647</PCBAssembly>
+*
+*    <PCBAssembly>41610B</PCBAssembly>
+*
+*    <PCBAssembly>41611D</PCBAssembly>
+*
+*    <MfgDate>31 Oct 2011</MfgDate>
+*
+*    <FirmwareLoader>SBE 37 FirmwareLoader V 1.0</FirmwareLoader>
+*
+*    <InternalSensors>
+*
+*       <Sensor id='Temperature'>
+*
+*          <type>temperature-1</type>
+*
+*          <SerialNumber>03708742</SerialNumber>
+*
+*       </Sensor>
+*
+*       <Sensor id='Conductivity'>
+*
+*          <type>conductivity-1</type>
+*
+*          <SerialNumber>03708742</SerialNumber>
+*
+*       </Sensor>
+*
+*       <Sensor id='Pressure'>
+*
+*          <type>strain-0</type>
+*
+*          <SerialNumber>3418683</SerialNumber>
+*
+*       </Sensor>
+*
+*    </InternalSensors>
+*
+* </HardwareData>
+* <StatusData DeviceType='SBE37SM-RS232' SerialNumber='03708742'>
+*
+*    <DateTime>2017-02-13T23:20:13</DateTime>
+*
+*    <EventSummary numEvents='6'/>
+*
+*    <Power>
+*
+*       <vMain> 6.94</vMain>
+*
+*       <vLith> 3.12</vLith>
+*
+*    </Power>
+*
+*    <MemorySummary>
+*
+*       <Bytes>8388585</Bytes>
+*
+*       <Samples>559239</Samples>
+*
+*       <SamplesFree>1</SamplesFree>
+*
+*       <SampleLength>15</SampleLength>
+*
+*    </MemorySummary>
+*
+*    <AutonomousSampling>no, out of memory</AutonomousSampling>
+*
+* </StatusData>
+* <ConfigurationData DeviceType='SBE37SM-RS232' SerialNumber='03708742'>
+*
+*    <PressureInstalled>yes</PressureInstalled>
+*
+*    <PumpInstalled>no</PumpInstalled>
+*
+*    <SampleDataFormat>converted engineering</SampleDataFormat>
+*
+*    <OutputSalinity>yes</OutputSalinity>
+*
+*    <OutputSV>no</OutputSV>
+*
+*    <TxRealTime>no</TxRealTime>
+*
+*    <SampleInterval>10</SampleInterval>
+*
+*    <SyncMode>no</SyncMode>
+*
+* </ConfigurationData>
+* <CalibrationCoefficients DeviceType='SBE37SM-RS232' SerialNumber='03708742'>
+*
+*    <Calibration format='TEMP1' id='Temperature'>
+*
+*       <SerialNum>03708742</SerialNum>
+*
+*       <CalDate>12-07-2016</CalDate>
+*
+*       <A0>-1.735021e-04</A0>
+*
+*       <A1>3.260736e-04</A1>
+*
+*       <A2>-6.096529e-06</A2>
+*
+*       <A3>2.436910e-07</A3>
+*
+*    </Calibration>
+*
+*    <Calibration format='WBCOND0' id='Conductivity'>
+*
+*       <SerialNum>03708742</SerialNum>
+*
+*       <CalDate>12-07-2016</CalDate>
+*
+*       <G>-9.780402e-01</G>
+*
+*       <H>1.336480e-01</H>
+*
+*       <I>-8.312528e-05</I>
+*
+*       <J>2.425185e-05</J>
+*
+*       <PCOR>-9.570000e-08</PCOR>
+*
+*       <TCOR>3.250000e-06</TCOR>
+*
+*       <WBOTC>2.463883e-07</WBOTC>
+*
+*    </Calibration>
+*
+*    <Calibration format='STRAIN0' id='Pressure'>
+*
+*       <SerialNum>3418683</SerialNum>
+*
+*       <CalDate>12-07-2016</CalDate>
+*
+*       <PA0>1.406163e-01</PA0>
+*
+*       <PA1>1.747486e-03</PA1>
+*
+*       <PA2>1.181905e-11</PA2>
+*
+*       <PTCA0>5.243889e+05</PTCA0>
+*
+*       <PTCA1>1.255491e+00</PTCA1>
+*
+*       <PTCA2>-9.448175e-02</PTCA2>
+*
+*       <PTCB0>2.502638e+01</PTCB0>
+*
+*       <PTCB1>7.500000e-05</PTCB1>
+*
+*       <PTCB2>0.000000e+00</PTCB2>
+*
+*       <PTEMPA0>-5.650160e+01</PTEMPA0>
+*
+*       <PTEMPA1>5.489303e-02</PTEMPA1>
+*
+*       <PTEMPA2>-6.702464e-07</PTEMPA2>
+*
+*       <POFFSET>0.000000e+00</POFFSET>
+*
+*       <PRANGE>5.080000e+02</PRANGE>
+*
+*    </Calibration>
+*
+* </CalibrationCoefficients>
+* <EventCounters DeviceType='SBE37SM-RS232' SerialNumber='03708742'>
+*
+*    <EventSummary numEvents='6'/>
+*
+*    <Event type='PON reset' count='6'/>
+*
+* </EventCounters></InstrumentState>
+# nquan = 5
+# nvalues = 559239                                
+# units = specified
+# name 0 = timeS: Time, Elapsed [seconds]
+# name 1 = tv290C: Temperature [ITS-90, deg C]
+# name 2 = cond0S/m: Conductivity [S/m]
+# name 3 = prdM: Pressure, Strain Gauge [db]
+# name 4 = flag:  0.000e+00
+# span 0 =      0.000, 5592380.00                 
+# span 1 =    21.9211,    30.3350                 
+# span 2 =  -0.051305,   5.597191                 
+# span 3 =     -0.204,    102.968                 
+# span 4 = 0.0000e+00, 0.0000e+00                 
+# interval = seconds: 10
+# start_time = Jul 30 2016 00:00:01 [Instrument's time stamp, first data scan]
+# bad_flag = -9.990e-29
+# <Sensors count="3" >
+#   <sensor Channel="1" >
+#     <!-- Count, Temperature -->
+#     <TemperatureSensor SensorID="58" >
+#       <SerialNumber>8742</SerialNumber>
+#       <CalibrationDate>12-07-2016</CalibrationDate>
+#       <A0>-1.73502100e-004</A0>
+#       <A1>3.26073600e-004</A1>
+#       <A2>-6.09652900e-006</A2>
+#       <A3>2.43691000e-007</A3>
+#       <Slope>1.00000000</Slope>
+#       <Offset>0.0000</Offset>
+#     </TemperatureSensor>
+#   </sensor>
+#   <sensor Channel="2" >
+#     <!-- Frequency 0, Conductivity -->
+#     <ConductivitySensor SensorID="3" >
+#       <SerialNumber>8742</SerialNumber>
+#       <CalibrationDate>12-07-2016</CalibrationDate>
+#       <UseG_J>1</UseG_J>
+#       <!-- Cell const and series R are applicable only for wide range sensors. -->
+#       <SeriesR>0.0000</SeriesR>
+#       <CellConst>2000.0000</CellConst>
+#       <ConductivityType>1</ConductivityType>
+#       <Coefficients equation="0" >
+#         <A>0.00000000e+000</A>
+#         <B>0.00000000e+000</B>
+#         <C>0.00000000e+000</C>
+#         <D>0.00000000e+000</D>
+#         <M>0.0</M>
+#         <CPcor>-9.57000000e-008</CPcor>
+#       </Coefficients>
+#       <Coefficients equation="1" >
+#         <G>-9.78040200e-001</G>
+#         <H>1.33648000e-001</H>
+#         <I>-8.31252800e-005</I>
+#         <J>2.42518500e-005</J>
+#         <CPcor>-9.57000000e-008</CPcor>
+#         <CTcor>3.2500e-006</CTcor>
+#         <!-- WBOTC not applicable unless ConductivityType = 1. -->
+#         <WBOTC>2.46388300e-007</WBOTC>
+#       </Coefficients>
+#       <Slope>1.00000000</Slope>
+#       <Offset>0.00000</Offset>
+#     </ConductivitySensor>
+#   </sensor>
+#   <sensor Channel="3" >
+#     <!-- Count, Pressure, Strain Gauge -->
+#     <PressureSensor SensorID="46" >
+#       <SerialNumber>3418683</SerialNumber>
+#       <CalibrationDate>12-07-2016</CalibrationDate>
+#       <PA0>1.40616300e-001</PA0>
+#       <PA1>1.74748600e-003</PA1>
+#       <PA2>1.18190500e-011</PA2>
+#       <PTEMPA0>-5.65016000e+001</PTEMPA0>
+#       <PTEMPA1>5.48930300e-002</PTEMPA1>
+#       <PTEMPA2>-6.70246400e-007</PTEMPA2>
+#       <PTCA0>5.24388900e+005</PTCA0>
+#       <PTCA1>1.25549100e+000</PTCA1>
+#       <PTCA2>-9.44817500e-002</PTCA2>
+#       <PTCB0>2.50263800e+001</PTCB0>
+#       <PTCB1>7.50000000e-005</PTCB1>
+#       <PTCB2>0.00000000e+000</PTCB2>
+#       <Offset>0.000000</Offset>
+#     </PressureSensor>
+#   </sensor>
+# </Sensors>
+# datcnv_date = Feb 13 2017 23:42:01, 7.22.5 [datcnv_vars = 4]
+# datcnv_in = C:\FIELD\Trip6634\SBE37\sbe37087421702.hex C:\FIELD\Trip6634\SBE37\SBE37087421702.xmlcon
+# datcnv_skipover = 0
+# file_type = ascii
+*END*
+      0.000    22.4577  -0.000021     -0.022  0.000e+00
+     10.000    22.4580  -0.000024     -0.021  0.000e+00
+     20.000    22.4572  -0.000024     -0.021  0.000e+00
+     30.000    22.4577  -0.000024     -0.021  0.000e+00
+     40.000    22.4581  -0.000024     -0.019  0.000e+00
+     50.000    22.4583  -0.000024     -0.021  0.000e+00
+     60.000    22.4588  -0.000024     -0.021  0.000e+00
+     70.000    22.4584  -0.000024     -0.022  0.000e+00
+     80.000    22.4602  -0.000024     -0.019  0.000e+00
+     90.000    22.4618  -0.000027     -0.022  0.000e+00
+    100.000    22.4620  -0.000024     -0.019  0.000e+00
