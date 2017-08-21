@@ -1,0 +1,417 @@
+* Sea-Bird SBE37SMP-ODO-RS232  Data File:
+* FileName = C:\Users\jan079\Desktop\SBE37SMP-ODO-RS232_03709513_2016_04_03.hex
+* Software version SeatermV2 2.4.1
+* Temperature SN = 9513
+* Conductivity SN = 9513
+* System UpLoad Time = Apr 03 2016 05:58:22
+* sample interval = 1800 seconds
+* <ApplicationData>
+* <Seaterm232>
+* <SoftwareVersion>2.4.1</SoftwareVersion>
+* <BuildDate>24-Jul-2014</BuildDate>
+* </Seaterm232>
+* </ApplicationData>
+* <InstrumentState>
+* <HardwareData DeviceType='SBE37SMP-ODO-RS232' SerialNumber='03709513'>
+*
+*    <Manufacturer>Sea-Bird Electronics, Inc.</Manufacturer>
+*
+*    <FirmwareVersion>1.1.0</FirmwareVersion>
+*
+*    <FirmwareDate>Jul 17 2012 11:16:52</FirmwareDate>
+*
+*    <CommandSetVersion>1.0</CommandSetVersion>
+*
+*    <PCBAssembly>41783</PCBAssembly>
+*
+*    <PCBSerialNum>42021</PCBSerialNum>
+*
+*    <PCBAssembly>41785</PCBAssembly>
+*
+*    <PCBSerialNum>41937</PCBSerialNum>
+*
+*    <PCBAssembly>41661B</PCBAssembly>
+*
+*    <PCBSerialNum>40967</PCBSerialNum>
+*
+*    <PCBAssembly>41787</PCBAssembly>
+*
+*    <PCBSerialNum>41976</PCBSerialNum>
+*
+*    <MfgDate>3 May 2012</MfgDate>
+*
+*    <FirmwareLoader>SBE 37-232-V3 FirmwareLoader V 1.0</FirmwareLoader>
+*
+*    <InternalSensors>
+*
+*       <Sensor id='Temperature'>
+*
+*          <type>temperature-1</type>
+*
+*          <SerialNumber>03709513</SerialNumber>
+*
+*       </Sensor>
+*
+*       <Sensor id='Conductivity'>
+*
+*          <type>conductivity-1</type>
+*
+*          <SerialNumber>03709513</SerialNumber>
+*
+*       </Sensor>
+*
+*       <Sensor id='Pressure'>
+*
+*          <type>strain-0</type>
+*
+*          <SerialNumber>3537451</SerialNumber>
+*
+*       </Sensor>
+*
+*       <Sensor id='Oxygen'>
+*
+*          <type>oxygen-1</type>
+*
+*          <SerialNumber>0144</SerialNumber>
+*
+*       </Sensor>
+*
+*    </InternalSensors>
+*
+* </HardwareData>
+* <StatusData DeviceType='SBE37SMP-ODO-RS232' SerialNumber='03709513'>
+*
+*    <DateTime>2016-04-03T05:49:17</DateTime>
+*
+*    <EventSummary numEvents='22'/>
+*
+*    <Power>
+*
+*       <vMain>13.38</vMain>
+*
+*       <vLith> 3.03</vLith>
+*
+*    </Power>
+*
+*    <MemorySummary>
+*
+*       <Bytes>382284</Bytes>
+*
+*       <Samples>18204</Samples>
+*
+*       <SamplesFree>381253</SamplesFree>
+*
+*       <SampleLength>21</SampleLength>
+*
+*    </MemorySummary>
+*
+*    <AutonomousSampling>no, stop command</AutonomousSampling>
+*
+* </StatusData>
+* <ConfigurationData DeviceType='SBE37SMP-ODO-RS232' SerialNumber='03709513'>
+*
+*    <PressureInstalled>yes</PressureInstalled>
+*
+*    <SampleDataFormat>converted engineering</SampleDataFormat>
+*
+*    <OutputSalinity>no</OutputSalinity>
+*
+*    <SampleInterval>1800</SampleInterval>
+*
+*    <TxRealTime>no</TxRealTime>
+*
+*    <SyncMode>no</SyncMode>
+*
+*    <MinCondFreq>3152.0</MinCondFreq>
+*
+*    <nTau>7.0</nTau>
+*
+*    <AdaptivePumpControl>no</AdaptivePumpControl>
+*
+*    <PumpOnTime>35.0</PumpOnTime>
+*
+* </ConfigurationData>
+* <CalibrationCoefficients DeviceType='SBE37SMP-ODO-RS232' SerialNumber='03709513'>
+*
+*    <Calibration format='TEMP1' id='Temperature'>
+*
+*       <SerialNum>03709513</SerialNum>
+*
+*       <CalDate>10-Dec-13</CalDate>
+*
+*       <A0>-1.388991e-04</A0>
+*
+*       <A1>3.079763e-04</A1>
+*
+*       <A2>-4.312350e-06</A2>
+*
+*       <A3>1.979268e-07</A3>
+*
+*    </Calibration>
+*
+*    <Calibration format='WBCOND0' id='Conductivity'>
+*
+*       <SerialNum>03709513</SerialNum>
+*
+*       <CalDate>10-Dec-13</CalDate>
+*
+*       <G>-9.753613e-01</G>
+*
+*       <H>1.391117e-01</H>
+*
+*       <I>-2.846882e-04</I>
+*
+*       <J>3.993844e-05</J>
+*
+*       <PCOR>-9.570000e-08</PCOR>
+*
+*       <TCOR>3.250000e-06</TCOR>
+*
+*       <WBOTC>4.084195e-07</WBOTC>
+*
+*    </Calibration>
+*
+*    <Calibration format='STRAIN0' id='Pressure'>
+*
+*       <SerialNum>3537451</SerialNum>
+*
+*       <CalDate>06-Dec-13</CalDate>
+*
+*       <PA0>2.377485e-02</PA0>
+*
+*       <PA1>1.704031e-03</PA1>
+*
+*       <PA2>7.337131e-12</PA2>
+*
+*       <PTCA0>5.247373e+05</PTCA0>
+*
+*       <PTCA1>3.937194e+00</PTCA1>
+*
+*       <PTCA2>-1.543815e-01</PTCA2>
+*
+*       <PTCB0>2.497875e+01</PTCB0>
+*
+*       <PTCB1>-4.500000e-04</PTCB1>
+*
+*       <PTCB2>0.000000e+00</PTCB2>
+*
+*       <PTEMPA0>-5.955674e+01</PTEMPA0>
+*
+*       <PTEMPA1>5.565617e-02</PTEMPA1>
+*
+*       <PTEMPA2>-7.455606e-07</PTEMPA2>
+*
+*       <POFFSET>0.000000e+00</POFFSET>
+*
+*       <PRANGE>5.080000e+02</PRANGE>
+*
+*    </Calibration>
+*
+*    <Calibration format='OXYGEN1' id='Oxygen'>
+*
+*       <SerialNum>0144</SerialNum>
+*
+*       <CalDate>28-Nov-13</CalDate>
+*
+*       <TAU20>5.000000e+00</TAU20>
+*
+*       <OXA0>1.051300e+00</OXA0>
+*
+*       <OXA1>-1.500000e-03</OXA1>
+*
+*       <OXA2>4.094000e-01</OXA2>
+*
+*       <OXB0>-2.483200e-01</OXB0>
+*
+*       <OXB1>1.642600e+00</OXB1>
+*
+*       <OXC0>1.039700e-01</OXC0>
+*
+*       <OXC1>4.405801e-03</OXC1>
+*
+*       <OXC2>5.986200e-05</OXC2>
+*
+*       <OXTA0>6.231908e-04</OXTA0>
+*
+*       <OXTA1>2.616529e-04</OXTA1>
+*
+*       <OXTA2>-4.967615e-07</OXTA2>
+*
+*       <OXTA3>1.345086e-07</OXTA3>
+*
+*       <OXE>1.100000e-02</OXE>
+*
+*    </Calibration>
+*
+* </CalibrationCoefficients>
+* <EventCounters DeviceType='SBE37SMP-ODO-RS232' SerialNumber='03709513'>
+*
+*    <EventSummary numEvents='22'/>
+*
+*    <Event type='PON reset' count='15'/>
+*
+*    <Event type='ErrorSBE63Timeout' count='7'/>
+*
+* </EventCounters></InstrumentState>
+* <UserHeaderInsert>
+* <![CDATA[
+** mooring Pulse-11
+** depth 100
+* ]]>
+* </UserHeaderInsert>
+# nquan = 12
+# nvalues = 18204                                 
+# units = specified
+# name 0 = timeJV2: Time, Instrument [julian days]
+# name 1 = timeK: Time, Instrument [seconds]
+# name 2 = tv290C: Temperature [ITS-90, deg C]
+# name 3 = cond0S/m: Conductivity [S/m]
+# name 4 = prdM: Pressure, Strain Gauge [db]
+# name 5 = depSM: Depth [salt water, m], lat = -46.00
+# name 6 = sal00: Salinity, Practical [PSU]
+# name 7 = oxsolMm/Kg: Oxygen Saturation, Garcia & Gordon [umol/kg]
+# name 8 = oxsolML/L: Oxygen Saturation, Garcia & Gordon [ml/l]
+# name 9 = sbeopoxML/L: Oxygen, SBE 63 [ml/l]
+# name 10 = sbeopoxMm/Kg: Oxygen, SBE 63 [umol/kg]
+# name 11 = flag:  0.000e+00
+# span 0 =  80.000417, 459.229583                 
+# span 1 =  480211236,  512976636                 
+# span 2 =     8.3266,    19.3791                 
+# span 3 =   0.000020,   4.202063                 
+# span 4 =     -0.189,    100.295                 
+# span 5 =     -0.187,     99.448                 
+# span 6 =     0.0051,    35.2979                 
+# span 7 =  253.30076,  352.71938                 
+# span 8 =    5.82140,    7.89555                 
+# span 9 =      2.224,      7.125                 
+# span 10 =      99.29,     318.31                
+# span 11 = 0.0000e+00, 0.0000e+00                
+# interval = seconds: 1800
+# start_time = Mar 21 2015 00:00:36 [Instrument's time stamp, first data scan]
+# bad_flag = -9.990e-29
+# <Sensors count="4" >
+#   <sensor Channel="1" >
+#     <!-- Count, Temperature -->
+#     <TemperatureSensor SensorID="58" >
+#       <SerialNumber>9513</SerialNumber>
+#       <CalibrationDate>10-Dec-13</CalibrationDate>
+#       <A0>-1.38899100e-004</A0>
+#       <A1>3.07976300e-004</A1>
+#       <A2>-4.31235000e-006</A2>
+#       <A3>1.97926800e-007</A3>
+#       <Slope>1.00000000</Slope>
+#       <Offset>0.0000</Offset>
+#     </TemperatureSensor>
+#   </sensor>
+#   <sensor Channel="2" >
+#     <!-- Frequency 0, Conductivity -->
+#     <ConductivitySensor SensorID="3" >
+#       <SerialNumber>9513</SerialNumber>
+#       <CalibrationDate>10-Dec-13</CalibrationDate>
+#       <UseG_J>1</UseG_J>
+#       <!-- Cell const and series R are applicable only for wide range sensors. -->
+#       <SeriesR>0.0000</SeriesR>
+#       <CellConst>2000.0000</CellConst>
+#       <ConductivityType>1</ConductivityType>
+#       <Coefficients equation="0" >
+#         <A>0.00000000e+000</A>
+#         <B>0.00000000e+000</B>
+#         <C>0.00000000e+000</C>
+#         <D>0.00000000e+000</D>
+#         <M>0.0</M>
+#         <CPcor>-9.57000000e-008</CPcor>
+#       </Coefficients>
+#       <Coefficients equation="1" >
+#         <G>-9.75361300e-001</G>
+#         <H>1.39111700e-001</H>
+#         <I>-2.84688200e-004</I>
+#         <J>3.99384400e-005</J>
+#         <CPcor>-9.57000000e-008</CPcor>
+#         <CTcor>3.2500e-006</CTcor>
+#         <!-- WBOTC not applicable unless ConductivityType = 1. -->
+#         <WBOTC>4.08419500e-007</WBOTC>
+#       </Coefficients>
+#       <Slope>1.00000000</Slope>
+#       <Offset>0.00000</Offset>
+#     </ConductivitySensor>
+#   </sensor>
+#   <sensor Channel="3" >
+#     <!-- Serial RS-232, Oxygen, SBE 63 -->
+#     <OxygenSensor SensorID="72" >
+#       <SerialNumber>0144</SerialNumber>
+#       <CalibrationDate>28-Nov-13</CalibrationDate>
+#       <A0>1.051300e+000</A0>
+#       <A1>-1.500000e-003</A1>
+#       <A2>4.094000e-001</A2>
+#       <B0>-2.483200e-001</B0>
+#       <B1>1.642600e+000</B1>
+#       <C0>1.039700e-001</C0>
+#       <C1>4.405801e-003</C1>
+#       <C2>5.986200e-005</C2>
+#       <TA0>6.231908e-004</TA0>
+#       <TA1>2.616529e-004</TA1>
+#       <TA2>-4.967615e-007</TA2>
+#       <TA3>1.345086e-007</TA3>
+#       <pcor>1.100000e-002</pcor>
+#     </OxygenSensor>
+#   </sensor>
+#   <sensor Channel="4" >
+#     <!-- Count, Pressure, Strain Gauge -->
+#     <PressureSensor SensorID="46" >
+#       <SerialNumber>3537451</SerialNumber>
+#       <CalibrationDate>06-Dec-13</CalibrationDate>
+#       <PA0>2.37748500e-002</PA0>
+#       <PA1>1.70403100e-003</PA1>
+#       <PA2>7.33713100e-012</PA2>
+#       <PTEMPA0>-5.95567400e+001</PTEMPA0>
+#       <PTEMPA1>5.56561700e-002</PTEMPA1>
+#       <PTEMPA2>-7.45560600e-007</PTEMPA2>
+#       <PTCA0>5.24737300e+005</PTCA0>
+#       <PTCA1>3.93719400e+000</PTCA1>
+#       <PTCA2>-1.54381500e-001</PTCA2>
+#       <PTCB0>2.49787500e+001</PTCB0>
+#       <PTCB1>-4.50000000e-004</PTCB1>
+#       <PTCB2>0.00000000e+000</PTCB2>
+#       <Offset>0.000000</Offset>
+#     </PressureSensor>
+#   </sensor>
+# </Sensors>
+# datcnv_date = Apr 03 2016 06:19:33, 7.23.1 [datcnv_vars = 11]
+# datcnv_in = C:\Users\jan079\Desktop\SBE37SMP-ODO-RS232_03709513_2016_04_03.hex C:\Users\jan079\Desktop\SBE37SMP-ODO-RS232_03709513_2016_04_03.XMLCON
+# datcnv_skipover = 0
+# file_type = ascii
+*END*
+  80.000417  480211236    17.8782   0.000023      0.081      0.080     0.0091  296.98332    6.64074      6.446     288.29  0.000e+00
+  80.021250  480213036    17.9266   0.000020      0.080      0.079     0.0091  296.69066    6.63413      6.444     288.19  0.000e+00
+  80.042083  480214836    17.9748   0.000023      0.076      0.075     0.0091  296.39953    6.62757      6.433     287.68  0.000e+00
+  80.062917  480216636    17.8889   0.000023      0.074      0.074     0.0091  296.91890    6.63928      6.444     288.19  0.000e+00
+  80.083750  480218436    17.8475   0.000023      0.075      0.075     0.0091  297.16958    6.64494      6.453     288.59  0.000e+00
+  80.104583  480220236    17.9326   0.000023      0.075      0.075     0.0091  296.65470    6.63332      6.457     288.78  0.000e+00
+  80.125417  480222036    17.8433   0.000023      0.075      0.075     0.0091  297.19481    6.64551      6.458     288.79  0.000e+00
+  80.146250  480223836    17.7789   0.000031      0.069      0.069     0.0090  297.58599    6.65433      6.457     288.77  0.000e+00
+  80.167083  480225636    17.7281   0.000023      0.071      0.071     0.0090  297.89483    6.66130      6.461     288.94  0.000e+00
+  80.187917  480227436    17.6854   0.000023      0.067      0.066     0.0090  298.15481    6.66717      6.464     289.08  0.000e+00
+  80.208750  480229236    17.6490   0.000023      0.064      0.064     0.0090  298.37719    6.67218      6.467     289.22  0.000e+00
+  80.229583  480231036    17.6233   0.000023      0.062      0.061     0.0090  298.53416    6.67573      6.471     289.39  0.000e+00
+  80.250417  480232836    17.6042   0.000023      0.065      0.065     0.0090  298.65092    6.67836      6.473     289.45  0.000e+00
+  80.271250  480234636    17.5932   0.000023      0.061      0.060     0.0090  298.71787    6.67987      6.476     289.62  0.000e+00
+  80.292083  480236436    17.5867   0.000023      0.066      0.066     0.0090  298.75803    6.68078      6.474     289.51  0.000e+00
+  80.312917  480238236    17.5799   0.000023      0.069      0.068     0.0090  298.79926    6.68171      6.480     289.78  0.000e+00
+  80.333750  480240036    17.5740   0.000023      0.070      0.069     0.0090  298.83567    6.68253      6.480     289.77  0.000e+00
+  80.354583  480241836    17.5837   0.000023      0.066      0.066     0.0090  298.77624    6.68119      6.475     289.57  0.000e+00
+  80.375417  480243636    17.6062   0.000023      0.068      0.067     0.0090  298.63861    6.67808      6.475     289.56  0.000e+00
+  80.396250  480245436    17.6313   0.000023      0.069      0.068     0.0090  298.48488    6.67461      6.473     289.47  0.000e+00
+  80.417083  480247236    17.6431   0.000023      0.070      0.069     0.0090  298.41309    6.67299      6.469     289.30  0.000e+00
+  80.437917  480249036    17.6487   0.000023      0.069      0.068     0.0090  298.37880    6.67222      6.469     289.30  0.000e+00
+  80.458750  480250836    17.6532   0.000023      0.069      0.068     0.0090  298.35147    6.67160      6.467     289.21  0.000e+00
+  80.479583  480252636    17.6584   0.000023      0.069      0.068     0.0090  298.31933    6.67088      6.467     289.20  0.000e+00
+  80.500417  480254436    17.6678   0.000023      0.064      0.064     0.0090  298.26199    6.66959      6.460     288.91  0.000e+00
+  80.521250  480256236    17.6802   0.000023      0.060      0.059     0.0090  298.18643    6.66788      6.460     288.91  0.000e+00
+  80.542083  480258036    17.6940   0.000023      0.056      0.056     0.0090  298.10228    6.66598      6.456     288.70  0.000e+00
+  80.562917  480259836    17.7092   0.000023      0.050      0.050     0.0090  298.01009    6.66390      6.446     288.28  0.000e+00
+  80.583750  480261636    17.7242   0.000023      0.053      0.052     0.0090  297.91842    6.66183      6.451     288.49  0.000e+00
+  80.604583  480263436    17.7378   0.000023      0.047      0.046     0.0090  297.83585    6.65997      6.443     288.15  0.000e+00
+  80.625417  480265236    17.7534   0.000023      0.043      0.043     0.0090  297.74094    6.65783      6.437     287.88  0.000e+00
+  80.646250  480267036    17.7688   0.000023      0.042      0.042     0.0090  297.64708    6.65571      6.437     287.88  0.000e+00
+  80.667083  480268836    17.7840   0.000023      0.040      0.039     0.0090  297.55483    6.65363      6.433     287.68  0.000e+00
+  80.729583  480274236    17.8359   0.000023      0.026      0.026     0.0091  297.23989    6.64653      6.418     287.00  0.000e+00
