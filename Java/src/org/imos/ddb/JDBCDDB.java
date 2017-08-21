@@ -171,7 +171,7 @@ public class JDBCDDB extends DDB {
 				ArrayList<Object> instance = new ArrayList<Object>();
 				results.add(instance);
 
-				for (int i = 1; i < columnsNumber; i++) {
+				for (int i = 1; i <= columnsNumber; i++) {
 
 					DBObject db = new DBObject();
 
