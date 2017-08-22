@@ -78,7 +78,7 @@ function [data, name, comment, history] = sbe43OxygenTransform( sam, varIdx )
   T = sam.variables{temp}.data;
   if presRel == 0
       P = sam.variables{pres}.data;
-      P = P - 14.7*0.689476;
+      P = P - 14.7*0.689476; % SeaBird's atmospheric correction
   else
       P = sam.variables{presRel}.data;
   end
@@ -100,7 +100,13 @@ function [data, name, comment, history] = sbe43OxygenTransform( sam, varIdx )
   params.H3    = 1450;
   
   % calculated values
-  params.oxsol = oxygenSolubility(T, S);
+  [lat, lon] = getLatLonForGSW(sam);
+
+  if isempty(lat) || isempty(lon), return; end % cancelled by user
+
+  SA = gsw_SA_from_SP(S, P, lon, lat);
+  potT = gsw_pt0_from_t(SA, T, P);
+  params.oxsol = gsw_O2sol_SP_pt(S, potT);
   params.dVdt  = [0.0; diff(V)];
   params.tauTP = params.Tau20 * exp(params.D1 .* P + params.D2 .* (T - 20.0));
   params.K     = T + 273.15;
@@ -109,7 +115,12 @@ function [data, name, comment, history] = sbe43OxygenTransform( sam, varIdx )
   data = oxygenConcentration(V, T, S, P, params);
   
   name = 'DOX';
-  sbe43OxygenTransformComment = ['sbe43OxygenTransform: ' name ' derived from ' sam.variables{doVolt}.name '.'];
+  sbe43OxygenTransformComment = ['sbe43OxygenTransform: ' name ' derived from ' ...
+      sam.variables{doVolt}.name ' following SeaBird application note 64 ' ...
+      '(http://www.seabird.com/application_notes/AN64-3.htm). Oxygen ' ...
+      'solubility at atmospheric pressure was derived from TEMP, PSAL, ' presName ...
+      ', LATITUDE and LONGITUDE using gsw_O2sol_SP_pt, gsw_pt0_from_t ' ...
+      'and gsw_SA_from_SP from the Gibbs-SeaWater toolbox (TEOS-10) v3.06.'];
   if isempty(comment)
       comment = sbe43OxygenTransformComment;
   else
@@ -159,52 +170,6 @@ function oxygen = oxygenConcentration(V, T, S, P, params)
                      B .* T.^2  + ...
                      C .* T.^3) .* ...
            exp(E .* P ./ K);
-end
-
-
-function oxsol = oxygenSolubility(T, S)
-%OXYGENSOLUBILITY Computes oxygen solubility for the given temperature and
-%salinity.
-%
-% This function is an implementation of the Computation of Oxygen
-% Solubility equation, as specified in Seabird Application Note 64,
-% Appendix A.
-%
-% Inputs:
-%   T     - temperature, degrees celsius
-%   S     - Salinity, PSU
-%
-% Outputs:
-%   oxsol - Oxygen solubility
-%
-
-  A0 =  2.00907;
-  A1 =  3.22014;
-  A2 =  4.0501;
-  A3 =  4.94457;
-  A4 =  0.256847;
-  A5 =  3.88767;
-  B0 = -0.00624523;
-  B1 = -0.00737614;
-  B2 = -0.010341;
-  B3 = -0.00817083;
-  C0 = -0.000000488682;
-  
-  Ts = log((298.15 - T) ./ (273.15 + T));
-  
-  oxsol = exp(...
-    A0          + ...
-    A1 .* Ts    + ...
-    A2 .* Ts.^2 + ...
-    A3 .* Ts.^3 + ...
-    A4 .* Ts.^4 + ...
-    A5 .* Ts.^5 + ...
-    S  .* ( B0            + ...
-            B1 .* Ts      + ...
-            B2 .* Ts.^2   + ...
-            B3 .* Ts.^3 ) + ...
-    C0 .* S.^2);
-
 end
 
 function V = hysteresisCorrection(V, T, P, params)

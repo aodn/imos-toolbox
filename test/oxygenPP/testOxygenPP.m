@@ -42,6 +42,11 @@ testDir = fullfile('test', 'oxygenPP');
 % Test 1: Oxygen Solubility from TEMP and PSAL
 sample_data{1} = SBE19Parse({fullfile(testDir, 'SBE16plus_example1.cnv')}, 'timeSeries');
 
+sample_data{1}.geospatial_lat_min = -46;
+sample_data{1}.geospatial_lat_max = -46;
+sample_data{1}.geospatial_lon_min = 142;
+sample_data{1}.geospatial_lon_max = 142;
+
 sample_data = oxygenPP(sample_data, 'qc');
 
 oxsolSurfSBE = sample_data{1}.variables{getVar(sample_data{1}.variables, 'OXSOL_SURFACE')}.data;
@@ -60,6 +65,11 @@ assert(any(abs(doxsSBE/100  - [0.93395;   2.1946267; 0.9878625; 0.9785269]) <= 1
 clear sample_data;
 sample_data{1} = SBE19Parse({fullfile(testDir, 'SBE16plus_example2.cnv')}, 'timeSeries');
 
+sample_data{1}.geospatial_lat_min = -46;
+sample_data{1}.geospatial_lat_max = -46;
+sample_data{1}.geospatial_lon_min = 142;
+sample_data{1}.geospatial_lon_max = 142;
+
 sample_data = oxygenPP(sample_data, 'qc');
 
 dox2SBE = sample_data{1}.variables{getVar(sample_data{1}.variables, 'DOX2')}.data;
@@ -69,6 +79,11 @@ assert(any(abs(dox2SBE - 244.7239) <= 1e-2), 'Failed: DOX2 from SBE DOX1 Check')
 % test 5: DOX2 from DOXS
 clear sample_data;
 sample_data{1} = SBE19Parse({fullfile(testDir, 'SBE16plus_example3.cnv')}, 'timeSeries');
+
+sample_data{1}.geospatial_lat_min = -46;
+sample_data{1}.geospatial_lat_max = -46;
+sample_data{1}.geospatial_lon_min = 142;
+sample_data{1}.geospatial_lon_max = 142;
 
 sample_data = oxygenPP(sample_data, 'qc');
 

@@ -116,13 +116,20 @@ for k = 1:length(sample_data)
   psal = sam.variables{psalIdx}.data;
   
   % calculate the potential temperature with a reference sea pressure of 0dbar
-  potTemp = sw_ptmp(psal, temp , presRel, 0);
+  [lat, lon] = getLatLonForGSW(sam);
+
+  if isempty(lat) || isempty(lon), continue; end % cancelled by user
+
+  SA = gsw_SA_from_SP(psal, presRel, lon, lat);
+  potTemp = gsw_pt0_from_t(SA, temp, presRel);
 
   % calculate the potential density at 0dbar from potential temperature
-  potDens = sw_dens0(psal, potTemp);
-  potDensComment = ['Potential density at atmospheric pressure was derived ' ...
-      'from TEMP, PSAL and ' presName 'using sw_dens0 and sw_ptmp ' ...
-      'from the SeaWater toolbox (EOS-80) v1.1.'];
+  CT = gsw_CT_from_pt(SA, potTemp);
+  potDens = gsw_rho(SA, CT, 0);
+  potDensComment = ['Potential density at atmospheric ' ...
+      'pressure was derived from TEMP, PSAL, ' presName ', LATITUDE ' ...
+      'and LONGITUDE using gsw_rho, gsw_SA_from_SP, gsw_CT_from_pt and gsw_pt0_from_t ' ...
+      'from the Gibbs-SeaWater toolbox (TEOS-10) v3.06.'];
 
   % get dimensions and coordinates values from temperature
   dimensions = sam.variables{tempIdx}.dimensions;
@@ -134,9 +141,9 @@ for k = 1:length(sample_data)
   
   % calculate oxygen solubility at atmospheric pressure
   oxsolSurf = gsw_O2sol_SP_pt(psal, potTemp); % sea bird calculates OXSOL using psal and local temperature, not potential temperature
-  oxsolSurfComment = ['OXSOL_SURFACE derived from TEMP, PSAL and ' presName ...
-      ' using gsw_O2sol_SP_pt from the Gibbs-SeaWater toolbox (TEOS-10) ' ...
-      'v3.06 and sw_ptmp from the SeaWater toolbox (EOS-80) v1.1.'];
+  oxsolSurfComment = ['OXSOL_SURFACE derived from TEMP, PSAL, ' presName ...
+      ', LATITUDE and LONGITUDE using gsw_O2sol_SP_pt, gsw_pt0_from_t ' ...
+      'and gsw_SA_from_SP from the Gibbs-SeaWater toolbox (TEOS-10) v3.06.'];
   
   % add oxygen solubility at atmospheric pressure as new variable in data set
   sample_data{k} = addVar(...
