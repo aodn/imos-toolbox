@@ -151,22 +151,30 @@ if ~ischar(filename), error('filename must be a string'); end
 waveData = [];
 
 % transform the filename into processed wave data filenames
-[path, name] = fileparts(filename);
+[thePath, theName] = fileparts(filename);
 
-summaryFile    = fullfile(path, [name '.hdr']);
-headerFile     = fullfile(path, [name '.whd']);
-waveFile       = fullfile(path, [name '.wap']);
-dirFreqFile    = fullfile(path, [name '.wdr']);
-pwrFreqFile    = fullfile(path, [name '.was']);
-pwrFreqDirFile = fullfile(path, [name '.wds']);
+% from nortek instrument data conversion step
+summaryFile    = fullfile(thePath, [theName '.hdr']);
+headerFile     = fullfile(thePath, [theName '.whd']);
+% from storm/quickwave processing step
+waveSummaryFile = fullfile(thePath, [theName '.whr']);
+waveFile        = fullfile(thePath, [theName '.wap']);
+dirFreqFile     = fullfile(thePath, [theName '.wdr']);
+pwrFreqFile     = fullfile(thePath, [theName '.was']);
+pwrFreqDirFile  = fullfile(thePath, [theName '.wds']);
 
-% test the files exist
-if ~exist(headerFile, 'file') || ~exist(waveFile, 'file') || ...
-        ~exist(dirFreqFile, 'file') || ~exist(pwrFreqFile, 'file') || ...
-        ~exist(pwrFreqDirFile, 'file')
-    fprintf('%s\n', ['Info : To read wave data related to ' name ...
-        ', .whd, .wap, .wdr, .was, .wds are necessary ' ...
-        '(use QuickWave or Storm Nortek softwares).']);
+% test if the files exist
+requiredFiles = {summaryFile headerFile waveSummaryFile ...
+    waveFile dirFreqFile pwrFreqFile pwrFreqDirFile};
+iFiles = arrayfun(@(x) ~exist(char(x),'file'), requiredFiles);
+if any(iFiles)
+    for i = find(iFiles)
+       [fPath,fName,fExt] = fileparts(requiredFiles{i});
+       disp(['Missing file : ' fName fExt]);
+    end
+    fprintf('%s\n', ['Info : To read wave data related to ' theName ...
+        ', .whd, .whr, .wap, .wdr, .was, .wds are necessary ' ...
+        '(use instrument software data conversion and QuickWave or Storm Nortek softwares).']);
     return;
 end
 
@@ -178,6 +186,13 @@ try
         summary = textscan(summaryFileID, '%s', 'Delimiter', '');
         waveData.summary = summary{1};
         fclose(summaryFileID);
+    end
+
+    if exist(waveSummaryFile, 'file')
+        waveSummaryFileID = fopen(waveSummaryFile);
+        waveSummary = textscan(waveSummaryFileID, '%s', 'Delimiter', '');
+        waveData.waveSummary = waveSummary{1};
+        fclose(waveSummaryFileID);
     end
 
     header     = importdata(headerFile);
@@ -283,7 +298,7 @@ try
     end
     clear pwrFreqDir
 catch e
-    fprintf('%s\n', ['Warning : Wave data related to ' name ...
+    fprintf('%s\n', ['Warning : Wave data related to ' theName ...
         ' hasn''t been read successfully.']);
     errorString = getErrorString(e);
     fprintf('%s\n',   ['Error says : ' errorString]);
