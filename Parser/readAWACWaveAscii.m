@@ -218,6 +218,27 @@ try
     pwrFreq    = importdata(pwrFreqFile);
     pwrFreqDir = importdata(pwrFreqDirFile);
     
+    % need to check if during waves processing has had compass/directional
+    % offset applied
+    tkns = regexp(waveData.waveSummary, '(?i:Directional Offset\s+)(.*)(?i:\s+deg\s*)', 'tokens');
+    directionalOffset = str2double(tkns{~cellfun(@isempty, tkns)}{1}{1});
+
+    tkns = regexp(waveData.waveSummary, '(?i:Compass offset\s+)(.*)(?i:\s+deg\s*)', 'tokens');
+    compassOffset = str2double(tkns{~cellfun(@isempty, tkns)}{1}{1});
+
+    % have always assumed (and only observed) that in whr file, directionalOffset == compassOffset
+    if directionalOffset ~= compassOffset
+        throw(MException('readAWACWaveAscii:offsetError','Uncertain how to handle different directionalOffset and compassOffset'));
+    end
+    waveData.isMagBias = false;
+    waveData.magDec = directionalOffset;
+    if waveData.magDec ~= 0
+        waveData.isMagBias = true;
+        waveData.magBiasComment = ['A compass correction of ' num2str(waveData.magDec) ...
+            'degrees has been applied to the data during wave processing stage ' ...
+            '(usually to account for magnetic declination).'];
+    end
+
     % Transform local missing value (-9.00) to NaN
     wave(wave == -9.00) = NaN;
     dirFreq(dirFreq == -9.00) = NaN;
