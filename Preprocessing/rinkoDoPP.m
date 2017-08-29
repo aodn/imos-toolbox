@@ -88,8 +88,6 @@ for k = 1:length(sample_data)
         end
     end
     
-    psalIdx       = getVar(sam.variables, 'PSAL');
-    
     % volt DO, volt temp DO, and pres/pres_rel or nominal depth not present in data set
     if ~(voltDOIdx && voltTempDOIdx && (isPresVar || isDepthInfo)), continue; end
     
@@ -159,21 +157,15 @@ for k = 1:length(sample_data)
     % correction for pressure
     DO = DO.*(1 + E*presRel/100); % pressRel/100 => conversion dBar to MPa (see rinko correction formula pdf). DO is in % of dissolved oxygen during calibration at this stage.
     
-    if psalIdx > 0
-        psal = sam.variables{psalIdx}.data;
-        
-        % conversion in concentration using solubility and following garcia & gourdon (1992)
-        solubilityDO = O2sol(psal, tempDO, 'ml/l');
-        concentDO = solubilityDO.*DO/100; % in ml/l
-        concentDO = concentDO*44.660; % in umol/l. 1ml/l = 44.660 umol/l.
-    end
-    
     % add DO data as new variable in data set
     dimensions = sam.variables{voltDOIdx}.dimensions;
     
-    doComment = ['rinkoDoPP.m: dissolved oxygen in % of saturation derived from rinko dissolved oxygen and temperature voltages and ' presName ' using the RINKO III Correction method on Temperature and Pressure with instrument and calibration coefficients.'];
-    concentDoComment = [doComment ' Garcia and Gordon equations (1992-1993) and ml/l coefficients, assuming 1ml/l = 44.660umol/l, have been used to convert in umol/l.'];
-    tempDoComment = 'rinkoDoPP.m: temperature for dissolved oxygen sensor derived from rinko temperature voltages.';
+    doComment = ['rinkoDoPP.m: dissolved oxygen in % of saturation derived ' ...
+        'from rinko dissolved oxygen and temperature voltages and ' presName ...
+        ' using the RINKO III Correction method on Temperature and Pressure ' ...
+        'with instrument and calibration coefficients.'];
+    tempDoComment = ['rinkoDoPP.m: temperature for dissolved oxygen sensor ' ...
+        'derived from rinko temperature voltages.'];
     
     if isfield(sam.variables{voltDOIdx}, 'coordinates')
         coordinates = sam.variables{voltDOIdx}.coordinates;
@@ -197,24 +189,12 @@ for k = 1:length(sample_data)
         tempDoComment, ...
         coordinates);
     
-    if psalIdx > 0
-        sample_data{k} = addVar(...
-            sample_data{k}, ...
-            'DOX1', ...
-            concentDO, ...
-            dimensions, ...
-            concentDoComment, ...
-            coordinates);
-    end
-    
     history = sample_data{k}.history;
     if isempty(history)
         sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), doComment);
         sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), tempDoComment);
-        if psalIdx > 0, sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), concentDoComment); end
     else
         sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), doComment);
         sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), tempDoComment);
-        if psalIdx > 0, sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), concentDoComment); end
     end
 end

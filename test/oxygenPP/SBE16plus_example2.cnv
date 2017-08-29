@@ -1,0 +1,15 @@
+* Sea-Bird SBE16plus  Data File:
+* FileName = SBE16plus_example.hex
+* Software version 2.4.1
+
+# name 0 = timeJV2: Time, Instrument [julian days]
+# name 1 = timeK: Time, Instrument [seconds]
+# name 2 = tv290C: Temperature [ITS-90, deg C]
+# name 3 = prdM: Pressure, Strain Gauge [db]
+# name 4 = sal00: Salinity, Practical [PSU]
+# name 5 = sbeox0Mm/L: Oxygen, SBE 43 [umol/l]
+# name 6 = flag:  0.000e+00
+# bad_flag = -9.990e-29
+
+*END*
+  86.000498  480729643    12.253200     29.666    35.0000   251.2192  0.000e+00

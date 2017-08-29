@@ -86,7 +86,9 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
     end
     
     if any(iMagDataSet == i)
-        if isempty(sample_data{i}.instrument_nominal_depth)
+        if isempty(sample_data{i}.instrument_nominal_depth) || ...
+                isempty(sample_data{i}.geospatial_lat_min) || ...
+                isempty(sample_data{i}.geospatial_lon_min)
             disp(['Warning : no instrument_nominal_depth/geospatial_lat_min/geospatial_lon_min documented for magneticDeclinationPP to be applied on ' sample_data{i}.toolbox_input_file]);
             prompt = {'Depth:', 'Latitude (South -ve)', 'Longitude (West -ve)'};
             dlg_title = 'Coords';

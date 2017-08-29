@@ -1,4 +1,4 @@
-function [data flags paramsLog] = CTDSurfaceSoakQC( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = CTDSurfaceSoakQC( sample_data, data, k, type, auto )
 %IMOSINOUTWATERQC Flags samples which were taken before and after the instrument was placed
 % in the water.
 %
@@ -92,7 +92,7 @@ iOSS = getVar(sample_data.variables, 'oxSoakStatus');
 
 % only concerned here with pumped sensors or variables derived from pumped
 % observations
-pumpedVar = {'TEMP', 'CNDC', 'DOX1', 'DOX2', 'PSAL', 'DENS'};
+pumpedVar = {'TEMP', 'CNDC', 'DOX', 'DOXY', 'DOX1', 'DOX2', 'DOXS', 'PSAL', 'DENS'};
 ignoreVar = {'TIME', 'PROFILE', 'DIRECTION', 'LATITUDE', 'LONGITUDE', 'BOT_DEPTH', 'ETIME'};
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
@@ -107,16 +107,16 @@ if ~any(iSkip)
     flags = ones(lenData, 1, 'int8')*rawFlag;
     if any(iPumped)
         % initially all data is raw
-        switch find(iPumped);
-            case 1 % temperature
+        switch pumpedVar{iPumped};
+            case 'TEMP' % temperature
                 if ~isempty(iTSS)
                     flags = sample_data.variables{iTSS}.data;
                 end
-            case {2, 5, 6} % dependent on conductivity
+            case {'CNDC', 'PSAL', 'DENS'} % dependent on conductivity
                 if ~isempty(iCSS)
                     flags = sample_data.variables{iCSS}.data;
                 end
-            case {3, 4} % dependent on oxygen
+            case {'DOX', 'DOXY', 'DOX1', 'DOX2', 'DOXS'} % dependent on oxygen
                 if ~isempty(iOSS)
                     flags = sample_data.variables{iOSS}.data;
                 end

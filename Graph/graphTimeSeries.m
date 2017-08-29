@@ -98,7 +98,19 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars, ext
   end
   
   iTimeDim = getVar(sample_data.dimensions, 'TIME');
-  xLimits = [min(sample_data.dimensions{iTimeDim}.data), max(sample_data.dimensions{iTimeDim}.data)];
+  dataTime = sample_data.dimensions{iTimeDim}.data;
+  
+  if sample_data.meta.level == 1
+      qcSet     = str2double(readProperty('toolbox.qc_set'));
+      goodFlag  = imosQCFlag('good',          qcSet, 'flag');
+      pGoodFlag = imosQCFlag('probablyGood',  qcSet, 'flag');
+      rawFlag   = imosQCFlag('raw',           qcSet, 'flag');
+      
+      dimFlags = sample_data.dimensions{iTimeDim}.flags;
+      iGood = (dimFlags == goodFlag) | (dimFlags == pGoodFlag) | (dimFlags == rawFlag);
+      dataTime = dataTime(iGood);
+  end
+  xLimits = [min(dataTime), max(dataTime)];
   xStep   = (xLimits(2) - xLimits(1)) / 5;
   xTicks  = xLimits(1):xStep:xLimits(2);
   xTickLabels = datestr(xTicks, 'dd-mm-yy HH:MM');
@@ -131,17 +143,15 @@ function [graphs, lines, vars] = graphTimeSeries( parent, sample_data, vars, ext
             if ischar(varData), varData = str2num(varData); end % we assume data is an array of one single character
             
             if sample_data.meta.level == 1
-                qcSet     = str2double(readProperty('toolbox.qc_set'));
-                goodFlag  = imosQCFlag('good',          qcSet, 'flag');
-                pGoodFlag = imosQCFlag('probablyGood',  qcSet, 'flag');
-                rawFlag   = imosQCFlag('raw',           qcSet, 'flag');
-                
                 % set x and y limits so that axis are optimised for good/probably good/raw data only
                 varFlags = sample_data.variables{k}.flags;
+                dimFlags = sample_data.dimensions{iTimeDim}.flags;
                 if iExtraVar
                     varFlags = [varFlags; extra_sample_data.variables{iExtraVar}.flags];
+                    dimFlags = [dimFlags; extra_sample_data.dimensions{getVar(extra_sample_data.dimensions, 'TIME')}.flags];
                 end
                 iGood = (varFlags == goodFlag) | (varFlags == pGoodFlag) | (varFlags == rawFlag);
+                iGood = iGood & ((dimFlags == goodFlag) | (dimFlags == pGoodFlag) | (dimFlags == rawFlag));
                 if any(iGood)
                     varData = varData(iGood);
                     if ischar(varData), varData = str2num(varData); end % we assume data is an array of one single character

@@ -141,27 +141,31 @@ switch name
       comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements.';
       
     % oxygen (mg/l)
-    % mg/l => umol/l
-    case {'oxsolMg0x2FL', 'oxsatMg0x2FL', 'sbeox0Mg0x2FL'}
-      name = 'DOX1';
-      data = data .* 44.660/1.429; % O2 density = 1.429kg/m3
-      comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
+    % mg/l
+    case 'sbeox0Mg0x2FL'
+      name = 'DOXY';
+      comment = '';
       
     % oxygen (ml/l)
-    % ml/l => umol/l
+    % ml/l
     case 'sbeox0ML0x2FL'
-      name = 'DOX1';
-      data = data .* 44.660;
-      comment = 'Originally expressed in ml/l, 1ml/l = 44.660umol/l was assumed.';
+      name = 'DOX';
+      comment = '';
     
+    % oxygen (umol/L)
+    % umol/L
+    case 'sbeox0Mm0x2FL'
+      name = 'DOX1';
+      comment = '';
+      
     % oxygen (umol/Kg)
     % umol/Kg
-    case {'oxsolMm0x2FKg', 'oxsatMm0x2FKg', 'sbeox0Mm0x2FKg', 'sbeopoxMm0x2FKg'}
+    case {'sbeox0Mm0x2FKg', 'sbeopoxMm0x2FKg'}
       name = 'DOX2';
       comment = '';
     
-    % Oxygen, SBE 63 [% saturation]
-    case 'sbeopoxPS'
+    % Oxygen [% saturation]
+    case {'sbeopoxPS', 'sbeox0PS'}
         name = 'DOXS';
         comment = '';
        
@@ -215,7 +219,7 @@ switch name
       origName = name;
       name = getVoltageName(origName, instHeader);
       if ~strcmpi(name, 'not_assigned')
-          name = ['volt_', getVoltageName(origName, instHeader)];
+          name = ['volt_', name];
           comment = getVoltageComment(origName, procHeader);
       else
           name = '';
@@ -324,6 +328,6 @@ switch origName
         end
 end
 
-name = strrep(name, ' ', '_');
+name = regexprep(name, '[^a-zA-Z0-9]', '_'); % to make a valid var name for structure, only keep word characters
 
 end

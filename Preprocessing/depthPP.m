@@ -81,6 +81,7 @@ end
 % check wether height or target depth information is documented
 isSensorHeight = false;
 isSensorTargetDepth = false;
+isSiteTargetDepth = false;
 
 if isfield(sample_data{1}, 'instrument_nominal_height')
     if ~isempty(sample_data{1}.instrument_nominal_height)
@@ -91,6 +92,18 @@ end
 if isfield(sample_data{1}, 'instrument_nominal_depth')
     if ~isempty(sample_data{1}.instrument_nominal_depth)
         isSensorTargetDepth = true;
+    end
+end
+
+if isfield(sample_data{1}, 'site_nominal_depth')
+    if ~isempty(sample_data{1}.site_nominal_depth)
+        isSiteTargetDepth = true;
+    end
+end
+
+if isfield(sample_data{1}, 'site_depth_at_deployment')
+    if ~isempty(sample_data{1}.site_depth_at_deployment)
+        isSiteTargetDepth = true;
     end
 end
 
@@ -161,7 +174,7 @@ for iCurSam = 1:nDatasets
     useItsOwnPresRel(iCurSam) = readDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPresRel', useItsOwnPresRel(iCurSam));
     
     % look for nearest instruments with depth or pressure information
-    if ~isProfile && (isSensorHeight || isSensorTargetDepth)
+    if ~isProfile && (isSensorHeight || isSensorTargetDepth) && isSiteTargetDepth
         % let's see if part of a mooring with pressure data from other
         % sensors
         for iOtherSam = 1:nDatasets
@@ -312,9 +325,9 @@ for iCurSam = 1:nDatasets
     else
         if ~isProfile
             fprintf('%s\n', ['Warning : ' sample_data{iCurSam}.toolbox_input_file ...
-                ' please document either instrument_nominal_height or instrument_nominal_depth '...
+                ' please document site_nominal_depth or site_depth_at_deployment and either instrument_nominal_height or instrument_nominal_depth '...
                 'global attributes so that an actual depth can be '...
-                'computed from other pressure sensors in the mooring']);
+                'computed from 1 or 2 other pressure sensors in the mooring']);
         end
         continue;
     end
@@ -532,7 +545,7 @@ for iCurSam = 1:nDatasets
                 computedDepth = - gsw_z_from_p(relPres, sample_data{iCurSam}.geospatial_lat_min);
                 clear relPres;
                 computedDepthComment = ['depthPP: Depth computed using the ' ...
-                    'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from latitude and ' ...
+                    'Gibbs-SeaWater toolbox (TEOS-10) v3.06 from latitude and ' ...
                     presComment '.'];
             else
                 % latitude does change in the dataset, so we use the mean
@@ -543,7 +556,7 @@ for iCurSam = 1:nDatasets
                 computedDepth = - gsw_z_from_p(relPres, meanLat);
                 clear relPres;
                 computedDepthComment = ['depthPP: Depth computed using the ' ...
-                    'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from mean latitude and ' ...
+                    'Gibbs-SeaWater toolbox (TEOS-10) v3.06 from mean latitude and ' ...
                     presComment '.'];
             end
         else
@@ -556,7 +569,7 @@ for iCurSam = 1:nDatasets
     else
         % if no pressure data, try to compute it from other sensors in the
         % mooring, otherwise go to next sample data
-        if isSensorHeight || isSensorTargetDepth
+        if (isSensorHeight || isSensorTargetDepth) && isSiteTargetDepth
             if isempty(nearestInsts{iCurSam})
                 fprintf('%s\n', ['Warning : ' descSam{iCurSam} ...
                     ' has no neighbouring pressure sensor on this mooring from ' ...
@@ -566,10 +579,11 @@ for iCurSam = 1:nDatasets
                 iFirst  = firstNearestInst(iCurSam);
                 iSecond = secondNearestInst(iCurSam);
                 
-                if iSecond == 0 && iFirst ~= 0 
+                if iSecond == 0 && iFirst ~= 0
+                    tidalAmplitudeComment = ' Tidal amplitude is not accurate.';
                     fprintf('%s\n', ['Warning : ' descSam{iCurSam} ...
                         ' has its actual depth inferred from only one neighbouring pressure sensor ' ...
-                        'on mooring']);
+                        'on mooring.' tidalAmplitudeComment]);
                     % we found only one sensor
                     presIdxOther    = getVar(sample_data{nearestInsts{iCurSam}(iFirst)}.variables, 'PRES');
                     presRelIdxOther = getVar(sample_data{nearestInsts{iCurSam}(iFirst)}.variables, 'PRES_REL');
@@ -593,34 +607,43 @@ for iCurSam = 1:nDatasets
                             'precision at a deployed depth)'];
                     end
                     
-                    % compute pressure at current sensor assuming sensors
-                    % repartition on a vertical line between current sensor
-                    % and the nearest. This is the best we can do as we can't
-                    % have any idea of the angle of the mooring with one
-                    % pressure sensor (could consider the min pressure value
-                    % in the future?).
+                    % compute pressure at current sensor using trigonometry and
+                    % assuming sensors repartition on a line between the 
+                    % nearest pressure sensor and the mooring's anchor
                     %
-                    % computedDepth  = depthOther  + distOtherCurSensor 
-                    % computedHeight = heightOther - distOtherCurSensor 
-                    %
-                    % vertical axis is positive down when talking about
-                    % depth
-                    %
-                    if isSensorTargetDepth
-                        distOtherCurSensor = sample_data{iCurSam}.instrument_nominal_depth - sample_data{nearestInsts{iCurSam}(iFirst)}.instrument_nominal_depth;
-                        signOtherCurSensor = sign(distOtherCurSensor);
-                        
-                        distOtherCurSensor = abs(distOtherCurSensor);
-                    else
-                        distOtherCurSensor = sample_data{nearestInsts{iCurSam}(iFirst)}.instrument_nominal_height - sample_data{iCurSam}.instrument_nominal_height;
-                        signOtherCurSensor = -sign(distOtherCurSensor);
-                        %  0 => two sensors at the same depth
-                        %  1 => current sensor is deeper than other sensor
-                        % -1 => current sensor is lower than other sensor
-                        
-                        distOtherCurSensor = abs(distOtherCurSensor);
+                    % the only drawback is that tidal amplitude is 
+                    % flattenned by static value of siteDepth
+                    if isfield(sample_data{iCurSam}, 'site_nominal_depth')
+                        if ~isempty(sample_data{iCurSam}.site_nominal_depth)
+                            siteDepth = sample_data{iCurSam}.site_nominal_depth;
+                        end
                     end
                     
+                    if isfield(sample_data{iCurSam}, 'site_depth_at_deployment')
+                        if ~isempty(sample_data{iCurSam}.site_depth_at_deployment)
+                            siteDepth = sample_data{iCurSam}.site_depth_at_deployment;
+                        end
+                    end
+                    
+                    if isSensorTargetDepth
+                        nominalHeightOther      = siteDepth - sample_data{nearestInsts{iCurSam}(iFirst)}.instrument_nominal_depth;
+                        nominalHeightCurSensor  = siteDepth - sample_data{iCurSam}.instrument_nominal_depth;
+                    else
+                        nominalHeightOther      = sample_data{nearestInsts{iCurSam}(iFirst)}.instrument_nominal_height;
+                        nominalHeightCurSensor  = sample_data{iCurSam}.instrument_nominal_height;
+                    end
+                    
+                    % theta is the angle between the vertical and line
+                    % formed by the sensors
+                    %
+                    % cos(theta) = heightOther/nominalHeightOther
+                    % and
+                    % cos(theta) = heightCurSensor/nominalHeightCurSensor
+                    %
+                    % computedDepth = nominalSiteDepth - nominalHeightCurSensor * (nominalSiteDepth - zOther) / nominalHeightOther
+                    %
+                    % pressure = density*gravity*depth
+                    %
                     if ~isempty(sample_data{iCurSam}.geospatial_lat_min) && ~isempty(sample_data{iCurSam}.geospatial_lat_max)
                         % compute depth with Gibbs-SeaWater toolbox
                         % depth ~= - gsw_z_from_p(relative_pressure, latitude)
@@ -628,20 +651,20 @@ for iCurSam = 1:nDatasets
                             zOther = - gsw_z_from_p(relPresOther, sample_data{iCurSam}.geospatial_lat_min);
                             computedDepthComment  = ['depthPP: Depth inferred from only one neighbouring pressure sensor ' ...
                                 descOtherSam{iCurSam}{iFirst + 1} ', using the Gibbs-SeaWater toolbox ' ...
-                                '(TEOS-10) v3.05 from latitude and ' presComment '.'];
+                                '(TEOS-10) v3.06 from latitude and ' presComment '.' tidalAmplitudeComment];
                         else
                             meanLat = sample_data{iCurSam}.geospatial_lat_min + ...
                                 (sample_data{iCurSam}.geospatial_lat_max - sample_data{iCurSam}.geospatial_lat_min)/2;
                             zOther = - gsw_z_from_p(relPresOther, meanLat);
                             computedDepthComment  = ['depthPP: Depth inferred from only one neighbouring pressure sensor ' ...
                                 descOtherSam{iCurSam}{iFirst + 1} ', using the Gibbs-SeaWater toolbox ' ...
-                                '(TEOS-10) v3.05 from mean latitude and ' presComment '.'];
+                                '(TEOS-10) v3.06 from mean latitude and ' presComment '.' tidalAmplitudeComment];
                         end
                     else
                         % without latitude information, we assume 1dbar ~= 1m
                         zOther = relPresOther;
                         computedDepthComment  = ['depthPP: Depth inferred from only one neighbouring pressure sensor ' ...
-                            descOtherSam{iCurSam}{iFirst + 1} ' with ' presComment ', assuming 1dbar ~= 1m.'];
+                            descOtherSam{iCurSam}{iFirst + 1} ' with ' presComment ', assuming 1dbar ~= 1m.' tidalAmplitudeComment];
                     end
                     clear relPresOther;
                     
@@ -653,7 +676,7 @@ for iCurSam = 1:nDatasets
                     zOther = interp1(tOther, zOther, tCur);
                     clear tOther tCur;
                     
-                    computedDepth = zOther + signOtherCurSensor*distOtherCurSensor;
+                    computedDepth = siteDepth - nominalHeightCurSensor * (siteDepth - zOther) / nominalHeightOther;
                     clear zOther;
                 elseif iSecond ~= 0 && iFirst ~= 0
                     presIdxFirst     = getVar(sample_data{nearestInsts{iCurSam}(iFirst)}.variables, 'PRES');
@@ -730,7 +753,7 @@ for iCurSam = 1:nDatasets
                             computedDepthComment = ['depthPP: Depth inferred from ' ...
                                 '2 neighbouring pressure sensors ' descOtherSam{iCurSam}{iFirst + 1} ...
                                 ' and ' descOtherSam{iCurSam}{iSecond + 1} ', using the ' ...
-                                'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from latitude and ' ...
+                                'Gibbs-SeaWater toolbox (TEOS-10) v3.06 from latitude and ' ...
                                 presComment '.'];
                         else
                             meanLat = sample_data{iCurSam}.geospatial_lat_min + ...
@@ -742,7 +765,7 @@ for iCurSam = 1:nDatasets
                             computedDepthComment = ['depthPP: Depth inferred from ' ...
                                 '2 neighbouring pressure sensors ' descOtherSam{iCurSam}{iFirst + 1} ...
                                 ' and ' descOtherSam{iCurSam}{iSecond + 1} ', using the ' ...
-                                'Gibbs-SeaWater toolbox (TEOS-10) v3.05 from mean latitude and ' ...
+                                'Gibbs-SeaWater toolbox (TEOS-10) v3.06 from mean latitude and ' ...
                                 presComment '.'];
                         end
                     else
@@ -790,9 +813,9 @@ for iCurSam = 1:nDatasets
             end
         else
             fprintf('%s\n', ['Warning : ' sample_data{iCurSam}.toolbox_input_file ...
-                ' please document either instrument_nominal_height or instrument_nominal_depth ' ...
+                ' please document site_nominal_depth or site_depth_at_deployment and either instrument_nominal_height or instrument_nominal_depth ' ...
                 'global attributes so that an actual depth can be ' ...
-                'computed from other pressure sensors in the mooring']);
+                'computed from 1 or 2 other pressure sensors in the mooring']);
             continue;
         end
         

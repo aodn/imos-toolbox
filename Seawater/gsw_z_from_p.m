@@ -48,7 +48,7 @@ function z = gsw_z_from_p(p,lat,geo_strf_dyn_height,sea_surface_geopotental)
 %  Trevor McDougall, Claire Roberts-Thomson & Paul Barker.
 %                                                      [ help@teos-10.org ]
 %
-% VERSION NUMBER: 3.04 (10th December, 2013)
+% VERSION NUMBER: 3.05 (27th January 2015)
 %
 % REFERENCES:
 %  IOC, SCOR and IAPSO, 2010: The international thermodynamic equation of 
@@ -61,11 +61,12 @@ function z = gsw_z_from_p(p,lat,geo_strf_dyn_height,sea_surface_geopotental)
 %   temperature and density of seawater.  J. Atmosph. Ocean. Tech., 20,
 %   pp. 730-741.
 %
-%  Moritz (2000) Goedetic reference system 1980. J. Geodesy, 74, 128-133.
+%  Moritz, H., 2000: Geodetic reference system 1980. J. Geodesy, 74, 
+%   pp. 128-133.
 %
 %  Roquet, F., G. Madec, T.J. McDougall, P.M. Barker, 2015: Accurate
 %   polynomial expressions for the density and specifc volume of seawater
-%   using the TEOS-10 standard. Ocean Modelling.
+%   using the TEOS-10 standard. Ocean Modelling, 90, pp. 29-43.
 %
 %  This software is available from http://www.TEOS-10.org
 %
