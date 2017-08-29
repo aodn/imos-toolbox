@@ -76,6 +76,23 @@ function waveData = readAWACWaveAscii( filename )
 %     30   Current direction (wave cell)    (degrees)
 %     31   Error Code
 %
+% OR%
+%      1   Month                            (1-12)
+%      2   Day                              (1-31)
+%      3   Year
+%      4   Hour                             (0-23)
+%      5   Minute                           (0-59)
+%      6   Second                           (0-59)
+%      7   Significant height (Hs)          (m)
+%      8   Mean zerocrossing period (Tm02)  (s)
+%      9   Peak period (Tp)                 (s)
+%     10   Peak direction (DirTp)           (deg)
+%     11   Directional spread (Spr1)        (deg)
+%     12   Mean direction (Mdir)            (deg)
+%     13   Mean Pressure                    (m)
+%     14   Unidirectivity index
+%     15   Error Code
+%
 % Assumed file layout for power spectra data file (.was):
 %
 %       Frequency Vector                 (Hz)
@@ -151,22 +168,30 @@ if ~ischar(filename), error('filename must be a string'); end
 waveData = [];
 
 % transform the filename into processed wave data filenames
-[path, name] = fileparts(filename);
+[filePath, fileRadName] = fileparts(filename);
 
-summaryFile    = fullfile(path, [name '.hdr']);
-headerFile     = fullfile(path, [name '.whd']);
-waveFile       = fullfile(path, [name '.wap']);
-dirFreqFile    = fullfile(path, [name '.wdr']);
-pwrFreqFile    = fullfile(path, [name '.was']);
-pwrFreqDirFile = fullfile(path, [name '.wds']);
+% from nortek instrument data conversion step
+summaryFile    = fullfile(filePath, [fileRadName '.hdr']);
+headerFile     = fullfile(filePath, [fileRadName '.whd']);
+% from storm/quickwave processing step
+waveSummaryFile = fullfile(filePath, [fileRadName '.whr']);
+waveFile        = fullfile(filePath, [fileRadName '.wap']);
+dirFreqFile     = fullfile(filePath, [fileRadName '.wdr']);
+pwrFreqFile     = fullfile(filePath, [fileRadName '.was']);
+pwrFreqDirFile  = fullfile(filePath, [fileRadName '.wds']);
 
-% test the files exist
-if ~exist(headerFile, 'file') || ~exist(waveFile, 'file') || ...
-        ~exist(dirFreqFile, 'file') || ~exist(pwrFreqFile, 'file') || ...
-        ~exist(pwrFreqDirFile, 'file')
-    fprintf('%s\n', ['Info : To read wave data related to ' name ...
-        ', .whd, .wap, .wdr, .was, .wds are necessary ' ...
-        '(use QuickWave or Storm Nortek softwares).']);
+% test if the files exist
+requiredFiles = {summaryFile headerFile waveSummaryFile ...
+    waveFile dirFreqFile pwrFreqFile pwrFreqDirFile};
+iFiles = arrayfun(@(x) ~exist(char(x),'file'), requiredFiles);
+if any(iFiles)
+    for i = find(iFiles)
+       [~, fName, fExt] = fileparts(requiredFiles{i});
+       disp(['Missing file : ' fName fExt]);
+    end
+    fprintf('%s\n', ['Info : To read wave data related to ' fileRadName ...
+        ', .whd, .whr, .wap, .wdr, .was, .wds are necessary ' ...
+        '(use instrument software data conversion and QuickWave or Storm Nortek softwares).']);
     return;
 end
 
@@ -180,12 +205,40 @@ try
         fclose(summaryFileID);
     end
 
+    if exist(waveSummaryFile, 'file')
+        waveSummaryFileID = fopen(waveSummaryFile);
+        waveSummary = textscan(waveSummaryFileID, '%s', 'Delimiter', '');
+        waveData.waveSummary = waveSummary{1};
+        fclose(waveSummaryFileID);
+    end
+
     header     = importdata(headerFile);
     wave       = importdata(waveFile);
     dirFreq    = importdata(dirFreqFile);
     pwrFreq    = importdata(pwrFreqFile);
     pwrFreqDir = importdata(pwrFreqDirFile);
     
+    % need to check if during waves processing has had compass/directional
+    % offset applied
+    tkns = regexp(waveData.waveSummary, '(?i:Directional Offset\s+)(.*)(?i:\s+deg\s*)', 'tokens');
+    directionalOffset = str2double(tkns{~cellfun(@isempty, tkns)}{1}{1});
+
+    tkns = regexp(waveData.waveSummary, '(?i:Compass offset\s+)(.*)(?i:\s+deg\s*)', 'tokens');
+    compassOffset = str2double(tkns{~cellfun(@isempty, tkns)}{1}{1});
+
+    % have always assumed (and only observed) that in whr file, directionalOffset == compassOffset
+    if directionalOffset ~= compassOffset
+        throw(MException('readAWACWaveAscii:offsetError','Uncertain how to handle different directionalOffset and compassOffset'));
+    end
+    waveData.isMagBias = false;
+    waveData.magDec = directionalOffset;
+    if waveData.magDec ~= 0
+        waveData.isMagBias = true;
+        waveData.magBiasComment = ['A compass correction of ' num2str(waveData.magDec) ...
+            'degrees has been applied to the data during wave processing stage ' ...
+            '(usually to account for magnetic declination).'];
+    end
+
     % Transform local missing value (-9.00) to NaN
     wave(wave == -9.00) = NaN;
     dirFreq(dirFreq == -9.00) = NaN;
@@ -230,25 +283,53 @@ try
     waveData.Temperature(iHeader) = header(:,17);
     clear header iHeader;
     
-    waveData.SpectraType            = 9*ones(nTime, 1, 'uint8');
     waveData.SignificantHeight      = nan(nTime, 1);
-    waveData.MeanZeroCrossingPeriod = nan(nTime, 1);
     waveData.PeakPeriod             = nan(nTime, 1);
+    waveData.MeanZeroCrossingPeriod = nan(nTime, 1);
     waveData.PeakDirection          = nan(nTime, 1);
     waveData.DirectionalSpread      = nan(nTime, 1);
     waveData.MeanDirection          = nan(nTime, 1);
-    waveData.MeanPressure           = nan(nTime, 1);
     waveData.UnidirectivityIndex    = nan(nTime, 1);
+    waveData.MeanPressure           = nan(nTime, 1);
+        
+    if size(wave,2) == 31
+        waveData.SpectraType            = 9*ones(nTime, 1, 'uint8');
+        waveData.MeanOneThirdHeight     = nan(nTime, 1);
+        waveData.MeanOneTenthHeight     = nan(nTime, 1);
+        waveData.MaximumHeight          = nan(nTime, 1);
+        waveData.MeanHeight             = nan(nTime, 1);
+        waveData.MeanPeriod             = nan(nTime, 1);
+        waveData.MeanOneThirdPeriod     = nan(nTime, 1);
+        waveData.MeanOneTenthPeriod     = nan(nTime, 1);
+        waveData.MaximumPeriod          = nan(nTime, 1);
     
-    waveData.SpectraType(iWave)            = wave(:,7);
-    waveData.SignificantHeight(iWave)      = wave(:,8);
-    waveData.PeakPeriod(iWave)             = wave(:,14);
-    waveData.MeanZeroCrossingPeriod(iWave) = wave(:,15);
-    waveData.PeakDirection(iWave)          = wave(:,19);
-    waveData.DirectionalSpread(iWave)      = wave(:,20);
-    waveData.MeanDirection(iWave)          = wave(:,21);
-    waveData.UnidirectivityIndex(iWave)    = wave(:,22);
-    waveData.MeanPressure(iWave)           = wave(:,23);
+        waveData.SpectraType(iWave)            = wave(:,7);
+        waveData.SignificantHeight(iWave)      = wave(:,8);
+        waveData.MeanOneThirdHeight(iWave)     = wave(:,9);
+        waveData.MeanOneTenthHeight(iWave)     = wave(:,10);
+        waveData.MaximumHeight(iWave)          = wave(:,11);
+        waveData.MeanHeight(iWave)             = wave(:,12);
+        waveData.MeanPeriod(iWave)             = wave(:,13);
+        waveData.PeakPeriod(iWave)             = wave(:,14);
+        waveData.MeanZeroCrossingPeriod(iWave) = wave(:,15);
+        waveData.MeanOneThirdPeriod(iWave)     = wave(:,16);
+        waveData.MeanOneTenthPeriod(iWave)     = wave(:,17);
+        waveData.MaximumPeriod(iWave)          = wave(:,18);
+        waveData.PeakDirection(iWave)          = wave(:,19);
+        waveData.DirectionalSpread(iWave)      = wave(:,20);
+        waveData.MeanDirection(iWave)          = wave(:,21);
+        waveData.UnidirectivityIndex(iWave)    = wave(:,22);
+        waveData.MeanPressure(iWave)           = wave(:,23);
+    else
+        waveData.SignificantHeight(iWave)      = wave(:,7);
+        waveData.MeanZeroCrossingPeriod(iWave) = wave(:,8);
+        waveData.PeakPeriod(iWave)             = wave(:,9);
+        waveData.PeakDirection(iWave)          = wave(:,10);
+        waveData.DirectionalSpread(iWave)      = wave(:,11);
+        waveData.MeanDirection(iWave)          = wave(:,12);
+        waveData.MeanPressure(iWave)           = wave(:,13);
+        waveData.UnidirectivityIndex(iWave)    = wave(:,14);
+    end
     clear wave;
     
     % let's have a look at the different frequency given in each file
@@ -272,18 +353,22 @@ try
     waveData.fullSpectrum = nan(nTime, nDirFreq, nDir);
     
     % we should have nTime samples so :
-    nFreqFullSpectrum = length(pwrFreqDir(2:end,:)) / nTime;
+    nFreqFullSpectrum = round(length(pwrFreqDir(2:end,:)) / nTime);
     
     % rearrange full power spectrum matrix so dimensions
     % are ordered: time, frequency, direction
     start = 2;
     for i=1:nTime
-        waveData.fullSpectrum(i, :, :) = pwrFreqDir(start:start+nFreqFullSpectrum-1,:);
-        start = start+nFreqFullSpectrum;
+        if start+nFreqFullSpectrum-1 <= size(pwrFreqDir,1)
+            waveData.fullSpectrum(i, :, :) = pwrFreqDir(start:start+nFreqFullSpectrum-1,:);
+            start = start+nFreqFullSpectrum;
+        else
+            break;
+        end
     end
     clear pwrFreqDir
 catch e
-    fprintf('%s\n', ['Warning : Wave data related to ' name ...
+    fprintf('%s\n', ['Warning : Wave data related to ' fileRadName ...
         ' hasn''t been read successfully.']);
     errorString = getErrorString(e);
     fprintf('%s\n',   ['Error says : ' errorString]);

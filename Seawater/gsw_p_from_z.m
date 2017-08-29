@@ -1,6 +1,6 @@
 function p = gsw_p_from_z(z,lat,geo_strf_dyn_height,sea_surface_geopotental)
 
-% gsw_p_from_z                      pressure from height (76-term equation)
+% gsw_p_from_z                      pressure from height (75-term equation)
 %==========================================================================
 %
 % USAGE:
@@ -61,18 +61,19 @@ function p = gsw_p_from_z(z,lat,geo_strf_dyn_height,sea_surface_geopotental)
 %   temperature and density of seawater.  J. Atmosph. Ocean. Tech., 20,
 %   pp. 730-741.
 %
-%  McDougall T.J. and S.J. Wotherspoon, 2013: A simple modification of 
+%  McDougall, T.J., and S.J. Wotherspoon, 2013: A simple modification of 
 %   Newton's method to achieve convergence of order 1 + sqrt(2).  Applied 
-%   Mathematics Letters, 29, 20-25.  
+%   Mathematics Letters, 29, pp. 20-25.  
 %
-%  Moritz, 2000: Goedetic reference system 1980. J. Geodesy, 74, 128-133.
+%  Moritz, H., 2000: Geodetic reference system 1980. J. Geodesy, 74, 
+%   pp. 128-133.
 %
 %  Roquet, F., G. Madec, T.J. McDougall, P.M. Barker, 2015: Accurate
 %   polynomial expressions for the density and specifc volume of seawater
-%   using the TEOS-10 standard. Ocean Modelling.
+%   using the TEOS-10 standard. Ocean Modelling, 90, pp. 29-43.
 %
 %  Saunders, P.M., 1981: Practical conversion of pressure to depth. 
-%   Journal of Physical Oceanography, 11, 573-574.
+%   Journal of Physical Oceanography, 11, pp. 573-574.
 %
 %  This software is available from http://www.TEOS-10.org
 %

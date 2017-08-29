@@ -86,45 +86,6 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader, mode
     comment.(nn) = c;
   end
   
-  % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are present and
-  % not DOX2
-  if isfield(data, 'DOX1') && ~isfield(data, 'DOX2')
-      
-      % umol/l -> umol/kg
-      %
-      % to perform this conversion, we need to calculate the
-      % density of sea water; for this, we need temperature,
-      % salinity, and pressure data to be present
-      temp = isfield(data, 'TEMP');
-      pres = isfield(data, 'PRES_REL');
-      psal = isfield(data, 'PSAL');
-      cndc = isfield(data, 'CNDC');
-      
-      % if any of this data isn't present,
-      % we can't perform the conversion to umol/kg
-      if temp && pres && (psal || cndc)
-          temp = data.TEMP;
-          pres = data.PRES_REL;
-          if psal
-              psal = data.PSAL;
-          else
-              cndc = data.CNDC;
-              % conductivity is in S/m and gsw_C3515 in mS/cm
-              crat = 10*cndc ./ gsw_C3515;
-              
-              psal = gsw_SP_from_R(crat, temp, pres);
-          end
-          
-          % calculate density from salinity, temperature and pressure
-          dens = sw_dens(psal, temp, pres); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
-          
-          % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
-          data.DOX2 = data.DOX1 .* 1000.0 ./ dens;
-          comment.DOX2 = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
-          'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-      end
-  end
 end
 
 function [name, data, comment] = convertData(name, data, instHeader, procHeader, mode)

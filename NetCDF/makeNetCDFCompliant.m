@@ -142,13 +142,6 @@ function sample_data = makeNetCDFCompliant( sample_data )
     sample_data.dimensions{k} = mergeAtts(sample_data.dimensions{k}, dimAtts);
   end
 
-  %check for CSV file import
-  isCSV = false;
-  ddb = readProperty('toolbox.ddb');
-  if isdir(ddb)
-      isCSV = true;
-  end
-
   %
   % variables
   %
@@ -173,11 +166,11 @@ function sample_data = makeNetCDFCompliant( sample_data )
     if isfield(sample_data.meta, 'deployment')
         iTime = getVar(sample_data.dimensions, 'TIME');
         sample_data.variables{k}.sensor_serial_number = ...
-            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.deployment.InstrumentID, sample_data.dimensions{iTime}.data(1), isCSV);
+            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.deployment.InstrumentID, sample_data.dimensions{iTime}.data(1));
     elseif isfield(sample_data.meta, 'profile')
         iTime = getVar(sample_data.variables, 'TIME');
         sample_data.variables{k}.sensor_serial_number = ...
-            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.profile.InstrumentID, sample_data.variables{iTime}.data(1), isCSV);
+            getSensorSerialNumber(sample_data.variables{k}.name, sample_data.meta.profile.InstrumentID, sample_data.variables{iTime}.data(1));
     end
   end
 end
@@ -200,7 +193,7 @@ function target = mergeAtts ( target, atts )
   end
 end
 
-function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSample, isCSV )
+function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSample )
 %GETSENSORSERIALNUMBER gets the sensor serial number associated to an IMOS
 %paramter for a given deployment ID
 %
@@ -208,12 +201,7 @@ function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSamp
 target = '';
 
 % query the ddb for all sensor config related to this instrument ID
-if isCSV
-    executeQueryFunc = @executeCSVQuery;
-else
-    executeQueryFunc = @executeDDBQuery;
-end
-InstrumentSensorConfig = executeQueryFunc('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
+InstrumentSensorConfig = executeQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
 lenConfig = length(InstrumentSensorConfig);
 % only consider relevant config based on timeFirstSample
 for i=1:lenConfig
@@ -226,15 +214,17 @@ for i=1:lenConfig
         end
         if firstTest && secondTest
             % query the ddb for each sensor
-            Sensors = executeQueryFunc('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
+            Sensors = executeQuery('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
             if ~isempty(Sensors)
                 % check if this sensor is associated to the current IMOS parameter
                 if isfield(Sensors, 'Parameter')
-                    parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
-                    if ~isempty(parameters)
-                        parameters = parameters{1};
-                        if any(strcmpi(IMOSParam, parameters))
-                            target = Sensors.SerialNumber;
+                    if ~isempty(Sensors.Parameter)
+                        parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
+                        if ~isempty(parameters)
+                            parameters = parameters{1};
+                            if any(strcmpi(IMOSParam, parameters))
+                                target = Sensors.SerialNumber;
+                            end
                         end
                     end
                 end
