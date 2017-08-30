@@ -9,3 +9,5 @@ The toolbox can currently process instruments deployed on moorings (**time serie
 The processing of these files can be performed **interactively** with a graphical interface or in **batch mode**.
 
 Please read the [wiki](https://github.com/aodn/imos-toolbox/wiki) for more information on how to **install** and **use** the toolbox. You can also read the [licence](https://raw.githubusercontent.com/aodn/imos-toolbox/master/license.txt) for copyright and licensing information.
+
+This project is licensed under the terms of the GNU GPLv3.
