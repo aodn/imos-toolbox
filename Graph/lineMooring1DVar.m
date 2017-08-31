@@ -107,6 +107,12 @@ end
 xMin = min(xMin);
 xMax = max(xMax);
 
+% somehow could not get any data to plot, bail early
+if any(isnan([xMin, xMax]))
+    fprintf('%s\n', ['Warning : there is not any ' varName ' data in this deployment with good flags.']);
+    return;
+end
+
 instrumentDesc = cell(lenSampleData + 1, 1);
 hLineVar = nan(lenSampleData + 1, 1);
 
