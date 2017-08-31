@@ -19,7 +19,7 @@ function sample_data = readWQMraw( filename, mode )
 %                   Salinity          ('PSAL'): 1e^(-3) (PSS)
 %                   Dissolved Oxygen  ('DOXY'): mg/l
 %                   Dissolved Oxygen  ('DOX1'): mmol/m^3
-%                   Dissolved Oxygen  ('DOXS'): %
+%                   Dissolved Oxygen  ('DOX'): ml/l
 %                   fluorescence      ('CPHL'): mg/m^3
 %                   Chlorophyll       ('CHLU'): mg/m^3   (user coefficient)
 %                   Chlorophyll       ('CHLF'): mg/m^3   (factory coefficient)
@@ -77,7 +77,7 @@ function sample_data = readWQMraw( filename, mode )
   params{end+1} = {'salinity',        {'PSAL', ''}};
   params{end+1} = {'DO(mg/l)',        {'DOXY', ''}};
   params{end+1} = {'DO(mmol/m^3)',    {'DOX1', ''}}; % mmol/m3 <=> umol/l
-  params{end+1} = {'oxygenSat',       {'DOXS', ''}};
+  params{end+1} = {'oxygen',          {'DOX', ''}};
   params{end+1} = {'fluorescence',    {'FLU2', ''}};
   params{end+1} = {'F_Cal_CHL',       {'CHLF', 'Artificial chlorophyll data '...
       'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
@@ -371,7 +371,7 @@ fclose(fid);
 WQM.instrument='Wetlabs WQM';
 
 WQM.samp_units='datenumber';
-WQM.varlabel={'conductivity','temperature','pressure','salinity','oxygenSat','U_Cal_CHL','backscatterance'};
+WQM.varlabel={'conductivity','temperature','pressure','salinity','oxygen','U_Cal_CHL','backscatterance'};
 WQM.varunits={'S/m','C','dbar','PSU','ml/l','ug/l','NTU'};
 
 
@@ -520,9 +520,9 @@ O2.B = B52{2};
 O2.C = C52{2};
 O2.E = E52{2};
 
-oxygenSat = A(:,4);
+oxygen = A(:,4);
 
-WQM.oxygenSat = O2cal(oxygenSat, O2, WQM);
+WQM.oxygen = O2cal(oxygen, O2, WQM);
 
 % FLNTU Sensor
 chl = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'UserCHL'))},'%8c%f%f\n');
@@ -584,9 +584,9 @@ end
 
 function O2=O2cal(freq,Cal,CTD)
 % WQM uses SBE-43F
-% Oxygen = Soc * (output + Foffset)*(1.0+A*T+B*T^2+C*T^3)*exp(E*P/K), 
+% Oxygen = Soc * (output + Foffset)*(1.0+A*T+B*T^2+C*T^3)*Oxsat(T,S)*exp(E*P/K), 
 % where output=SBE-43F oxygen sensor output frequency in Hz, 
-% K=T[degK]
+% K=T[degK], OxSat()=oxygen saturation[ml/l] function of Weiss
 
 Soc=Cal.Soc;
 FOffset=Cal.FOffset;
@@ -602,8 +602,9 @@ P1=Soc*(freq+FOffset);
 P2=(1+A.*T+B.*T.^2+C.*T.^3);
 K=T+273.15;
 P3=exp(E.*P./K);
+oxsat=sw_satO2(S,T); % SeaBird normally uses function of Weiss to output DOX (ml/l) in .dat files.
 
-O2=P1.*P2.*P3;
+O2=P1.*P2.*oxsat.*P3;
 % is 30000 a bad flag can't tell but O2 is bad if freq sticks
 O2(freq==30000)=NaN;
 end
