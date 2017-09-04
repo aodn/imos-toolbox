@@ -32,7 +32,8 @@ function sample_data = workhorseParse( filename, tMode )
 %               Bradley Morris <b.morris@unsw.edu.au>
 %               Charles James May 2010 <charles.james@sa.gov.au>
 %               Guillaume Galibert <guillaume.galibert@utas.edu.au>
-%         
+%               Shawn Meredyk <shawn.meredyk@as.ulaval.ca>
+%
 
 %
 % Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
@@ -150,7 +151,7 @@ narginchk(1, 2);
   timePerEnsemble = fixed.pingsPerEnsemble .* timePerPing;
 %   % shift the timestamp to the middle of the burst
 %   time = time + (timePerEnsemble / (3600 * 24))/2;
-  
+
   %
   % auxillary data
   %
@@ -160,6 +161,7 @@ narginchk(1, 2);
   pitch       = variable.pitch;
   roll        = variable.roll;
   heading     = variable.heading;
+  voltage     = variable.adcChannel1;
   clear variable;
   
   %
@@ -224,13 +226,6 @@ narginchk(1, 2);
       serial = num2str(serial);
   end
   
-  % fill in the sample_data struct
-  sample_data.toolbox_input_file        = filename;
-  sample_data.meta.featureType          = ''; % strictly this dataset cannot be described as timeSeriesProfile since it also includes timeSeries data like TEMP
-  sample_data.meta.fixedLeader          = fixed;
-  sample_data.meta.binSize              = mode(fixed.depthCellLength)/100; % we set a static value for this variable to the most frequent value found
-  sample_data.meta.instrument_make      = 'Teledyne RDI';
-  
   % try to guess model information
   adcpFreqs = str2num(fixed.systemConfiguration(:, 6:8)); % str2num is actually more relevant than str2double here
   adcpFreq = mode(adcpFreqs); % hopefully the most frequent value reflects the frequency when deployed
@@ -238,29 +233,58 @@ narginchk(1, 2);
       case 0
           adcpFreq = 75;
           model = 'Long Ranger';
+          xmitVoltScaleFactors = 2092719 / 10; % Long Ranger output is 10x larger, not sure why.
           
       case 1
           adcpFreq = 150;
           model = 'Quartermaster';
-          
+          xmitVoltScaleFactors = 592157;
+		  
       case 10
           adcpFreq = 300;
           model = 'Sentinel or Monitor';
-          
+          xmitVoltScaleFactors = 592157;
+		  
       case 11
           adcpFreq = 600;
           model = 'Sentinel or Monitor';
-          
+          xmitVoltScaleFactors = 380667;
+		  
       case 100
           adcpFreq = 1200;
           model = 'Sentinel or Monitor';
-          
+          xmitVoltScaleFactors = 253765;
+		  
       otherwise
           adcpFreq = 2400;
-          model = 'Unknown';
-          
+          model = 'DVS';
+          xmitVoltScaleFactors = 253765;
+  end
+  xmitVoltScaleFactors = xmitVoltScaleFactors / 1000000; %from p.136 of Workhorse Commands and Output Data Format PDF (RDI website - March 2016)
+  
+  % xmit voltage conversion for diagnostics
+  % converting xmit voltage counts to volts , these are rough values
+  voltage = voltage * xmitVoltScaleFactors;
+  
+  % set all NaN to the next available value after it (conservative approach)
+  iNaNVoltage = isnan(voltage);
+  if iNaNVoltage(end) % we need to deal separately with the last value in case it's NaN
+      iLastGoodValue = find(~iNaNVoltage, 'last');  % in this case we have no choice but to look for the previous available value before it
+      voltage(end) = voltage(iLastGoodValue);
+      iNaNVoltage(end) = false;
+  end
+  while any(iNaNVoltage)
+      iNextValue = [false; iNaNVoltage(1:end-1)];
+      voltage(iNaNVoltage) = voltage(iNextValue);
+      iNaNVoltage = isnan(voltage);
   end
   
+  % fill in the sample_data struct
+  sample_data.toolbox_input_file                = filename;
+  sample_data.meta.featureType                  = ''; % strictly this dataset cannot be described as timeSeriesProfile since it also includes timeSeries data like TEMP
+  sample_data.meta.fixedLeader                  = fixed;
+  sample_data.meta.binSize                      = mode(fixed.depthCellLength)/100; % we set a static value for this variable to the most frequent value found
+  sample_data.meta.instrument_make              = 'Teledyne RDI';
   sample_data.meta.instrument_model             = [model ' Workhorse ADCP'];
   sample_data.meta.instrument_serial_no         =  serial;
   sample_data.meta.instrument_sample_interval   = median(diff(time*24*3600));
@@ -329,16 +353,13 @@ narginchk(1, 2);
       ['VCUR' magExt],      [1 2],  vnrth; ...
       ['UCUR' magExt],      [1 2],  veast; ...
       'WCUR',               [1 2],  wvel; ...
-      'ECUR',               [1 2],  evel; ...
       'CSPD',               [1 2],  speed; ...
       ['CDIR' magExt],      [1 2],  direction; ...
+      'ECUR',               [1 2],  evel; ...
       'ABSIC1',             [1 3],  backscatter1; ...
       'ABSIC2',             [1 3],  backscatter2; ...
       'ABSIC3',             [1 3],  backscatter3; ...
       'ABSIC4',             [1 3],  backscatter4; ...
-      'TEMP',               1,      temperature; ...
-      'PRES_REL',           1,      pressure; ...
-      'PSAL',               1,      salinity; ...
       'CMAG1',              [1 3],  correlation1; ...
       'CMAG2',              [1 3],  correlation2; ...
       'CMAG3',              [1 3],  correlation3; ...
@@ -347,16 +368,20 @@ narginchk(1, 2);
       'PERG2',              [1 2],  percentGood2; ...
       'PERG3',              [1 2],  percentGood3; ...
       'PERG4',              [1 2],  percentGood4; ...
+      'TEMP',               1,      temperature; ...
+      'PRES_REL',           1,      pressure; ...
+      'PSAL',               1,      salinity; ...
       'PITCH',              1,      pitch; ...
       'ROLL',               1,      roll; ...
-      ['HEADING' magExt],   1,      heading
+      ['HEADING' magExt],   1,      heading; ...
+      'VOLT',				1,		voltage
       };
   
   clear vnrth veast wvel evel speed direction backscatter1 ...
       backscatter2 backscatter3 backscatter4 temperature pressure ...
       salinity correlation1 correlation2 correlation3 correlation4 ...
       percentGood1 percentGood2 percentGood3 percentGood4 pitch roll ...
-      heading;
+      heading voltage;
   
   nVars = size(vars, 1);
   sample_data.variables = cell(nVars, 1);
