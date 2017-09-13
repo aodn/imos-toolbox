@@ -39,8 +39,8 @@ if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(vars),       error('var must be a numeric');        end
 
-xdata = sample_data.variables{vars(1)}.data;
-ydata = sample_data.variables{vars(2)}.data;
+xdata = sample_data.variables{vars(1)}.data(:);
+ydata = sample_data.variables{vars(2)}.data(:);
 
 h = line(xdata, ydata, 'Color', color);
 set(ax, 'Tag', 'axis1D');

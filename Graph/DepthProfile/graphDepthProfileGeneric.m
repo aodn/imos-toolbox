@@ -69,9 +69,9 @@ switch mode
         if size(var.data, 2) > 1
             % ADCP data, we look for vertical dimension
             iVertDim = var.dimensions(2);
-            for i=1:size(var.data, 2)
-                h(i) = line(var.data(:, i), depth.data - sample_data.dimensions{iVertDim}.data(i), 'Parent', ax, 'LineStyle', '-', 'Color', color);
-            end
+            depthAdcpData = repmat(depth.data, 1, length(sample_data.dimensions{iVertDim}.data)) - ...
+                repmat(sample_data.dimensions{iVertDim}.data', length(depth.data), 1);
+            h        = line(var.data(:), depthAdcpData(:), 'Parent', ax, 'LineStyle', '-', 'Color', color);
         else
             h        = line(var.data, depth.data, 'Parent', ax, 'LineStyle', '-', 'Color', color);
         end

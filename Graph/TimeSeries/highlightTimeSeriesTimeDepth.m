@@ -54,8 +54,8 @@ if any(size(variable.data) == 1)
     return;
 end
   
-xdata = get(data, 'XData');
-ydata = get(data, 'YData');
+xdata = get(data(1), 'XData'); % data(1) retrieves the current graphic handles only, in case extra sample is selected
+ydata = get(data(1), 'YData');
 
 Xdata = repmat(xdata, [1, size(ydata)]);
 Ydata = repmat(ydata', [size(xdata), 1]);

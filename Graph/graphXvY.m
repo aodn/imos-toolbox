@@ -128,16 +128,16 @@ function [graphs, lines, vars] = graphXvY( parent, sample_data, vars, extra_samp
       rawFlag   = imosQCFlag('raw',           qcSet, 'flag');
         
       % set x and y limits so that axis are optimised for good/probably good/raw data only
-      curDataX = sample_data.variables{vars(1)}.data;
-      curDataY = sample_data.variables{vars(2)}.data;
-      curFlagX = sample_data.variables{vars(1)}.flags;
-      curFlagY = sample_data.variables{vars(2)}.flags;
+      curDataX = sample_data.variables{vars(1)}.data(:);
+      curDataY = sample_data.variables{vars(2)}.data(:);
+      curFlagX = sample_data.variables{vars(1)}.flags(:);
+      curFlagY = sample_data.variables{vars(2)}.flags(:);
       
       if ixExtraVar && iyExtraVar
-          curDataX = [curDataX; extra_sample_data.variables{ixExtraVar}.data];
-          curDataY = [curDataY; extra_sample_data.variables{iyExtraVar}.data];
-          curFlagX = [curFlagX; extra_sample_data.variables{ixExtraVar}.flags];
-          curFlagY = [curFlagY; extra_sample_data.variables{iyExtraVar}.flags];
+          curDataX = [curDataX; extra_sample_data.variables{ixExtraVar}.data(:)];
+          curDataY = [curDataY; extra_sample_data.variables{iyExtraVar}.data(:)];
+          curFlagX = [curFlagX; extra_sample_data.variables{ixExtraVar}.flags(:)];
+          curFlagY = [curFlagY; extra_sample_data.variables{iyExtraVar}.flags(:)];
       end
       
       curFlag = max(curFlagX, curFlagY);
