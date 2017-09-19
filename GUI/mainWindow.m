@@ -261,27 +261,30 @@ set(panb,    'TooltipString', 'Pan (Ctrl+a)');
 hToolsMenu                                  = uimenu(fig,                         'label', 'Tools');
 switch mode
     case 'timeSeries'
-        hToolsCheckPlannedDepths            = uimenu(hToolsMenu,                  'label', 'Check DEPTH against NOMINAL_DEPTH');
-        hToolsCheckPlannedDepthsNonQC       = uimenu(hToolsCheckPlannedDepths,    'label', 'all data');
-        hToolsCheckPlannedDepthsQC          = uimenu(hToolsCheckPlannedDepths,    'label', 'only good and non QC''d data');
-        hToolsCheckPressDiffs               = uimenu(hToolsMenu,                  'label', 'Check pressure differences between selected instrument and nearest neighbours');
-        hToolsCheckPressDiffsNonQC          = uimenu(hToolsCheckPressDiffs,       'label', 'all data');
-        hToolsCheckPressDiffsQC             = uimenu(hToolsCheckPressDiffs,       'label', 'only good and non QC''d data');
-        hToolsLineDepth                     = uimenu(hToolsMenu,                  'label', 'DEPTH timeseries line plot across mooring');
-        hToolsLineDepthNonQC                = uimenu(hToolsLineDepth,             'label', 'all data');
-        hToolsLineDepthQC                   = uimenu(hToolsLineDepth,             'label', 'only good and non QC''d data');
-        hToolsLineCommonVar                 = uimenu(hToolsMenu,                  'label', '1D variable timeseries line plot across mooring');
-        hToolsLineCommonVarNonQC            = uimenu(hToolsLineCommonVar,         'label', 'all data');
-        hToolsLineCommonVarQC               = uimenu(hToolsLineCommonVar,         'label', 'only good and non QC''d data');
-        hToolsScatterCommonVar              = uimenu(hToolsMenu,                  'label', '1D variable vs DEPTH timeseries scatter plot across mooring');
-        hToolsScatterCommonVarNonQC         = uimenu(hToolsScatterCommonVar,      'label', 'all data');
-        hToolsScatterCommonVarQC            = uimenu(hToolsScatterCommonVar,      'label', 'only good and non QC''d data');
-        hToolsScatter2DCommonVar            = uimenu(hToolsMenu,                  'label', '2D variable vs DEPTH timeseries scatter plot across mooring');
-        hToolsScatter2DCommonVarNonQC       = uimenu(hToolsScatter2DCommonVar,    'label', 'all data');
-        hToolsScatter2DCommonVarQC          = uimenu(hToolsScatter2DCommonVar,    'label', 'only good and non QC''d data');
-        hToolsDiagramCommonVarDepth         = uimenu(hToolsMenu,                  'label', '1D variable vs DEPTH diagram plot across mooring');
-        hToolsDiagramCommonVarDepthNonQC    = uimenu(hToolsDiagramCommonVarDepth, 'label', 'all data');
-        hToolsDiagramCommonVarDepthQC       = uimenu(hToolsDiagramCommonVarDepth, 'label', 'only good and non QC''d data');
+        hToolsCheckPlannedDepths            = uimenu(hToolsMenu,                    'label', 'Check DEPTH against NOMINAL_DEPTH');
+        hToolsCheckPlannedDepthsNonQC       = uimenu(hToolsCheckPlannedDepths,      'label', 'all data');
+        hToolsCheckPlannedDepthsQC          = uimenu(hToolsCheckPlannedDepths,      'label', 'only good and non QC''d data');
+        hToolsCheckPressDiffs               = uimenu(hToolsMenu,                    'label', 'Check pressure differences between selected instrument and nearest neighbours');
+        hToolsCheckPressDiffsNonQC          = uimenu(hToolsCheckPressDiffs,         'label', 'all data');
+        hToolsCheckPressDiffsQC             = uimenu(hToolsCheckPressDiffs,         'label', 'only good and non QC''d data');
+        hToolsLineDepth                     = uimenu(hToolsMenu,                    'label', 'DEPTH timeseries line plot across mooring');
+        hToolsLineDepthNonQC                = uimenu(hToolsLineDepth,               'label', 'all data');
+        hToolsLineDepthQC                   = uimenu(hToolsLineDepth,               'label', 'only good and non QC''d data');
+        hToolsLineCommonVar                 = uimenu(hToolsMenu,                    'label', '1D variable timeseries line plot across mooring');
+        hToolsLineCommonVarNonQC            = uimenu(hToolsLineCommonVar,           'label', 'all data');
+        hToolsLineCommonVarQC               = uimenu(hToolsLineCommonVar,           'label', 'only good and non QC''d data');
+        hToolsScatterCommonVar              = uimenu(hToolsMenu,                    'label', '1D variable vs DEPTH timeseries scatter plot across mooring');
+        hToolsScatterCommonVarNonQC         = uimenu(hToolsScatterCommonVar,        'label', 'all data');
+        hToolsScatterCommonVarQC            = uimenu(hToolsScatterCommonVar,        'label', 'only good and non QC''d data');
+        hToolsScatter2DCommonVar            = uimenu(hToolsMenu,                    'label', '2D variable vs DEPTH timeseries scatter plot across mooring');
+        hToolsScatter2DCommonVarNonQC       = uimenu(hToolsScatter2DCommonVar,      'label', 'all data');
+        hToolsScatter2DCommonVarQC          = uimenu(hToolsScatter2DCommonVar,      'label', 'only good and non QC''d data');
+        hToolsDiagramCommonVarDepth         = uimenu(hToolsMenu,                    'label', '1D variable vs DEPTH diagram plot across mooring');
+        hToolsDiagramCommonVarDepthNonQC    = uimenu(hToolsDiagramCommonVarDepth,   'label', 'all data');
+        hToolsDiagramCommonVarDepthQC       = uimenu(hToolsDiagramCommonVarDepth,   'label', 'only good and non QC''d data');
+        hToolsDiagram2DCommonVarDepth       = uimenu(hToolsMenu,                    'label', '2D variable vs DEPTH diagram plot across mooring');
+        hToolsDiagram2DCommonVarDepthNonQC  = uimenu(hToolsDiagram2DCommonVarDepth, 'label', 'all data');
+        hToolsDiagram2DCommonVarDepthQC     = uimenu(hToolsDiagram2DCommonVarDepth, 'label', 'only good and non QC''d data');
         
         %set menu callbacks
         set(hToolsCheckPlannedDepthsNonQC,      'callBack', {@displayCheckPlannedDepths,   false});
@@ -296,8 +299,10 @@ switch mode
         set(hToolsScatterCommonVarQC,           'callBack', {@displayScatterMooringVar,    true,   true});
         set(hToolsScatter2DCommonVarNonQC,      'callBack', {@displayScatterMooringVar,    false,  false});
         set(hToolsScatter2DCommonVarQC,         'callBack', {@displayScatterMooringVar,    true,   false});
-        set(hToolsDiagramCommonVarDepthNonQC,   'callBack', {@displayDiagramMooringVar,    false,  true, 'DEPTH'});
-        set(hToolsDiagramCommonVarDepthQC,      'callBack', {@displayDiagramMooringVar,    true,   true, 'DEPTH'});
+        set(hToolsDiagramCommonVarDepthNonQC,   'callBack', {@displayDiagramMooringVar,    false,  true,  'DEPTH'});
+        set(hToolsDiagramCommonVarDepthQC,      'callBack', {@displayDiagramMooringVar,    true,   true,  'DEPTH'});
+        set(hToolsDiagram2DCommonVarDepthNonQC, 'callBack', {@displayDiagramMooringVar,    false,  false, 'DEPTH'});
+        set(hToolsDiagram2DCommonVarDepthQC,    'callBack', {@displayDiagramMooringVar,    true,   false, 'DEPTH'});
     case 'profile'
         hToolsLineCastVar             = uimenu(hToolsMenu,        'label', '1D variable vs DEPTH profile line plot');
         hToolsLineCastVarNonQC        = uimenu(hToolsLineCastVar, 'label', 'all data');

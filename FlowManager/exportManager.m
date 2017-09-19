@@ -66,14 +66,14 @@ function exportManager(dataSets, levelNames, output, auto)
   % get the toolbox execution mode
   mode = readProperty('toolbox.mode');
   
-  setNames = {};
+  setNames = cell(numSets, 1);
   for k = 1:numSets
       setNames{k} = genIMOSFileName(dataSets{1}{k}, suffix);
   end
     
   % prompt user for export directory, and data sets to export
   if ~auto
-    [exportDir dataSets] = ...
+    [exportDir, dataSets] = ...
       exportDialog(dataSets, levelNames, setNames, varOpts);
   else
     exportDir = readProperty('exportDialog.defaultDir');
@@ -255,6 +255,7 @@ switch mode
                 scatterMooring2DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
                 %pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
                 diagramMooring1DVarAgainstOther(sample_data, paramsName{i}, 'DEPTH', true, true, exportDir);
+                diagramMooring2DVarAgainstOther(sample_data, paramsName{i}, 'DEPTH', true, true, exportDir);
             catch e
                 errorString = getErrorString(e);
                 fprintf('%s\n',   ['Error says : ' errorString]);
