@@ -254,6 +254,7 @@ switch mode
                 scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
                 scatterMooring2DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
                 %pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
+                diagramMooring1DVarAgainstOther(sample_data, paramsName{i}, 'DEPTH', true, true, exportDir);
             catch e
                 errorString = getErrorString(e);
                 fprintf('%s\n',   ['Error says : ' errorString]);

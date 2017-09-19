@@ -258,43 +258,48 @@ set(zoominb, 'TooltipString', 'Zoom In (Ctrl+z)');
 set(panb,    'TooltipString', 'Pan (Ctrl+a)');
 
 %set uimenu
-hToolsMenu                            = uimenu(fig,                       'label', 'Tools');
+hToolsMenu                                  = uimenu(fig,                         'label', 'Tools');
 switch mode
     case 'timeSeries'
-        hToolsCheckPlannedDepths      = uimenu(hToolsMenu,                'label', 'Check measured against planned depths');
-        hToolsCheckPlannedDepthsNonQC = uimenu(hToolsCheckPlannedDepths,  'label', 'all data');
-        hToolsCheckPlannedDepthsQC    = uimenu(hToolsCheckPlannedDepths,  'label', 'only good and non QC''d data');
-        hToolsCheckPressDiffs         = uimenu(hToolsMenu,                'label', 'Check pressure differences between selected instrument and nearest neighbours');
-        hToolsCheckPressDiffsNonQC    = uimenu(hToolsCheckPressDiffs,     'label', 'all data');
-        hToolsCheckPressDiffsQC       = uimenu(hToolsCheckPressDiffs,     'label', 'only good and non QC''d data');
-        hToolsLineDepth               = uimenu(hToolsMenu,                'label', 'Line plot mooring''s depths');
-        hToolsLineDepthNonQC          = uimenu(hToolsLineDepth,           'label', 'all data');
-        hToolsLineDepthQC             = uimenu(hToolsLineDepth,           'label', 'only good and non QC''d data');
-        hToolsLineCommonVar           = uimenu(hToolsMenu,                'label', 'Line plot mooring''s 1D variables');
-        hToolsLineCommonVarNonQC      = uimenu(hToolsLineCommonVar,       'label', 'all data');
-        hToolsLineCommonVarQC         = uimenu(hToolsLineCommonVar,       'label', 'only good and non QC''d data');
-        hToolsScatterCommonVar        = uimenu(hToolsMenu,                'label', 'Scatter plot mooring''s 1D variables VS depth');
-        hToolsScatterCommonVarNonQC   = uimenu(hToolsScatterCommonVar,    'label', 'all data');
-        hToolsScatterCommonVarQC      = uimenu(hToolsScatterCommonVar,    'label', 'only good and non QC''d data');
-        hToolsScatter2DCommonVar      = uimenu(hToolsMenu,                'label', 'Scatter plot mooring''s 2D variables VS depth');
-        hToolsScatter2DCommonVarNonQC = uimenu(hToolsScatter2DCommonVar,  'label', 'all data');
-        hToolsScatter2DCommonVarQC    = uimenu(hToolsScatter2DCommonVar,  'label', 'only good and non QC''d data');
+        hToolsCheckPlannedDepths            = uimenu(hToolsMenu,                  'label', 'Check DEPTH against NOMINAL_DEPTH');
+        hToolsCheckPlannedDepthsNonQC       = uimenu(hToolsCheckPlannedDepths,    'label', 'all data');
+        hToolsCheckPlannedDepthsQC          = uimenu(hToolsCheckPlannedDepths,    'label', 'only good and non QC''d data');
+        hToolsCheckPressDiffs               = uimenu(hToolsMenu,                  'label', 'Check pressure differences between selected instrument and nearest neighbours');
+        hToolsCheckPressDiffsNonQC          = uimenu(hToolsCheckPressDiffs,       'label', 'all data');
+        hToolsCheckPressDiffsQC             = uimenu(hToolsCheckPressDiffs,       'label', 'only good and non QC''d data');
+        hToolsLineDepth                     = uimenu(hToolsMenu,                  'label', 'DEPTH timeseries line plot across mooring');
+        hToolsLineDepthNonQC                = uimenu(hToolsLineDepth,             'label', 'all data');
+        hToolsLineDepthQC                   = uimenu(hToolsLineDepth,             'label', 'only good and non QC''d data');
+        hToolsLineCommonVar                 = uimenu(hToolsMenu,                  'label', '1D variable timeseries line plot across mooring');
+        hToolsLineCommonVarNonQC            = uimenu(hToolsLineCommonVar,         'label', 'all data');
+        hToolsLineCommonVarQC               = uimenu(hToolsLineCommonVar,         'label', 'only good and non QC''d data');
+        hToolsScatterCommonVar              = uimenu(hToolsMenu,                  'label', '1D variable vs DEPTH timeseries scatter plot across mooring');
+        hToolsScatterCommonVarNonQC         = uimenu(hToolsScatterCommonVar,      'label', 'all data');
+        hToolsScatterCommonVarQC            = uimenu(hToolsScatterCommonVar,      'label', 'only good and non QC''d data');
+        hToolsScatter2DCommonVar            = uimenu(hToolsMenu,                  'label', '2D variable vs DEPTH timeseries scatter plot across mooring');
+        hToolsScatter2DCommonVarNonQC       = uimenu(hToolsScatter2DCommonVar,    'label', 'all data');
+        hToolsScatter2DCommonVarQC          = uimenu(hToolsScatter2DCommonVar,    'label', 'only good and non QC''d data');
+        hToolsDiagramCommonVarDepth         = uimenu(hToolsMenu,                  'label', '1D variable vs DEPTH diagram plot across mooring');
+        hToolsDiagramCommonVarDepthNonQC    = uimenu(hToolsDiagramCommonVarDepth, 'label', 'all data');
+        hToolsDiagramCommonVarDepthQC       = uimenu(hToolsDiagramCommonVarDepth, 'label', 'only good and non QC''d data');
         
         %set menu callbacks
-        set(hToolsCheckPlannedDepthsNonQC, 'callBack', {@displayCheckPlannedDepths,   false});
-        set(hToolsCheckPlannedDepthsQC,    'callBack', {@displayCheckPlannedDepths,   true});
-        set(hToolsCheckPressDiffsNonQC,    'callBack', {@displayCheckPressDiffs,      false});
-        set(hToolsCheckPressDiffsQC,       'callBack', {@displayCheckPressDiffs,      true});
-        set(hToolsLineDepthNonQC,          'callBack', {@displayLineMooringDepth,     false});
-        set(hToolsLineDepthQC,             'callBack', {@displayLineMooringDepth,     true});
-        set(hToolsLineCommonVarNonQC,      'callBack', {@displayLineMooringVar,       false});
-        set(hToolsLineCommonVarQC,         'callBack', {@displayLineMooringVar,       true});
-        set(hToolsScatterCommonVarNonQC,   'callBack', {@displayScatterMooringVar,    false,  true});
-        set(hToolsScatterCommonVarQC,      'callBack', {@displayScatterMooringVar,    true,   true});
-        set(hToolsScatter2DCommonVarNonQC, 'callBack', {@displayScatterMooringVar,    false,  false});
-        set(hToolsScatter2DCommonVarQC,    'callBack', {@displayScatterMooringVar,    true,   false});
+        set(hToolsCheckPlannedDepthsNonQC,      'callBack', {@displayCheckPlannedDepths,   false});
+        set(hToolsCheckPlannedDepthsQC,         'callBack', {@displayCheckPlannedDepths,   true});
+        set(hToolsCheckPressDiffsNonQC,         'callBack', {@displayCheckPressDiffs,      false});
+        set(hToolsCheckPressDiffsQC,            'callBack', {@displayCheckPressDiffs,      true});
+        set(hToolsLineDepthNonQC,               'callBack', {@displayLineMooringDepth,     false});
+        set(hToolsLineDepthQC,                  'callBack', {@displayLineMooringDepth,     true});
+        set(hToolsLineCommonVarNonQC,           'callBack', {@displayLineMooringVar,       false});
+        set(hToolsLineCommonVarQC,              'callBack', {@displayLineMooringVar,       true});
+        set(hToolsScatterCommonVarNonQC,        'callBack', {@displayScatterMooringVar,    false,  true});
+        set(hToolsScatterCommonVarQC,           'callBack', {@displayScatterMooringVar,    true,   true});
+        set(hToolsScatter2DCommonVarNonQC,      'callBack', {@displayScatterMooringVar,    false,  false});
+        set(hToolsScatter2DCommonVarQC,         'callBack', {@displayScatterMooringVar,    true,   false});
+        set(hToolsDiagramCommonVarDepthNonQC,   'callBack', {@displayDiagramMooringVar,    false,  true, 'DEPTH'});
+        set(hToolsDiagramCommonVarDepthQC,      'callBack', {@displayDiagramMooringVar,    true,   true, 'DEPTH'});
     case 'profile'
-        hToolsLineCastVar             = uimenu(hToolsMenu,        'label', 'Line plot profile variables');
+        hToolsLineCastVar             = uimenu(hToolsMenu,        'label', '1D variable vs DEPTH profile line plot');
         hToolsLineCastVarNonQC        = uimenu(hToolsLineCastVar, 'label', 'all data');
         hToolsLineCastVarQC           = uimenu(hToolsLineCastVar, 'label', 'only good and non QC''d data');
         
@@ -556,7 +561,7 @@ set(hHelpWiki, 'callBack', @openWikiPage);
 
     function displayLineMooringDepth(source, ev, isQC)
         %DISPLAYLINEMOORINGDEPTH Opens a new window where all the nominal depths and
-        %actual/computed depths from intruments on the mooring are line-plotted.
+        %actual/computed depths from intruments on the mooring are line-plotted in a timeseries plot.
         %
         lineMooring1DVar(sample_data, 'DEPTH', isQC, false, '');
         
@@ -564,7 +569,7 @@ set(hHelpWiki, 'callBack', @openWikiPage);
 
     function displayLineMooringVar(source, ev, isQC)
         %DISPLAYLINEMOORINGVAR Opens a new window where all the previously selected
-        % variables collected by intruments on the mooring are line-plotted.
+        % variables collected by intruments on the mooring are line-plotted in a timeseries plot.
         %
         stringQC = 'non QC';
         if isQC, stringQC = 'QC'; end
@@ -618,7 +623,7 @@ set(hHelpWiki, 'callBack', @openWikiPage);
             'SelectionMode', 'single', ...
             'ListSize', [150 150], ...
             'InitialValue', iDiffTIME, ...
-            'Name', ['Plot a ' stringQC '''d variable accross all instruments in the mooring'], ...
+            'Name', ['Timeserie plot a ' stringQC '''d variable accross all instruments in the mooring'], ...
             'PromptString', 'Select a variable :');
         
         if ok==0
@@ -638,7 +643,7 @@ set(hHelpWiki, 'callBack', @openWikiPage);
 
     function displayLineCastVar(source, ev, isQC)
         %DISPLAYLINECASTVAR Opens a new window where all the
-        % variables collected by the CTD cast are line-plotted.
+        % variables collected by the CTD cast are line-plotted in a profile plot.
         %
         
         % get all params names
@@ -665,16 +670,123 @@ set(hHelpWiki, 'callBack', @openWikiPage);
 
     function displayScatterMooringVar(source, ev, isQC, is1D)
         %DISPLAYSCATTERMOORINGVAR Opens a new window where all the previously selected
-        % variables collected by intruments on the mooring are scatter-plotted.
+        % variables collected by intruments on the mooring are scatter-plotted in a timeseries plot.
         %
         stringQC = 'non QC';
         if isQC, stringQC = 'QC'; end
         
-        % go through all datasets and parameters and count them
+        % go through all datasets, list parameters and count them
+        [paramsName, paramsCount, params2D] = countParams();
+        
+        if is1D
+            % get rid of unwanted parameters
+            iParamsToBeRemoved = removeUnwantedParamsFor1DvarVsDepth(paramsName, params2D);
+            paramsName(iParamsToBeRemoved) = [];
+            paramsCount(iParamsToBeRemoved) = [];
+            
+            % get rid of params that are not found in at least two datasets
+            iParamsNotInCommon = (paramsCount == 1);
+            paramsName(iParamsNotInCommon) = [];
+            
+            % by default TEMP is selected
+            iDefault = find(strcmpi(paramsName, 'TEMP'));
+        else
+            % get rid of unwanted parameters
+            iParamsToBeRemoved = removeUnwantedParamsFor2DvarVsDepth(paramsName, params2D);
+            paramsName(iParamsToBeRemoved) = [];
+            
+            % by default CDIR is selected
+            iDefault = find(strcmpi(paramsName, 'CDIR'));
+        end
+        
+        if isempty(iDefault), iDefault = 1; end
+        
+        [iSelection, ok] = listdlg(...
+            'ListString',       paramsName, ...
+            'SelectionMode',    'single', ...
+            'ListSize',         [150 150], ...
+            'InitialValue',     iDefault, ...
+            'Name',             ['Timeserie plot a ' stringQC '''d variable vs DEPTH accross all instruments in the mooring'], ...
+            'PromptString',     'Select a variable :');
+        
+        if ok==0
+            return;
+        else
+            varName = paramsName{iSelection};
+        end
+        
+        if is1D
+            scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, false, '');
+        else
+            scatterMooring2DVarAgainstDepth(sample_data, varName, isQC, false, '');
+        end
+        
+    end
+
+    function displayDiagramMooringVar(source, ev, isQC, is1D, yAxisVarName)
+        %DISPLAYDIAGRAMMOORINGVAR Opens a new window where all the previously selected
+        % variables collected by intruments on the mooring are scatter-plotted in a diagram plot.
+        %
+        stringQC = 'non QC';
+        if isQC, stringQC = 'QC'; end
+        
+        % go through all datasets and list parameters
+        [paramsName, ~, params2D] = countParams();
+        
+        if is1D
+            % get rid of unwanted parameters
+            iParamsToBeRemoved = removeUnwantedParamsFor1DvarVsDepth(paramsName, params2D);
+            paramsName(iParamsToBeRemoved) = [];
+            
+            % we get rid of yAxisVarName
+            iYAxisVarName = strcmpi(yAxisVarName, paramsName);
+            paramsName(iYAxisVarName) = [];
+            
+            % by default TEMP is selected
+            iDefault = find(strcmpi(paramsName, 'TEMP'));
+        else
+            % get rid of unwanted parameters
+            iParamsToBeRemoved = removeUnwantedParamsFor2DvarVsDepth(paramsName, params2D);
+            paramsName(iParamsToBeRemoved) = [];
+            
+            % we get rid of yAxisVarName
+            iYAxisVarName = strcmpi(yAxisVarName, paramsName);
+            paramsName(iYAxisVarName) = [];
+            
+            % by default CDIR is selected
+            iDefault = find(strcmpi(paramsName, 'CDIR'));
+        end
+        
+        if isempty(iDefault), iDefault = 1; end
+        
+        [iSelection, ok] = listdlg(...
+            'ListString',       paramsName, ...
+            'SelectionMode',    'single', ...
+            'ListSize',         [150 150], ...
+            'InitialValue',     iDefault, ...
+            'Name',             ['Diagram plot a ' stringQC '''d variable vs ' yAxisVarName ' accross all instruments in the mooring'], ...
+            'PromptString',     'Select a variable :');
+        
+        if ok==0
+            return;
+        else
+            varName = paramsName{iSelection};
+        end
+        
+        if is1D
+            diagramMooring1DVarAgainstOther(sample_data, varName, yAxisVarName, isQC, false, '');
+        else
+            diagramMooring2DVarAgainstOther(sample_data, varName, yAxisVarName, isQC, false, '');
+        end
+        
+    end
+
+    function [paramsName, paramsCount, params2D] = countParams()
+        %COUNTPARAMS goes through all datasets and parameters and count them
         lenSampleData = length(sample_data);
         paramsName = {};
         paramsCount = [];
-        params2D = [];
+        params2D = logical([]);
         for i=1:lenSampleData
             lenParamsSample = length(sample_data{i}.variables);
             for j=1:lenParamsSample
@@ -694,94 +806,71 @@ set(hHelpWiki, 'callBack', @openWikiPage);
                 end
             end
         end
+    end
+
+    function iParamsToBeRemoved = removeUnwantedParamsFor1DvarVsDepth(paramsName, params2D)
+        %REMOVEUNWANTEDPARAMSFOR1DVARVSDEPTH gets rid of unwanted parameters
         
-        if is1D
-            % get only params that are in common in at least two datasets
-            iParamsNotInCommon = (paramsCount == 1);
-            % get only params that are 1D
-            iParamsToGetRid = params2D | iParamsNotInCommon;
-            
-            paramsName(iParamsToGetRid) = [];
-            
-            % we get rid of DEPTH, PRES and PRES_REL parameters
-            iDEPTH = strcmpi('DEPTH', paramsName);
-            paramsName(iDEPTH) = [];
-            iDEPTH = strcmpi('PRES', paramsName);
-            paramsName(iDEPTH) = [];
-            iDEPTH = strcmpi('PRES_REL', paramsName);
-            paramsName(iDEPTH) = [];
-            
-            % we get rid of TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE and NOMINAL_DEPTH parameters
-            iParam = strcmpi(paramsName, 'TIMESERIES');
-            paramsName(iParam) = [];
-            iParam = strcmpi(paramsName, 'PROFILE');
-            paramsName(iParam) = [];
-            iParam = strcmpi(paramsName, 'TRAJECTORY');
-            paramsName(iParam) = [];
-            iParam = strcmpi(paramsName, 'LATITUDE');
-            paramsName(iParam) = [];
-            iParam = strcmpi(paramsName, 'LONGITUDE');
-            paramsName(iParam) = [];
-            iParam = strcmpi(paramsName, 'NOMINAL_DEPTH');
-            paramsName(iParam) = [];
-            
-            % by default TEMP is selected
-            iDefault = find(strcmpi(paramsName, 'TEMP'));
-        else
-            % get only params that are 2D
-            paramsName(~params2D) = [];
-            
-            % we get rid of DEPTH, PRES and PRES_REL parameters
-            iDEPTH = strcmpi('DEPTH', paramsName);
-            paramsName(iDEPTH) = [];
-            iDEPTH = strcmpi('PRES', paramsName);
-            paramsName(iDEPTH) = [];
-            iDEPTH = strcmpi('PRES_REL', paramsName);
-            paramsName(iDEPTH) = [];
-            
-            % we get rid of HEIGHT parameter
-            iHEIGHT = strcmpi('HEIGHT', paramsName);
-            paramsName(iHEIGHT) = [];
-            
-            % we get rid of ADCP diagnostic parameters
-            for i=1:4
-                iStr = num2str(i);
-                iABSI = strcmpi(['ABSI' iStr], paramsName);
-                paramsName(iABSI) = [];
-                iABSIC = strcmpi(['ABSIC' iStr], paramsName);
-                paramsName(iABSIC) = [];
-                iCORR = strcmpi(['CMAG' iStr], paramsName);
-                paramsName(iCORR) = [];
-                iPERG = strcmpi(['PERG' iStr], paramsName);
-                paramsName(iPERG) = [];
-            end
-            
-            % by default CDIR is selected
-            iDefault = find(strcmpi(paramsName, 'CDIR'));
+        iParamsToBeRemoved = false(size(paramsName));
+        
+        % get only params that are 1D
+        iParamsToBeRemoved(params2D) = true;
+        
+        % we get rid of DEPTH, PRES and PRES_REL parameters
+        iDEPTH = strcmpi('DEPTH', paramsName);
+        iParamsToBeRemoved(iDEPTH) = true;
+        iDEPTH = strcmpi('PRES', paramsName);
+        iParamsToBeRemoved(iDEPTH) = true;
+        iDEPTH = strcmpi('PRES_REL', paramsName);
+        iParamsToBeRemoved(iDEPTH) = true;
+        
+        % we get rid of TIMESERIES, PROFILE, TRAJECTORY, LATITUDE, LONGITUDE and NOMINAL_DEPTH parameters
+        iParam = strcmpi(paramsName, 'TIMESERIES');
+        iParamsToBeRemoved(iParam) = true;
+        iParam = strcmpi(paramsName, 'PROFILE');
+        iParamsToBeRemoved(iParam) = true;
+        iParam = strcmpi(paramsName, 'TRAJECTORY');
+        iParamsToBeRemoved(iParam) = true;
+        iParam = strcmpi(paramsName, 'LATITUDE');
+        iParamsToBeRemoved(iParam) = true;
+        iParam = strcmpi(paramsName, 'LONGITUDE');
+        iParamsToBeRemoved(iParam) = true;
+        iParam = strcmpi(paramsName, 'NOMINAL_DEPTH');
+        iParamsToBeRemoved(iParam) = true;
+    end
+
+    function iParamsToBeRemoved = removeUnwantedParamsFor2DvarVsDepth(paramsName, params2D)
+        %REMOVEUNWANTEDPARAMSFOR2DVARVSDEPTH gets rid of unwanted parameters
+        
+        iParamsToBeRemoved = false(size(paramsName));
+        
+        % get only params that are 2D
+        iParamsToBeRemoved(~params2D) = true;
+        
+        % we get rid of DEPTH, PRES and PRES_REL parameters
+        iDEPTH = strcmpi('DEPTH', paramsName);
+        iParamsToBeRemoved(iDEPTH) = true;
+        iDEPTH = strcmpi('PRES', paramsName);
+        iParamsToBeRemoved(iDEPTH) = true;
+        iDEPTH = strcmpi('PRES_REL', paramsName);
+        iParamsToBeRemoved(iDEPTH) = true;
+        
+        % we get rid of HEIGHT parameter
+        iHEIGHT = strcmpi('HEIGHT', paramsName);
+        iParamsToBeRemoved(iHEIGHT) = true;
+        
+        % we get rid of ADCP diagnostic parameters
+        for i=1:4
+            iStr = num2str(i);
+            iABSI = strcmpi(['ABSI' iStr], paramsName);
+            iParamsToBeRemoved(iABSI) = true;
+            iABSIC = strcmpi(['ABSIC' iStr], paramsName);
+            iParamsToBeRemoved(iABSIC) = true;
+            iCORR = strcmpi(['CMAG' iStr], paramsName);
+            iParamsToBeRemoved(iCORR) = true;
+            iPERG = strcmpi(['PERG' iStr], paramsName);
+            iParamsToBeRemoved(iPERG) = true;
         end
-        
-        if isempty(iDefault), iDefault = 1; end
-        
-        [iSelection, ok] = listdlg(...
-            'ListString',       paramsName, ...
-            'SelectionMode',    'single', ...
-            'ListSize',         [150 150], ...
-            'InitialValue',     iDefault, ...
-            'Name',             ['Plot a ' stringQC '''d variable accross all instruments in the mooring'], ...
-            'PromptString',     'Select a variable :');
-        
-        if ok==0
-            return;
-        else
-            varName = paramsName{iSelection};
-        end
-        
-        if is1D
-            scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, false, '');
-        else
-            scatterMooring2DVarAgainstDepth(sample_data, varName, isQC, false, '');
-        end
-        
     end
 
     function openWikiPage(source, ev)

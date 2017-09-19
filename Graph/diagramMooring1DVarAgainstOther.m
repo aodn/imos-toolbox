@@ -1,11 +1,13 @@
-function scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, saveToFile, exportDir)
-%SCATTERMOORING1DVARAGAINSTDEPTH Opens a new window where the selected 1D
-% variable collected by all the intruments on the mooring are plotted in a timeseries plot.
+function diagramMooring1DVarAgainstOther(sample_data, varName, yAxisVarName, isQC, saveToFile, exportDir)
+%DIAGRAMMOORING1DVARAGAINSTOTHER Opens a new window where the selected 1D
+% variable collected by all the intruments on the mooring are plotted in a digram plot.
 %
 % Inputs:
 %   sample_data - cell array of structs containing the entire data set and dimension data.
 %
-%   varName     - string containing the IMOS code for requested parameter.
+%   varName     - string containing the IMOS code for requested X parameter.
+%
+%   yAxisVarName- string containing the IMOS code for requested Y parameter.
 %
 %   isQC        - logical to plot only good data or not.
 %
@@ -34,26 +36,30 @@ function scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, saveToFile,
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-narginchk(5,5);
+narginchk(6,6);
 
 if ~iscell(sample_data),    error('sample_data must be a cell array');  end
 if ~ischar(varName),        error('varName must be a string');          end
+if ~ischar(yAxisVarName),   error('yAxisVarName must be a string');     end
 if ~islogical(isQC),        error('isQC must be a logical');            end
 if ~islogical(saveToFile),  error('saveToFile must be a logical');      end
 if ~ischar(exportDir),      error('exportDir must be a string');        end
 
-if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL'})), return; end
+if any(strcmpi(varName, {'DEPTH', 'PRES', 'PRES_REL', yAxisVarName})), return; end
 
 monitorRect = getRectMonitor();
 iBigMonitor = getBiggestMonitor();
 
 varTitle = imosParameters(varName, 'long_name');
-varUnit = imosParameters(varName, 'uom');
+varUnit  = imosParameters(varName, 'uom');
+
+yAxisVarTitle = imosParameters(yAxisVarName, 'long_name');
+yAxisVarUnit  = imosParameters(yAxisVarName, 'uom');
 
 stringQC = 'all';
 if isQC, stringQC = 'only good and non QC''d'; end
 
-title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC ' ' varTitle];
+title = [sample_data{1}.deployment_code ' ' stringQC ' ' varTitle ' / ' yAxisVarTitle ' diagram'];
 
 % retrieve good flag values
 qcSet     = str2double(readProperty('toolbox.qc_set'));
@@ -67,6 +73,7 @@ lenSampleData = length(sample_data);
 metaDepth = nan(lenSampleData, 1);
 xMin = nan(lenSampleData, 1);
 xMax = nan(lenSampleData, 1);
+any1D = false;
 for i=1:lenSampleData
     if ~isempty(sample_data{i}.meta.depth)
         metaDepth(i) = sample_data{i}.meta.depth;
@@ -77,23 +84,28 @@ for i=1:lenSampleData
     end
     iTime = getVar(sample_data{i}.dimensions, 'TIME');
     iVar = getVar(sample_data{i}.variables, varName);
+    iYAxisVar = getVar(sample_data{i}.variables, yAxisVarName);
     iGood = true(size(sample_data{i}.dimensions{iTime}.data));
     
-    % the variable exists, is QC'd and is 1D
-    if isQC && iVar && size(sample_data{i}.variables{iVar}.data, 2) == 1
-        %get time and var QC information
-        timeFlags = sample_data{i}.dimensions{iTime}.flags;
-        varFlags = sample_data{i}.variables{iVar}.flags;
-        
-        iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
-    end
-    
-    if iVar
-        if all(~iGood)
-            continue;
+    % the variables exist and are 1D
+    if iVar && iYAxisVar && ...
+            size(sample_data{i}.variables{iVar}.data, 2) == 1 && ...
+            size(sample_data{i}.variables{iYAxisVar}.data, 2) == 1
+        any1D = true;
+        if isQC
+            %get time and var QC information
+            timeFlags = sample_data{i}.dimensions{iTime}.flags;
+            varFlags = sample_data{i}.variables{iVar}.flags;
+            yAxisVarFlags = sample_data{i}.variables{iYAxisVar}.flags;
+            
+            iGood = ismember(timeFlags, goodFlags) & ...
+                ismember(varFlags, goodFlags) & ismember(yAxisVarFlags, goodFlags); 
         end
-        xMin(i) = min(sample_data{i}.dimensions{iTime}.data(iGood));
-        xMax(i) = max(sample_data{i}.dimensions{iTime}.data(iGood));
+        
+        if any(iGood)
+            xMin(i) = min(sample_data{i}.variables{iVar}.data(iGood));
+            xMax(i) = max(sample_data{i}.variables{iVar}.data(iGood));
+        end
     end
 end
 [metaDepth, iSort] = sort(metaDepth);
@@ -101,8 +113,8 @@ xMin = min(xMin);
 xMax = max(xMax);
 
 % somehow could not get any data to plot, bail early
-if any(isnan([xMin, xMax]))
-    fprintf('%s\n', ['Warning : there is not any ' varName ' data in this deployment with good flags.']);
+if all(isnan([xMin, xMax])) && any1D
+    fprintf('%s\n', ['Warning : there is not any ' varName ' / ' yAxisVarName ' data in this deployment with good flags.']);
     return;
 end
 
@@ -117,24 +129,29 @@ hScatterVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'no
 
 % we need to go through every instruments to figure out the CLim properties
 % on which the subset plots happen below.
-minClim = NaN;
-maxClim = NaN;
+cLimMin = NaN;
+cLimMax = NaN;
 isPlottable = false(1, lenSampleData);
 for i=1:lenSampleData
     %look for time and relevant variable
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
     iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
+    iYAxisVar = getVar(sample_data{iSort(i)}.variables, yAxisVarName);
     
-    if iVar > 0 && size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
+    if iVar && iYAxisVar && ...
+            size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 && ...
+            size(sample_data{iSort(i)}.variables{iYAxisVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
             all(~strncmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}, 4))
         iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
         if isQC
             %get time, depth and var QC information
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
+            yAxisVarFlags = sample_data{iSort(i)}.variables{iYAxisVar}.flags;
             
-            iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
+            iGood = ismember(timeFlags, goodFlags) & ...
+                ismember(varFlags, goodFlags) & ismember(yAxisVarFlags, goodFlags);
             
             if iDepth
                 depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
@@ -144,8 +161,11 @@ for i=1:lenSampleData
         
         if any(iGood)
             isPlottable(i) = true;
-            minClim = min(minClim, min(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
-            maxClim = max(maxClim, max(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
+            if ~iDepth
+                iDepth = getVar(sample_data{iSort(i)}.variables, 'NOMINAL_DEPTH');
+            end
+            cLimMin = min(cLimMin, min(sample_data{iSort(i)}.variables{iDepth}.data(iGood)));
+            cLimMax = max(cLimMax, max(sample_data{iSort(i)}.variables{iDepth}.data(iGood)));
         end
     end
 end
@@ -180,6 +200,7 @@ if any(isPlottable)
         iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
         iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
         iVar = getVar(sample_data{iSort(i)}.variables, varName);
+        iYAxisVar = getVar(sample_data{iSort(i)}.variables, yAxisVarName);
         
         if isPlottable(i)
             if initiateFigure
@@ -194,12 +215,13 @@ if any(isPlottable)
                 
                 hAxMooringVar = axes('Parent',   hFigMooringVar);
             
-                set(hAxMooringVar, 'YDir', 'reverse');
-                set(get(hAxMooringVar, 'XLabel'), 'String', 'Time');
-                set(get(hAxMooringVar, 'YLabel'), 'String', 'DEPTH (m)', 'Interpreter', 'none');
+                if strcmpi(yAxisVarName, 'DEPTH')
+                    set(hAxMooringVar, 'YDir', 'reverse');
+                end
+                set(get(hAxMooringVar, 'XLabel'), 'String', [varName ' (' varUnit ')'], 'Interpreter', 'none');
+                set(get(hAxMooringVar, 'YLabel'), 'String', [yAxisVarName ' (' yAxisVarUnit ')'], 'Interpreter', 'none');
                 set(get(hAxMooringVar, 'Title'), 'String', title, 'Interpreter', 'none');
-                set(hAxMooringVar, 'XTick', (xMin:(xMax-xMin)/4:xMax));
-                set(hAxMooringVar, 'XLim', [xMin, xMax]);
+                set(hAxMooringVar, 'XLim', [xMin, xMax]); % otherwise figure sets extra margin
                 hold(hAxMooringVar, 'on');
                 
                 % dummy entry for first entry in legend
@@ -209,13 +231,6 @@ if any(isPlottable)
                 dcm_obj = datacursormode(hFigMooringVar);
                 set(dcm_obj, 'UpdateFcn', {@customDcm, sample_data}, 'SnapToDataVertex','on');
                 
-                % set zoom datetick update
-                datetick(hAxMooringVar, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
-                zoomH = zoom(hFigMooringVar);
-                panH = pan(hFigMooringVar);
-                set(zoomH,'ActionPostCallback',{@zoomDateTick, hAxMooringVar});
-                set(panH,'ActionPostCallback',{@zoomDateTick, hAxMooringVar});
-                
                 try
                     nColors = str2double(readProperty('visualQC.ncolors'));
                     defaultColormapFh = str2func(readProperty('visualQC.defaultColormap'));
@@ -224,9 +239,13 @@ if any(isPlottable)
                     nColors = 64;
                     cMap = colormap(hAxMooringVar, parula(nColors));
                 end
+                colormap(hAxMooringVar, flipud(cMap)); % DEPTH
                 
-                hCBar = colorbar('peer', hAxMooringVar);
-                set(get(hCBar, 'Title'), 'String', [varName ' (' varUnit ')'], 'Interpreter', 'none');
+                if ~strcmpi(yAxisVarName, 'DEPTH')
+                    % colorbar not needed when Y axis is already DEPTH
+                    hCBar = colorbar('peer', hAxMooringVar);
+                    set(get(hCBar, 'Title'), 'String', 'DEPTH (m)', 'Interpreter', 'none');
+                end
                 
                 initiateFigure = false;
             end
@@ -238,11 +257,14 @@ if any(isPlottable)
                 %get time, depth and var QC information
                 timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
                 varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
+                yAxisVarFlags = sample_data{iSort(i)}.variables{iYAxisVar}.flags;
                 varValues = sample_data{iSort(i)}.variables{iVar}.data;
+                yAxisVarValues = sample_data{iSort(i)}.variables{iYAxisVar}.data;
                 
                 iGood = ismember(timeFlags, goodFlags) & ...
                     ismember(varFlags, goodFlags) & ...
-                    ~isnan(varValues);
+                    ismember(yAxisVarFlags, goodFlags) & ...
+                    ~isnan(varValues) & ~isnan(yAxisVarValues);
                 
                 if iDepth
                     depthFlags = sample_data{iSort(i)}.variables{iDepth}.flags;
@@ -252,12 +274,14 @@ if any(isPlottable)
             
             if all(~iGood) && isQC
                 fprintf('%s\n', ['Warning : in ' sample_data{iSort(i)}.toolbox_input_file ...
-                    ', there is not any ' varName ' data with good flags.']);
+                    ', there is not any ' varName ' / ' yAxisVarName ' data with good flags.']);
                 continue;
             else
-                if iDepth
+                if iDepth && ~strcmpi(yAxisVarName, 'DEPTH')
                     depth = sample_data{iSort(i)}.variables{iDepth}.data;
                 else
+                    % nominal depth as a scatter color is mor informative
+                    % when Y axis is already DEPTH
                     if isfield(sample_data{iSort(i)}, 'instrument_nominal_depth')
                         if ~isempty(sample_data{iSort(i)}.instrument_nominal_depth)
                             depth = sample_data{iSort(i)}.instrument_nominal_depth*ones(size(iGood));
@@ -277,9 +301,8 @@ if any(isPlottable)
                 
                 % data for customDcm
                 userData.idx = iSort(i);
-                userData.xName = 'TIME';
-                userData.yName = 'DEPTH';
-                userData.zName = varName;
+                userData.xName = varName;
+                userData.yName = yAxisVarName;
                 userData.iGood = iGood;
                 
                 if fastScatter
@@ -296,21 +319,21 @@ if any(isPlottable)
                     % though.
                     
                     h = plotclr(hAxMooringVar, ...
-                        sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
-                        depth, ...
                         sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
+                        sample_data{iSort(i)}.variables{iYAxisVar}.data(iGood), ...
+                        depth, ...
                         markerStyle{mod(i, lenMarkerStyle)+1}, ...
-                        [minClim maxClim], ...
+                        [cLimMin cLimMax], ...
                         'DisplayName', instrumentDesc{i+1}, ...
                         'MarkerSize',  2.5, ...
                         'UserData',    userData);
                 else
                     % faster than scatter, but legend requires adjusting
                     h = fastScatterMesh( hAxMooringVar, ...
-                        sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
-                        depth, ...
                         sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
-                        [minClim maxClim], ...
+                        sample_data{iSort(i)}.variables{iYAxisVar}.data(iGood), ...
+                        depth, ...
+                        [cLimMin cLimMax], ...
                         'Marker',      markerStyle{mod(i, lenMarkerStyle)+1}, ...
                         'DisplayName', [markerStyle{mod(i, lenMarkerStyle)+1} ' ' instrumentDesc{i+1}], ...
                         'MarkerSize',  2.5, ...
@@ -321,9 +344,8 @@ if any(isPlottable)
                 if ~isempty(h), hScatterVar(i + 1) = h; end
                 
                 % Let's redefine properties after pcolor to make sure grid lines appear
-                % above color data and XTick and XTickLabel haven't changed
+                % above color data
                 set(hAxMooringVar, ...
-                    'XTick',        (xMin:(xMax-xMin)/4:xMax), ...
                     'XGrid',        'on', ...
                     'YGrid',        'on', ...
                     'Layer',        'top');
@@ -331,17 +353,19 @@ if any(isPlottable)
                 % set background to be grey
                 set(hAxMooringVar, 'Color', backgroundColor)
             end
-            
-            % we plot the instrument nominal depth
-            hNominalDepth = line([xMin, xMax], [metaDepth(i), metaDepth(i)], ...
-                'Color', 'black');
-            % turn off legend entry for this plot
-            set(get(get(hNominalDepth,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-            % with 'HitTest' == 'off' plot should not be selectable but
-            % just in case set idx = NaN for customDcm
-            userData.idx = NaN;
-            set(hNominalDepth, 'UserData', userData, 'HitTest', 'off');
-            clear('userData');
+           
+            if strcmpi(yAxisVarName, 'DEPTH')
+                % we plot the instrument nominal depth
+                hNominalDepth = line([xMin, xMax], [metaDepth(i), metaDepth(i)], ...
+                    'Color', 'black');
+                % turn off legend entry for this plot
+                set(get(get(hNominalDepth,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+                % with 'HitTest' == 'off' plot should not be selectable but
+                % just in case set idx = NaN for customDcm
+                userData.idx = NaN;
+                set(hNominalDepth, 'UserData', userData, 'HitTest', 'off');
+                clear('userData');
+            end
         end
     end
 else
@@ -350,7 +374,7 @@ end
 
 % we need to reset the CLim to a global range rather than the one for the
 % last subset of plot
-set(hAxMooringVar, 'CLim', [minClim maxClim]);
+set(hAxMooringVar, 'CLim', [cLimMin cLimMax]);
 
 if ~initiateFigure
     iNan = isnan(hScatterVar);
@@ -358,8 +382,6 @@ if ~initiateFigure
         hScatterVar(iNan) = [];
         instrumentDesc(iNan) = [];
     end
-    
-    datetick(hAxMooringVar, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
     
     % we try to split the legend in two location horizontally
     nLine = length(hScatterVar);
@@ -416,8 +438,8 @@ if ~initiateFigure
     % set(hLegend, 'Box', 'off', 'Color', 'none');
     
     if saveToFile
-        fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
-        fileName = strrep(fileName, '_PLOT-TYPE_', '_SCATTER_');
+        fileName = strrep(fileName, '_PARAM_', ['_' varName '_vs_' yAxisVarName '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_vs_[OTHER-PARAM]_C-[creation_date].png
+        fileName = strrep(fileName, '_PLOT-TYPE_', '_DIAGRAM_');
         
         fastSaveas(hFigMooringVar, fullfile(exportDir, fileName));
         
@@ -453,7 +475,6 @@ end
         
         xName = userData.xName;
         yName = userData.yName;
-        zName = userData.zName;
         
         try
             dStr = get(target_obj,'DisplayName');
@@ -470,11 +491,7 @@ end
                 ixVar = getVar(sam.variables, xName);
                 xUnits  = sam.variables{ixVar}.units;
             end
-            if strcmp(xName, 'TIME')
-                xStr = datestr(posClic(1),'dd-mm-yyyy HH:MM:SS.FFF');
-            else
-                xStr = [num2str(posClic(1)) ' ' xUnits];
-            end
+            xStr = [num2str(posClic(1)) ' ' xUnits];
         catch
             xStr = 'NO DATA';
         end
@@ -488,43 +505,15 @@ end
                 iyVar = getVar(sam.variables, yName);
                 yUnits  = sam.variables{iyVar}.units;
             end
-            if strcmp(yName, 'TIME')
-                yStr = datestr(posClic(2),'dd-mm-yyyy HH:MM:SS.FFF');
-            else
-                yStr = [num2str(posClic(2)) ' ' yUnits]; %num2str(posClic(2),4)
-            end
+            yStr = [num2str(posClic(2)) ' ' yUnits]; %num2str(posClic(2),4)
         catch
             yStr = 'NO DATA';
         end
         
         try
-            % generalized case pass in a variable instead of a dimension
-            izVar = getVar(sam.dimensions, zName);
-            if izVar ~= 0
-                zUnits  = sam.dimensions{izVar}.units;
-                zData = sam.dimensions{izVar}.data(userData.iGood);
-            else
-                izVar = getVar(sam.variables, zName);
-                zUnits  = sam.variables{izVar}.units;
-                zData = sam.variables{izVar}.data(userData.iGood);
-            end
-            iTime = getVar(sam.dimensions, 'TIME');
-            timeData = sam.dimensions{iTime}.data(userData.iGood);
-            idx = find(abs(timeData-posClic(1))<eps(10));
-            if strcmp(zName, 'TIME')
-                zStr = datestr(zData(idx),'dd-mm-yyyy HH:MM:SS.FFF');
-            else
-                zStr = [num2str(zData(idx)) ' (' zUnits ')'];
-            end
-        catch
-            zStr = 'NO DATA';
-        end
-        
-        try
             datacursorText = {dStr,...
                 [xName ': ' xStr],...
-                [yName ': ' yStr],...
-                [zName ': ' zStr]};
+                [yName ': ' yStr]};
             % debug info
             %datacursorText{end+1} = ['DataIndex : ' num2str(dataIndex)];
             %datacursorText{end+1} = ['idx: ' num2str(idx)];
@@ -534,14 +523,4 @@ end
             datacursorText = {'NO DATA'};
         end
     end
-
-%%
-    function zoomDateTick(obj,event_obj,hAx)
-        xLim = get(hAx, 'XLim');
-        currXTicks = get(hAx, 'xtick');
-        newXTicks = linspace(xLim(1), xLim(2), length(currXTicks));
-        set(hAx, 'xtick', newXTicks);
-        datetick(hAx,'x','dd-mm-yy HH:MM:SS','keepticks');
-    end
-
 end

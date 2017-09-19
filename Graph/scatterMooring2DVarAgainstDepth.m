@@ -1,6 +1,6 @@
 function scatterMooring2DVarAgainstDepth(sample_data, varName, isQC, saveToFile, exportDir)
 %SCATTERMOORING2DVARAGAINSTDEPTH Opens a new window where the selected 2D
-% variables collected by all the intruments on the mooring are plotted.
+% variable collected by all the intruments on the mooring are plotted in a timeseries plot.
 %
 % Inputs:
 %   sample_data - cell array of structs containing the entire data set and dimension data.
