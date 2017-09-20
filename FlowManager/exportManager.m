@@ -234,42 +234,38 @@ end
 
 paramsName = unique(paramsName);
 
-switch mode
-    case 'timeSeries'
-        % we get rid of specific parameters
-        notNeededParams = {'TIMESERIES', 'PROFILE', 'TRAJECTORY', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'};
-        for i=1:length(notNeededParams)
-            iNotNeeded = strcmpi(paramsName, notNeededParams{i});
-            paramsName(iNotNeeded) = [];
-        end
-        
-        % timeseries specific plots
-        nParams = length(paramsName);
-        for i=1:nParams
-            if ~auto
-                waitbar(i / nParams, progress, ['Exporting ' paramsName{i} ' plots']);
+try
+    switch mode
+        case 'timeSeries'
+            % we get rid of specific parameters
+            notNeededParams = {'TIMESERIES', 'PROFILE', 'TRAJECTORY', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'};
+            for i=1:length(notNeededParams)
+                iNotNeeded = strcmpi(paramsName, notNeededParams{i});
+                paramsName(iNotNeeded) = [];
             end
-            try
+            
+            % timeseries specific plots
+            checkMooringPlannedDepths(sample_data, true, true, exportDir);
+            nParams = length(paramsName);
+            for i=1:nParams
+                if ~auto
+                    waitbar(i / nParams, progress, ['Exporting ' paramsName{i} ' plots']);
+                end
                 lineMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
                 scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
                 scatterMooring2DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
-                %pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
                 diagramMooring1DVarAgainstOther(sample_data, paramsName{i}, 'DEPTH', true, true, exportDir);
                 diagramMooring2DVarAgainstOther(sample_data, paramsName{i}, 'DEPTH', true, true, exportDir);
-            catch e
-                errorString = getErrorString(e);
-                fprintf('%s\n',   ['Error says : ' errorString]);
             end
-        end
-    case 'profile'
-        % profile specific plots
-        try
+            
+        case 'profile'
+            % profile specific plots
             lineCastVar(sample_data, paramsName, true, true, exportDir);
-        catch e
-            errorString = getErrorString(e);
-            fprintf('%s\n',   ['Error says : ' errorString]);
-        end
-end
 
+    end
+catch e
+    errorString = getErrorString(e);
+    fprintf('%s\n',   ['Error says : ' errorString]);
+end
 
 end
