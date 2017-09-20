@@ -117,7 +117,6 @@ instrumentDesc = cell(lenSampleData + 1, 1);
 hLineVar = nan(lenSampleData + 1, 1);
 
 instrumentDesc{1} = 'Make Model (nominal depth - instrument SN)';
-hLineVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none');
 
 initiateFigure = true;
 isPlottable = false;

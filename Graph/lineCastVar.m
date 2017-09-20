@@ -57,6 +57,8 @@ title = [sample_data{1}.site_code ' profile on ' datestr(sample_data{1}.time_cov
 
 initiateFigure = true;
 
+backgroundColor = [0.85 0.85 0.85];
+
 lenVarNames = length(varNames);
 for k=1:lenVarNames
     varName = varNames{k};
@@ -86,7 +88,6 @@ for k=1:lenVarNames
     hLineFlag = ones(4, 1);
     
     instrumentDesc{1} = 'Make Model (instrument SN - cast time)';
-    hLineVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none');
     
     for i=1:lenSampleData
         % instrument description
@@ -145,6 +146,9 @@ for k=1:lenVarNames
                 set(hAxCastVar, 'YLim', [yMin, yMax]);
                 hold(hAxCastVar, 'on');
                 
+                % dummy entry for first entry in legend
+                hLineVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
+            
                 cMap = colormap(hAxCastVar, parula(lenSampleData));
                 cMap = flipud(cMap);
             end
@@ -262,7 +266,7 @@ for k=1:lenVarNames
                 'Layer',        'top');
             
             % set background to be grey
-            set(hAxCastVar, 'Color', [0.85 0.85 0.85])
+            set(hAxCastVar, 'Color', backgroundColor)
         end
     end
         
