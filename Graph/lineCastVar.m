@@ -18,33 +18,21 @@ function lineCastVar(sample_data, varNames, isQC, saveToFile, exportDir)
 %
 
 %
-% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the AODN/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 narginchk(5,5);
 
@@ -68,6 +56,8 @@ iBigMonitor = getBiggestMonitor();
 title = [sample_data{1}.site_code ' profile on ' datestr(sample_data{1}.time_coverage_start, 'yyyy-mm-dd UTC')];
 
 initiateFigure = true;
+
+backgroundColor = [0.85 0.85 0.85];
 
 lenVarNames = length(varNames);
 for k=1:lenVarNames
@@ -98,7 +88,6 @@ for k=1:lenVarNames
     hLineFlag = ones(4, 1);
     
     instrumentDesc{1} = 'Make Model (instrument SN - cast time)';
-    hLineVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none');
     
     for i=1:lenSampleData
         % instrument description
@@ -157,6 +146,9 @@ for k=1:lenVarNames
                 set(hAxCastVar, 'YLim', [yMin, yMax]);
                 hold(hAxCastVar, 'on');
                 
+                % dummy entry for first entry in legend
+                hLineVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
+            
                 cMap = colormap(hAxCastVar, parula(lenSampleData));
                 cMap = flipud(cMap);
             end
@@ -274,7 +266,7 @@ for k=1:lenVarNames
                 'Layer',        'top');
             
             % set background to be grey
-            set(hAxCastVar, 'Color', [0.85 0.85 0.85])
+            set(hAxCastVar, 'Color', backgroundColor)
         end
     end
         

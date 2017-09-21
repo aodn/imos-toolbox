@@ -1,6 +1,6 @@
 function scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, saveToFile, exportDir)
-%SCATTERMOORING1DVARAGAINSTDEPTH Opens a new window where the selected
-% variable collected by all the intruments on the mooring are plotted.
+%SCATTERMOORING1DVARAGAINSTDEPTH Opens a new window where the selected 1D
+% variable collected by all the intruments on the mooring are plotted in a timeseries plot.
 %
 % Inputs:
 %   sample_data - cell array of structs containing the entire data set and dimension data.
@@ -18,33 +18,21 @@ function scatterMooring1DVarAgainstDepth(sample_data, varName, isQC, saveToFile,
 %
 
 %
-% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
 %
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions are met:
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
 %
-%     * Redistributions of source code must retain the above copyright notice,
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright
-%       notice, this list of conditions and the following disclaimer in the
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the AODN/IMOS nor the names of its contributors
-%       may be used to endorse or promote products derived from this software
-%       without specific prior written permission.
-%
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-% POSSIBILITY OF SUCH DAMAGE.
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 narginchk(5,5);
 
@@ -88,19 +76,19 @@ for i=1:lenSampleData
         metaDepth(i) = NaN;
     end
     iTime = getVar(sample_data{i}.dimensions, 'TIME');
-    izVar = getVar(sample_data{i}.variables, varName);
+    iVar = getVar(sample_data{i}.variables, varName);
     iGood = true(size(sample_data{i}.dimensions{iTime}.data));
     
     % the variable exists, is QC'd and is 1D
-    if isQC && izVar && size(sample_data{i}.variables{izVar}.data, 2) == 1
+    if isQC && iVar && size(sample_data{i}.variables{iVar}.data, 2) == 1
         %get time and var QC information
         timeFlags = sample_data{i}.dimensions{iTime}.flags;
-        varFlags = sample_data{i}.variables{izVar}.flags;
+        varFlags = sample_data{i}.variables{iVar}.flags;
         
         iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
     end
     
-    if izVar
+    if iVar
         if all(~iGood)
             continue;
         end
@@ -112,6 +100,12 @@ end
 xMin = min(xMin);
 xMax = max(xMax);
 
+% somehow could not get any data to plot, bail early
+if any(isnan([xMin, xMax]))
+    fprintf('%s\n', ['Warning : there is not any ' varName ' data in this deployment with good flags.']);
+    return;
+end
+
 markerStyle = {'+', 'o', '*', 's', 'd', '^', 'v', '>', '<', 'p', 'h'};
 lenMarkerStyle = length(markerStyle);
 
@@ -119,7 +113,6 @@ instrumentDesc = cell(lenSampleData + 1, 1);
 hScatterVar = nan(lenSampleData + 1, 1);
 
 instrumentDesc{1} = 'Make Model (nominal depth - instrument SN)';
-hScatterVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none');
 
 % we need to go through every instruments to figure out the CLim properties
 % on which the subset plots happen below.
@@ -130,15 +123,15 @@ for i=1:lenSampleData
     %look for time and relevant variable
     iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
     iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
-    izVar = getVar(sample_data{iSort(i)}.variables, varName);
+    iVar = getVar(sample_data{iSort(i)}.variables, varName);
     
-    if izVar > 0 && size(sample_data{iSort(i)}.variables{izVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
-            all(~strncmpi(sample_data{iSort(i)}.variables{izVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}, 4))
-        iGood = true(size(sample_data{iSort(i)}.variables{izVar}.data));
+    if iVar > 0 && size(sample_data{iSort(i)}.variables{iVar}.data, 2) == 1 && ... % we're only plotting 1D variables with depth variable but no current
+            all(~strncmpi(sample_data{iSort(i)}.variables{iVar}.name, {'UCUR', 'VCUR', 'WCUR', 'CDIR', 'CSPD', 'VEL1', 'VEL2', 'VEL3'}, 4))
+        iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
         if isQC
             %get time, depth and var QC information
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-            varFlags = sample_data{iSort(i)}.variables{izVar}.flags;
+            varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
             iGood = ismember(timeFlags, goodFlags) & ismember(varFlags, goodFlags);
             
@@ -150,8 +143,8 @@ for i=1:lenSampleData
         
         if any(iGood)
             isPlottable(i) = true;
-            minClim = min(minClim, min(sample_data{iSort(i)}.variables{izVar}.data(iGood)));
-            maxClim = max(maxClim, max(sample_data{iSort(i)}.variables{izVar}.data(iGood)));
+            minClim = min(minClim, min(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
+            maxClim = max(maxClim, max(sample_data{iSort(i)}.variables{iVar}.data(iGood)));
         end
     end
 end
@@ -185,7 +178,7 @@ if any(isPlottable)
         %look for time and relevant variable
         iTime = getVar(sample_data{iSort(i)}.dimensions, 'TIME');
         iDepth = getVar(sample_data{iSort(i)}.variables, 'DEPTH');
-        izVar = getVar(sample_data{iSort(i)}.variables, varName);
+        iVar = getVar(sample_data{iSort(i)}.variables, varName);
         
         if isPlottable(i)
             if initiateFigure
@@ -237,14 +230,14 @@ if any(isPlottable)
                 initiateFigure = false;
             end
             
-            iGood = true(size(sample_data{iSort(i)}.variables{izVar}.data));
+            iGood = true(size(sample_data{iSort(i)}.variables{iVar}.data));
             iGoodDepth = iGood;
             
             if isQC
                 %get time, depth and var QC information
                 timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
-                varFlags = sample_data{iSort(i)}.variables{izVar}.flags;
-                varValues = sample_data{iSort(i)}.variables{izVar}.data;
+                varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
+                varValues = sample_data{iSort(i)}.variables{iVar}.data;
                 
                 iGood = ismember(timeFlags, goodFlags) & ...
                     ismember(varFlags, goodFlags) & ...
@@ -304,7 +297,7 @@ if any(isPlottable)
                     h = plotclr(hAxMooringVar, ...
                         sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
                         depth, ...
-                        sample_data{iSort(i)}.variables{izVar}.data(iGood), ...
+                        sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
                         markerStyle{mod(i, lenMarkerStyle)+1}, ...
                         [minClim maxClim], ...
                         'DisplayName', instrumentDesc{i+1}, ...
@@ -315,7 +308,7 @@ if any(isPlottable)
                     h = fastScatterMesh( hAxMooringVar, ...
                         sample_data{iSort(i)}.dimensions{iTime}.data(iGood), ...
                         depth, ...
-                        sample_data{iSort(i)}.variables{izVar}.data(iGood), ...
+                        sample_data{iSort(i)}.variables{iVar}.data(iGood), ...
                         [minClim maxClim], ...
                         'Marker',      markerStyle{mod(i, lenMarkerStyle)+1}, ...
                         'DisplayName', [markerStyle{mod(i, lenMarkerStyle)+1} ' ' instrumentDesc{i+1}], ...
