@@ -19,33 +19,21 @@ function checkMooringPlannedDepths(sample_data, isQC, saveToFile, exportDir)
 %
 
 %
-% Copyright (c) 2016, Australian Ocean Data Network (AODN) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the AODN/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 narginchk(4,4);
 
@@ -186,7 +174,6 @@ xMin = min(xMin);
 xMax = max(xMax);
 
 instrumentDesc = [{'Make Model (nominal depth - instrument SN)'}; instrumentDesc];
-hLineVar(1) = line(0, 0, 'Visible', 'off', 'LineStyle', 'none', 'Marker', 'none');
 
 %now plot all the calculated depths on one plot to choose region for comparison:
 %plot
@@ -254,7 +241,14 @@ set(hAxPress, ...
     'YGrid',        'on', ...
     'Layer',        'top');
 
-if isPlottable    
+if isPlottable
+    % collect visualQC config
+    try
+        fastScatter = eval(readProperty('visualQC.fastScatter'));
+    catch e %#ok<NASGU>
+        fastScatter = true;
+    end
+    
     datetick(hAxPress, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
     
     % we try to split the legend, maximum 3 columns
@@ -285,36 +279,81 @@ if isPlottable
      set(hAxPress, 'Position', posAx);
 end
 
-%Ask for the user to select the region they would like to use for
-%comparison
-%This could be done better, with more finesse - could allow zooming in
-%before going straight to the time period selection. For now, this will do.
-hMsgbox = msgbox('Select (drag & drop) a time period on the top graph for comparison, preferably at the start of deployment, when the mooring is standing vertical', 'Time Period Selection', 'help', 'modal');
-uiwait(hMsgbox);
+if saveToFile
+    % look for difference with nominal depth in the first quarter
+    % of the deployment
+    timeStart = min(min(timeVar)) + 1;
+    timeQuarter = timeStart + (max(max(timeVar)) - timeStart)/4;
+    yLim = get(hAxPress, 'YLim');
+    x = [timeStart, timeQuarter, timeQuarter, timeStart, timeStart];
+    y = [yLim(1),    yLim(1),     yLim(2),     yLim(2),    yLim(1)];
+    plot(hAxPress, x, y);
+    
+    iGood = timeVar >= timeStart & timeVar <= timeQuarter;
+else
+    %Ask for the user to select the region they would like to use for
+    %comparison
+    %This could be done better, with more finesse - could allow zooming in
+    %before going straight to the time period selection. For now, this will do.
+    hMsgbox = msgbox('Select (drag & drop) a time period on the top graph for comparison, preferably at the start of deployment, when the mooring is standing vertical', 'Time Period Selection', 'help', 'modal');
+    uiwait(hMsgbox);
+    
+    %select the area to use for comparison
+    [x, ~] = select_points(hAxPress);
+    
+    iGood = timeVar >= x(1) & timeVar <= x(2);
+end
 
-%select the area to use for comparison
-[x, ~] = select_points(hAxPress);
-
-%now plot the difference from planned depth data:
-iGood = timeVar >= x(1) & timeVar <= x(2);
+%now plot the difference from planned depth data
 dataVar(~iGood) = NaN;
-minDep = min(dataVar,[],2);
-
-scatter(hAxDepthDiff, ...
-    metaDepth, ...
-    minDep - metaDepth, ...
-    15, ...
-    cMap, ...
-    'filled');
+iNaN = isnan(dataVar);
+avgDep = NaN(lenMetaDepth, 1);
+for i = 1:lenMetaDepth
+    avgDep(i) = median(dataVar(i, ~iNaN(i, :)));
+    
+    if fastScatter
+        % for performance, we use plot (1 single handle object
+        % returned) rather than scatter (as many handles returned as
+        % points to plot). We plot as many subsets of the total amount
+        % of points as we want colors to be displayed. This is
+        % performed by the function plotclr.
+        
+        % !!! The result is such that the overlapping of points is dictated by
+        % the order of the colors to be plotted and not by the X axis order (from
+        % first to last) of the total points given. We choose an ordering from
+        % centre to both ends of colorbar in order to keep extreme colors visible
+        % though.
+        
+        plotclr(hAxDepthDiff, ...
+            metaDepth(i), ...
+            avgDep(i) - metaDepth(i), ...
+            metaDepth(i), ...
+            'o', ...
+            [min(metaDepth) max(metaDepth)], ...
+            'Color', cMap(i, :), ...
+            'MarkerFaceColor', cMap(i, :), ...
+            'MarkerSize',  2.5);
+    else
+        % faster than scatter, but legend requires adjusting
+        fastScatterMesh(hAxDepthDiff, ...
+            metaDepth(i), ...
+            avgDep(i) - metaDepth(i), ...
+            metaDepth(i), ...
+            [min(metaDepth) max(metaDepth)], ...
+            'Marker',      'o', ...
+            'FaceColor', cMap(i, :), ...
+            'MarkerSize',  2.5);
+    end
+end
 
 instrumentDesc(1) = [];
-text(metaDepth + 1, (minDep - metaDepth), instrumentDesc, ...
+text(metaDepth + 1, (avgDep - metaDepth), instrumentDesc, ...
     'Parent', hAxDepthDiff)
         
 if isPlottable
     if saveToFile
-        fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
-        fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
+        fileName = strrep(fileName, '_PARAM_', '_DEPTH_vs_NOMINAL_DEPTH_'); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
+        fileName = strrep(fileName, '_PLOT-TYPE_', '_CHECK_');
         
         fastSaveas(hFigPress, fullfile(exportDir, fileName));
         
