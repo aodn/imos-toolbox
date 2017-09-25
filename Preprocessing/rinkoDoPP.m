@@ -113,7 +113,8 @@ for k = 1:length(sample_data)
             end
             
         else
-            presRel = sam.instrument_nominal_depth*ones(size(temp));
+            tempIdx = getVar(sam.variables, 'TEMP');
+            presRel = sam.instrument_nominal_depth * ones(size(sam.variables{tempIdx}.data));
             presName = 'instrument_nominal_depth (assuming 1 m ~ 1 dbar)';
         end
     end

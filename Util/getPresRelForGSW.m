@@ -92,7 +92,8 @@ else
         presName = 'DEPTH';
     else
         % with nominal depth information
-        depth = sam.instrument_nominal_depth*ones(size(temp));
+        tempIdx = getVar(sam.variables, 'TEMP');
+        depth = sam.instrument_nominal_depth * ones(size(sam.variables{tempIdx}.data));
         presName = 'instrument_nominal_depth';
     end
     
