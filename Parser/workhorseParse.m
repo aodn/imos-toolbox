@@ -269,7 +269,7 @@ narginchk(1, 2);
   % set all NaN to the next available value after it (conservative approach)
   iNaNVoltage = isnan(voltage);
   if iNaNVoltage(end) % we need to deal separately with the last value in case it's NaN
-      iLastGoodValue = find(~iNaNVoltage, 'last');  % in this case we have no choice but to look for the previous available value before it
+      iLastGoodValue = find(~iNaNVoltage, 1, 'last');  % in this case we have no choice but to look for the previous available value before it
       voltage(end) = voltage(iLastGoodValue);
       iNaNVoltage(end) = false;
   end
