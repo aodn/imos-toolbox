@@ -113,8 +113,24 @@ for k = 1:length(sample_data)
             end
             
         else
-            tempIdx = getVar(sam.variables, 'TEMP');
-            presRel = sam.instrument_nominal_depth * ones(size(sam.variables{tempIdx}.data));
+            % get the toolbox execution mode
+            mode = readProperty('toolbox.mode');
+            switch mode
+                case 'profile'
+                    dimIdx = getVar(sam.dimensions, 'DEPTH');
+                    if dimIdx == 0
+                        dimIdx = getVar(sam.dimensions, 'MAXZ');
+                    end
+                    
+                case 'timeSeries'
+                    dimIdx = getVar(sam.dimensions, 'TIME');
+                    
+                otherwise
+                    return;
+                    
+            end
+            
+            presRel = sam.instrument_nominal_depth * ones(size(sam.dimensions{dimIdx}.data));
             presName = 'instrument_nominal_depth (assuming 1 m ~ 1 dbar)';
         end
     end
