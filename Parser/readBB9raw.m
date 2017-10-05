@@ -86,6 +86,28 @@ time = time + (0:1:nSamples-1)/(24*3600);
 
 sample_data.meta.instrument_sample_interval = 1;
 
+% Let's find each start of bursts if any
+dt = [0; diff(time)];
+iBurst = [1; find(dt>(sample_data.meta.instrument_sample_interval/24/60)); length(time)+1];
+nBurst = length(iBurst)-1;
+
+if nBurst > 1
+    % let's read data burst by burst
+    firstTimeBurst = zeros(nBurst, 1);
+    sampleIntervalInBurst = zeros(nBurst, 1);
+    durationBurst = zeros(nBurst, 1);
+    for i=1:nBurst
+        timeBurst = time(iBurst(i):iBurst(i+1)-1);
+        sampleIntervalInBurst(i) = median(diff(timeBurst*24*3600));
+        firstTimeBurst(i) = timeBurst(1);
+        durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600 + sampleIntervalInBurst(i);
+    end
+    
+    sample_data.meta.instrument_sample_interval   = round(median(sampleIntervalInBurst));
+    sample_data.meta.instrument_burst_interval    = round(median(diff(firstTimeBurst*24*3600)));
+    sample_data.meta.instrument_burst_duration    = round(median(durationBurst));
+end
+
 sample_data.dimensions{1}.name          = 'TIME';
 sample_data.dimensions{1}.typeCastFunc  = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
 sample_data.dimensions{1}.data          = sample_data.dimensions{1}.typeCastFunc(time);
