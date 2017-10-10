@@ -58,7 +58,7 @@ flags     = [];
 
 if ~strcmp(type, 'variables'), return; end
 
-param = {'PSAL'};
+salinityName = {'PSAL'};
 
 % let's handle the case we have multiple same param distinguished by "_1",
 % "_2", etc...
@@ -73,7 +73,7 @@ if iLastUnderscore > 0
     end
 end
 
-iParam = strcmpi(paramName, param);
+iParam = strcmpi(paramName, salinityName);
 
 if any(iParam)
     % get the flag values with which we flag good and out of range data
@@ -93,11 +93,16 @@ if any(iParam)
     
     % initialise all flags to non QC'd
     flags = ones(lenData, 1, 'int8')*rawFlag;
+    depthFlags = ones(lenData, 1, 'int8')*rawFlag;
+    pressureFlags = ones(lenData, 1, 'int8')*rawFlag;
     
     % we look for flags from pressure, conductivity and temperature data to give them
     % to salinity as well
-    paramNames = {'DEPTH', 'PRES_REL', 'PRES', 'TEMP', 'CNDC'};
+    paramNames = {'TEMP', 'CNDC'};
+    depthName = {'DEPTH'};
+    pressureNames = {'PRES_REL', 'PRES'};
     
+    isDepth = false;
     for i=1:length(sample_data.(type))
         % let's handle the case we have multiple same param distinguished by "_1",
         % "_2", etc...
@@ -111,11 +116,29 @@ if any(iParam)
                 end
             end
         end
-        iParam = strcmpi(paramName, paramNames);
-        if any(iParam)
+
+        if any(strcmpi(paramName, paramNames))
             flags = max(flags, sample_data.(type){i}.flags(:));
         end
+
+        if any(strcmpi(paramName, pressureNames))
+            pressureFlags = max(pressureFlags, sample_data.(type){i}.flags(:));
+        end
+        
+        if any(strcmpi(paramName, depthName))
+            isDepth = true;
+            depthFlags = max(depthFlags, sample_data.(type){i}.flags(:));
+        end
     end
+    
+    % in case DEPTH has been inferred from a neighbouring sensor when PRES
+    % or PRES_REL failed, we only consider DEPTH flags
+    if isDepth
+        flags = max(flags, depthFlags);
+    else
+        flags = max(flags, pressureFlags);
+    end
+    
     
     if isMatrix
         % we fold the vector back into a matrix
