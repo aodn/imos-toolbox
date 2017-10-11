@@ -289,12 +289,14 @@ set(hAxPressDiff, ...
     'Layer',        'top');
 
 if isPlottable
+    iOthersLogical = false(max(iOthers), 1);
+    iOthersLogical(iOthers) = true;
     iNan = isnan(hLineVar);
     if any(iNan)
         hLineVar(iNan) = [];
         instrumentDesc(iNan) = [];
+        iOthersLogical(iNan) = [];
     end
-    iOthers = iOthers - (min(iOthers)-1);
         
     datetick(hAxPressDiff, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
     datetick(hAxPress, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
@@ -313,7 +315,7 @@ if isPlottable
         xscale = 0.75;
     end
     hYBuffer = 1.1 * (2*(fontSizeAx + fontSizeLb));
-    hLegend = legendflex(hAxPress, instrumentDesc(iOthers),...
+    hLegend = legendflex(hAxPress, instrumentDesc(iOthersLogical),...
         'anchor', [6 2], ...
         'buffer', [0 -hYBuffer], ...
         'ncol', nCols,...
