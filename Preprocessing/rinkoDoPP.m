@@ -95,6 +95,11 @@ for k = 1:length(sample_data)
     else
         if depthIdx > 0
             depth = sam.(depthType){depthIdx}.data;
+            
+            % any depth values <= -5 are discarded (reminder, depth is
+            % positive down), this allow use of gsw_p_from_z without error.
+            depth(depth <= -5) = NaN;
+    
             if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
                 % compute depth with Gibbs-SeaWater toolbox
                 % relative_pressure ~= gsw_p_from_z(-depth, latitude)

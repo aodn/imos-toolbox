@@ -261,7 +261,11 @@ if ~initiateFigure && isPlottable
         qcParam = get(mWh, 'UserData');
         yLim = get(hAxMooringVar, 'YLim');
         for i=1:lenSampleData
-            if isfield(qcParam, 'inWater')
+            iVar = getVar(sample_data{iSort(i)}.(typeVar), varName);
+            
+            if iVar && isfield(qcParam, 'inWater')
+                dataVar = sample_data{iSort(i)}.(typeVar){iVar}.data;
+                
                 line([qcParam(iSort(i)).inWater, qcParam(iSort(i)).inWater, NaN, qcParam(iSort(i)).outWater, qcParam(iSort(i)).outWater], ...
                     [yLim, NaN, yLim], ...
                     'Parent', hAxMooringVar, ...
@@ -270,9 +274,6 @@ if ~initiateFigure && isPlottable
                 
                 iTime = getVar(sample_data{i}.dimensions, 'TIME');
                 xLine = sample_data{iSort(i)}.dimensions{iTime}.data;
-                
-                iVar = getVar(sample_data{iSort(i)}.(typeVar), varName);
-                dataVar = sample_data{iSort(i)}.(typeVar){iVar}.data;
                 
                 if strcmpi(varName, 'TIME')
                     xLine(1) = [];
