@@ -59,6 +59,12 @@ if nargin<5, auto=false; end
 paramsLog = [];
 flags     = [];
 
+% this test only applies to profile mode
+mode = readProperty('toolbox.mode');
+if ~strcmpi(mode, 'profile')
+    return;
+end
+
 % read all values from imosSpikeQC properties file
 values = readProperty('*', fullfile('AutomaticQC', 'imosVerticalSpikeQC.txt'));
 
@@ -91,6 +97,7 @@ if any(iParam)
     passFlag = imosQCFlag('good', qcSet, 'flag');
     failFlag = imosQCFlag('probablyBad',  qcSet, 'flag');
     badFlag  = imosQCFlag('bad',  qcSet, 'flag');
+    badFlags = [failFlag, badFlag];
     
     paramsLog = ['threshold=' thresholdExpr{iParam}];
     
@@ -105,7 +112,7 @@ if any(iParam)
     end
     
     % we don't consider already bad data in the current test
-    iBadData = sample_data.variables{k}.flags == badFlag;
+    iBadData = ismember(sample_data.variables{k}.flags, badFlags);
     dataTested = data(~iBadData);
     
     if isempty(dataTested), return; end
