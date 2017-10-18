@@ -55,19 +55,15 @@ if iscell(xdata)
    ydata = cell2mat(ydata)';
 end
 
-% on right click highlight, only highlight 
-% unflagged data points in the region
-if strcmp(type, 'alt')    
-    f = variable.flags;
-    f = f == 0;
-    
-    xdata = xdata(f);
-    ydata = ydata(f);
+if strcmp(type, 'alt') % right click
+    % figure out indices of all data points within the X range but outside the Y range
+    xidx  = (xdata >= region(1)) & (xdata <= region(3));
+    yidx  = (ydata <  region(2)) | (ydata >  region(4));
+else
+    % figure out indices of all data points within the X and Y range
+    xidx  = (xdata >= region(1)) & (xdata <= region(3));
+    yidx  = (ydata >= region(2)) & (ydata <= region(4));
 end
-
-% figure out indices of all data points within the range
-xidx  = (xdata >= region(1) & xdata <= region(3));
-yidx  = (ydata >= region(2) & ydata <= region(4));
 
 % figure out indices of all the points to be highlighted
 idx = xidx & yidx;

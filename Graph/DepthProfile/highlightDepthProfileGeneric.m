@@ -19,7 +19,8 @@ function highlight = highlightDepthProfileGeneric( ...
 %               data. If no data points lie within the highlight region, 
 %               an empty matrix is returned.
 %
-% Author: Paul McCarthy <paul.mccarthy@csiro.au>
+% Author:       Paul McCarthy <paul.mccarthy@csiro.au>
+% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %
@@ -39,4 +40,48 @@ function highlight = highlightDepthProfileGeneric( ...
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-highlight = highlightTimeSeriesGeneric(region, data, variable, type);
+narginchk(4, 4);
+
+if ~isnumeric(region) || ~isvector(region) || length(region) ~= 4
+  error('region must be a numeric vector of length 4');
+end
+
+if ~ishandle(data),     error('data must be a graphics handle'); end
+if ~isstruct(variable), error('variable must be a struct');      end
+if ~ischar(type),       error('type must be a string');          end
+
+xdata = get(data(1), 'XData'); % data(1) retrieves the current graphic handles only, in case extra sample is selected
+ydata = get(data(1), 'YData');
+
+if iscell(xdata)
+   xdata = cell2mat(xdata)'; 
+   ydata = cell2mat(ydata)';
+end
+
+if strcmp(type, 'alt') % right click
+    % figure out indices of all data points outside the X range but within
+    % the Y range
+    xidx  = (xdata <  region(1)) | (xdata >  region(3));
+    yidx  = (ydata >= region(2)) & (ydata <= region(4));
+else
+    % figure out indices of all data points within the X and Y range
+    xidx  = (xdata >= region(1)) & (xdata <= region(3));
+    yidx  = (ydata >= region(2)) & (ydata <= region(4));
+end
+
+% figure out indices of all the points to be highlighted
+idx = xidx & yidx;
+
+if ~any(idx)
+    % return nothing if no points to plot
+    highlight = [];
+else
+    % create the highlight
+    highlight = line(xdata(idx),ydata(idx), ...
+        'UserData',        idx, ...
+        'Parent',          gca, ...
+        'LineStyle',       'none', ...
+        'Marker',          'o', ...
+        'MarkerEdgeColor', 'white', ...
+        'MarkerFaceColor', 'white');
+end

@@ -61,20 +61,17 @@ Xdata = repmat(xdata, [1, size(ydata)]);
 Ydata = repmat(ydata', [size(xdata), 1]);
 clear xdata ydata;
 
-% figure out indices of all data points within the range
-X = ((Xdata >= region(1)) & (Xdata <= region(3)));
-Y = ((Ydata >= region(2)) & (Ydata <= region(4)));
+if strcmp(type, 'alt') % right click
+    % figure out indices of all data points within the X range but outside the Y range
+    X = (Xdata >= region(1)) & (Xdata <= region(3));
+    Y = (Ydata <  region(2)) | (Ydata >  region(4));
+else
+    % figure out indices of all data points within the X and Y range
+    X = (Xdata >= region(1)) & (Xdata <= region(3));
+    Y = (Ydata >= region(2)) & (Ydata <= region(4));
+end
 idx = X & Y;
 clear X Y;
-
-% on right click, only highlight unflagged points
-if strcmp(type, 'alt')
-  
-  % see if any points in the region haven't been flagged
-  idx = (variable.flags == 0) & idx;
-  if ~any(any(variable.flags)), return; end
-  
-end
 
 if ~any(any(idx))
     highlight = [];
