@@ -175,9 +175,14 @@ public class JDBCDDB extends DDB {
 				}
 			}
 		}
-
 		//always close db connection
-		finally {try {conn.close();} catch (Exception e) {}}
+		finally {
+			try {
+				rs.close();
+				stmt.close();
+				conn.close();
+			} 
+			catch (Exception e) {}}
 
 		return results;
 	}
