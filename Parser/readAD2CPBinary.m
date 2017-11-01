@@ -77,10 +77,12 @@ while dIdx < dataLen
     [sect, len] = readSection(filename, data, dIdx, cpuEndianness);
     
     if ~isempty(sect)
+        % grouping by Id, Version and Size is our only option, there is no
+        % information on whether record type is XXX or Alt_XXX like in .mat files.
         if isfield(sect.Data, 'Version')
-            curField = ['Id' sprintf('%s', sect.Header.Id) 'Version' sprintf('%d', sect.Data.Version)];
+            curField = ['Id' sprintf('%s', sect.Header.Id) '_Version' sprintf('%d', sect.Data.Version) '_Size' sprintf('%u', sect.Header.DataSize)];
         else
-            curField = ['Id' sprintf('%s', sect.Header.Id)];
+            curField = ['Id' sprintf('%s', sect.Header.Id) '_Size' sprintf('%u', sect.Header.DataSize)];
         end
         theFieldNames = fieldnames(sect);
         nField = length(theFieldNames);
@@ -150,20 +152,46 @@ end
 % read the section in
 id = dec2hex(data(idx+2));
 switch id
-    case '15'
+    case '15' % Burst Data Record
         [sect, ~, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x15
-    case '16'
+        
+    case '16' % Average Data Record
         [sect, ~, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x16
-    case '17'
+        
+    case '17' % Bottom Track Data Record
         [sect, ~, off] = readBottomTrack         (data, idx, cpuEndianness); % 0x17
-    case '18'
+        
+    case '18' % Interleaved Burst Data Record (beam 5)
         [sect, ~, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x18
-    case 'A0'
+        
+    case '1A' % Burst Altimeter Raw Record
+        [sect, ~, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x1A
+        
+    case '1B' % DVL Bottom Track Record
+        [sect, ~, off] = readBottomTrack         (data, idx, cpuEndianness); % 0x1B
+        
+    case '1C' % Echo Sounder Record
+        disp('Echo Sounder Record not supported');
+        off = len;
+        
+    case '1D' % DVL Water Track Record
+        disp('DVL Water Track Record not supported');
+        off = len;
+        
+    case '1E' % Altimeter Record
+        [sect, ~, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x1E
+        
+    case '1F' % Avg Altimeter Raw Record
+        [sect, ~, off] = readBurstAverage        (data, idx, cpuEndianness); % 0x1F
+        
+    case 'A0' % String Data Record, eg. GPS NMEA data, comment from the FWRITE command
         [sect, ~, off] = readString              (data, idx, cpuEndianness); % 0xA0
+        
     otherwise
         disp('Unknown section type');
         disp(['ID : hex ' id ' at offset ' num2str(idx+2)]);
         off = len;
+        
 end
 
 if isempty(sect), return; end
@@ -285,8 +313,11 @@ iStartCell = 1;
 iEndCell = 10;
 iStartBeam = 13;
 iEndBeam = 16;
+iStartCoord = 11;
+iEndCoord = 12;
 sect.nCells            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndCell+1:end-iStartCell+1));
 sect.nBeams            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndBeam+1:end-iStartBeam+1));
+sect.coordSys          = bin2dec(sect.Beams_CoordSys_Cells(end-iEndCoord+1:end-iStartCoord+1));
 
 sect.CellSize          = bytecast(data(idx+30:idx+31), 'L', 'uint16', cpuEndianness); % 1 mm
 sect.Blanking          = bytecast(data(idx+32:idx+33), 'L', 'uint16', cpuEndianness); % 1 mm
@@ -343,8 +374,11 @@ iStartCell = 1;
 iEndCell = 10;
 iStartBeam = 13;
 iEndBeam = 16;
+iStartCoord = 11;
+iEndCoord = 12;
 sect.nCells            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndCell+1:end-iStartCell+1));
 sect.nBeams            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndBeam+1:end-iStartBeam+1));
+sect.coordSys          = bin2dec(sect.Beams_CoordSys_Cells(end-iEndCoord+1:end-iStartCoord+1));
 
 sect.CellSize          = bytecast(data(idx+36:idx+37), 'L', 'uint16', cpuEndianness); % 1 mm
 sect.Blanking          = bytecast(data(idx+38:idx+39), 'L', 'uint16', cpuEndianness); % 1 mm
@@ -356,7 +390,7 @@ sect.MagRawZ           = bytecast(data(idx+48:idx+49), 'L', 'int16', cpuEndianne
 sect.AccRawX           = bytecast(data(idx+50:idx+51), 'L', 'int16', cpuEndianness); % accelerometer Raw, X axis value in last measurement interval (16384 = 1.0)
 sect.AccRawY           = bytecast(data(idx+52:idx+53), 'L', 'int16', cpuEndianness);
 sect.AccRawZ           = bytecast(data(idx+54:idx+55), 'L', 'int16', cpuEndianness);
-sect.AmbiguityVelocity = bytecast(data(idx+56:idx+57), 'L', 'uint16', cpuEndianness); % 0.1mm/s ; corrected for sound velocity
+sect.AmbiguityVel      = bytecast(data(idx+56:idx+57), 'L', 'uint16', cpuEndianness); % 0.1mm/s ; corrected for sound velocity
 sect.DatasetDesc       = dec2bin(bytecast(data(idx+58:idx+59), 'L', 'uint16', cpuEndianness), 16);
 sect.TransmitEnergy    = bytecast(data(idx+60:idx+61), 'L', 'uint16', cpuEndianness);
 sect.VelocityScaling   = bytecast(data(idx+62), 'L', 'int8', cpuEndianness);
@@ -416,7 +450,7 @@ iStartCoord = 11;
 iEndCoord = 12;
 sect.nCells            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndCell+1:end-iStartCell+1));
 sect.nBeams            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndBeam+1:end-iStartBeam+1));
-sect.coordSys          = sect.Beams_CoordSys_Cells(end-iEndCoord+1:end-iStartCoord+1);
+sect.coordSys          = bin2dec(sect.Beams_CoordSys_Cells(end-iEndCoord+1:end-iStartCoord+1));
 
 sect.CellSize          = bytecast(data(idx+32:idx+33), 'L', 'uint16', cpuEndianness); % 1 mm
 sect.Blanking          = bytecast(data(idx+34:idx+35), 'L', 'uint16', cpuEndianness); % 1 mm
@@ -429,7 +463,7 @@ sect.MagRawZ           = bytecast(data(idx+44:idx+45), 'L', 'int16', cpuEndianne
 sect.AccRawX           = bytecast(data(idx+46:idx+47), 'L', 'int16', cpuEndianness); % accelerometer Raw, X axis value in last measurement interval (16384 = 1.0)
 sect.AccRawY           = bytecast(data(idx+48:idx+49), 'L', 'int16', cpuEndianness);
 sect.AccRawZ           = bytecast(data(idx+50:idx+51), 'L', 'int16', cpuEndianness);
-sect.AmbiguityVelocity = bytecast(data(idx+52:idx+53), 'L', 'uint16', cpuEndianness); % 10^(Velocity scaling) m/s ; corrected for sound velocity
+sect.AmbiguityVel      = bytecast(data(idx+52:idx+53), 'L', 'uint16', cpuEndianness); % 10^(Velocity scaling) m/s ; corrected for sound velocity
 sect.DatasetDesc       = dec2bin(bytecast(data(idx+54:idx+55), 'L', 'uint16', cpuEndianness), 16);
 sect.TransmitEnergy    = bytecast(data(idx+56:idx+57), 'L', 'uint16', cpuEndianness);
 sect.VelocityScaling   = bytecast(data(idx+58), 'L', 'int8', cpuEndianness);
@@ -521,7 +555,7 @@ sect.Data.MagRawZ           = bytecast(data(idx+44:idx+45), 'L', 'int16', cpuEnd
 sect.Data.AccRawX           = bytecast(data(idx+46:idx+47), 'L', 'int16', cpuEndianness); % accelerometer Raw, X axis value in last measurement interval (16384 = 1.0)
 sect.Data.AccRawY           = bytecast(data(idx+48:idx+49), 'L', 'int16', cpuEndianness);
 sect.Data.AccRawZ           = bytecast(data(idx+50:idx+51), 'L', 'int16', cpuEndianness);
-sect.Data.AmbiguityVelocity = bytecast(data(idx+52:idx+53), 'L', 'uint16', cpuEndianness); % 10^(Velocity scaling) m/s ; corrected for sound velocity
+sect.Data.AmbiguityVel      = bytecast(data(idx+52:idx+53), 'L', 'uint16', cpuEndianness); % 10^(Velocity scaling) m/s ; corrected for sound velocity
 sect.Data.DatasetDesc       = dec2bin(bytecast(data(idx+54:idx+55), 'L', 'uint16', cpuEndianness), 16);
 sect.Data.TransmitEnergy    = bytecast(data(idx+56:idx+57), 'L', 'uint16', cpuEndianness);
 sect.Data.VelocityScaling   = bytecast(data(idx+58), 'L', 'int8', cpuEndianness);
