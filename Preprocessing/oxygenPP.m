@@ -86,7 +86,7 @@ for k = 1:length(sample_data)
   tempIdx       = getVar(sam.variables, 'TEMP');
   psalIdx       = getVar(sam.variables, 'PSAL');
   
-  [presRel, presName] = getPresRelForGSW(sam);
+  [presRel, zName, zComment] = getPresRelForGSW(sam);
   
   doxIdx        = getVar(sam.variables, 'DOX');
   doxyIdx       = getVar(sam.variables, 'DOXY');
@@ -95,7 +95,7 @@ for k = 1:length(sample_data)
   doxsIdx       = getVar(sam.variables, 'DOXS');
   
   % cancel if psal, temp, pres/pres_rel or depth/nominal depth and any DO parameter not present in data set
-  if ~(psalIdx && tempIdx && ~isempty(presName) && (doxIdx || doxyIdx || dox1Idx || dox2Idx || doxsIdx)), continue; end
+  if ~(psalIdx && tempIdx && ~isempty(zName) && (doxIdx || doxyIdx || dox1Idx || dox2Idx || doxsIdx)), continue; end
   
   % data set already contains dissolved oxygen DOX1/DOX2 or DOXS
   if (dox1Idx && dox2Idx && doxsIdx), continue; end
@@ -115,7 +115,7 @@ for k = 1:length(sample_data)
   CT = gsw_CT_from_pt(SA, potTemp);
   potDens = gsw_rho(SA, CT, 0);
   potDensComment = ['Potential density at atmospheric ' ...
-      'pressure was derived from TEMP, PSAL, ' presName ', LATITUDE ' ...
+      'pressure was derived from TEMP, PSAL, ' zName ' ' zComment ', LATITUDE ' ...
       'and LONGITUDE using gsw_rho, gsw_SA_from_SP, gsw_CT_from_pt and gsw_pt0_from_t ' ...
       'from the Gibbs-SeaWater toolbox (TEOS-10) v3.06.'];
 
@@ -129,8 +129,8 @@ for k = 1:length(sample_data)
   
   % calculate oxygen solubility at atmospheric pressure
   oxsolSurf = gsw_O2sol_SP_pt(psal, potTemp); % sea bird calculates OXSOL using psal and local temperature, not potential temperature
-  oxsolSurfComment = ['OXSOL_SURFACE derived from TEMP, PSAL, ' presName ...
-      ', LATITUDE and LONGITUDE using gsw_O2sol_SP_pt, gsw_pt0_from_t ' ...
+  oxsolSurfComment = ['OXSOL_SURFACE derived from TEMP, PSAL, ' zName ...
+      ' ' zComment ', LATITUDE and LONGITUDE using gsw_O2sol_SP_pt, gsw_pt0_from_t ' ...
       'and gsw_SA_from_SP from the Gibbs-SeaWater toolbox (TEOS-10) v3.06.'];
   
   % add oxygen solubility at atmospheric pressure as new variable in data set

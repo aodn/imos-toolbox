@@ -35,6 +35,7 @@ NORTEK_QC, TimeDepth
 VEL1,      TimeDepth
 VEL2,      TimeDepth
 VEL3,      TimeDepth
+VEL4,      TimeDepth
 VDEN,      TimeFrequency
 VDEV,      TimeFrequency
 VDEP,      TimeFrequency

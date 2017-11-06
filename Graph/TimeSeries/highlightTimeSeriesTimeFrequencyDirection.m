@@ -50,20 +50,17 @@ if ~ischar(type),       error('type must be a string');          end
 Xdata = get(data, 'XData');
 Ydata = get(data, 'YData');
 
-% figure out indices of all data points within the range
-X = ((Xdata >= region(1)) & (Xdata <= region(3)));
-Y = ((Ydata >= region(2)) & (Ydata <= region(4)));
+if strcmp(type, 'alt') % right click
+    % figure out indices of all data points outside the X and Y range
+    X = ((Xdata < region(1)) | (Xdata > region(3)));
+    Y = ((Ydata < region(2)) | (Ydata > region(4)));
+else
+    % figure out indices of all data points within the X and Y range
+    X = (Xdata >= region(1)) & (Xdata <= region(3));
+    Y = (Ydata >= region(2)) & (Ydata <= region(4));
+end
 idx = X & Y;
 clear X Y;
-
-% on right click, only highlight unflagged points
-if strcmp(type, 'alt')
-  
-  % see if any points in the region haven't been flagged
-  idx = (variable.flags == 0) & idx;
-  if ~any(any(variable.flags)), return; end
-  
-end
 
 if ~any(any(idx))
     highlight = [];

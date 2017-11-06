@@ -100,6 +100,8 @@ public class JDBCDDB extends DDB {
 					throws Exception {
 
 		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 		ArrayList<Object> results = null;
 
 		try {
@@ -126,8 +128,6 @@ public class JDBCDDB extends DDB {
 			}
 
 			//execute the query
-			Statement stmt = null;
-			ResultSet rs = null;
 			try {
 				stmt = conn.createStatement();
 				rs = stmt.executeQuery(query);
@@ -177,7 +177,13 @@ public class JDBCDDB extends DDB {
 		}
 
 		//always close db connection
-		finally {try {conn.close();} catch (Exception e) {}}
+		finally {
+			try {
+				rs.close();
+				stmt.close();
+				conn.close();
+				} 
+			catch (Exception e) {}}
 
 		return results;
 	}
