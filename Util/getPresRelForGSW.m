@@ -1,4 +1,4 @@
-function [ presRel, presName ] = getPresRelForGSW( sam )
+function [ presRel, zName, zComment ] = getPresRelForGSW( sam )
 %GETPRESRELFORGSW retrieves values of pressure due to sea water in sam for 
 % use in the Gibbs-SeaWater toolbox (TEOS-10). 
 %
@@ -17,8 +17,8 @@ function [ presRel, presName ] = getPresRelForGSW( sam )
 % Outputs:
 %   presRel     - the pressure due to sea water data retrieved from sam for
 %               use in GSW.
-%   presName    - the name of the variable in sam and the method used to 
-%               produce presRel.
+%   zName       - the name of the variable in sam.
+%   zComment    - the method used to produce presRel.
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
@@ -45,11 +45,34 @@ narginchk(1, 1);
 if ~isstruct(sam),  error('sam must be a struct');  end
 if isempty(sam),    return;                         end
 
+qcSet    = str2double(readProperty('toolbox.qc_set'));
+rawFlag  = imosQCFlag('raw',  qcSet, 'flag');
+goodFlag = imosQCFlag('good', qcSet, 'flag');
+probGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+goodFlags = [rawFlag, goodFlag, probGoodFlag];
+
 presRel = NaN;
-presName = '';
+zName = '';
+zComment = '';
 
 presIdx       = getVar(sam.variables, 'PRES');
+if presIdx
+    if isfield(sam.variables{presIdx}, 'flags')
+        % we don't want to consider PRES if it's all rubbish
+        if ~any(ismember(sam.variables{presIdx}.flags, goodFlags))
+            presIdx = 0;
+        end
+    end
+end
 presRelIdx    = getVar(sam.variables, 'PRES_REL');
+if presRelIdx
+    if isfield(sam.variables{presRelIdx}, 'flags')
+        % we don't want to consider PRES_REL if it's all rubbish
+        if ~any(ismember(sam.variables{presRelIdx}.flags, goodFlags))
+            presRelIdx = 0;
+        end
+    end
+end
 isPresVar     = logical(presIdx || presRelIdx);
 
 isDepthInfo   = false;
@@ -74,13 +97,14 @@ if ~(isPresVar || isDepthInfo), return; end
 if isPresVar
     if presRelIdx > 0
         presRel = sam.variables{presRelIdx}.data;
-        presName = 'PRES_REL';
+        zName = 'PRES_REL';
     else
         % update from a relative pressure like SeaBird computes
         % it in its processed files, substracting a constant value
         % 10.1325 dbar for nominal atmospheric pressure
         presRel = sam.variables{presIdx}.data - gsw_P0/10^4;
-        presName = 'PRES substracting a constant value 10.1325 dbar for nominal atmospheric pressure';
+        zName = 'PRES';
+        zComment = 'substracting a constant value 10.1325 dbar for nominal atmospheric pressure';
     end
 else
     % when no pressure variable exists, we use depth information either
@@ -89,7 +113,7 @@ else
     if depthIdx > 0
         % with depth data
         depth = sam.(depthType){depthIdx}.data;
-        presName = 'DEPTH';
+        zName = 'DEPTH';
     else
         % with nominal depth information
         
@@ -111,7 +135,7 @@ else
         end
         
         depth = sam.instrument_nominal_depth * ones(size(sam.dimensions{dimIdx}.data));
-        presName = 'instrument_nominal_depth';
+        zName = 'instrument_nominal_depth';
     end
     
     % any depth values <= -5 are discarded (reminder, depth is
@@ -134,7 +158,7 @@ else
     else
         % without latitude information, we assume 1dbar ~= 1m
         presRel = depth;
-        presName = [presName ' (assuming 1 m ~ 1 dbar)'];
+        zComment = '(assuming 1 m ~ 1 dbar)';
     end
 end
 

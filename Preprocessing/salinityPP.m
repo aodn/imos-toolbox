@@ -61,10 +61,10 @@ for k = 1:length(sample_data)
   cndcIdx       = getVar(sam.variables, 'CNDC');
   tempIdx       = getVar(sam.variables, 'TEMP');
   
-  [presRel, presName] = getPresRelForGSW(sam);
+  [presRel, zName, zComment] = getPresRelForGSW(sam);
   
   % cndc, temp, and pres/pres_rel or depth/nominal depth not present in data set
-  if ~(cndcIdx && tempIdx && ~isempty(presName)), continue; end
+  if ~(cndcIdx && tempIdx && ~isempty(zName)), continue; end
   
   cndc = sam.variables{cndcIdx}.data;
   temp = sam.variables{tempIdx}.data;
@@ -77,7 +77,7 @@ for k = 1:length(sample_data)
   psal = gsw_SP_from_R(R, temp, presRel);
   
   dimensions = sam.variables{tempIdx}.dimensions;
-  salinityComment = ['salinityPP.m: derived from CNDC, TEMP and ' presName ' using the Gibbs-SeaWater toolbox (TEOS-10) v3.06'];
+  salinityComment = ['salinityPP.m: derived from CNDC, TEMP and ' zName ' ' zComment ' using the Gibbs-SeaWater toolbox (TEOS-10) v3.06'];
   
   if isfield(sam.variables{tempIdx}, 'coordinates')
       coordinates = sam.variables{tempIdx}.coordinates;
