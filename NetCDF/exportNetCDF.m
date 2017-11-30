@@ -56,7 +56,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
   
   % we don't want the API to automatically pre-fill with FillValue, we're
   % taking care of it ourselves and avoid 2 times writting on disk
-  netcdf.setFill(fid, 'NC_NOFILL');
+  netcdf.setFill(fid, 'NOFILL');
   
   dateFmt = readProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readProperty('toolbox.qc_set'));
