@@ -429,6 +429,7 @@ firmExpr2    = '^\*\s*FirmwareVersion:\s*(\S+)'; %SBE39plus
 sensorId     = '<Sensor id=''(.*\S+.*)''>';
 sensorType   = '<[tT]ype>(.*\S+.*)</[tT]ype>';
 serialExpr   = '^\*\s*SerialNumber:\s*(\S+)'; %SBE39plus
+serialExpr2  = '^\*\s*SEACAT PROFILER\s*V(\S+)\s*SN\s*(\S+)'; %SEACAT PROFILER
 
 exprs = {...
     headerExpr   headerExpr2    headerExpr3    scanExpr     ...
@@ -438,7 +439,7 @@ exprs = {...
     castExpr     castExpr2   intervalExpr ...
     sbe38Expr    optodeExpr   ...
     voltCalExpr  otherExpr ...
-    firmExpr     sensorId   sensorType firmExpr2 serialExpr};
+    firmExpr     sensorId   sensorType firmExpr2 serialExpr serialExpr2};
 
 for k = 1:length(headerLines)
     
@@ -592,6 +593,12 @@ for k = 1:length(headerLines)
                 % SerialNumber, SBE39plus cnv
                 case 25
                     header.instrument_serial_no = tkns{1}{1};
+                    
+                % old SEACAT PROFILER serial number format
+                % example "* SEACAT PROFILER V2.1a SN 597   10/15/11  10:02:56.721"
+                case 26
+                    % is tkns{1}{1} firmware version?
+                    header.instrument_serial_no = tkns{1}{2};
 
             end
             break;
