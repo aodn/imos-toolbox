@@ -330,12 +330,7 @@ if any(isPlottable)
                 else
                     if isfield(sample_data{iSort(i)}, 'instrument_nominal_depth')
                         if ~isempty(sample_data{iSort(i)}.instrument_nominal_depth)
-                            if iHeight == 0
-                                dataDepth = sample_data{iSort(i)}.instrument_nominal_depth*ones(size(iGoodTime));
-                            else
-                                dataDepth = repmat(sample_data{iSort(i)}.instrument_nominal_depth + ...
-                                    sample_data{iSort(i)}.dimensions{iHeight}.data, 1, length(iGoodTime));
-                            end
+                            dataDepth = sample_data{iSort(i)}.instrument_nominal_depth*ones(size(iGoodTime));
                         else
                             fprintf('%s\n', ['Error : in ' sample_data{iSort(i)}.toolbox_input_file ...
                                 ', global attribute instrument_nominal_depth is not documented.']);
