@@ -125,7 +125,7 @@ hLineVar2 = hLineVar;
 
 isPlottable = false;
 
-backgroundColor = [0.85 0.85 0.85];
+backgroundColor = [1 1 1]; % white
 
 %plot
 fileName = genIMOSFileName(sample_data{iCurrSam}, 'png');
@@ -135,6 +135,7 @@ hFigPressDiff = figure(...
     'Name',             title, ...
     'NumberTitle',      'off', ...
     'Visible',          visible, ...
+    'Color',            backgroundColor, ...
     'OuterPosition',    monitorRect(iBigMonitor, :));
 
 %pressure plot
@@ -268,9 +269,10 @@ for i=1:nOthers
             'LineStyle', '-', ...
             'Parent',    hAxPressDiff);
         
-        % set background to be grey
-        set(hAxPress, 'Color', backgroundColor)
-        set(hAxPressDiff, 'Color', backgroundColor)
+        % set axes background to be transparent (figure color shows
+        % through)
+        set(hAxPress, 'Color', 'none')
+        set(hAxPressDiff, 'Color', 'none')
     end
 end
 
@@ -315,7 +317,7 @@ if isPlottable
         'FontSize', fontSizeAx,...
         'xscale', xscale);
     posAx = get(hAxPress, 'Position');
-    set(hLegend, 'Units', 'Normalized', 'color', backgroundColor);
+    set(hLegend, 'Units', 'Normalized', 'Color', 'none');
 
     % for some reason this call brings everything back together while it
     % shouldn't have moved previously anyway...
@@ -325,7 +327,7 @@ if isPlottable
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
         
-        fastSaveas(hFigPressDiff, fullfile(exportDir, fileName));
+        fastSaveas(hFigPressDiff, backgroundColor, fullfile(exportDir, fileName));
         
         close(hFigPressDiff);
     end

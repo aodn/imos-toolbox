@@ -57,7 +57,7 @@ title = [sample_data{1}.site_code ' profile on ' datestr(sample_data{1}.time_cov
 
 initiateFigure = true;
 
-backgroundColor = [0.85 0.85 0.85];
+backgroundColor = [1 1 1]; % white
 
 lenVarNames = length(varNames);
 for k=1:lenVarNames
@@ -122,6 +122,7 @@ for k=1:lenVarNames
                     'Name',             title, ...
                     'NumberTitle',      'off', ...
                     'Visible',          visible, ...
+                    'Color',            backgroundColor, ...
                     'OuterPosition',    monitorRect(iBigMonitor, :));
                 
                 initiateFigure = false;
@@ -147,7 +148,7 @@ for k=1:lenVarNames
                 hold(hAxCastVar, 'on');
                 
                 % dummy entry for first entry in legend
-                hLineVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
+                hLineVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color same as background (invisible in legend)
             
                 cMap = colormap(hAxCastVar, parula(lenSampleData));
                 cMap = flipud(cMap);
@@ -265,8 +266,9 @@ for k=1:lenVarNames
                 'YGrid',        'on', ...
                 'Layer',        'top');
             
-            % set background to be grey
-            set(hAxCastVar, 'Color', backgroundColor)
+            % set axes background to be transparent (figure color shows
+            % through)
+            set(hAxCastVar, 'Color', 'none')
         end
     end
         
@@ -297,7 +299,7 @@ end
 if saveToFile
     fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_'); % IMOS_[sub-facility_code]_[platform_code]_FV01_[time_coverage_start]_[PLOT-TYPE]_C-[creation_date].png
     
-    fastSaveas(hFigCastVar, fullfile(exportDir, fileName));
+    fastSaveas(hFigCastVar, backgroundColor, fullfile(exportDir, fileName));
     
     close(hFigCastVar);
 end

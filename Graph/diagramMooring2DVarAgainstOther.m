@@ -225,7 +225,7 @@ for i=1:lenSampleData
     end
 end
 
-backgroundColor = [0.85 0.85 0.85];
+backgroundColor = [1 1 1]; % white
 
 if any(isPlottable)
     % collect visualQC config
@@ -280,6 +280,7 @@ if any(isPlottable)
                     'Name',             title, ...
                     'NumberTitle',      'off', ...
                     'Visible',          visible, ...
+                    'Color',            backgroundColor, ...
                     'OuterPosition',    monitorRect(iBigMonitor, :));
                 
                 hAxMooringVar = axes('Parent', hFigMooringVar);
@@ -294,7 +295,7 @@ if any(isPlottable)
                 hold(hAxMooringVar, 'on');
                 
                 % dummy entry for first entry in legend
-                hScatterVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
+                hScatterVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color same as background (invisible in legend)
                 
                 % set data cursor mode custom display
                 dcm_obj = datacursormode(hFigMooringVar);
@@ -445,8 +446,9 @@ if any(isPlottable)
                     'YGrid',        'on', ...
                     'Layer',        'top');
                 
-                % set background to be grey
-                set(hAxMooringVar, 'Color', backgroundColor)
+                % set axes background to be transparent (figure color shows
+                % through)
+                set(hAxMooringVar, 'Color', 'none')
             end
            
             if strcmpi(yAxisVarName, 'DEPTH')
@@ -509,7 +511,7 @@ if ~initiateFigure
         end
     end
     posAx = get(hAxMooringVar, 'Position');
-    set(hLegend, 'Units', 'Normalized', 'color', backgroundColor)
+    set(hLegend, 'Units', 'Normalized', 'Color', 'none')
     posLh = get(hLegend, 'Position');
     if posLh(2) < 0
         set(hLegend, 'Position',[posLh(1), abs(posLh(2)), posLh(3), posLh(4)]);
@@ -524,7 +526,7 @@ if ~initiateFigure
         fileName = strrep(fileName, '_PARAM_', ['_' varName '_vs_' yAxisVarName '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_vs_[OTHER-PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_DIAGRAM_');
         
-        fastSaveas(hFigMooringVar, fullfile(exportDir, fileName));
+        fastSaveas(hFigMooringVar, backgroundColor, fullfile(exportDir, fileName));
         
         close(hFigMooringVar);
     end
