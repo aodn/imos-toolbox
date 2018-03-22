@@ -72,7 +72,7 @@ dataVar = nan(lenSampleData,800000);
 timeVar = dataVar;
 isPlottable = false;
 
-backgroundColor = [0.85 0.85 0.85];
+backgroundColor = [1 1 1]; % white
 
 for i=1:lenSampleData
     %only look at instruments with pressure
@@ -184,6 +184,7 @@ hFigPress = figure(...
     'Name',             title, ...
     'NumberTitle',      'off', ...
     'Visible',          visible, ...
+    'Color',            backgroundColor, ...
     'OuterPosition',    monitorRect(iBigMonitor, :));
 
 hAxPress     = subplot(2,1,1,'Parent', hFigPress);
@@ -206,9 +207,10 @@ set(get(hAxDepthDiff, 'Title'), 'String', ...
 hold(hAxDepthDiff, 'on');
 grid(hAxDepthDiff, 'on');
 
-% set background to be grey
-set(hAxPress, 'Color', backgroundColor);
-set(hAxDepthDiff, 'Color', backgroundColor);
+% set axes background to be transparent (figure color shows
+% through)
+set(hAxPress, 'Color', 'none');
+set(hAxDepthDiff, 'Color', 'none');
 
 %color map
 lenMetaDepth = length(metaDepth);
@@ -222,7 +224,7 @@ end
 cMap = flipud(cMap);
 
 % dummy entry for first entry in legend
-hLineVar(1) = plot(hAxPress, 0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
+hLineVar(1) = plot(hAxPress, 0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color same as background (invisible in legend)
 
 %now plot the data:Have to do it one at a time to get the colors right..
 for i = 1:lenMetaDepth
@@ -272,7 +274,7 @@ if isPlottable
         'FontSize', fontSizeAx,...
         'xscale', xscale);
     posAx = get(hAxPress, 'Position');
-    set(hLegend, 'Units', 'Normalized', 'color', backgroundColor);
+    set(hLegend, 'Units', 'Normalized', 'Color', 'none');
 
     % for some reason this call brings everything back together while it
     % shouldn't have moved previously anyway...
@@ -355,7 +357,7 @@ if isPlottable
         fileName = strrep(fileName, '_PARAM_', '_DEPTH_vs_NOMINAL_DEPTH_'); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_CHECK_');
         
-        fastSaveas(hFigPress, fullfile(exportDir, fileName));
+        fastSaveas(hFigPress, backgroundColor, fullfile(exportDir, fileName));
         
         close(hFigPress);
     end

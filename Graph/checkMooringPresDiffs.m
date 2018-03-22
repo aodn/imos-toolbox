@@ -125,7 +125,7 @@ hLineVar2 = hLineVar;
 
 isPlottable = false;
 
-backgroundColor = [0.85 0.85 0.85];
+backgroundColor = [1 1 1]; % white
 
 %plot
 fileName = genIMOSFileName(sample_data{iCurrSam}, 'png');
@@ -135,6 +135,7 @@ hFigPressDiff = figure(...
     'Name',             title, ...
     'NumberTitle',      'off', ...
     'Visible',          visible, ...
+    'Color',            backgroundColor, ...
     'OuterPosition',    monitorRect(iBigMonitor, :));
 
 %pressure plot
@@ -142,7 +143,7 @@ hAxPress = subplot(2,1,1,'Parent', hFigPressDiff);
 set(hAxPress, 'YDir', 'reverse')
 set(get(hAxPress, 'XLabel'), 'String', 'Time');
 set(get(hAxPress, 'YLabel'), 'String', [presRelCode ' (' varUnit ')'], 'Interpreter', 'none');
-set(get(hAxPress, 'Title'), 'String', [varTitle '( ' varUnit ')'], 'Interpreter', 'none');
+set(get(hAxPress, 'Title'), 'String', [varTitle ' (' varUnit ')'], 'Interpreter', 'none');
 set(hAxPress, 'XTick', (xMin:(xMax-xMin)/4:xMax));
 set(hAxPress, 'XLim', [xMin, xMax]);
 hold(hAxPress, 'on');
@@ -152,15 +153,12 @@ hAxPressDiff = subplot(2,1,2,'Parent', hFigPressDiff);
 set(get(hAxPressDiff, 'XLabel'), 'String', 'Time');
 set(get(hAxPressDiff, 'YLabel'), 'String', ['Pressure differences (' varUnit ')'], 'Interpreter', 'none');
 set(get(hAxPressDiff, 'Title'), 'String', ...
-    ['Pressure differences in ' varUnit ' (minus respective median over 1st quarter) between ' instrumentDesc{iCurrSam} ' (in black above) and 4 (max) nearest neighbours'] , 'Interpreter', 'none');
+    ['Pressure differences in ' varUnit ' (minus respective median over 1st quarter) between ' instrumentDesc{iCurrSam} ' (in black above) and 4 (when possible) nearest neighbours'] , 'Interpreter', 'none');
 set(hAxPressDiff, 'XTick', (xMin:(xMax-xMin)/4:xMax));
 set(hAxPressDiff, 'XLim', [xMin, xMax]);
 hold(hAxPressDiff, 'on');
 
 linkaxes([hAxPressDiff,hAxPress],'x')
-
-%zero line
-line([xMin, xMax], [0, 0], 'Color', 'black');
 
 %now plot the data of interest:
 iCurrTime = getVar(sample_data{iCurrSam}.dimensions, 'TIME');
@@ -197,14 +195,17 @@ if nOthers > nOthersMax
     nOthers = nOthersMax;
 end
 
+% put iOthers back in metaDepth order
+iOthers = sort(iOthers);
+
 %color map
-% no need to reverse the colorbar since instruments are plotted from
-% nearest (blue) to farthest (yellow)
+% we reverse the colormap since we want close to bottom == blue while close
+% to surface == yellow.
 try
     defaultColormapFh = str2func(readProperty('visualQC.defaultColormap'));
-    cMap = colormap(hAxPress, defaultColormapFh(nOthers));
+    cMap = flipud(colormap(hAxPress, defaultColormapFh(nOthers)));
 catch e
-    cMap = colormap(hAxPress, parula(nOthers));
+    cMap = flipud(colormap(hAxPress, parula(nOthers)));
 end
 % current sample is black
 cMap(iOthers == iCurrSam, :) = [0, 0, 0];
@@ -268,9 +269,10 @@ for i=1:nOthers
             'LineStyle', '-', ...
             'Parent',    hAxPressDiff);
         
-        % set background to be grey
-        set(hAxPress, 'Color', backgroundColor)
-        set(hAxPressDiff, 'Color', backgroundColor)
+        % set axes background to be transparent (figure color shows
+        % through)
+        set(hAxPress, 'Color', 'none')
+        set(hAxPressDiff, 'Color', 'none')
     end
 end
 
@@ -289,14 +291,7 @@ set(hAxPressDiff, ...
     'Layer',        'top');
 
 if isPlottable
-    iOthersLogical = false(max(iOthers), 1);
-    iOthersLogical(iOthers) = true;
-    iNan = isnan(hLineVar);
-    if any(iNan)
-        hLineVar(iNan) = [];
-        instrumentDesc(iNan) = [];
-        iOthersLogical(iNan) = [];
-    end
+    instrumentDesc = instrumentDesc(iOthers);
         
     datetick(hAxPressDiff, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
     datetick(hAxPress, 'x', 'dd-mm-yy HH:MM:SS', 'keepticks');
@@ -315,14 +310,14 @@ if isPlottable
         xscale = 0.75;
     end
     hYBuffer = 1.1 * (2*(fontSizeAx + fontSizeLb));
-    hLegend = legendflex(hAxPress, instrumentDesc(iOthersLogical),...
+    hLegend = legendflex(hAxPress, instrumentDesc,...
         'anchor', [6 2], ...
         'buffer', [0 -hYBuffer], ...
         'ncol', nCols,...
         'FontSize', fontSizeAx,...
         'xscale', xscale);
     posAx = get(hAxPress, 'Position');
-    set(hLegend, 'Units', 'Normalized', 'color', backgroundColor);
+    set(hLegend, 'Units', 'Normalized', 'Color', 'none');
 
     % for some reason this call brings everything back together while it
     % shouldn't have moved previously anyway...
@@ -332,7 +327,7 @@ if isPlottable
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
         
-        fastSaveas(hFigPressDiff, fullfile(exportDir, fileName));
+        fastSaveas(hFigPressDiff, backgroundColor, fullfile(exportDir, fileName));
         
         close(hFigPressDiff);
     end

@@ -589,6 +589,8 @@ for iCurSam = 1:nDatasets
                             'pressure measurements to which a nominal ' ...
                             'value for atmospheric pressure (10.1325 dbar) ' ...
                             'has been substracted'];
+                        dimensions  = sample_data{nearestInsts{iCurSam}(iFirst)}.variables{presIdxOther}.dimensions;
+                        coordinates = sample_data{nearestInsts{iCurSam}(iFirst)}.variables{presIdxOther}.coordinates;
                     else
                         % update from a relative pressure measurement
                         relPresOther = sample_data{nearestInsts{iCurSam}(iFirst)}.variables{presRelIdxOther}.data;
@@ -597,6 +599,8 @@ for iCurSam = 1:nDatasets
                             'usually performed to balance current ' ...
                             'atmospheric pressure and acute sensor ' ...
                             'precision at a deployed depth)'];
+                        dimensions  = sample_data{nearestInsts{iCurSam}(iFirst)}.variables{presRelIdxOther}.dimensions;
+                        coordinates = sample_data{nearestInsts{iCurSam}(iFirst)}.variables{presRelIdxOther}.coordinates;
                     end
                     
                     % compute depth of the nearest sensor from its pressure
@@ -719,6 +723,8 @@ for iCurSam = 1:nDatasets
                             'pressure measurements to which a nominal ' ...
                             'value for atmospheric pressure (10.1325 dbar) ' ...
                             'has been substracted'];
+                        dimensions  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presIdxFirst }.dimensions;
+                        coordinates = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presIdxFirst }.coordinates;
                     elseif presIdxFirst ~= 0 && presIdxSecond == 0
                         relPresFirst  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presIdxFirst    }.data - gsw_P0/10^4;
                         relPresSecond = sample_data{nearestInsts{iCurSam}(iSecond)}.variables{presRelIdxSecond}.data;
@@ -726,6 +732,8 @@ for iCurSam = 1:nDatasets
                             'pressure measurements to which a nominal ' ...
                             'value for atmospheric pressure (10.1325 dbar) ' ...
                             'has been substracted'];
+                        dimensions  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presIdxFirst }.dimensions;
+                        coordinates = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presIdxFirst }.coordinates;
                     elseif presIdxFirst == 0 && presIdxSecond ~= 0
                         relPresFirst  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presRelIdxFirst}.data;
                         relPresSecond = sample_data{nearestInsts{iCurSam}(iSecond)}.variables{presIdxSecond  }.data - gsw_P0/10^4;
@@ -733,6 +741,8 @@ for iCurSam = 1:nDatasets
                             'pressure measurements to which a nominal ' ...
                             'value for atmospheric pressure (10.1325 dbar) ' ...
                             'has been substracted'];
+                        dimensions  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presRelIdxFirst}.dimensions;
+                        coordinates = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presRelIdxFirst}.coordinates;
                     else
                         % update from a relative measured pressure
                         relPresFirst  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presRelIdxFirst }.data;
@@ -742,6 +752,8 @@ for iCurSam = 1:nDatasets
                             'usually performed to balance current ' ...
                             'atmospheric pressure and acute sensor ' ...
                             'precision at a deployed depth)'];
+                        dimensions  = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presRelIdxFirst}.dimensions;
+                        coordinates = sample_data{nearestInsts{iCurSam}(iFirst )}.variables{presRelIdxFirst}.coordinates;
                     end
                     
                     % compute pressure at current sensor using trigonometry and
@@ -821,17 +833,6 @@ for iCurSam = 1:nDatasets
                     fprintf('%s\n', ['Warning : ' descSam{iCurSam} ...
                         ' will not have its depth inferred from any neighbouring pressure sensor ' ...
                         'on mooring']);
-                    
-                    % write/update dataset PP parameters before moving to
-                    % the next sample_data
-                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'same_family',       same_family);
-                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'include',           include);
-                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'exclude',           exclude);
-                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnDepth',    useItsOwnDepth(iCurSam));
-                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPres',     useItsOwnPres(iCurSam));
-                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'useItsOwnPresRel',  useItsOwnPresRel(iCurSam));
-                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'firstNearestInst',  firstNearestInst(iCurSam));
-                    writeDatasetParameter(sample_data{iCurSam}.toolbox_input_file, currentPProutine, 'secondNearestInst', secondNearestInst(iCurSam));
                     continue;
                 end
             end
@@ -842,12 +843,6 @@ for iCurSam = 1:nDatasets
                 'computed from 1 or 2 other pressure sensors in the mooring']);
             continue;
         end
-        
-        % variable DEPTH will be a function of dimension TIME
-        dimensions = getVar(sample_data{iCurSam}.dimensions, 'TIME');
-        
-        % hopefully the last variable in the file is a data variable
-        coordinates = sample_data{iCurSam}.variables{end}.coordinates;
     end
     
     if depthIdx(iCurSam)
