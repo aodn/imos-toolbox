@@ -202,9 +202,11 @@ if nBurst > 1
         durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600 + sampleIntervalInBurst(i);
     end
     
-    sample_data.meta.instrument_sample_interval   = round(median(sampleIntervalInBurst));
+    iNaNBurst = isnan(sampleIntervalInBurst); % it is possible that only one sample is output for a burst
+    
+    sample_data.meta.instrument_sample_interval   = round(median(sampleIntervalInBurst(~iNaNBurst)));
     sample_data.meta.instrument_burst_interval    = round(median(diff(firstTimeBurst*24*3600)));
-    sample_data.meta.instrument_burst_duration    = round(median(durationBurst));
+    sample_data.meta.instrument_burst_duration    = round(median(durationBurst(~iNaNBurst)));
 end
 
 sample_data.dimensions{1}.name          = 'TIME';

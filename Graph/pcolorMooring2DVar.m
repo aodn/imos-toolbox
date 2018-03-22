@@ -92,6 +92,8 @@ hPcolorVar = nan(lenSampleData, 1);
 
 initiateFigure = true;
 
+backgroundColor = [0.85 0.85 0.85]; % light grey to allow for colorbar with white
+
 for i=1:lenSampleData
     % instrument description
     if ~isempty(strtrim(sample_data{iSort(i)}.instrument))
@@ -144,6 +146,7 @@ for i=1:lenSampleData
                 'Name',             title, ...
                 'NumberTitle',      'off', ...
                 'Visible',          visible, ...
+                'Color',            backgroundColor, ...
                 'OuterPosition',    monitorRect(iBigMonitor, :));
             
             hAxMooringVar = axes('Parent',   hFigMooringVar);
@@ -224,8 +227,9 @@ for i=1:lenSampleData
             
             set(get(hCBar, 'Title'), 'String', [varName ' (' varUnit ')'], 'Interpreter', 'none');
 
-            % set background to be grey
-            set(hAxMooringVar, 'Color', [0.75 0.75 0.75])
+            % set axes background to be transparent (figure color shows
+            % through)
+            set(hAxMooringVar, 'Color', 'none')
         end
     end
 end
@@ -243,7 +247,7 @@ if ~initiateFigure
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_PCOLOR_');
         
-        fastSaveas(hFigMooringVar, fullfile(exportDir, fileName));
+        fastSaveas(hFigMooringVar, backgroundColor, fullfile(exportDir, fileName));
         
         close(hFigMooringVar);
     end

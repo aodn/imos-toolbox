@@ -96,7 +96,7 @@ dimName = sample_data.dimensions{i2Ddim}.name;
 dimTitle = imosParameters(dimName, 'long_name');
 dimUnit  = imosParameters(dimName, 'uom');
 
-backgroundColor = [0.85 0.85 0.85];
+backgroundColor = [1 1 1]; % white
 
 if iVar > 0
     if initiateFigure
@@ -107,6 +107,7 @@ if iVar > 0
             'Name',             title, ...
             'NumberTitle',      'off', ...
             'Visible',          visible, ...
+            'Color',            backgroundColor, ...
             'OuterPosition',    monitorRect(iBigMonitor, :));
             
         initiateFigure = false;
@@ -212,8 +213,9 @@ if iVar > 0
         'YGrid',        'on', ...
         'Layer',        'top');
     
-    % set background to be grey
-    set(hAxVarSection, 'Color', backgroundColor)
+    % set axes background to be transparent (figure color shows
+    % through)
+    set(hAxVarSection, 'Color', 'none')
 end
 
 if ~initiateFigure
@@ -236,7 +238,7 @@ end
 if saveToFile
     fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_'); % IMOS_[sub-facility_code]_[platform_code]_FV01_[time_coverage_start]_[PLOT-TYPE]_C-[creation_date].png
     
-    fastSaveas(hFigVarSection, fullfile(exportDir, fileName));
+    fastSaveas(hFigVarSection, backgroundColor, fullfile(exportDir, fileName));
     
     close(hFigVarSection);
 end

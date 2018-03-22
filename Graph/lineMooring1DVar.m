@@ -121,7 +121,7 @@ instrumentDesc{1} = 'Make Model (nominal depth - instrument SN)';
 initiateFigure = true;
 isPlottable = false;
 
-backgroundColor = [0.85 0.85 0.85];
+backgroundColor = [1 1 1]; % white
 
 for i=1:lenSampleData
     % instrument description
@@ -152,6 +152,7 @@ for i=1:lenSampleData
                 'Name',             title, ...
                 'NumberTitle',      'off', ...
                 'Visible',          visible, ...
+                'Color',            backgroundColor, ...
                 'OuterPosition',    monitorRect(iBigMonitor, :));
             
             hAxMooringVar = axes('Parent', hFigMooringVar);
@@ -167,7 +168,7 @@ for i=1:lenSampleData
             hold(hAxMooringVar, 'on');
             
             % dummy entry for first entry in legend
-            hLineVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color grey same as background (invisible)
+            hLineVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color same as background (invisible in legend)
             
             % set data cursor mode custom display
             dcm_obj = datacursormode(hFigMooringVar);
@@ -247,8 +248,9 @@ for i=1:lenSampleData
                 'YGrid',        'on', ...
                 'Layer',        'top');
             
-            % set background to be grey
-            set(hAxMooringVar, 'Color', backgroundColor)
+            % set axes background to be transparent (figure color shows
+            % through)
+            set(hAxMooringVar, 'Color', 'none')
         end
     end
 end
@@ -327,7 +329,7 @@ if ~initiateFigure && isPlottable
         'FontSize', fontSizeAx,...
         'xscale', xscale);
     posAx = get(hAxMooringVar, 'Position');
-    set(hLegend, 'Units', 'Normalized', 'color', backgroundColor);
+    set(hLegend, 'Units', 'Normalized', 'Color', 'none');
     posLh = get(hLegend, 'Position');
     if posLh(2) < 0
         set(hLegend, 'Position',[posLh(1), abs(posLh(2)), posLh(3), posLh(4)]);
@@ -340,7 +342,7 @@ if ~initiateFigure && isPlottable
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_');
         
-        fastSaveas(hFigMooringVar, fullfile(exportDir, fileName));
+        fastSaveas(hFigMooringVar, backgroundColor, fullfile(exportDir, fileName));
         
         close(hFigMooringVar);
     end

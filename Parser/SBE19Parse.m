@@ -145,6 +145,13 @@ function sample_data = SBE19Parse( filename, mode )
   
   switch mode
       case 'profile'
+          if ~isfield(procHeader, 'binSize')
+              disp(['Warning : ' sample_data.toolbox_input_file ...
+                  ' has not been vertically binned as per ' ...
+                  'http://help.aodn.org.au/help/sites/help.aodn.org.au/' ...
+                  'files/ANMN%20CTD%20Processing%20Procedures.pdf']);
+          end
+              
           % dimensions creation
           iVarPRES_REL = NaN;
           iVarDEPTH = NaN;
@@ -429,6 +436,7 @@ firmExpr2    = '^\*\s*FirmwareVersion:\s*(\S+)'; %SBE39plus
 sensorId     = '<Sensor id=''(.*\S+.*)''>';
 sensorType   = '<[tT]ype>(.*\S+.*)</[tT]ype>';
 serialExpr   = '^\*\s*SerialNumber:\s*(\S+)'; %SBE39plus
+serialExpr2  = '^\*\s*SEACAT PROFILER\s*V(\S+)\s*SN\s*(\S+)'; %SEACAT PROFILER
 
 exprs = {...
     headerExpr   headerExpr2    headerExpr3    scanExpr     ...
@@ -438,7 +446,7 @@ exprs = {...
     castExpr     castExpr2   intervalExpr ...
     sbe38Expr    optodeExpr   ...
     voltCalExpr  otherExpr ...
-    firmExpr     sensorId   sensorType firmExpr2 serialExpr};
+    firmExpr     sensorId   sensorType firmExpr2 serialExpr serialExpr2};
 
 for k = 1:length(headerLines)
     
@@ -592,6 +600,12 @@ for k = 1:length(headerLines)
                 % SerialNumber, SBE39plus cnv
                 case 25
                     header.instrument_serial_no = tkns{1}{1};
+                    
+                % old SEACAT PROFILER serial number format
+                % example "* SEACAT PROFILER V2.1a SN 597   10/15/11  10:02:56.721"
+                case 26
+                    % is tkns{1}{1} firmware version?
+                    header.instrument_serial_no = tkns{1}{2};
 
             end
             break;
@@ -625,6 +639,7 @@ function header = parseProcessedHeader(headerLines)
   volt0Expr = 'sensor \d+ = Extrnl Volt  0  (.+)';
   volt1Expr = 'sensor \d+ = Extrnl Volt  1  (.+)';
   volt2Expr = 'sensor \d+ = Extrnl Volt  2  (.+)';
+  binExpr   = 'binavg_binsize = (\d+)';
   
   for k = 1:length(headerLines)
     
@@ -671,6 +686,13 @@ function header = parseProcessedHeader(headerLines)
     tkns = regexp(headerLines{k}, volt2Expr, 'tokens');
     if ~isempty(tkns)
       header.volt2Expr = tkns{1}{1};
+      continue;
+    end
+    
+    % then try bin expr
+    tkns = regexp(headerLines{k}, binExpr, 'tokens');
+    if ~isempty(tkns)
+      header.binSize = str2double(tkns{1}{1});
       continue;
     end
   end
