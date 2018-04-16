@@ -260,7 +260,9 @@ try
             
         case 'profile'
             % profile specific plots
-            lineCastVar(sample_data, paramsName, true, true, exportDir);
+            for i=1:length(sample_data) % we only want one figure per profile for better readability
+                lineCastVar(sample_data(i), paramsName, true, true, exportDir);
+            end
 
     end
 catch e
