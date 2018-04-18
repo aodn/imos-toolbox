@@ -170,7 +170,8 @@ for i=1:lenSampleData
     end
 end
 
-backgroundColor = [0.85 0.85 0.85]; % light grey to allow for colorbar with white
+backgroundFigure = [1 1 1]; % white
+backgroundAxis = [0.85 0.85 0.85]; % light grey to allow for colorbar with white
 
 if any(isPlottable)
     % collect visualQC config
@@ -246,7 +247,7 @@ if any(isPlottable)
                     'Name',             title, ...
                     'NumberTitle',      'off', ...
                     'Visible',          visible, ...
-                    'Color',            backgroundColor, ...
+                    'Color',            backgroundFigure, ...
                     'OuterPosition',    monitorRect(iBigMonitor, :));
                 
                 hAxMooringVar = axes('Parent', hFigMooringVar);
@@ -260,7 +261,7 @@ if any(isPlottable)
                 hold(hAxMooringVar, 'on');
                 
                 % dummy entry for first entry in legend
-                hScatterVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color same as background (invisible in legend)
+                hScatterVar(1) = plot(0, 0, 'Color', backgroundAxis, 'Visible', 'off'); % color same as background (invisible in legend)
                 
                 % set data cursor mode custom display
                 dcm_obj = datacursormode(hFigMooringVar);
@@ -403,9 +404,8 @@ if any(isPlottable)
                     'YGrid',        'on', ...
                     'Layer',        'top');
                 
-                % set axes background to be transparent (figure color shows
-                % through)
-                set(hAxMooringVar, 'Color', 'none')
+                % set axes background
+                set(hAxMooringVar, 'Color', backgroundAxis)
             end
             
             % we plot the instrument nominal depth
@@ -468,7 +468,7 @@ if ~initiateFigure
         end
     end
     posAx = get(hAxMooringVar, 'Position');
-    set(hLegend, 'Units', 'Normalized', 'Color', 'none')
+    set(hLegend, 'Units', 'Normalized', 'Color', backgroundAxis)
     posLh = get(hLegend, 'Position');
     if posLh(2) < 0
         set(hLegend, 'Position',[posLh(1), abs(posLh(2)), posLh(3), posLh(4)]);
@@ -477,13 +477,11 @@ if ~initiateFigure
         set(hAxMooringVar, 'Position',[posAx(1), posAx(2)+abs(posLh(2)), posAx(3), posAx(4)-abs(posLh(2))]);
     end
     
-    %     set(hLegend, 'Box', 'off', 'Color', 'none');
-    
     if saveToFile
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_SCATTER_');
         
-        fastSaveas(hFigMooringVar, backgroundColor, fullfile(exportDir, fileName));
+        fastSaveas(hFigMooringVar, backgroundFigure, fullfile(exportDir, fileName));
         
         close(hFigMooringVar);
     end
