@@ -66,7 +66,7 @@ if ~isempty(climatologyRange)
     end
 end
 
-% set background to be grey
-set(ax, 'Color', [0.85 0.85 0.85])
+% set background to be transparent (same as background color)
+set(ax, 'Color', 'none')
 
 labels = {sample_data.variables{vars(1)}.name, sample_data.variables{vars(2)}.name};

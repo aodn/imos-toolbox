@@ -88,11 +88,12 @@ for k = 1:lenSam
     sampleDataDescs{k} = genSampleDataDesc(sample_data{k});
 end
 
+backgroundPlotColor = [1 1 1]; % white
+
 % window figure
 fig = figure(...
     'Name',        windowTitle, ...
     'Visible',     'off',...
-    'Color',       [0.75 0.75 0.75],...
     'MenuBar',     'none',...
     'ToolBar',     'figure',...
     'Resize',      'on',...
@@ -165,9 +166,10 @@ varPanel = uipanel(...
 
 % main display
 mainPanel = uipanel(...
-    'Parent',     fig,...
-    'BorderType', 'none',...
-    'Tag',        'mainPanel');
+    'BackgroundColor',  backgroundPlotColor,...
+    'BorderType',       'none',...
+    'Parent',           fig,...
+    'Tag',              'mainPanel');
 
 % use normalized units
 set(fig,              'Units', 'normalized');
@@ -304,7 +306,7 @@ switch mode
         set(hToolsDiagram2DCommonVarDepthNonQC, 'callBack', {@displayDiagramMooringVar,    false,  false, 'DEPTH'});
         set(hToolsDiagram2DCommonVarDepthQC,    'callBack', {@displayDiagramMooringVar,    true,   false, 'DEPTH'});
     case 'profile'
-        hToolsLineCastVar             = uimenu(hToolsMenu,        'label', '1D variable vs DEPTH profile line plot');
+        hToolsLineCastVar             = uimenu(hToolsMenu,        'label', '1D variable vs DEPTH selected profile line plot');
         hToolsLineCastVarNonQC        = uimenu(hToolsLineCastVar, 'label', 'all data');
         hToolsLineCastVarQC           = uimenu(hToolsLineCastVar, 'label', 'only good and non QC''d data');
         
@@ -648,29 +650,33 @@ set(hHelpWiki, 'callBack', @openWikiPage);
 
     function displayLineCastVar(source, ev, isQC)
         %DISPLAYLINECASTVAR Opens a new window where all the
-        % variables collected by the CTD cast are line-plotted in a profile plot.
+        % variables collected by the currently selected CTD cast are line-plotted in a profile plot.
         %
         
+        % only currently selected profile for better readability
+        iSampleMenu = get(sampleMenu, 'Value');
+        sam = sample_data(iSampleMenu);
+        
         % get all params names
-        lenSampleData = length(sample_data);
+        lenSampleData = length(sam);
         paramsName = {};
         for i=1:lenSampleData
-            lenParamsSample = length(sample_data{i}.variables);
+            lenParamsSample = length(sam{i}.variables);
             for j=1:lenParamsSample
-                isParamQC = any(sample_data{i}.variables{j}.flags == 1) || any(sample_data{i}.variables{j}.flags == 2);
+                isParamQC = any(sam{i}.variables{j}.flags == 1) || any(sam{i}.variables{j}.flags == 2);
                 if i==1 && j==1
-                    paramsName{1} = sample_data{1}.variables{1}.name;
+                    paramsName{1} = sam{1}.variables{1}.name;
                 else
-                    sameParam = strcmpi(paramsName, sample_data{i}.variables{j}.name);
+                    sameParam = strcmpi(paramsName, sam{i}.variables{j}.name);
                     if ~any(sameParam)
-                        paramsName{end+1} = sample_data{i}.variables{j}.name;
+                        paramsName{end+1} = sam{i}.variables{j}.name;
                     end
                 end
                 % get rid of non QC'd params if only interested in QC
                 if isQC && ~isParamQC; paramsName(end) = []; end
             end
         end
-        lineCastVar(sample_data, paramsName, isQC, false, '');
+        lineCastVar(sam, paramsName, isQC, false, '');
     end
 
     function displayScatterMooringVar(source, ev, isQC, is1D)

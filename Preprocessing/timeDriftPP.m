@@ -302,20 +302,19 @@ end
     end
 
     function newtime = timedrift_corr(time,offset_s,offset_e)
-        %remove linear drift of time (in days) from any instrument.
-        %the drift is calculated using the start offset (offset_s in seconds) and the
+        % remove linear drift of time (in days) from any instrument.
+        % the drift is calculated using the start offset (offset_s in seconds) and the
         % end offset (offset_e in seconds).
-        %Bec Cowley, April 2014
         
-        %         change the offset times to days:
-        offset_e = offset_e/60/60/24;
-        offset_s = offset_s/60/60/24;
+        % calculate the offset times in days:
+        offset_days_e = offset_e/60/60/24;
+        offset_days_s = offset_s/60/60/24;
         
-        %make an array of time corrections using the offsets:
-        tarray = (offset_s:(offset_e-offset_s)/(length(time)-1):offset_e)';
-        if isempty(tarray)
-            newtime = [];
+        if offset_e == offset_s % then just remove the start time
+            newtime = time - offset_days_s;
         else
+            % make an array of time corrections using the offsets:
+            tarray = (offset_days_s:(offset_days_e-offset_days_s)/(length(time)-1):offset_days_e)';
             newtime = time - tarray;
         end
     end

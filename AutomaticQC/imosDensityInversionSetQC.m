@@ -75,6 +75,7 @@ threshold = str2double(readProperty('threshold', fullfile('AutomaticQC', 'imosDe
 % read dataset QC parameters if exist and override previous parameters file
 currentQCtest = mfilename;
 threshold = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'threshold', 0.03); % default threshold value of 0.03kg/m3
+threshold = threshold(1); % fix for compatibility with previous version 2.5.37 and older that used to unnecessarily store an array of thresholds
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
 rawFlag         = imosQCFlag('raw',         qcSet, 'flag');
@@ -141,8 +142,6 @@ rhoPotIp1 = gsw_rho(SA(Ip1), CT(Ip1), presRelRef);
 
 deltaUpBottom = [rhoPotI - rhoPotIp1; NaN];
 deltaBottomUp = [NaN; rhoPotIp1 - rhoPotI];
-
-threshold = ones(lenDataTested, 1) .* threshold;
 
 iDensInv = deltaUpBottom >= threshold | deltaBottomUp <= -threshold;
 

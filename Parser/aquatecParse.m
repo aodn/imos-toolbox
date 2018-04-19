@@ -208,6 +208,15 @@ data = textscan(data, format, 'Delimiter', delims);
 
 % if the filename contains timestamps, use them
 if ~isempty(timeIdx)
+    % we remove any data with a bad timestamp
+    iBadTimeStamp = (data{6} == 0) | (data{5} == 0) | (data{4} == 0);
+    if any(iBadTimeStamp)
+        disp(['Info : ' num2str(sum(iBadTimeStamp)) ' bad TIME values (and their corresponding measurements) had to be discarded in ' filename '.']);
+        for i=1:length(data)
+            data{i}(iBadTimeStamp) = [];
+        end
+    end
+        
     time = datenum(data{6}, data{5}, data{4}, data{1}, data{2}, data{3});
 else
     % otherwise generate timestamps from
