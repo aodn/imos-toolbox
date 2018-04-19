@@ -103,10 +103,7 @@ if ~isempty(dataTime)
     end
     
     if any(~iGoodTime)
-        disp(['Warning : ' num2str(sum(~iGoodTime)) ' points failed Impossible date QC test in file ' sample_data.toolbox_input_file]);
-    end
-    if all(~iGoodTime)
-        error('All points failed');
+        error([num2str(sum(~iGoodTime)) ' points failed Impossible date QC test in file ' sample_data.toolbox_input_file '. Try to re-play and fix this dataset when possible using the manufacturer''s software before processing it with the toolbox.']);
     end
     
     % write/update dataset QC parameters

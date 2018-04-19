@@ -84,8 +84,8 @@ if ~isempty(qcParam)
     end
 end
 
-% set background to be grey
-set(ax, 'Color', [0.85 0.85 0.85])
+% set background to be transparent (same as background color)
+set(ax, 'Color', 'none')
 
 if strncmp(var.name, 'DEPTH', 4) || strncmp(var.name, 'PRES', 4) || strncmp(var.name, 'PRES_REL', 8)
     set(ax, 'YDir', 'reverse');

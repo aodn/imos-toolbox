@@ -94,8 +94,8 @@ if ~isempty(climatologyRange)
     end
 end
 
-% set background to be grey
-set(ax, 'Color', [0.85 0.85 0.85])
+% set background to be transparent (same as figure background)
+set(ax, 'Color', 'none')
 
 labels = {var.name, 'DEPTH'};
 
