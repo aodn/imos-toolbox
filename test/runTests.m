@@ -36,6 +36,7 @@ addpath(searchPath);
 
 % run the unit tests
 testOxygenPP();
+testReadWQMraw();
 testSBE19Parse();
 
 end
