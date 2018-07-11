@@ -139,6 +139,13 @@ extraSampleMenu = uicontrol(...
     'Enable', 'off',...
     'Tag',    'extraSamplePopUpMenu');
 
+% flag visibility check box
+visiFlagCb = uicontrol(...
+    'Style',    'checkbox',...
+    'String',   'Show data flag if any',...
+    'Value',    1,...
+    'Tag',      'visiFlagCheckBox');
+
 % side panel
 sidePanel = uipanel(...
     'Parent',     fig,...
@@ -181,6 +188,7 @@ set(sampleMenu,       'Units', 'normalized');
 set(graphMenu,        'Units', 'normalized');
 set(extraSampleCb,    'Units', 'normalized');
 set(extraSampleMenu,  'Units', 'normalized');
+set(visiFlagCb,       'Units', 'normalized');
 set(stateButtons,     'Units', 'normalized');
 
 % set window position
@@ -198,12 +206,13 @@ end
 set(fig, 'Units', 'normalized');
 
 % set widget positions
-set(sidePanel,          'Position', posUi2(fig, 100, 100, 11:100,  1:10,  0));
-set(mainPanel,          'Position', posUi2(fig, 100, 100, 11:100, 11:100, 0));
+set(sidePanel,          'Position', posUi2(fig, 100, 100, 16:100,  1:10,  0));
+set(mainPanel,          'Position', posUi2(fig, 100, 100, 16:100, 11:100, 0));
 set(sampleMenu,         'Position', posUi2(fig, 100, 100,  1:5,    1:75,  0));
 set(graphMenu,          'Position', posUi2(fig, 100, 100,  1:5,   76:100, 0));
 set(extraSampleMenu,    'Position', posUi2(fig, 100, 100,  6:10,   1:75,  0));
 set(extraSampleCb,      'Position', posUi2(fig, 100, 100,  6:10,  76:100, 0));
+set(visiFlagCb,         'Position', posUi2(fig, 100, 100, 11:15,  76:100, 0));
 
 % varPanel and butPanel are positioned relative to sidePanel
 set(butPanel, 'Position', posUi2(sidePanel, 10, 1, 1:5,  1, 0));
@@ -221,6 +230,7 @@ set(sampleMenu,         'Callback', @sampleMenuCallback);
 set(graphMenu,          'Callback', @graphMenuCallback);
 set(extraSampleCb,      'Callback', @sampleMenuCallback);
 set(extraSampleMenu,    'Callback', @sampleMenuCallback);
+set(visiFlagCb,         'Callback', @sampleMenuCallback);
 set(stateButtons,       'Callback', @stateButtonCallback);
 
 set(fig, 'Visible', 'on');
@@ -342,6 +352,8 @@ set(hHelpWiki, 'callBack', @openWikiPage);
             extraSam.meta.index = 0;
         end
         
+        isFlagVisible = get(visiFlagCb, 'value');
+        
         % clear main panel
         children = get(mainPanel, 'Children');
         delete(children);
@@ -362,7 +374,8 @@ set(hHelpWiki, 'callBack', @openWikiPage);
             graph, ...              % currently selected graph type (string).
             sam.meta.index, ...     % currently selected sample_data struct (index)
             vars, ...               % currently selected variables (indices).
-            extraSam.meta.index);   % currently selected extra sample_data struct (index)
+            extraSam.meta.index, ...% currently selected extra sample_data struct (index)
+            isFlagVisible);         % currently selected visibility of flags (boolean)
         
         % set data cursor mode custom display
         dcm_obj = datacursormode(fig);
