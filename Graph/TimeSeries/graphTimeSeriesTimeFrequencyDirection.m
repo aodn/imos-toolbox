@@ -56,7 +56,22 @@ dir  = sample_data.variables{var}.dimensions(3);
 timeData  = sample_data.dimensions{iTimeDim}.data;
 dirData   = sample_data.dimensions{dir}.data;
 freqData  = sample_data.dimensions{freq}.data;
-sswvData  = sample_data.variables{var}.data;
+
+var = sample_data.variables{var};
+
+visiBadCbh = findobj('Tag', 'visiBadCheckBox');
+isBadHidden = get(visiBadCbh, 'value');
+if isBadHidden
+    % we replace values flagged as bad by NaN before plotting
+    qcSet = str2double(readProperty('toolbox.qc_set'));
+    rawFlag      = imosQCFlag('raw',          qcSet, 'flag');
+    goodFlag     = imosQCFlag('good',         qcSet, 'flag');
+    probGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+    
+    iGood = ismember(var.flags, [rawFlag, goodFlag, probGoodFlag]);
+    
+    var.data(~iGood) = NaN;
+end
 
 varCheckbox = findobj('Tag', ['checkbox' sample_data.variables{var}.name]);
 iTime = get(varCheckbox, 'userData');
@@ -80,7 +95,7 @@ for i=1:nDir+1
     X(i, :) = r*sin(theta(i));
 end
 
-h = pcolor(ax, double(X), double(Y), double([squeeze(sswvData(iTime, :, :)), sswvData(iTime, :, 1)']')); % we need to repeat the first values at the end
+h = pcolor(ax, double(X), double(Y), double([squeeze(var.data(iTime, :, :)), var.data(iTime, :, 1)']')); % we need to repeat the first values at the end
 axis equal tight
 shading flat
 set(ax, ...

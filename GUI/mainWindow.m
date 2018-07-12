@@ -146,6 +146,13 @@ visiFlagCb = uicontrol(...
     'Value',    1,...
     'Tag',      'visiFlagCheckBox');
 
+% bad data visibility check box
+visiBadCb = uicontrol(...
+    'Style',    'checkbox',...
+    'String',   'Hide bad data',...
+    'Value',    0,...
+    'Tag',      'visiBadCheckBox');
+
 % side panel
 sidePanel = uipanel(...
     'Parent',     fig,...
@@ -189,6 +196,7 @@ set(graphMenu,        'Units', 'normalized');
 set(extraSampleCb,    'Units', 'normalized');
 set(extraSampleMenu,  'Units', 'normalized');
 set(visiFlagCb,       'Units', 'normalized');
+set(visiBadCb,        'Units', 'normalized');
 set(stateButtons,     'Units', 'normalized');
 
 % set window position
@@ -213,6 +221,7 @@ set(graphMenu,          'Position', posUi2(fig, 100, 100,  1:5,   76:100, 0));
 set(extraSampleMenu,    'Position', posUi2(fig, 100, 100,  6:10,   1:75,  0));
 set(extraSampleCb,      'Position', posUi2(fig, 100, 100,  6:10,  76:100, 0));
 set(visiFlagCb,         'Position', posUi2(fig, 100, 100, 11:15,  76:100, 0));
+set(visiBadCb,          'Position', posUi2(fig, 100, 100, 11:15,  51:75,  0));
 
 % varPanel and butPanel are positioned relative to sidePanel
 set(butPanel, 'Position', posUi2(sidePanel, 10, 1, 1:5,  1, 0));
@@ -231,6 +240,7 @@ set(graphMenu,          'Callback', @graphMenuCallback);
 set(extraSampleCb,      'Callback', @sampleMenuCallback);
 set(extraSampleMenu,    'Callback', @sampleMenuCallback);
 set(visiFlagCb,         'Callback', @sampleMenuCallback);
+set(visiBadCb,          'Callback', @sampleMenuCallback);
 set(stateButtons,       'Callback', @stateButtonCallback);
 
 set(fig, 'Visible', 'on');

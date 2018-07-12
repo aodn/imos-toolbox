@@ -50,6 +50,20 @@ time = sample_data.dimensions{iTimeDim};
 freq = sample_data.dimensions{freq};
 var  = sample_data.variables {var};
 
+visiBadCbh = findobj('Tag', 'visiBadCheckBox');
+isBadHidden = get(visiBadCbh, 'value');
+if isBadHidden
+    % we replace values flagged as bad by NaN before plotting
+    qcSet = str2double(readProperty('toolbox.qc_set'));
+    rawFlag      = imosQCFlag('raw',          qcSet, 'flag');
+    goodFlag     = imosQCFlag('good',         qcSet, 'flag');
+    probGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+    
+    iGood = ismember(var.flags, [rawFlag, goodFlag, probGoodFlag]);
+    
+    var.data(~iGood) = NaN;
+end
+
 xPcolor = time.data;
 yPcolor = freq.data;
 

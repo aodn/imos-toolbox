@@ -49,6 +49,20 @@ var  = sample_data.variables {var};
 
 if ischar(var.data), var.data = str2num(var.data); end % we assume data is an array of one single character
 
+visiBadCbh = findobj('Tag', 'visiBadCheckBox');
+isBadHidden = get(visiBadCbh, 'value');
+if isBadHidden
+    % we replace values flagged as bad by NaN before plotting
+    qcSet = str2double(readProperty('toolbox.qc_set'));
+    rawFlag      = imosQCFlag('raw',          qcSet, 'flag');
+    goodFlag     = imosQCFlag('good',         qcSet, 'flag');
+    probGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+    
+    iGood = ismember(var.flags, [rawFlag, goodFlag, probGoodFlag]);
+    
+    var.data(~iGood) = NaN;
+end
+
 h    = line(time.data, var.data, 'Parent', ax, 'Color', color);
 set(ax, 'Tag', 'axis1D');
 
