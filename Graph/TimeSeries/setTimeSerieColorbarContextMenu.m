@@ -53,7 +53,7 @@ end
 switch upper(var.name(1:4))
     case {'UCUR', 'VCUR', 'WCUR', 'ECUR', 'VEL1', 'VEL2', 'VEL3', 'VEL4'} % 0 centred parameters
         colormap(r_b);
-        cbCLimRange('', '', 'auto, 0 centred', var.data);
+        cbCLimRange('', '', 'full, 0 centred', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
         hMenu = uicontextmenu;
@@ -116,7 +116,7 @@ switch upper(var.name(1:4))
         
     case {'CSPD', 'VDEN', 'VDEV', 'VDEP', 'VDES'} % [0; oo[ paremeters
         colormap(parula);
-        cbCLimRange('', '', 'auto from 0', var.data);
+        cbCLimRange('', '', 'full', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
         hMenu = uicontextmenu;
@@ -143,7 +143,7 @@ switch upper(var.name(1:4))
         % let's apply a colormap like jet but starting from white
         load('jet_w.mat', '-mat', 'jet_w');
         colormap(jet_w);
-        cbCLimRange('', '', 'auto from 0', var.data);
+        cbCLimRange('', '', 'full', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
         hMenu = uicontextmenu;
@@ -170,7 +170,7 @@ switch upper(var.name(1:4))
         
     otherwise
         colormap(parula);
-        cbCLimRange('', '', 'full', var.data);
+        cbCLimRange('', '', 'full', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
         hMenu = uicontextmenu;

@@ -41,7 +41,16 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be numeric');          end
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
-rawFlag = imosQCFlag('raw', qcSet, 'flag');
+noDisplayFlag = imosQCFlag('raw', qcSet, 'flag'); % raw flags are not displayed by default
+
+visiBadCbh = findobj('Tag', 'visiBadCheckBox');
+isBadHidden = get(visiBadCbh, 'value');
+if isBadHidden
+    % we add bad flags to the list of flags not to be displayed
+    noDisplayFlag = [noDisplayFlag, ...
+        imosQCFlag('probablyBad', qcSet, 'flag'), ...
+        imosQCFlag('bad', qcSet, 'flag')];
+end
 
 freq = sample_data.variables{var}.dimensions(2);
 dir  = sample_data.variables{var}.dimensions(3);
@@ -67,9 +76,9 @@ theta = theta - (theta(2)-theta(1))/2; % we want to centre the angular beam on t
 % get a list of the different flag types to be graphed
 flagTypes = unique(sswvFlags);
 
-% don't display raw data flags
-iRawFlag = (flagTypes == rawFlag);
-if any(iRawFlag), flagTypes(iRawFlag) = []; end
+% don't display specific flags
+iNoDisplayFlag = ismember(flagTypes, noDisplayFlag);
+if any(iNoDisplayFlag), flagTypes(iNoDisplayFlag) = []; end
   
 lenFlag = length(flagTypes);
 

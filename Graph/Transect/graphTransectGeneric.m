@@ -44,6 +44,20 @@ lat = sample_data.variables{lat};
 lon = sample_data.variables{lon};
 var = sample_data.variables{var};
 
+visiBadCbh = findobj('Tag', 'visiBadCheckBox');
+isBadHidden = get(visiBadCbh, 'value');
+if isBadHidden
+    % we replace values flagged as bad by NaN before plotting
+    qcSet = str2double(readProperty('toolbox.qc_set'));
+    rawFlag      = imosQCFlag('raw',          qcSet, 'flag');
+    goodFlag     = imosQCFlag('good',         qcSet, 'flag');
+    probGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+    
+    iGood = ismember(var.flags, [rawFlag, goodFlag, probGoodFlag]);
+    
+    var.data(~iGood) = NaN;
+end
+
 h = patch([lat.data' nan], [lon.data' nan], 0);
 
 set(h, 'CData',     [var.data' nan]);

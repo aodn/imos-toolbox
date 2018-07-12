@@ -189,7 +189,8 @@ for k = 1:length(sample_data)
                 sample_data{k}.dimensions{end}.standard_name   = imosParameters('HEIGHT_ABOVE_SENSOR', 'standard_name');
                 sample_data{k}.dimensions{end}.axis            = 'Z';
                 sample_data{k}.dimensions{end}.positive        = imosParameters('HEIGHT_ABOVE_SENSOR', 'positive');
-                sample_data{k}.dimensions{end}.comment         = ['Data has been vertically bin-mapped using tilt information so that the cells ' ...
+                sample_data{k}.dimensions{end}.comment         = ['Values correspond to the distance between the instrument''s transducers and the centre of each cells. ' ...
+                    'Data has been vertically bin-mapped using tilt information so that the cells ' ...
                     'have consistant heights above sensor in time.'];
                 
                 heightAboveSensorIdx = getVar(sample_data{k}.dimensions, 'HEIGHT_ABOVE_SENSOR');
