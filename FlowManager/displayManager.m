@@ -112,7 +112,7 @@ function displayManager(windowTitle, sample_data, callbacks)
   mainWindow(windowTitle, sample_data, states, 3, @stateSelectCallback);
       
   function state = stateSelectCallback(event,...
-    panel, updateCallback, state, sample_data, graphType, setIdx, vars, extraSetIdx)
+    panel, updateCallback, state, sample_data, graphType, setIdx, vars, extraSetIdx, isFlagVisible)
   %STATESELECTCALLBACK Called when the user interacts with the main 
   % window, by changing the state, the selected data set, the selected
   % variables or the selected graph type.
@@ -127,6 +127,7 @@ function displayManager(windowTitle, sample_data, callbacks)
   %   setIdx         - currently selected sample_data struct (index)
   %   vars           - currently selected variables (indices).
   %   extraSetIdx    - currently selected extra sample_data struct (index)
+  %   isFlagVisible  - currently selected visibility of flags (boolean)
   %
   % Outputs:
   %   state          - If a state change was forced, tells the main window
@@ -335,12 +336,14 @@ function displayManager(windowTitle, sample_data, callbacks)
         
         [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars, extra_sample_data);
         
-        if isempty(flagFunc)
-          warning(['Cannot display QC flags using ' graphType ...
-                   '. Try a different graph type.']);
-          return;
-        else
-          flags = flagFunc( panel, graphs, sample_data{setIdx}, vars);
+        if isFlagVisible
+            if isempty(flagFunc)
+                warning(['Cannot display QC flags using ' graphType ...
+                    '. Try a different graph type.']);
+                return;
+            else
+                flags = flagFunc( panel, graphs, sample_data{setIdx}, vars);
+            end
         end
         
       catch e
@@ -477,8 +480,10 @@ function displayManager(windowTitle, sample_data, callbacks)
               updateCallback(sample_data{setIdx});
               
               % update graph
-              if ~isempty(flags), delete(flags(flags ~= 0)); end
-              flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
+              if isFlagVisible
+                  if ~isempty(flags), delete(flags(flags ~= 0)); end
+                  flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
+              end
               
               % write/update manual QC file for this dataset
               mqcFile = [sample_data{setIdx}.toolbox_input_file, '.mqc'];

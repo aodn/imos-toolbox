@@ -686,7 +686,9 @@ for i=1:nDataset
         data.(acquisitionMode{i}).Correlation4(iBadOriented, :) = NaN;
         
         dims = [dims; ...
-            {'DIST_ALONG_BEAMS', distance, 'Nortek instrument data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'}];
+            {'DIST_ALONG_BEAMS', distance, ['Values correspond to the distance between the instrument''s transducers and the centre of each cells. ' ...
+            'Nortek instrument data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, ' ...
+            'at heights above sensor that vary with tilt.']}];
     end
     
     nDims = size(dims, 1);

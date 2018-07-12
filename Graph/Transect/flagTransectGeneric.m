@@ -42,7 +42,16 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be numeric');          end
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
-rawFlag = imosQCFlag('raw', qcSet, 'flag');
+noDisplayFlag = imosQCFlag('raw', qcSet, 'flag'); % raw flags are not displayed by default
+
+visiBadCbh = findobj('Tag', 'visiBadCheckBox');
+isBadHidden = get(visiBadCbh, 'value');
+if isBadHidden
+    % we add bad flags to the list of flags not to be displayed
+    noDisplayFlag = [noDisplayFlag, ...
+        imosQCFlag('probablyBad', qcSet, 'flag'), ...
+        imosQCFlag('bad', qcSet, 'flag')];
+end
 
 % get latitude/longitude variables
 lat = getVar(sample_data.variables, 'LATITUDE');
@@ -55,9 +64,9 @@ var = sample_data.variables{var};
 % get a list of the different flag types to be graphed
 flagTypes = unique(var.flags);
 
-% don't display raw data flags
-iRawFlag = (flagTypes == rawFlag);
-if any(iRawFlag), flagTypes(iRawFlag) = []; end
+% don't display specific flags
+iNoDisplayFlag = ismember(flagTypes, noDisplayFlag);
+if any(iNoDisplayFlag), flagTypes(iNoDisplayFlag) = []; end
   
 lenFlag = length(flagTypes);
 

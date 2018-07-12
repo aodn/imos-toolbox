@@ -229,15 +229,20 @@ if velocityProcessed
     qcFlag(iBadOriented, :) = NaN;
 end
 dims = {
-    'TIME',             time,    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(user.AvgInterval) ' seconds.']; ...
-    'DIST_ALONG_BEAMS', distance, 'Nortek instrument data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
+    'TIME',             time,     ['Time stamp corresponds to the start of the measurement which lasts ' num2str(user.AvgInterval) ' seconds.']; ...
+    'DIST_ALONG_BEAMS', distance, ['Values correspond to the distance between the instrument''s transducers and the centre of each cells. ' ...
+    'Nortek instrument data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, ' ...
+    'at heights above sensor that vary with tilt.']
     };
 clear time distance;
 
 if velocityProcessed
     % we re-arrange dimensions like for RDI ADCPs
     dims(end+1, :) = dims(end, :);
-    dims(end-1, :) = {'HEIGHT_ABOVE_SENSOR', height, 'Data has been vertically bin-mapped using Nortek Storm software ''Remove tilt effects'' procedure. Cells have consistant heights above sensor in time.'};
+    dims(end-1, :) = {
+        'HEIGHT_ABOVE_SENSOR', height, ['Values correspond to the distance between the instrument''s transducers and the centre of each cells. ' ...
+        'Data has been vertically bin-mapped using Nortek Storm software ''Remove tilt effects'' procedure. Cells have consistant heights above sensor in time.']
+        };
 end
 clear height;
 

@@ -92,8 +92,7 @@ function sample_data = readWQMraw( filename, mode )
       'that fluoresces in the region of 695nm. '...
       'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
   params{end+1} = {'backscatterance', {'TURB', ''}};
-  % CJ where is PAR?? 
- % params{end+1} = {'PAR',             {'PAR', ''}};
+  params{end+1} = {'PAR',             {'PAR', ''}};
 
   % open file, get header and use it to generate a 
   % format string which we can pass to textscan
@@ -136,9 +135,11 @@ function sample_data = readWQMraw( filename, mode )
   durationBurst = zeros(nBurst, 1);
   for i=1:nBurst
       timeBurst = time(iBurst(i):iBurst(i+1)-1);
-      sampleIntervalInBurst(i) = median(diff(timeBurst*24*3600));
-      firstTimeBurst(i) = timeBurst(1);
-      durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600 + sampleIntervalInBurst(i);
+      if numel(timeBurst)>1 % deals with the case of a file with a single sample in a single burst
+          sampleIntervalInBurst(i) = median(diff(timeBurst*24*3600));
+          firstTimeBurst(i) = timeBurst(1);
+          durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600 + sampleIntervalInBurst(i);
+      end
   end
   
   sample_data.meta.instrument_sample_interval   = round(median(sampleIntervalInBurst));
@@ -258,12 +259,16 @@ while ~strcmp(str{1},'<EOH>');
     headerLine(iline)=str{1};
 end
 
-wqmSNExpr    = ['^WQM SN: +' '(\S+)$'];
-ctdSNExpr    = ['^CTDO SN: +' '(\S+)$'];
-doSNExpr     = 'DOSN=(\S+)';
-opticsSNExpr = ['Optics SN: +' '(\S+)'];
+wqmSNExpr     = '^WQM SN:\s+(\S+)$';
+ctdSNExpr     = '^CTDO SN:\s+(\S+)$';
+doSNExpr      = '^DOSN=(\S+)';
+opticsSNExpr  = '^Optics SN:\s+(\S+)';
+doSNExpr2     = '^IDO SN:\s+(\S+)';
+opticsSNExpr2 = '^FL_NTU SN:\s+(\S+)';
+opticsSNExpr3 = '^ECO SN:\s+(\S+)';
+parSN         = '^PAR SN=(\S+)';
 
-exprs = {wqmSNExpr ctdSNExpr doSNExpr opticsSNExpr};
+exprs = {wqmSNExpr ctdSNExpr doSNExpr opticsSNExpr doSNExpr2 opticsSNExpr2 opticsSNExpr3 parSN};
 
 for l = 1:length(headerLine)
     
@@ -294,6 +299,23 @@ for l = 1:length(headerLine)
                 % optics
                 case 4
                     WQM.Optics_SN   = tkns{1}{1};
+                    
+                 % do v2
+                case 5
+                    WQM.DO_SN       = tkns{1}{1};
+                    if strcmpi(WQM.DO_SN, '0'), WQM.DO_SN = WQM.CTDO_SN; end                   
+
+                % optics v2
+                case 6
+                    WQM.Optics_SN   = tkns{1}{1};
+                    
+                % optics v3
+                case 7
+                    WQM.Optics_SN   = tkns{1}{1};
+                    
+                % par
+                case 8
+                    WQM.PAR_SN   = tkns{1}{1};                    
             end
             break;
         end
@@ -374,19 +396,75 @@ WQM.samp_units='datenumber';
 WQM.varlabel={'conductivity','temperature','pressure','salinity','oxygen','U_Cal_CHL','backscatterance'};
 WQM.varunits={'S/m','C','dbar','PSU','ml/l','ug/l','NTU'};
 
+% Find column index for various variable
+% Assume data starts after date/time section. Some example strings are
+% File Format: SN,State,Date,Time,Cond,Temp,Pres,RawDO,RawCHL,RawTurb,Volts
+% File Format: SN,State,Date,Time,Cond(S/m),Temp(C),Pres(dbar),RawDO(Hz),RawCHL(cts),RawTurb(cts),Volts
+% File Format: SN,State,Date,Time,Cond(S/m),Temp(C),Pres(dbar),RawDO(Hz),Pumped,CHLa(Counts),Turbidity(Counts),Volts
+% File Format: SN,State,Date,Time,Cond(S/m),Temp(C),Pres(dbar),RawDO(Hz),Pumped,CHLA(COUNTS),TURBIDITY(COUNTS),Volts
+rExp = '^File Format:\s+(\S+)';
+indFileFormat = find(~cellfun(@isempty, regexpi(headerLine, rExp)));
+if isempty(indFileFormat)
+    % very old file, have to assume default ordering
+    colCond = 1;
+    colTemp = 2;
+    colPres = 3;
+    colRawDO = 4;
+    colCHL = 5;
+    colTurb = 6;
+    colPar = 7;
+else
+    % newer file, try and parse various variable names
+    tkns = regexp(headerLine{indFileFormat}, rExp, 'tokens');
+    formatStr = tkns{1}{1};
+    formatCellStr = textscan(formatStr, '%s', 'delimiter', ',');
+    formatCellStr = formatCellStr{1};
+    
+    rExp = 'Cond';
+    colCond = find(~cellfun(@isempty, regexpi(formatCellStr, rExp))) - 4;
+    rExp = 'Temp';
+    colTemp = find(~cellfun(@isempty, regexpi(formatCellStr, rExp))) - 4;
+    rExp = 'Pres';
+    colPres = find(~cellfun(@isempty, regexpi(formatCellStr, rExp))) - 4;
+    rExp = 'RawDO';
+    colRawDO = find(~cellfun(@isempty, regexpi(formatCellStr, rExp))) - 4;
+    rExp = 'CHL'; % RawCHL | CHLa | CHLA
+    colCHL = find(~cellfun(@isempty, regexpi(formatCellStr, rExp))) - 4;
+    rExp = 'TURB'; % RawTurb | Turbidity | TURBIDITY
+    colTurb = find(~cellfun(@isempty, regexpi(formatCellStr, rExp))) - 4;
+    rExp = 'PAR'; % RawPAR | PAR
+    colPar = find(~cellfun(@isempty, regexpi(formatCellStr, rExp))) - 4;
+end
 
-% the next number is one of 7 codes
-
+% a standard data line looks like
+% SN,State,DATE,TIME,data
+%
+% Currently known States are 
+%
 % These clearly contain physical data
-% 4 - data fields
-% 5 - data fields
-% 6 - data fields
-
+% 4 - SN,4,DATE,TIME,comma seperated data fields
+% 5 - SN,5,DATE,TIME,comma seperated data fields
+% 6 - SN,6,DATE,TIME,comma seperated data fields
+%
 % Not clear what these lines contain, maybe status and voltage stuff
 % 100 - 16 fields
 % 110 - 13 fields, perhaps an aborted sample? - only found it at end of file
 % 120 - 3 fields, pretty rare right near end as well
-% 130 - 1 field Unable to Wake CTD
+% 130 - SN,130,DATE,TIME,status message
+% example status messages 
+%   'Low Voltage - BLIS Pumps Aborted'
+%   'EDP Bio-Wiper Might Not have Closed'
+% 140 - SN,140,DATE,TIME,status message
+% example status messages 
+%   'Unable to Wake CTD'
+%   'CTD Start Time is SLOW at 8.087 Seconds'
+%   'Sample Mode:  In Air - Not Pumped: 0.00007 S/M < 0.00150 C90-Limit'
+%   'Sample Mode:  Insitu - Pumped: 5.52542 S/M > 0.00150 C90-Limit'
+%   'Stray CTD Data was removed'
+% 200 - SN,200,DATE,TIME,comma seperated data fields
+% 210 - SN,210,DATE,TIME,tab seperated data fields
+% 211 - SN,211,DATE,TIME, empty?
+% 230 - SN,230,DATE,TIME,comma seperated data fields
 
 % we will only retain data with line code 6
 dcode = a{2};
@@ -490,11 +568,11 @@ end
 A = A';
 
 % C,T,P are in stored in engineering units
-WQM.conductivity = A(:,1);    % S/m
+WQM.conductivity = A(:,colCond);    % S/m
 
 % temperature and pressure in C and dbar
-WQM.temperature = A(:,2);
-WQM.pressure = A(:,3);
+WQM.temperature = A(:,colTemp);
+WQM.pressure = A(:,colPres);
 
 % compute conductivity ratio to use seawater salinity algorithm
 % Wetlabs conductivity is in S/m and gsw_C3515 in mS/cm
@@ -506,34 +584,126 @@ WQM.salinity = gsw_SP_from_R(crat, WQM.temperature, WQM.pressure);
 
 % Oxygen
 %
-Soc = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'Soc'))},'%4c%f');
-FOffset = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'FOffset'))},'%8c%f');
-A52 = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'A52'))},'%4c%f');
-B52 = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'B52'))},'%4c%f');
-C52 = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'C52'))},'%4c%f');
-E52 = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'E52'))},'%4c%f');
+try
+    Soc = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'Soc='))},'%4c%f');
+    FOffset = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'FOffset='))},'%8c%f');
+    Acal = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'A52='))},'%4c%f');
+    Bcal = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'B52='))},'%4c%f');
+    Ccal = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'C52='))},'%4c%f');
+    Ecal = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'E52='))},'%4c%f');
+catch
+    Soc = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'IDO43 Soc='))},'%10c%f');
+    FOffset = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'IDO43 FOffset='))},'%14c%f');
+    Acal = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'IDO43 A='))},'%8c%f');
+    Bcal = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'IDO43 B='))},'%8c%f');
+    Ccal = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'IDO43 C='))},'%8c%f');
+    Ecal = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'IDO43 E='))},'%8c%f');
+end
 
 O2.Soc = Soc{2};
 O2.FOffset = FOffset{2};
-O2.A = A52{2};
-O2.B = B52{2};
-O2.C = C52{2};
-O2.E = E52{2};
+O2.A = Acal{2};
+O2.B = Bcal{2};
+O2.C = Ccal{2};
+O2.E = Ecal{2};
 
-oxygen = A(:,4);
+oxygen = A(:,colRawDO);
 
 WQM.oxygen = O2cal(oxygen, O2, WQM);
 
 % FLNTU Sensor
-chl = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'UserCHL'))},'%8c%f%f\n');
-ntu = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'NTU'))},'%4c%f%f\n');
-CHL.scale = chl{2};
-CHL.offset = chl{3};
-NTU.scale = ntu{2};
-NTU.offset = ntu{3};
+try
+    % example text in older files
+    % FactoryCHL=0.012	60	Scale and Offset
+    % UserCHL=0.012	60	Scale and Offset
+    % NTU=0.006	58	Scale and Offset
+    chl = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'UserCHL='))},'%8c%f%f\n');
+    ntu = textscan(headerLine{~cellfun('isempty',strfind(headerLine,'NTU='))},'%4c%f%f\n');
+    CHL.scale = chl{2};
+    CHL.offset = chl{3};
+    NTU.scale = ntu{2};
+    NTU.offset = ntu{3};
+catch
+    % example text in newer raw files
+    % ECO Signal Count:  2
+    % ECO Signal 1 Name:  CHLA
+    % ECO Signal 1 Raw Units:  COUNTS
+    % ECO Signal 1 Engr Units:  UG/L
+    % ECO Signal 1 Type:  1  Std Scale'n'Offset
+    % ECO Signal 1 Cal Coef:  0.011200  49.000000  0.000000  0.000000
+    % ECO Signal 2 Name:  TURBIDITY
+    % ECO Signal 2 Raw Units:  COUNTS
+    % ECO Signal 2 Engr Units:  NTU
+    % ECO Signal 2 Type:  1  Std Scale'n'Offset
+    % ECO Signal 2 Cal Coef:  0.006200  50.000000  0.000000  0.000000
+    
+    rExp = 'ECO Signal Count:\W+(\d+)';
+    indNSignals = find(~cellfun(@isempty, regexp(headerLine, rExp)));
+    tkns = regexp(headerLine{indNSignals}, rExp, 'tokens');
+    
+    % test for CHLA (or CHLa)
+    rExp = 'ECO Signal (\d) Name:\W+CHLA';
+    indCHLA = find(~cellfun(@isempty, regexpi(headerLine, rExp)));
+    if ~isempty(indCHLA)
+        tkns = regexpi(headerLine{indCHLA}, rExp, 'tokens');
+        nSignal = str2num(tkns{1}{1});
+        signalStr =  ['ECO Signal ' num2str(nSignal)];
+        
+        str = headerLine{~cellfun('isempty',strfind(headerLine,[signalStr ' Raw Units:']))};
+        rawUnits = regexp(str,':','split');
+        rawUnits = strtrim(rawUnits{2});
+        
+        str = headerLine{~cellfun('isempty',strfind(headerLine,[signalStr ' Engr Units:']))};
+        engrUnits = regexp(str,':','split');
+        engrUnits = strtrim(engrUnits{2});
+        
+        str = headerLine{~cellfun('isempty',strfind(headerLine,[signalStr ' Type:  1']))};
+        typeStr = strtrim(regexp(str,':','split'));
+        typeStr = typeStr{2}(1);
+        if str2num(typeStr) ~= 1
+            error('readWQMraw only handles type 1 unit scaling');
+        end
+        
+        str = headerLine{~cellfun('isempty',strfind(headerLine,[signalStr ' Cal Coef:']))};
+        calStr = strtrim(regexp(str,':','split'));
+        calCoeffs = str2num(calStr{2});
+        CHL.scale = calCoeffs(1);
+        CHL.offset = calCoeffs(2);
+    end
+    
+    % test for TURBIDITY (or Turbidity)
+    rExp = 'ECO Signal (\d) Name:\W+TURBIDITY';
+    indTURB = find(~cellfun(@isempty, regexpi(headerLine, rExp)));
+    if ~isempty(indTURB)
+        tkns = regexpi(headerLine{indTURB}, rExp, 'tokens');
+        nSignal = str2num(tkns{1}{1});
+        signalStr =  ['ECO Signal ' num2str(nSignal)];
+        
+        str = headerLine{~cellfun('isempty',strfind(headerLine,[signalStr ' Raw Units:']))};
+        rawUnits = regexp(str,':','split');
+        rawUnits = strtrim(rawUnits{2});
+        
+        str = headerLine{~cellfun('isempty',strfind(headerLine,[signalStr ' Engr Units:']))};
+        engrUnits = regexp(str,':','split');
+        engrUnits = strtrim(engrUnits{2});
+        
+        str = headerLine{~cellfun('isempty',strfind(headerLine,[signalStr ' Type:  1']))};
+        typeStr = strtrim(regexp(str,':','split'));
+        typeStr = typeStr{2}(1);
+        if str2num(typeStr) ~= 1
+            error('readWQMraw only handles type 1 unit scaling');
+        end
+        
+        str = headerLine{~cellfun('isempty',strfind(headerLine,[signalStr ' Cal Coef:']))};
+        calStr = strtrim(regexp(str,':','split'));
+        calCoeffs = str2num(calStr{2});
+        NTU.scale = calCoeffs(1);
+        NTU.offset = calCoeffs(2);
+    end
+end
 
-fluor = A(:,5);
-turb = A(:,6);
+fluor = A(:,colCHL);
+turb = A(:,colTurb);
 WQM.U_Cal_CHL = FLNTUcal(fluor, CHL);
 WQM.backscatterance = FLNTUcal(turb, NTU);
 
@@ -550,11 +720,10 @@ if any(isPar)
     PAR.a0=par{3};
     PAR.a1=par{4};
     %par=cellfun(@(x) x(7),D);
-    par=A(:,7);
+    par=A(:,colPar);
     WQM.PAR=PARcal(par,PAR);
-    % nvars = 8 because of salinity (derived)
-    WQM.varlabel{nvars+1}='PAR';
-    WQM.varunits{nvars+1}='umol/m^2/s';
+    WQM.varlabel{end+1}='PAR';
+    WQM.varunits{end+1}='umol/m^2/s';
     Cal.PAR=PAR;
 end
 

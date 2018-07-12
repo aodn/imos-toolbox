@@ -42,6 +42,23 @@ if ~isnumeric(vars),       error('var must be a numeric');        end
 xdata = sample_data.variables{vars(1)}.data(:);
 ydata = sample_data.variables{vars(2)}.data(:);
 
+visiBadCbh = findobj('Tag', 'visiBadCheckBox');
+isBadHidden = get(visiBadCbh, 'value');
+if isBadHidden
+    % we replace values flagged as bad by NaN before plotting
+    qcSet = str2double(readProperty('toolbox.qc_set'));
+    rawFlag      = imosQCFlag('raw',          qcSet, 'flag');
+    goodFlag     = imosQCFlag('good',         qcSet, 'flag');
+    probGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+    
+    iGood1 = ismember(sample_data.variables{vars(1)}.flags, [rawFlag, goodFlag, probGoodFlag]);
+    iGood2 = ismember(sample_data.variables{vars(2)}.flags, [rawFlag, goodFlag, probGoodFlag]);
+    iGood = iGood1 & iGood2;
+    
+    xdata(~iGood) = NaN;
+    ydata(~iGood) = NaN;
+end
+
 h = line(xdata, ydata, 'Color', color);
 set(ax, 'Tag', 'axis1D');
 
