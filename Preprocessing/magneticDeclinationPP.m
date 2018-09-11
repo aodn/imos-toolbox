@@ -212,9 +212,7 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
               % we apply the modifications to the data and metadata
               paramName = sample_data{iMagDataSet(i)}.variables{j}.name(1:end-4);
               sample_data{iMagDataSet(i)}.variables{j}.name = paramName;
-              sample_data{iMagDataSet(i)}.variables{j}.standard_name = '';
-              sample_data{iMagDataSet(i)}.variables{j}.long_name = '';
-              sample_data{iMagDataSet(i)}.variables{j}.units = '';
+              sample_data{iMagDataSet(i)}.variables{j}.reference_datum = ''; % will be updated by makeNetCDFCompliant
               sample_data{iMagDataSet(i)}.variables{j}.data = data;
               sample_data{iMagDataSet(i)}.variables{j}.magnetic_declination = geomagDeclin(i);
               sample_data{iMagDataSet(i)}.variables{j}.compass_correction_applied = geomagDeclin(i);
