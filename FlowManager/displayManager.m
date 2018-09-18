@@ -640,7 +640,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       callbacks.exportNetCDFRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars, extraSetIdx);
+        sample_data, graphType, setIdx, vars, extraSetIdx, isFlagVisible);
       state = lastState;
     end
     
@@ -651,7 +651,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       callbacks.exportRawRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars, extraSetIdx);
+        sample_data, graphType, setIdx, vars, extraSetIdx, isFlagVisible);
       state = lastState;
     end
   end
