@@ -128,7 +128,7 @@ isPlottable = false;
 backgroundColor = [1 1 1]; % white
 
 %plot
-fileName = genIMOSFileName(sample_data{iCurrSam}, 'png');
+fileName = genIMOSFileName(sample_data{iCurrSam}, '.png');
 visible = 'on';
 if saveToFile, visible = 'off'; end
 hFigPressDiff = figure(...

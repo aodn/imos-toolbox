@@ -53,14 +53,17 @@ function exportManager(dataSets, levelNames, output, auto)
     if length(dataSets{k}) ~= numSets, error('data set length mismatch'); end
   end
   
-  suffix = '';
+  extension = '';
   varOpts = false;
   switch (output)
-    case 'raw', suffix = 'txt';
-    case 'netcdf'
-      varOpts = true;
-      suffix = 'nc';
-    otherwise,     error(['unknown output type: ' output]);
+      case 'raw'
+          
+      case 'netcdf'
+          varOpts = true;
+          extension = '.nc';
+          
+      otherwise
+          error(['unknown output type: ' output]);
   end
     
   % get the toolbox execution mode
@@ -68,7 +71,7 @@ function exportManager(dataSets, levelNames, output, auto)
   
   setNames = cell(numSets, 1);
   for k = 1:numSets
-      setNames{k} = genIMOSFileName(dataSets{1}{k}, suffix);
+      setNames{k} = genIMOSFileName(dataSets{1}{k}, extension);
   end
     
   % prompt user for export directory, and data sets to export

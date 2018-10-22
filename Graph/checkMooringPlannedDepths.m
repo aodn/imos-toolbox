@@ -177,7 +177,7 @@ instrumentDesc = [{'Make Model (nominal depth - instrument SN)'}; instrumentDesc
 
 %now plot all the calculated depths on one plot to choose region for comparison:
 %plot
-fileName = genIMOSFileName(sample_data{1}, 'png');
+fileName = genIMOSFileName(sample_data{1}, '.png');
 visible = 'on';
 if saveToFile, visible = 'off'; end
 hFigPress = figure(...

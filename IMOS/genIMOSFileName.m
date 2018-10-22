@@ -1,15 +1,15 @@
-function filename = genIMOSFileName( sample_data, suffix )
+function filename = genIMOSFileName( sample_data, extension )
 %GENIMOSFILENAME Generates an IMOS file name for the given data set.
 %
 % Generates a file name for the given data set. The file name is generated 
-% according to the IMOS NetCDF File Naming Convention, version 1.3. Values
+% according to the IMOS NetCDF File Naming Convention, version 1.4. Values
 % for each field are retrieved from the imosFileName.txt configuration
 % file. Any fields which are not present, or not set in this file are given
 % a default value.
 %
 % Inputs:
 %   sample_data - the data set to generate a file name for.
-%   suffix      - file name suffix to use.
+%   extension   - file extension to use.
 %
 % Outputs:
 %   filename    - the generated file name.
@@ -39,7 +39,7 @@ function filename = genIMOSFileName( sample_data, suffix )
   narginchk(2,2);
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
-  if ~ischar(suffix),        error('suffix must be a string');      end
+  if ~ischar(extension),     error('extension must be a string');   end
 
   %
   % all dates should be in ISO 8601 format
@@ -56,7 +56,7 @@ function filename = genIMOSFileName( sample_data, suffix )
   switch mode
       case 'profile'
           % build the file name
-          if strcmpi(suffix, 'png')
+          if strcmpi(extension, '.png')
               filename = [sample_data.naming_authority '_'];
               filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
               filename = [filename        getVal(fileCfg, defCfg, 'site_code')     '_'];
@@ -75,7 +75,7 @@ function filename = genIMOSFileName( sample_data, suffix )
           end
       case 'timeSeries'
           % build the file name
-          if strcmpi(suffix, 'png')
+          if strcmpi(extension, '.png')
               filename = [sample_data.naming_authority '_'];
               filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
               filename = [filename        getVal(fileCfg, defCfg, 'platform_code') '_'];
@@ -104,10 +104,13 @@ function filename = genIMOSFileName( sample_data, suffix )
   end
   
   % it is assumed that the suffix is valid
-  filename = [filename '.'    suffix];
+  if isempty(extension) % for export of raw datasets, we retain the original suffix
+      [~, ~, extension] = fileparts(sample_data.toolbox_input_file);
+  end
+  filename = [filename extension];
 
   % we handle the case when the source file is a NetCDF file.
-  if isfield(sample_data.meta, 'file_name') && strcmpi(suffix, 'nc')
+  if isfield(sample_data.meta, 'file_name') && strcmpi(extension, '.nc')
       filename = sample_data.meta.file_name;
       
       % we need to update the creation_date
