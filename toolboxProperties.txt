@@ -48,11 +48,11 @@ autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationS
 preprocessManager.preprocessPrompt = true
 
 % default set of preprocessing routines
-preprocessManager.preprocessDefaultChain.timeSeries = depthPP salinityPP oxygenPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP magneticDeclinationPP
+preprocessManager.preprocessDefaultChain.timeSeries = depthPP salinityPP oxygenPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP magneticDeclinationPP velocityMagDirPP
 preprocessManager.preprocessDefaultChain.profile = depthPP salinityPP oxygenPP
 
 % last selected set of preprocessing routines
-preprocessManager.preprocessChain.timeSeries = depthPP salinityPP oxygenPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP magneticDeclinationPP
+preprocessManager.preprocessChain.timeSeries = depthPP salinityPP oxygenPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP magneticDeclinationPP velocityMagDirPP
 preprocessManager.preprocessChain.profile = depthPP salinityPP oxygenPP
 
 % file status dialog formatting styles
