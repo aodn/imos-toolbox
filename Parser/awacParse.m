@@ -261,7 +261,6 @@ clear dims;
 sample_data.dimensions{1}.seconds_to_middle_of_measurement = user.AvgInterval/2;
 
 % add variables with their dimensions and data mapped.
-% we assume no correction for magnetic declination has been applied
 if velocityProcessed
     % velocity has been processed
     iDimVel = nDims-1;
@@ -270,14 +269,28 @@ else
     iDimVel = nDims;
     iDimDiag = nDims;
 end
+switch user.CoordSystem
+    case 0 % ENU
+        vel2Name = 'VCUR_MAG'; % we assume no correction for magnetic declination has been applied
+        vel1Name = 'UCUR_MAG';
+        vel3Name = 'WCUR';
+        
+    case 2 % Beam
+        vel2Name = 'VEL2';
+        vel1Name = 'VEL1';
+        vel3Name = 'VEL3';
+        
+    otherwise
+        error([mfilename ' only supports ENU and Beam coordinate systems']);
+end
 vars = {
     'TIMESERIES',       [],             1; ...
     'LATITUDE',         [],             NaN; ...
     'LONGITUDE',        [],             NaN; ...
     'NOMINAL_DEPTH',    [],             NaN; ...
-    'VCUR_MAG',         [1 iDimVel],    velocity2; ... % V
-    'UCUR_MAG',         [1 iDimVel],    velocity1; ... % U
-    'WCUR',             [1 iDimVel],    velocity3; ...
+    vel2Name,           [1 iDimVel],    velocity2; ...
+    vel1Name,           [1 iDimVel],    velocity1; ...
+    vel3Name,           [1 iDimVel],    velocity3; ...
     'ABSIC1',           [1 iDimDiag],   backscatter1; ...
     'ABSIC2',           [1 iDimDiag],   backscatter2; ...
     'ABSIC3',           [1 iDimDiag],   backscatter3; ...
