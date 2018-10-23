@@ -100,7 +100,7 @@ backgroundColor = [1 1 1]; % white
 
 if iVar > 0
     if initiateFigure
-        fileName = genIMOSFileName(sample_data, 'png');
+        fileName = genIMOSFileName(sample_data, '.png');
         visible = 'on';
         if saveToFile, visible = 'off'; end
         hFigVarSection = figure(...

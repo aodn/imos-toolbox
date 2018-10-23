@@ -68,9 +68,9 @@ switch upper(var.name(1:4))
         uimenu(mainItem1, 'Label', 'other',         'Callback', hcb13);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-        uimenu(mainItem2, 'Label', 'full, 0 centred',                           'Callback', {@cbCLimRange, 'full, 0 centred', var.data});
-        uimenu(mainItem2, 'Label', 'auto, 0 centred [0 +/-2*stdDev] (default)', 'Callback', {@cbCLimRange, 'auto, 0 centred', var.data});
-        uimenu(mainItem2, 'Label', 'manual',                                    'Callback', {@cbCLimRange, 'manual', var.data});
+        uimenu(mainItem2, 'Label', 'full, 0 centred (default)',       'Callback', {@cbCLimRange, 'full, 0 centred', var.data});
+        uimenu(mainItem2, 'Label', 'auto, 0 centred [0 +/-2*stdDev]', 'Callback', {@cbCLimRange, 'auto, 0 centred', var.data});
+        uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, 'manual', var.data});
         
     case {'CDIR', 'SSWD'} % directions
         colormap(rkbwr);
@@ -133,11 +133,11 @@ switch upper(var.name(1:4))
         uimenu(mainItem1, 'Label', 'other',             'Callback', hcb13);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-        uimenu(mainItem2, 'Label', 'full',                                      'Callback', {@cbCLimRange, 'full', var.data});
-        uimenu(mainItem2, 'Label', 'full from 0',                               'Callback', {@cbCLimRange, 'full from 0', var.data});
-        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',                   'Callback', {@cbCLimRange, 'auto', var.data});
-        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev] (default)', 'Callback', {@cbCLimRange, 'auto from 0', var.data});
-        uimenu(mainItem2, 'Label', 'manual',                                    'Callback', {@cbCLimRange, 'manual', var.data});
+        uimenu(mainItem2, 'Label', 'full',                            'Callback', {@cbCLimRange, 'full', var.data});
+        uimenu(mainItem2, 'Label', 'full from 0 (default)',           'Callback', {@cbCLimRange, 'full from 0', var.data});
+        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',         'Callback', {@cbCLimRange, 'auto', var.data});
+        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev]', 'Callback', {@cbCLimRange, 'auto from 0', var.data});
+        uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, 'manual', var.data});
         
     case {'SSWV'} % [0; oo[ paremeter with special jet_w colormap
         % let's apply a colormap like jet but starting from white
@@ -162,11 +162,11 @@ switch upper(var.name(1:4))
         uimenu(mainItem1, 'Label', 'other',             'Callback', hcb14);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-        uimenu(mainItem2, 'Label', 'full',                                      'Callback', {@cbCLimRange, 'full', var.data});
-        uimenu(mainItem2, 'Label', 'full from 0',                               'Callback', {@cbCLimRange, 'full from 0', var.data});
-        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',                   'Callback', {@cbCLimRange, 'auto', var.data});
-        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev] (default)', 'Callback', {@cbCLimRange, 'auto from 0', var.data});
-        uimenu(mainItem2, 'Label', 'manual',                                    'Callback', {@cbCLimRange, 'manual', var.data});
+        uimenu(mainItem2, 'Label', 'full',                            'Callback', {@cbCLimRange, 'full', var.data});
+        uimenu(mainItem2, 'Label', 'full from 0 (default)',           'Callback', {@cbCLimRange, 'full from 0', var.data});
+        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',         'Callback', {@cbCLimRange, 'auto', var.data});
+        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev]', 'Callback', {@cbCLimRange, 'auto from 0', var.data});
+        uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, 'manual', var.data});
         
     otherwise
         colormap(parula);
