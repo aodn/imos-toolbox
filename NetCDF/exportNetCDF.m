@@ -47,7 +47,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
   end
 
   % generate the filename
-  filename = genIMOSFileName(sample_data, 'nc');
+  filename = genIMOSFileName(sample_data, '.nc');
   filename = [dest filesep filename];
   
   compressionLevel = 1; % it seems the compression level 1 gives the best ration size/cpu

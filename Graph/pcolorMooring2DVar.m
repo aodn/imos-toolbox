@@ -140,7 +140,7 @@ for i=1:lenSampleData
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) > 1 && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 3) == 1 % we're only plotting ADCP 2D variables
         if initiateFigure
-            fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
+            fileName = genIMOSFileName(sample_data{iSort(i)}, '.png');
             visible = 'on';
             if saveToFile, visible = 'off'; end
             hFigMooringVar = figure(...

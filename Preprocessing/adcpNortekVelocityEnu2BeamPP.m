@@ -76,7 +76,7 @@ for k = 1:length(sample_data)
     
     % do not process if more than 3 beams
     absic4Idx = getVar(sample_data{k}.variables, 'ABSIC4');
-    if absic4Idx continue; end
+    if absic4Idx, continue; end
     
     ucur = sample_data{k}.variables{ucurIdx}.data;
     vcur = sample_data{k}.variables{vcurIdx}.data;
