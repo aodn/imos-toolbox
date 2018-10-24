@@ -68,13 +68,15 @@ for k = 1:length(sample_data)
     if ~distAlongBeamsIdx || ~pitchIdx || ~rollIdx, continue; end
   
     % do not process if ENU velocity data not vertically bin-mapped and there 
-    % is no beam velocity data (ENU velocity is not going to be bin-mapped later)
+    % is no beam velocity data (ENU velocity is not going to be bin-mapped later so useless)
     heightAboveSensorIdx = getVar(sample_data{k}.dimensions, 'HEIGHT_ABOVE_SENSOR');
     ucurIdx  = getVar(sample_data{k}.variables, 'UCUR');
     if ~ucurIdx, ucurIdx  = getVar(sample_data{k}.variables, 'UCUR_MAG'); end
     vel1Idx  = getVar(sample_data{k}.variables, 'VEL1');
-    if ~any(sample_data{k}.variables{ucurIdx}.dimensions == heightAboveSensorIdx) && ~vel1Idx
-        continue;
+    if ucurIdx % in the case of datasets originally collected in beam coordinates there is no UCUR
+        if ~any(sample_data{k}.variables{ucurIdx}.dimensions == heightAboveSensorIdx) && ~vel1Idx
+            continue;
+        end
     end
     
     % We apply tilt corrections to project DIST_ALONG_BEAMS onto the vertical
