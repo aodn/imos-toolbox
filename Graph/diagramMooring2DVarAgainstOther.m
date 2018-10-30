@@ -141,6 +141,7 @@ for i=1:lenSampleData
     iHeight = getVar(sample_data{iSort(i)}.dimensions, 'HEIGHT_ABOVE_SENSOR');
     if iHeight == 0, iHeight = getVar(sample_data{iSort(i)}.dimensions, 'DIST_ALONG_BEAMS'); end % is equivalent when tilt is negligeable
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
+    iYAxisVar = getVar(sample_data{iSort(i)}.variables, yAxisVarName);
     
     if iVar && iYAxisVar && iHeight && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) > 1 && ...
