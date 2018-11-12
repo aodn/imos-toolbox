@@ -300,7 +300,12 @@ if ~initiateFigure && isPlottable
     
     % Let's add a fake colorbar to have consistent display with or
     % without colorbar
-    cb = colorbar('peer', hAxMooringVar);
+    % 'peer' input is not recommended starting in R2014b
+    if verLessThan('matlab', '8.4')
+        cb = colorbar('peer', hAxMooringVar);
+    else
+        cb = colorbar(hAxMooringVar);
+    end
     set(get(cb, 'YLabel'), 'String', 'TEST');
     pos_with_colorbar = get(hAxMooringVar, 'Position');
     colorbar(cb, 'off');

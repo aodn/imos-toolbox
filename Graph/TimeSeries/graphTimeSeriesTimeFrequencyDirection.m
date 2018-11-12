@@ -203,7 +203,12 @@ uicontrol(mainPanel, ...
     'Position'  , posUi2(mainPanel, 50, 1, 50, 1, 0), ...
     'String'    ,'Time cursor');
     
-cb = colorbar('peer',ax);
+% 'peer' input is not recommended starting in R2014b
+if verLessThan('matlab', '8.4')
+    cb = colorbar('peer', ax);
+else
+    cb = colorbar(ax);
+end
 
 % Attach the context menu to colorbar
 hMenu = setTimeSerieColorbarContextMenu(ax, myVar);
