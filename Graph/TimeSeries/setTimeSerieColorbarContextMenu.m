@@ -1,11 +1,12 @@
-function hMenu = setTimeSerieColorbarContextMenu(var)
-%SETTIMESERIECOLORBARCONTEXTMENU returns a context menu for colorbar 
-% specific to variables.
+function hMenu = setTimeSerieColorbarContextMenu(ax, var)
+%SETTIMESERIECOLORBARCONTEXTMENU sets a colorbar uicontextmenu and returns its handle 
+% specific to an axes and a variable.
 %
 % This function is used for defining the colorbar context menus of each
 % axis 2D displayed.
 %
 % Inputs:
+%   ax          - The handle of the targeted axes.
 %   var         - The variable structure from sample_data.variables{k} if 
 %               it is the k_th variable.
 %
@@ -32,8 +33,9 @@ function hMenu = setTimeSerieColorbarContextMenu(var)
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-narginchk(1, 1);
+narginchk(2, 2);
 
+if ~ishandle(ax),  error('ax must be a graphic object handle'); end
 if ~isstruct(var), error('var must be a struct'); end
 
 hMenu = [];
@@ -53,7 +55,7 @@ end
 switch upper(var.name(1:4))
     case {'UCUR', 'VCUR', 'WCUR', 'ECUR', 'VEL1', 'VEL2', 'VEL3', 'VEL4'} % 0 centred parameters
         colormap(r_b);
-        cbCLimRange('', '', 'full, 0 centred', var.data); % full is chosen to attract attention on any potential outlier
+        cbCLimRange('', '', ax, 'full, 0 centred', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
         hMenu = uicontextmenu;
@@ -68,13 +70,13 @@ switch upper(var.name(1:4))
         uimenu(mainItem1, 'Label', 'other',         'Callback', hcb13);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-        uimenu(mainItem2, 'Label', 'full, 0 centred (default)',       'Callback', {@cbCLimRange, 'full, 0 centred', var.data});
-        uimenu(mainItem2, 'Label', 'auto, 0 centred [0 +/-2*stdDev]', 'Callback', {@cbCLimRange, 'auto, 0 centred', var.data});
-        uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, 'manual', var.data});
+        uimenu(mainItem2, 'Label', 'full, 0 centred (default)',       'Callback', {@cbCLimRange, ax, 'full, 0 centred', var.data});
+        uimenu(mainItem2, 'Label', 'auto, 0 centred [0 +/-2*stdDev]', 'Callback', {@cbCLimRange, ax, 'auto, 0 centred', var.data});
+        uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, ax, 'manual', var.data});
         
     case {'CDIR', 'SSWD'} % directions
         colormap(rkbwr);
-        cbCLimRange('', '', 'direction [0; 360]', var.data);
+        cbCLimRange('', '', ax, 'direction [0; 360]', var.data);
         
         % Define a context menu
         hMenu = uicontextmenu;
@@ -89,12 +91,12 @@ switch upper(var.name(1:4))
         uimenu(mainItem1, 'Label', 'other',         'Callback', hcb13);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-        uimenu(mainItem2, 'Label', 'direction [0; 360] (default)',  'Callback', {@cbCLimRange, 'direction [0; 360]', var.data});
-        uimenu(mainItem2, 'Label', 'manual',                        'Callback', {@cbCLimRange, 'manual', var.data});
+        uimenu(mainItem2, 'Label', 'direction [0; 360] (default)',  'Callback', {@cbCLimRange, ax, 'direction [0; 360]', var.data});
+        uimenu(mainItem2, 'Label', 'manual',                        'Callback', {@cbCLimRange, ax, 'manual', var.data});
         
     case 'PERG' % percentages
         colormap(parula);
-        cbCLimRange('', '', 'percent [0; 100]', var.data);
+        cbCLimRange('', '', ax, 'percent [0; 100]', var.data);
         
         % Define a context menu
         hMenu = uicontextmenu;
@@ -111,12 +113,12 @@ switch upper(var.name(1:4))
         uimenu(mainItem1, 'Label', 'other',             'Callback', hcb13);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-        uimenu(mainItem2, 'Label', 'percent [0; 100] (default)',  'Callback', {@cbCLimRange, 'percent [0; 100]', var.data});
-        uimenu(mainItem2, 'Label', 'manual',                      'Callback', {@cbCLimRange, 'manual', var.data});
+        uimenu(mainItem2, 'Label', 'percent [0; 100] (default)',  'Callback', {@cbCLimRange, ax, 'percent [0; 100]', var.data});
+        uimenu(mainItem2, 'Label', 'manual',                      'Callback', {@cbCLimRange, ax, 'manual', var.data});
         
     case {'CSPD', 'VDEN', 'VDEV', 'VDEP', 'VDES'} % [0; oo[ paremeters
         colormap(parula);
-        cbCLimRange('', '', 'full', var.data); % full is chosen to attract attention on any potential outlier
+        cbCLimRange('', '', ax, 'full', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
         hMenu = uicontextmenu;
@@ -133,17 +135,17 @@ switch upper(var.name(1:4))
         uimenu(mainItem1, 'Label', 'other',             'Callback', hcb13);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-        uimenu(mainItem2, 'Label', 'full',                            'Callback', {@cbCLimRange, 'full', var.data});
-        uimenu(mainItem2, 'Label', 'full from 0 (default)',           'Callback', {@cbCLimRange, 'full from 0', var.data});
-        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',         'Callback', {@cbCLimRange, 'auto', var.data});
-        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev]', 'Callback', {@cbCLimRange, 'auto from 0', var.data});
-        uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, 'manual', var.data});
+        uimenu(mainItem2, 'Label', 'full',                            'Callback', {@cbCLimRange, ax, 'full', var.data});
+        uimenu(mainItem2, 'Label', 'full from 0 (default)',           'Callback', {@cbCLimRange, ax, 'full from 0', var.data});
+        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',         'Callback', {@cbCLimRange, ax, 'auto', var.data});
+        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev]', 'Callback', {@cbCLimRange, ax, 'auto from 0', var.data});
+        uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, ax, 'manual', var.data});
         
     case {'SSWV'} % [0; oo[ paremeter with special jet_w colormap
         % let's apply a colormap like jet but starting from white
         load('jet_w.mat', '-mat', 'jet_w');
         colormap(jet_w);
-        cbCLimRange('', '', 'full', var.data); % full is chosen to attract attention on any potential outlier
+        cbCLimRange('', '', ax, 'full', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
         hMenu = uicontextmenu;
@@ -162,15 +164,15 @@ switch upper(var.name(1:4))
         uimenu(mainItem1, 'Label', 'other',             'Callback', hcb14);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-        uimenu(mainItem2, 'Label', 'full',                            'Callback', {@cbCLimRange, 'full', var.data});
-        uimenu(mainItem2, 'Label', 'full from 0 (default)',           'Callback', {@cbCLimRange, 'full from 0', var.data});
-        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',         'Callback', {@cbCLimRange, 'auto', var.data});
-        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev]', 'Callback', {@cbCLimRange, 'auto from 0', var.data});
-        uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, 'manual', var.data});
+        uimenu(mainItem2, 'Label', 'full',                            'Callback', {@cbCLimRange, ax, 'full', var.data});
+        uimenu(mainItem2, 'Label', 'full from 0 (default)',           'Callback', {@cbCLimRange, ax, 'full from 0', var.data});
+        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',         'Callback', {@cbCLimRange, ax, 'auto', var.data});
+        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev]', 'Callback', {@cbCLimRange, ax, 'auto from 0', var.data});
+        uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, ax, 'manual', var.data});
         
     otherwise
         colormap(parula);
-        cbCLimRange('', '', 'full', var.data); % full is chosen to attract attention on any potential outlier
+        cbCLimRange('', '', ax, 'full', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
         hMenu = uicontextmenu;
@@ -189,20 +191,20 @@ switch upper(var.name(1:4))
         uimenu(mainItem1, 'Label', 'other',             'Callback', hcb14);
         
         mainItem2 = uimenu(hMenu, 'Label', 'Color range');
-        uimenu(mainItem2, 'Label', 'full (default)',                    'Callback', {@cbCLimRange, 'full', var.data});
-        uimenu(mainItem2, 'Label', 'full from 0',                       'Callback', {@cbCLimRange, 'full from 0', var.data});
-        uimenu(mainItem2, 'Label', 'full, 0 centred',                   'Callback', {@cbCLimRange, 'full, 0 centred', var.data});
-        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',           'Callback', {@cbCLimRange, 'auto', var.data});
-        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev]',   'Callback', {@cbCLimRange, 'auto from 0', var.data});
-        uimenu(mainItem2, 'Label', 'auto, 0 centred [0 +/-2*stdDev]',   'Callback', {@cbCLimRange, 'auto, 0 centred', var.data});
-        uimenu(mainItem2, 'Label', 'manual',                            'Callback', {@cbCLimRange, 'manual', var.data});
+        uimenu(mainItem2, 'Label', 'full (default)',                    'Callback', {@cbCLimRange, ax, 'full', var.data});
+        uimenu(mainItem2, 'Label', 'full from 0',                       'Callback', {@cbCLimRange, ax, 'full from 0', var.data});
+        uimenu(mainItem2, 'Label', 'full, 0 centred',                   'Callback', {@cbCLimRange, ax, 'full, 0 centred', var.data});
+        uimenu(mainItem2, 'Label', 'auto [mean +/-2*stdDev]',           'Callback', {@cbCLimRange, ax, 'auto', var.data});
+        uimenu(mainItem2, 'Label', 'auto from 0 [0; mean +2*stdDev]',   'Callback', {@cbCLimRange, ax, 'auto from 0', var.data});
+        uimenu(mainItem2, 'Label', 'auto, 0 centred [0 +/-2*stdDev]',   'Callback', {@cbCLimRange, ax, 'auto, 0 centred', var.data});
+        uimenu(mainItem2, 'Label', 'manual',                            'Callback', {@cbCLimRange, ax, 'manual', var.data});
         
 end
 
 end
 
 % Callback function for CLim range
-function cbCLimRange(src,eventdata, cLimMode, data)
+function cbCLimRange(src,eventdata, ax, cLimMode, data)
 
 CLim = NaN(1, 2);
 
@@ -253,7 +255,7 @@ switch cLimMode
         CLim = [-2*stdDev, 2*stdDev];
         
     case 'manual'
-        CLimCurr = get(gca, 'CLim');
+        CLimCurr = get(ax, 'CLim');
         prompt = {['{\bf', sprintf('Colorbar range :}\n\nmin value :')],...
             'max value :'};
         def                 = {num2str(CLimCurr(1)), num2str(CLimCurr(2))};
@@ -278,6 +280,6 @@ end
 
 if CLim(1) == CLim(2), CLim(2) = CLim(1) + 1; end % CLim must be increasing
 
-set(gca, 'CLim', CLim);
+set(ax, 'CLim', CLim);
 
 end

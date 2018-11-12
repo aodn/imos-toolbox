@@ -206,8 +206,8 @@ uicontrol(mainPanel, ...
 cb = colorbar('peer',ax);
 
 % Attach the context menu to colorbar
-hMenu = setTimeSerieColorbarContextMenu(myVar);
-set(cb,'uicontextmenu',hMenu);
+hMenu = setTimeSerieColorbarContextMenu(ax, myVar);
+set(cb, 'uicontextmenu', hMenu);
 
 cbLabel = imosParameters(myVar.name, 'uom');
 cbLabel = [myVar.name ' (' cbLabel ')'];
