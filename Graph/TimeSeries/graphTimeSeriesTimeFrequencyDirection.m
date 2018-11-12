@@ -211,7 +211,7 @@ else
 end
 
 % Attach the context menu to colorbar
-hMenu = setTimeSerieColorbarContextMenu(ax, myVar);
+hMenu = setTimeSeriesColorbarContextMenu(ax, myVar);
 set(cb, 'uicontextmenu', hMenu);
 
 cbLabel = imosParameters(myVar.name, 'uom');

@@ -88,7 +88,7 @@ end
 set(ax, 'Position', posWithoutCb);
 
 % Attach the context menu to colorbar
-hMenu = setTimeSerieColorbarContextMenu(ax, var);
+hMenu = setTimeSeriesColorbarContextMenu(ax, var);
 set(cb, 'uicontextmenu', hMenu);
 
 % Let's redefine properties after pcolor to make sure grid lines appear

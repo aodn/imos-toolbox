@@ -1,5 +1,5 @@
-function hMenu = setTimeSerieColorbarContextMenu(ax, var)
-%SETTIMESERIECOLORBARCONTEXTMENU sets a colorbar uicontextmenu and returns its handle 
+function hMenu = setTimeSeriesColorbarContextMenu(ax, var)
+%SETTIMESERIESCOLORBARCONTEXTMENU sets a colorbar uicontextmenu and returns its handle 
 % specific to an axes and a variable.
 %
 % This function is used for defining the colorbar context menus of each
