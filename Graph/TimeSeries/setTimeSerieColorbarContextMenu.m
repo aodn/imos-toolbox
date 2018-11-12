@@ -54,7 +54,7 @@ end
 
 switch upper(var.name(1:4))
     case {'UCUR', 'VCUR', 'WCUR', 'ECUR', 'VEL1', 'VEL2', 'VEL3', 'VEL4'} % 0 centred parameters
-        colormap(r_b);
+        colormap(ax, r_b);
         cbCLimRange('', '', ax, 'full, 0 centred', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
@@ -75,7 +75,7 @@ switch upper(var.name(1:4))
         uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, ax, 'manual', var.data});
         
     case {'CDIR', 'SSWD'} % directions
-        colormap(rkbwr);
+        colormap(ax, rkbwr);
         cbCLimRange('', '', ax, 'direction [0; 360]', var.data);
         
         % Define a context menu
@@ -95,7 +95,7 @@ switch upper(var.name(1:4))
         uimenu(mainItem2, 'Label', 'manual',                        'Callback', {@cbCLimRange, ax, 'manual', var.data});
         
     case 'PERG' % percentages
-        colormap(parula);
+        colormap(ax, parula);
         cbCLimRange('', '', ax, 'percent [0; 100]', var.data);
         
         % Define a context menu
@@ -117,7 +117,7 @@ switch upper(var.name(1:4))
         uimenu(mainItem2, 'Label', 'manual',                      'Callback', {@cbCLimRange, ax, 'manual', var.data});
         
     case {'CSPD', 'VDEN', 'VDEV', 'VDEP', 'VDES'} % [0; oo[ paremeters
-        colormap(parula);
+        colormap(ax, parula);
         cbCLimRange('', '', ax, 'full', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
@@ -144,7 +144,7 @@ switch upper(var.name(1:4))
     case {'SSWV'} % [0; oo[ paremeter with special jet_w colormap
         % let's apply a colormap like jet but starting from white
         load('jet_w.mat', '-mat', 'jet_w');
-        colormap(jet_w);
+        colormap(ax, jet_w);
         cbCLimRange('', '', ax, 'full', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
@@ -171,7 +171,7 @@ switch upper(var.name(1:4))
         uimenu(mainItem2, 'Label', 'manual',                          'Callback', {@cbCLimRange, ax, 'manual', var.data});
         
     otherwise
-        colormap(parula);
+        colormap(ax, parula);
         cbCLimRange('', '', ax, 'full', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu

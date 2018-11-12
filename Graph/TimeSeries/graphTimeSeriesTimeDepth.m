@@ -96,7 +96,7 @@ set(ax, 'XTick',        xTickProp.ticks, ...
         'Layer',        'top', ...
         'Tag',          'axis2D');
 
-if all(all(colormap == rkbwr))
+if all(all(colormap(ax) == rkbwr))
     set(cb, 'YLim', [0 360], 'YTick', [0 90 180 270 360]);
 end
     
