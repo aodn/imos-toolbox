@@ -53,7 +53,10 @@ for k = 1:length(sample_data)
   
     % do not process if not current profiler ADCP
     distAlongBeamsIdx = getVar(sample_data{k}.dimensions, 'DIST_ALONG_BEAMS');
-    if ~distAlongBeamsIdx, continue; end
+    heightAboveSensorIdx = getVar(sample_data{k}.dimensions, 'HEIGHT_ABOVE_SENSOR');
+    if ~distAlongBeamsIdx
+        if ~heightAboveSensorIdx, continue; end
+    end
     
     % do not process if heading, pitch and roll not present in data set
     isMagCorrected = true;
@@ -91,8 +94,9 @@ for k = 1:length(sample_data)
     pitch = sample_data{k}.variables{pitchIdx}.data;
     roll  = sample_data{k}.variables{rollIdx}.data;
     
-    dist = sample_data{k}.dimensions{distAlongBeamsIdx}.data;
-    heightAboveSensorIdx = getVar(sample_data{k}.dimensions, 'HEIGHT_ABOVE_SENSOR');
+    if distAlongBeamsIdx
+        dist = sample_data{k}.dimensions{distAlongBeamsIdx}.data;
+    end
     if any(sample_data{k}.variables{vel1Idx}.dimensions == heightAboveSensorIdx)
         dist = sample_data{k}.dimensions{heightAboveSensorIdx}.data;
     end
@@ -137,49 +141,60 @@ for k = 1:length(sample_data)
     
     % we update the velocity values in ENU coordinates
     vars = {'UCUR', 'VCUR', 'WCUR'};
-    varSuffix = '';
-    if ~isMagCorrected, varSuffix = '_MAG'; end
+    varSuffix = {'', '', ''};
+    if ~isMagCorrected, varSuffix = {'_MAG', '_MAG', ''}; end
     for l=1:length(vars)
-        if strcmpi(vars{l}, 'WCUR')
-            curIdx  = getVar(sample_data{k}.variables, vars{l});
-        else
-            curIdx  = getVar(sample_data{k}.variables, [vars{l} varSuffix]);
-        end
-        sample_data{k}.variables{curIdx}.data = squeeze(velENU(l, :, :));
+        varName = [vars{l} varSuffix{l}];
+        curIdx = getVar(sample_data{k}.variables, varName);
+        if curIdx
+            % we update the velocity values in ENU coordinates
+            sample_data{k}.variables{curIdx}.data = squeeze(velENU(l, :, :));
         
-        % need to update the dimensions/coordinates in case velocity in Beam
-        % coordinates would have been previously bin-mapped
-        sample_data{k}.variables{curIdx}.dimensions = sample_data{k}.variables{vel1Idx}.dimensions;
-        sample_data{k}.variables{curIdx}.coordinates = sample_data{k}.variables{vel1Idx}.coordinates;
-        
-        if ~isfield(sample_data{k}.variables{curIdx}, 'comment')
-            sample_data{k}.variables{curIdx}.comment = Beam2EnuComment;
+            % need to update the dimensions/coordinates in case velocity in Beam
+            % coordinates would have been previously bin-mapped
+            sample_data{k}.variables{curIdx}.dimensions = sample_data{k}.variables{vel1Idx}.dimensions;
+            sample_data{k}.variables{curIdx}.coordinates = sample_data{k}.variables{vel1Idx}.coordinates;
+            
+            if ~isfield(sample_data{k}.variables{curIdx}, 'comment')
+                sample_data{k}.variables{curIdx}.comment = Beam2EnuComment;
+            else
+                sample_data{k}.variables{curIdx}.comment = [sample_data{k}.variables{curIdx}.comment ' ' Beam2EnuComment];
+            end
         else
-            sample_data{k}.variables{curIdx}.comment = [sample_data{k}.variables{curIdx}.comment ' ' Beam2EnuComment];
+            % we create a new variable for velocity values in ENU coordinates
+            sample_data{k} = addVar(...
+                sample_data{k}, ...
+                varName, ...
+                squeeze(velENU(l, :, :)), ...
+                sample_data{k}.variables{vel1Idx}.dimensions, ...
+                Beam2EnuComment, ...
+                sample_data{k}.variables{vel1Idx}.coordinates);
         end
     end
     
-    % let's look for remaining variables assigned to DIST_ALONG_BEAMS,
-    % if none we can remove this dimension
-    isDistAlongBeamsUsed = false;
-    for j=1:length(sample_data{k}.variables)
-        if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx)
-            isDistAlongBeamsUsed = true;
-            break;
-        end
-    end
-    if ~isDistAlongBeamsUsed
-        if length(sample_data{k}.dimensions) > distAlongBeamsIdx
-            for j=1:length(sample_data{k}.variables)
-                dimToUpdate = sample_data{k}.variables{j}.dimensions > distAlongBeamsIdx;
-                if any(dimToUpdate)
-                    sample_data{k}.variables{j}.dimensions(dimToUpdate) = sample_data{k}.variables{j}.dimensions(dimToUpdate) - 1;
-                end
+    if distAlongBeamsIdx
+        % let's look for remaining variables assigned to DIST_ALONG_BEAMS,
+        % if none we can remove this dimension
+        isDistAlongBeamsUsed = false;
+        for j=1:length(sample_data{k}.variables)
+            if any(sample_data{k}.variables{j}.dimensions == distAlongBeamsIdx)
+                isDistAlongBeamsUsed = true;
+                break;
             end
         end
-        sample_data{k}.dimensions(distAlongBeamsIdx) = [];
-        
-        Beam2EnuComment = [Beam2EnuComment ' DIST_ALONG_BEAMS is not used by any variable left and has been removed.'];
+        if ~isDistAlongBeamsUsed
+            if length(sample_data{k}.dimensions) > distAlongBeamsIdx
+                for j=1:length(sample_data{k}.variables)
+                    dimToUpdate = sample_data{k}.variables{j}.dimensions > distAlongBeamsIdx;
+                    if any(dimToUpdate)
+                        sample_data{k}.variables{j}.dimensions(dimToUpdate) = sample_data{k}.variables{j}.dimensions(dimToUpdate) - 1;
+                    end
+                end
+            end
+            sample_data{k}.dimensions(distAlongBeamsIdx) = [];
+            
+            Beam2EnuComment = [Beam2EnuComment ' DIST_ALONG_BEAMS is not used by any variable left and has been removed.'];
+        end
     end
     
     if ~isfield(sample_data{k}, 'history')

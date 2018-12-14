@@ -76,15 +76,20 @@ posWithoutCb = get(ax, 'Position');
 
 h = pcolor(ax, double(xPcolor), double(yPcolor), double(var.data'));
 set(h, 'FaceColor', 'flat', 'EdgeColor', 'none');
-cb = colorbar('peer', ax);
+% 'peer' input is not recommended starting in R2014b
+if verLessThan('matlab', '8.4')
+    cb = colorbar('peer', ax);
+else
+    cb = colorbar(ax);
+end
 
 % reset position to what it was without the colorbar so that it aligns with
 % 1D datasets
 set(ax, 'Position', posWithoutCb);
 
 % Attach the context menu to colorbar
-hMenu = setTimeSerieColorbarContextMenu(var);
-set(cb,'uicontextmenu',hMenu);
+hMenu = setTimeSeriesColorbarContextMenu(ax, var);
+set(cb, 'uicontextmenu', hMenu);
 
 % Let's redefine properties after pcolor to make sure grid lines appear
 % above color data and XTick and XTickLabel haven't changed

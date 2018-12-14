@@ -178,8 +178,8 @@ for i=1:nVars
     sample_data{2}.variables{i}.data         = sample_data{2}.variables{i}.typeCastFunc(vars{i, 3});
 
     if any(strcmpi(vars{i, 1}, {'SSWD', 'WPDI', 'SSDS', 'VDIR', 'HEADING', 'SSWV'}))
-        sample_data.variables{i}.compass_correction_applied = magDec;
-        sample_data.variables{i}.comment = magBiasComment;
+        sample_data{2}.variables{i}.compass_correction_applied = magDec;
+        sample_data{2}.variables{i}.comment = magBiasComment;
     end
 end
 clear vars;

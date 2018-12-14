@@ -243,7 +243,12 @@ if any(isPlottable)
                 
                 if ~strcmpi(yAxisVarName, 'DEPTH')
                     % colorbar not needed when Y axis is already DEPTH
-                    hCBar = colorbar('peer', hAxMooringVar);
+                    % 'peer' input is not recommended starting in R2014b
+                    if verLessThan('matlab', '8.4')
+                        hCBar = colorbar('peer', hAxMooringVar);
+                    else
+                        hCBar = colorbar(hAxMooringVar);
+                    end
                     set(get(hCBar, 'Title'), 'String', 'DEPTH (m)', 'Interpreter', 'none');
                 end
                 

@@ -208,21 +208,38 @@ for i=1:lenSampleData
                 'YDir',         'normal', ...
                 'Layer',        'top');
             
-            hCBar = colorbar('peer', hAxMooringVar);
+            % 'peer' input is not recommended starting in R2014b
+            if verLessThan('matlab', '8.4')
+                hCBar = colorbar('peer', hAxMooringVar);
+            else
+                hCBar = colorbar(hAxMooringVar);
+            end
             colormap(hAxMooringVar, cMap);
             
             switch cType
                 case 'direction'
-                    hCBar = colorbar('peer', hAxMooringVar, 'YLim', [0 360], 'YTick', [0 90 180 270 360]);
+                    if verLessThan('matlab', '8.4')
+                        hCBar = colorbar('peer', hAxMooringVar, 'YLim', [0 360], 'YTick', [0 90 180 270 360]);
+                    else
+                        hCBar = colorbar(hAxMooringVar, 'YLim', [0 360], 'YTick', [0 90 180 270 360]);
+                    end
                     set(hAxMooringVar, 'CLim', [0 360]);
                     set(hCBar, 'YTick', [0 90 180 270 360]);
                 case 'centeredOnZero'
                     yLimMax = max(max(dataVar));
-                    hCBar = colorbar('peer', hAxMooringVar, 'YLim', [-yLimMax yLimMax]);
+                    if verLessThan('matlab', '8.4')
+                        hCBar = colorbar('peer', hAxMooringVar, 'YLim', [-yLimMax yLimMax]);
+                    else
+                        hCBar = colorbar(hAxMooringVar, 'YLim', [-yLimMax yLimMax]);
+                    end
                     set(hAxMooringVar, 'CLim', [-yLimMax yLimMax]);
                 case 'positiveFromZero'
                     yLimMax = max(max(dataVar));
-                    hCBar = colorbar('peer', hAxMooringVar, 'YLim', [0 yLimMax]);
+                    if verLessThan('matlab', '8.4')
+                        hCBar = colorbar('peer', hAxMooringVar, 'YLim', [0 yLimMax]);
+                    else
+                        hCBar = colorbar(hAxMooringVar, 'YLim', [0 yLimMax]);
+                    end
                     set(hAxMooringVar, 'CLim', [0 yLimMax]);
             end
             

@@ -101,7 +101,7 @@ distance = distance + cellSize;
 time            = [structures.Id36(:).Time]';
 analn1          = [structures.Id36(:).Analn1]';
 battery         = [structures.Id36(:).Battery]';
-analn2          = [structures.Id36(:).Analn2]';
+soundSpeed      = [structures.Id36(:).Analn2]';
 heading         = [structures.Id36(:).Heading]';
 pitch           = [structures.Id36(:).Pitch]';
 roll            = [structures.Id36(:).Roll]';
@@ -141,6 +141,7 @@ end
 clear structures;
 
 % battery     / 10.0   (0.1 V    -> V)
+% soundSpeed  / 10.0   (0.1 m/s  -> m/s)
 % heading     / 10.0   (0.1 deg  -> deg)
 % pitch       / 10.0   (0.1 deg  -> deg)
 % roll        / 10.0   (0.1 deg  -> deg)
@@ -148,6 +149,7 @@ clear structures;
 % temperature / 100.0  (0.01 deg -> deg)
 % velocities  / 1000.0 (mm/s     -> m/s) assuming earth coordinates
 battery      = battery      / 10.0;
+soundSpeed   = soundSpeed   / 10.0;
 heading      = heading      / 10.0;
 pitch        = pitch        / 10.0;
 roll         = roll         / 10.0;
@@ -296,12 +298,13 @@ vars = {
     'TEMP',             1,              temperature; ...
     'PRES_REL',         1,              pressure; ...
     'VOLT',             1,              battery; ...
+    'SSPD',             1,              soundSpeed; ...
     'PITCH',            1,              pitch; ...
     'ROLL',             1,              roll; ...
     'HEADING_MAG',      1,              heading
     };
 clear analn1 analn2 time distance velocity1 velocity2 velocity3 ...
-    backscatter1 backscatter2 backscatter3 ...
+    backscatter1 backscatter2 backscatter3 soundSpeed ...
     temperature pressure battery pitch roll heading status;
 
 if velocityProcessed
