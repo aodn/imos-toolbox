@@ -225,7 +225,12 @@ if any(isPlottable)
                     cMap = colormap(hAxMooringVar, parula(nColors));
                 end
                 
-                hCBar = colorbar('peer', hAxMooringVar);
+                % 'peer' input is not recommended starting in R2014b
+                if verLessThan('matlab', '8.4')
+                    hCBar = colorbar('peer', hAxMooringVar);
+                else
+                    hCBar = colorbar(hAxMooringVar);
+                end
                 set(get(hCBar, 'Title'), 'String', [varName ' (' varUnit ')'], 'Interpreter', 'none');
                 
                 initiateFigure = false;

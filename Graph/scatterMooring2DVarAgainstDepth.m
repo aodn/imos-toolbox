@@ -274,7 +274,12 @@ if any(isPlottable)
                 set(zoomH,'ActionPostCallback',{@zoomDateTick, hAxMooringVar});
                 set(panH,'ActionPostCallback',{@zoomDateTick, hAxMooringVar});
                 
-                hCBar = colorbar('peer', hAxMooringVar, 'YLim', CLim);
+                % 'peer' input is not recommended starting in R2014b
+                if verLessThan('matlab', '8.4')
+                    hCBar = colorbar('peer', hAxMooringVar, 'YLim', CLim);
+                else
+                    hCBar = colorbar(hAxMooringVar, 'YLim', CLim);
+                end
                 colormap(hAxMooringVar, cMap);
                 set(hAxMooringVar, 'CLim', CLim);
                 

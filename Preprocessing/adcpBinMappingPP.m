@@ -60,21 +60,24 @@ for k = 1:length(sample_data)
     % do not process if Nortek with more than 3 beams
     absic4Idx = getVar(sample_data{k}.variables, 'ABSIC4');
     if absic4Idx && isNortek, continue; end
-    
-    heightAboveSensorIdx = getVar(sample_data{k}.dimensions, 'HEIGHT_ABOVE_SENSOR');
+  
+    % do not process if dist_along_beams, pitch or roll are missing from dataset
     distAlongBeamsIdx = getVar(sample_data{k}.dimensions, 'DIST_ALONG_BEAMS');
     pitchIdx = getVar(sample_data{k}.variables, 'PITCH');
     rollIdx  = getVar(sample_data{k}.variables, 'ROLL');
+    if ~distAlongBeamsIdx || ~pitchIdx || ~rollIdx, continue; end
   
-    % do not process if pitch, roll, and dist_along_beams not present in data set
-    if ~(distAlongBeamsIdx && pitchIdx && rollIdx), continue; end
-  
-    % do not process if velocity data not vertically bin-mapped and there 
-    % is no velocity data in beam coordinates (useless)
+    % do not process if ENU velocity data not vertically bin-mapped and there 
+    % is no beam velocity data (ENU velocity is not going to be bin-mapped later so useless)
+    heightAboveSensorIdx = getVar(sample_data{k}.dimensions, 'HEIGHT_ABOVE_SENSOR');
     ucurIdx  = getVar(sample_data{k}.variables, 'UCUR');
     if ~ucurIdx, ucurIdx  = getVar(sample_data{k}.variables, 'UCUR_MAG'); end
     vel1Idx  = getVar(sample_data{k}.variables, 'VEL1');
-    if any(sample_data{k}.variables{ucurIdx}.dimensions == distAlongBeamsIdx) && ~vel1Idx, continue; end
+    if ucurIdx % in the case of datasets originally collected in beam coordinates there is no UCUR
+        if ~any(sample_data{k}.variables{ucurIdx}.dimensions == heightAboveSensorIdx) && ~vel1Idx
+            continue;
+        end
+    end
     
     % We apply tilt corrections to project DIST_ALONG_BEAMS onto the vertical
     % axis HEIGHT_ABOVE_SENSOR.

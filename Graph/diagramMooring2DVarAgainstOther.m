@@ -141,6 +141,7 @@ for i=1:lenSampleData
     iHeight = getVar(sample_data{iSort(i)}.dimensions, 'HEIGHT_ABOVE_SENSOR');
     if iHeight == 0, iHeight = getVar(sample_data{iSort(i)}.dimensions, 'DIST_ALONG_BEAMS'); end % is equivalent when tilt is negligeable
     iVar = getVar(sample_data{iSort(i)}.variables, varName);
+    iYAxisVar = getVar(sample_data{iSort(i)}.variables, yAxisVarName);
     
     if iVar && iYAxisVar && iHeight && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) > 1 && ...
@@ -305,7 +306,12 @@ if any(isPlottable)
                 
                 if ~strcmpi(yAxisVarName, 'DEPTH')
                     % colorbar not needed when Y axis is already DEPTH
-                    hCBar = colorbar('peer', hAxMooringVar);
+                    % 'peer' input is not recommended starting in R2014b
+                    if verLessThan('matlab', '8.4')
+                        hCBar = colorbar('peer', hAxMooringVar);
+                    else
+                        hCBar = colorbar(hAxMooringVar);
+                    end
                     set(get(hCBar, 'Title'), 'String', 'DEPTH (m)', 'Interpreter', 'none');
                 end
                 
