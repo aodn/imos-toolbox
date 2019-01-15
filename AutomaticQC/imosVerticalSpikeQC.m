@@ -59,11 +59,11 @@ if nargin<5, auto=false; end
 paramsLog = [];
 flags     = [];
 
-% this test only applies to profile mode
-mode = readProperty('toolbox.mode');
-if ~strcmpi(mode, 'profile')
-    return;
-end
+% % this test only applies to profile mode
+% mode = readProperty('toolbox.mode');
+% if ~strcmpi(mode, 'profile')
+%     return;
+% end
 
 % read all values from imosSpikeQC properties file
 values = readProperty('*', fullfile('AutomaticQC', 'imosVerticalSpikeQC.txt'));
