@@ -153,6 +153,13 @@ visiBadCb = uicontrol(...
     'Value',    0,...
     'Tag',      'visiBadCheckBox');
 
+% burst statistics visibility check box
+visiBurstStatsCb = uicontrol(...
+    'Style',    'checkbox',...
+    'String',   'Show burst statistics',...
+    'Value',    0,...
+    'Tag',      'visiBurstStatsCheckBox');
+
 % side panel
 sidePanel = uipanel(...
     'Parent',     fig,...
@@ -197,6 +204,7 @@ set(extraSampleCb,    'Units', 'normalized');
 set(extraSampleMenu,  'Units', 'normalized');
 set(visiFlagCb,       'Units', 'normalized');
 set(visiBadCb,        'Units', 'normalized');
+set(visiBurstStatsCb, 'Units', 'normalized');
 set(stateButtons,     'Units', 'normalized');
 
 % set window position
@@ -222,6 +230,7 @@ set(extraSampleMenu,    'Position', posUi2(fig, 100, 100,  6:10,   1:75,  0));
 set(extraSampleCb,      'Position', posUi2(fig, 100, 100,  6:10,  76:100, 0));
 set(visiFlagCb,         'Position', posUi2(fig, 100, 100, 11:15,  76:100, 0));
 set(visiBadCb,          'Position', posUi2(fig, 100, 100, 11:15,  51:75,  0));
+set(visiBurstStatsCb,   'Position', posUi2(fig, 100, 100, 11:15,  26:50,  0));
 
 % varPanel and butPanel are positioned relative to sidePanel
 set(butPanel, 'Position', posUi2(sidePanel, 10, 1, 1:5,  1, 0));
@@ -241,6 +250,7 @@ set(extraSampleCb,      'Callback', @sampleMenuCallback);
 set(extraSampleMenu,    'Callback', @sampleMenuCallback);
 set(visiFlagCb,         'Callback', @sampleMenuCallback);
 set(visiBadCb,          'Callback', @sampleMenuCallback);
+set(visiBurstStatsCb,   'Callback', @sampleMenuCallback);
 set(stateButtons,       'Callback', @stateButtonCallback);
 
 set(fig, 'Visible', 'on');

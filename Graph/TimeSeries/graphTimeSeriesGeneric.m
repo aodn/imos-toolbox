@@ -49,22 +49,45 @@ var  = sample_data.variables {var};
 
 if ischar(var.data), var.data = str2num(var.data); end % we assume data is an array of one single character
 
+qcSet = str2double(readProperty('toolbox.qc_set'));
+rawFlag      = imosQCFlag('raw',          qcSet, 'flag');
+goodFlag     = imosQCFlag('good',         qcSet, 'flag');
+probGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+
 visiBadCbh = findobj('Tag', 'visiBadCheckBox');
 isBadHidden = get(visiBadCbh, 'value');
 if isBadHidden
     % we replace values flagged as bad by NaN before plotting
-    qcSet = str2double(readProperty('toolbox.qc_set'));
-    rawFlag      = imosQCFlag('raw',          qcSet, 'flag');
-    goodFlag     = imosQCFlag('good',         qcSet, 'flag');
-    probGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
-    
     iGood = ismember(var.flags, [rawFlag, goodFlag, probGoodFlag]);
-    
     var.data(~iGood) = NaN;
 end
 
 h    = line(time.data, var.data, 'Parent', ax, 'Color', color);
 set(ax, 'Tag', 'axis1D');
+
+% add statistics for burst datasets
+visiBurstStatsCbh = findobj('Tag', 'visiBurstStatsCheckBox');
+showBurstStats = get(visiBurstStatsCbh, 'value');
+if showBurstStats
+    if isfield(sample_data, 'instrument_burst_duration')
+        if ~isempty(sample_data.instrument_burst_duration)
+            bSh = findobj('Tag', 'visiBurstStatsCheckBox');
+            burstStats = get(bSh, 'UserData');
+            if ~isempty(burstStats)
+                iFile = strcmp(sample_data.toolbox_input_file, {burstStats(:).fileName});
+                if any(iFile) && isfield(burstStats, var.name)
+                    if ~isempty(burstStats(iFile).(var.name))
+                        hold(ax, 'on');
+                        % x-shaped data marker for average
+                        plot(ax, burstStats(iFile).(var.name).timeBurstAvg, burstStats(iFile).(var.name).dataBurstAvg, 'mx');
+                        % vertical bar for variability
+                        plot(ax, [burstStats(iFile).(var.name).timeBurstAvg, burstStats(iFile).(var.name).timeBurstAvg], [burstStats(iFile).(var.name).dataBurstAvg - burstStats(iFile).(var.name).dataBurstVar, burstStats(iFile).(var.name).dataBurstAvg + burstStats(iFile).(var.name).dataBurstVar], '-m');
+                    end
+                end
+            end
+        end
+    end
+end
 
 % for global/regional range and in/out water display
 mWh = findobj('Tag', 'mainWindow');
