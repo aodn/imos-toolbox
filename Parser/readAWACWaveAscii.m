@@ -340,20 +340,19 @@ try
     
     waveData.fullSpectrum = nan(nTime, nDirFreq, nDir);
     
-    % we should have nTime samples so :
-    nFreqFullSpectrum = round(length(pwrFreqDir(2:end,:)) / nTime);
+    % we should have nTime samples such that :
+    nTimeFullSpectrum = size(pwrFreqDir(2:end,:), 1) / nDirFreq;
+    
+    if nTimeFullSpectrum ~= nTime
+        fprintf('%s\n', ['Info : Full directional spectrum data found in ' fileRadName '.wds' ...
+        ' is missing data for ' num2str(nTime-nTimeFullSpectrum) ' time samples. We assumed these were the last time samples.']);
+    end
     
     % rearrange full power spectrum matrix so dimensions
     % are ordered: time, frequency, direction
-    start = 2;
-    for i=1:nTime
-        if start+nFreqFullSpectrum-1 <= size(pwrFreqDir,1)
-            waveData.fullSpectrum(i, :, :) = pwrFreqDir(start:start+nFreqFullSpectrum-1,:);
-            start = start+nFreqFullSpectrum;
-        else
-            break;
-        end
-    end
+    pwrFreqDir = pwrFreqDir(2:end,:);
+    [nRow,nColumn] = size(pwrFreqDir);
+    waveData.fullSpectrum(1:nTimeFullSpectrum, :, :) = permute(reshape(pwrFreqDir', [nColumn, nRow/nTimeFullSpectrum, nTimeFullSpectrum]), [3, 2, 1]);
     clear pwrFreqDir
 catch e
     fprintf('%s\n', ['Warning : Wave data related to ' fileRadName ...
