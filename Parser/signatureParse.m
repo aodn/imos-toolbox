@@ -246,80 +246,84 @@ switch lower(ext)
         if strcmpi(structures.Config.Plan_AverageEnabled, 'True')
             acquisitionMode{end+1} = 'Average_';
         end
-        if strcmpi(structures.Config.Alt_Plan_BurstEnabled, 'True') && ~isAvgd
-            % we need to compare structures.Config.Plan_xxx VS structures.Config.Alt_Plan_xxx
-            % to see if we can put together the two datasets
-            configPlanFields    = configFields(strncmpi('Plan_', configFields, 5) & ~strncmpi('Plan_Average', configFields, 12));
-            configAltPlanFields = configFields(strncmpi('Alt_Plan_', configFields, 9) & ~strncmpi('Alt_Plan_Average', configFields, 16));
-            
-            nPlanFields = length(configPlanFields);
-            samePlan = false(nPlanFields, 1);
-            for i=1:nPlanFields
-                if ischar(structures.Config.(configPlanFields{i}))
-                    samePlan(i) = strcmp(structures.Config.(configPlanFields{i}), structures.Config.(configAltPlanFields{i}));
-                else
-                    samePlan(i) = structures.Config.(configPlanFields{i}) == structures.Config.(configAltPlanFields{i});
+        if isfield(structures.Config, 'Alt_Plan_BurstEnabled')
+            if strcmpi(structures.Config.Alt_Plan_BurstEnabled, 'True') && ~isAvgd
+                % we need to compare structures.Config.Plan_xxx VS structures.Config.Alt_Plan_xxx
+                % to see if we can put together the two datasets
+                configPlanFields    = configFields(strncmpi('Plan_', configFields, 5) & ~strncmpi('Plan_Average', configFields, 12));
+                configAltPlanFields = configFields(strncmpi('Alt_Plan_', configFields, 9) & ~strncmpi('Alt_Plan_Average', configFields, 16));
+                
+                nPlanFields = length(configPlanFields);
+                samePlan = false(nPlanFields, 1);
+                for i=1:nPlanFields
+                    if ischar(structures.Config.(configPlanFields{i}))
+                        samePlan(i) = strcmp(structures.Config.(configPlanFields{i}), structures.Config.(configAltPlanFields{i}));
+                    else
+                        samePlan(i) = structures.Config.(configPlanFields{i}) == structures.Config.(configAltPlanFields{i});
+                    end
                 end
-            end
-            
-            configBurstFields    = configFields(strncmpi('Burst_', configFields, 6));
-            configAltBurstFields = configFields(strncmpi('Alt_Burst_', configFields, 10));
-            
-            nBurstFields = length(configBurstFields);
-            sameBurst = false(nBurstFields, 1);
-            for i=1:nBurstFields
-                if ischar(structures.Config.(configBurstFields{i}))
-                    sameBurst(i) = strcmp(structures.Config.(configBurstFields{i}), structures.Config.(configAltBurstFields{i}));
-                else
-                    sameBurst(i) = all(all(structures.Config.(configBurstFields{i}) == structures.Config.(configAltBurstFields{i})));
+                
+                configBurstFields    = configFields(strncmpi('Burst_', configFields, 6));
+                configAltBurstFields = configFields(strncmpi('Alt_Burst_', configFields, 10));
+                
+                nBurstFields = length(configBurstFields);
+                sameBurst = false(nBurstFields, 1);
+                for i=1:nBurstFields
+                    if ischar(structures.Config.(configBurstFields{i}))
+                        sameBurst(i) = strcmp(structures.Config.(configBurstFields{i}), structures.Config.(configAltBurstFields{i}));
+                    else
+                        sameBurst(i) = all(all(structures.Config.(configBurstFields{i}) == structures.Config.(configAltBurstFields{i})));
+                    end
                 end
-            end
-            
-            if all(samePlan) && all(sameBurst)
-                % can be added to former dataset
-                [~, iBurst] = find(strcmp(acquisitionMode, 'Burst_'));
-                acquisitionMode{end+1, iBurst} = 'Alt_Burst_';
-            else
-                % distinct dataset
-                acquisitionMode{1, end+1} = 'Alt_Burst_';
+                
+                if all(samePlan) && all(sameBurst)
+                    % can be added to former dataset
+                    [~, iBurst] = find(strcmp(acquisitionMode, 'Burst_'));
+                    acquisitionMode{end+1, iBurst} = 'Alt_Burst_';
+                else
+                    % distinct dataset
+                    acquisitionMode{1, end+1} = 'Alt_Burst_';
+                end
             end
         end
-        if strcmpi(structures.Config.Alt_Plan_AverageEnabled, 'True')
-            % we need to compare structures.Config.Plan_xxx VS structures.Config.Alt_Plan_xxx
-            % to see if we can put together the two datasets
-            configPlanFields    = configFields(strncmpi('Plan_', configFields, 5) & ~strncmpi('Plan_Burst', configFields, 10));
-            configAltPlanFields = configFields(strncmpi('Alt_Plan_', configFields, 9) & ~strncmpi('Alt_Plan_Burst', configFields, 14));
-            
-            nPlanFields = length(configPlanFields);
-            samePlan = false(nPlanFields, 1);
-            for i=1:nPlanFields
-                if ischar(structures.Config.(configPlanFields{i}))
-                    samePlan(i) = strcmp(structures.Config.(configPlanFields{i}), structures.Config.(configAltPlanFields{i}));
-                else
-                    samePlan(i) = structures.Config.(configPlanFields{i}) == structures.Config.(configAltPlanFields{i});
+        if isfield(structures.Config, 'Alt_Plan_AverageEnabled')
+            if strcmpi(structures.Config.Alt_Plan_AverageEnabled, 'True')
+                % we need to compare structures.Config.Plan_xxx VS structures.Config.Alt_Plan_xxx
+                % to see if we can put together the two datasets
+                configPlanFields    = configFields(strncmpi('Plan_', configFields, 5) & ~strncmpi('Plan_Burst', configFields, 10));
+                configAltPlanFields = configFields(strncmpi('Alt_Plan_', configFields, 9) & ~strncmpi('Alt_Plan_Burst', configFields, 14));
+                
+                nPlanFields = length(configPlanFields);
+                samePlan = false(nPlanFields, 1);
+                for i=1:nPlanFields
+                    if ischar(structures.Config.(configPlanFields{i}))
+                        samePlan(i) = strcmp(structures.Config.(configPlanFields{i}), structures.Config.(configAltPlanFields{i}));
+                    else
+                        samePlan(i) = structures.Config.(configPlanFields{i}) == structures.Config.(configAltPlanFields{i});
+                    end
                 end
-            end
-            
-            configAvgFields    = configFields(strncmpi('Average_', configFields, 8));
-            configAltAvgFields = configFields(strncmpi('Alt_Average_', configFields, 12));
-            
-            nAvgFields = length(configAvgFields);
-            sameAvg = false(nAvgFields, 1);
-            for i=1:nAvgFields
-                if ischar(structures.Config.(configAvgFields{i}))
-                    sameAvg(i) = strcmp(structures.Config.(configAvgFields{i}), structures.Config.(configAltAvgFields{i}));
-                else
-                    sameAvg(i) = all(all(structures.Config.(configAvgFields{i}) == structures.Config.(configAltAvgFields{i})));
+                
+                configAvgFields    = configFields(strncmpi('Average_', configFields, 8));
+                configAltAvgFields = configFields(strncmpi('Alt_Average_', configFields, 12));
+                
+                nAvgFields = length(configAvgFields);
+                sameAvg = false(nAvgFields, 1);
+                for i=1:nAvgFields
+                    if ischar(structures.Config.(configAvgFields{i}))
+                        sameAvg(i) = strcmp(structures.Config.(configAvgFields{i}), structures.Config.(configAltAvgFields{i}));
+                    else
+                        sameAvg(i) = all(all(structures.Config.(configAvgFields{i}) == structures.Config.(configAltAvgFields{i})));
+                    end
                 end
-            end
-            
-            if all(samePlan) && all(sameAvg)
-                % can be added to former dataset
-                [~, iAverage] = find(strcmp(acquisitionMode, 'Average_'));
-                acquisitionMode{end+1, iAverage} = 'Alt_Average_';
-            else
-                % distinct dataset
-                acquisitionMode{1, end+1} = 'Alt_Average_';
+                
+                if all(samePlan) && all(sameAvg)
+                    % can be added to former dataset
+                    [~, iAverage] = find(strcmp(acquisitionMode, 'Average_'));
+                    acquisitionMode{end+1, iAverage} = 'Alt_Average_';
+                else
+                    % distinct dataset
+                    acquisitionMode{1, end+1} = 'Alt_Average_';
+                end
             end
         end
 %         if strcmpi(structures.Config.Burst_Altimeter, 'True')
@@ -352,10 +356,10 @@ switch lower(ext)
             % support velocity data in ENU or beam coordinates
             data.(acquisitionMode{1, i}).isVelocityData = false;
             if isfield(structures.Data, [acquisitionMode{1, i} 'Velocity_ENU'])
-                data.(acquisitionMode{1, i}).Velocity_E  = squeeze(structures.Data.([acquisitionMode{1, i} 'ENU'])(:, 1, :));
-                data.(acquisitionMode{1, i}).Velocity_N  = squeeze(structures.Data.([acquisitionMode{1, i} 'ENU'])(:, 2, :));
-                data.(acquisitionMode{1, i}).Velocity_U  = squeeze(structures.Data.([acquisitionMode{1, i} 'ENU'])(:, 3, :));
-                data.(acquisitionMode{1, i}).Velocity_U2 = squeeze(structures.Data.([acquisitionMode{1, i} 'ENU'])(:, 4, :));
+                data.(acquisitionMode{1, i}).Velocity_E  = squeeze(structures.Data.([acquisitionMode{1, i} 'Velocity_ENU'])(:, 1, :));
+                data.(acquisitionMode{1, i}).Velocity_N  = squeeze(structures.Data.([acquisitionMode{1, i} 'Velocity_ENU'])(:, 2, :));
+                data.(acquisitionMode{1, i}).Velocity_U  = squeeze(structures.Data.([acquisitionMode{1, i} 'Velocity_ENU'])(:, 3, :));
+                data.(acquisitionMode{1, i}).Velocity_U2 = squeeze(structures.Data.([acquisitionMode{1, i} 'Velocity_ENU'])(:, 4, :));
                 
                 data.(acquisitionMode{1, i}).isVelocityData = true;
                 data.(acquisitionMode{1, i}).coordSys = 'ENU';
@@ -433,147 +437,148 @@ switch lower(ext)
             data.(acquisitionMode{1, i}).speedOfSound = structures.Data.([acquisitionMode{1, i} 'Soundspeed']);
             data.(acquisitionMode{1, i}).Pressure     = structures.Data.([acquisitionMode{1, i} 'Pressure']);
             
-            if ~isempty(acquisitionMode{2, i})
-                % we're adding the similar dataset to the existing one
-                data.(acquisitionMode{1, i}).Time = [data.(acquisitionMode{1, i}).Time; ...
-                    structures.Data.([acquisitionMode{2, i} 'Time'])];
-                
-                data.(acquisitionMode{1, i}).nSamples    = length(data.(acquisitionMode{1, i}).Time);
-                
-                data.(acquisitionMode{1, i}).Status         = [data.(acquisitionMode{1, i}).Status; ...
-                    dec2bin(bytecast(structures.Data.([acquisitionMode{2, i} 'Status']), 'L', 'uint32', cpuEndianness), 32)];
-                data.(acquisitionMode{1, i}).Error          = [data.(acquisitionMode{1, i}).Error; ...
-                    structures.Data.([acquisitionMode{2, i} 'Error'])]; % error codes for each cell of a velocity profile inferred from the beams. 0=good; otherwise error. See http://www.nortek-as.com/en/knowledge-center/forum/waves/20001875?b_start=0#769595815
-                data.(acquisitionMode{1, i}).AmbiguityVel   = [data.(acquisitionMode{1, i}).AmbiguityVel; ...
-                    structures.Data.([acquisitionMode{2, i} 'AmbiguityVel'])];
-                data.(acquisitionMode{1, i}).TransmitEnergy = [data.(acquisitionMode{1, i}).TransmitEnergy; ...
-                    structures.Data.([acquisitionMode{2, i} 'TransmitEnergy'])];
-                data.(acquisitionMode{1, i}).NominalCorrelation = [data.(acquisitionMode{1, i}).NominalCorrelation; ...
-                    structures.Data.([acquisitionMode{2, i} 'NominalCorrelation'])];
-                
-                % only support velocity data in ENU coordinates
-                if isfield(structures.Data, [acquisitionMode{2, i} 'Velocity_ENU'])
-                    data.(acquisitionMode{1, i}).Velocity_E  = [data.(acquisitionMode{1, i}).Velocity_E; ...
-                        squeeze(structures.Data.([acquisitionMode{2, i} 'ENU'])(:, 1, :))];
-                    data.(acquisitionMode{1, i}).Velocity_N  = [data.(acquisitionMode{1, i}).Velocity_N; ...
-                        squeeze(structures.Data.([acquisitionMode{2, i} 'ENU'])(:, 2, :))];
-                    data.(acquisitionMode{1, i}).Velocity_U  = [data.(acquisitionMode{1, i}).Velocity_U; ...
-                        squeeze(structures.Data.([acquisitionMode{2, i} 'ENU'])(:, 3, :))];
-                    data.(acquisitionMode{1, i}).Velocity_U2 = [data.(acquisitionMode{1, i}).Velocity_U2; ...
-                        squeeze(structures.Data.([acquisitionMode{2, i} 'ENU'])(:, 4, :))];
+            if size(acquisitionMode, 1) == 2
+                if ~isempty(acquisitionMode{2, i})
+                    % we're adding the similar dataset to the existing one
+                    data.(acquisitionMode{1, i}).Time = [data.(acquisitionMode{1, i}).Time; ...
+                        structures.Data.([acquisitionMode{2, i} 'Time'])];
                     
-                elseif isfield(structures.Data, [acquisitionMode{2, i} 'VelEast'])
-                    data.(acquisitionMode{1, i}).Velocity_E     = [data.(acquisitionMode{1, i}).Velocity_E; ...
-                        structures.Data.([acquisitionMode{2, i} 'VelEast'])];
-                    data.(acquisitionMode{1, i}).Velocity_N     = [data.(acquisitionMode{1, i}).Velocity_N; ...
-                        structures.Data.([acquisitionMode{2, i} 'VelNorth'])];
-                    if isfield(structures.Data, [acquisitionMode{2, i} 'VelUp'])
-                        data.(acquisitionMode{1, i}).Velocity_U = [data.(acquisitionMode{1, i}).Velocity_U; ...
-                            structures.Data.([acquisitionMode{2, i} 'VelUp'])];
-                    else
-                        data.(acquisitionMode{1, i}).Velocity_U = [data.(acquisitionMode{1, i}).Velocity_U; ...
-                            structures.Data.([acquisitionMode{2, i} 'VelUp1'])];
-                    end
-                    data.(acquisitionMode{1, i}).Velocity_U2    = [data.(acquisitionMode{1, i}).Velocity_U2; ...
-                        structures.Data.([acquisitionMode{2, i} 'VelUp2'])];
+                    data.(acquisitionMode{1, i}).nSamples    = length(data.(acquisitionMode{1, i}).Time);
                     
-                elseif isfield(structures.Data, [acquisitionMode{1, i} 'VelBeam1'])
-                    data.(acquisitionMode{1, i}).Velocity_1     = [data.(acquisitionMode{1, i}).Velocity_1; ...
-                        structures.Data.([acquisitionMode{2, i} 'VelBeam1'])];
-                    data.(acquisitionMode{1, i}).Velocity_2     = [data.(acquisitionMode{1, i}).Velocity_2; ...
-                        structures.Data.([acquisitionMode{2, i} 'VelBeam2'])];
-                    data.(acquisitionMode{1, i}).Velocity_3     = [data.(acquisitionMode{1, i}).Velocity_3; ...
-                        structures.Data.([acquisitionMode{2, i} 'VelBeam3'])];
-                    data.(acquisitionMode{1, i}).Velocity_4     = [data.(acquisitionMode{1, i}).Velocity_4; ...
-                        structures.Data.([acquisitionMode{2, i} 'VelBeam4'])];
+                    data.(acquisitionMode{1, i}).Status         = [data.(acquisitionMode{1, i}).Status; ...
+                        dec2bin(bytecast(structures.Data.([acquisitionMode{2, i} 'Status']), 'L', 'uint32', cpuEndianness), 32)];
+                    data.(acquisitionMode{1, i}).Error          = [data.(acquisitionMode{1, i}).Error; ...
+                        structures.Data.([acquisitionMode{2, i} 'Error'])]; % error codes for each cell of a velocity profile inferred from the beams. 0=good; otherwise error. See http://www.nortek-as.com/en/knowledge-center/forum/waves/20001875?b_start=0#769595815
+                    data.(acquisitionMode{1, i}).AmbiguityVel   = [data.(acquisitionMode{1, i}).AmbiguityVel; ...
+                        structures.Data.([acquisitionMode{2, i} 'AmbiguityVel'])];
+                    data.(acquisitionMode{1, i}).TransmitEnergy = [data.(acquisitionMode{1, i}).TransmitEnergy; ...
+                        structures.Data.([acquisitionMode{2, i} 'TransmitEnergy'])];
+                    data.(acquisitionMode{1, i}).NominalCorrelation = [data.(acquisitionMode{1, i}).NominalCorrelation; ...
+                        structures.Data.([acquisitionMode{2, i} 'NominalCorrelation'])];
                     
-                end
-                if data.(acquisitionMode{1, i}).isVelocityData
-                    if isfield(structures.Data, [acquisitionMode{2, i} 'Amplitude_Beam'])
-                        data.(acquisitionMode{1, i}).Backscatter1 = [data.(acquisitionMode{1, i}).Backscatter1; ...
-                            squeeze(structures.Data.([acquisitionMode{2, i} 'Amplitude_Beam'])(:, 1, :))*2]; % looks like the .mat format is giving dB by default with dB = raw counts * 0.5
-                        data.(acquisitionMode{1, i}).Backscatter2 = [data.(acquisitionMode{1, i}).Backscatter2; ...
-                            squeeze(structures.Data.([acquisitionMode{2, i} 'Amplitude_Beam'])(:, 2, :))*2];
-                        data.(acquisitionMode{1, i}).Backscatter3 = [data.(acquisitionMode{1, i}).Backscatter3; ...
-                            squeeze(structures.Data.([acquisitionMode{2, i} 'Amplitude_Beam'])(:, 3, :))*2];
-                        data.(acquisitionMode{1, i}).Backscatter4 = [data.(acquisitionMode{1, i}).Backscatter4; ...
-                            squeeze(structures.Data.([acquisitionMode{2, i} 'Amplitude_Beam'])(:, 4, :))*2];
-                    elseif isfield(structures.Data, [acquisitionMode{2, i} 'AmpBeam1'])
-                        data.(acquisitionMode{1, i}).Backscatter1 = [data.(acquisitionMode{1, i}).Backscatter1; ...
-                            structures.Data.([acquisitionMode{2, i} 'AmpBeam1'])*2];
-                        data.(acquisitionMode{1, i}).Backscatter2 = [data.(acquisitionMode{1, i}).Backscatter2; ...
-                            structures.Data.([acquisitionMode{2, i} 'AmpBeam2'])*2];
-                        data.(acquisitionMode{1, i}).Backscatter3 = [data.(acquisitionMode{1, i}).Backscatter3; ...
-                            structures.Data.([acquisitionMode{2, i} 'AmpBeam3'])*2];
-                        data.(acquisitionMode{1, i}).Backscatter4 = [data.(acquisitionMode{1, i}).Backscatter4; ...
-                            structures.Data.([acquisitionMode{2, i} 'AmpBeam4'])*2];
+                    % only support velocity data in ENU coordinates
+                    if isfield(structures.Data, [acquisitionMode{2, i} 'Velocity_ENU'])
+                        data.(acquisitionMode{1, i}).Velocity_E  = [data.(acquisitionMode{1, i}).Velocity_E; ...
+                            squeeze(structures.Data.([acquisitionMode{2, i} 'Velocity_ENU'])(:, 1, :))];
+                        data.(acquisitionMode{1, i}).Velocity_N  = [data.(acquisitionMode{1, i}).Velocity_N; ...
+                            squeeze(structures.Data.([acquisitionMode{2, i} 'Velocity_ENU'])(:, 2, :))];
+                        data.(acquisitionMode{1, i}).Velocity_U  = [data.(acquisitionMode{1, i}).Velocity_U; ...
+                            squeeze(structures.Data.([acquisitionMode{2, i} 'Velocity_ENU'])(:, 3, :))];
+                        data.(acquisitionMode{1, i}).Velocity_U2 = [data.(acquisitionMode{1, i}).Velocity_U2; ...
+                            squeeze(structures.Data.([acquisitionMode{2, i} 'Velocity_ENU'])(:, 4, :))];
+                        
+                    elseif isfield(structures.Data, [acquisitionMode{2, i} 'VelEast'])
+                        data.(acquisitionMode{1, i}).Velocity_E     = [data.(acquisitionMode{1, i}).Velocity_E; ...
+                            structures.Data.([acquisitionMode{2, i} 'VelEast'])];
+                        data.(acquisitionMode{1, i}).Velocity_N     = [data.(acquisitionMode{1, i}).Velocity_N; ...
+                            structures.Data.([acquisitionMode{2, i} 'VelNorth'])];
+                        if isfield(structures.Data, [acquisitionMode{2, i} 'VelUp'])
+                            data.(acquisitionMode{1, i}).Velocity_U = [data.(acquisitionMode{1, i}).Velocity_U; ...
+                                structures.Data.([acquisitionMode{2, i} 'VelUp'])];
+                        else
+                            data.(acquisitionMode{1, i}).Velocity_U = [data.(acquisitionMode{1, i}).Velocity_U; ...
+                                structures.Data.([acquisitionMode{2, i} 'VelUp1'])];
+                        end
+                        data.(acquisitionMode{1, i}).Velocity_U2    = [data.(acquisitionMode{1, i}).Velocity_U2; ...
+                            structures.Data.([acquisitionMode{2, i} 'VelUp2'])];
+                        
+                    elseif isfield(structures.Data, [acquisitionMode{1, i} 'VelBeam1'])
+                        data.(acquisitionMode{1, i}).Velocity_1     = [data.(acquisitionMode{1, i}).Velocity_1; ...
+                            structures.Data.([acquisitionMode{2, i} 'VelBeam1'])];
+                        data.(acquisitionMode{1, i}).Velocity_2     = [data.(acquisitionMode{1, i}).Velocity_2; ...
+                            structures.Data.([acquisitionMode{2, i} 'VelBeam2'])];
+                        data.(acquisitionMode{1, i}).Velocity_3     = [data.(acquisitionMode{1, i}).Velocity_3; ...
+                            structures.Data.([acquisitionMode{2, i} 'VelBeam3'])];
+                        data.(acquisitionMode{1, i}).Velocity_4     = [data.(acquisitionMode{1, i}).Velocity_4; ...
+                            structures.Data.([acquisitionMode{2, i} 'VelBeam4'])];
+                        
                     end
-                    if isfield(structures.Data, [acquisitionMode{2, i} 'Correlation_Beam'])
-                        data.(acquisitionMode{1, i}).Correlation1 = [data.(acquisitionMode{1, i}).Correlation1; ...
-                            squeeze(structures.Data.([acquisitionMode{2, i} 'Correlation_Beam'])(:, 1, :))];
-                        data.(acquisitionMode{1, i}).Correlation2 = [data.(acquisitionMode{1, i}).Correlation2; ...
-                            squeeze(structures.Data.([acquisitionMode{2, i} 'Correlation_Beam'])(:, 2, :))];
-                        data.(acquisitionMode{1, i}).Correlation3 = [data.(acquisitionMode{1, i}).Correlation3; ...
-                            squeeze(structures.Data.([acquisitionMode{2, i} 'Correlation_Beam'])(:, 3, :))];
-                        data.(acquisitionMode{1, i}).Correlation4 = [data.(acquisitionMode{1, i}).Correlation4; ...
-                            squeeze(structures.Data.([acquisitionMode{2, i} 'Correlation_Beam'])(:, 4, :))];
-                    elseif isfield(structures.Data, [acquisitionMode{2, i} 'CorBeam1'])
-                        data.(acquisitionMode{1, i}).Correlation1 = [data.(acquisitionMode{1, i}).Correlation1; ...
-                            structures.Data.([acquisitionMode{2, i} 'CorBeam1'])];
-                        data.(acquisitionMode{1, i}).Correlation2 = [data.(acquisitionMode{1, i}).Correlation2; ...
-                            structures.Data.([acquisitionMode{2, i} 'CorBeam2'])];
-                        data.(acquisitionMode{1, i}).Correlation3 = [data.(acquisitionMode{1, i}).Correlation3; ...
-                            structures.Data.([acquisitionMode{2, i} 'CorBeam3'])];
-                        data.(acquisitionMode{1, i}).Correlation4 = [data.(acquisitionMode{1, i}).Correlation4; ...
-                            structures.Data.([acquisitionMode{2, i} 'CorBeam4'])];
+                    if data.(acquisitionMode{1, i}).isVelocityData
+                        if isfield(structures.Data, [acquisitionMode{2, i} 'Amplitude_Beam'])
+                            data.(acquisitionMode{1, i}).Backscatter1 = [data.(acquisitionMode{1, i}).Backscatter1; ...
+                                squeeze(structures.Data.([acquisitionMode{2, i} 'Amplitude_Beam'])(:, 1, :))*2]; % looks like the .mat format is giving dB by default with dB = raw counts * 0.5
+                            data.(acquisitionMode{1, i}).Backscatter2 = [data.(acquisitionMode{1, i}).Backscatter2; ...
+                                squeeze(structures.Data.([acquisitionMode{2, i} 'Amplitude_Beam'])(:, 2, :))*2];
+                            data.(acquisitionMode{1, i}).Backscatter3 = [data.(acquisitionMode{1, i}).Backscatter3; ...
+                                squeeze(structures.Data.([acquisitionMode{2, i} 'Amplitude_Beam'])(:, 3, :))*2];
+                            data.(acquisitionMode{1, i}).Backscatter4 = [data.(acquisitionMode{1, i}).Backscatter4; ...
+                                squeeze(structures.Data.([acquisitionMode{2, i} 'Amplitude_Beam'])(:, 4, :))*2];
+                        elseif isfield(structures.Data, [acquisitionMode{2, i} 'AmpBeam1'])
+                            data.(acquisitionMode{1, i}).Backscatter1 = [data.(acquisitionMode{1, i}).Backscatter1; ...
+                                structures.Data.([acquisitionMode{2, i} 'AmpBeam1'])*2];
+                            data.(acquisitionMode{1, i}).Backscatter2 = [data.(acquisitionMode{1, i}).Backscatter2; ...
+                                structures.Data.([acquisitionMode{2, i} 'AmpBeam2'])*2];
+                            data.(acquisitionMode{1, i}).Backscatter3 = [data.(acquisitionMode{1, i}).Backscatter3; ...
+                                structures.Data.([acquisitionMode{2, i} 'AmpBeam3'])*2];
+                            data.(acquisitionMode{1, i}).Backscatter4 = [data.(acquisitionMode{1, i}).Backscatter4; ...
+                                structures.Data.([acquisitionMode{2, i} 'AmpBeam4'])*2];
+                        end
+                        if isfield(structures.Data, [acquisitionMode{2, i} 'Correlation_Beam'])
+                            data.(acquisitionMode{1, i}).Correlation1 = [data.(acquisitionMode{1, i}).Correlation1; ...
+                                squeeze(structures.Data.([acquisitionMode{2, i} 'Correlation_Beam'])(:, 1, :))];
+                            data.(acquisitionMode{1, i}).Correlation2 = [data.(acquisitionMode{1, i}).Correlation2; ...
+                                squeeze(structures.Data.([acquisitionMode{2, i} 'Correlation_Beam'])(:, 2, :))];
+                            data.(acquisitionMode{1, i}).Correlation3 = [data.(acquisitionMode{1, i}).Correlation3; ...
+                                squeeze(structures.Data.([acquisitionMode{2, i} 'Correlation_Beam'])(:, 3, :))];
+                            data.(acquisitionMode{1, i}).Correlation4 = [data.(acquisitionMode{1, i}).Correlation4; ...
+                                squeeze(structures.Data.([acquisitionMode{2, i} 'Correlation_Beam'])(:, 4, :))];
+                        elseif isfield(structures.Data, [acquisitionMode{2, i} 'CorBeam1'])
+                            data.(acquisitionMode{1, i}).Correlation1 = [data.(acquisitionMode{1, i}).Correlation1; ...
+                                structures.Data.([acquisitionMode{2, i} 'CorBeam1'])];
+                            data.(acquisitionMode{1, i}).Correlation2 = [data.(acquisitionMode{1, i}).Correlation2; ...
+                                structures.Data.([acquisitionMode{2, i} 'CorBeam2'])];
+                            data.(acquisitionMode{1, i}).Correlation3 = [data.(acquisitionMode{1, i}).Correlation3; ...
+                                structures.Data.([acquisitionMode{2, i} 'CorBeam3'])];
+                            data.(acquisitionMode{1, i}).Correlation4 = [data.(acquisitionMode{1, i}).Correlation4; ...
+                                structures.Data.([acquisitionMode{2, i} 'CorBeam4'])];
+                        end
+                    end
+                    
+                    if isfield(structures.Data, [acquisitionMode{2, i} 'AltimeterDistanceLE'])
+                        data.(acquisitionMode{1, i}).AltimeterDistanceLE    = [data.(acquisitionMode{1, i}).AltimeterDistanceLE; ...
+                            structures.Data.([acquisitionMode{2, i} 'AltimeterDistanceLE'])];
+                        data.(acquisitionMode{1, i}).AltimeterQualityLE     = [data.(acquisitionMode{1, i}).AltimeterQualityLE; ...
+                            structures.Data.([acquisitionMode{2, i} 'AltimeterQualityLE'])];
+                        %                     data.(acquisitionMode{i}).AltimeterStatus        = [data.(acquisitionMode{1, i}).AltimeterStatus; ...
+                        %                         structures.Data.([acquisitionMode{2, i} 'AltimeterStatus'])]; % flags for when pitch or roll is > 5 or > 10. We already have pitch and roll data...
+                    end
+                    
+                    if isfield(structures.Data, [acquisitionMode{2, i} 'AltimeterDistanceAST'])
+                        data.(acquisitionMode{1, i}).AltimeterDistanceAST   = [data.(acquisitionMode{1, i}).AltimeterDistanceAST; ...
+                            structures.Data.([acquisitionMode{2, i} 'AltimeterDistanceAST'])];
+                        data.(acquisitionMode{1, i}).AltimeterQualityAST    = [data.(acquisitionMode{1, i}).AltimeterQualityAST; ...
+                            structures.Data.([acquisitionMode{2, i} 'AltimeterQualityAST'])];
+                        data.(acquisitionMode{1, i}).AltimeterTimeOffsetAST = [data.(acquisitionMode{1, i}).AltimeterTimeOffsetAST; ...
+                            structures.Data.([acquisitionMode{2, i} 'AltimeterTimeOffsetAST'])];
+                        data.(acquisitionMode{1, i}).AltimeterPressure      = [data.(acquisitionMode{1, i}).AltimeterPressure; ...
+                            structures.Data.([acquisitionMode{2, i} 'AltimeterPressure'])];
+                    end
+                    
+                    data.(acquisitionMode{1, i}).Battery      = [data.(acquisitionMode{1, i}).Battery; ...
+                        structures.Data.([acquisitionMode{2, i} 'Battery'])];
+                    data.(acquisitionMode{1, i}).Heading      = [data.(acquisitionMode{1, i}).Heading; ...
+                        structures.Data.([acquisitionMode{2, i} 'Heading'])];
+                    data.(acquisitionMode{1, i}).Pitch        = [data.(acquisitionMode{1, i}).Pitch; ...
+                        structures.Data.([acquisitionMode{2, i} 'Pitch'])];
+                    data.(acquisitionMode{1, i}).Roll         = [data.(acquisitionMode{1, i}).Roll; ...
+                        structures.Data.([acquisitionMode{2, i} 'Roll'])];
+                    data.(acquisitionMode{1, i}).Temperature  = [data.(acquisitionMode{1, i}).Temperature; ...
+                        structures.Data.([acquisitionMode{2, i} 'Temperature'])];
+                    data.(acquisitionMode{1, i}).speedOfSound = [data.(acquisitionMode{1, i}).speedOfSound; ...
+                        structures.Data.([acquisitionMode{2, i} 'Soundspeed'])];
+                    data.(acquisitionMode{1, i}).Pressure     = [data.(acquisitionMode{1, i}).Pressure; ...
+                        structures.Data.([acquisitionMode{2, i} 'Pressure'])];
+                    
+                    % we now need to sort the data chronologically
+                    [~, iSort] = sort(data.(acquisitionMode{1, i}).Time);
+                    nSample = length(data.(acquisitionMode{1, i}).Time);
+                    dataFields = fieldnames(data.(acquisitionMode{1, i}));
+                    for j=1:length(dataFields)
+                        if size(data.(acquisitionMode{1, i}).(dataFields{j}), 1) == nSample
+                            data.(acquisitionMode{1, i}).(dataFields{j}) = data.(acquisitionMode{1, i}).(dataFields{j})(iSort, :);
+                        end
                     end
                 end
-                
-                if isfield(structures.Data, [acquisitionMode{2, i} 'AltimeterDistanceLE'])
-                    data.(acquisitionMode{1, i}).AltimeterDistanceLE    = [data.(acquisitionMode{1, i}).AltimeterDistanceLE; ...
-                        structures.Data.([acquisitionMode{2, i} 'AltimeterDistanceLE'])];
-                    data.(acquisitionMode{1, i}).AltimeterQualityLE     = [data.(acquisitionMode{1, i}).AltimeterQualityLE; ...
-                        structures.Data.([acquisitionMode{2, i} 'AltimeterQualityLE'])];
-%                     data.(acquisitionMode{i}).AltimeterStatus        = [data.(acquisitionMode{1, i}).AltimeterStatus; ...
-%                         structures.Data.([acquisitionMode{2, i} 'AltimeterStatus'])]; % flags for when pitch or roll is > 5 or > 10. We already have pitch and roll data...
-                end
-                
-                if isfield(structures.Data, [acquisitionMode{2, i} 'AltimeterDistanceAST'])
-                    data.(acquisitionMode{1, i}).AltimeterDistanceAST   = [data.(acquisitionMode{1, i}).AltimeterDistanceAST; ...
-                        structures.Data.([acquisitionMode{2, i} 'AltimeterDistanceAST'])];
-                    data.(acquisitionMode{1, i}).AltimeterQualityAST    = [data.(acquisitionMode{1, i}).AltimeterQualityAST; ...
-                        structures.Data.([acquisitionMode{2, i} 'AltimeterQualityAST'])];
-                    data.(acquisitionMode{1, i}).AltimeterTimeOffsetAST = [data.(acquisitionMode{1, i}).AltimeterTimeOffsetAST; ...
-                        structures.Data.([acquisitionMode{2, i} 'AltimeterTimeOffsetAST'])];
-                    data.(acquisitionMode{1, i}).AltimeterPressure      = [data.(acquisitionMode{1, i}).AltimeterPressure; ...
-                        structures.Data.([acquisitionMode{2, i} 'AltimeterPressure'])];
-                end
-                
-                data.(acquisitionMode{1, i}).Battery      = [data.(acquisitionMode{1, i}).Battery; ...
-                    structures.Data.([acquisitionMode{2, i} 'Battery'])];
-                data.(acquisitionMode{1, i}).Heading      = [data.(acquisitionMode{1, i}).Heading; ...
-                    structures.Data.([acquisitionMode{2, i} 'Heading'])];
-                data.(acquisitionMode{1, i}).Pitch        = [data.(acquisitionMode{1, i}).Pitch; ...
-                    structures.Data.([acquisitionMode{2, i} 'Pitch'])];
-                data.(acquisitionMode{1, i}).Roll         = [data.(acquisitionMode{1, i}).Roll; ...
-                    structures.Data.([acquisitionMode{2, i} 'Roll'])];
-                data.(acquisitionMode{1, i}).Temperature  = [data.(acquisitionMode{1, i}).Temperature; ...
-                    structures.Data.([acquisitionMode{2, i} 'Temperature'])];
-                data.(acquisitionMode{1, i}).speedOfSound = [data.(acquisitionMode{1, i}).speedOfSound; ...
-                    structures.Data.([acquisitionMode{2, i} 'Soundspeed'])];
-                data.(acquisitionMode{1, i}).Pressure     = [data.(acquisitionMode{1, i}).Pressure; ...
-                    structures.Data.([acquisitionMode{2, i} 'Pressure'])];
-                
-                % we now need to sort the data chronologically
-                [~, iSort] = sort(data.(acquisitionMode{1, i}).Time);
-                nSample = length(data.(acquisitionMode{1, i}).Time);
-                dataFields = fieldnames(data.(acquisitionMode{1, i}));
-                for j=1:length(dataFields)
-                    if size(data.(acquisitionMode{1, i}).(dataFields{j}), 1) == nSample
-                        data.(acquisitionMode{1, i}).(dataFields{j}) = data.(acquisitionMode{1, i}).(dataFields{j})(iSort, :);
-                    end
-                end
-
             end
         end
         clear structures;
