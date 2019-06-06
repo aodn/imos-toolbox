@@ -258,10 +258,12 @@ datacursorb = findobj(buttons, 'TooltipString', 'Data Cursor');
 
 buttons(buttons == tb)            = [];
 buttons(buttons == savefigb)      = [];
-buttons(buttons == zoominb)       = [];
-buttons(buttons == zoomoutb)      = [];
-buttons(buttons == panb)          = [];
-buttons(buttons == datacursorb)   = [];
+if verLessThan('matlab', '9.5')
+    buttons(buttons == zoominb)       = [];
+    buttons(buttons == zoomoutb)      = [];
+    buttons(buttons == panb)          = [];
+    buttons(buttons == datacursorb)   = [];
+end
 
 delete(buttons);
 
@@ -276,8 +278,40 @@ set(hZoom, 'ActionPostCallback', @zoomPostCallback);
 set(hPan,  'ActionPostCallback', @zoomPostCallback);
 
 % update zoom in and pan's tooltips to display hot keys
-set(zoominb, 'TooltipString', 'Zoom In (Ctrl+z)');
-set(panb,    'TooltipString', 'Pan (Ctrl+a)');
+if verLessThan('matlab', '9.5')
+    set(zoominb, 'TooltipString', 'Zoom In (Ctrl+z)');
+    set(panb,    'TooltipString', 'Pan (Ctrl+a)');
+else
+    zoominb = uitoggletool(tb, ...
+        'TooltipString', 'Zoom In (Ctrl+z)',...
+        'HandleVisibility', 'off', ...
+        'OnCallback', @onZoomIn, ...
+        'OffCallback', 'zoom(''off'')');
+    [img,map,alpha] = imread(fullfile(matlabroot,'toolbox','matlab','icons','tool_zoom_in.png'));
+    img = double(img)/double(intmax(class(img)));
+    img(repmat(alpha==0,[1 1 3])) = NaN;
+    zoominb.CData = img;
+
+    zoomoutb = uitoggletool(tb, ...
+        'TooltipString', 'Zoom Out',...
+        'HandleVisibility', 'off', ...
+        'OnCallback', @onZoomOut, ...
+        'OffCallback', 'zoom(''off'')');
+    [img,map,alpha] = imread(fullfile(matlabroot,'toolbox','matlab','icons','tool_zoom_out.png'));
+    img = double(img)/double(intmax(class(img)));
+    img(repmat(alpha==0,[1 1 3])) = NaN;
+    zoomoutb.CData = img;
+    
+    hPan = uitoggletool(tb, ...
+        'TooltipString',  'Pan (Ctrl+a)',...
+        'HandleVisibility', 'off', ...
+        'OnCallback', 'pan(''on'')', ...
+        'OffCallback', 'pan(''off'')');
+    [img,map,alpha] = imread(fullfile(matlabroot,'toolbox','matlab','icons','tool_hand.png'));
+    img = double(img)/double(intmax(class(img)));
+    img(repmat(alpha==0,[1 1 3])) = NaN;
+    hPan.CData = img;
+end
 
 %set uimenu
 hToolsMenu                                  = uimenu(fig,                         'label', 'Tools');
@@ -1139,4 +1173,18 @@ set(hHelpWiki, 'callBack', @openWikiPage);
         % clean up empty cells
         txt(cellfun(@isempty, txt)) = [];
     end
+
+%%
+    function onZoomIn(source, ev)
+            z = zoom;
+            z.Enable = 'on';
+            z.Direction = 'in';
+    end
+
+    function onZoomOut(source, ev)
+            z = zoom;
+            z.Enable = 'on';
+            z.Direction = 'out';
+    end
+
 end
