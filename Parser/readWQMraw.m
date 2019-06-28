@@ -567,18 +567,50 @@ end
 % reshape it to make it easier to extract data
 A = A';
 
-% C,T,P are in stored in engineering units
-WQM.conductivity = A(:,colCond);    % S/m
+% try to handle a very badly behaved WQM which didn't record
+% some of its primary variable, has flow on effects for calculation of
+% other variables
+noConductivity = false;
+testVar = A(:,colCond);
+if isempty(testVar)
+    noConductivity = true;
+    iLabel = strcmp(WQM.varlabel, 'conductivity');
+    WQM.varlabel = WQM.varlabel(~iLabel);
+    WQM.varunits = WQM.varunits(~iLabel);    
+else
+    WQM.conductivity =testVar; % S/m
+end
 
-% temperature and pressure in C and dbar
-WQM.temperature = A(:,colTemp);
-WQM.pressure = A(:,colPres);
+noTemperature = false;
+testVar = A(:,colTemp);
+if isempty(testVar)
+    noTemperature = true;
+    iLabel = strcmp(WQM.varlabel, 'temperature');
+    WQM.varlabel = WQM.varlabel(~iLabel);
+    WQM.varunits = WQM.varunits(~iLabel);    
+else
+    WQM.temperature = testVar; % deg
+end
+
+noPressure = false;
+testVar = A(:,colPres);
+if isempty(testVar)
+    noPressure = true;
+    iLabel = strcmp(WQM.varlabel, 'pressure');
+    WQM.varlabel = WQM.varlabel(~iLabel);
+    WQM.varunits = WQM.varunits(~iLabel);    
+else
+    WQM.pressure = testVar; % dbar
+end
+
+noSalinity = noConductivity || noTemperature || noPressure;
 
 % compute conductivity ratio to use seawater salinity algorithm
 % Wetlabs conductivity is in S/m and gsw_C3515 in mS/cm
-crat = 10*WQM.conductivity./gsw_C3515;
-
-WQM.salinity = gsw_SP_from_R(crat, WQM.temperature, WQM.pressure);
+if ~noSalinity
+    crat = 10*WQM.conductivity./gsw_C3515;
+    WQM.salinity = gsw_SP_from_R(crat, WQM.temperature, WQM.pressure);
+end
 
 % find sensor coefficients
 
@@ -609,7 +641,9 @@ O2.E = Ecal{2};
 
 oxygen = A(:,colRawDO);
 
-WQM.oxygen = O2cal(oxygen, O2, WQM);
+if ~noSalinity
+    WQM.oxygen = O2cal(oxygen, O2, WQM);
+end
 
 % FLNTU Sensor
 try
