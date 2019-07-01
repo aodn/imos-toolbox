@@ -225,69 +225,7 @@ function sample_data = readXR620( filename, mode )
               if strcmpi('TIME', vars{k}), continue; end
               if strcmpi('DEPTH', vars{k}) && (nA == 0), continue; end
               
-              name = '';
-              comment.(vars{k}) = '';
-              switch vars{k}
-                  
-                  %Conductivity (mS/cm) = 10-1*(S/m)
-                  case 'Cond'
-                      name = 'CNDC';
-                      data.(vars{k}) = data.(vars{k})/10;
-                      
-                      %Temperature (Celsius degree)
-                  case {'Temp', 'temp02', 'temp12'}, name = 'TEMP';
-                      
-                      %Pressure (dBar)
-                  case {'Pres', 'pres20', 'pres21'}, name = 'PRES';
-                      
-                      %Relative Pressure (dBar)
-                  case {'pres08'}, name = 'PRES_REL';
-                      
-                      %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
-                  case 'FlC'
-                      name = 'CPHL';
-                      comment.(vars{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
-                      
-                      %Turbidity (NTU)
-                  case 'Turb', name = 'TURB';
-                      
-                      %Rinko temperature (Celsius degree)
-                  case 'R_Temp'
-                      name = '';
-                      comment.(vars{k}) = 'Corrected temperature for DO sensor.';
-                      
-                      %Rinko dissolved O2 (%)
-                  case 'R_D_O2', name = 'DOXS';
-                      
-                      %Depth (m)
-                  case {'Depth', 'dpth01'}, name = 'DEPTH';
-                      
-                      %Salinity (PSU)
-                  case 'Salin', name = 'PSAL';
-                      
-                      %Specific conductivity (uS/cm) = 10-4 * (S/m)
-                  case 'SpecCond'
-                      name = 'SPEC_CNDC';
-                      data.(vars{k}) = data.(vars{k})/10000;
-                      
-                      %Density anomaly (n/a)
-                  case 'DensAnom', name = '';
-                      
-                      %Speed of sound (m/s)
-                  case 'SoSUN', name = 'SSPD';
-                      
-                      %Rinko dissolved O2 concentration (mg/l)
-                  case 'rdO2C', name = 'DOXY';
-                      
-                      % Oxyguard dissolved O2 (%)
-                  case 'D_O2', name = 'DOXS';
-                      
-                      % Oxyguard dissolved O2 concentration (ml/l)
-                  case 'dO2C', name = 'DOX';
-
-              end
+              [name,  data.(vars{k}), comment.(vars{k})] = convertXRengVar(vars{k},  data.(vars{k}), mode);
               
               if ~isempty(name)
                   sample_data.variables{end+1}.dimensions = [1 dimensions];
@@ -338,66 +276,7 @@ function sample_data = readXR620( filename, mode )
           
           for k = 1:length(fields)
               
-              name = '';
-              comment.(fields{k}) = '';
-              switch fields{k}
-                  
-                  %Conductivity (mS/cm) = 10-1*(S/m)
-                  case 'Cond'
-                      name = 'CNDC';
-                      data.(fields{k}) = data.(fields{k})/10;
-                      
-                      %Temperature (Celsius degree)
-                  case {'Temp', 'temp02', 'temp12'}, name = 'TEMP';
-                      
-                      %Pressure (dBar)
-                  case {'Pres', 'pres08'}, name = 'PRES';
-                      
-                      %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
-                  case 'FlC'
-                      name = 'CPHL';
-                      comment.(fields{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
-                      
-                      %Turbidity (NTU)
-                  case 'Turb', name = 'TURB';
-                      
-                      %Rinko temperature (Celsius degree)
-                  case 'R_Temp'
-                      name = '';
-                      comment.(fields{k}) = 'Corrected temperature.';
-                      
-                      %Rinko dissolved O2 (%)
-                  case 'R_D_O2', name = 'DOXS';
-                      
-                      %Depth (m)
-                  case {'Depth', 'dpth01'}, name = 'DEPTH';
-                      
-                      %Salinity (PSU)
-                  case 'Salin', name = 'PSAL';
-                      
-                      %Specific conductivity (uS/cm) = 10-4 * (S/m)
-                  case 'SpecCond'
-                      name = 'SPEC_CNDC';
-                      data.(fields{k}) = data.(fields{k})/10000;
-                      
-                      %Density anomaly (n/a)
-                  case 'DensAnom', name = '';
-                      
-                      %Speed of sound (m/s)
-                  case 'SoSUN', name = 'SSPD';
-                      
-                      %Rinko dissolved O2 concentration (mg/l)
-                  case 'rdO2C', name = 'DOXY';
-                      
-                      % Oxyguard dissolved O2 (%)
-                  case 'D_O2', name = 'DOXS';
-                      
-                      % Oxyguard dissolved O2 concentration (ml/l)
-                  case 'dO2C', name = 'DOX';
-
-              end
+              [name,  data.(fields{k}), comment.(fields{k})] = convertXRengVar(fields{k},  data.(fields{k}), mode);
               
               if ~isempty(name)
                   % dimensions definition must stay in this order : T, Z, Y, X, others;
@@ -465,7 +344,7 @@ function header = readHeader(fid)
       switch m
           % instrument information
           case 1
-              header.model    = tkns{1}{1};
+              header.model    = genvarname(tkns{1}{1});
           case 2
               header.firmware = tkns{1}{1};
           case 3

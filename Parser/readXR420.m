@@ -231,43 +231,24 @@ function sample_data = readXR420( filename, mode )
               sample_data.variables{end+1}.dimensions = [1 dimensions];
               
               comment.(vars{k}) = '';
-              switch vars{k}
+              
+              [name,  data.(vars{k}), comment.(vars{k})] = convertXRengVar(vars{k},  data.(vars{k}), mode);
+              
+              if ~isempty(name)
+                  sample_data.variables{end  }.name       = name;
+                  sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+                  if nA == 0
+                      sample_data.variables{end  }.data   = sample_data.variables{end}.typeCastFunc(data.(vars{k})(iD));
+                  else
+                      % we need to padd data with NaNs so that we fill MAXZ
+                      % dimension
+                      sample_data.variables{end  }.data   = sample_data.variables{end}.typeCastFunc([[data.(vars{k})(iD); dNaN], [data.(vars{k})(~iD); aNaN]]);
+                  end
+                  sample_data.variables{end  }.comment    = comment.(vars{k});
                   
-                  %Conductivity (mS/cm) = 10-1*(S/m)
-                  case 'Cond'
-                      name = 'CNDC';
-                      data.(vars{k}) = data.(vars{k})/10;
-                      
-                  %Temperature (Celsius degree)
-                  case 'Temp', name = 'TEMP';
-                      
-                  %Pressure (dBar)
-                  case 'Pres', name = 'PRES';
-                      
-                  %Depth (m)
-                  case 'Depth', name = 'DEPTH';
-                      
-                  %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
-                  case 'FlCa'
-                      name = 'CPHL';
-                      comment.(vars{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
-              end
-              
-              sample_data.variables{end  }.name       = name;
-              sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-              if nA == 0
-                  sample_data.variables{end  }.data   = sample_data.variables{end}.typeCastFunc(data.(vars{k})(iD));
-              else
-                  % we need to padd data with NaNs so that we fill MAXZ
-                  % dimension
-                  sample_data.variables{end  }.data   = sample_data.variables{end}.typeCastFunc([[data.(vars{k})(iD); dNaN], [data.(vars{k})(~iD); aNaN]]);
-              end
-              sample_data.variables{end  }.comment    = comment.(vars{k});
-              
-              if ~any(strcmpi(vars{k}, {'TIME', 'DEPTH'}))
-                  sample_data.variables{end  }.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
+                  if ~any(strcmpi(vars{k}, {'TIME', 'DEPTH'}))
+                      sample_data.variables{end  }.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
+                  end
               end
           end
           
@@ -304,50 +285,22 @@ function sample_data = readXR420( filename, mode )
           
           for k = 1:length(fields)
               comment.(fields{k}) = '';
-              switch fields{k}
-                  
-                  %Conductivity (mS/cm) = 10-1*(S/m)
-                  case 'Cond'
-                      name = 'CNDC';
-                      data.(fields{k}) = data.(fields{k})/10;
-                      
-                  %Temperature (Celsius degree)
-                  case 'Temp', name = 'TEMP';
-                      
-                  %Pressure (dBar)
-                  case 'Pres', name = 'PRES';
-                      
-                  %Depth (m)
-                  case 'Depth', name = 'DEPTH';
-                      
-                  %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
-                  case 'FlCa'
-                      name = 'CPHL';
-                      comment.(fields{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
-                      
-                  %DO (%)
-                  case 'D_O2', name = 'DOXS';
-                      
-                  %Turb-a (NTU)
-                  case 'Turba', name = 'TURB';
-                      
-                  otherwise, name = fields{k};
-              end
               
-              % dimensions definition must stay in this order : T, Z, Y, X, others;
-              % to be CF compliant
-              sample_data.variables{end+1}.dimensions = 1;
-              sample_data.variables{end}.name         = name;
-              sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-              sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc(data.(fields{k}));
-              sample_data.variables{end}.coordinates  = coordinates;
-              sample_data.variables{end}.comment      = comment.(fields{k});
+              [name,  data.(fields{k}), comment.(fields{k})] = convertXRengVar(fields{k},  data.(fields{k}), mode);
+              if ~isempty(name)
+                  % dimensions definition must stay in this order : T, Z, Y, X, others;
+                  % to be CF compliant
+                  sample_data.variables{end+1}.dimensions = 1;
+                  sample_data.variables{end}.name         = name;
+                  sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
+                  sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc(data.(fields{k}));
+                  sample_data.variables{end}.coordinates  = coordinates;
+                  sample_data.variables{end}.comment      = comment.(fields{k});
+              end
           end
   end
 end
-  
+
 function header = readHeader(fid)
 %READHEADER Reads the header section from the top of the file.
 
