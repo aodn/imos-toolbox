@@ -122,12 +122,23 @@ switch name
     case 'flC'
       name = 'CPHL';
       comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements. Originally expressed in ug/l, 1l = 0.001m3 was assumed.';
-      
+
+    %fluorescence (ug/l)
+    %Aquatracka SBE19plus cdom sensor as cphl implemented on #550
+    case 'flCUVA'
+      name = 'CPHL';
+      comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements (Chelsea UV Aquatracka). Originally expressed in ug/l, 1l = 0.001m3 was assumed.';
+
+    % PAR/Irradiance, Biospherical/Licor
+    %par/sat/log - light sensor in SBE19plus assumed in umol photons/m2/s and implemented on #550
+    case {'par0x2Fsat0x2Flog', 'par/sat/log'}
+      name = 'PAR';
+      comment = 'PAR/Logarithmic/ Satlantic';
+
     % artificial chlorophyll from fluorescence (mg/m3)
     case 'flECO0x2DAFL'
       name = 'CPHL';
       comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements.';
-      
     % oxygen (mg/l)
     % mg/l
     case 'sbeox0Mg0x2FL'
