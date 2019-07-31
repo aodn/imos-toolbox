@@ -248,6 +248,12 @@ function displayManager(windowTitle, sample_data, callbacks)
       try
         graphFunc = getGraphFunc(graphType, 'graph', '');
         [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars, extra_sample_data);
+        if ~verLessThan('matlab', '9.5')
+            for k = 1:length(graphs)
+                disableDefaultInteractivity(graphs(k));
+                graphs(k).Toolbar.Visible = 'off';
+            end
+        end
       catch e
         errorString = getErrorString(e);
         fprintf('%s\n',   ['Error says : ' errorString]);
@@ -335,7 +341,12 @@ function displayManager(windowTitle, sample_data, callbacks)
         end
         
         [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars, extra_sample_data);
-        
+        if ~verLessThan('matlab', '9.5')
+            for k = 1:length(graphs)
+                disableDefaultInteractivity(graphs(k));
+                graphs(k).Toolbar.Visible = 'off';
+            end
+        end
         if isFlagVisible
             if isempty(flagFunc)
                 warning(['Cannot display QC flags using ' graphType ...
