@@ -1,4 +1,4 @@
-function imosCompile()
+function imosCompile(toolboxRoot,stagingRoot);
 %IMOSCOMPILE builds standalone binaries.
 %
 % This function uses the Matlab Compiler to compile the toolbox code.
@@ -44,9 +44,17 @@ function imosCompile()
 
 % assume we are running from snapshot/export (see
 % snapshot/buildBinaries.py)
-exportRoot    = pwd;
-toolboxRoot   = [exportRoot filesep '..' filesep '..'];
-stagingRoot   = [exportRoot filesep '..' filesep 'staging'];
+if nargin < 1,
+  exportRoot    = pwd;
+  toolboxRoot   = fullpath(exportRoot,'..','..');
+  stagingRoot   = fullpath(exportRoot,'..','staging');
+elseif nargin == 1,
+  exportRoot = toolboxRoot;
+  stagingRoot = fullpath(toolboxRoot,'dist');
+else,
+  exportRoot = toolboxRoot;
+end
+
 
 if ~isempty(dir(stagingRoot)),   error([stagingRoot   ' already exists']); end
 
@@ -126,6 +134,5 @@ end
 if ~copyfile([exportRoot filesep 'Java' filesep 'ddb.jar'], [toolboxRoot filesep 'Java'])
     error('could not copy ddb.exe to working project area');
 end
-
 % clean up
 rmdir(stagingRoot,   's');
