@@ -85,6 +85,15 @@ classdef testSchema < matlab.unittest.TestCase
 end
 
 function [ps] = load_basic_types();
+    % load testcases for basic types
+    %
+    % ps here is a structure with several basic tests
+    % every fieldname is a parametrized case.
+    % every fieldname is a 2x1 cell with [i]nputs and [e]xpected results.
+    % inputs are cells
+    % expected results are also cells, usually cells of cells if the expected output of a test function is more than one.
+    %
+
     ea = logical(zeros(0));
 
     i = {cell(0, 0), cell(1, 1), cell(1, 2), cell(2, 1), cell(2, 2)};
@@ -129,6 +138,12 @@ function [ps] = load_basic_types();
 end
 
 function [ps1, non_nested_entries, z1] = load_nested_types(),
+    % load testcases for nested types
+    %
+    % ps1 is a structure with one case - a deeply nested structure.
+    % non_nested_entries is the number of simple fieldnames at root level of the case in ps1.
+    % z1 is the same structure as in ps1.(name), but without a deeply nested structures.
+    %
     s1 = struct();
     s1.int8 = int8(1);
     s1.int16 = int16(1);
@@ -182,6 +197,14 @@ function [ps1, non_nested_entries, z1] = load_nested_types(),
 end
 
 function [ps] = load_nested_tree_types(),
+    % load testcases for tree functions with nested types
+    %
+    % ps is a structure with one case - a deeply nested structure
+    % it's different from load_nested_types 
+    % since we are now comparing the output of a the entire 
+    % variable instead of just at the root level
+    %
+
     ps = struct();
     [pp, non_nested_entries, z1] = load_nested_types();
     s1 = pp.nested{1};
@@ -216,11 +239,17 @@ function [ps] = load_nested_tree_types(),
     e2.structofcellsofstructs.item = z2.cellofstructs;
     e2.structarray = struct();
 
-    e = {e2, true, nnested};
     ps.nested_tree = {s1, e2};
 end
 
 function [ps] = load_treediff_cases(),
+    % load testcases for different tree nested types cases
+    %
+    % ps is a structure with several fieldnames, 
+    % each one holds deeply nested trees that are slightly different
+    % and seeks to cause inequality in simple and complex cases.
+    %
+
     ps = struct();
 
     base = load_nested_tree_types();
@@ -346,6 +375,9 @@ function [ps] = load_treediff_cases(),
 end
 
 function [ps] = load_validatetype_cases(),
+    % load the validatetype test cases
+    % ps only contains cases that the types between input and expected outputmatches.
+    %
     z = load_treediff_cases();
     sametypes = {'diff_cell_content_type', 'diff_cell_content_is_struct_with_content', 'diff_struct_content', 'diff_struct_content_is_cell_with_content', 'diff_len_mismatch'};
     ps = struct();
@@ -357,6 +389,9 @@ function [ps] = load_validatetype_cases(),
 end
 
 function [ps] = load_validatecontent_cases(),
+    % load the validatecontent testcases
+    % ps contains several validation cases that should fail and the respective why messages. The specific messages are required to match the fail with the reason.
+    %
     z = load_treediff_cases();
     ps = struct();
     names = fieldnames(z);
