@@ -1,4 +1,15 @@
 function [itype, is_nested, nested] = detectStructContent(arg1);
+    % function [itype, is_nested, nested] = detectStructContent(arg1);
+    % This detect the content of a struct at root level
+    % `arg1` - a struct variable argument
+    % <->
+    % `itype` - a struct of the same size of arg1 with the field types
+    % `is_nested` - a boolean indicating there are more nested levels within (cell/structs)
+    % `nested` - an array of booleans to indicate which fields are cell/struct
+    %
+    % author: hugo.oliveira@utas.edu.au
+    %
+
     is_nested = false;
     names = fields(arg1);
     n = numel(arg1);

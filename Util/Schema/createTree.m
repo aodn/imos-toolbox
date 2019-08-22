@@ -6,14 +6,14 @@ function [stype, root, nrec] = createTree(arg1, stype, name, nrec, func),
     % visiting/applying @func through all nested structures (cells/structs)
     %
     % `arg1` = a matlab variable
-    % stype = the parent structure - internal use
-    % name = the name of this walk level - internal use
-    % nrec = the level of this walk level - internal use
-    % func = a special function handle that return 3 outputs - see DetectType
+    % `stype` = the parent structure - internal use
+    % `name` = the name of this walk level - internal use
+    % `nrec` = the level of this walk level - internal use
+    % `func` = a special function handle that return 3 outputs - see DetectType
     % <->
-    % stype = the result structure with follow-up nests/walks.
-    % root = is the result of @func for the root level of arg1.
-    % nrec = is the number of children visits.
+    % `stype` = the result structure with follow-up nests/walks.
+    % `root` = is the result of @func for the root level of arg1.
+    % `nrec` = is the number of children visits.
     %
     % author: hugo.oliveira@utas.edu.au
     if nargin < 2,

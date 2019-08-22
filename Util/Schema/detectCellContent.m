@@ -1,4 +1,15 @@
 function [itype, is_nested, nested] = detectCellContent(arg1);
+    % function [itype, is_nested, nested] = detectCellContent(arg1);
+    % This detect the content of a cell at root level
+    % `arg1` - a cell variable argument
+    % <->
+    % `itype` - a cell of the same size of arg1 with the items types
+    % `is_nested` - a boolean indicating there are more nested levels within (cell/structs)
+    % `nested` - an array of booleans to indicate which items/indexes are cell/structs
+    %
+    % author: hugo.oliveira@utas.edu.au
+    %
+
     csize = size(arg1);
     n = numel(arg1);
     if n>0,
