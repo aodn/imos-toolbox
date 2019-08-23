@@ -1,0 +1,6 @@
+*.ppp
+.mypy_cache/*
+Java/bin
+*.pyc
+*.m~
+*.log
