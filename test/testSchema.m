@@ -357,10 +357,41 @@ function [ps] = load_treediff_cases(),
     e.item.item{1}(3, 2) = struct();
     ps.diff_size_content_struct_array_size = {i, e};
 
+    i = p;
+    e = p;
     i = struct();
-    i(3, 2) = struct();
+    i(3, 1) = struct();
     e = struct();
-    ps.diff_size_struct = {i, e};
+    ps.diff_size_structarray_3x1 = {i, e};
+
+    i = p;
+    e = p;
+    i.item = struct();
+    i.item(1, 3) = struct();
+    e.item = struct();
+    ps.diff_size_structarray_1x3 = {i, e};
+
+    i = struct();
+    i(3,3) = struct();
+    e = struct();
+    e(4,4) = struct();
+    ps.diff_size_structarray_3x3v4x4 = {i,e};
+
+    i = p;
+    e = p;
+    i.item = struct();
+    i.item(3, 3) = struct();
+    e.item = struct();
+    e.item(4, 4) = struct();
+    ps.diff_subitem_structarray_3x3v4x4 = {i, e};
+
+    i = p;
+    e = p;
+    i.item = struct();
+    i.item(3, 4) = struct();
+    e.item = struct();
+    e.item(4, 3) = struct();
+    ps.diff_size_structarray_3x4v4x3 = {i, e};
 
     i = p;
     e = p;
@@ -385,12 +416,6 @@ function [ps] = load_treediff_cases(),
     e.item = cell(6, 5);
     ps.diff_size_cell_size = {i, e};
 
-    i.item = struct();
-    i.item(3, 4) = struct();
-    e.item = struct();
-    e.item(4, 3) = struct();
-    ps.diff_size_structarray = {i, e};
-
     i.item = cell(2, 1);
     e.item = cell(2, 1);
     i.item{1} = zeros(3, 2);
@@ -402,6 +427,17 @@ function [ps] = load_treediff_cases(),
     e.item = struct();
     e.item.a = zeros(2, 3);
     ps.diff_struct_content_size_mismatch = {i, e};
+
+    %structarray
+
+    % i.item = struct();
+    % i.item(1,1).name1 = 'a';
+    % i.item(1,2).name1 = 'a';
+    % i.item(1,3).name1 = 'a';
+    % i.item(1,4).name1 = 'a';
+    % e.item = struct();
+    % e.item(1,1).name1 = 'aa';
+
 end
 
 function [ps] = load_validatetype_cases(),
