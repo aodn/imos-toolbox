@@ -99,15 +99,19 @@ function [isdiff, finalmsg] = treeDiff(a, b, stopfirst, func, this_root, n),
         % walk through
         if both_structs,
 
-            for k = 1:len_a
-                name = names_a{k};
-                root_str = root_msg(this_root, name, true);
+            for kk = 1:numel(a),
 
-                try
-                    [~, msg{end + 1}] = treeDiff(a.(name), b.(name), stopfirst, func, root_str, n + 1);
-                catch ERROR
-                    finalmsg = compose(this_root, gather(msg, stopfirst));
-                    return;
+                for k = 1:len_a,
+                    name = names_a{k};
+                    root_str = root_msg(this_root, name, true, kk);
+
+                    try
+                        [~, msg{end + 1}] = treeDiff(a(kk).(name), b(kk).(name), stopfirst, func, root_str, n + 1);
+                    catch ERROR
+                        finalmsg = compose(this_root, gather(msg, stopfirst));
+                        return;
+                    end
+
                 end
 
             end
@@ -174,7 +178,6 @@ function [isdiff, finalmsg] = treeDiff(a, b, stopfirst, func, this_root, n),
 
 end
 
-
 %
 function [msg] = type_mismatch(type_a, type_b, n),
     msg = '';
@@ -214,8 +217,8 @@ function [msg] = size_mismatch(size_a, size_b, n);
     msg = '';
     dsize = size_a ~= size_b;
 
-    if dsize,
-        msg = [': Object size mismatch - expected ' num2str(size_a) ' got ' num2str(size_b) '\n'];
+    if any(dsize),
+        msg = [': Object size mismatch - expected ' strrep(['(' num2str(size_a) ')'], '  ',',') ' got ' strrep(['(' num2str(size_b) ')'], '  ',',') '\n'];
     end
 
 end
@@ -262,17 +265,24 @@ function [msg] = size_within_mismatch(size_within_a, size_within_b, n);
 
 end
 
-function [rmsg] = root_msg(this_root, name, sflag);
+function [rmsg] = root_msg(this_root, name, sflag, sindex);
     % function [rmsg] = root_msg(this_root, name, sflag);
     % return a str representation of a nested level object/variable
     % `this_root` - a string representing the current level
     % `name` - a string of the variable name
     % `sflag` - a boolean to identify that `name` is a struct member
+    % `sindex` - the index if this structure is a structarray  - default to 0
     % otherwise a cell is assumed.
     % <->
     % `rmsg` - a string representing the current variable nested scope
     if sflag,
-        rmsg = strcat(this_root, '.', name);
+
+        if nargin < 4
+            rmsg = strcat(this_root, '.', name);
+        else
+            rmsg = strcat(this_root, '(', num2str(sindex), ')', '.', name);
+        end
+
     else
         rmsg = strcat(this_root, '{', name, '}');
     end
@@ -313,7 +323,7 @@ function [finalmsg] = compose(this_root, msg);
     end
 
     if ~strcmpi(finalmsg(end - 1:end), '\n'),
-        finalmsg = strcat(finalmsg,'\n');
+        finalmsg = strcat(finalmsg, '\n');
     end
 
 end

@@ -24,11 +24,10 @@ function [itype, is_nested, nested] = detectStructContent(arg1);
     itype = struct();
 
     nested = logical(zeros(0, 0));
-
     for k = 1:n
         for kk = 1:m,
             name = names{kk};
-            [t] = detectType(arg1.(name));
+            [t] = detectType(arg1(k).(name));
 
             if isstruct(t),
                 itype(k).(name) = @isstruct;
