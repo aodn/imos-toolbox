@@ -103,6 +103,9 @@ function [ps] = load_basic_types();
     i = joinCell(i, {struct()});
     e = joinCell(e, {{struct(), false, ea}});
 
+    i = joinCell(i, {NaN, -inf, +inf});
+    e = joinCell(e, {{@isnan, false, ea}, {@isinf, false, ea}, {@isinf, false, ea}});
+
     i = joinCell(i, {'', 'a', 'abc'});
     e = joinCell(e, {{@ischar, false, ea}, {@ischar, false, ea}, {@ischar, false, ea}});
 
@@ -114,6 +117,9 @@ function [ps] = load_basic_types();
 
     i = joinCell(i, {single(1), double(2)});
     e = joinCell(e, {{@issingle, false, ea}, {@isdouble, false, ea}});
+
+    i = joinCell(i, {[1, 2, 3], [1, 2, NaN], [1, 2, -inf], [1, 2, inf]});
+    e = joinCell(e, {{@isdouble, false, ea}, {@isdouble, false, ea}, {@isdouble, false, ea}, {@isdouble, false, ea}});
 
     ii = {int8(8), uint8(8), int16(16), uint16(16), int32(32), uint32(32), int64(64), uint64(64)};
     ee = {{@isint8, false, ea}, {@isuint8, false, ea}, {@isint16, false, ea}, {@isuint16, false, ea}, {@isint32, false, ea}, {@isuint32, false, ea}, {@isint64, false, ea}, {@isuint64, false, ea}};
@@ -152,6 +158,10 @@ function [ps1, non_nested_entries, z1] = load_nested_types(),
     s1.logical = logical(1);
     s1.single = single(1);
     s1.double = double(1);
+    s1.nan = NaN;
+    s1.pinf = +inf;
+    s1.ninf = -inf;
+    s1.doublearray = [1, 2, 3, NaN, +inf, -inf];
     non_nested_entries = length(fieldnames(s1));
     s1.cell00 = cell(0, 0);
     s1.cell10 = cell(1, 0);
@@ -181,6 +191,10 @@ function [ps1, non_nested_entries, z1] = load_nested_types(),
     e1.logical = @islogical;
     e1.single = @issingle;
     e1.double = @isdouble;
+    e1.nan = @isnan;
+    e1.pinf = @isinf;
+    e1.ninf = @isinf;
+    e1.doublearray = @isdouble;
     e1.cell00 = @iscell;
     e1.cell10 = @iscell;
     e1.cell11 = @iscell;
@@ -200,8 +214,8 @@ function [ps] = load_nested_tree_types(),
     % load testcases for tree functions with nested types
     %
     % ps is a structure with one case - a deeply nested structure
-    % it's different from load_nested_types 
-    % since we are now comparing the output of a the entire 
+    % it's different from load_nested_types
+    % since we are now comparing the output of a the entire
     % variable instead of just at the root level
     %
 
@@ -219,6 +233,10 @@ function [ps] = load_nested_tree_types(),
     e2.logical = @islogical;
     e2.single = @issingle;
     e2.double = @isdouble;
+    e2.nan = @isnan;
+    e2.pinf = @isinf;
+    e2.ninf = @isinf;
+    e2.doublearray = @isdouble;
     e2.cell00 = {};
     e2.cell10 = {};
     e2.cell11 = {@isdouble};
@@ -245,7 +263,7 @@ end
 function [ps] = load_treediff_cases(),
     % load testcases for different tree nested types cases
     %
-    % ps is a structure with several fieldnames, 
+    % ps is a structure with several fieldnames,
     % each one holds deeply nested trees that are slightly different
     % and seeks to cause inequality in simple and complex cases.
     %
@@ -261,6 +279,18 @@ function [ps] = load_treediff_cases(),
     i.item = single(1);
     e.item = double(1);
     ps.diff_type_float = {i, e};
+
+    i.item = NaN;
+    e.item = double(1);
+    ps.diff_type_nan = {i, e};
+
+    i.item = inf;
+    e.item = double(1);
+    ps.diff_type_inf = {i, e};
+
+    i.item = inf;
+    e.item = nan;
+    ps.diff_type_infnan = {i, e};
 
     i.item = int8(1);
     e.item = single(1);
