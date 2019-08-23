@@ -9,6 +9,6 @@ function [bool] = isequal_ctype(a,b),
 	btype = whichtype(b);
 	bool = isequal(atype,btype);
 	if bool,
-		bool = isequal(a,b);
+		bool = isequaln(a,b);
 	end
 end
