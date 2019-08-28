@@ -27,18 +27,18 @@ function [itype, is_nested, nested] = detectStructContent(arg1);
     for k = 1:n
         for kk = 1:m,
             name = names{kk};
-            [t] = detectType(arg1(k).(name));
+            obj = arg1(k).(name);
 
-            if isstruct(t),
+            if isstruct(obj),
                 itype(k).(name) = @isstruct;
                 is_nested = true;
                 nested(k,kk) = true;
-            elseif iscell(t),
+            elseif iscell(obj),
                 itype(k).(name) = @iscell;
                 is_nested = true;
                 nested(k,kk) = true;
             else
-                itype(k).(name) = t;
+                itype(k).(name) = detectType(obj);
             end
 
         end
