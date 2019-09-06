@@ -59,7 +59,7 @@ function [outcome, root, nrec] = createTree(arg1, func, outcome, name, nrec),
     % along with this program.
     % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
     %
-    
+
     narginchk(1, 5)
 
     if nargin < 2,
