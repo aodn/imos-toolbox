@@ -4,7 +4,7 @@ function [outcome, root, nrec] = createTree(arg1, func, outcome, name, nrec),
     % A function to recursively apply a function handler @func,
     % to all fields/items/indexes of an argument (arg1).
     % This function generates the exact same type of arg1
-    % if arg1 is [cell,struct], applying @func through all 
+    % if arg1 is [cell,struct], applying @func through all
     % nested structures. If the arg1 is not a [cell,struct],
     % the outcome is the first output of `func(arg1)`.
     %
@@ -59,6 +59,7 @@ function [outcome, root, nrec] = createTree(arg1, func, outcome, name, nrec),
     % along with this program.
     % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
     %
+    
     narginchk(1, 5)
 
     if nargin < 2,
@@ -111,6 +112,7 @@ function [outcome, root, nrec] = createTree(arg1, func, outcome, name, nrec),
     end
 
     isroot = strcmpi(iname, 'root');
+
     if isroot,
         nrec = abs(nrec) - 1;
     end
