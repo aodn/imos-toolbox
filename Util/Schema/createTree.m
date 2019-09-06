@@ -1,26 +1,29 @@
-function [stype, root, nrec] = createTree(arg1, func, stype, name, nrec),
-    % function [stype, root, nrec] = createTree(arg1, func, stype, name, nrec),
+function [outcome, root, nrec] = createTree(arg1, func, outcome, name, nrec),
+    % function [outcome, root, nrec] = createTree(arg1, func, outcome, name, nrec),
     %
     % A function to recursively apply a function handler @func,
-    % to all fields of an argument.
-    % the function generate the exact same type of arg1,
-    % visiting/applying @func through all nested structures (cells/structs)
+    % to all fields/items/indexes of an argument (arg1).
+    % This function generates the exact same type of arg1
+    % if arg1 is [cell,struct], applying @func through all 
+    % nested structures. If the arg1 is not a [cell,struct],
+    % the outcome is the first output of `func(arg1)`.
     %
     % Inputs:
     %
     % arg1 - a matlab variable
     % func - a special function handle that consumes a single argument
     %          It should return at least 3 outputs in this order:
-    %        fh_type -> a @func.handle that define the type of the argument
-    %        is_nested -> a boolean if argument is nested (e.g. struct/cell)
-    %        nested_array -> an array of the field/indexes that are nested.
-    % stype - the parent structure - internal use - default to struct()
-    % name - the name of this walk level - internal use - default to ``root`
-    % nrec - the level of this walk level - internal use - default to -1
+    %        outarg1 -> anything, except for [cell,struct] arguments to
+    %                   func which should return empty [cell,structs].
+    %        is_nested -> a boolean if argument is nested (cell,struct)
+    %        nested_array -> an array indicating nested [field,indexes]
+    % outcome - the parent structure - internal use
+    % name - the name of the nested level - internal use
+    % nrec - the maximum nested level - internal use
     %
     % Output:
     %
-    % stype - the result structure of the recursive evaluation.
+    % outcome - the result structure of the recursive evaluation.
     % root - the result of `func` at the root level of arg1.
     % nrec - is the total number of walk-ins/nested visits.
     %
@@ -59,7 +62,7 @@ function [stype, root, nrec] = createTree(arg1, func, stype, name, nrec),
     narginchk(1, 5)
 
     if nargin < 2,
-        stype = struct();
+        outcome = struct();
         name = 'root';
         nrec = -1;
         func = @detectType;
@@ -80,35 +83,35 @@ function [stype, root, nrec] = createTree(arg1, func, stype, name, nrec),
 
     iname = name;
 
-    [stype, is_nested, nested_keys] = func(arg1);
-    first_level = stype;
+    [outcome, is_nested, nested_keys] = func(arg1);
+    first_level = outcome;
 
     if is_nested,
 
-        if isstruct(stype),
-            fnames = fields(stype);
+        if isstruct(outcome),
+            fnames = fields(outcome);
             nested_names = fnames(nested_keys);
 
             for k = 1:length(nested_names),
 
                 kname = nested_names{k};
                 data = arg1.(kname);
-                [stype.(kname), root, nrec] = self(data, func, stype, kname, nrec - 1);
+                [outcome.(kname), root, nrec] = self(data, func, outcome, kname, nrec - 1);
             end
 
-        elseif iscell(stype),
+        elseif iscell(outcome),
 
             for k = 1:length(nested_keys),
                 data = arg1{k};
-                [stype{k}, root, nrec] = self(data, func, stype, iname, nrec - 1);
+                [outcome{k}, root, nrec] = self(data, func, outcome, iname, nrec - 1);
             end
 
         end
 
     end
 
-    %adjust nrec and root
-    if strcmpi(iname, 'root'),
+    isroot = strcmpi(iname, 'root');
+    if isroot,
         nrec = abs(nrec) - 1;
     end
 
