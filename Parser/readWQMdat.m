@@ -53,9 +53,9 @@ function sample_data = readWQMdat(filename, mode)
     %                   Dissolved Oxygen  ('DOXY'): mg/l
     %                   Dissolved Oxygen  ('DOX1'): mmol/m^3
     %                   Dissolved Oxygen  ('DOX'): ml/l
-    %                   Chlorophyll       ('CPHL'): mg/m^3
-    %                   Chlorophyll       ('CHLU'): mg/m^3   (user coefficient)
-    %                   Chlorophyll       ('CHLF'): mg/m^3   (factory coefficient)
+    %                   Chlorophyll       ('CPHL[_1,_2,...]'): mg/m^3
+    %                   Chlorophyll       ('CPHL[_1,_2,...]'): mg/m^3   (user coefficient)
+    %                   Chlorophyll       ('CPHL[_1,_2,...]'): mg/m^3   (factory coefficient)
     %                   Fluorescence      ('FLU2'): raw counts
     %                   Turbidity         ('TURB'): NTU
     %                   Density           ('DENS'): kg/m^3
@@ -120,36 +120,11 @@ function sample_data = readWQMdat(filename, mode)
     params{end + 1} = {'DO(mg/l)', {'DOXY', ''}};
     params{end + 1} = {'DO(mmol/m^3)', {'DOX1', ''}}; % mmol/m3 <=> umol/l
     params{end + 1} = {'DO(ml/l)', {'DOX', ''}};
-    params{end + 1} = {'CHL(ug/l)', {'CPHL', 'Artificial chlorophyll data '...
-        'computed from bio-optical sensor raw counts measurements. The '...
-        'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-        'photodetector paired with an optical filter which measures everything '...
-        'that fluoresces in the region of 695nm. '...
-        'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
-    params{end + 1} = {'CHLa(ug/l)', {'CPHL', 'Artificial chlorophyll data '...
-        'computed from bio-optical sensor raw counts measurements. The '...
-        'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-        'photodetector paired with an optical filter which measures everything '...
-        'that fluoresces in the region of 695nm. '...
-        'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
-    params{end + 1} = {'F-Cal-CHL(ug/l)', {'CHLF', 'Artificial chlorophyll data '...
-        'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
-        'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-        'photodetector paired with an optical filter which measures everything '...
-        'that fluoresces in the region of 695nm. '...
-        'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
-    params{end + 1} = {'Fact-CHL(ug/l)', {'CHLF', 'Artificial chlorophyll data '...
-        'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
-        'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-        'photodetector paired with an optical filter which measures everything '...
-        'that fluoresces in the region of 695nm. '...
-        'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}}; % v1.26 of Host software
-    params{end + 1} = {'U-Cal-CHL(ug/l)', {'CHLU', 'Artificial chlorophyll data '...
-        'computed from bio-optical sensor raw counts measurements using user calibration coefficient. The '...
-        'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-        'photodetector paired with an optical filter which measures everything '...
-        'that fluoresces in the region of 695nm. '...
-        'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
+    params{end + 1} = {'CHL(ug/l)', {'CPHL', gen_chla_comment('unknown')}}; %older files
+    params{end + 1} = {'CHLa(ug/l)', {'CPHL', gen_chla_comment('unknown')}}; %older files
+    params{end + 1} = {'F-Cal-CHL(ug/l)', {'CPHL', gen_chla_comment('factory')}};
+    params{end + 1} = {'Fact-CHL(ug/l)', {'CPHL', gen_chla_comment('factory')}};
+    params{end + 1} = {'U-Cal-CHL(ug/l)', {'CPHL', gen_chla_comment('user')}};
     params{end + 1} = {'RawCHL(Counts)', {'FLU2', ''}};
     params{end + 1} = {'CHLa(Counts)', {'FLU2', ''}};
     params{end + 1} = {'NTU', {'TURB', ''}};
@@ -179,7 +154,6 @@ function sample_data = readWQMdat(filename, mode)
         if fid == -1, error(['couldn''t open ' filename 'for reading']); end
 
         [fields, format, jThere] = getFormat(fid, required, params);
-
         % read in the data
         samples = textscan(fid, format);
         fclose(fid);
@@ -266,9 +240,20 @@ function sample_data = readWQMdat(filename, mode)
     % start index at 4 to skip serial, date and time
     isUmolPerL = false;
 
+    tnCHL = sum(contains(fields, 'CHL')) - sum(contains(fields, 'RawCHL'));
+    nCHL = 0;
+
     for k = 4:length(fields)
 
         [name, comment] = getParamDetails(fields{k}, params);
+        need_chla_numbered = tnCHL > 1 && strcmp(name, 'CPHL');
+        if need_chla_numbered,
+            nCHL = nCHL + 1;
+            if nCHL > 1;
+                name = [name '_' num2str(nCHL)];
+            end
+        end
+
         data = samples{k - 1};
 
         coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
@@ -294,7 +279,6 @@ function sample_data = readWQMdat(filename, mode)
     % remove empty entries (could occur if DO(ml/l) data is
     % present, but temp/pressure/salinity data is not)
     sample_data.variables(cellfun(@isempty, sample_data.variables)) = [];
-
 end
 
 function [fields, format, jThere] = getFormat(fid, required, params)
@@ -462,4 +446,38 @@ function supported = isSupported(field, params)
 
     end
 
+end
+
+function [chla_str] = gen_chla_comment(modestr),
+    % function chla_str = gen_chla_comment(modestr)
+    %
+    % Generate a big comment for chlorophyll sensor
+    %
+    % Inputs:
+    %
+    % modestr - The chla coef. mode string ['user','factory','automatic']
+    %
+    % Outputs:
+    %
+    % chla_strt - A big string regarding the chla attribute
+    %
+    % Example:
+    % >>> modestr = 'factory'
+    % >>> [chla_str] = gen_chla_comment(modestr)
+    % >>> assert(contains(chla_str,'factory calibration coefficient'))
+    %
+    % author: hugo.oliveira@utas.edu.au
+    %
+    if ~contains({'user', 'factory', 'unknown'}, modestr),
+        error('Chla coefficient mode is invalid')
+    end
+
+    chla_str = ['artificial chlorophyll data ' ...
+                'computed from bio-optical sensor raw counts measurements using ' ...
+                modestr ...
+                ' calibration coefficient. the ' ...
+                'fluorometre is equipped with a 470nm peak wavelength led to irradiate and a ' ...
+                'photodetector paired with an optical filter which measures everything ' ...
+                'that fluoresces in the region of 695nm. ' ...
+                'originally expressed in ug/l, 1l = 0.001m3 was assumed.'];
 end
