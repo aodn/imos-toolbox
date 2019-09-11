@@ -621,8 +621,8 @@ function [params] = load_params();
     params{end + 1} = {'DO(mmol/m^3)', {'DOX1', ''}}; % mmol/m3 <=> umol/l
     params{end + 1} = {'oxygen', {'DOX', ''}};
     params{end + 1} = {'fluorescence', {'FLU2', ''}};
-    params{end + 1} = {'F_Cal_CHL', {'CPHL', gen_chla_comment('factory')}};
-    params{end + 1} = {'U_Cal_CHL', {'CPHL', gen_chla_comment('user')}};
+    params{end + 1} = {'F_Cal_CHL', {'CPHL', getCPHLcomment('factory')}};
+    params{end + 1} = {'U_Cal_CHL', {'CPHL', getCPHLcomment('user')}};
     params{end + 1} = {'backscatterance', {'TURB', ''}};
     params{end + 1} = {'PAR', {'PAR', ''}};
 
@@ -905,38 +905,4 @@ function [NTU] = load_ntu(headerLine);
 
     end
 
-end
-
-function [chla_str] = gen_chla_comment(modestr),
-    % function chla_str = gen_chla_comment(modestr)
-    %
-    % Generate a big comment for chlorophyll sensor
-    %
-    % Inputs:
-    %
-    % modestr - The chla coef. mode string ['user','factory','automatic']
-    %
-    % Outputs:
-    %
-    % chla_strt - A big string regarding the chla attribute
-    %
-    % Example:
-    % >>> modestr = 'factory'
-    % >>> [chla_str] = gen_chla_comment(modestr)
-    % >>> assert(contains(chla_str,'factory calibration coefficient'))
-    %
-    % author: hugo.oliveira@utas.edu.au
-    %
-    if ~contains({'user', 'factory', 'unknown'}, modestr),
-        error('Chla coefficient mode is invalid')
-    end
-
-    chla_str = ['artificial chlorophyll data ' ...
-                'computed from bio-optical sensor raw counts measurements using ' ...
-                modestr ...
-                ' calibration coefficient. The ' ...
-                'fluorometre is equipped with a 470nm peak wavelength led to irradiate and a ' ...
-                'photodetector paired with an optical filter which measures everything ' ...
-                'that fluoresces in the region of 695nm. ' ...
-                'originally expressed in ug/l, 1l = 0.001m3 was assumed.'];
 end
