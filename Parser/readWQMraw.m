@@ -751,8 +751,6 @@ function [sample_data] = load_sample_data(filename, mode, params, wqmdata);
     % remove empty entries (could occur if DO(ml/l) data is
     % present, but temp/pressure/salinity data is not)
     sample_data.variables(cellfun(@isempty, sample_data.variables)) = [];
-    dbstack();
-    keyboard;
 end
 
 function [wqm, has_var] = process_missing(A, varmap, wqm, vartype, varname);
