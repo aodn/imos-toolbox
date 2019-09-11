@@ -246,9 +246,7 @@ function sample_data = readXR620( filename, mode )
                       %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlC'
                       name = 'CPHL';
-                      comment.(vars{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
+                      comment.(vars{k}) = getCPHLcomment('unknown');
                       
                       %Turbidity (NTU)
                   case 'Turb', name = 'TURB';
@@ -356,9 +354,7 @@ function sample_data = readXR620( filename, mode )
                       %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlC'
                       name = 'CPHL';
-                      comment.(fields{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
+                      comment.(fields{k}) = getCPHLcomment('unknown')
                       
                       %Turbidity (NTU)
                   case 'Turb', name = 'TURB';

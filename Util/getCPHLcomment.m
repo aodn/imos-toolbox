@@ -40,5 +40,5 @@ function [chla_str] = getCPHLcomment(modestr),
         error('CPHL coefficient id is invalid')
     end
 
-    chla_str = ['conversion from fluorescence to chlorophyll-a using ' modestr ' coefficients.']
+    chla_str = ['conversion from fluorescence to chlorophyll-a using ' modestr ' coefficients.'];
 end
