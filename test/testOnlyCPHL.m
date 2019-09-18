@@ -79,8 +79,6 @@ classdef testOnlyCPHL < matlab.unittest.TestCase
         function test_xr620(testCase, xr620_reader, xr620_v000_param, mode),
             data = xr620_reader({xr620_v000_param}, mode);
             assert(check_cphl(data));
-            dbstack();
-            keyboard;
         end
         function test_sbe19p(testCase, sbe19p_reader, sbe19p_v000_param, mode),
             data = sbe19p_reader({sbe19p_v000_param}, mode);
@@ -96,7 +94,6 @@ classdef testOnlyCPHL < matlab.unittest.TestCase
         end
         function test_wqmraw(testCase, wqmraw_reader, wqmraw_v000_param, mode),
             data = wqmraw_reader(wqmraw_v000_param, mode);
-
             assert(check_cphl(data));
         end
         function test_wqmdat(testCase, wqmdat_reader, wqmdat_v000_param, mode),
@@ -122,7 +119,7 @@ function [e] = chla_inputs(varargin),
     % author: hugo.oliveira@utas.edu.au
     %
     fullpath = @fullfile;
-    e.root_folder = FolderAbove(FolderAbove(mfilename('fullpath'), 1), 1);
+    e.root_folder = FolderAbove(mfilename('fullpath'), 1);
 
     e.ecot_folder = fullpath(e.root_folder, 'data/testfiles/ECOTriplet/v000/');
     ecot_v000 = FilesInFolder(e.ecot_folder);
@@ -212,7 +209,7 @@ function [is_cphl, is_numbered, number] = check_cphl(data),
     number = [];
     vars = data.variables;
 
-    cn = 0;
+    cn = 1;
 
     for k = 1:length(vars),
         v = vars{k};
@@ -222,8 +219,7 @@ function [is_cphl, is_numbered, number] = check_cphl(data),
             return
         elseif strcmpi(vname, 'CHLU'),
             return
-        elseif strcmpi(vname, 'CPHL'),
-
+        elseif contains(vname, 'CPHL'),
             if contains(vname, '_'),
                 is_numbered = true;
                 cn = cn + 1;
@@ -232,6 +228,9 @@ function [is_cphl, is_numbered, number] = check_cphl(data),
 
         end
 
+    end
+    if is_numbered,
+        disp(data.toolbox_input_file)
     end
 
     is_cphl = true;
