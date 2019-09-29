@@ -43,7 +43,7 @@ def run(x: str):
 
 def create_java_call_sig_compile(root_path: str) -> str:
     java_path = os.path.join(root_path, 'Java/')
-    return f"cd {java_path};ant compile;cd {root_path}"
+    return f"cd {java_path};ant install;cd {root_path}"
 
 
 def git_info(root_path: str) -> dict:
