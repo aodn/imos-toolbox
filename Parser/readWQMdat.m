@@ -120,11 +120,11 @@ function sample_data = readWQMdat(filename, mode)
     params{end + 1} = {'DO(mg/l)', {'DOXY', ''}};
     params{end + 1} = {'DO(mmol/m^3)', {'DOX1', ''}}; % mmol/m3 <=> umol/l
     params{end + 1} = {'DO(ml/l)', {'DOX', ''}};
-    params{end + 1} = {'CHL(ug/l)', {'CPHL', getCPHLcomment('unknown','470nm','695nm')}}; %older files
-    params{end + 1} = {'CHLa(ug/l)', {'CPHL', getCPHLcomment('unknown','470nm','695nm')}}; %older files
-    params{end + 1} = {'F-Cal-CHL(ug/l)', {'CPHL', getCPHLcomment('factory','470nm','695nm')}};
-    params{end + 1} = {'Fact-CHL(ug/l)', {'CPHL', getCPHLcomment('factory','470nm','695nm')}};
-    params{end + 1} = {'U-Cal-CHL(ug/l)', {'CPHL', getCPHLcomment('user','470nm','695nm')}};
+    params{end + 1} = {'CHL(ug/l)', {'CPHL', getCPHLcomment('unknown', '470nm', '695nm')}}; %older files
+    params{end + 1} = {'CHLa(ug/l)', {'CPHL', getCPHLcomment('unknown', '470nm', '695nm')}}; %older files
+    params{end + 1} = {'F-Cal-CHL(ug/l)', {'CPHL', getCPHLcomment('factory', '470nm', '695nm')}};
+    params{end + 1} = {'Fact-CHL(ug/l)', {'CPHL', getCPHLcomment('factory', '470nm', '695nm')}};
+    params{end + 1} = {'U-Cal-CHL(ug/l)', {'CPHL', getCPHLcomment('user', '470nm', '695nm')}};
     params{end + 1} = {'RawCHL(Counts)', {'FLU2', ''}};
     params{end + 1} = {'CHLa(Counts)', {'FLU2', ''}};
     params{end + 1} = {'NTU', {'TURB', ''}};
@@ -241,9 +241,23 @@ function sample_data = readWQMdat(filename, mode)
     % start index at 4 to skip serial, date and time
     isUmolPerL = false;
 
+    tnCHL = sum(contains(fields, 'CHL')) - sum(contains(fields, 'RawCHL'));
+    nCHL = 0;
+
     for k = 4:length(fields)
 
         [name, comment] = getParamDetails(fields{k}, params);
+        need_chla_numbered = tnCHL > 1 && strcmp(name, 'CPHL');
+
+        if need_chla_numbered,
+            nCHL = nCHL + 1;
+
+            if nCHL > 1;
+                name = [name '_' num2str(nCHL)];
+            end
+
+        end
+
         data = samples{k - 1};
 
         coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
