@@ -120,15 +120,18 @@ function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, instHe
                 comment = '';
 
                 % fluorescence (ug/l)
+                % SBE Software manual - appendix - indicate this is aqua(tracka) iii - which is 430nm/685nm.
             case 'flC'
                 name = 'CPHL';
-                comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements. Originally expressed in ug/l, 1l = 0.001m3 was assumed.';
+                comment = getCPHLcomment('unknown','430nm','685nm');
 
                 %fluorescence (ug/l)
-                %Aquatracka SBE19plus cdom sensor as cphl implemented on #550
+                % The name is reserved for Aquatracka UV attached to SBE19plus -a cdom/hydrocarbon fluor.sensor
+                % IMOS operator indicate this is Aquatracka III. Hence, implemented as cphl with proper info (see #550).
             case 'flCUVA'
+                warning('Assuming `flCUVA` as from Aquatracka III instead of Aquatracka UV');
                 name = 'CPHL';
-                comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements (Chelsea UV Aquatracka). Originally expressed in ug/l, 1l = 0.001m3 was assumed.';
+                comment = getCPHLcomment('unknown','430nm','685nm');
 
                 % PAR/Irradiance, Biospherical/Licor
                 %par/sat/log - light sensor in SBE19plus assumed in umol photons/m2/s and implemented on #550
@@ -137,9 +140,11 @@ function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, instHe
                 comment = 'PAR/Logarithmic/ Satlantic';
 
                 % artificial chlorophyll from fluorescence (mg/m3)
+                % SBE manual indicate this is a Wet Labs - ECO AFL sensor
             case 'flECO0x2DAFL'
                 name = 'CPHL';
-                comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements.';
+                comment = getCPHLcomment('unknown','470nm','695nm');
+
                 % oxygen (mg/l)
                 % mg/l
             case 'sbeox0Mg0x2FL'
