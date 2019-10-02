@@ -52,6 +52,16 @@ catch e
     rethrow(e);
 end
 
+%check times
+tinfo = TimeSamplingInfo(data.TIME.values);
+if tinfo.repeated_samples,
+   data.TIME.values = fixRepeatedTimesJFE(data.TIME.values);
+   tinfo = TimeSamplingInfo(data.TIME.values);
+   if ~tinfo.unique_sampling,
+      msg = sprintf('Uncorrectable time sampling detected in %s',filename);
+      warning(msg);
+   end
+end
 % copy all of the information over to the sample data struct
 sample_data = struct;
 
