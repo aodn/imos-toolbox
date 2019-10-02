@@ -31,10 +31,10 @@ classdef testRepeatedTimesJFE < matlab.unittest.TestCase
 
     methods (Test)
 
-        function testNonRepeatedTimes(testCase, jfe_param,mode),
+        function testNonRepeatedTimes(~, jfe_param,mode)
             data = infinitySDLoggerParse({jfe_param}, mode);
             istime = @(x) strcmpi(x.name, 'TIME');
-            timeind = find(cellfun(istime, data.dimensions));
+            timeind = cellfun(istime, data.dimensions);
             time = data.dimensions{timeind};
             tinfo = TimeSamplingInfo(time.data);
             valid_sampling = all([tinfo.unique_sampling, tinfo.monotonic_sampling, tinfo.progressive_sampling]);
@@ -47,7 +47,7 @@ classdef testRepeatedTimesJFE < matlab.unittest.TestCase
 
 end
 
-function [param] = load_param(),
+function [param] = load_param()
     root_folder = FolderAbove(mfilename('fullpath'), 1);
     folder = fullfile(root_folder, 'data/testfiles/JFE/v000');
     files = FilesInFolder(folder);
