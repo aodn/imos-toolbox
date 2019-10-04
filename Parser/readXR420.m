@@ -258,11 +258,10 @@ function sample_data = readXR420(filename, mode)
                     case 'Depth', name = 'DEPTH';
 
                         %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
+                        % The RBR docummentation indicate that this sensor is a Seapoint Fluor. (470nm/685nm)
                     case 'FlCa'
                         name = 'CPHL';
-                        comment.(vars{k}) = ['Artificial chlorophyll data computed from ' ...
-                                            'fluorometry sensor raw counts measurements. Originally ' ...
-                                            'expressed in ug/l, 1l = 0.001m3 was assumed.'];
+                        comment.(vars{k}) = getCPHLcomment('unknown','470nm','685nm');
                 end
 
                 sample_data.variables{end}.name = name;
