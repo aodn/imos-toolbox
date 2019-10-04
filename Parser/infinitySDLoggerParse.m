@@ -52,6 +52,19 @@ function sample_data = infinitySDLoggerParse(filename, mode)
         rethrow(e);
     end
 
+    %check times
+    tinfo = TimeSamplingInfo(data.TIME.values);
+
+    if tinfo.repeated_samples
+        data.TIME.values = fixRepeatedTimesJFE(data.TIME.values);
+        tinfo = TimeSamplingInfo(data.TIME.values);
+
+        if ~tinfo.unique_sampling
+            warning('Uncorrectable time sampling detected in %s', filename);
+        end
+
+    end
+
     % copy all of the information over to the sample data struct
     sample_data = struct;
 
@@ -163,7 +176,7 @@ function data = readData(rawTextData)
 
             case 'Chl-a[ug/l]'
                 data.CPHL.values = vertcat(values{:, i});
-                data.CPHL.comment = getCPHLcomment('unknown','470nm','650nm to 1000nm');
+                data.CPHL.comment = getCPHLcomment('unknown', '470nm', '650nm to 1000nm');
 
             case {'Turb. -M[FTU]', 'Turb.-M[FTU]'}
                 data.TURBF.values = vertcat(values{:, i});
