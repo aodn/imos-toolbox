@@ -16,6 +16,11 @@ We support Windows and Linux. The toolbox may be used as a **Matlab stand-alone 
 
 For a **stand-alone library** usage, **Matlab R2018b+** is required ( since version 2.6.1).
 
+# Install
+
+See [installation instructions](https://github.com/aodn/imos-toolbox/wiki/ToolboxInstallation)
+
+
 # Description
 
 The toolbox can connect to a deployment database to collect the relevant metadata attached to each dataset. We provide an MS-Access database file template and an underlying schema, but several types of databases can be used. The Java code interface can use any JDBC API to query the deployment database. By default, [UCanAccess](http://ucanaccess.sourceforge.net/site.html) is used to query the MS-Access file.
