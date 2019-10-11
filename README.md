@@ -4,7 +4,7 @@ The IMOS Toolbox aims at **converting oceanographic instrument files into qualit
 
 The toolbox process instruments deployed on moorings (**time series**) or during casts (**profiles**). The processing, including quality control (**QC**) of several oceanographic variables, can be done in **batch mode** or **interactive**.
 
-Finally, the package allows deployment metadata to be ingested into the files from MS-access databases, CSV files, or added manually through a graphical user interface (GUI). Manual **QC** is also possible.
+Finally, the package allows deployment metadata to be ingested into the files from any JDBC supported database (including MS-access), CSV files, or added manually through a graphical user interface (GUI). Manual **QC** is also possible.
 
 See our [wiki page](https://github.com/aodn/imos-toolbox/wiki) page for more details.
 
