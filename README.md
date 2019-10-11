@@ -8,20 +8,22 @@ Finally, the package allows deployment metadata to be ingested into the files fr
 
 See our [wiki page](https://github.com/aodn/imos-toolbox/wiki) page for more details.
 
-# Distribution/Requirements
+# Distribution
 
 The **stable** releases may be obtained [here](https://github.com/aodn/imos-toolbox/releases). The releases contain both the source code and binary applications (executables).
 
+
+# Requirements
+
 We support Windows and Linux. The toolbox may be used as a **Matlab stand-alone library** or **stand-alone application** (**No Matlab is required**).
 
-For a **stand-alone library** usage, **Matlab R2018b+** is required ( since version 2.6.1).
+For a **stand-alone library** usage, **Matlab R2018b** and the Matlab Component Runtime (v95) or newer is required ( since version 2.6.1).
 
-# Install
+For a **stand-alone application**, you will need the Matlab Component Runtime (v95).
 
-See [installation instructions](https://github.com/aodn/imos-toolbox/wiki/ToolboxInstallation)
+See [installation instructions](https://github.com/aodn/imos-toolbox/wiki/ToolboxInstallation) for further information.
 
-
-# Description
+# Usage
 
 The toolbox can connect to a deployment database to collect the relevant metadata attached to each dataset. We provide an MS-Access database file template and an underlying schema, but several types of databases can be used. The Java code interface can use any JDBC API to query the deployment database. By default, [UCanAccess](http://ucanaccess.sourceforge.net/site.html) is used to query the MS-Access file.
 
