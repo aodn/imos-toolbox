@@ -1,5 +1,5 @@
-function [info] = TimeSamplingInfo(t, prec),
-    % function [info] = TimeSamplingInfo(t)
+function [info] = timeSamplingInfo(t, prec),
+    % function [info] = timeSamplingInfo(t)
     %
     % Report information about a
     % time array t, usually
@@ -29,11 +29,11 @@ function [info] = TimeSamplingInfo(t, prec),
     %
     % Example:
     %
-    % info = TimeSamplingInfo([1,2,3,4]);
+    % info = timeSamplingInfo([1,2,3,4]);
     % assert(info.uniform_sampling);
     % assert(all([info.unique_sampling,info.monotonic_sampling,info.progressive_sampling]));
     %
-    % info = TimeSamplingInfo([1,2,1,3,1,4,1,5,1]);
+    % info = timeSamplingInfo([1,2,1,3,1,4,1,5,1]);
     % assert(~all([info.unique_sampling,info.progressive_sampling,info.regressive_sampling,info.monotonic_sampling]));
     % assert(isequal(info.sampling_steps_median,[]));
     % assert(all(info.jump_forward_indexes==[1 0 1 0 1 0 1 0]));

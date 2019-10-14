@@ -73,7 +73,7 @@ function [newtime] = fixRepeatedTimesJFE(time),
         error('time is not sorted')
     end
 
-    tinfo = TimeSamplingInfo(time);
+    tinfo = timeSamplingInfo(time);
 
     if tinfo.constant_vector,
         error('time is a constant vector')
@@ -99,7 +99,7 @@ function [newtime] = fixRepeatedTimesJFE(time),
 
     freq = tinfo.sampling_steps(2); % sampling_steps is sorted
 
-    [ritem, nrepeats, rstart, rend] = find_repeats(time);
+    [ritem, nrepeats, rstart, rend] = findRepeats(time);
 
     nur = unique(nrepeats);
     % use maximum number of repeats for interval correction
