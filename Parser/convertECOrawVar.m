@@ -60,9 +60,7 @@ switch upper(columnsInfo.type)
         
     case 'CHL' %ug/l (470/695nm)
         name = 'CPHL';
-        comment = ['Artificial chlorophyll data computed from bio-optical ' ...
-            'sensor raw counts measurements. Originally expressed in ' ...
-            'ug/l, 1l = 0.001m3 was assumed.'];
+        comment = getCPHLcomment('unknown','470nm','695nm');
         data = (sample - columnsInfo.offset)*columnsInfo.scale;
         calibration(1).formula = 'value_engineering_units = (counts - calibration_dark_count) x calibration_scale_factor';
         calibration(1).dark_count = columnsInfo.offset;
