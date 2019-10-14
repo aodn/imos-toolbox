@@ -1,5 +1,5 @@
-function [ritem, repeats, rstart, rend] = find_repeats(arr),
-    % function repeats,nr = find_repeats(arr)
+function [ritem, repeats, rstart, rend] = findRepeats(arr),
+    % function repeats,nr = findRepeats(arr)
     %
     % Find the groups of repeated numbers,
     % the number of repeats, and the index interval
@@ -18,7 +18,7 @@ function [ritem, repeats, rstart, rend] = find_repeats(arr),
     %
     % Example:
     % % basic
-    % [ritem,repeats,rstart,rend] = find_repeats([1,1,1]);
+    % [ritem,repeats,rstart,rend] = findRepeats([1,1,1]);
     % assert(ritem == 1);
     % assert(repeats == 3);
     % assert(rstart == 1);
@@ -26,7 +26,7 @@ function [ritem, repeats, rstart, rend] = find_repeats(arr),
     %
     % %mix & match
     % x = [.1,.1,.1,.1,.2,.3,.3,.3]
-    % [ritem,repeats,rstart,rend] = find_repeats(x);
+    % [ritem,repeats,rstart,rend] = findRepeats(x);
     % assert(ritem == [0.1,0.3]);
     % assert(repeats == [4,3]);
     % assert(rstart == [1,6]);
@@ -34,7 +34,7 @@ function [ritem, repeats, rstart, rend] = find_repeats(arr),
     %
     % %repeat only at mid
     % x = [.1,.2,.2,.3]
-    % [ritem,repeats,rstart,rend] = find_repeats(x);
+    % [ritem,repeats,rstart,rend] = findRepeats(x);
     % assert(ritem == 0.2);
     % assert(repeats == 2);
     % assert(rstart == 2);
