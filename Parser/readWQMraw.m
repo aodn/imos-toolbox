@@ -20,9 +20,9 @@ function sample_data = readWQMraw( filename, mode )
 %                   Dissolved Oxygen  ('DOXY'): mg/l
 %                   Dissolved Oxygen  ('DOX1'): mmol/m^3
 %                   Dissolved Oxygen  ('DOX'): ml/l
-%                   fluorescence      ('CPHL'): mg/m^3
-%                   Chlorophyll       ('CHLU'): mg/m^3   (user coefficient)
-%                   Chlorophyll       ('CHLF'): mg/m^3   (factory coefficient)
+%                   fluorescence      ('CPHL','CPHL_2','CPHL_3',...): mg/m^3
+%                   Chlorophyll       ('CPHL','CPHL_2','CPHL_3',...): mg/m^3   (user coefficient)
+%                   Chlorophyll       ('CPHL','CPHL_2','CPHL_3',...): mg/m^3   (factory coefficient)
 %                   Turbidity         ('TURB') NTU
 %
 %                 Also contains some metadata fields and calibration information, so
@@ -595,18 +595,8 @@ function [params] = load_params();
   params{end+1} = {'DO(mmol/m^3)',    {'DOX1', ''}}; % mmol/m3 <=> umol/l
   params{end+1} = {'oxygen',          {'DOX', ''}};
   params{end+1} = {'fluorescence',    {'FLU2', ''}};
-  params{end+1} = {'F_Cal_CHL',       {'CHLF', 'Artificial chlorophyll data '...
-  'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
-  'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-  'photodetector paired with an optical filter which measures everything '...
-  'that fluoresces in the region of 695nm. '...
-  'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
-  params{end+1} = {'U_Cal_CHL',       {'CHLU', 'Artificial chlorophyll data '...
-  'computed from bio-optical sensor raw counts measurements using user calibration coefficient. The '...
-  'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-  'photodetector paired with an optical filter which measures everything '...
-  'that fluoresces in the region of 695nm. '...
-  'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
+  params{end + 1} = {'F_Cal_CHL', {'CPHL', getCPHLcomment('factory', '470nm', '695nm')}};
+  params{end + 1} = {'U_Cal_CHL', {'CPHL', getCPHLcomment('user', '470nm', '685nm')}};
   params{end+1} = {'backscatterance', {'TURB', ''}};
   params{end+1} = {'PAR',             {'PAR', ''}};
 
@@ -693,9 +683,23 @@ function [sample_data] = load_sample_data(filename,mode,params,wqmdata);
   isUmolPerL = false;
 
   varlabel = wqmdata.varlabel;
+
+  tnCHL = sum(contains(varlabel, 'CHL')) - sum(contains(varlabel, 'RawCHL'));
+  nCHL = 0;
+
   for k = 1:length(varlabel)
 
     [name, comment] = getParamDetails(varlabel{k}, params);
+    need_chla_numbered = tnCHL > 1 && strcmp(name, 'CPHL');
+
+    if need_chla_numbered
+      nCHL = nCHL + 1;
+
+      if nCHL > 1
+        name = [name '_' num2str(nCHL)];
+      end
+
+    end
 
     data = wqmdata.(varlabel{k});
 
