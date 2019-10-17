@@ -179,16 +179,7 @@ function sample_data = YSI6SeriesParse( filename, mode )
         sample_data.variables{end}.name           = 'CPHL';
         sample_data.variables{end}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
         sample_data.variables{end}.data           = sample_data.variables{end}.typeCastFunc(field');
-        sample_data.variables{end}.comment        = ['Artificial chlorophyll data '...
-            'computed from bio-optical sensor raw counts measurements. The '...
-            'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-            'photodetector paired with an optical filter which measures everything '...
-            'that fluoresces in the region above 630nm'...
-            'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'];
-        
-      % relative fluorescence unit
-      %case 'chlorophyllRFU'
-      %  sample_data.variables{end}.name = 'CPHL_RFU';
+        sample_data.variables{end}.comment = getCPHLcomment('unknown','470nm','above 630nm');
         
       case 'latitude'
         sample_data.variables{2}.data             = sample_data.variables{2}.typeCastFunc(field');

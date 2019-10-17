@@ -250,9 +250,7 @@ function sample_data = readXR420( filename, mode )
                   %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlCa'
                       name = 'CPHL';
-                      comment.(vars{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
+                      comment.(vars{k}) = getCPHLcomment('unknown','470nm','685nm');
               end
               
               sample_data.variables{end  }.name       = name;
@@ -323,10 +321,7 @@ function sample_data = readXR420( filename, mode )
                   %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlCa'
                       name = 'CPHL';
-                      comment.(fields{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
-                      
+                      comment.(fields{k}) = getCPHLcomment('unknown','470nm','685nm');
                   %DO (%)
                   case 'D_O2', name = 'DOXS';
                       
