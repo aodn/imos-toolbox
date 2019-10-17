@@ -47,18 +47,8 @@ if strcmpi(qcLevel, 'raw'), return; end
 if nargin<3, auto=false; end
 
 analogAquatracka = {'CHL', 'FTU', 'PAH', 'CDOM'};
-imosAquatracka = {'CHLF', 'TURBF', 'CHR', 'CHC'};
-commentsAquatracka = {['Artificial chlorophyll data '...
-          'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
-          'fluorometre is equipped with a 430nm peak wavelength LED to irradiate and a '...
-          'photodetector paired with an optical filter which measures everything '...
-          'that fluoresces in the region of 685nm. '...
-          'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'], ...
-          ['Turbidity data in FTU '...
-          'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
-          'fluorometre is used as a nephelometre equipped with a 440nm peak wavelength LED to irradiate. '], ...
-          '', ...
-          ''};
+imosAquatracka = {'CPHL', 'TURBF', 'CHR', 'CHC'};
+
 nAquatracka = length(analogAquatracka);
 
 voltLabel   = cell(1, nAquatracka);
@@ -72,7 +62,18 @@ for i=1:nAquatracka
     offset(i)       = str2double(readProperty(['offset' analogAquatracka{i}], ParamFile));
 end
 
+commentsAquatracka = {[ getCPHLcomment('factory','430nm','685nm') ' Data converted from analogic input with scaleFactor=' num2str(scaleFactor(1)) ', offset=' num2str(offset(1))) ' .'], ...
+          ['Turbidity data in FTU '...
+          'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
+          'fluorometre is used as a nephelometre equipped with a 440nm peak wavelength LED to irradiate. '], ...
+          '', ...
+          ''};
+
+get_name = @(v) v.('name');
+get_all_names = @(s) cellfun(get_name,s.('variables'),'UniformOutput',false);
+
 for k = 1:length(sample_data)
+  all_current_names = get_all_names(sample_data{k});
   for i=1:nAquatracka
       sam = sample_data{k};
       
@@ -92,6 +93,11 @@ for k = 1:length(sample_data)
           coordinates = sam.variables{voltIdx}.coordinates;
       else
           coordinates = '';
+      end
+    
+      if inCell(all_current_names,imosAquatracka{i}) 
+        %not suppose to happen, but warn if does since this will probably lead to overwrite at the file level
+        warning('%s is already defined. Adding variable with the same name but from analogic-to-digital conversion',imosAquatracka{i});
       end
       
       % add data as new variable in data set
