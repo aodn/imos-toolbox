@@ -36,7 +36,7 @@ classdef testRepeatedTimesJFE < matlab.unittest.TestCase
             istime = @(x) strcmpi(x.name, 'TIME');
             timeind = cellfun(istime, data.dimensions);
             time = data.dimensions{timeind};
-            tinfo = TimeSamplingInfo(time.data);
+            tinfo = timeSamplingInfo(time.data);
             valid_sampling = all([tinfo.unique_sampling, tinfo.monotonic_sampling, tinfo.progressive_sampling]);
             valid_interval = data.meta.instrument_sample_interval/min(tinfo.sampling_steps) > 0;
             assert(valid_sampling);
@@ -48,7 +48,7 @@ classdef testRepeatedTimesJFE < matlab.unittest.TestCase
 end
 
 function [param] = load_param()
-    root_folder = FolderAbove(mfilename('fullpath'), 1);
+    root_folder = FolderAbove(mfilename('fullpath'), 2);
     folder = fullfile(root_folder, 'data/testfiles/JFE/v000');
     files = FilesInFolder(folder);
     param = files2namestruct(files);
