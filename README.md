@@ -17,7 +17,7 @@ The **stable** releases may be obtained [here](https://github.com/aodn/imos-tool
 
 We support Windows and Linux. The toolbox may be used as a **Matlab stand-alone library** or **stand-alone application** (**No Matlab is required**).
 
-For a **stand-alone library** usage, **Matlab R2018b** and the Matlab Component Runtime (v95) or newer is required ( since version 2.6.1).
+For a **stand-alone library** usage, **Matlab R2018b** or newer is required ( since version 2.6.1).
 
 For a **stand-alone application**, you will need the Matlab Component Runtime (v95).
 
