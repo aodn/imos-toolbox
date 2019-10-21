@@ -111,6 +111,26 @@ classdef testOnlyCPHL < matlab.unittest.TestCase
             assert(check_cphl(data));
         end
 
+        function test_aquatrackapp(~,sbe19p_reader,sbe19p_v000_param,mode)
+            data = sbe19p_reader({sbe19p_v000_param},mode);
+            %fake volt_cphl variable
+            for k=1:length(data.variables)
+                if contains(data.variables{k}.name,'CPHL')
+                    newvar = data.variables{k};
+                    newvar.name = 'volt_CHL';
+                    data.variables{end+1} = newvar;
+                    break
+                end
+            end
+            output = aquatrackaPP({data},'qc',0);
+            data = output{1};
+            comment = data.variables{end}.comment;
+            assert(check_cphl(data));
+            assert(contains(comment,'analogic input'));
+            assert(contains(comment,'scaleFactor='));
+            assert(contains(comment,'offset='));
+        end
+
     end
 
 end
