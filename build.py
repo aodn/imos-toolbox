@@ -21,7 +21,7 @@ import os
 import subprocess as sp
 from getpass import getuser
 from pathlib import Path
-from shutil import move
+from shutil import copy
 from typing import List
 
 from docopt import docopt
@@ -37,13 +37,14 @@ VERSION_FILE = '.standalone_canonical_version'
 
 
 def run(x: str):
-    return sp.Popen(x, stdout=sp.PIPE,
-                    shell=True).communicate()[0].decode('utf-8').strip()
+    proc = sp.run(x, stdout=sp.PIPE, stderr=sp.PIPE, shell=True)
+    return proc.stdout.decode('utf-8').strip(), proc.stderr.decode(
+        'utf-8').strip()
 
 
 def create_java_call_sig_compile(root_path: str) -> str:
-    java_path = os.path.join(root_path, 'Java/')
-    return f"cd {java_path};ant install;cd {root_path}"
+    java_path = os.path.join(root_path, 'Java')
+    return f"cd {java_path} && ant install && cd {root_path}"
 
 
 def git_info(root_path: str) -> dict:
@@ -97,7 +98,7 @@ def find_files(folder: str, ftype: str) -> list:
     """ Find all the files within the repository that are not testfiles """
     for file in Path(folder).glob(os.path.join('**/', ftype)):
         filepath = file.as_posix()
-        if 'data/testfiles' not in filepath:
+        if 'data/testfiles' not in filepath and 'tmpbuild.m' not in filepath:
             yield filepath
 
 
@@ -130,20 +131,38 @@ def get_required_files(root_path: str, info: dict) -> (list, list):
 
 def create_mcc_call_sig(mcc_path: str, root_path: str, dist_path: str,
                         mfiles: List[str], matfiles: List[str],
-                        output_name: str) -> str:
+                        output_name: str, arch: str) -> List[str]:
     standalone_flags = '-m'
     verbose_flag = '-v'
-    outdir_flag = f"-d \'{dist_path}\'"
+    outdir_flag = f"-d {dist_path}"
     clearpath_flag = '-N'
-    outname_flag = f"-o \'{output_name}\'"
+    outname_flag = f"-o {output_name}"
     verbose_flag = '-v'
     warning_flag = '-w enable'
-    mfiles_str = ' '.join([f"\'{file}\'" for file in mfiles])
-    matfiles_str = ' '.join([f"-a \'{file}\'" for file in matfiles])
-    return ' '.join([
-        mcc_path, standalone_flags, verbose_flag, outdir_flag, clearpath_flag,
+    mfiles_str = ' '.join([f"{file}" for file in mfiles])
+    matfiles_str = ' '.join([f"-a {file}" for file in matfiles])
+
+    mcc_arguments = ' '.join([
+        standalone_flags, verbose_flag, outdir_flag, clearpath_flag,
         outname_flag, verbose_flag, warning_flag, mfiles_str, matfiles_str
     ])
+
+    if arch == 'win64':
+        tmpscript = os.path.join(root_path, 'tmpbuild.m')
+        with open(tmpscript,
+                  'w') as tmpfile:  # overcome cmd.exe limitation of characters
+            tmpfile.write(f"eval('{mcc_path} {mcc_arguments}')")
+        external_call = f"matlab -nodesktop -nosplash -wait -r \"run('{tmpscript}');exit\""
+        rm_call = f"del {tmpscript}"
+        return [external_call, rm_call]
+    else:
+        return [
+            ' '.join([
+                mcc_path, standalone_flags, verbose_flag, outdir_flag,
+                clearpath_flag, outname_flag, verbose_flag, warning_flag,
+                mfiles_str, matfiles_str
+            ])
+        ]
 
 
 def get_args(args: dict) -> (str, str, str, str):
@@ -162,9 +181,9 @@ def get_args(args: dict) -> (str, str, str, str):
         dist_path = args['--dist_path']
 
     if not args['--mcc_path']:
-        mcc = 'mcc'
+        mcc_path = 'mcc'
     else:
-        mcc = args['--mcc_path']
+        mcc_path = args['--mcc_path']
 
     if args['--arch'] in VALID_ARCHS:
         ind = VALID_ARCHS.index(args['--arch'])
@@ -173,14 +192,7 @@ def get_args(args: dict) -> (str, str, str, str):
         raise Exception(
             f"{args['--arch']} is not one of the valid architectures {VALID_ARCHS}"
         )
-    return root_path, dist_path, mcc, arch
-
-
-def gen_outname(arch: str, version: str) -> (str, str):
-    """ return a temporary name and a final name for the toolbox binary.
-    This is required since mcc do not support underscores in names
-    """
-    return f"tmp_imosToolbox_{ARCH_NAMES[arch]}", f"imosToolbox_{ARCH_NAMES[arch]}_{version}"
+    return root_path, dist_path, mcc_path, arch
 
 
 def write_version(afile: str, version: str) -> None:
@@ -190,32 +202,50 @@ def write_version(afile: str, version: str) -> None:
 
 if __name__ == '__main__':
     args = docopt(__doc__, version='0.1')
-    root_path, dist_path, mcc, arch = get_args(args)
+
+    root_path, dist_path, mcc_path, arch = get_args(args)
     repo_info = git_info(root_path)
 
     print("Starting build process.")
     print(f"Marking {repo_info['version']} as the standalone version")
     write_version(VERSION_FILE, repo_info['version'])
 
-    temp_output_name, output_name = gen_outname(arch, repo_info['version'])
+    # output name of binary is restricted in mcc
+    tmp_name = f"imosToolbox_{ARCH_NAMES[arch]}"
 
     print("Gathering files to be included")
     mfiles, matfiles = get_required_files(root_path, repo_info)
     java_call = create_java_call_sig_compile(root_path)
-    mcc_call = create_mcc_call_sig(mcc, root_path, dist_path, mfiles, matfiles,
-                                   temp_output_name)
+
+    mcc_call = create_mcc_call_sig(mcc_path, root_path, dist_path, mfiles,
+                                   matfiles, tmp_name, arch)
 
     print("Current repo information:")
     print(repo_info)
+
     print(f"Calling {java_call}..")
-    java_status = run(java_call)
-    if not java_status:
-        raise Exception(f"{java_call} failed")
+    stdout, stderr = run(java_call)
+    if stderr:
+        __import__('pdb').set_trace()
+        raise Exception(f"{jcall} failed")
+
     print(f"Calling {mcc_call}...")
-    mcc_status = run(mcc_call)
-    if not mcc_status:
-        raise Exception(f"{mcc_call} failed")
+    for mcall in mcc_call:
+        stdout, stderr = run(mcall)
+        if stderr:
+            raise Exception(f"{mcall} failed")
+
+    print(f"The toolbox architecture is {ARCH_NAMES[arch]}.")
+    print(f"Git version information string is {repo_info['version']}")
+
     print(f"Updating binary at {root_path}....")
-    move(os.path.join(dist_path, temp_output_name),
-         os.path.join(root_path, output_name))
+
+    # mcc append .exe to end of file
+    if arch == 'win64':
+        copy(os.path.join(dist_path, tmp_name + '.exe'),
+             os.path.join(root_path, tmp_name + '.exe'))
+    else:
+        copy(os.path.join(dist_path, tmp_name),
+             os.path.join(root_path, tmp_name + '.bin'))
+
     print("Build Finished.")
