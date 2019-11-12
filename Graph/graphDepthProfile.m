@@ -56,6 +56,23 @@ function [graphs, lines, vars] = graphDepthProfile( parent, sample_data, vars, e
     return; 
   end
   
+  lenVar = length(vars);
+
+  if ~isempty(extra_sample_data)
+      nInst = 2;
+  else
+      nInst = 1;
+  end
+
+  if verLessThan('matlab','8.1') %R2013a
+      graphs = nan(lenVar, 1);
+      lines  = nan(lenVar, nInst);
+  else
+      graphs = gobjects(lenVar, 1);
+      lines  = gobjects(lenVar, nInst);
+  end
+ 
+
   % get the toolbox execution mode
   mode = readProperty('toolbox.mode');
   
