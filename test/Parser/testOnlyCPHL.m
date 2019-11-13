@@ -151,7 +151,7 @@ function [e] = chla_inputs(varargin)
 %
 fullpath = @fullfile;
 
-e.root_folder = FolderAbove(mfilename('fullpath'), 2);    
+e.root_folder = toolboxRootPath();    
 e.ecot_folder = fullpath(e.root_folder, 'data/testfiles/ECOTriplet/v000/');
 
 ecot_v000 = FilesInFolder(e.ecot_folder);
@@ -165,7 +165,6 @@ for k = 1:length(ecot_v000)
     end
 
 end
-
 e.ecot_v000_param = files2namestruct(e.ecot_v000_files);
 
 e.jfe_folder = fullpath(e.root_folder, 'data/testfiles/JFE/v000/');
