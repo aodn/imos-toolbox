@@ -1,44 +1,62 @@
-function testSBE19Parse()
-%TESTSBE19PARSE exercises the function SBE19Parse. This function parses 
-% Sea-Bird DataProcessor generated files.
-%
-% Author:       Peter Jansen <peter.jansen@csiro.au>
-% Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
-%
+classdef testSBE19Parse < matlab.unittest.TestCase
 
-%
-% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
-% Marine Observing System (IMOS).
-%
-% This program is free software: you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation version 3 of the License.
-%
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-% GNU General Public License for more details.
+    % Test Reading SBE files with the SBE19Parse
+    % function.
+    %
+    % author: hugo.oliveira@utas.edu.au
+    %
 
-% You should have received a copy of the GNU General Public License
-% along with this program.
-% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
-%
+    properties (TestParameter)
+        mode = {'timeSeries'};
+        wqm_file = files2namestruct(rdir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE']));
+    end
 
-% we check that the instrument model description is properly picked-up by
-% the regexp in parseInstrumentHeader function from SBE19Parse
-testFilesInstruments = {...
-    'SBE19plus_example.cnv',    'SBE19plus'; ...
-    'SBE9_example.cnv',         'SBE9'; ...
-    'SBE16plus_example1.cnv',   'SBE16plus'; ...
-    'SBE16plus_example2.cnv',   'SBE16plus'; ...
-    'SBE25plus_example.cnv',    'SBE25plus'; ...
-    'SBE37_example.cnv',        'SBE37SM-RS232'; ...
-    'SBE39plus_example.cnv',    'SBE39plus'};
+    methods (Test)
 
-for i=1:length(testFilesInstruments)
-    clear sample_data;
-    sample_data = SBE19Parse({fullfile('test', 'SBE19Parse', testFilesInstruments{i, 1})}, 'timeSeries');
-    assert(strcmp(sample_data.meta.instrument_model, testFilesInstruments{i, 2}), ...
-        ['Failed to parse ' testFilesInstruments{i, 1}]);
+        function testReadInstrumentModel(~, wqm_file, mode)
+            dict = load_table();
+            data = SBE19Parse({wqm_file}, mode);
+            [~, filename, ext] = fileparts(wqm_file);
+            key = [filename ext];
+
+            if dict.isKey(key)
+                assert(strcmpi(data.meta.instrument_model, dict(key)));
+            else
+                warning('not validating instrumentmodel - file %s not registred in the table', key)
+            end
+
+        end
+
+    end
+
 end
+
+function [table] = load_table()
+% provide a table with filenames as keys
+% and values as instrument models
+
+table = containers.Map();
+table('2015-05-09T094336_SBE02501008.cnv') = 'SBE25plus';
+table('2015-05-09T114649_SBE02501008.cnv') = 'SBE25plus';
+table('2015-05-09T191734_SBE02501008.cnv') = 'SBE25plus';
+table('2015-05-09T213803_SBE02501008.cnv') = 'SBE25plus';
+table('2015-05-15T022019_SBE02501008.cnv') = 'SBE25plus';
+table('2016-11-29T063814_SBE0251111CFALDB.cnv') = 'SBE25plus';
+table('chla_aquaT3_as_aquaUV.cnv') = 'SBE19plus';
+table('IMOS_ANMN-NRS_CTP_130130_NRSMAI_FV00_CTDPRO.cnv') = 'SBE19plus';
+table('IMOS_ANMN-NRS_CTP_130130_NRSMAI_FV00_CTDPRO.cnv') = 'SBE19plus';
+table('in2015_c01_005CFALDB_altimetre.cnv') = 'SBE9';
+table('SBE16plus_oxygen1.cnv') = 'SBE16plus';
+table('SBE16plus_oxygen2.cnv') = 'SBE16plus';
+table('SBE16plus_oxygen3.cnv') = 'SBE16plus';
+table('SBE16plus_parser1.cnv') = 'SBE16plus';
+table('SBE16plus_parser1.cnv') = 'SBE16plus';
+table('SBE16plus_parser2.cnv') = 'SBE16plus';
+table('SBE16plus_parser2.cnv') = 'SBE16plus';
+table('SBE19plus_parser1.cnv') = 'SBE19plus';
+table('SBE25plus_parser1.cnv') = 'SBE25plus';
+table('SBE37_parser1.cnv') = 'SBE37SM-RS232';
+table('SBE37_parser1.cnv') = 'SBE37SM-RS232';
+table('SBE39plus_parser1.cnv') = 'SBE39plus';
+table('SBE9_parser1.cnv') = 'SBE9';
 end
