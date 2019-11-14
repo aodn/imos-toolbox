@@ -94,10 +94,16 @@ for k = 1:length(sample_data)
       else
           coordinates = '';
       end
-    
-      if inCell(all_current_names,imosAquatracka{i}) 
-        %not suppose to happen, but warn if does since this will probably lead to overwrite at the file level
-        warning('%s is already defined. Adding variable with the same name but from analogic-to-digital conversion',imosAquatracka{i});
+   
+      var_already_defined = inCell(all_current_names,imosAquatracka{i});
+      if var_already_defined
+        c = 2;
+        newname = [imosAquatracka{i} '_' num2str(c)];
+        while inCell(all_current_names,newname)
+          c = c + 1;
+          newname = [imosAquatracka{i} '_' num2str(c)];
+        end
+        imosAquatracka{i} = newname;
       end
       
       % add data as new variable in data set
