@@ -260,9 +260,5 @@ for k = 1:length(vars)
 
 end
 
-if is_numbered
-    disp(['Found numbered CPHL vars in ' data.toolbox_input_file]);
-end
-
 is_cphl = true;
 end
