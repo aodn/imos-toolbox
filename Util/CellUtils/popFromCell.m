@@ -44,7 +44,7 @@ function [newcell, rm_indexes] = popFromCell(xcell, match)
     % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
     %
 
-    flen = numel(csize);
+    flen = numel(xcell);
     newcell = cell(1);
 
     not_cell_or_str = not(iscell(match) || ischar(match));
