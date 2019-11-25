@@ -7,7 +7,9 @@ function [is_complete, indexes] = inCellPartialMatch(xcell, ycell, allmatches)
     % is found within the substring of xcell{m}
     % the m index is stored.
     % Hence, matched indexes indicates a full or partial match
-    % of all the substrings in ycell{n} against a xcell{m}.
+    % ignoring whitespace of all the substrings in ycell{n} against a xcell{m}
+    %
+    % For simple partial string matching, use the contains function
     %
     % See examples for usage.
     %
@@ -33,20 +35,20 @@ function [is_complete, indexes] = inCellPartialMatch(xcell, ycell, allmatches)
     %
     %
     % Example:
-    % astr = sprintf('a\tb\tc')
-    % [is_complete,indexes] = inCellPartialMatch({astr,'b','c'},{'a b'})
+    % astr = sprintf('a\tb\tc');
+    % [is_complete,indexes] = inCellPartialMatch({astr,'b','c'},{'a b'});
     % assert(is_complete)
     % assert(isequal(indexes,[1]))
     % % Partial matching
-    % is_complete,indexes] = inCellPartialMatch({astr,'b','c'},{'a c'})
+    % [is_complete,indexes] = inCellPartialMatch({astr,'b','c'},{'a c'});
     % assert(is_complete)
     % assert(isequal(indexes,[1]))
     % % Partial matching reduced
-    % [is_complete,indexes] = inCellPartialMatch({astr,'b','c'},{'a c','c'})
+    % [is_complete,indexes] = inCellPartialMatch({astr,'b','c'},{'a c','c'});
     % assert(is_complete)
-    % assert(isequal(indexes,[1,1]))
+    % assert(isequal(indexes,[1;1]))
     % % Partial matching complete
-    % [is_complete,indexes] = inCellPartialMatch({astr,'b','c'},{'a c','c'},true)
+    % [is_complete,indexes] = inCellPartialMatch({astr,'b','c'},{'a c','c'},true);
     % assert(is_complete)
     % assert(iscell(indexes))
     % assert(isequal(indexes{1},{1}))
@@ -78,12 +80,12 @@ function [is_complete, indexes] = inCellPartialMatch(xcell, ycell, allmatches)
         allmatches = false;
     end
 
-    cindexes = {};
 
     if ~iscell(ycell)
         ycell = {ycell};
     end
-
+    
+    cindexes = cell(1,length(ycell));
     for k = 1:length(ycell)
         cindexes{k} = {};
 
@@ -120,7 +122,7 @@ function [is_complete, indexes] = inCellPartialMatch(xcell, ycell, allmatches)
         if allmatches
             indexes = cindexes;
         else
-            if incomplete && isempty(empty_entries)
+            if incomplete && length(empty_entries) == 1 && empty_entries(1) == 1
                 indexes = [];
                 return
             end
