@@ -48,7 +48,7 @@ classdef testRepeatedTimesJFE < matlab.unittest.TestCase
 end
 
 function [param] = load_param()
-    root_folder = FolderAbove(mfilename('fullpath'), 2);
+    root_folder = toolboxRootPath();
     folder = fullfile(root_folder, 'data/testfiles/JFE/v000');
     files = FilesInFolder(folder);
     param = files2namestruct(files);

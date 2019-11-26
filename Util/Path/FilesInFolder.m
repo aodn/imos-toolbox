@@ -1,16 +1,18 @@
-function [files] = FilesInFolder(path)
+function [files, folders] = FilesInFolder(path)
 % function files = FilesInFolder(path)
 %
-% Return a cell with fullpath of files within path.
-% The cell is sorted based on fullpath.
+% Return two cells with fullpath of files/folders within
+% a path.
+% The cells are sorted.
 %
 % Inputs:
 %
-% `path` - a path string
+% path - a path string
 %
 % Outputs:
 %
-% `files` - a cell with fullpath strings of the files.
+% files - a cell with fullpath strings of the files.
+% folders - a cell with fullpath strings of the subfolders.
 %
 % Example:
 % % assumes /dev/shm got 4 files, "_a","1b","1_ab","abc.m".
@@ -20,7 +22,7 @@ function [files] = FilesInFolder(path)
 % assert(any(contains(files,'1b')));
 % assert(any(contains(files,'_a')));
 % assert(any(contains(files,'abc.m')));
-%
+
 % author: hugo.oliveira@utas.edu.au
 %
 
@@ -42,19 +44,25 @@ function [files] = FilesInFolder(path)
 %
 
 dobj = dir(path);
-files = cell(1, 1);
+files = cell(0, 0);
+folders = cell(0, 0);
 c = 0;
+p = 0;
 
 for k = 1:length(dobj)
-    name = dobj(k).('name');
+    isfolder = dobj(k).isdir;
+    name = dobj(k).name;
 
-    if ~isfolder(name)
-        fullpath = fullfile(path, dobj(k).('name'));
-        issubfolder = isfolder(fullpath);
+    if ~isfolder
+        fullpath = fullfile(path, name);
+        c = c + 1;
+        files{c} = fullpath;
+    else
+        not_dots = ~strcmp(name, '.') &&~strcmp(name, '..');
 
-        if ~issubfolder
-            c = c + 1;
-            files{c} = fullpath;
+        if not_dots
+            p = p + 1;
+            folders{p} = fullfile(path,name);
         end
 
     end
