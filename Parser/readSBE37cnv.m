@@ -9,7 +9,7 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader, mode
 %   dataLines  - Cell array of strings, the data lines in the original file.
 %   instHeader - Struct containing instrument header.
 %   procHeader - Struct containing processed header.
-%   mode       - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode       - Toolbox data type mode.
 %
 % Outputs:
 %   data       - Struct containing variable data.
@@ -20,35 +20,23 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader, mode
 % 				Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(4,4,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(4,4);
   
   data = struct;
   comment = struct;
@@ -86,45 +74,6 @@ function [data, comment] = readSBE37cnv( dataLines, instHeader, procHeader, mode
     comment.(nn) = c;
   end
   
-  % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are present and
-  % not DOX2
-  if isfield(data, 'DOX1') && ~isfield(data, 'DOX2')
-      
-      % umol/l -> umol/kg
-      %
-      % to perform this conversion, we need to calculate the
-      % density of sea water; for this, we need temperature,
-      % salinity, and pressure data to be present
-      temp = isfield(data, 'TEMP');
-      pres = isfield(data, 'PRES_REL');
-      psal = isfield(data, 'PSAL');
-      cndc = isfield(data, 'CNDC');
-      
-      % if any of this data isn't present,
-      % we can't perform the conversion to umol/kg
-      if temp && pres && (psal || cndc)
-          temp = data.TEMP;
-          pres = data.PRES_REL;
-          if psal
-              psal = data.PSAL;
-          else
-              cndc = data.CNDC;
-              % conductivity is in S/m and gsw_C3515 in mS/cm
-              crat = 10*cndc ./ gsw_C3515;
-              
-              psal = gsw_SP_from_R(crat, temp, pres);
-          end
-          
-          % calculate density from salinity, temperature and pressure
-          dens = sw_dens(psal, temp, pres); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
-          
-          % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
-          data.DOX2 = data.DOX1 .* 1000.0 ./ dens;
-          comment.DOX2 = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
-          'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-      end
-  end
 end
 
 function [name, data, comment] = convertData(name, data, instHeader, procHeader, mode)

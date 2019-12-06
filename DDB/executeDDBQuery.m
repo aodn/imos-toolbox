@@ -26,38 +26,27 @@ function result = executeDDBQuery( table, field, value)
 % Contributor:  Gordon Keith <gordon.keith@csiro.au>
 %    -now can use the toolbox.ddb.* optional properties if exist
 %               Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%               Peter Jansen <peter.jansen@csiro.au>
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,3,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(3,3);
 
   if ~ischar(table), error('table must be a string'); end
   if ~isempty(field) ...
@@ -91,10 +80,13 @@ function result = executeDDBQuery( table, field, value)
   
   % execute the query - the java method returns 
   % an ArrayList of org.imos.ddb.schema.* objects.
+  source     = '';
+  driver     = '';
   connection = '';
   dbuser     = '';
   dbpassword = '';
   try 
+      source     = readProperty('toolbox.ddb');
       driver     = readProperty('toolbox.ddb.driver');
       connection = readProperty('toolbox.ddb.connection');
       dbuser     = readProperty('toolbox.ddb.user');
@@ -103,7 +95,7 @@ function result = executeDDBQuery( table, field, value)
   end
   
   if isempty(connection)
-      ddb = org.imos.ddb.DDB.getDDB(readProperty('toolbox.ddb'));
+      ddb = org.imos.ddb.DDB.getDDB(source);
   else
       ddb = org.imos.ddb.DDB.getDDB(driver, connection, dbuser, dbpassword);
   end
@@ -122,12 +114,12 @@ function result = executeDDBQuery( table, field, value)
 end
 
 function strs = java2struct(list)
-%JAVA2STRUCT Converts a Java ArrayList which contains org.imos.ddb.schema.*
+%JAVA2STRUCT Converts a Java ArrayList which contains org.imos.ddb.DBObject
 % objects into equivalent Matlab structs. java.util.Date objects are
 % returned as matlab serial date values.
 %
 % Inputs:
-%   list - a Java ArrayList containing org.imos.ddb.schema.* objects
+%   list - a Java ArrayList containing org.imos.ddb.DBObject objects
 %
 % Outputs:
 %   strs - A vector of matlab structs which are equivalent to the java
@@ -137,32 +129,26 @@ function strs = java2struct(list)
   
   if list.size() == 0, return; end;
   
-  dateFmt = readProperty('exportNetCDF.dateFormat');
-
-  % it's horribly ugly, but this is the only way that I know of to turn
-  % Java fields of arbitrary types into matlab fields: a big, ugly switch
-  % statement :( at least the fieldnames function works on java objects.
+  % We turn Java fields of arbitrary types into matlab fields
   for k = 0:list.size()-1
     
     obj = list.get(k);
     
-    % for each field in the java object
-    fields = fieldnames(obj);
-    
-    for m = 1:length(fields)
+    for m = 0:obj.size()-1
       
-      field = fields{m};
-      val   = obj.(field);
+      fields = obj.get(m);
+      field = char(fields.name);
+      val   = fields.o;
       
       % if java field is null
       if isempty(val), strs(k+1).(field) = []; continue; end
       
       % get class type of field
-      class = char(val.getClass().getName());
+      oClass = class(val);
       
       % turn java field value into matlab field 
       % value, ignoring unsupported types
-      switch(class)
+      switch(oClass)
         
         case 'java.lang.String',
           strs(k+1).(field) = char(val);
@@ -182,6 +168,8 @@ function strs = java2struct(list)
             cal.get(java.util.Calendar.HOUR_OF_DAY),...
             cal.get(java.util.Calendar.MINUTE),...
             cal.get(java.util.Calendar.SECOND));
+        otherwise
+          strs(k+1).(field) = val;
       end
     end
   end

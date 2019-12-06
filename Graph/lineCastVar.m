@@ -18,35 +18,23 @@ function lineCastVar(sample_data, varNames, isQC, saveToFile, exportDir)
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+narginchk(5,5);
 
 if ~iscell(sample_data),    error('sample_data must be a cell array');  end
 if ~iscellstr(varNames),    error('varNames must be a cell array');     end
@@ -62,17 +50,14 @@ for i=1:length(notNeededParams)
 end
 
 %plot depth information
-monitorRec = get(0,'MonitorPosition');
-xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-iBigMonitor = xResolution == max(xResolution);
-if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
 
 title = [sample_data{1}.site_code ' profile on ' datestr(sample_data{1}.time_coverage_start, 'yyyy-mm-dd UTC')];
 
-lineStyle = {'-', '--', ':', '-.'};
-lenLineStyle = length(lineStyle);
-
 initiateFigure = true;
+
+backgroundColor = [1 1 1]; % white
 
 lenVarNames = length(varNames);
 for k=1:lenVarNames
@@ -103,7 +88,6 @@ for k=1:lenVarNames
     hLineFlag = ones(4, 1);
     
     instrumentDesc{1} = 'Make Model (instrument SN - cast time)';
-    hLineVar(1) = 0;
     
     for i=1:lenSampleData
         % instrument description
@@ -131,14 +115,15 @@ for k=1:lenVarNames
         
         if iVar > 0
             if initiateFigure
-                fileName = genIMOSFileName(sample_data{i}, 'png');
+                fileName = genIMOSFileName(sample_data{i}, '.png');
                 visible = 'on';
                 if saveToFile, visible = 'off'; end
                 hFigCastVar = figure(...
-                    'Name', title, ...
-                    'NumberTitle','off', ...
-                    'Visible', visible, ...
-                    'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
+                    'Name',             title, ...
+                    'NumberTitle',      'off', ...
+                    'Visible',          visible, ...
+                    'Color',            backgroundColor, ...
+                    'OuterPosition',    monitorRect(iBigMonitor, :));
                 
                 initiateFigure = false;
             end
@@ -162,7 +147,10 @@ for k=1:lenVarNames
                 set(hAxCastVar, 'YLim', [yMin, yMax]);
                 hold(hAxCastVar, 'on');
                 
-                cMap = colormap(hAxCastVar, jet(lenSampleData));
+                % dummy entry for first entry in legend
+                hLineVar(1) = plot(0, 0, 'Color', backgroundColor, 'Visible', 'off'); % color same as background (invisible in legend)
+            
+                cMap = colormap(hAxCastVar, parula(lenSampleData));
                 cMap = flipud(cMap);
             end
             
@@ -171,8 +159,7 @@ for k=1:lenVarNames
             
             hLineVar(i + 1) = line(dataVar, ...
                 yLine, ...
-                'Color', cMap(i, :), ...
-                'LineStyle', lineStyle{mod(i, lenLineStyle)+1});
+                'Color', cMap(i, :));
             
             xLim = get(hAxCastVar, 'XLim');
             yLim = get(hAxCastVar, 'YLim');
@@ -279,8 +266,9 @@ for k=1:lenVarNames
                 'YGrid',        'on', ...
                 'Layer',        'top');
             
-            % set background to be grey
-            set(hAxCastVar, 'Color', [0.75 0.75 0.75])
+            % set axes background to be transparent (figure color shows
+            % through)
+            set(hAxCastVar, 'Color', 'none')
         end
     end
         
@@ -309,20 +297,9 @@ for k=1:lenVarNames
 end
     
 if saveToFile
-    % ensure the printed version is the same whatever the screen used.
-    set(hFigCastVar, 'PaperPositionMode', 'manual');
-    set(hFigCastVar, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
-    
-    % preserve the color scheme
-    set(hFigCastVar, 'InvertHardcopy', 'off');
-    
     fileName = strrep(fileName, '_PLOT-TYPE_', '_LINE_'); % IMOS_[sub-facility_code]_[platform_code]_FV01_[time_coverage_start]_[PLOT-TYPE]_C-[creation_date].png
     
-    % use hardcopy as a trick to go faster than print.
-    % opengl (hardware or software) should be supported by any platform and go at least just as
-    % fast as zbuffer. With hardware accelaration supported, could even go a
-    % lot faster.
-    imwrite(hardcopy(hFigCastVar, '-dopengl'), fullfile(exportDir, fileName), 'png');
+    fastSaveas(hFigCastVar, backgroundColor, fullfile(exportDir, fileName));
     
     close(hFigCastVar);
 end

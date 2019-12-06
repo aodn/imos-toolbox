@@ -22,78 +22,46 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2, 3, nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(2, 3);
 
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
   if isempty(sample_data), return;                                    end
   
+  % no modification of data is performed on the raw FV00 dataset except
+  % local time to UTC conversion
   if strcmpi(qcLevel, 'raw'), return; end
-  
-  switch computer
-      case 'GLNXA64'
-          computerDir = 'linux';
-          stdOutRedirection = '>/dev/null'; % we don't want standard output to be output in console (useless)
-          endOfLine = '\n';
-          
-      case {'PCWIN', 'PCWIN64'}
-          computerDir = 'windows';
-          stdOutRedirection = '>NUL';
-          endOfLine = '\r\n';
-          
-      otherwise
-          return;
-  end
-  
-  path = '';
-  if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
-  if isempty(path), path = pwd; end
-  
-  geomagPath        = fullfile(path, 'Geomag', computerDir);
-  geomagExe         = fullfile(geomagPath, 'geomag70.exe');
-  geomagModelFile   = fullfile(geomagPath, 'IGRF11.COF');
-  geomagInputFile   = fullfile(geomagPath, 'sample_coords.txt');
-  geomagOutputFile  = fullfile(geomagPath, 'sample_out_IGRF11.txt');
-  
+   
   % magnetic measurement dependent IMOS parameters
   magParam = {'CDIR_MAG', 'HEADING_MAG', 'SSDS_MAG', 'SSWD_MAG', ...
-      'SSWV_MAG', 'WPDI_MAG', 'WWPD_MAG', 'SWPD_MAG', 'WMPD_MAG', ...
+      'SSWV_MAG', 'WPDI_MAG', 'WWPD_MAG', 'SWPD_MAG', ...
       'UCUR_MAG', 'VCUR_MAG', 'VDIR_MAG', ...
       'CDIR', 'HEADING', 'SSDS', 'SSWD', ...
-      'SSWV', 'WPDI', 'WWPD', 'SWPD', 'WMPD', ...
+      'SSWV', 'WPDI', 'WWPD', 'SWPD', ...
       'UCUR', 'VCUR', 'VDIR'};
   
   nDataSet = length(sample_data);
   iMagDataSet = [];
   isMagDecToBeComputed = false;
-  geomagInputFilePermission = 'w';
+  lat = [];
+  lon = [];
+  h = [];
+  d = [];
   for i = 1:nDataSet
     nVar = length(sample_data{i}.variables);
     for j = 1:nVar
@@ -106,67 +74,51 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
     end
     
     if any(iMagDataSet == i)
-        if isempty(sample_data{i}.instrument_nominal_depth)
-            disp(['Warning : no instrument_nominal_depth documented for magneticDeclinationPP to be applied on ' sample_data{i}.toolbox_input_file]);
+        if isempty(sample_data{i}.instrument_nominal_depth) || ...
+                isempty(sample_data{i}.geospatial_lat_min) || ...
+                isempty(sample_data{i}.geospatial_lon_min)
+            disp(['Warning : no instrument_nominal_depth/geospatial_lat_min/geospatial_lon_min documented for magneticDeclinationPP to be applied on ' sample_data{i}.toolbox_input_file]);
+            prompt = {'Depth:', 'Latitude (South -ve)', 'Longitude (West -ve)'};
+            dlg_title = 'Coords';
+            num_lines = 1;
+            defaultans = {'0','0', '0'};
+            answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+            
+            % don't try to apply any correction if canceled by user
+            if isempty(answer), return; end
+            
+            sample_data{i}.instrument_nominal_depth = str2double(answer(1));
+            sample_data{i}.geospatial_lat_min = str2double(answer(2));
+            sample_data{i}.geospatial_lon_min = str2double(answer(3));
             continue;
         end
         % geomag only support computation for height above sea level
         % ranging [-1000;600000]
         height_above_sea_level = -sample_data{i}.instrument_nominal_depth;
         if height_above_sea_level < -1000; height_above_sea_level = -1000; end
+                
+        geomagDate = sample_data{i}.time_coverage_start + ...
+            (sample_data{i}.time_coverage_end - sample_data{i}.time_coverage_start)/2;
         
-        % we edit the geomag input file for the impacted dataset
-        geomagFormat = ['%s D M%f %f %f' endOfLine];
-        inputId = fopen(geomagInputFile, geomagInputFilePermission);
-        geomagDate = datestr(sample_data{i}.time_coverage_start + ...
-            (sample_data{i}.time_coverage_end - sample_data{i}.time_coverage_start)/2, 'yyyy,mm,dd');
-        fprintf(inputId, geomagFormat, geomagDate, ...
-            height_above_sea_level, ...
-            sample_data{i}.geospatial_lat_min, sample_data{i}.geospatial_lon_min);
-        fclose(inputId);
+        lat(end+1) = sample_data{i}.geospatial_lat_min;
+        lon(end+1) = sample_data{i}.geospatial_lon_min;
+        h(end+1) = height_above_sea_level;
+        d(end+1) = geomagDate;
         
-        if ~isMagDecToBeComputed
-            isMagDecToBeComputed = true;
-            geomagInputFilePermission = 'a';
-        end
+        isMagDecToBeComputed = true;
     end
   end
   
   if isMagDecToBeComputed
-      % geomag is limited to path length of 92 characters
-      if length(geomagOutputFile) > 92
-          error(['magneticDeclinationPP cannot be applied on ' sample_data{i}.toolbox_input_file ...
-              '. Change your toolbox location so that ' geomagOutputFile ' is shorter than 92 characters long (Geomag limitation).']);
-      end
       
-      % we run the geomag program and read its output
-      geomagCmd = sprintf('%s %s f %s %s %s', geomagExe, geomagModelFile, geomagInputFile, geomagOutputFile, stdOutRedirection);
-      system(geomagCmd);
-      
-      geomagFormat = ['%s D M%f %f %f %fd %fm ' ...
-          '%*s %*s %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f' endOfLine];
-      outputId = fopen(geomagOutputFile, 'r');
-      geomagOutputData = textscan(outputId, geomagFormat, ...
-          'HeaderLines',            1, ...
-          'Delimiter',              ' ', ...
-          'MultipleDelimsAsOne',    true, ...
-          'EndOfLine',              endOfLine);
-      fclose(outputId);
-      
-      geomagDate    = datenum(geomagOutputData{1}, 'yyyy,mm,dd');
-      geomagDepth   = -geomagOutputData{2};
-      geomagLat     = geomagOutputData{3};
-      geomagLon     = geomagOutputData{4};
-      signDeclin    = sign(geomagOutputData{5});
-      if signDeclin >= 0, signDeclin = 1; end
-      geomagDeclin  = geomagOutputData{5} + signDeclin*geomagOutputData{6}/60;
-      
+      [ geomagDeclin, geomagLat, geomagLon, geomagDepth, geomagDate, model] = geomag70(lat, lon, h, d);
+            
       nMagDataSet = length(iMagDataSet);
       for i = 1:nMagDataSet
           isMagDecApplied = false;
           magneticDeclinationComment = ['magneticDeclinationPP: data initially referring to magnetic North has ' ...
               'been modified so that it now refers to true North, applying a computed magnetic ' ...
-              'declination of ' num2str(geomagDeclin(i)) 'degrees. NOAA''s Geomag v7.0 software + IGRF11 ' ...
+              'declination of ' num2str(geomagDeclin(i)) 'degrees. NOAA''s Geomag v7.0 software + ' model ' ' ...
               'model have been used to compute this value at a latitude=' num2str(geomagLat(i)) 'degrees ' ...
               'North, longitude=' num2str(geomagLon(i)) 'degrees East, depth=' num2str(geomagDepth(i)) 'm ' ...
               '(instrument nominal depth) and date=' datestr(geomagDate(i), 'yyyy/mm/dd') ...
@@ -183,7 +135,7 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
           for j = 1:nVar
               switch sample_data{iMagDataSet(i)}.variables{j}.name
                   case {'CDIR_MAG', 'HEADING_MAG', 'VDIR_MAG', 'SSDS_MAG', ...
-                          'SSWD_MAG', 'WPDI_MAG', 'WWPD_MAG', 'SWPD_MAG', 'WMPD_MAG'} % PARAM_MAG (Degrees clockwise from magnetic North)
+                          'SSWD_MAG', 'WPDI_MAG', 'WWPD_MAG', 'SWPD_MAG'} % PARAM_MAG (Degrees clockwise from magnetic North)
                      
                       % current parameter gives a direction from magnetic
                       % North so just need to add the magnetic declination
@@ -194,13 +146,13 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
                       % we make sure values fall within [0; 360[
                       data = make0To360(data);
                       
-                  case 'VCUR_MAG' % magnetic_northward_sea_water_velocity (m s-1)
+                  case 'VCUR_MAG' % northward_sea_water_velocity (m s-1) referenced to magnetic north
                       data = vcur_mag*cos(geomagDeclin(i) * pi/180) - ucur_mag*sin(geomagDeclin(i) * pi/180);
                       
-                  case 'UCUR_MAG' % magnetic_eastward_sea_water_velocity (m s-1)
+                  case 'UCUR_MAG' % eastward_sea_water_velocity (m s-1) referenced to magnetic north
                       data = vcur_mag*sin(geomagDeclin(i) * pi/180) + ucur_mag*cos(geomagDeclin(i) * pi/180);
                       
-                  case 'SSWV_MAG' % sea_surface_wave_magnetic_directional_variance_spectral_density (m2 s deg-1)
+                  case 'SSWV_MAG' % sea_surface_wave_directional_variance_spectral_density (m2 s deg-1) referenced to magnetic north
                       % data stays "the same" but we modify the dimension
                       % from DIR_MAG to DIR
                       iDim = sample_data{iMagDataSet(i)}.variables{j}.dimensions(end);
@@ -236,7 +188,7 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
                       end
               
                   case {'CDIR', 'HEADING', 'VDIR', 'SSDS', 'SSWD', 'WPDI', ...
-                          'WWPD', 'SWPD', 'WMPD', 'VCUR', 'UCUR'}
+                          'WWPD', 'SWPD', 'VCUR', 'UCUR'}
                       % we add a variable attribute for theoretical
                       % magnetic declination but don't do any modification
                       % to the data
@@ -260,9 +212,7 @@ function sample_data = magneticDeclinationPP( sample_data, qcLevel, auto )
               % we apply the modifications to the data and metadata
               paramName = sample_data{iMagDataSet(i)}.variables{j}.name(1:end-4);
               sample_data{iMagDataSet(i)}.variables{j}.name = paramName;
-              sample_data{iMagDataSet(i)}.variables{j}.standard_name = '';
-              sample_data{iMagDataSet(i)}.variables{j}.long_name = '';
-              sample_data{iMagDataSet(i)}.variables{j}.units = '';
+              sample_data{iMagDataSet(i)}.variables{j}.reference_datum = ''; % will be updated by makeNetCDFCompliant
               sample_data{iMagDataSet(i)}.variables{j}.data = data;
               sample_data{iMagDataSet(i)}.variables{j}.magnetic_declination = geomagDeclin(i);
               sample_data{iMagDataSet(i)}.variables{j}.compass_correction_applied = geomagDeclin(i);

@@ -18,35 +18,23 @@ function exportManager(dataSets, levelNames, output, auto)
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,4,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(3,4);
 
   if ~iscell(dataSets),      error('dataSets must be a cell array');   end
   if ~iscellstr(levelNames), error('levelNames must be a cell array'); end
@@ -65,28 +53,30 @@ function exportManager(dataSets, levelNames, output, auto)
     if length(dataSets{k}) ~= numSets, error('data set length mismatch'); end
   end
   
-  suffix = '';
+  extension = '';
   varOpts = false;
   switch (output)
-    case 'raw', suffix = 'txt';
-    case 'netcdf'
-      varOpts = true;
-      suffix = 'nc';
-    otherwise,     error(['unknown output type: ' output]);
+      case 'raw'
+          
+      case 'netcdf'
+          varOpts = true;
+          extension = '.nc';
+          
+      otherwise
+          error(['unknown output type: ' output]);
   end
     
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
-  setNames = {};
+  setNames = cell(numSets, 1);
   for k = 1:numSets
-      setNames{k} = genIMOSFileName(dataSets{1}{k}, suffix);
+      setNames{k} = genIMOSFileName(dataSets{1}{k}, extension);
   end
     
   % prompt user for export directory, and data sets to export
   if ~auto
-    [exportDir dataSets] = ...
+    [exportDir, dataSets] = ...
       exportDialog(dataSets, levelNames, setNames, varOpts);
   else
     exportDir = readProperty('exportDialog.defaultDir');
@@ -120,7 +110,8 @@ function exportManager(dataSets, levelNames, output, auto)
             filenames{end+1} = exportRawData(dataSets{k}, exportDir, setNames{k});
       end
       if ~auto
-          waitbar(k / nDataSets, progress, ['Exported ' filenames{end}]);
+          [~, radFile, ext] = fileparts(filenames{end});
+          waitbar(k / nDataSets, progress, [radFile ext]);
       end
       
     catch e
@@ -246,39 +237,40 @@ end
 
 paramsName = unique(paramsName);
 
-if strcmpi(mode, 'timeseries')
-    % we get rid of specific parameters
-    notNeededParams = {'TIMESERIES', 'PROFILE', 'TRAJECTORY', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'};
-    for i=1:length(notNeededParams)
-        iNotNeeded = strcmpi(paramsName, notNeededParams{i});
-        paramsName(iNotNeeded) = [];
-    end
-    
-    % timeseries specific plots
-    nParams = length(paramsName);
-    for i=1:nParams
-        if ~auto
-            waitbar(i / nParams, progress, ['Exporting ' paramsName{i} ' plots']);
-        end
-        try
-            lineMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
-            scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
-            scatterMooring2DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
-            %pcolorMooring2DVar(sample_data, paramsName{i}, true, true, exportDir);
-        catch e
-            errorString = getErrorString(e);
-            fprintf('%s\n',   ['Error says : ' errorString]);
-        end
-    end
-else
-    % profile specific plots
-    try
-        lineCastVar(sample_data, paramsName, true, true, exportDir);
-    catch e
-        errorString = getErrorString(e);
-        fprintf('%s\n',   ['Error says : ' errorString]);
-    end
-end
+try
+    switch mode
+        case 'timeSeries'
+            % we get rid of specific parameters
+            notNeededParams = {'TIMESERIES', 'PROFILE', 'TRAJECTORY', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'};
+            for i=1:length(notNeededParams)
+                iNotNeeded = strcmpi(paramsName, notNeededParams{i});
+                paramsName(iNotNeeded) = [];
+            end
+            
+            % timeseries specific plots
+            checkMooringPlannedDepths(sample_data, true, true, exportDir);
+            nParams = length(paramsName);
+            for i=1:nParams
+                if ~auto
+                    waitbar(i / nParams, progress, ['Exporting ' paramsName{i} ' plots']);
+                end
+                lineMooring1DVar(sample_data, paramsName{i}, true, true, exportDir);
+                scatterMooring1DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
+                scatterMooring2DVarAgainstDepth(sample_data, paramsName{i}, true, true, exportDir);
+                diagramMooring1DVarAgainstOther(sample_data, paramsName{i}, 'DEPTH', true, true, exportDir);
+                diagramMooring2DVarAgainstOther(sample_data, paramsName{i}, 'DEPTH', true, true, exportDir);
+            end
+            
+        case 'profile'
+            % profile specific plots
+            for i=1:length(sample_data) % we only want one figure per profile for better readability
+                lineCastVar(sample_data(i), paramsName, true, true, exportDir);
+            end
 
+    end
+catch e
+    errorString = getErrorString(e);
+    fprintf('%s\n',   ['Error says : ' errorString]);
+end
 
 end

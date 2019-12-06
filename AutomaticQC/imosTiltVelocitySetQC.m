@@ -107,35 +107,23 @@ function [sample_data, varChecked, paramsLog] = imosTiltVelocitySetQC( sample_da
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
 %
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions are met:
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
 %
-%     * Redistributions of source code must retain the above copyright notice,
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright
-%       notice, this list of conditions and the following disclaimer in the
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors
-%       may be used to endorse or promote products derived from this software
-%       without specific prior written permission.
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-% POSSIBILITY OF SUCH DAMAGE.
-%
-error(nargchk(1, 2, nargin));
+narginchk(1, 2);
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
 % auto logical in input to enable running under batch processing
@@ -165,19 +153,30 @@ for i=1:lenVar
     if strcmpi(paramName, 'ROLL'),      idRoll    = i; end
 end
 
-% check if the data is compatible with the QC algorithm
+% check if the data is compatible with the QC algorithm, otherwise quit
+% silently
 idMandatory = idPitch & idRoll & (idUcur | idVcur | idWcur | idCspd | idCdir);
-
 if ~idMandatory, return; end
 
 qcSet = str2double(readProperty('toolbox.qc_set'));
 goodFlag = imosQCFlag('good', qcSet, 'flag');
 
-% we try to find out which kind of ADCP we're dealing with
-[firstTiltThreshold, secondTiltThreshold, firstFlagThreshold, secondFlagThreshold] = getTiltThresholds(sample_data.instrument);
+% we try to find out which kind of ADCP we're dealing with and if it is
+% listed as one we should process
+instrument = sample_data.instrument;
+if isfield(sample_data, 'meta')
+    if isfield(sample_data.meta, 'instrument_make') && isfield(sample_data.meta, 'instrument_model')
+        instrument = [sample_data.meta.instrument_make ' ' sample_data.meta.instrument_model];
+    end
+end
+        
+[firstTiltThreshold, secondTiltThreshold, firstFlagThreshold, secondFlagThreshold] = getTiltThresholds(instrument);
 
 if isempty(firstTiltThreshold)
-    error(['Impossible to determine from which ADCP make/model is ' sample_data.toolbox_input_file ' => Fill instrument global attribute and/or imosTiltVelositySetQC.txt with relevant make/model information!']);
+    % couldn't find this instrument so quit the test
+    disp(['Warning: imosTiltVelositySetQC could not be performed on ' sample_data.toolbox_input_file ...
+        ' instrument = "' instrument '" => Fill imosTiltVelositySetQC.txt with relevant make/model information if you wish to run this test on this dataset.']);
+    return;
 end
 
 paramsLog = ['firstTiltThreshold=' num2str(firstTiltThreshold) ', secondTiltThreshold=' num2str(secondTiltThreshold)];
@@ -188,7 +187,12 @@ roll  = sample_data.variables{idRoll}.data;
 tilt = acos(sqrt(1 - sin(roll*pi/180).^2 - sin(pitch*pi/180).^2))*180/pi;
 
 % initially everything is failing the tests
-sizeCur = size(sample_data.variables{idWcur}.flags);
+if idUcur
+    idVar = idUcur;
+else
+    idVar = idCspd;
+end
+sizeCur = size(sample_data.variables{idVar}.flags);
 flags = ones(sizeCur, 'int8')*secondFlagThreshold;
 
 % tilt test

@@ -10,42 +10,30 @@ function flowManager(toolboxVersion)
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
 
   rawData      = {};
   autoQCData   = {};
   
   lastAutoQCSetIdx = 0;
   
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   % import data
   nonUTCRawData = importManager(toolboxVersion);
@@ -56,8 +44,12 @@ function flowManager(toolboxVersion)
   for k = 1:length(nonUTCRawData), nonUTCRawData{k}.meta.index = k; end
   
   % preprocess data
-  rawData       = preprocessManager(nonUTCRawData, 'raw', mode, false); % only apply TIME to UTC pre-processing routines
-  autoQCData    = preprocessManager(rawData, 'qc',  mode, true);  % auto is true so that GUI only appears once
+  [autoQCData, cancel] = preprocessManager(nonUTCRawData, 'qc', mode, false);
+  if cancel
+      rawData = nonUTCRawData;
+  else
+      rawData = preprocessManager(nonUTCRawData, 'raw',  mode, true);  % only apply TIME to UTC conversion pre-processing routines, auto is true so that GUI only appears once
+  end
   clear nonUTCRawData;
   
   % display data
@@ -75,22 +67,22 @@ function flowManager(toolboxVersion)
   function importRequestCallback()
   %IMPORTREQUESTCALLBACK Called when the user wishes to import more data.
   % Prompts the user to import more data, then adds the new data to the
-  % data sets. Forces a run of the auto QC routines over the new data if
+  % data sets. Forces a run of the PP and QC routines over the new data if
   % necessary.
   %
   
     % prompt user to import more data
-    importedData = importManager(toolboxVersion);
+    importedNonUTCRawData = importManager(toolboxVersion);
     
-    if isempty(importedData), return; end
+    if isempty(importedNonUTCRawData), return; end
     
     % check for and remove duplicates
     remove = [];
-    for k = 1:length(importedData)
+    for i = 1:length(importedNonUTCRawData)
       for m = 1:length(rawData)
         if strcmp(     rawData{m}.meta.raw_data_file,...
-                  importedData{k}.meta.raw_data_file)
-          remove(end+1) = k;
+                  importedNonUTCRawData{i}.meta.raw_data_file)
+          remove(end+1) = i;
         end
       end
     end
@@ -98,27 +90,32 @@ function flowManager(toolboxVersion)
     if ~isempty(remove)
       uiwait(msgbox('Duplicate data sets were removed during the import', ...
              'Duplicate data sets removed', 'non-modal'));
-      importedData(remove) = [];
+      importedNonUTCRawData(remove) = [];
     end
     
     
     % add index to the newly imported data
-    for k = 1:length(importedData)
-      importedData{k}.meta.index = k + length(rawData);
+    for i = 1:length(importedNonUTCRawData)
+      importedNonUTCRawData{i}.meta.index = i + length(rawData);
     end
     
     % preprocess new data
-    importedRawData = preprocessManager(importedData, mode, 'raw');
-    importedQCData  = preprocessManager(importedData, mode, 'qc');
+    [importedAutoQCData, importedCancel] = preprocessManager(importedNonUTCRawData, 'qc', mode, false);
+    if importedCancel
+        importedRawData = importedNonUTCRawData;
+    else
+        importedRawData = preprocessManager(importedNonUTCRawData, 'raw',  mode, true);  % only apply TIME to UTC conversion pre-processing routines, auto is true so that GUI only appears once
+    end
+    clear importedNonUTCRawData;
     
     % insert the new data into the rawData array, and run QC if necessary
-    startIdx = (length(rawData)+1);
-    endIdx   = startIdx + length(importedData) - 1;
+    startIdx = length(rawData) + 1;
+    endIdx   = startIdx + length(importedRawData) - 1;
     rawData     = [rawData importedRawData];
-    autoQCData  = [autoQCData importedQCData];
-    clear importedRawData importedQCData;
+    autoQCData  = [autoQCData importedAutoQCData];
+    clear importedAutoQCData;
     
-    if autoQCData{end}.meta.level == 1 % previously imported datasets have been QC'd already
+    if autoQCData{startIdx - 1}.meta.level == 1 % previously imported datasets have been QC'd already
       autoQCRequestCallback(startIdx:endIdx, 0); 
       
       % if user cancelled auto QC process, the autoQCData and rawData arrays
@@ -126,17 +123,17 @@ function flowManager(toolboxVersion)
       % which ensures that the arrays will stay synced.
       if length(autoQCData) ~= length(rawData)
         
-        autoQCData(startIdx:endIdx) = importedData;
+        autoQCData(startIdx:endIdx) = importedRawData;
         
-        for k = startIdx:endIdx
-          autoQCData{k}.meta.level = 1; 
-          autoQCData{k}.file_version = imosFileVersion(1, 'name');
-          autoQCData{k}.file_version_quality_control = ...
+        for i = startIdx:endIdx
+          autoQCData{i}.meta.level = 1; 
+          autoQCData{i}.file_version = imosFileVersion(1, 'name');
+          autoQCData{i}.file_version_quality_control = ...
             imosFileVersion(1, 'desc');
         end
       end
     end
-    clear importedData;
+    clear importedRawData;
   end
               
   function metadataUpdateCallback(sample_data)
@@ -281,44 +278,39 @@ function flowManager(toolboxVersion)
     sample_data = autoQCData;
     
     % save data set selection
-    lastSetIdx = lastAutoQCSetIdx;
     lastAutoQCSetIdx = setIdx;
 
+    qcLevel = cellfun(@(x) x(:).meta.level, autoQCData, 'UniformOutput', false);
+    qcLevel = [qcLevel{:}];
+    
     % if QC has not been run before, run QC over every data set
-    if autoQCData{1}.meta.level == 0
-      
-      setIdx = 1:length(sample_data);
-    
-    % if just a state  change, return previous QC data
-    elseif stateChange, return;
-      
-    % if QC has already been executed, passed-in set index is the same as 
-    % that which was previoously passed, and state has not changed, prompt 
-    % user if they want to keep old QC data, or redo QC, for this set only
-    elseif lastSetIdx == setIdx
-      
-      response = questdlg(...
-        ['Re-run auto-QC routines '...
-        '(existing flags/mods will be discarded)?'],...
-        'Re-run QC Routines?', ...
-        'No', ...
-        'Re-run for this data set',...
-        'Re-run for all data sets',...
-        'No');
-      
-      if ~strncmp(response, 'Re-run', 6), return; end
-      
-      if strcmp(response, 'Re-run for all data sets')
+    if all(qcLevel == 0)
+
         setIdx = 1:length(sample_data);
-      end
-    
-    % otherwise if no new data sets, return the existing auto QC data
-    elseif ~any(setIdx > length(sample_data))
-        return;
+        
+    % if just a state change, return previous QC data
+    elseif stateChange, return;
+        
+    % if QC has already been executed, prompt
+    % user if they want to keep old QC data, or redo QC, for this set only
+    elseif all(qcLevel == 1)
+        
+        response = questdlg(...
+            ['Re-run auto-QC routines '...
+            '(existing flags/mods will be discarded)?'],...
+            'Re-run QC Routines?', ...
+            'No', ...
+            'Re-run for this data set',...
+            'Re-run for all data sets',...
+            'No');
+        
+        if ~strncmp(response, 'Re-run', 6), return; end
+        
+        if strcmp(response, 'Re-run for all data sets')
+            setIdx = 1:length(sample_data);
+        end
+        
     end
-    
-    % save data set selection
-    lastSetIdx = setIdx;
 
     % run QC routines over raw data
     aqc = autoQCManager(sample_data(setIdx));

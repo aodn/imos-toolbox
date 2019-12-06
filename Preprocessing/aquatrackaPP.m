@@ -18,57 +18,37 @@ function sample_data = aquatrackaPP( sample_data, qcLevel, auto )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(2, 3, nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+narginchk(2, 3);
 
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
 
+% no modification of data is performed on the raw FV00 dataset except
+% local time to UTC conversion
 if strcmpi(qcLevel, 'raw'), return; end
 
 % auto logical in input to enable running under batch processing
 if nargin<3, auto=false; end
 
 analogAquatracka = {'CHL', 'FTU', 'PAH', 'CDOM'};
-imosAquatracka = {'CHLF', 'TURBF', 'CHR', 'CHC'};
-commentsAquatracka = {['Artificial chlorophyll data '...
-          'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
-          'fluorometre is equipped with a 430nm peak wavelength LED to irradiate and a '...
-          'photodetector paired with an optical filter which measures everything '...
-          'that fluoresces in the region of 685nm. '...
-          'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'], ...
-          ['Turbidity data in FTU '...
-          'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
-          'fluorometre is used as a nephelometre equipped with a 440nm peak wavelength LED to irradiate. '], ...
-          '', ...
-          ''};
+imosAquatracka = {'CPHL', 'TURBF', 'CHR', 'CHC'};
+
 nAquatracka = length(analogAquatracka);
 
 voltLabel   = cell(1, nAquatracka);
@@ -77,12 +57,23 @@ offset      = NaN(1, nAquatracka);
 
 ParamFile = ['Preprocessing' filesep 'aquatrackaPP.txt'];
 for i=1:nAquatracka
-    voltLabel{i}    = readProperty(['volt' analogAquatracka{i}], ParamFile, ',');
-    scaleFactor(i)  = str2double(readProperty(['scaleFactor' analogAquatracka{i}], ParamFile, ','));
-    offset(i)       = str2double(readProperty(['offset' analogAquatracka{i}], ParamFile, ','));
+    voltLabel{i}    = readProperty(['volt' analogAquatracka{i}], ParamFile);
+    scaleFactor(i)  = str2double(readProperty(['scaleFactor' analogAquatracka{i}], ParamFile));
+    offset(i)       = str2double(readProperty(['offset' analogAquatracka{i}], ParamFile));
 end
 
+commentsAquatracka = {[ getCPHLcomment('factory','430nm','685nm') ' Data converted from analogic input with scaleFactor=' num2str(scaleFactor(1)) ', offset=' num2str(offset(1)) ' .'], ...
+          ['Turbidity data in FTU '...
+          'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
+          'fluorometre is used as a nephelometre equipped with a 440nm peak wavelength LED to irradiate. '], ...
+          '', ...
+          ''};
+
+get_name = @(v) v.('name');
+get_all_names = @(s) cellfun(get_name,s.('variables'),'UniformOutput',false);
+
 for k = 1:length(sample_data)
+  all_current_names = get_all_names(sample_data{k});
   for i=1:nAquatracka
       sam = sample_data{k};
       
@@ -102,6 +93,17 @@ for k = 1:length(sample_data)
           coordinates = sam.variables{voltIdx}.coordinates;
       else
           coordinates = '';
+      end
+   
+      var_already_defined = inCell(all_current_names,imosAquatracka{i});
+      if var_already_defined
+        c = 2;
+        newname = [imosAquatracka{i} '_' num2str(c)];
+        while inCell(all_current_names,newname)
+          c = c + 1;
+          newname = [imosAquatracka{i} '_' num2str(c)];
+        end
+        imosAquatracka{i} = newname;
       end
       
       % add data as new variable in data set

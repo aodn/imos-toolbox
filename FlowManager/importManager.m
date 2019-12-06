@@ -35,35 +35,23 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,3,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(1,3);
 
   if nargin == 1
       auto = false;
@@ -71,26 +59,29 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   end
 
   % If the toolbox.ddb property has been set, assume that we have a
-  % deployment database. Otherwise perform a manual import
+  % deployment database. Or if it is designated as 'csv', use a CSV file for
+  % import. Otherwise perform a manual import.
   ddb = readProperty('toolbox.ddb');
   
   driver = readProperty('toolbox.ddb.driver');
   connection = readProperty('toolbox.ddb.connection');
   
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
+  
   sample_data = {};
   rawFiles    = {};
   
   if ~isempty(ddb) || (~isempty(driver) && ~isempty(connection))
-      [structs rawFiles] = ddbImport(auto, iMooring);
+      [structs, rawFiles] = ddbImport(auto, iMooring, mode);
   else
-    if auto, error('manual import cannot be automated without deployment database'); end
-    [structs rawFiles] = manualImport();
+      if auto, error('manual import cannot be automated without deployment database'); end
+      [structs, rawFiles] = manualImport(mode);
   end
   
   % user cancelled
   if isempty(structs), return; end
   
-  dateFmt = readProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readProperty('toolbox.qc_set'));
   rawFlag = imosQCFlag('raw', qcSet, 'flag');
   
@@ -114,9 +105,12 @@ function sample_data = importManager(toolboxVersion, auto, iMooring)
   end
 end
 
-function [sample_data rawFile]= manualImport()
+function [sample_data, rawFile]= manualImport(mode)
 %MANUALIMPORT Imports a data set by manually prompting the user to select a 
 % raw file, and a parser with which to import it.
+%
+% Input:
+%   mode        - toolbox execution mode.
 %
 % Outputs:
 %   sample_data - cell array containig a single imported data set, or empty 
@@ -130,14 +124,10 @@ function [sample_data rawFile]= manualImport()
   manualDir = readProperty('importManager.manualDir');
   if isempty(manualDir), manualDir = pwd; end
   
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
-  
   while true
 
     % prompt the user to select a data file
-    [rawFile path] = uigetfile('*', 'Select Data File', manualDir);
+    [rawFile, path] = uigetfile('*', 'Select Data File', manualDir);
 
     if rawFile == 0, return; end;
 
@@ -154,8 +144,8 @@ function [sample_data rawFile]= manualImport()
     parser = getParser(parser);
 
     % display progress dialog
-    progress = waitbar(0, ['importing ' rawFile], ...
-      'Name',                  'Importing',...
+    progress = waitbar(0,      rawFile, ...
+      'Name',                  'Importing files',...
       'DefaultTextInterpreter','none');
 
     % import the data
@@ -190,13 +180,17 @@ function [sample_data rawFile]= manualImport()
   end
 end
 
-function [sample_data rawFiles] = ddbImport(auto, iMooring)
+function [sample_data, rawFiles] = ddbImport(auto, iMooring, mode)
 %DDBIMPORT Imports data sets using metadata retrieved from a deployment
 % database.
 %
 % Inputs:
 %   auto        - if true, the import process is automated, with no user
 %                 interaction.
+%   iMooring    - Optional logical(comes with auto == true). Contains
+%                 the logical indices to extract only the deployments 
+%                 from one mooring set of deployments.
+%   mode        - toolbox execution mode.
 %
 % Outputs:
 %   sample_data - cell array containig the imported data sets, or empty 
@@ -208,16 +202,12 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   rawFiles    = {};
   allFiles    = {};
   
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
-  
   while true
       switch mode
           case 'profile'
-              [fieldTrip deps sits dataDir] = getCTDs(auto); % one entry is one CTD profile instrument file
-          otherwise
-              [fieldTrip deps sits dataDir] = getDeployments(auto); % one entry is one moored instrument file
+              [fieldTrip, deps, sits, dataDir] = getCTDs(auto); % one entry is one CTD profile instrument file
+          case 'timeSeries'
+              [fieldTrip, deps, sits, dataDir] = getDeployments(auto); % one entry is one moored instrument file
       end
       
       if isempty(fieldTrip), return; end
@@ -281,7 +271,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
             switch mode
                 case 'profile'
                     deps(~iSelectedSite) = [];
-                otherwise
+                case 'timeSeries'
                     deps(~iSelectedSite) = [];
                     sits(~iSelectedSite) = [];
             end
@@ -293,32 +283,52 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
     % find physical files for each deployed instrument
     allFiles = cell(size(deps));
     for k = 1:length(deps)
-
-        switch mode
-            case 'profile'
-                id   = deps(k).FieldTrip;
-            otherwise
-                id   = deps(k).DeploymentId;
-        end
         
       rawFile = deps(k).FileName;
 
       hits = fsearch(rawFile, dataDir, 'files');
-
-      allFiles{k} = hits;
+      
+      % we remove any potential .ppp, .pqc or .mqc files found (reserved for use
+      % by the toolbox)
+      reservedExts = {'.ppp', '.pqc', '.mqc'};
+      for l=1:length(hits)
+          [~, ~, ext] = fileparts(hits{l});
+          if all(~strcmp(ext, reservedExts))
+              allFiles{k}{end+1} = hits{l};
+          end
+      end
     end
     
+    % Sort data_samples
+    %
+    % [B, iX] = sort(A);
+    % =>
+    % A(iX) == B
+    %
+    switch mode
+        case 'timeSeries'
+            % for a mooring, sort instruments by depth
+            % we have to handle the case when InstrumentDepth is not documented
+            instDepths = {deps.InstrumentDepth};
+            instDepths(cellfun(@isempty, instDepths)) = {NaN};
+            instDepths = cell2mat(instDepths);
+            
+            [~, iSort] = sort(instDepths);
+            deps = deps(iSort);
+            allFiles = allFiles(iSort);
+    end
+  
     % display status dialog to highlight any discrepancies (file not found
     % for a deployment, more than one file found for a deployment)
     if ~auto
-      [deps allFiles] = dataFileStatusDialog(deps, allFiles);
+      [deps, allFiles] = dataFileStatusDialog(deps, allFiles);
 
       % user cancelled file dialog
       if isempty(deps), continue; end
 
       % display progress dialog
-      progress = waitbar(0, 'importing data', ...
-        'Name',                  'Importing',...
+      progress = waitbar(0,      'Importing files', ...
+        'Name',                  'Importing files',...
         'DefaultTextInterpreter','none');
     end
     
@@ -346,9 +356,8 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
               fileDisplay = [fileDisplay ', ' name ext];
           end
           fileDisplay = fileDisplay(3:end);
-          waitbar(k / length(deps), progress, ['importing ' fileDisplay]);
+          waitbar(k / length(deps), progress, fileDisplay);
       end
-      
       % import data
       sample_data{end+1} = parse(deps(k), allFiles{k}, parsers, noParserPrompt, mode);
       rawFiles{   end+1} = allFiles{k};
@@ -359,7 +368,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
             switch mode
                 case 'profile'
                     sample_data{end}{m}.meta.profile = deps(k);
-                otherwise
+                case 'timeSeries'
                     sample_data{end}{m}.meta.deployment = deps(k);
                     sample_data{end}{m}.meta.site = sits(k);
             end
@@ -369,7 +378,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
           switch mode
               case 'profile'
                   sample_data{end}.meta.profile = deps(k);
-              otherwise
+              case 'timeSeries'
                   sample_data{end}.meta.deployment = deps(k);
                   sample_data{end}.meta.site = sits(k);
           end
@@ -390,7 +399,7 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
                 fprintf('\t%s\n', ['InstrumentID = ' deps(k).InstrumentID]);
                 errorString = getErrorString(e);
                 fprintf('%s\n',   ['Error says : ' errorString]);
-            otherwise
+            case 'timeSeries'
                 fprintf('%s\n',   ['Warning : skipping ' deps(k).FileName]);
                 fprintf('\t%s\n', ['EndFieldTrip = ' deps(k).EndFieldTrip]);
                 fprintf('\t%s\n', ['SiteName = ' sits(k).SiteName]);
@@ -415,7 +424,9 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   %   files          - Cell array containing file names.
   %   parsers        - Cell array of strings containing all available parsers.
   %   noParserPrompt - Whether to prompt the user if a parser cannot be found.
-  %   mode           - Toolbox data type mode ('profile' or 'timeSeries').
+  %   mode           - Toolbox data type mode.
+  %   ddb            - deployment database string attribute from
+  %                    toolboxProperties.txt
   %
   % Outputs:
   %   sam        - Struct containing sample data.
@@ -438,13 +449,15 @@ function [sample_data rawFiles] = ddbImport(auto, iMooring)
   %   deployment     - struct containing information about the deployment.
   %   parsers        - Cell array of strings containing all available parsers.
   %   noParserPrompt - Whether to prompt the user if a parser cannot be found.
+  %   ddb            - deployment database string attribute from
+  %                    toolboxProperties.txt
   %
   % Outputs:
   %   parser     - Function handle to the parser function, or 0 if a parser
   %                function wasn't found.
   %
-    instrument = executeDDBQuery(...
-      'Instruments', 'InstrumentID', deployment.InstrumentID);
+  
+    instrument = executeQuery('Instruments', 'InstrumentID', deployment.InstrumentID);
 
     % there should be exactly one instrument 
     if length(instrument) ~= 1

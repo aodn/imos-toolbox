@@ -19,7 +19,7 @@ function sample_data = SBE19Parse( filename, mode )
 %
 % Inputs:
 %   filename    - cell array of files to import (only one supported).
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - Struct containing sample data.
@@ -30,35 +30,23 @@ function sample_data = SBE19Parse( filename, mode )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,2,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(1,2);
 
   if ~iscellstr(filename)
     error('filename must be a cell array of strings'); 
@@ -102,7 +90,7 @@ function sample_data = SBE19Parse( filename, mode )
   end
   
   % read in the raw instrument header
-  instHeader = parseInstrumentHeader(instHeaderLines);
+  instHeader = parseInstrumentHeader(instHeaderLines, mode);
   procHeader = parseProcessedHeader( procHeaderLines);
   
   % use the appropriate subfunction to read in the data
@@ -121,6 +109,7 @@ function sample_data = SBE19Parse( filename, mode )
   sample_data = struct;
   
   sample_data.toolbox_input_file    = filename;
+  sample_data.meta.featureType      = mode;
   sample_data.meta.instHeader       = instHeader;
   sample_data.meta.procHeader       = procHeader;
   
@@ -156,6 +145,13 @@ function sample_data = SBE19Parse( filename, mode )
   
   switch mode
       case 'profile'
+          if ~isfield(procHeader, 'binSize')
+              disp(['Warning : ' sample_data.toolbox_input_file ...
+                  ' has not been vertically binned as per ' ...
+                  'http://help.aodn.org.au/help/sites/help.aodn.org.au/' ...
+                  'files/ANMN%20CTD%20Processing%20Procedures.pdf']);
+          end
+              
           % dimensions creation
           iVarPRES_REL = NaN;
           iVarDEPTH = NaN;
@@ -251,7 +247,7 @@ function sample_data = SBE19Parse( filename, mode )
           sample_data.variables{end}.name         = 'TIME';
           sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc([descendingTime, ascendingTime]);
-          sample_data.variables{end}.comment      = 'First value over profile measurement';
+          sample_data.variables{end}.comment      = 'First value over profile measurement.';
           
           sample_data.variables{end+1}.dimensions = dimensions;
           sample_data.variables{end}.name         = 'DIRECTION';
@@ -330,14 +326,14 @@ function sample_data = SBE19Parse( filename, mode )
                   sample_data.variables{end}.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
               end
               
-              if strcmpi('PRES_REL', vars{k})
+              if strncmp('PRES_REL', vars{k}, 8)
                   % let's document the constant pressure atmosphere offset previously
                   % applied by SeaBird software on the absolute presure measurement
                   sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
               end
           end
           
-      otherwise
+      case 'timeSeries'
           % dimensions creation
           sample_data.dimensions{1}.name            = 'TIME';
           sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
@@ -389,12 +385,13 @@ function sample_data = SBE19Parse( filename, mode )
   end
 end
 
-function header = parseInstrumentHeader(headerLines)
+function header = parseInstrumentHeader(headerLines, mode)
 %PARSEINSTRUMENTHEADER Parses the header lines from a SBE19/37 .cnv file.
 % Returns the header information in a struct.
 %
 % Inputs:
 %   headerLines - cell array of strings, the lines of the header section.
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   header      - struct containing information that was in the header
@@ -410,7 +407,7 @@ header = struct;
 headerExpr   = '^\*\s*(SBE \S+|SeacatPlus)\s+V\s+(\S+)\s+SERIAL NO.\s+(\d+)';
 %BDM (18/2/2011) - new header expressions to reflect newer SBE header info
 headerExpr2  = '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>';
-headerExpr3  = 'Sea-Bird (\S+) Data File:';
+headerExpr3  = 'Sea-Bird (.*?) *?Data File\:';
 scanExpr     = 'number of scans to average = (\d+)';
 scanExpr2    = '*\s+ <ScansToAverage>(\d+)</ScansToAverage>';
 memExpr      = 'samples = (\d+), free = (\d+), casts = (\d+)';
@@ -428,15 +425,18 @@ castExpr     = ['(?:cast|hdr)\s+(\d+)\s+' ...
 %Replaced castExpr to be specific to NSW-IMOS PH NRT
 %Note: also replace definitions below in 'case 9'
 %BDM 24/01/2011
-castExpr2    ='Cast Time = (\w+ \d+ \d+ \d+:\d+:\d+)';
+castExpr2    = 'Cast Time = (\w+ \d+ \d+ \d+:\d+:\d+)';
 intervalExpr = 'interval = (.*): ([\d\.\+)$';
 sbe38Expr    = 'SBE 38 = (yes|no), Gas Tension Device = (yes|no)';
 optodeExpr   = 'OPTODE = (yes|no)';
 voltCalExpr  = 'volt (\d): offset = (\S+), slope = (\S+)';
 otherExpr    = '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
 firmExpr     = '<FirmwareVersion>(\S+)</FirmwareVersion>';
+firmExpr2    = '^\*\s*FirmwareVersion:\s*(\S+)'; %SBE39plus
 sensorId     = '<Sensor id=''(.*\S+.*)''>';
 sensorType   = '<[tT]ype>(.*\S+.*)</[tT]ype>';
+serialExpr   = '^\*\s*SerialNumber:\s*(\S+)'; %SBE39plus
+serialExpr2  = '^\*\s*SEACAT PROFILER\s*V(\S+)\s*SN\s*(\S+)'; %SEACAT PROFILER
 
 exprs = {...
     headerExpr   headerExpr2    headerExpr3    scanExpr     ...
@@ -446,7 +446,7 @@ exprs = {...
     castExpr     castExpr2   intervalExpr ...
     sbe38Expr    optodeExpr   ...
     voltCalExpr  otherExpr ...
-    firmExpr     sensorId   sensorType};
+    firmExpr     sensorId   sensorType firmExpr2 serialExpr serialExpr2};
 
 for k = 1:length(headerLines)
     
@@ -462,18 +462,22 @@ for k = 1:length(headerLines)
                 
                 % header
                 case 1
-                    header.instrument_model     = tkns{1}{1};
+                    if ~isfield(header, 'instrument_model')
+                        header.instrument_model = tkns{1}{1};
+                    end
                     header.instrument_firmware  = tkns{1}{2};
                     header.instrument_serial_no = tkns{1}{3};
                     
                 % header2
                 case 2
-                    header.instrument_model     = tkns{1}{1};
+                    if ~isfield(header, 'instrument_model')
+                        header.instrument_model = tkns{1}{1};
+                    end
                     header.instrument_serial_no = tkns{1}{2};
                     
                 % header3
                 case 3
-                    header.instrument_model     = tkns{1}{1};
+                    header.instrument_model     = strrep(tkns{1}{1}, ' ', '');
                     
                 % scan
                 case 4
@@ -526,18 +530,22 @@ for k = 1:length(headerLines)
                     
                 % cast
                 case 14
-                    if isfield(header, 'castStart')
-                        header.castNumber(end+1) = str2double(tkns{1}{1});
-                        header.castDate(end+1)   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
-                        header.castStart(end+1)  = str2double(tkns{1}{3});
-                        header.castEnd(end+1)    = str2double(tkns{1}{4});
-                        header.castAvg(end+1)    = str2double(tkns{1}{5});
-                    else
+                    if ~isfield(header, 'castStart')
                         header.castNumber = str2double(tkns{1}{1});
                         header.castDate   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
                         header.castStart  = str2double(tkns{1}{3});
                         header.castEnd    = str2double(tkns{1}{4});
                         header.castAvg    = str2double(tkns{1}{5});
+                    else
+                        % in timeSeries mode we only need the first occurence
+                        % but in profile mode we require all cast dates
+                        if strcmpi(mode, 'profile')
+                            header.castNumber(end+1) = str2double(tkns{1}{1});
+                            header.castDate(end+1)   = datenum(   tkns{1}{2}, 'dd mmm yyyy HH:MM:SS');
+                            header.castStart(end+1)  = str2double(tkns{1}{3});
+                            header.castEnd(end+1)    = str2double(tkns{1}{4});
+                            header.castAvg(end+1)    = str2double(tkns{1}{5});
+                        end
                     end
                     
                 % cast2
@@ -584,6 +592,21 @@ for k = 1:length(headerLines)
                         header.sensorTypes = {};
                     end
                     header.sensorTypes{end+1}  = tkns{1}{1};
+
+                %FirmwareVersion, SBE39plus cnv
+                case 24
+                    header.instrument_firmware  = tkns{1}{1};
+                    
+                % SerialNumber, SBE39plus cnv
+                case 25
+                    header.instrument_serial_no = tkns{1}{1};
+                    
+                % old SEACAT PROFILER serial number format
+                % example "* SEACAT PROFILER V2.1a SN 597   10/15/11  10:02:56.721"
+                case 26
+                    % is tkns{1}{1} firmware version?
+                    header.instrument_serial_no = tkns{1}{2};
+
             end
             break;
         end
@@ -616,6 +639,7 @@ function header = parseProcessedHeader(headerLines)
   volt0Expr = 'sensor \d+ = Extrnl Volt  0  (.+)';
   volt1Expr = 'sensor \d+ = Extrnl Volt  1  (.+)';
   volt2Expr = 'sensor \d+ = Extrnl Volt  2  (.+)';
+  binExpr   = 'binavg_binsize = (\d+)';
   
   for k = 1:length(headerLines)
     
@@ -662,6 +686,13 @@ function header = parseProcessedHeader(headerLines)
     tkns = regexp(headerLines{k}, volt2Expr, 'tokens');
     if ~isempty(tkns)
       header.volt2Expr = tkns{1}{1};
+      continue;
+    end
+    
+    % then try bin expr
+    tkns = regexp(headerLines{k}, binExpr, 'tokens');
+    if ~isempty(tkns)
+      header.binSize = str2double(tkns{1}{1});
       continue;
     end
   end

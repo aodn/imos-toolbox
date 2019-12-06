@@ -20,35 +20,23 @@ function sample_data = makeNetCDFCompliant( sample_data )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,1,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(1,1);
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
@@ -65,17 +53,11 @@ function sample_data = makeNetCDFCompliant( sample_data )
   % global attributes
   %
 
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   % get infos from current field trip
-  switch mode
-      case 'profile'
-          globalAttributeFile = 'global_attributes_profile.txt';
-      otherwise
-          globalAttributeFile = 'global_attributes_timeSeries.txt';
-  end
+  globalAttributeFile = ['global_attributes_' mode '.txt'];
 
   globAtts = parseNetCDFTemplate(...
     fullfile(path, globalAttributeFile), sample_data);
@@ -151,7 +133,6 @@ function sample_data = makeNetCDFCompliant( sample_data )
   %
   % variables
   %
-  
   for k = 1:length(sample_data.variables)
     
     
@@ -208,8 +189,7 @@ function target = getSensorSerialNumber ( IMOSParam, InstrumentID, timeFirstSamp
 target = '';
 
 % query the ddb for all sensor config related to this instrument ID
-InstrumentSensorConfig = executeDDBQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
-
+InstrumentSensorConfig = executeQuery('InstrumentSensorConfig', 'InstrumentID',   InstrumentID);
 lenConfig = length(InstrumentSensorConfig);
 % only consider relevant config based on timeFirstSample
 for i=1:lenConfig
@@ -222,14 +202,18 @@ for i=1:lenConfig
         end
         if firstTest && secondTest
             % query the ddb for each sensor
-            Sensors = executeDDBQuery('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
+            Sensors = executeQuery('Sensors', 'SensorID',   InstrumentSensorConfig(i).SensorID);
             if ~isempty(Sensors)
                 % check if this sensor is associated to the current IMOS parameter
-                parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
-                if ~isempty(parameters)
-                    parameters = parameters{1};
-                    if any(strcmpi(IMOSParam, parameters))
-                        target = Sensors.SerialNumber;
+                if isfield(Sensors, 'Parameter')
+                    if ~isempty(Sensors.Parameter)
+                        parameters = textscan(Sensors.Parameter, '%s', 'Delimiter', ',');
+                        if ~isempty(parameters)
+                            parameters = parameters{1};
+                            if any(strcmpi(IMOSParam, parameters))
+                                target = Sensors.SerialNumber;
+                            end
+                        end
                     end
                 end
             end

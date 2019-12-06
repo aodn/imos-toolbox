@@ -16,35 +16,23 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(4, 4, nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(4, 4);
 
   if ~isstruct(sam), error('sam must be a struct'); end
   
@@ -58,9 +46,8 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
       sam.file_version_quality_control = imosFileVersion(sam.meta.level, 'desc');
   end
 
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   % turn raw data files a into semicolon separated string
   rawFiles = cellfun(@(x)([x ';']), rawFiles, 'UniformOutput', false);
@@ -96,6 +83,10 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
               
       end
   end
+  
+  % CF requires DEPTH/TIME coordinate variables must be monotonic (strictly increasing 
+  % or decreasing)
+  sam = forceMonotonic(sam, mode);
   
   % add empty QC flags for all variables
   for k = 1:length(sam.variables)
@@ -182,33 +173,117 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   % set the time coverage period from the data
   switch mode
       case 'profile'
-          time = getVar(sam.variables, 'TIME');
-          if time ~= 0
+          iTime = getVar(sam.variables, 'TIME');
+          if iTime ~= 0
               if isempty(sam.time_coverage_start),
-                  sam.time_coverage_start = sam.variables{time}.data(1);
+                  sam.time_coverage_start = sam.variables{iTime}.data(1);
               end
               if isempty(sam.time_coverage_end),
-                  sam.time_coverage_end   = sam.variables{time}.data(end);
+                  sam.time_coverage_end   = sam.variables{iTime}.data(end);
               end
           else
               if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
               if isempty(sam.time_coverage_end),   sam.time_coverage_end   = []; end
           end
           
-      otherwise
-          time = getVar(sam.dimensions, 'TIME');
-          if time ~= 0
+      case 'timeSeries'
+          iTime = getVar(sam.dimensions, 'TIME');
+          if iTime ~= 0
               if isempty(sam.time_coverage_start),
-                  sam.time_coverage_start = sam.dimensions{time}.data(1);
+                  sam.time_coverage_start = sam.dimensions{iTime}.data(1);
               end
               if isempty(sam.time_coverage_end),
-                  sam.time_coverage_end   = sam.dimensions{time}.data(end);
+                  sam.time_coverage_end   = sam.dimensions{iTime}.data(end);
               end
           else
               if isempty(sam.time_coverage_start), sam.time_coverage_start = []; end
               if isempty(sam.time_coverage_end),   sam.time_coverage_end   = []; end
           end
   
+  end
+  
+end
+
+function sam = forceMonotonic(sam, mode)
+  % We make sure that TIME coordinate variable appears
+  % ordered monotically and that there is no redundant value.
+  switch mode
+      case 'timeSeries'
+          dimensionName = 'TIME';
+          sortMode = 'ascend';
+          sortModeStr = 'increasingly';
+          
+      otherwise
+          % we do nothing, profile data should already be ordered 
+          % monotically either because pre-processing Tim Ingleton's 
+          % protocol was followed using SeaBird software or because
+          % CTDDepthBinPP is being used in the toolbox for non binned 
+          % profiles.
+          return;
+  
+  end
+  iDim = getVar(sam.dimensions, dimensionName);
+  
+  fixStr = ['Try to re-play and fix this dataset when possible using the ' ...
+      'manufacturer''s software before processing it with the toolbox.'];
+  currentDateStr = datestr(now_utc, readProperty('exportNetCDF.dateFormat'));
+  
+  [sam.dimensions{iDim}.data, iSort] = sort(sam.dimensions{iDim}.data, sortMode);
+  if any(iSort ~= (1:length(sam.dimensions{iDim}.data))')
+      % We need to sort variables that are functions of this
+      % dimension accordingly
+      for k = 1:length(sam.variables)
+          iFunOfDim = sam.variables{k}.dimensions == iDim;
+          if any(iFunOfDim)
+              sam.variables{k}.data = sam.variables{k}.data(iSort,:); % data(iSort,:) works because we know that the sorted dimension is the first one!
+          end
+      end
+      
+      sortedStr = [dimensionName ' values (and their corresponding measurements) had ' ...
+          'to be sorted ' sortModeStr];
+      disp(['Info : ' sortedStr ' in ' sam.toolbox_input_file '. ' fixStr]);
+      if isfield(sam.dimensions{iDim}, 'comment')
+          sam.dimensions{iDim}.comment = [sam.dimensions{iDim}.comment ' ' sortedStr '.'];
+      else
+          sam.dimensions{iDim}.comment = [sortedStr '.'];
+      end
+      if isfield(sam, 'history')
+          sam.history = sprintf('%s\n%s - %s', sam.history, currentDateStr, [sortedStr '.']);
+      else
+          sam.history = sprintf('%s - %s', currentDateStr, [sortedStr '.']);
+      end
+  end
+  
+  iRedundantDim = [(diff(sam.dimensions{iDim}.data) == 0); false];
+  if any(iRedundantDim)
+      sam.dimensions{iDim}.data(iRedundantDim) = []; % removing first duplicate values
+      
+      % We need to remove duplicates for variables that are functions of this
+      % dimension accordingly
+      for k = 1:length(sam.variables)
+          iFunOfDim = sam.variables{k}.dimensions == iDim;
+          if any(iFunOfDim)
+              extraDims = size(sam.variables{k}.data);
+              extraDims(iFunOfDim) = 1;
+              sam.variables{k}.data(repmat(iRedundantDim, extraDims)) = [];
+              extraDims(iFunOfDim) = length(sam.dimensions{iDim}.data);
+              sam.variables{k}.data = reshape(sam.variables{k}.data, extraDims);
+          end
+      end
+      
+      redundantStr = [num2str(sum(iRedundantDim)) ' ' dimensionName ' first duplicate values ' ...
+          '(and their corresponding measurements) had to be discarded'];
+      disp(['Info : ' redundantStr ' in ' sam.toolbox_input_file '. ' fixStr]);
+      if isfield(sam.dimensions{iDim}, 'comment')
+          sam.dimensions{iDim}.comment = [sam.dimensions{iDim}.comment ' ' redundantStr '.'];
+      else
+          sam.dimensions{iDim}.comment = [redundantStr '.'];
+      end
+      if isfield(sam, 'history')
+          sam.history = sprintf('%s\n%s - %s', sam.history, currentDateStr, [redundantStr '.']);
+      else
+          sam.history = sprintf('%s - %s', currentDateStr, [redundantStr '.']);
+      end
   end
   
 end

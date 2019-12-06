@@ -24,7 +24,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 %
 %                      function repCallback(location, names, values)
 %
-%   mode           - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode           - Toolbox data type mode.
 %
 % Author:       Paul McCarthy <paul.mccarthy@csiro.au>
 % Contributor:  Guillaume Galibert <guillaume.galibert@utas.edu.au>
@@ -32,35 +32,23 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(5, 5, nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(5, 5);
 
   if ~ishandle(parent),      error('parent must be a handle');           end
   if ~isstruct(sample_data), error('sample_data must be a struct');      end
@@ -206,7 +194,7 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
         
         % make sure numeric values are not rounded (too much)
         case 'N',
-          data{i,2} = sprintf('%.10g', data{i,2});
+          data{i,2} = sprintf('%.10g ', data{i,2});
         
         % make everything else a string - i'm assuming that when 
         % num2str is passed a string, it will return that string 
@@ -242,11 +230,12 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
     
     % create a button for replicate option
     repButton = uicontrol(...
-      'Parent',   panel,... 
-      'Style',   'pushbutton',...
-      'String',  'Replicate',...
-      'Callback', @repButtonCallback...
-    );
+        'Parent',   panel,...
+        'Style',   'pushbutton',...
+        'String',  'Replicate',...
+        'ToolTip', 'Replicate the content of the selected cell across all imported datasets',...
+        'Callback', @repButtonCallback...
+        );
     
 %     % create a button for adding metadata fields
 %     addButton = uicontrol(...
@@ -434,11 +423,15 @@ function viewMetadata(parent, sample_data, updateCallback, repCallback, mode)
 
         % numbers are just numbers
         case 'N'
-          temp = str2double(fieldValue);
+          temp = str2num(fieldValue); %#ok<ST2NM> str2num used on purpose to deal with arrays
 
           % reject anything that is not a number
           if isempty(temp)
             error([fieldName ' must be a number']); 
+          end
+
+          if length(temp) > 1
+            fieldValue = ['[' fieldValue ']'];
           end
 
         % qc flag is different depending on qc set in use

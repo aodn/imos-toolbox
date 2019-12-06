@@ -18,35 +18,23 @@ function pcolorMooring2DVar(sample_data, varName, isQC, saveToFile, exportDir)
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5,5,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+narginchk(5,5);
 
 if ~iscell(sample_data),    error('sample_data must be a cell array');  end
 if ~ischar(varName),        error('varName must be a string');          end
@@ -60,12 +48,17 @@ varUnit = imosParameters(varName, 'uom');
 stringQC = 'non QC';
 if isQC, stringQC = 'QC'; end
 
-%plot depth information
-monitorRec = get(0,'MonitorPosition');
-xResolution = monitorRec(:, 3)-monitorRec(:, 1);
-iBigMonitor = xResolution == max(xResolution);
-if sum(iBigMonitor)==2, iBigMonitor(2) = false; end % in case exactly same monitors
+monitorRect = getRectMonitor();
+iBigMonitor = getBiggestMonitor();
+
 title = [sample_data{1}.deployment_code ' mooring''s instruments ' stringQC '''d good ' varTitle];
+
+% retrieve good flag values
+qcSet     = str2double(readProperty('toolbox.qc_set'));
+rawFlag   = imosQCFlag('raw', qcSet, 'flag');
+goodFlag  = imosQCFlag('good', qcSet, 'flag');
+pGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+goodFlags = [rawFlag, goodFlag, pGoodFlag];
 
 %sort instruments by depth
 lenSampleData = length(sample_data);
@@ -88,10 +81,19 @@ end
 xMin = min(xMin);
 xMax = max(xMax);
 
+% somehow could not get any data to plot, bail early
+if any(isnan([xMin, xMax]))
+    fprintf('%s\n', ['Warning : there is not any ' varName ' data in this deployment with good flags.']);
+    return;
+end
+
 instrumentDesc = cell(lenSampleData, 1);
 hPcolorVar = nan(lenSampleData, 1);
 
 initiateFigure = true;
+
+backgroundFigure = [1 1 1]; % white
+backgroundAxis = [0.85 0.85 0.85]; % light grey to allow for colorbar with white
 
 for i=1:lenSampleData
     % instrument description
@@ -108,18 +110,18 @@ for i=1:lenSampleData
     
     instrumentDesc{i} = [strrep(instrumentDesc{i}, '_', ' ') ' (' num2str(metaDepth(i)) 'm' instrumentSN ')'];
         
-    switch varName
-        case {'UCUR', 'VCUR', 'WCUR'}   % 0 centred parameters
+    switch varName(1:4)
+        case {'UCUR', 'VCUR', 'WCUR', 'VEL1', 'VEL2', 'VEL3', 'VEL4'}   % 0 centred parameters
             cMap = 'r_b';
             cType = 'centeredOnZero';
         case {'CDIR', 'SSWD'}           % directions [0; 360[
             cMap = 'rkbwr';
             cType = 'direction';
         case {'CSPD'}                   % [0; oo[ paremeters 
-            cMap = 'jet';
+            cMap = 'parula';
             cType = 'positiveFromZero';
         otherwise
-            cMap = 'jet';
+            cMap = 'parula';
             cType = '';
     end
     
@@ -138,29 +140,18 @@ for i=1:lenSampleData
             size(sample_data{iSort(i)}.variables{iVar}.data, 2) > 1 && ...
             size(sample_data{iSort(i)}.variables{iVar}.data, 3) == 1 % we're only plotting ADCP 2D variables
         if initiateFigure
-            fileName = genIMOSFileName(sample_data{iSort(i)}, 'png');
+            fileName = genIMOSFileName(sample_data{iSort(i)}, '.png');
             visible = 'on';
             if saveToFile, visible = 'off'; end
             hFigMooringVar = figure(...
-                'Name', title, ...
-                'NumberTitle', 'off', ...
-                'Visible', visible, ...
-                'OuterPosition', [0, 0, monitorRec(iBigMonitor, 3), monitorRec(iBigMonitor, 4)]);
-            
-            if saveToFile
-                % the default renderer under windows is opengl; for some reason,
-                % printing pcolor plots fails when using opengl as the renderer
-                set(hFigMooringVar, 'Renderer', 'zbuffer');
-                
-                % ensure the printed version is the same whatever the screen used.
-                set(hFigMooringVar, 'PaperPositionMode', 'manual');
-                set(hFigMooringVar, 'PaperType', 'A4', 'PaperOrientation', 'landscape', 'PaperUnits', 'normalized', 'PaperPosition', [0, 0, 1, 1]);
-                
-                % preserve the color scheme
-                set(hFigMooringVar, 'InvertHardcopy', 'off');
-            end
+                'Name',             title, ...
+                'NumberTitle',      'off', ...
+                'Visible',          visible, ...
+                'Color',            backgroundFigure, ...
+                'OuterPosition',    monitorRect(iBigMonitor, :));
             
             hAxMooringVar = axes('Parent',   hFigMooringVar);
+            
             set(get(hAxMooringVar, 'XLabel'), 'String', 'Time');
             set(get(hAxMooringVar, 'YLabel'), 'String', [nameHeight ' (m)'], 'Interpreter', 'none');
             set(get(hAxMooringVar, 'Title'), 'String', sprintf('%s\n%s', title, instrumentDesc{i}), 'Interpreter', 'none');
@@ -181,11 +172,11 @@ for i=1:lenSampleData
             timeFlags = sample_data{iSort(i)}.dimensions{iTime}.flags;
             varFlags = sample_data{iSort(i)}.variables{iVar}.flags;
             
-            iGoodTime = (timeFlags == 1 | timeFlags == 2);
+            iGoodTime = ismember(timeFlags, goodFlags);
             nGoodTime = sum(iGoodTime);
             
             iGood = repmat(iGoodTime, [1, size(sample_data{iSort(i)}.variables{iVar}.data, 2)]);
-            iGood = iGood & (varFlags == 1 | varFlags == 2);
+            iGood = iGood & ismember(varFlags, goodFlags);
             
             iGoodHeight = any(iGood, 1);
             nGoodHeight = sum(iGoodHeight);
@@ -205,7 +196,7 @@ for i=1:lenSampleData
             dataVar(~iGoodHeight) = [];
             dataVar = reshape(dataVar, nGoodTime, nGoodHeight);
             
-            hPcolorVar(i) = pcolor(hAxMooringVar, xPcolor, yPcolor, double(dataVar'));
+            hPcolorVar(i) = pcolor(hAxMooringVar, double(xPcolor), double(yPcolor), double(dataVar'));
             set(hPcolorVar(i), 'FaceColor', 'flat', 'EdgeColor', 'none');
 
             % Let's redefine properties after pcolor to make sure grid lines appear
@@ -217,28 +208,45 @@ for i=1:lenSampleData
                 'YDir',         'normal', ...
                 'Layer',        'top');
             
-            hCBar = colorbar('peer', hAxMooringVar);
+            % 'peer' input is not recommended starting in R2014b
+            if verLessThan('matlab', '8.4')
+                hCBar = colorbar('peer', hAxMooringVar);
+            else
+                hCBar = colorbar(hAxMooringVar);
+            end
             colormap(hAxMooringVar, cMap);
             
             switch cType
                 case 'direction'
-                    hCBar = colorbar('peer', hAxMooringVar, 'YLim', [0 360], 'YTick', [0 90 180 270 360]);
+                    if verLessThan('matlab', '8.4')
+                        hCBar = colorbar('peer', hAxMooringVar, 'YLim', [0 360], 'YTick', [0 90 180 270 360]);
+                    else
+                        hCBar = colorbar(hAxMooringVar, 'YLim', [0 360], 'YTick', [0 90 180 270 360]);
+                    end
                     set(hAxMooringVar, 'CLim', [0 360]);
                     set(hCBar, 'YTick', [0 90 180 270 360]);
                 case 'centeredOnZero'
                     yLimMax = max(max(dataVar));
-                    hCBar = colorbar('peer', hAxMooringVar, 'YLim', [-yLimMax yLimMax]);
+                    if verLessThan('matlab', '8.4')
+                        hCBar = colorbar('peer', hAxMooringVar, 'YLim', [-yLimMax yLimMax]);
+                    else
+                        hCBar = colorbar(hAxMooringVar, 'YLim', [-yLimMax yLimMax]);
+                    end
                     set(hAxMooringVar, 'CLim', [-yLimMax yLimMax]);
                 case 'positiveFromZero'
                     yLimMax = max(max(dataVar));
-                    hCBar = colorbar('peer', hAxMooringVar, 'YLim', [0 yLimMax]);
+                    if verLessThan('matlab', '8.4')
+                        hCBar = colorbar('peer', hAxMooringVar, 'YLim', [0 yLimMax]);
+                    else
+                        hCBar = colorbar(hAxMooringVar, 'YLim', [0 yLimMax]);
+                    end
                     set(hAxMooringVar, 'CLim', [0 yLimMax]);
             end
             
             set(get(hCBar, 'Title'), 'String', [varName ' (' varUnit ')'], 'Interpreter', 'none');
 
-            % set background to be grey
-            set(hAxMooringVar, 'Color', [0.75 0.75 0.75])
+            % set axes background
+            set(hAxMooringVar, 'Color', backgroundAxis)
         end
     end
 end
@@ -256,11 +264,8 @@ if ~initiateFigure
         fileName = strrep(fileName, '_PARAM_', ['_', varName, '_']); % IMOS_[sub-facility_code]_[site_code]_FV01_[deployment_code]_[PLOT-TYPE]_[PARAM]_C-[creation_date].png
         fileName = strrep(fileName, '_PLOT-TYPE_', '_PCOLOR_');
         
-        % use hardcopy as a trick to go faster than print.
-        % opengl (hardware or software) should be supported by any platform and go at least just as
-        % fast as zbuffer. With hardware accelaration supported, could even go a
-        % lot faster.
-        imwrite(hardcopy(hFigMooringVar, '-dopengl'), fullfile(exportDir, fileName), 'png');
+        fastSaveas(hFigMooringVar, backgroundFigure, fullfile(exportDir, fileName));
+        
         close(hFigMooringVar);
     end
 end

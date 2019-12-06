@@ -24,35 +24,23 @@ function qc_data = autoQCManager( sample_data, auto )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,2,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(1,2);
   
   if ~iscell(sample_data)
     error('sample_data must be a cell array of structs'); 
@@ -73,17 +61,11 @@ function qc_data = autoQCManager( sample_data, auto )
   qcRoutines = listAutoQCRoutines();
   qcChain    = {};
 
-  % get default filter chain if there is one
+  % get last filter chain if there is one
   try
-      % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-      % If no value is set then default mode is 'timeSeries'
-      mode = lower(readProperty('toolbox.mode'));
-      switch mode
-          case 'profile'
-              qcChain = textscan(readProperty('autoQCManager.autoQCChain.profile'), '%s');
-          otherwise
-              qcChain = textscan(readProperty('autoQCManager.autoQCChain.timeSeries'), '%s');
-      end
+      % get the toolbox execution mode
+      mode = readProperty('toolbox.mode');
+      qcChain = textscan(readProperty(['autoQCManager.autoQCChain.' mode]), '%s');
       qcChain = qcChain{1};
   catch e
   end
@@ -94,27 +76,19 @@ function qc_data = autoQCManager( sample_data, auto )
     % selected options is stored in toolboxProperties as routine names, 
     % but must be provided to the list selection dialog as indices
     qcChain = cellfun(@(x)(find(ismember(qcRoutines,x))),qcChain);
-    [qcChain, qcCancel] = listSelectionDialog('Select QC filters', qcRoutines, ...
-                                  qcChain, @filterConfig, 'Configure');
+    [qcChain, qcCancel] = listSelectionDialog('Select QC routines', ...
+        qcRoutines, qcChain, ...
+        {@routineConfig, 'Configure routine';
+        @setDefaultRoutines, 'Default set'});
     
 	% save user's latest selection for next time - turn the qcChain
     % cell array into a space-separated string of the names
     if ~isempty(qcChain)
         qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
-        switch mode
-            case 'profile'
-                writeProperty('autoQCManager.autoQCChain.profile', deblank([qcChainStr{:}]));
-            otherwise
-                writeProperty('autoQCManager.autoQCChain.timeSeries', deblank([qcChainStr{:}]));
-        end
+        writeProperty(['autoQCManager.autoQCChain.' mode], deblank([qcChainStr{:}]));
     else
         if ~qcCancel
-            switch mode
-                case 'profile'
-                    writeProperty('autoQCManager.autoQCChain.profile', '');
-                otherwise
-                    writeProperty('autoQCManager.autoQCChain.timeSeries', '');
-            end
+            writeProperty(['autoQCManager.autoQCChain.' mode], '');
         end
     end
     
@@ -140,8 +114,8 @@ function qc_data = autoQCManager( sample_data, auto )
       end
   end
 
-  % we reset QC flags to 0
   for k = 1:length(sample_data)
+      % reset QC flags to 0
       type{1} = 'dimensions';
       type{2} = 'variables';
       for m = 1:length(type)
@@ -150,6 +124,9 @@ function qc_data = autoQCManager( sample_data, auto )
               sample_data{k}.(type{m}){l}.flags(:) = 0;
           end
       end
+      
+      % reset QC results
+      sample_data{k}.meta.QCres = {};
   end
   
   % run each data set through the chain
@@ -211,20 +188,48 @@ function qc_data = autoQCManager( sample_data, auto )
   qc_data = sample_data;
 end
 
-%FILTERCONFIG Called via the QC filter list selection dialog when the user
-% chooses to configure a filter. If the selected filter has any configurable 
+%ROUTINECONFIG Called via the QC routine list selection dialog when the user
+% chooses to configure a routine. If the selected routine has any configurable 
 % options, a propertyDialog is displayed, allowing the user to configure
-% the filter.
+% the routine.
 %
-function filterConfig(filterName)
+function [dummy1, dummy2] = routineConfig(routineName)
 
-  % check to see if the filter has an associated properties file.
-  propFileName = fullfile('AutomaticQC', [filterName '.txt']);
+  dummy1 = {};
+  dummy2 = {};
+
+  % check to see if the routine has an associated properties file.
+  propFileName = fullfile('AutomaticQC', [routineName '.txt']);
   
-  % ignore if there is no properties file for this filter
+  % ignore if there is no properties file for this routine
   if ~exist(propFileName, 'file'), return; end
   
-  % display a propertyDialog, allowing configuration of the filter
+  % display a propertyDialog, allowing configuration of the routine
   % properties.
   propertyDialog(propFileName);
+end
+
+%SETDEFAULTROUTINES Called via the QC routine list selection dialog when the user
+% chooses to set the list of routines to default.
+%
+function [qcRoutines, qcChain] = setDefaultRoutines(filterName)
+
+  % get all QC routines that exist
+  qcRoutines = listAutoQCRoutines();
+  qcChain    = {};
+  
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
+  
+  % get default filter chain if there is one
+  try
+      qcChain = textscan(readProperty(['autoQCManager.autoQCDefaultChain.' mode]), '%s');
+      qcChain = qcChain{1};
+      
+      % set last filter list to default
+      qcChainStr = cellfun(@(x)([x ' ']), qcChain, 'UniformOutput', false);
+      writeProperty(['autoQCManager.autoQCChain.' mode], deblank([qcChainStr{:}]));
+  catch e
+  end
+  
 end

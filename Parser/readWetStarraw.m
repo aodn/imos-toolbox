@@ -1,4 +1,4 @@
-function sample_data = readWetStarraw( filename, deviceInfo )
+function sample_data = readWetStarraw( filename, deviceInfo, mode )
 %READWETSARRAW parses a .raw data file retrieved from a Wetlabs WetStar instrument
 %deployed at the Lucinda Jetty.
 %
@@ -6,6 +6,7 @@ function sample_data = readWetStarraw( filename, deviceInfo )
 % Inputs:
 %   filename    - name of the input file to be parsed
 %   deviceInfo  - infos retrieved from the relevant device file
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
@@ -15,37 +16,25 @@ function sample_data = readWetStarraw( filename, deviceInfo )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 
-% ensure that there is exactly one argument
-error(nargchk(2, 2, nargin));
+% ensure that there are exactly three arguments
+narginchk(3, 3);
 if ~ischar(filename), error('filename must contain a string'); end
 if ~isstruct(deviceInfo), error('deviceInfo must contain a struct'); end
 
@@ -82,6 +71,7 @@ sample_data.toolbox_input_file        = filename;
 sample_data.meta.instrument_make      = 'WET Labs';
 sample_data.meta.instrument_model     = deviceInfo.instrument;
 sample_data.meta.instrument_serial_no = deviceInfo.serial;
+sample_data.meta.featureType          = mode;
 
 % infer time information from start time in filename (already in UTC) and 
 % assuming recording is performed over 60 minutes
@@ -116,7 +106,7 @@ sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosP
 sample_data.variables{end}.data             = sample_data.variables{end}.typeCastFunc(NaN);
 sample_data.variables{end}.dimensions       = [];
   
-[name, comment, data] = getParamDetails(deviceInfo.columns{1}, samples{1});
+[name, comment, data, calibration] = convertECOrawVar(deviceInfo.columns{1}, samples{1});
 
 if ~isempty(data)
     % dimensions definition must stay in this order : T, Z, Y, X, others;
@@ -128,99 +118,19 @@ if ~isempty(data)
     sample_data.variables{end}.coordinates   = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
     sample_data.variables{end}.comment       = comment;
     
+    if ~isempty(calibration)
+        fields = fielnames(calibration);
+        for j=1:length(fields)
+            attribute = ['calibration_' fields{j}];
+            sample_data.variables{end}.(attribute) = calibration.(fields{j});
+        end
+    end
+        
     % WQM uses SeaBird pressure sensor
     if strncmp('PRES_REL', name, 8)
         % let's document the constant pressure atmosphere offset previously
         % applied by SeaBird software on the absolute presure measurement
         sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
     end
-end
-  
-end
-
-function [name, comment, data] = getParamDetails(columnsInfo, sample)
-name = '';
-comment = '';
-data = [];
-
-switch upper(columnsInfo.type)
-    case 'N/U'
-        % ignored
-        
-    case 'IENGR'
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        
-    case 'PAR'
-        % not sure about what to do with this measurement from this
-        % instrument so for the time being won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        if isfield(columnsInfo, 'offset')
-            data = data - columnsInfo.offset;
-        end
-        if isfield(columnsInfo, 'scale')
-            data = data * columnsInfo.scale;
-        end
-        
-    case 'CHL' %ug/l (470/695nm)
-        name = 'CPHL';
-        comment = ['Artificial chlorophyll data computed from bio-optical ' ...
-            'sensor raw counts measurements. Originally expressed in ' ...
-            'ug/l, 1l = 0.001m3 was assumed.'];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'PHYCOERYTHRIN' %ug/l (540/570nm)
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'PHYCOCYANIN' %ug/l (630/680nm)
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'URANINE' %ppb (470/530nm)
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'RHODAMINE' %ug/l (540/570nm)
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'CDOM' %ppb
-        name = 'CDOM';
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'NTU'
-        name = 'TURB';
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    case 'LAMBDA' %m-1 sr-1
-        name = ['VSF' num2str(columnsInfo.measWaveLength)];
-        data = sample;
-        data = (data - columnsInfo.offset)*columnsInfo.scale;
-        
-    otherwise
-        % not identified by IMOS, won't be output in NetCDF
-        name = ['ECO3_' columnsInfo.type];
-        data = sample;
-        if isfield(columnsInfo, 'offset')
-            data = data - columnsInfo.offset;
-        end
-        if isfield(columnsInfo, 'scale')
-            data = data * columnsInfo.scale;
-        end
-
 end
 end

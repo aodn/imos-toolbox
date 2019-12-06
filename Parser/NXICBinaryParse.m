@@ -11,7 +11,7 @@ function sample_data = NXICBinaryParse( filename, mode )
 % Inputs:
 %   filename    - cell array of strings, names of the files to import. Only 
 %                 one file is supported.
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - struct containing sample data.
@@ -32,35 +32,23 @@ function sample_data = NXICBinaryParse( filename, mode )
 %
 %               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,2,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(1,2);
 
   if ~iscellstr(filename)
     error('filename must be a cell array of strings'); 
@@ -103,11 +91,30 @@ function sample_data = NXICBinaryParse( filename, mode )
   sample_data.meta.instrument_make      = header.instrument_make;
   sample_data.meta.instrument_model     = header.instrument_model;
   sample_data.meta.instrument_serial_no = header.instrument_serial_no;
-  if header.sampleRate > 0
-      sample_data.meta.instrument_sample_interval = 1/header.sampleRate;
-  else
-      sample_data.meta.instrument_sample_interval = median(diff(samples.time*24*3600));
+  sample_data.meta.featureType          = mode;
+  
+  % Let's find each start of bursts
+  dt = [0; diff(samples.time)];
+  iBurst = [1; find(dt>(1/24/60)); length(samples.time)+1];
+  
+  % let's read data burst by burst
+  nBurst = length(iBurst)-1;
+  firstTimeBurst = zeros(nBurst, 1);
+  sampleIntervalInBurst = zeros(nBurst, 1);
+  durationBurst = zeros(nBurst, 1);
+  for i=1:nBurst
+      timeBurst = samples.time(iBurst(i):iBurst(i+1)-1);
+      if numel(timeBurst)>1 % deals with the case of a file with a single sample in a single burst
+          sampleIntervalInBurst(i) = median(diff(timeBurst*24*3600));
+          firstTimeBurst(i) = timeBurst(1);
+          durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600 + sampleIntervalInBurst(i);
+      end
   end
+  
+  sample_data.meta.instrument_sample_interval   = round(median(sampleIntervalInBurst));
+  sample_data.meta.instrument_burst_interval    = round(median(diff(firstTimeBurst*24*3600)));
+  sample_data.meta.instrument_burst_duration    = round(median(durationBurst));
+  
   
   sample_data.dimensions = {};
   sample_data.variables  = {};
@@ -669,11 +676,16 @@ isample=isample(isort);
 [~, usort]=unique(reftimes, 'last');
 isample=isample(usort);
 
+% we only want to read full scans
+isFullScan = isample+len-1 <= rdatlen;
+isample(~isFullScan) = [];
+
 % map data to uniform grid each row contains data channel, each column is a
 % observation.
 D=uint8(zeros(len,length(isample)));
+
 for i=1:len;
-    D(i,:)=msamples.Data(isample+i-1);
+    D(i,:) = msamples.Data(isample+i-1);
 end
 time1 = D(1:4,:);
 t1 = bytecast(time1(:), 'L', 'uint32', cpuEndianness);

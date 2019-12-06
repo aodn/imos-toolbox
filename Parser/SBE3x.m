@@ -61,7 +61,7 @@ function sample_data = SBE3x( filename, mode )
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
@@ -92,37 +92,25 @@ function sample_data = SBE3x( filename, mode )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 
 %% Check input, set up data structures
-error(nargchk(1, 2, nargin));
+narginchk(1, 2);
 
 % save file size and open file; this will throw an error if file doesn't exist
 filesize = dir(filename);
@@ -142,7 +130,7 @@ TIME_NAME         = 'TIME';
 header_expr       = '^[\*]\s*(SBE\S+)\s+V\s+(\S+)\s+(\d+)$';
 cal_coeff_expr    = '^[\*]\s*(\w+)\s*=\s*(\S+)\s*$';
 sensor_cal_expr   = '^[\*]\s*(\w+):\s*(.+)\s*$';
-salinity_expr     = '^* output salinity.*$';
+salinity_expr     = '^[\*] output salinity.*$';
 pressure_cal_expr = ['^[\*]\s*pressure\s+S/N\s+(\d+)'... % serial number
                      ',\s*range\s*=\s*(\d+)'         ... % pressure range
                      '\s+psia:?\s*(.+)\s*$'];            % cal date including Seaterm v2 variation format
@@ -180,6 +168,7 @@ sample_data.toolbox_input_file          = filename;
 sample_data.meta.instrument_make        = 'Sea-bird Electronics';
 sample_data.meta.instrument_model       = 'SBE3x';
 sample_data.meta.instrument_serial_no   = '';
+sample_data.meta.featureType            = mode;
 
 %% Read file header (which contains sensor and calibration information)
 %
@@ -203,13 +192,17 @@ sample_data.meta.instrument_serial_no   = '';
 %
 %   * output salinity with each sample
 %
+% as opposed to:
+%   * do not output salinity with each sample
+%
+%
 % The fourth type of line is a name-value pair of a particular calibration
 % coefficient. These lines have the format:
 %
 %   name = value
 %
 line = fgetl(fid);
-while isempty(line) || line(1) == '*' || line(1) == 's'
+while (isempty(line) || line(1) == '*' || line(1) == 's') && ischar(line)
   
   if isempty(line) || line(1) == 's'
     line = fgetl(fid);
@@ -482,7 +475,11 @@ for k = 1:length(varNames)
   switch varNames{k}
     case TEMPERATURE_NAME,  sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(temperature);
     case CONDUCTIVITY_NAME, sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(conductivity);
-    case PRESSURE_NAME,     sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(pressure);
+    case PRESSURE_NAME
+        sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(pressure);
+        % let's document the constant pressure atmosphere offset previously
+        % applied by SeaBird software on the absolute presure measurement
+        sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
     case SALINITY_NAME,     sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(salinity);
   end
 end

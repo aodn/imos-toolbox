@@ -1,0 +1,17 @@
+* text=auto
+*.m text
+*.txt text
+*.py text
+# windows files - force crlf always
+*.bat text eol=crlf
+*.bat binary
+# instrument files in the repo - assume binary to avoid change
+#TODO: remove this
+*.Raw binary
+*.RAW binary
+*.DAT binary
+*.cnv binary
+# coefficients files - keep as is to avoid compatibility problems
+*.COF binary
+# java code - keep as is to avoid compatibility problems
+*.java binary

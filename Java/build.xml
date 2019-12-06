@@ -14,10 +14,10 @@
 	<path id="classpath">
 		<pathelement path="${targetdir}" />
 		<pathelement path="${basedir}" />
-		<fileset dir="UCanAccess-2.0.9.2-bin">
+		<fileset dir="UCanAccess-3.0.2-bin">
 			<include name="**/*.jar"/>
 		</fileset>
-		<fileset dir="UCanAccess-2.0.9.2-bin/lib">
+		<fileset dir="UCanAccess-3.0.2-bin/lib">
 			<include name="**/*.jar"/>
 		</fileset>
 	</path>
@@ -29,7 +29,7 @@
 	</target>
 
 	<target name="compile" depends="clean" description="--> Compile all files">
-		<javac debug="on" srcdir="${sourcedir}" destdir="${targetdir}" classpathref="classpath" />
+		<javac debug="on" srcdir="${sourcedir}" destdir="${targetdir}" classpathref="classpath" source="1.6" target="1.6" includeantruntime="false" />
 	</target>
 
   <target name="install" depends="compile" description="--> Build a Jar file">
