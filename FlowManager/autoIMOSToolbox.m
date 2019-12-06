@@ -35,57 +35,34 @@ function autoIMOSToolbox(toolboxVersion, fieldTrip, dataDir, ppChain, qcChain, e
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 6, nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
 
-% get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-% If no value is set then default mode is 'timeSeries'
-mode = lower(readProperty('toolbox.mode'));
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+narginchk(1, 6);
+
+% get the toolbox execution mode.
+mode = readProperty('toolbox.mode');
     
 % validate and save field trip
 if nargin > 1
     if isnumeric(fieldTrip), error('field trip must be a string'); end
-    switch mode
-        case 'profile'
-            writeProperty('startDialog.fieldTrip.profile', fieldTrip);
-        otherwise
-            writeProperty('startDialog.fieldTrip.timeSeries', fieldTrip);
-    end
+    writeProperty(['startDialog.fieldTrip.' mode], fieldTrip);
 else
     try
-        switch mode
-            case 'profile'
-                fieldTrip = readProperty('startDialog.fieldTrip.profile');
-            otherwise
-                fieldTrip = readProperty('startDialog.fieldTrip.timeSeries');
-        end
+        fieldTrip = readProperty(['startDialog.fieldTrip.' mode]);
     catch e
     end
 end
@@ -95,20 +72,10 @@ if nargin > 2
     if ~ischar(dataDir),       error('dataDir must be a string');    end
     if ~exist(dataDir, 'dir'), error('dataDir must be a directory'); end
 
-    switch mode
-        case 'profile'
-            writeProperty('startDialog.dataDir.profile', dataDir);
-        otherwise
-            writeProperty('startDialog.dataDir.timeSeries', dataDir);
-    end
+    writeProperty(['startDialog.dataDir.' mode], dataDir);
 else
     try
-        switch mode
-            case 'profile'
-                dataDir = readProperty('startDialog.dataDir.profile');
-            otherwise
-                dataDir = readProperty('startDialog.dataDir.timeSeries');
-        end
+        dataDir = readProperty(['startDialog.dataDir.' mode]);
     catch e
     end
 end
@@ -134,12 +101,7 @@ if nargin > 3
         ppChainStr = '';
     end
     
-    switch mode
-        case 'profile'
-            writeProperty('preprocessManager.preprocessChain.profile', ppChainStr);
-        otherwise
-            writeProperty('preprocessManager.preprocessChain.timeSeries', ppChainStr);
-    end
+    writeProperty(['preprocessManager.preprocessChain.' mode], ppChainStr);
 end
 
 % validate and save qc chain
@@ -163,12 +125,7 @@ if nargin > 4
         qcChainStr = '';
     end
     
-    switch mode
-        case 'profile'
-            writeProperty('autoQCManager.autoQCChain.profile', qcChainStr);
-        otherwise
-            writeProperty('autoQCManager.autoQCChain.timeSeries', qcChainStr);
-    end
+    writeProperty(['autoQCManager.autoQCChain.' mode], qcChainStr);
 end
 
 % validate and save export dir
@@ -189,15 +146,11 @@ end
 [~, sourceFolder] = fileparts(dataDir);
 fprintf('%s\n', ['Processing field trip ' fieldTrip ' from folder ' sourceFolder]);
 
-% get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-% If no value is set then default mode is 'timeSeries'
-mode = lower(readProperty('toolbox.mode'));
-
 % get infos from current field trip
 switch mode
     case 'profile'
         [~, deps, sits, dataDir] = getCTDs(true);
-    otherwise
+    case 'timeSeries'
         [~, deps, sits, dataDir] = getDeployments(true);
 end
 
@@ -219,7 +172,7 @@ for i=1:lenMooring
     if isempty(sample_data), continue; end
     
     raw_data = preprocessManager(sample_data, 'raw', mode, true);
-    qc_data  = preprocessManager(sample_data, 'qc', mode, true);
+    qc_data  = preprocessManager(sample_data, 'qc',  mode, true);
     clear sample_data;
     qc_data  = autoQCManager(qc_data, true);
     

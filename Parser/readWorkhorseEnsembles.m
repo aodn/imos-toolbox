@@ -42,38 +42,26 @@ function ensembles = readWorkhorseEnsembles( filename )
 %               Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
 %
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions are met:
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
 %
-%     * Redistributions of source code must retain the above copyright notice,
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright
-%       notice, this list of conditions and the following disclaimer in the
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors
-%       may be used to endorse or promote products derived from this software
-%       without specific prior written permission.
-%
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-% POSSIBILITY OF SUCH DAMAGE.
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 
 % ensure that there is exactly one argument,
 % and that it is a string
-error(nargchk(1, 1, nargin));
+narginchk(1, 1);
 if ~ischar(filename), error('filename must be a string');
 end
 
@@ -218,9 +206,8 @@ if any(idodgy)
         igood = (nBytes == nBytes0(1));
         
         idx     = idx(igood);
-        nBytes  = nBytes(igood);
     else
-        error('this is interesting, need to look at this data file please contact developer');
+        error('This file looks corrupted. Try open it with WinADCP and save it again.');
     end
 end
 
@@ -258,6 +245,27 @@ clear IDX sType;
 % major change to PM code - ensembles is a scalar structure not cell array
 ensembles.fixedLeader       = parseFixedLeader(data, iFixedLeader, cpuEndianness);
 ensembles.variableLeader    = parseVariableLeader(data, iVarLeader, cpuEndianness);
+
+% adc channels sequentially sampled per ping, nan channels not sampled
+% in that ensemble
+pingsPerEnsemble = mode(ensembles.fixedLeader.pingsPerEnsemble);
+nChan = 8;
+if pingsPerEnsemble < nChan
+    nEns = length(ensembles.variableLeader.adcChannel0);
+    % % start/end adc channel recorded per ping group
+    % startAdc = mod(((1:nEns)-1)*pingsPerEnsemble, nChan);
+    % endAdc = rem(startAdc + pingsPerEnsemble-1, nChan);
+    
+    % must be a smarter way but couldn't work it out
+    repmatCh=repmat(0:7,[1,pingsPerEnsemble*nEns]);
+    reshapeCh = reshape(repmatCh',pingsPerEnsemble,[]);
+    reshapeCh(:,nEns+1:end)=[];
+    for ii=0:7
+        iAdc = any(reshapeCh == ii, 1);
+        ensembles.variableLeader.(['adcChannel' num2str(ii)])(~iAdc) = NaN;
+    end
+    clear('repmatCh', 'reshapeCh', 'iAdc');
+end
 
 % subfields contain the vector time series
 % we set a static value for nCells to the most frequent value found
@@ -323,7 +331,7 @@ dsub(ibad) = nan;
 
 end
 
-function [sect len] = parseFixedLeader(data, idx, cpuEndianness)
+function [sect, len] = parseFixedLeader(data, idx, cpuEndianness)
 %PARSEFIXEDLEADER Parses a fixed leader section from an ADCP ensemble.
 %
 % Inputs:
@@ -430,7 +438,7 @@ function [sect len] = parseFixedLeader(data, idx, cpuEndianness)
   end
 end
 
-function [sect len] = parseVariableLeader( data, idx, cpuEndianness )
+function [sect, len] = parseVariableLeader( data, idx, cpuEndianness )
 %PARSEVARIABLELEADER Parses a variable leader section from an ADCP ensemble.
 %
 % Inputs:
@@ -474,6 +482,39 @@ function [sect len] = parseVariableLeader( data, idx, cpuEndianness )
   sect.hdgStdDev              = double(data(idx+31));
   sect.pitchStdDev            = double(data(idx+32));
   sect.rollStdDev             = double(data(idx+33));
+% The next fields contain the outputs of the Analog-to-Digital Converter
+% (ADC) located on the DSP board. The ADC sequentially samples one of the 
+% eight channels per ping group (the number of ping groups per ensemble is
+% the maximum of the WP). These fields are zeroed at the beginning of the
+% deployment and updated each ensemble at the rate of one channel per ping
+% group. For example, if the ping group size is 5, then:
+% END OF ENSEMBLE No.   CHANNELS UPDATED
+% Start                 All channels = 0
+%
+% 1                     0, 1, 2, 3, 4
+% 2                     5, 6, 7, 0, 1
+% 3                     2, 3, 4, 5, 6
+% 4                     7, 0, 1, 2, 3
+% 5                     4, 5, 6, 7, 0
+% 6                     1, 2, 3, 4, 5
+% 7                     6, 7, 0, 1, 2
+% 8                     3, 4, 5, 6, 7
+% 9                     0, 1, 2, 3, 4
+% 10                    5, 6, 7, 0, 1
+% 11                    2, 3, 4, 5, 6
+% 12                    7, 0, 1, 2, 3
+% Here is the description for each channel:
+% CHANNEL DESCRIPTION
+% 0 XMIT CURRENT
+% 1 XMIT VOLTAGE
+% 2 AMBIENT TEMP
+% 3 PRESSURE (+)
+% 4 PRESSURE (-)
+% 5 ATTITUDE TEMP
+% 6 ATTITUDE
+% 7 CONTAMINATION SENSOR
+% Note that the ADC values may be �noisy� from sample to sample,
+% but are useful for detecting long-term trends.
   sect.adcChannel0            = double(data(idx+34));
   sect.adcChannel1            = double(data(idx+35));
   sect.adcChannel2            = double(data(idx+36));
@@ -501,7 +542,7 @@ function [sect len] = parseVariableLeader( data, idx, cpuEndianness )
   sect.y2kHundredth           = double(data(idx+64));
 end
 
-function [sect len] = parseVelocity( data, numCells, idx, cpuEndianness )
+function [sect, len] = parseVelocity( data, numCells, idx, cpuEndianness )
 %PARSEVELOCITY Parses a velocity section from an ADCP ensemble.
 %
 % Inputs:
@@ -534,7 +575,7 @@ function [sect len] = parseVelocity( data, numCells, idx, cpuEndianness )
   
 end
 
-function [sect len] = parseX( data, numCells, name, idx, cpuEndianness )
+function [sect, len] = parseX( data, numCells, name, idx, cpuEndianness )
 %PARSEX Parses one of the correlation magnitude, echo intensity or percent 
 % good sections from an ADCP ensemble. They all have the same format. 
 %
@@ -570,7 +611,7 @@ sect.field4 = fields(:, ibeam+3);
     
 end
 
-function [sect length] = parseBottomTrack( data, idx, cpuEndianness )
+function [sect, length] = parseBottomTrack( data, idx, cpuEndianness )
 %PARSEBOTTOMTRACK Parses a bottom track data section from an ADCP
 % ensemble.
 %

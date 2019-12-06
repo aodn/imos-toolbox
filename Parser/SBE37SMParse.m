@@ -21,7 +21,7 @@ function sample_data = SBE37SMParse( filename, mode )
 %
 % Inputs:
 %   filename    - cell array of files to import (only one supported).
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - Struct containing sample data.
@@ -30,35 +30,23 @@ function sample_data = SBE37SMParse( filename, mode )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
 %
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions are met:
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
 %
-%     * Redistributions of source code must retain the above copyright notice,
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright
-%       notice, this list of conditions and the following disclaimer in the
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors
-%       may be used to endorse or promote products derived from this software
-%       without specific prior written permission.
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-% POSSIBILITY OF SUCH DAMAGE.
-%
-error(nargchk(1,2,nargin));
+narginchk(1,2);
 
 if ~iscellstr(filename)
     error('filename must be a cell array of strings');
@@ -116,6 +104,7 @@ if strcmpi(ext, '.cnv')
     sample_data = struct;
     
     sample_data.toolbox_input_file  = filename;
+    sample_data.meta.featureType    = mode;
     sample_data.meta.instHeader     = instHeader;
     sample_data.meta.procHeader     = procHeader;
     
@@ -196,7 +185,7 @@ if strcmpi(ext, '.cnv')
     end
 else
     % use the classic SBE3x ASCII format suggested for IMOS
-    sample_data = SBE3x(filename);
+    sample_data = SBE3x(filename, mode);
 end
 
 end
@@ -216,11 +205,9 @@ header = struct;
 
 % there's no real structure to the header information, which
 % is annoying. my approach is to use various regexes to search
-% for info we want, and to ignore everything else. inefficient,
-% but it's the nicest way i can think of
-%BDM (18/2/2011) - changed expressions to reflect newer SBE header info
-%   headerExpr   = '^\*\s*(SBE \S+|SeacatPlus)\s+V\s+(\S+)\s+SERIAL NO.\s+(\d+)';
-headerExpr   = '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>';
+% for info we want, and to ignore everything else.
+newHeaderExpr= '<HardwareData DeviceType=''(\S+)'' SerialNumber=''(\S+)''>';
+oldHeaderExpr= '^\*\s*(SBE\S+|SeacatPlus)\s+V\s+(\S+)\s+SERIAL NO.\s+(\d+)'; %old style header e.g. '* SBE37-SM V 2.6b  SERIAL NO. 4481    10 Feb 2014  04:33:43'
 scanExpr     = 'number of scans to average = (\d+)';
 memExpr      = 'samples = (\d+), free = (\d+), casts = (\d+)';
 sampleExpr   = ['sample interval = (\d+) (\w+), ' ...
@@ -244,14 +231,14 @@ otherExpr    = '^\*\s*([^\s=]+)\s*=\s*([^\s=]+)\s*$';
 firmExpr ='<FirmwareVersion>(\S+)</FirmwareVersion>';
 
 exprs = {...
-    headerExpr   scanExpr     ...
+    newHeaderExpr   scanExpr     ...
     memExpr      sampleExpr   ...
     modeExpr     pressureExpr ...
     voltExpr     outputExpr   ...
     castExpr     intervalExpr ...
     sbe38Expr    optodeExpr   ...
     voltCalExpr  otherExpr ...
-    firmExpr};
+    firmExpr     oldHeaderExpr};
 
 for k = 1:length(headerLines)
     
@@ -265,11 +252,8 @@ for k = 1:length(headerLines)
             % yes, ugly, but easiest way to figure out which regex we're on
             switch m
                 
-                % header
+                % new style header
                 case 1
-                    %             header.instrument_model     = tkns{1}{1};
-                    %             header.instrument_firmware  = tkns{1}{2};
-                    %             header.instrument_serial_no = tkns{1}{3};
                     header.instrument_model     = tkns{1}{1};
                     header.instrument_serial_no = tkns{1}{2};
                     
@@ -343,6 +327,12 @@ for k = 1:length(headerLines)
                     %firmware version
                 case 15
                     header.instrument_firmware  = tkns{1}{1};
+
+                    %old style header
+                case 16
+                    header.instrument_model     = tkns{1}{1};
+                    header.instrument_firmware  = tkns{1}{2};
+                    header.instrument_serial_no = tkns{1}{3};
                     
             end
             break;

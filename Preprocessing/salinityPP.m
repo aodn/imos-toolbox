@@ -23,39 +23,29 @@ function sample_data = salinityPP( sample_data, qcLevel, auto )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(2, 3, nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+narginchk(2, 3);
 
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
 
+% no modification of data is performed on the raw FV00 dataset except
+% local time to UTC conversion
 if strcmpi(qcLevel, 'raw'), return; end
 
 % auto logical in input to enable running under batch processing
@@ -65,72 +55,19 @@ for k = 1:length(sample_data)
   
   sam = sample_data{k};
   
-  cndcIdx       = getVar(sam.variables, 'CNDC');
-  tempIdx       = getVar(sam.variables, 'TEMP');
-  
-  presIdx       = getVar(sam.variables, 'PRES');
-  presRelIdx    = getVar(sam.variables, 'PRES_REL');
-  isPresVar     = logical(presIdx || presRelIdx);
-  
-  isDepthInfo   = false;
-  depthType     = 'variables';
-  depthIdx      = getVar(sam.(depthType), 'DEPTH');
-  if depthIdx == 0
-      depthType     = 'dimensions';
-      depthIdx      = getVar(sam.(depthType), 'DEPTH');
-  end
-  if depthIdx > 0, isDepthInfo = true; end
-  
-  if isfield(sam, 'instrument_nominal_depth')
-      if ~isempty(sam.instrument_nominal_depth)
-          isDepthInfo = true;
-      end
-  end
-  
-  % cndc, temp, and pres/pres_rel or nominal depth not present in data set
-  if ~(cndcIdx && tempIdx && (isPresVar || isDepthInfo)), continue; end
-  
   % data set already contains salinity
   if getVar(sam.variables, 'PSAL'), continue; end
   
+  cndcIdx       = getVar(sam.variables, 'CNDC');
+  tempIdx       = getVar(sam.variables, 'TEMP');
+  
+  [presRel, zName, zComment] = getPresRelForGSW(sam);
+  
+  % cndc, temp, and pres/pres_rel or depth/nominal depth not present in data set
+  if ~(cndcIdx && tempIdx && ~isempty(zName)), continue; end
+  
   cndc = sam.variables{cndcIdx}.data;
   temp = sam.variables{tempIdx}.data;
-  if isPresVar
-      if presRelIdx > 0
-          presRel = sam.variables{presRelIdx}.data;
-          presName = 'PRES_REL';
-      else
-          % update from a relative pressure like SeaBird computes
-          % it in its processed files, substracting a constant value
-          % 10.1325 dbar for nominal atmospheric pressure
-          presRel = sam.variables{presIdx}.data - gsw_P0/10^4;
-          presName = 'PRES substracting a constant value 10.1325 dbar for nominal atmospheric pressure';
-      end
-  else
-      if depthIdx > 0
-          depth = sam.(depthType){depthIdx}.data;
-          if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
-              % compute depth with Gibbs-SeaWater toolbox
-              % relative_pressure ~= gsw_p_from_z(-depth, latitude)
-              if sam.geospatial_lat_min == sam.geospatial_lat_max
-                  presRel = gsw_p_from_z(-depth, sam.geospatial_lat_min);
-              else
-                  meanLat = sam.geospatial_lat_min + ...
-                      (sam.geospatial_lat_max - sam.geospatial_lat_min)/2;
-                  presRel = gsw_p_from_z(-depth, meanLat);
-              end
-              presName = 'DEPTH';
-          else
-              % without latitude information, we assume 1dbar ~= 1m
-              presRel = depth;
-              presName = 'DEPTH (assuming 1 m ~ 1 dbar)';
-          end
-          
-      else
-          presRel = sam.instrument_nominal_depth*ones(size(temp));
-          presName = 'instrument_nominal_depth (assuming 1 m ~ 1 dbar)';
-      end
-  end
   
   % calculate C(S,T,P)/C(35,15,0) ratio
   % conductivity is in S/m and gsw_C3515 in mS/cm
@@ -140,7 +77,7 @@ for k = 1:length(sample_data)
   psal = gsw_SP_from_R(R, temp, presRel);
   
   dimensions = sam.variables{tempIdx}.dimensions;
-  salinityComment = ['salinityPP.m: derived from CNDC, TEMP and ' presName ' using the Gibbs-SeaWater toolbox (TEOS-10) v3.02'];
+  salinityComment = ['salinityPP.m: derived from CNDC, TEMP and ' zName ' ' zComment ' using the Gibbs-SeaWater toolbox (TEOS-10) v3.06.'];
   
   if isfield(sam.variables{tempIdx}, 'coordinates')
       coordinates = sam.variables{tempIdx}.coordinates;

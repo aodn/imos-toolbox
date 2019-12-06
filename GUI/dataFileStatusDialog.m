@@ -1,4 +1,4 @@
-function [deployments files] = dataFileStatusDialog( deployments, files )
+function [deployments files] = dataFileStatusDialog( deployments, files)
 %DATAFILESTATUSDIALOG Displays a list of deployments, and raw files for
 % each, allowing the user to verify/change which raw data files map to which
 % deployment.
@@ -27,35 +27,23 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,2,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(2, 2);
 
   if ~isstruct(deployments), error('deployments must be a struct'); end
   if ~iscell  (files),       error('files must be a cell array');   end
@@ -64,17 +52,25 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   origDeployments = deployments;
   origFiles       = files;
   
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
+  
   deploymentDescs = genDepDescriptions(deployments, files);
   
-  % put deployments in alphabetical order
+  % Sort data_samples
   %
   % [B, iX] = sort(A);
   % =>
   % A(iX) == B
   %
-  [deploymentDescs, iSort] = sort(deploymentDescs);
-  deployments = deployments(iSort);
-  files = files(iSort);
+  switch mode
+      case 'profile'
+          % for a profile, sort by alphabetical order
+          [deploymentDescs, iSort] = sort(deploymentDescs);
+          deployments = deployments(iSort);
+          files = files(iSort);
+      
+  end
   
   nofile   = readProperty('dataFileStatusDialog.noFileFormat');
   multiple = readProperty('dataFileStatusDialog.multipleFileFormat');
@@ -245,14 +241,16 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
     dep  = get(depList,  'Value');
     file = get(fileList, 'Value');
     
-    files{dep}(file) = [];
-    
-    set(fileList, 'String', files{dep}, 'Value', 1);
-    
-    % update deplist view (the deployment's status may have changed)
-    set(depList, ...
-        'Value',  dep, ...
-        'String', annotateDepDescriptions(deployments, deploymentDescs));
+    if ~isempty(files{dep})
+        files{dep}(file) = [];
+        
+        set(fileList, 'String', files{dep}, 'Value', 1);
+        
+        % update deplist view (the deployment's status may have changed)
+        set(depList, ...
+            'Value',  dep, ...
+            'String', annotateDepDescriptions(deployments, deploymentDescs));
+    end
   end
 
   function fileAddCallback(source,ev)
@@ -260,21 +258,9 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   % Opens a dialog, allowing the user to select a file to add to the
   % deployment.
   %
-  
-    % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'.
-    % If no value is set then default mode is 'timeSeries'
-    mode = lower(readProperty('toolbox.mode'));
-
-    switch mode
-        case 'profile'
-            [newFile path] = uigetfile('*', 'Select Data File',...
-                               readProperty('startDialog.dataDir.profile'),...
-                               'MultiSelect', 'on');
-        otherwise
-            [newFile path] = uigetfile('*', 'Select Data File',...
-                               readProperty('startDialog.dataDir.timeSeries'),...
-                               'MultiSelect', 'on');
-    end
+    [newFile path] = uigetfile('*', 'Select Data File',...
+      readProperty(['startDialog.dataDir.' mode]),...
+      'MultiSelect', 'on');
     
     % user cancelled dialog
     if newFile == 0, return; end
@@ -301,22 +287,30 @@ function [deployments files] = dataFileStatusDialog( deployments, files )
   %GENDEPDESCRIPTIONS Creates a cell array of descriptions of the given
   % deployments, suitable for use in the deployments list.
   %
-
+  
     % set values for lists
-
     descs = {};
     for k = 1:length(deployments)
 
       dep = deployments(k);
 
-      % at the very least, the instrument and file name
+      % at the very least, the instrument, nominal depth and file name
       descs{k} = dep.InstrumentID;
+      if ~isempty(dep.InstrumentDepth) 
+        descs{k} = [descs{k} ' @' num2str(dep.InstrumentDepth) 'm'];
+      end
+      if isfield(dep, 'DepthTxt')
+          if ~isempty(dep.DepthTxt)
+              descs{k} = [descs{k} ' ' dep.DepthTxt];
+          end
+      end
       if ~isempty(dep.FileName) 
         descs{k} = [descs{k} ' (' dep.FileName ')'];
       end
+      
 
       % get some site information if it exists
-      site = executeDDBQuery('Sites', 'Site', dep.Site);
+      site = executeQuery('Sites', 'Site', dep.Site);
 
       if ~isempty(site)
 

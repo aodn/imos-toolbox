@@ -11,7 +11,7 @@ function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, instHe
 %   timeOffset  - offset to be applied to time value in SeaBird file.
 %   instHeader  - Struct containing instrument header.
 %   procHeader  - Struct containing processed header.
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   name       - IMOS parameter code.
@@ -22,35 +22,23 @@ function [name, data, comment] = convertSBEcnvVar(name, data, timeOffset, instHe
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(6, 6, nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+narginchk(6, 6);
 
 switch name
     
@@ -94,7 +82,7 @@ switch name
       comment = '';
         
     % strain gauge pressure (dbar)
-    case {'pr', 'prM', 'prdM'}
+    case {'pr', 'prM', 'prdM', 'prSM'}
       name = 'PRES_REL';
       comment = '';
       
@@ -130,38 +118,56 @@ switch name
       data = data ./ 10000;
       comment = '';
     
-    % fluorescence (counts)
+    % fluorescence (ug/l)
     case 'flC'
-      name = 'FLU2';
-      comment = '';
-      
+      name = 'CPHL';
+      comment = getCPHLcomment('unknown','430nm','685nm');
+
+    %fluorescence (ug/l)
+    %Aquatracka SBE19plus cdom sensor as cphl implemented on #550
+    case 'flCUVA'
+
+      warning('Assuming `flCUVA` as from Aquatracka III instead of Aquatracka UV');
+      name = 'CPHL';
+      comment = getCPHLcomment('unknown','430nm','685nm');
+      comment = [comment ' Warning: Assumed aquatracka UV namespace was used for Aquatracka III'];
+
+    % PAR/Irradiance, Biospherical/Licor
+    %par/sat/log - light sensor in SBE19plus assumed in umol photons/m2/s and implemented on #550
+    case {'par0x2Fsat0x2Flog', 'par/sat/log'}
+      name = 'PAR';
+      comment = 'PAR/Logarithmic/ Satlantic';
+
     % artificial chlorophyll from fluorescence (mg/m3)
     case 'flECO0x2DAFL'
-      name = 'CHLF';
-      comment = 'Artificial chlorophyll data computed from bio-optical sensor raw counts measurements using factory calibration coefficient.';
-      
+      name = 'CPHL';
+      comment = getCPHLcomment('unknown','470nm','695nm');
     % oxygen (mg/l)
-    % mg/l => umol/l
-    case {'oxsolMg0x2FL', 'oxsatMg0x2FL', 'sbeox0Mg0x2FL'}
-      name = 'DOX1';
-      data = data .* 44.660/1.429; % O2 density = 1.429kg/m3
-      comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
+    % mg/l
+    case 'sbeox0Mg0x2FL'
+      name = 'DOXY';
+      comment = '';
       
     % oxygen (ml/l)
-    % ml/l => umol/l
+    % ml/l
     case 'sbeox0ML0x2FL'
-      name = 'DOX1';
-      data = data .* 44.660;
-      comment = 'Originally expressed in ml/l, 1ml/l = 44.660umol/l was assumed.';
+      name = 'DOX';
+      comment = '';
     
+    % oxygen (umol/L)
+    % umol/L
+    case 'sbeox0Mm0x2FL'
+      name = 'DOX1';
+      comment = '';
+      
     % oxygen (umol/Kg)
     % umol/Kg
-    case {'oxsolMm0x2FKg', 'oxsatMm0x2FKg', 'sbeox0Mm0x2FKg', 'sbeopoxMm0x2FKg'}
+    case {'sbeox0Mm0x2FKg', 'sbeopoxMm0x2FKg'}
       name = 'DOX2';
       comment = '';
     
-    % Oxygen, SBE 63 [% saturation]
-    case 'sbeopoxPS'
+    % Oxygen [% saturation]
+    case {'sbeopoxPS', 'sbeox0PS'}
         name = 'DOXS';
         comment = '';
        
@@ -213,8 +219,15 @@ switch name
     % A/D counts to volts (sensor_analog_output 0 to 7)
     case {'v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'}
       origName = name;
-      name = ['volt_', getVoltageName(origName, instHeader)];
-      comment = getVoltageComment(origName, procHeader);
+      name = getVoltageName(origName, instHeader);
+      if ~strcmpi(name, 'not_assigned')
+          name = ['volt_', name];
+          comment = getVoltageComment(origName, procHeader);
+      else
+          name = '';
+          data = [];
+          comment = '';
+      end
       
     case 'f1'
         if strcmpi(mode, 'profile')
@@ -316,5 +329,7 @@ switch origName
             name = header.sensorTypes{strcmpi(header.sensorIds, 'volt 7')};
         end
 end
+
+name = regexprep(name, '[^a-zA-Z0-9]', '_'); % to make a valid var name for structure, only keep word characters
 
 end

@@ -10,6 +10,7 @@ function sample_data = readXR620( filename, mode )
 %
 % Inputs:
 %   filename    - Cell array containing the name of the file to parse.
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - Struct containing imported sample data.
@@ -17,35 +18,23 @@ function sample_data = readXR620( filename, mode )
 % Author : Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
-% Copyright (c) 2010, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,2,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(2,2);
   
   if ~ischar(filename)  
     error('filename must be a string'); 
@@ -73,6 +62,7 @@ function sample_data = readXR620( filename, mode )
   sample_data.meta.instrument_firmware          = header.firmware;
   sample_data.meta.instrument_serial_no         = header.serial;
   sample_data.meta.instrument_sample_interval   = median(diff(data.time*24*3600));
+  sample_data.meta.featureType                  = mode;
   
   sample_data.dimensions = {};  
   sample_data.variables  = {};
@@ -173,7 +163,7 @@ function sample_data = readXR620( filename, mode )
           sample_data.variables{end}.name         = 'TIME';
           sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc([descendingTime, ascendingTime]);
-          sample_data.variables{end}.comment      = 'First value over profile measurement';
+          sample_data.variables{end}.comment      = 'First value over profile measurement.';
           
           sample_data.variables{end+1}.dimensions = dimensions;
           sample_data.variables{end}.name         = 'DIRECTION';
@@ -245,10 +235,10 @@ function sample_data = readXR620( filename, mode )
                       data.(vars{k}) = data.(vars{k})/10;
                       
                       %Temperature (Celsius degree)
-                  case {'Temp', 'temp02'}, name = 'TEMP';
+                  case {'Temp', 'temp02', 'temp12'}, name = 'TEMP';
                       
                       %Pressure (dBar)
-                  case {'Pres', 'pres20'}, name = 'PRES';
+                  case {'Pres', 'pres20', 'pres21'}, name = 'PRES';
                       
                       %Relative Pressure (dBar)
                   case {'pres08'}, name = 'PRES_REL';
@@ -256,10 +246,8 @@ function sample_data = readXR620( filename, mode )
                       %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlC'
                       name = 'CPHL';
-                      comment.(vars{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
-                      
+                      comment.(vars{k}) = getCPHLcomment('unknown','470nm','685nm');
+
                       %Turbidity (NTU)
                   case 'Turb', name = 'TURB';
                       
@@ -288,22 +276,15 @@ function sample_data = readXR620( filename, mode )
                       %Speed of sound (m/s)
                   case 'SoSUN', name = 'SSPD';
                       
-                      %Rinko dissolved O2 concentration (mg/l) => (umol/l)
-                  case 'rdO2C'
-                      name = 'DOX1';
-                      comment.(vars{k}) = ['Originally expressed in mg/l, ' ...
-                          'O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.'];
-                      data.(vars{k}) = data.(vars{k}) * 44.660/1.429; % O2 density = 1.429 kg/m3
+                      %Rinko dissolved O2 concentration (mg/l)
+                  case 'rdO2C', name = 'DOXY';
                       
                       % Oxyguard dissolved O2 (%)
                   case 'D_O2', name = 'DOXS';
                       
-                      % Oxyguard dissolved O2 concentration (ml/l) => (umol/l)
-                  case 'dO2C'
-                      name = 'DOX1';
-                      comment.(vars{k}) = ['Originally expressed in ml/l, ' ...
-                          '1ml/l = 44.660umol/l was assumed.'];
-                      data.(vars{k}) = data.(vars{k}) * 44.660;
+                      % Oxyguard dissolved O2 concentration (ml/l)
+                  case 'dO2C', name = 'DOX';
+
               end
               
               if ~isempty(name)
@@ -324,157 +305,9 @@ function sample_data = readXR620( filename, mode )
                       sample_data.variables{end  }.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
                   end
               end   
-          end
+          end                   
           
-          % Let's add DOX1/DOX2 if PSAL/CNDC, TEMP and DOXS are present and DOX1 not
-          % already present
-          doxs = getVar(sample_data.variables, 'DOXS');
-          dox1 = getVar(sample_data.variables, 'DOX1');
-          if doxs ~= 0 && dox1 == 0
-              doxs = sample_data.variables{doxs};
-              name = 'DOX1';
-              
-              % to perform this conversion, we need temperature,
-              % and salinity/conductivity+pressure data to be present
-              temp = getVar(sample_data.variables, 'TEMP');
-              psal = getVar(sample_data.variables, 'PSAL');
-              cndc = getVar(sample_data.variables, 'CNDC');
-              pres = getVar(sample_data.variables, 'PRES');
-              
-              % if any of this data isn't present,
-              % we can't perform the conversion
-              if temp ~= 0 && (psal ~= 0 || (cndc ~= 0 && pres ~= 0))
-                  temp = sample_data.variables{temp};
-                  if psal ~= 0
-                      psal = sample_data.variables{psal};
-                  else
-                      cndc = sample_data.variables{cndc};
-                      pres = sample_data.variables{pres};
-                      % conductivity is in S/m and gsw_C3515 in mS/cm
-                      crat = 10*cndc.data ./ gsw_C3515;
-                      
-                      % we need to use relative pressure using gsw_P0 = 101325 Pa 
-                      psal.data = gsw_SP_from_R(crat, temp.data, pres.data - gsw_P0/10^4);
-                  end
-                  
-                  % O2 solubility (Garcia and Gordon, 1992-1993)
-                  %
-                  solubility = O2sol(psal.data, temp.data, 'ml/l');
-                  
-                  % O2 saturation to O2 concentration measured
-                  % O2 saturation (per cent) = 100* [O2/O2sol]
-                  %
-                  % that is to say : O2 = O2sol * O2sat / 100
-                  data = solubility .* doxs.data / 100;
-                  
-                  % conversion from ml/l to umol/l
-                  data = data * 44.660;
-                  comment = ['Originally expressed in % of saturation, using Garcia '...
-                      'and Gordon equations (1992-1993) and ml/l coefficients, assuming 1ml/l = 44.660umol/l.'];
-                  
-                  sample_data.variables{end+1}.dimensions = [1 dimensions];
-                  sample_data.variables{end}.comment      = comment;
-                  sample_data.variables{end}.name         = name;
-                  sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-                  if nA == 0
-                      sample_data.variables{end}.data   = sample_data.variables{end}.typeCastFunc(data(iD));
-                  else
-                      % we need to padd data with NaNs so that we fill MAXZ
-                      % dimension
-                      sample_data.variables{end}.data   = sample_data.variables{end}.typeCastFunc([[data(iD); dNaN], [data(~iD); aNaN]]);
-                  end
-                  sample_data.variables{end}.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
-                  
-                  % Let's add DOX2
-                  name = 'DOX2';
-                  
-                  % O2 solubility (Garcia and Gordon, 1992-1993)
-                  %
-                  solubility = O2sol(psal.data, temp.data, 'umol/kg');
-                  
-                  % O2 saturation to O2 concentration measured
-                  % O2 saturation (per cent) = 100* [O2/O2sol]
-                  %
-                  % that is to say : O2 = O2sol * O2sat / 100
-                  data = solubility .* doxs.data / 100;
-                  comment = ['Originally expressed in % of saturation, using Garcia '...
-                      'and Gordon equations (1992-1993) and umol/kg coefficients.'];
-                  
-                  sample_data.variables{end+1}.dimensions = [1 dimensions];
-                  sample_data.variables{end}.comment      = comment;
-                  sample_data.variables{end}.name         = name;
-                  sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-                  if nA == 0
-                      sample_data.variables{end}.data   = sample_data.variables{end}.typeCastFunc(data(iD));
-                  else
-                      % we need to padd data with NaNs so that we fill MAXZ
-                      % dimension
-                      sample_data.variables{end}.data   = sample_data.variables{end}.typeCastFunc([[data(iD); dNaN], [data(~iD); aNaN]]);
-                  end
-                  sample_data.variables{end}.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
-              end
-          end
-          
-          % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are
-          % present and DOX2 not already present
-          dox1 = getVar(sample_data.variables, 'DOX1');
-          dox2 = getVar(sample_data.variables, 'DOX2');
-          if dox1 ~= 0 && dox2 == 0
-              dox1 = sample_data.variables{dox1};
-              name = 'DOX2';
-              
-              % umol/l -> umol/kg
-              %
-              % to perform this conversion, we need to calculate the
-              % density of sea water; for this, we need temperature,
-              % salinity, and pressure data to be present
-              temp = getVar(sample_data.variables, 'TEMP');
-              pres = getVar(sample_data.variables, 'PRES');
-              psal = getVar(sample_data.variables, 'PSAL');
-              cndc = getVar(sample_data.variables, 'CNDC');
-              
-              % if any of this data isn't present,
-              % we can't perform the conversion to umol/kg
-              if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
-                  temp = sample_data.variables{temp};
-                  pres = sample_data.variables{pres};
-                  if psal ~= 0
-                      psal = sample_data.variables{psal};
-                  else
-                      cndc = sample_data.variables{cndc};
-                      % conductivity is in S/m and gsw_C3515 in mS/cm
-                      crat = 10*cndc.data ./ gsw_C3515;
-                      
-                      % we need to use relative pressure using gsw_P0 = 101325 Pa 
-                      psal.data = gsw_SP_from_R(crat, temp.data, pres.data - gsw_P0/10^4);
-                  end
-                  
-                  % calculate density from salinity, temperature and pressure
-                  dens = sw_dens(psal.data, temp.data, pres.data - gsw_P0/10^4); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
-                  
-                  % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
-                  data = dox1.data .* 1000.0 ./ dens;
-                  comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
-                      'and using density computed from Temperature, Salinity and Pressure '...
-                      'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-                  
-                  sample_data.variables{end+1}.dimensions = [1 dimensions];
-                  sample_data.variables{end}.comment      = comment;
-                  sample_data.variables{end}.name         = name;
-                  sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-                  if nA == 0
-                      sample_data.variables{end}.data   = sample_data.variables{end}.typeCastFunc(data(iD));
-                  else
-                      % we need to padd data with NaNs so that we fill MAXZ
-                      % dimension
-                      sample_data.variables{end}.data   = sample_data.variables{end}.typeCastFunc([[data(iD); dNaN], [data(~iD); aNaN]]);
-                  end
-                  sample_data.variables{end}.coordinates = 'TIME LATITUDE LONGITUDE DEPTH';
-              end
-          end
-          
-      otherwise
-          
+      case 'timeSeries'
           sample_data.dimensions{1}.name            = 'TIME';
           sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
           sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(data.time);
@@ -513,7 +346,7 @@ function sample_data = readXR620( filename, mode )
                       data.(fields{k}) = data.(fields{k})/10;
                       
                       %Temperature (Celsius degree)
-                  case 'Temp', name = 'TEMP';
+                  case {'Temp', 'temp02', 'temp12'}, name = 'TEMP';
                       
                       %Pressure (dBar)
                   case {'Pres', 'pres08'}, name = 'PRES';
@@ -521,10 +354,8 @@ function sample_data = readXR620( filename, mode )
                       %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlC'
                       name = 'CPHL';
-                      comment.(fields{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
-                      
+                      comment.(fields{k}) = getCPHLcomment('unknown','470nm','685nm');
+
                       %Turbidity (NTU)
                   case 'Turb', name = 'TURB';
                       
@@ -553,22 +384,15 @@ function sample_data = readXR620( filename, mode )
                       %Speed of sound (m/s)
                   case 'SoSUN', name = 'SSPD';
                       
-                      %Rinko dissolved O2 concentration (mg/l) => (umol/l)
-                  case 'rdO2C'
-                      name = 'DOX1';
-                      comment.(fields{k}) = ['Originally expressed in mg/l, ' ...
-                          'O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.'];
-                      data.(fields{k}) = data.(fields{k}) * 44.660/1.429; % O2 density = 1.429 kg/m3
+                      %Rinko dissolved O2 concentration (mg/l)
+                  case 'rdO2C', name = 'DOXY';
                       
                       % Oxyguard dissolved O2 (%)
                   case 'D_O2', name = 'DOXS';
                       
-                      % Oxyguard dissolved O2 concentration (ml/l) => (umol/l)
-                  case 'dO2C'
-                      name = 'DOX1';
-                      comment.(fields{k}) = ['Originally expressed in ml/l, ' ...
-                          '1ml/l = 44.660umol/l was assumed.'];
-                      data.(fields{k}) = data.(fields{k}) * 44.660;
+                      % Oxyguard dissolved O2 concentration (ml/l)
+                  case 'dO2C', name = 'DOX';
+
               end
               
               if ~isempty(name)
@@ -582,136 +406,8 @@ function sample_data = readXR620( filename, mode )
                   sample_data.variables{end}.comment      = comment.(fields{k});
               end
           end
-          
-          % Let's add DOX1/DOX2 if PSAL/CNDC, TEMP and DOXS are present and DOX1 not
-          % already present
-          doxs = getVar(sample_data.variables, 'DOXS');
-          dox1 = getVar(sample_data.variables, 'DOX1');
-          if doxs ~= 0 && dox1 == 0
-              doxs = sample_data.variables{doxs};
-              name = 'DOX1';
-              
-              % to perform this conversion, we need temperature,
-              % and salinity/conductivity+pressure data to be present
-              temp = getVar(sample_data.variables, 'TEMP');
-              psal = getVar(sample_data.variables, 'PSAL');
-              cndc = getVar(sample_data.variables, 'CNDC');
-              pres = getVar(sample_data.variables, 'PRES');
-              
-              % if any of this data isn't present,
-              % we can't perform the conversion
-              if temp ~= 0 && (psal ~= 0 || (cndc ~= 0 && pres ~= 0))
-                  temp = sample_data.variables{temp};
-                  if psal ~= 0
-                      psal = sample_data.variables{psal};
-                  else
-                      cndc = sample_data.variables{cndc};
-                      pres = sample_data.variables{pres};
-                      % conductivity is in S/m and gsw_C3515 in mS/cm
-                      crat = 10*cndc.data ./ gsw_C3515;
-                      
-                      % we need to use relative pressure using gsw_P0 = 101325 Pa 
-                      psal.data = gsw_SP_from_R(crat, temp.data, pres.data - gsw_P0/10^4);
-                  end
-                  
-                  % O2 solubility (Garcia and Gordon, 1992-1993)
-                  %
-                  solubility = O2sol(psal.data, temp.data, 'ml/l');
-                  
-                  % O2 saturation to O2 concentration measured
-                  % O2 saturation (per cent) = 100* [O2/O2sol]
-                  %
-                  % that is to say : O2 = O2sol * O2sat / 100
-                  data = solubility .* doxs.data / 100;
-                  
-                  % conversion from ml/l to umol/l
-                  data = data * 44.660;
-                  comment = ['Originally expressed in % of saturation, using Garcia '...
-                      'and Gordon equations (1992-1993) and ml/l coefficients, assuming 1ml/l = 44.660umol/l.'];
-                  
-                  sample_data.variables{end+1}.dimensions = 1;
-                  sample_data.variables{end}.comment      = comment;
-                  sample_data.variables{end}.name         = name;
-                  sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-                  sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc(data);
-                  sample_data.variables{end}.coordinates  = coordinates;
-                  
-                  % Let's add DOX2
-                  name = 'DOX2';
-                  
-                  % O2 solubility (Garcia and Gordon, 1992-1993)
-                  %
-                  solubility = O2sol(psal.data, temp.data, 'umol/kg');
-                  
-                  % O2 saturation to O2 concentration measured
-                  % O2 saturation (per cent) = 100* [O2/O2sol]
-                  %
-                  % that is to say : O2 = O2sol * O2sat / 100
-                  data = solubility .* doxs.data / 100;
-                  comment = ['Originally expressed in % of saturation, using Garcia '...
-                      'and Gordon equations (1992-1993) and umol/kg coefficients.'];
-                  
-                  sample_data.variables{end+1}.dimensions = 1;
-                  sample_data.variables{end}.comment      = comment;
-                  sample_data.variables{end}.name         = name;
-                  sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-                  sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc(data);
-                  sample_data.variables{end}.coordinates  = coordinates;
-              end
-          end
-          
-          % Let's add a new parameter if DOX1, PSAL/CNDC, TEMP and PRES are
-          % present and DOX2 not already present
-          dox1 = getVar(sample_data.variables, 'DOX1');
-          dox2 = getVar(sample_data.variables, 'DOX2');
-          if dox1 ~= 0 && dox2 == 0
-              dox1 = sample_data.variables{dox1};
-              name = 'DOX2';
-              
-              % umol/l -> umol/kg
-              %
-              % to perform this conversion, we need to calculate the
-              % density of sea water; for this, we need temperature,
-              % salinity, and pressure data to be present
-              temp = getVar(sample_data.variables, 'TEMP');
-              pres = getVar(sample_data.variables, 'PRES');
-              psal = getVar(sample_data.variables, 'PSAL');
-              cndc = getVar(sample_data.variables, 'CNDC');
-              
-              % if any of this data isn't present,
-              % we can't perform the conversion to umol/kg
-              if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
-                  temp = sample_data.variables{temp};
-                  pres = sample_data.variables{pres};
-                  if psal ~= 0
-                      psal = sample_data.variables{psal};
-                  else
-                      cndc = sample_data.variables{cndc};
-                      % conductivity is in S/m and gsw_C3515 in mS/cm
-                      crat = 10*cndc.data ./ gsw_C3515;
-                      
-                      % we need to use relative pressure using gsw_P0 = 101325 Pa 
-                      psal.data = gsw_SP_from_R(crat, temp.data, pres.data - gsw_P0/10^4);
-                  end
-                  
-                  % calculate density from salinity, temperature and pressure
-                  dens = sw_dens(psal.data, temp.data, pres.data - gsw_P0/10^4); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
-                  
-                  % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
-                  data = dox1.data .* 1000.0 ./ dens;
-                  comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
-                      'and using density computed from Temperature, Salinity and Pressure '...
-                      'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-                  
-                  sample_data.variables{end+1}.dimensions = 1;
-                  sample_data.variables{end}.comment      = comment;
-                  sample_data.variables{end}.name         = name;
-                  sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-                  sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc(data);
-                  sample_data.variables{end}.coordinates  = coordinates;
-              end
-          end
-  end
+      
+    end
 end
   
 function header = readHeader(fid)
@@ -722,7 +418,7 @@ function header = readHeader(fid)
   
   line = fgetl(fid);
   
-  while isempty(strfind(line, 'Date & Time'))
+  while isempty(strfind(line, 'Date & Time')) && ischar(line)
     lines = [lines line];
     line  = fgetl(fid);
   end
@@ -835,12 +531,11 @@ function data = readData(fid, header)
   data = struct;
   
   % get the column names
-  header.variables = strrep(header.variables, ' & ', '|');
-  header.variables = strrep(header.variables, '  ', '|');
-  while ~strcmpi(header.variables, strrep(header.variables, '||', '|'))
-      header.variables = strrep(header.variables, '||', '|');
-  end
-  cols = textscan(header.variables, '%s', 'Delimiter', '|');
+  % replace ' & ' or ' ' delimited variable names with a '|' delimiter
+  header.variables = regexprep(header.variables, '(\s+\&\s+|\s+)', '|');
+  cols = textscan(header.variables, '%s', ...
+      'Delimiter', '|', ...
+      'MultipleDelimsAsOne', true); % header.variables might start by a delimiter
   cols = cols{1};
   
   % rename variables with '-', ' ', '&', '(', ')' as Matlab doesn't allow 
@@ -855,7 +550,7 @@ function data = readData(fid, header)
   fmt  = '%s %s';
   
   % figure out number of columns from the number of channels
-  fmt = [fmt repmat(' %f', [1, length(cols)-1])];
+  fmt = [fmt repmat(' %f', [1, length(cols)-2])];
   
   % read in the sample data
   samples = textscan(fid, fmt, 'treatAsEmpty', {'null'});
@@ -881,7 +576,11 @@ function data = readData(fid, header)
       if isempty(strfind(data.Date{1}, '-'))
           data.time = datenum(data.Date, 'yyyy/mmm/dd') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
       else
-          data.time = datenum(data.Date, 'dd-mmm-yyyy') + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
+          % Ruskin version number <= 1.12 date format 'dd-mmm-yyyy'
+          % Ruskin version number 1.13 date format 'yyyy-mm-dd'
+          % can either do some simple date format test or see if datenum
+          % can figure it out
+          data.time = datenum(data.Date) + datenum(data.Time, 'HH:MM:SS.FFF') - datenum('00:00:00', 'HH:MM:SS');
       end
   end
   

@@ -1,5 +1,5 @@
 function deviceInfo = readECODevice( filename )
-%READECODEVICE parses a .dev device file retrieved from a Wetlabs ECO Triplet instrument.
+%READECODEVICE parses a .dev device file retrieved from a Wetlabs ECO instrument.
 %
 %
 % Inputs:
@@ -19,37 +19,25 @@ function deviceInfo = readECODevice( filename )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 
 % ensure that there is exactly one argument
-error(nargchk(1, 1, nargin));
+narginchk(1, 1);
 if ~ischar(filename), error('filename must contain a string'); end
 
 deviceInfo = struct;
@@ -116,8 +104,31 @@ for i=1:nColumns
         case {'N/U', 'DKDC'}
             % do nothing
             
-        % measurements with possible scale, offset and wavelengths infos
+        case 'PAR'
+            % measurements in counts with coefficients calibration
+            deviceInfo.columns{i}.type = upper(type);
+            im = [];
+            a1 = [];
+            a0 = [];
+            
+            for j=j+1:nLines
+                if isempty(im), im = regexp(lines{j}, 'im=[\s]*([0-9\.]*)', 'tokens'); end
+                if isempty(a1), a1 = regexp(lines{j}, 'a1=[\s]*([0-9\.]*)', 'tokens'); end
+                if isempty(a0), a0 = regexp(lines{j}, 'a0=[\s]*([0-9\.]*)', 'tokens'); end
+                if ~isempty(im) && ~isempty(a1) && ~isempty(a0)
+                    deviceInfo.columns{i}.im = str2double(im{1});
+                    deviceInfo.columns{i}.a0 = str2double(a0{1});
+                    deviceInfo.columns{i}.a1 = str2double(a1{1});
+                    break;
+                end
+            end
+            
+            if isempty(im) || isempty(a1) || isempty(a0)
+                error(['couldn''t read PAR coefficients calibration from ' filename]);
+            end
+            
         otherwise
+            % measurements with possible scale, offset and wavelengths infos
             deviceInfo.columns{i}.type = upper(type);
             format = '%*s\t%f\t%f\t%f\t%f';
             output = cell(1, 4);

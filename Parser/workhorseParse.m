@@ -21,7 +21,7 @@ function sample_data = workhorseParse( filename, tMode )
 % 
 % Inputs:
 %   filename    - raw binary data file retrieved from a Workhorse.
-%   tMode       - Toolbox data type mode ('profile' or 'timeSeries').
+%   tMode       - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - sample_data struct containing the data retrieved from the
@@ -32,38 +32,27 @@ function sample_data = workhorseParse( filename, tMode )
 %               Bradley Morris <b.morris@unsw.edu.au>
 %               Charles James May 2010 <charles.james@sa.gov.au>
 %               Guillaume Galibert <guillaume.galibert@utas.edu.au>
-%         
+%               Shawn Meredyk <shawn.meredyk@as.ulaval.ca>
+%
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1, 2, nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+narginchk(1, 2);
 
   filename = filename{1};
 
@@ -125,28 +114,55 @@ error(nargchk(1, 2, nargin));
   
   % note this is actually distance between the ADCP's transducers and the
   % middle of each cell
-  distance = (cellStart):  ...
-      (cellLength): ...
-      (cellStart + (numCells-1) * cellLength);
+  distance = (cellStart:  ...
+      cellLength: ...
+      cellStart + (numCells-1) * cellLength)';
   
   % rearrange the sample data
-  time = datenum(...
-      [variable.y2kCentury*100 + variable.y2kYear,...
-      variable.y2kMonth,...
-      variable.y2kDay,...
-      variable.y2kHour,...
-      variable.y2kMinute,...
-      variable.y2kSecond + variable.y2kHundredth/100.0]);
+  instrument_firmware = strcat(num2str(fixed.cpuFirmwareVersion(1)), '.', num2str(fixed.cpuFirmwareRevision(1))); % we assume the first value is correct for the rest of the dataset
+  if str2double(instrument_firmware) > 8.35
+      time = datenum(...
+          [variable.y2kCentury*100 + variable.y2kYear,...
+          variable.y2kMonth,...
+          variable.y2kDay,...
+          variable.y2kHour,...
+          variable.y2kMinute,...
+          variable.y2kSecond + variable.y2kHundredth/100.0]);
+  else
+      % looks like before firmware 8.35 included, Y2K compliant RTC time 
+      % was not implemented
+      century = 2000;
+      if variable.rtcYear(1) > 70 
+          % first ADCP was built in the mid 1970s
+          % hopefully this firmware will no longer be used
+          % in 2070...
+          century = 1900;
+      end
+      time = datenum(...
+          [century + variable.rtcYear,...
+          variable.rtcMonth,...
+          variable.rtcDay,...
+          variable.rtcHour,...
+          variable.rtcMinute,...
+          variable.rtcSecond + variable.rtcHundredths/100.0]);
+  end
   
+  timePerPing = fixed.tppMinutes*60 + fixed.tppSeconds + fixed.tppHundredths/100;
+  timePerEnsemble = fixed.pingsPerEnsemble .* timePerPing;
+%   % shift the timestamp to the middle of the burst
+%   time = time + (timePerEnsemble / (3600 * 24))/2;
+
   %
   % auxillary data
   %
   temperature = variable.temperature;
   pressure    = variable.pressure;
   salinity    = variable.salinity;
+  soundSpeed  = variable.speedOfSound;
   pitch       = variable.pitch;
   roll        = variable.roll;
   heading     = variable.heading;
+  voltage     = variable.adcChannel1;
   clear variable;
   
   %
@@ -173,7 +189,6 @@ error(nargchk(1, 2, nargin));
   % veast       / 1000.0 (mm/s       -> m/s)
   % wvel        / 1000.0 (mm/s       -> m/s)
   % evel        / 1000.0 (mm/s       -> m/s)
-  % backscatter * 0.45   (count      -> dB)
   % pitch       / 100.0  (0.01 deg   -> deg)
   % roll        / 100.0  (0.01 deg   -> deg)
   % heading     / 100.0  (0.01 deg   -> deg)
@@ -186,25 +201,22 @@ error(nargchk(1, 2, nargin));
   veast        = veast        / 1000.0;
   wvel         = wvel         / 1000.0;
   evel         = evel         / 1000.0;
-  backscatter1 = backscatter1 * 0.45;
-  backscatter2 = backscatter2 * 0.45;
-  backscatter3 = backscatter3 * 0.45;
-  backscatter4 = backscatter4 * 0.45;
   pitch        = pitch        / 100.0;
   roll         = roll         / 100.0;
   heading      = heading      / 100.0;
   
   % check for electrical/magnetic heading bias (usually magnetic declination)
-  isMagBias = false;
+  magExt = '_MAG';
+  magBiasComment = '';
   % we set a static value for this variable to the most frequent value found
   magDec = mode(fixed.headingBias)*0.01; % Scaling: LSD = 0.01degree; Range = -179.99 to 180.00degrees
   if magDec ~= 0
-      isMagBias = true;
+      magExt = '';
       magBiasComment = ['A compass correction of ' num2str(magDec) ...
           'degrees has been applied to the data by a technician using RDI''s software ' ...
           '(usually to account for magnetic declination).'];
   end
-  
+
   speed = sqrt(vnrth.^2 + veast.^2);
   direction = getDirectionFromUV(veast, vnrth);
   
@@ -215,36 +227,125 @@ error(nargchk(1, 2, nargin));
       serial = num2str(serial);
   end
   
-  % fill in the sample_data struct
-  sample_data.toolbox_input_file        = filename;
-  sample_data.meta.featureType          = 'timeSeriesProfile';
-  sample_data.meta.fixedLeader          = fixed;
-  sample_data.meta.binSize              = mode(fixed.depthCellLength)/100; % we set a static value for this variable to the most frequent value found
-  sample_data.meta.instrument_make      = 'Teledyne RDI';
-  sample_data.meta.instrument_model     = 'Workhorse ADCP';
-  sample_data.meta.instrument_serial_no =  serial;
-  sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
-  sample_data.meta.instrument_firmware  = ...
-    strcat(num2str(fixed.cpuFirmwareVersion(1)), '.', num2str(fixed.cpuFirmwareRevision(1))); % we assume the first value is correct for the rest of the dataset
-  if all(isnan(fixed.beamAngle))
-      sample_data.meta.beam_angle       =  20;  % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
-  else
-      sample_data.meta.beam_angle       =  mode(fixed.beamAngle); % we set a static value for this variable to the most frequent value found
+  % try to guess model information
+  adcpFreqs = str2num(fixed.systemConfiguration(:, 6:8)); % str2num is actually more relevant than str2double here
+  adcpFreq = mode(adcpFreqs); % hopefully the most frequent value reflects the frequency when deployed
+  switch adcpFreq
+      case 0
+          adcpFreq = 75;
+          model = 'Long Ranger';
+          xmitVoltScaleFactors = 2092719;
+          
+      case 1
+          adcpFreq = 150;
+          model = 'Quartermaster';
+          xmitVoltScaleFactors = 592157;
+		  
+      case 10
+          adcpFreq = 300;
+          model = 'Sentinel or Monitor';
+          xmitVoltScaleFactors = 592157;
+		  
+      case 11
+          adcpFreq = 600;
+          model = 'Sentinel or Monitor';
+          xmitVoltScaleFactors = 380667;
+		  
+      case 100
+          adcpFreq = 1200;
+          model = 'Sentinel or Monitor';
+          xmitVoltScaleFactors = 253765;
+		  
+      otherwise
+          adcpFreq = 2400;
+          model = 'DVS';
+          xmitVoltScaleFactors = 253765;
   end
-
+  xmitVoltScaleFactors = xmitVoltScaleFactors / 1000000; %from p.136 of Workhorse Commands and Output Data Format PDF (RDI website - March 2016)
+   
+  % converting xmit voltage counts to volts for diagnostics.
+  voltage = voltage * xmitVoltScaleFactors;
+  voltComment = ['This parameter is actually the transmit voltage (ADC channel 1), which is NOT the same as battery voltage. ' ...
+      'The transmit voltage is sampled after a DC/DC converter and as such does not represent the true battery voltage. ' ...
+      'It does give a relative illustration of the battery voltage though which means that it will drop as the battery ' ...
+      'voltage drops. In addition, The circuit is not calibrated which means that the measurement is noisy and the values ' ...
+      'will vary between same frequency WH ADCPs.'];
+  
+  % There are 8 ADC channels and this results in the following nuances: 
+  %     a. Only one ADC channel is sampled at a time per ping.  This means it takes 8 pings in order to sample all 8 channels.
+  %     b. Until 8 pings have happened the data in a given channel is not valid (NaN).
+  %     c. Once 8 pings have happened the last value for each channel sampled will be stored into the leader data until the next sample is made.
+  %     d. Only the last sample made is stored; there is no accumulation or averaging of the ADC channels.
+  %     e. The ADC channels are stored over ensembles meaning the ADC channel is not reset until the instrument deployment is stopped.
+  %     f. Examples:
+  %         i.  If you do 4 pings and then stop the deployment, only ADC channels 0-3 are valid.
+  %         ii. If you do 12 pings and then stop the deployment, ADCP channels 0-3 will be updated with values from pings 9-12 respectively, and channels 4-7 will be updated with values from pings 4-7 respectively.
+  iNaNVoltage = isnan(voltage);
+  if iNaNVoltage(end) % we need to deal separately with the last value in case it's NaN
+      iLastGoodValue = find(~iNaNVoltage, 1, 'last');  % in this case we have no choice but to look for the previous available value before it
+      voltage(end) = voltage(iLastGoodValue);
+      iNaNVoltage(end) = false;
+  end
+  % set any NaN to the next available value after it (conservative approach)
+  while any(iNaNVoltage)
+      iNextValue = [false; iNaNVoltage(1:end-1)];
+      voltage(iNaNVoltage) = voltage(iNextValue);
+      iNaNVoltage = isnan(voltage);
+  end
+  
+  % fill in the sample_data struct
+  sample_data.toolbox_input_file                = filename;
+  sample_data.meta.featureType                  = ''; % strictly this dataset cannot be described as timeSeriesProfile since it also includes timeSeries data like TEMP
+  sample_data.meta.fixedLeader                  = fixed;
+  sample_data.meta.binSize                      = mode(fixed.depthCellLength)/100; % we set a static value for this variable to the most frequent value found
+  sample_data.meta.instrument_make              = 'Teledyne RDI';
+  sample_data.meta.instrument_model             = [model ' Workhorse ADCP'];
+  sample_data.meta.instrument_serial_no         =  serial;
+  sample_data.meta.instrument_sample_interval   = median(diff(time*24*3600));
+  sample_data.meta.instrument_average_interval  = mode(timePerEnsemble);
+  sample_data.meta.instrument_firmware          = instrument_firmware;
+  if all(isnan(fixed.beamAngle))
+      sample_data.meta.beam_angle               =  20;  % http://www.hydro-international.com/files/productsurvey_v_pdfdocument_19.pdf
+  else
+      sample_data.meta.beam_angle               =  mode(fixed.beamAngle); % we set a static value for this variable to the most frequent value found
+  end
+  
   % add dimensions with their data mapped
-  % we consider a static value for this variable to be the most frequent value found
-  % str2num is actually more relevant than str2double here
-  adcpOrientations = str2num(fixed.systemConfiguration(:, 1));
-  adcpOrientation = mode(adcpOrientations);
-  if adcpOrientation == '0', distance = -distance; end % case of a downward looking ADCP -> negative values
-  iWellOriented = adcpOrientations == adcpOrientation; % we'll only keep data collected when ADCP is oriented as expected
+  adcpOrientations = str2num(fixed.systemConfiguration(:, 1)); % str2num is actually more relevant than str2double here
+  adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
+  height = distance;
+  if adcpOrientation == 0
+      % case of a downward looking ADCP -> negative values
+      height = -height;
+      distance = -distance;
+  end
+  iBadOriented = adcpOrientations ~= adcpOrientation; % we'll only keep velocity data collected when ADCP is oriented as expected
+  vnrth(iBadOriented, :) = NaN;
+  veast(iBadOriented, :) = NaN;
+  wvel(iBadOriented, :) = NaN;
+  evel(iBadOriented, :) = NaN;
+  speed(iBadOriented, :) = NaN;
+  direction(iBadOriented, :) = NaN;
+  backscatter1(iBadOriented, :) = NaN;
+  backscatter2(iBadOriented, :) = NaN;
+  backscatter3(iBadOriented, :) = NaN;
+  backscatter4(iBadOriented, :) = NaN;
+  correlation1(iBadOriented, :) = NaN;
+  correlation2(iBadOriented, :) = NaN;
+  correlation3(iBadOriented, :) = NaN;
+  correlation4(iBadOriented, :) = NaN;
+  percentGood1(iBadOriented, :) = NaN;
+  percentGood2(iBadOriented, :) = NaN;
+  percentGood3(iBadOriented, :) = NaN;
+  percentGood4(iBadOriented, :) = NaN;
   dims = {
-      'TIME',                   time(iWellOriented),     ''; ...
-      'HEIGHT_ABOVE_SENSOR',    distance(:), 'Data has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.'; ...
-      'DIST_ALONG_BEAMS',       distance(:), 'Data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.'
+      'TIME',                   time,     ['Time stamp corresponds to the start of the measurement which lasts ' num2str(sample_data.meta.instrument_average_interval) ' seconds.']; ...
+      'HEIGHT_ABOVE_SENSOR',    height,   ['Values correspond to the distance between the instrument''s transducers and the centre of each cells. ' ...
+      'Data has been vertically bin-mapped using tilt information so that the cells have consistant heights above sensor in time.']; ...
+      'DIST_ALONG_BEAMS',       distance, ['Values correspond to the distance between the instrument''s transducers and the centre of each cells. ' ...
+      'Data is not vertically bin-mapped (no tilt correction applied). Cells are lying parallel to the beams, at heights above sensor that vary with tilt.']
       };
-  clear time distance;
+  clear time height distance;
   
   nDims = size(dims, 1);
   sample_data.dimensions = cell(nDims, 1);
@@ -256,49 +357,48 @@ error(nargchk(1, 2, nargin));
   end
   clear dims;
   
-  % add variables with their dimensions and data mapped
-  if isMagBias
-      magExt = '';
-  else
-      magExt = '_MAG';
-  end
+  % add information about the middle of the measurement period
+  sample_data.dimensions{1}.seconds_to_middle_of_measurement = sample_data.meta.instrument_average_interval/2;
   
+  % add variables with their dimensions and data mapped
   vars = {
-      'TIMESERIES',         [],     1; ...
-      'LATITUDE',           [],     NaN; ...
-      'LONGITUDE',          [],     NaN; ...
-      'NOMINAL_DEPTH',      [],     NaN; ...
-      ['VCUR' magExt],      [1 2],  vnrth(iWellOriented, :); ...
-      ['UCUR' magExt],      [1 2],  veast(iWellOriented, :); ...
-      'WCUR',               [1 2],  wvel(iWellOriented, :); ...
-      'ECUR',               [1 2],  evel(iWellOriented, :); ...
-      'CSPD',               [1 2],  speed(iWellOriented, :); ...
-      ['CDIR' magExt],      [1 2],  direction(iWellOriented, :); ...
-      'ABSI1',              [1 3],  backscatter1(iWellOriented, :); ...
-      'ABSI2',              [1 3],  backscatter2(iWellOriented, :); ...
-      'ABSI3',              [1 3],  backscatter3(iWellOriented, :); ...
-      'ABSI4',              [1 3],  backscatter4(iWellOriented, :); ...
-      'TEMP',               1,      temperature(iWellOriented); ...
-      'PRES_REL',           1,      pressure(iWellOriented); ...
-      'PSAL',               1,      salinity(iWellOriented); ...
-      'CMAG1',              [1 3],  correlation1(iWellOriented, :); ...
-      'CMAG2',              [1 3],  correlation2(iWellOriented, :); ...
-      'CMAG3',              [1 3],  correlation3(iWellOriented, :); ...
-      'CMAG4',              [1 3],  correlation4(iWellOriented, :); ...
-      'PERG1',              [1 2],  percentGood1(iWellOriented, :); ...
-      'PERG2',              [1 2],  percentGood2(iWellOriented, :); ...
-      'PERG3',              [1 2],  percentGood3(iWellOriented, :); ...
-      'PERG4',              [1 2],  percentGood4(iWellOriented, :); ...
-      'PITCH',              1,      pitch(iWellOriented); ...
-      'ROLL',               1,      roll(iWellOriented); ...
-      ['HEADING' magExt],   1,      heading(iWellOriented)
+      'TIMESERIES',         [],     1,              ''; ...
+      'LATITUDE',           [],     NaN,            ''; ...
+      'LONGITUDE',          [],     NaN,            ''; ...
+      'NOMINAL_DEPTH',      [],     NaN,            ''; ...
+      ['VCUR' magExt],      [1 2],  vnrth,          magBiasComment; ...
+      ['UCUR' magExt],      [1 2],  veast,          magBiasComment; ...
+      'WCUR',               [1 2],  wvel,           ''; ...
+      'CSPD',               [1 2],  speed,          ''; ...
+      ['CDIR' magExt],      [1 2],  direction,      magBiasComment; ...
+      'ECUR',               [1 2],  evel,           ''; ...
+      'ABSIC1',             [1 3],  backscatter1,   ''; ...
+      'ABSIC2',             [1 3],  backscatter2,   ''; ...
+      'ABSIC3',             [1 3],  backscatter3,   ''; ...
+      'ABSIC4',             [1 3],  backscatter4,   ''; ...
+      'CMAG1',              [1 3],  correlation1,   ''; ...
+      'CMAG2',              [1 3],  correlation2,   ''; ...
+      'CMAG3',              [1 3],  correlation3,   ''; ...
+      'CMAG4',              [1 3],  correlation4,   ''; ...
+      'PERG1',              [1 2],  percentGood1,   ''; ...
+      'PERG2',              [1 2],  percentGood2,   ''; ...
+      'PERG3',              [1 2],  percentGood3,   ''; ...
+      'PERG4',              [1 2],  percentGood4,   ''; ...
+      'TEMP',               1,      temperature,    ''; ...
+      'PRES_REL',           1,      pressure,       ''; ...
+      'PSAL',               1,      salinity,       ''; ...
+      'SSPD',               1,      soundSpeed,     ''; ...
+      'PITCH',              1,      pitch,          ''; ...
+      'ROLL',               1,      roll,           ''; ...
+      ['HEADING' magExt],   1,      heading,        magBiasComment; ...
+      'VOLT',               1,      voltage,        voltComment
       };
   
   clear vnrth veast wvel evel speed direction backscatter1 ...
       backscatter2 backscatter3 backscatter4 temperature pressure ...
       salinity correlation1 correlation2 correlation3 correlation4 ...
       percentGood1 percentGood2 percentGood3 percentGood4 pitch roll ...
-      heading;
+      heading voltage soundSpeed;
   
   nVars = size(vars, 1);
   sample_data.variables = cell(nVars, 1);
@@ -306,6 +406,8 @@ error(nargchk(1, 2, nargin));
       sample_data.variables{i}.name         = vars{i, 1};
       sample_data.variables{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(vars{i, 1}, 'type')));
       sample_data.variables{i}.dimensions   = vars{i, 2};
+      sample_data.variables{i}.data         = sample_data.variables{i}.typeCastFunc(vars{i, 3});
+      sample_data.variables{i}.comment      = vars{i, 4};
       
       % we don't want coordinates attribute for LATITUDE, LONGITUDE and NOMINAL_DEPTH
       if ~isempty(sample_data.variables{i}.dimensions)
@@ -319,13 +421,12 @@ error(nargchk(1, 2, nargin));
           end
       end
       
-      sample_data.variables{i}.data         = sample_data.variables{i}.typeCastFunc(vars{i, 3});
       if strcmpi(vars{i, 1}, 'PRES_REL')
           sample_data.variables{i}.applied_offset = sample_data.variables{i}.typeCastFunc(-gsw_P0/10^4); % (gsw_P0/10^4 = 10.1325 dbar)
       end
+      
       if any(strcmpi(vars{i, 1}, {'VCUR', 'UCUR', 'CDIR', 'HEADING'}))
           sample_data.variables{i}.compass_correction_applied = magDec;
-          sample_data.variables{i}.comment = magBiasComment;
       end
   end
   clear vars;
@@ -353,7 +454,7 @@ error(nargchk(1, 2, nargin));
   % less than 4 beams
   for k = 4:-1:numBeams+1
       kStr = num2str(k);
-      remove(end+1) = getVar(sample_data.variables, ['ABSI' kStr]);
+      remove(end+1) = getVar(sample_data.variables, ['ABSIC' kStr]);
       remove(end+1) = getVar(sample_data.variables, ['CMAG' kStr]);
       remove(end+1) = getVar(sample_data.variables, ['PERG' kStr]);
   end
@@ -383,14 +484,25 @@ error(nargchk(1, 2, nargin));
       sample_data{2}.meta.user                       = [];
       sample_data{2}.meta.instrument_sample_interval = median(diff(waveData.param.time*24*3600));
       
+      avgInterval = [];
+      if isfield(waveData, 'summary')
+          iMatch = ~cellfun(@isempty, regexp(waveData.summary, 'Each Burst Contains  [0-9]* Samples, Taken at [0-9\.]* Hz.'));
+          if any(iMatch)
+              avgInterval = textscan(waveData.summary{iMatch}, 'Each Burst Contains  %f Samples, Taken at %f Hz.');
+              avgInterval = avgInterval{1}/avgInterval{2};
+          end
+      end
+      sample_data{2}.meta.instrument_average_interval = avgInterval;
+      if isempty(avgInterval), avgInterval = '?'; end
+      
       sample_data{2}.dimensions = {};
       sample_data{2}.variables  = {};
       
       % add dimensions with their data mapped
       dims = {
-          'TIME',                   waveData.param.time; ...
-          'FREQUENCY',              waveData.Dspec.freq; ...
-          ['DIR' magExt],           waveData.Dspec.dir
+          'TIME',                   waveData.param.time,    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(avgInterval) ' seconds.']; ...
+          'FREQUENCY',              waveData.Dspec.freq,    ''; ...
+          ['DIR' magExt],           waveData.Dspec.dir,     ''
           };
       
       nDims = size(dims, 1);
@@ -406,32 +518,35 @@ error(nargchk(1, 2, nargin));
       end
       clear dims;
       
+      % add information about the middle of the measurement period
+      sample_data{2}.dimensions{1}.seconds_to_middle_of_measurement = sample_data{2}.meta.instrument_average_interval/2;
+      
       % add variables with their dimensions and data mapped
       vars = {
           'TIMESERIES',     [],         1; ...
           'LATITUDE',       [],         NaN; ...
           'LONGITUDE',      [],         NaN; ...
           'NOMINAL_DEPTH',  [],         NaN; ...
-          'VAVH',           1,          waveData.param.Hs; ...   % sea_surface_wave_significant_height
-          'WPPE',           1,          waveData.param.Tp; ...   % sea_surface_wave_period_at_variance_spectral_density_maximum
-          ['WPDI' magExt],  1,          waveData.param.Dp; ...   % sea_surface_wave_from_direction_at_variance_spectral_density_maximum
-          'WWSH',           1,          waveData.param.Hs_W; ... % sea_surface_wind_wave_significant_height
-          'WWPP',           1,          waveData.param.Tp_W; ... % sea_surface_wind_wave_period_at_variance_spectral_density_maximum
-          ['WWPD' magExt],  1,          waveData.param.Dp_W; ... % sea_surface_wind_wave_from_direction_at_variance_spectral_density_maximum
-          'SWSH',           1,          waveData.param.Hs_S; ... % sea_surface_swell_wave_significant_height
-          'SWPP',           1,          waveData.param.Tp_S; ... % sea_surface_swell_wave_period_at_variance_spectral_density_maximum
-          ['SWPD' magExt],  1,          waveData.param.Dp_S; ... % sea_surface_swell_wave_from_direction_at_variance_spectral_density_maximum
+          'WSSH',           1,          waveData.param.Hs; ...   % Significant Wave Height Hs = 4 sqrt(M0)
+          'WPPE',           1,          waveData.param.Tp; ...   % Peak Wave Period (seconds) - period associated with the largest peak in the power spectrum
+          ['WPDI' magExt],  1,          waveData.param.Dp; ...   % Peak Wave Direction (degrees) - peak direction at the peak period
+          'WWSH',           1,          waveData.param.Hs_W; ... % Significant Wave Height in the sea region of the power spectrum
+          'WWPP',           1,          waveData.param.Tp_W; ... % Peak Sea Wave Period (seconds) - period associated with the largest peak in the sea region of the power spectrum
+          ['WWPD' magExt],  1,          waveData.param.Dp_W; ... % Peak Sea Wave Direction (degrees) - peak sea direction at the peak period in the sea region
+          'SWSH',           1,          waveData.param.Hs_S; ... % Significant Wave Height in the swell region of the power spectrum
+          'SWPP',           1,          waveData.param.Tp_S; ... % Peak Swell Wave Period (seconds) - period associated with the largest peak in the swell region of the power spectrum
+          ['SWPD' magExt],  1,          waveData.param.Dp_S; ... % Peak Swell Wave Direction (degrees) - peak swell direction at the peak period in the swell region
           % ht is in mm
           'DEPTH',          1,          waveData.param.ht/1000; ...
-          'WMXH',           1,          waveData.param.Hmax; ...  % sea_surface_wave_maximum_height
-          'WMPP',           1,          waveData.param.Tmax; ...  % sea_surface_wave_maximum_period_at_variance_spectral_density_maximum
-          'WHTH',           1,          waveData.param.Hth; ...   % sea_surface_wave_significant_height_of_largest_third
-          'WPTH',           1,          waveData.param.Tth; ...   % sea_surface_wave_period_at_largest_third_peak_wave_height
-          'WMSH',           1,          waveData.param.Hmn; ...   % sea_surface_wave_mean_significant_height
-          'WPMH',           1,          waveData.param.Tmn; ...   % sea_surface_wave_period_at_mean_significant_wave_height
-          'WHTE',           1,          waveData.param.Hte; ...   % sea_surface_wave_significant_height_of_largest_tenth
-          'WPTE',           1,          waveData.param.Tte; ...   % sea_surface_wave_period_at_largest_tenth_peak_wave_height
-          ['WMPD' magExt],  1,          waveData.param.Dmn; ...   % sea_surface_wave_from_mean_direction_at_variance_spectral_density_maximum
+          'WMXH',           1,          waveData.param.Hmax; ...  % Maximum wave height (meters) as determined by Zero-Crossing analysis of the surface track time series
+          'WMPP',           1,          waveData.param.Tmax; ...  % Maximum Peak Wave Period (seconds) as determined by Zero-Crossing analysis of the surface track time series
+          'WHTH',           1,          waveData.param.Hth; ...   % Significant wave height of the largest 1/3 of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          'WPTH',           1,          waveData.param.Tth; ...   % The period associated with the peak wave height of the largest 1/3 of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          'WMSH',           1,          waveData.param.Hmn; ...   % The mean significant wave height of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          'WPMH',           1,          waveData.param.Tmn; ...   % The period associated with the mean significant wave height of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          'WHTE',           1,          waveData.param.Hte; ...   % Significant wave height of the largest 1/10 of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          'WPTE',           1,          waveData.param.Tte; ...   % The period associated with the peak wave height of the largest 1/10 of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
+          ['VDIR' magExt],  1,          waveData.param.Dmn; ...   % Mean Peak Wave Direction
           % Vspec is in mm/sqrt(Hz)
           'VDEV',           [1 2],      (waveData.Vspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_velocity
           'VDEP',           [1 2],      (waveData.Pspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_pressure
@@ -455,7 +570,7 @@ error(nargchk(1, 2, nargin));
               end
           end
           sample_data{2}.variables{i}.data         = sample_data{2}.variables{i}.typeCastFunc(vars{i, 3});
-          if any(strcmpi(vars{i, 1}, {'WPDI', 'WWPD', 'SWPD', 'WMPD', 'SSWV'}))
+          if any(strcmpi(vars{i, 1}, {'WPDI', 'WWPD', 'SWPD', 'VDIR', 'SSWV'}))
               sample_data{2}.variables{i}.compass_correction_applied = magDec;
               sample_data{2}.variables{i}.comment  = magBiasComment;
           end
@@ -478,12 +593,4 @@ function direction = getDirectionFromUV(uvel, vvel)
     direction(se) = 180 - direction(se);
     direction(sw) = 180 + direction(sw);
     direction(nw) = 360 - direction(nw);
-end
-
-function angle = make0To360(angle)
-    iLower = angle < 0;
-    angle(iLower) = 360 + angle(iLower);
-    
-    iHigher = angle >= 360;
-    angle(iHigher) = angle(iHigher) - 360;
 end

@@ -5,7 +5,7 @@ function sample_data = netcdfParse( filename, mode )
 %
 % Inputs:
 %   filename    - cell array of file names (only one supported).
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - struct containing the imported data set.
@@ -16,35 +16,23 @@ function sample_data = netcdfParse( filename, mode )
 %               Gordon Keith <gordon.keith@csiro.au>
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,2,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(1,2);
 
   if ~iscellstr(filename), error('filename must be a cell array of strings'); 
   end
@@ -184,6 +172,8 @@ function sample_data = netcdfParse( filename, mode )
       sample_data.meta.level = imosFileVersion(sample_data.file_version, 'index');
   end
   
+  sample_data.toolbox_input_file              = filename;
+  
   [~, sample_data.meta.file_name, ext]        = fileparts(filename);
   sample_data.meta.file_name                  = [sample_data.meta.file_name, ext];
   sample_data.meta.site_id                    = '';
@@ -193,6 +183,7 @@ function sample_data = netcdfParse( filename, mode )
   sample_data.meta.instrument_model           = '';
   sample_data.meta.instrument_serial_no       = '';
   sample_data.meta.instrument_sample_interval = NaN;
+  sample_data.meta.featureType                = '';
   
   if isfield(sample_data, 'deployment_code')
       sample_data.meta.site_id = sample_data.deployment_code;
@@ -220,8 +211,20 @@ function sample_data = netcdfParse( filename, mode )
       sample_data.meta.beam_angle = sample_data.instrument_beam_angle;
   end
   
+  if isfield(sample_data, 'instrument_nominal_depth')
+      sample_data.meta.depth = sample_data.instrument_nominal_depth;
+  end
+  
   if isfield(sample_data, 'instrument_sample_interval')
       sample_data.meta.instrument_sample_interval = sample_data.instrument_sample_interval;
+  end
+  
+  if isfield(sample_data, 'featureType')
+      sample_data.meta.featureType = sample_data.featureType;
+  end
+  
+  if isfield(sample_data, 'quality_control_log')
+      sample_data.meta.log = sample_data.quality_control_log;
   end
   
   iHeightAboveSensor = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');

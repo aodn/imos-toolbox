@@ -22,35 +22,23 @@ function [sample_data, varChecked, paramsLog] = imosEchoIntensityVelocitySetQC( 
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
 %
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions are met:
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
 %
-%     * Redistributions of source code must retain the above copyright notice,
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright
-%       notice, this list of conditions and the following disclaimer in the
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors
-%       may be used to endorse or promote products derived from this software
-%       without specific prior written permission.
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-% POSSIBILITY OF SUCH DAMAGE.
-%
-error(nargchk(1, 2, nargin));
+narginchk(1, 2);
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
 % auto logical in input to enable running under batch processing
@@ -65,9 +53,9 @@ idVcur = 0;
 idWcur = 0;
 idCspd = 0;
 idCdir = 0;
-idABSI = cell(4, 1);
+idABSIC = cell(4, 1);
 for j=1:4
-    idABSI{j}  = 0;
+    idABSIC{j}  = 0;
 end
 lenVar = length(sample_data.variables);
 for i=1:lenVar
@@ -80,21 +68,21 @@ for i=1:lenVar
     if strncmpi(paramName, 'CDIR', 4),  idCdir = i; end
     for j=1:4
         cc = int2str(j);
-        if strcmpi(paramName, ['ABSI' cc]), idABSI{j} = i; end
+        if strcmpi(paramName, ['ABSIC' cc]), idABSIC{j} = i; end
     end
 end
 
 % check if the data is compatible with the QC algorithm
 idMandatory = (idUcur | idVcur | idWcur | idCspd | idCdir);
 for j=1:4
-    idMandatory = idMandatory & idABSI{j};
+    idMandatory = idMandatory & idABSIC{j};
 end
 if ~idMandatory, return; end
 
 % let's get the associated vertical dimension
-idVertDim = sample_data.variables{idABSI{1}}.dimensions(2);
+idVertDim = sample_data.variables{idABSIC{1}}.dimensions(2);
 if strcmpi(sample_data.dimensions{idVertDim}.name, 'DIST_ALONG_BEAMS')
-    disp(['Warning : imosEchoIntensityVelocitySetQC applied with a non tilt-corrected ABSIn (no bin mapping) on dataset ' sample_data.toolbox_input_file]);
+    disp(['Warning : imosEchoIntensityVelocitySetQC applied with a non tilt-corrected ABSICn (no bin mapping) on dataset ' sample_data.toolbox_input_file]);
 end
 
 qcSet           = str2double(readProperty('toolbox.qc_set'));
@@ -103,10 +91,10 @@ goodFlag        = imosQCFlag('good',            qcSet, 'flag');
 rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
 
 %Pull out echo intensity
-sizeData = size(sample_data.variables{idABSI{1}}.data);
+sizeData = size(sample_data.variables{idABSIC{1}}.data);
 ea = nan(4, sizeData(1), sizeData(2));
-for j=1:4;
-    ea(j, :, :) = sample_data.variables{idABSI{j}}.data;
+for j=1:4
+    ea(j, :, :) = sample_data.variables{idABSIC{j}}.data;
 end
 
 % read in filter parameters
@@ -116,7 +104,7 @@ ea_thresh = str2double(readProperty('ea_thresh',   propFile));
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest = mfilename;
-ea_thresh = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
+ea_thresh = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
 
 paramsLog = ['ea_thresh=' num2str(ea_thresh)];
 
@@ -189,6 +177,6 @@ if idCspd
 end
 
 % write/update dataset QC parameters
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
 
 end

@@ -8,6 +8,7 @@ function sample_data = readXR420( filename, mode )
 %
 % Inputs:
 %   filename    - Cell array containing the name of the file to parse.
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - Struct containing imported sample data.
@@ -16,35 +17,23 @@ function sample_data = readXR420( filename, mode )
 % Contributor : Guillaume Galibert <guillaume.galibert@utas.edu.au>
 
 %
-% Copyright (c) 2010, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(1,2,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(2,2);
   
   if ~ischar(filename)  
     error('filename must be a string'); 
@@ -72,10 +61,10 @@ function sample_data = readXR420( filename, mode )
   sample_data.meta.instrument_firmware  = header.firmware;
   sample_data.meta.instrument_serial_no = header.serial;
   sample_data.meta.instrument_sample_interval = median(diff(data.time*24*3600));
-  sample_data.meta.correction           = header.correction;
+  sample_data.meta.featureType          = mode;
   
   if isfield(header, 'correction'),             sample_data.meta.correction             = header.correction; end
-  if isfield(header, 'averaging_time_period'),  sample_data.meta.averaging_time_period  = header.averaging_time_period; end
+  if isfield(header, 'averaging_time_period'),  sample_data.meta.instrument_average_interval = header.averaging_time_period; end
   if isfield(header, 'burst_sample_rate'),      sample_data.meta.burst_sample_rate      = header.burst_sample_rate; end
   
   sample_data.dimensions = {};  
@@ -177,7 +166,7 @@ function sample_data = readXR420( filename, mode )
           sample_data.variables{end}.name         = 'TIME';
           sample_data.variables{end}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
           sample_data.variables{end}.data         = sample_data.variables{end}.typeCastFunc([descendingTime, ascendingTime]);
-          sample_data.variables{end}.comment      = 'First value over profile measurement';
+          sample_data.variables{end}.comment      = 'First value over profile measurement.';
           
           sample_data.variables{end+1}.dimensions = dimensions;
           sample_data.variables{end}.name         = 'DIRECTION';
@@ -261,9 +250,7 @@ function sample_data = readXR420( filename, mode )
                   %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlCa'
                       name = 'CPHL';
-                      comment.(vars{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
+                      comment.(vars{k}) = getCPHLcomment('unknown','470nm','685nm');
               end
               
               sample_data.variables{end  }.name       = name;
@@ -282,10 +269,14 @@ function sample_data = readXR420( filename, mode )
               end
           end
           
-      otherwise
+      case 'timeSeries'
           sample_data.dimensions{1}.name            = 'TIME';
           sample_data.dimensions{1}.typeCastFunc    = str2func(netcdf3ToMatlabType(imosParameters(sample_data.dimensions{1}.name, 'type')));
           sample_data.dimensions{1}.data            = sample_data.dimensions{1}.typeCastFunc(data.time);
+          if isfield(header, 'averaging_time_period')
+              sample_data.dimensions{1}.comment         = ['Time stamp corresponds to the start of the measurement which lasts ' num2str(header.averaging_time_period) ' seconds.'];
+              sample_data.dimensions{1}.seconds_to_middle_of_measurement = header.averaging_time_period/2; %assume averaging time is always in seconds
+          end
           
           sample_data.variables{end+1}.name           = 'TIMESERIES';
           sample_data.variables{end}.typeCastFunc     = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
@@ -330,10 +321,7 @@ function sample_data = readXR420( filename, mode )
                   %Fluorometry-chlorophyl (ug/l) = (mg.m-3)
                   case 'FlCa'
                       name = 'CPHL';
-                      comment.(fields{k}) = ['Artificial chlorophyll data computed from ' ...
-                          'fluorometry sensor raw counts measurements. Originally ' ...
-                          'expressed in ug/l, 1l = 0.001m3 was assumed.'];
-                      
+                      comment.(fields{k}) = getCPHLcomment('unknown','470nm','685nm');
                   %DO (%)
                   case 'D_O2', name = 'DOXS';
                       
@@ -364,7 +352,7 @@ function header = readHeader(fid)
   line = fgetl(fid);
   
   % a single blank line separates the header from the data
-  while ~isempty(line)
+  while ~isempty(line) && ischar(line)
     
     lines = [lines line];
     line  = fgetl(fid);
@@ -463,4 +451,8 @@ function data = readData(fid, header)
   % generate time stamps from start/interval/end
   data.time = header.start:header.interval:header.end;
   data.time = data.time(1:length(samples{1}))';
+  
+%   if isfield(header, 'averaging_time_period')
+%       data.time = data.time + (header.averaging_time_period/(24*3600))/2; %assume averaging time is always in seconds
+%   end
 end

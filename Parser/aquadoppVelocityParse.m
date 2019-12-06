@@ -6,7 +6,7 @@ function sample_data = aquadoppVelocityParse( filename, mode )
 % Inputs:
 %   filename    - Cell array containing the name of the raw aquadopp velocity 
 %                 file to parse.
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 % 
 % Outputs:
 %   sample_data - Struct containing sample data.
@@ -15,35 +15,23 @@ function sample_data = aquadoppVelocityParse( filename, mode )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(1,2,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+narginchk(1,2);
 
 if ~iscellstr(filename), error('filename must be a cell array of strings'); end
 
@@ -60,26 +48,6 @@ user     = structures.Id0;
 
 % the rest of the sections are aquadopp velocity data, diagnostic header
 % and diagnostic data. We will only keep the velocity data (Id == 1) .
-nsamples = length(structures.Id1);
-ncells   = user.NBins;
-
-% preallocate memory for all sample data
-time         = zeros(nsamples, 1);
-distance     = zeros(ncells,   1);
-analn1       = zeros(nsamples, 1);
-battery      = zeros(nsamples, 1);
-analn2       = zeros(nsamples, 1);
-heading      = zeros(nsamples, 1);
-pitch        = zeros(nsamples, 1);
-roll         = zeros(nsamples, 1);
-pressure     = zeros(nsamples, 1);
-temperature  = zeros(nsamples, 1);
-velocity1    = zeros(nsamples, ncells);
-velocity2    = zeros(nsamples, ncells);
-velocity3    = zeros(nsamples, ncells);
-backscatter1 = zeros(nsamples, ncells);
-backscatter2 = zeros(nsamples, ncells);
-backscatter3 = zeros(nsamples, ncells);
 
 %
 % calculate distance values from metadata. See continentalParse.m 
@@ -90,6 +58,7 @@ backscatter3 = zeros(nsamples, ncells);
 freq       = head.Frequency; % this is in KHz
 cellStart  = user.T2;        % counts
 cellLength = user.BinLength; % counts
+ncells     = user.NBins;
 factor     = 0;              % used for conversion
 
 switch freq
@@ -100,9 +69,9 @@ cellLength = (cellLength / 256) * factor * cos(25 * pi / 180);
 cellStart  =  cellStart         * 0.0229 * cos(25 * pi / 180) - cellLength;
 
 % generate distance values
-distance(:) = (cellStart):  ...
-           (cellLength): ...
-           (cellStart + (ncells-1) * cellLength);
+distance = (cellStart:  ...
+           cellLength: ...
+           cellStart + (ncells-1) * cellLength)';
 
 % Note this is actually the distance between the ADCP's transducers and the
 % middle of each cell
@@ -112,32 +81,33 @@ distance(:) = (cellStart):  ...
 distance = distance + cellLength;
        
 % retrieve sample data
-time         = structures.Id1.Time';
-analn1       = structures.Id1.Analn1';
-battery      = structures.Id1.Battery';
-analn2       = structures.Id1.Analn2';
-heading      = structures.Id1.Heading';
-pitch        = structures.Id1.Pitch';
-roll         = structures.Id1.Roll';
-pressure     = structures.Id1.PressureMSB'*65536 + structures.Id1.PressureLSW';
-temperature  = structures.Id1.Temperature';
-velocity1    = structures.Id1.Vel1';
-velocity2    = structures.Id1.Vel2';
-velocity3    = structures.Id1.Vel3';
-backscatter1 = structures.Id1.Amp1';
-backscatter2 = structures.Id1.Amp2';
-backscatter3 = structures.Id1.Amp3';
+time         = [structures.Id1(:).Time]';
+analn1       = [structures.Id1(:).Analn1]';
+battery      = [structures.Id1(:).Battery]';
+soundSpeed   = [structures.Id1(:).Analn2]';
+heading      = [structures.Id1(:).Heading]';
+pitch        = [structures.Id1(:).Pitch]';
+roll         = [structures.Id1(:).Roll]';
+pressure     = [structures.Id1(:).PressureMSB]'*65536 + [structures.Id1(:).PressureLSW]';
+temperature  = [structures.Id1(:).Temperature]';
+velocity1    = [structures.Id1(:).Vel1]';
+velocity2    = [structures.Id1(:).Vel2]';
+velocity3    = [structures.Id1(:).Vel3]';
+backscatter1 = [structures.Id1(:).Amp1]';
+backscatter2 = [structures.Id1(:).Amp2]';
+backscatter3 = [structures.Id1(:).Amp3]';
 clear structures;
 
 % battery     / 10.0   (0.1 V    -> V)
+% soundSpeed  / 10.0   (0.1 m/s  -> m/s)
 % heading     / 10.0   (0.1 deg  -> deg)
 % pitch       / 10.0   (0.1 deg  -> deg)
 % roll        / 10.0   (0.1 deg  -> deg)
 % pressure    / 1000.0 (mm       -> m)   assuming equivalence to dbar
 % temperature / 100.0  (0.01 deg -> deg)
 % velocities  / 1000.0 (mm/s     -> m/s) assuming earth coordinates
-% backscatter * 0.45   (counts   -> dB)  see http://www.nortek-as.com/lib/technical-notes/seditments
 battery      = battery      / 10.0;
+soundSpeed   = soundSpeed   / 10.0;
 heading      = heading      / 10.0;
 pitch        = pitch        / 10.0;
 roll         = roll         / 10.0;
@@ -146,9 +116,6 @@ temperature  = temperature  / 100.0;
 velocity1    = velocity1    / 1000.0;
 velocity2    = velocity2    / 1000.0;
 velocity3    = velocity3    / 1000.0;
-backscatter1 = backscatter1 * 0.45;
-backscatter2 = backscatter2 * 0.45;
-backscatter3 = backscatter3 * 0.45;
 
 sample_data = struct;
     
@@ -162,11 +129,13 @@ sample_data.meta.instrument_model           = 'Aquadopp Current Meter';
 sample_data.meta.instrument_serial_no       = hardware.SerialNo;
 sample_data.meta.instrument_firmware        = hardware.FWversion;
 sample_data.meta.instrument_sample_interval = median(diff(time*24*3600));
+sample_data.meta.instrument_average_interval= user.AvgInterval;
 sample_data.meta.beam_angle                 = 45;   % http://wiki.neptunecanada.ca/download/attachments/18022846/Nortek+Aquadopp+Current+Meter+User+Manual+-+Rev+C.pdf
+sample_data.meta.featureType                = mode;
 
 % add dimensions with their data mapped
 dims = {
-    'TIME',                   time
+    'TIME', time, ['Time stamp corresponds to the start of the measurement which lasts ' num2str(user.AvgInterval) ' seconds.'] 
     };
 clear time;
 
@@ -176,30 +145,48 @@ for i=1:nDims
     sample_data.dimensions{i}.name         = dims{i, 1};
     sample_data.dimensions{i}.typeCastFunc = str2func(netcdf3ToMatlabType(imosParameters(dims{i, 1}, 'type')));
     sample_data.dimensions{i}.data         = sample_data.dimensions{i}.typeCastFunc(dims{i, 2});
+    sample_data.dimensions{i}.comment      = dims{i, 3};
 end
 clear dims;
 
+% add information about the middle of the measurement period
+sample_data.dimensions{1}.seconds_to_middle_of_measurement = user.AvgInterval/2;
+
 % add variables with their dimensions and data mapped.
-% we assume no correction for magnetic declination has been applied
+switch user.CoordSystem
+    case 0 % ENU
+        vel2Name = 'VCUR_MAG'; % we assume no correction for magnetic declination has been applied
+        vel1Name = 'UCUR_MAG';
+        vel3Name = 'WCUR';
+        
+    case 2 % Beam
+        vel2Name = 'VEL2';
+        vel1Name = 'VEL1';
+        vel3Name = 'VEL3';
+        
+    otherwise
+        error([mfilename ' only supports ENU and Beam coordinate systems']);
+end
 vars = {
     'TIMESERIES',       [], 1;...
     'LATITUDE',         [], NaN; ...
     'LONGITUDE',        [], NaN; ...
     'NOMINAL_DEPTH',    [], NaN; ...
-    'VCUR_MAG',         1,  velocity2; ... % V
-    'UCUR_MAG',         1,  velocity1; ... % U
-    'WCUR',             1,  velocity3; ...
-    'ABSI1',            1,  backscatter1; ...
-    'ABSI2',            1,  backscatter2; ...
-    'ABSI3',            1,  backscatter3; ...
+    vel2Name,           1,  velocity2; ...
+    vel1Name,           1,  velocity1; ...
+    vel3Name,           1,  velocity3; ...
+    'ABSIC1',           1,  backscatter1; ...
+    'ABSIC2',           1,  backscatter2; ...
+    'ABSIC3',           1,  backscatter3; ...
     'TEMP',             1,  temperature; ...
     'PRES_REL',         1,  pressure; ...
     'VOLT',             1,  battery; ...
+    'SSPD',             1,  soundSpeed; ...
     'PITCH',            1,  pitch; ...
     'ROLL',             1,  roll; ...
     'HEADING_MAG',      1,  heading
     };
-clear analn1 analn2 time distance velocity1 velocity2 velocity3 ...
+clear analn1 soundSpeed time distance velocity1 velocity2 velocity3 ...
     backscatter1 backscatter2 backscatter3 ...
     temperature pressure battery pitch roll heading;
 

@@ -20,6 +20,8 @@ lt = time.localtime()
 
 project = 'imos-toolbox'
 
+version    = '2.5'
+
 url        = 'https://github.com/aodn/%s.git' % project
 exportDir  = 'export'
 
@@ -30,6 +32,7 @@ compilerLog = '.\%s\log.txt' % exportDir
 #
 print('\n--exporting tree from %s to %s' % (url, exportDir))
 os.system('git clone %s %s' % (url, exportDir))
+os.system('cd %s && git checkout %s' % (exportDir, version))
 
 #
 # remove snapshot directory
@@ -50,9 +53,9 @@ if compiled is not 0:
 #
 # create snapshot
 #
-print('\n--building Matlab binaries')
-matlabOpts = '-nodisplay -nojvm -wait -logfile "%s"' % compilerLog
-matlabCmd = "addpath('Util'); try, imosCompile(); exit(); catch e, disp(e.message); end;"
+print('\n--running Matlab unit tests and building binaries')
+matlabOpts = '-nosplash -wait -logfile "%s"' % compilerLog
+matlabCmd = "addpath('Util', 'test'); try, runTests(); imosCompile(); exit(); catch e, disp(e.message); end;"
 os.system('cd %s && matlab %s -r "%s"' % (exportDir, matlabOpts, matlabCmd))
 
 print('\n--removing local git tree')

@@ -1,2 +1,10 @@
-
+*.ppp
+.mypy_cache/*
+Java/bin
+*.pyc
 *.m~
+*.log
+data
+dist
+data/*
+dist/*

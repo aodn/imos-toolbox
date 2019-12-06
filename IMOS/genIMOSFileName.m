@@ -1,15 +1,15 @@
-function filename = genIMOSFileName( sample_data, suffix )
+function filename = genIMOSFileName( sample_data, extension )
 %GENIMOSFILENAME Generates an IMOS file name for the given data set.
 %
 % Generates a file name for the given data set. The file name is generated 
-% according to the IMOS NetCDF File Naming Convention, version 1.3. Values
+% according to the IMOS NetCDF File Naming Convention, version 1.4. Values
 % for each field are retrieved from the imosFileName.txt configuration
 % file. Any fields which are not present, or not set in this file are given
 % a default value.
 %
 % Inputs:
 %   sample_data - the data set to generate a file name for.
-%   suffix      - file name suffix to use.
+%   extension   - file extension to use.
 %
 % Outputs:
 %   filename    - the generated file name.
@@ -20,56 +20,43 @@ function filename = genIMOSFileName( sample_data, suffix )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(2,2,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(2,2);
 
   if ~isstruct(sample_data), error('sample_data must be a struct'); end
-  if ~ischar(suffix),        error('suffix must be a string');      end
+  if ~ischar(extension),     error('extension must be a string');   end
 
   %
   % all dates should be in ISO 8601 format
   %
   dateFmt = readProperty('exportNetCDF.fileDateFormat');
 
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
+  % get the toolbox execution mode
   mode = readProperty('toolbox.mode');
   
   % get default config, and file config
   defCfg  = genDefaultFileNameConfig(sample_data, dateFmt, mode);
   fileCfg = readFileNameConfig(sample_data);
   
-  switch lower(mode)
+  switch mode
       case 'profile'
           % build the file name
-          if strcmpi(suffix, 'png')
+          if strcmpi(extension, '.png')
               filename = [sample_data.naming_authority '_'];
               filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
               filename = [filename        getVal(fileCfg, defCfg, 'site_code')     '_'];
@@ -86,9 +73,9 @@ function filename = genIMOSFileName( sample_data, suffix )
               filename = [filename        getVal(fileCfg, defCfg, 'product_type')  '_'];
               filename = [filename 'C-'   getVal(fileCfg, defCfg, 'creation_date')    ];
           end
-      otherwise
+      case 'timeSeries'
           % build the file name
-          if strcmpi(suffix, 'png')
+          if strcmpi(extension, '.png')
               filename = [sample_data.naming_authority '_'];
               filename = [filename        getVal(fileCfg, defCfg, 'facility_code') '_'];
               filename = [filename        getVal(fileCfg, defCfg, 'platform_code') '_'];
@@ -117,10 +104,13 @@ function filename = genIMOSFileName( sample_data, suffix )
   end
   
   % it is assumed that the suffix is valid
-  filename = [filename '.'    suffix];
+  if isempty(extension) % for export of raw datasets, we retain the original suffix
+      [~, ~, extension] = fileparts(sample_data.toolbox_input_file);
+  end
+  filename = [filename extension];
 
   % we handle the case when the source file is a NetCDF file.
-  if isfield(sample_data.meta, 'file_name') && strcmpi(suffix, 'nc')
+  if isfield(sample_data.meta, 'file_name') && strcmpi(extension, '.nc')
       filename = sample_data.meta.file_name;
       
       % we need to update the creation_date
@@ -190,12 +180,12 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt, mode)
   config.file_version  = imosFileVersion(sample_data.meta.level, 'fileid');
   
   % <product_type>
-  switch lower(mode)
+  switch mode
       case 'profile'
           config.product_type  = ['Profile-' ...
               sample_data.meta.instrument_model];
           
-      otherwise
+      case 'timeSeries'
           config.product_type  = [...
               sample_data.meta.site_id '-' ...
               sample_data.meta.instrument_model    '-' ...

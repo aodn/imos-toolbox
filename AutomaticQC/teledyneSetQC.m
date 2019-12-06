@@ -18,35 +18,23 @@ function [sample_data, varChecked, paramsLog] = teledyneSetQC( sample_data, auto
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
 %
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions are met:
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
 %
-%     * Redistributions of source code must retain the above copyright notice,
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright
-%       notice, this list of conditions and the following disclaimer in the
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors
-%       may be used to endorse or promote products derived from this software
-%       without specific prior written permission.
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-% POSSIBILITY OF SUCH DAMAGE.
-%
-error(nargchk(1, 2, nargin));
+narginchk(1, 2);
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
 % auto logical in input to enable running under batch processing
@@ -145,12 +133,12 @@ qcthresh.ea_thresh = str2double(readProperty('ea_thresh', propFile));
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest   = mfilename;
-qcthresh.err_vel    = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel',     qcthresh.err_vel);
-qcthresh.pgood      = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'pgood',       qcthresh.pgood);
-qcthresh.cmag       = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'cmag',        qcthresh.cmag);
-qcthresh.vvel       = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'vvel',        qcthresh.vvel);
-qcthresh.hvel       = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'hvel',        qcthresh.hvel);
-qcthresh.ea_thresh  = readQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh',   qcthresh.ea_thresh);
+qcthresh.err_vel    = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel',     qcthresh.err_vel);
+qcthresh.pgood      = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'pgood',       qcthresh.pgood);
+qcthresh.cmag       = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'cmag',        qcthresh.cmag);
+qcthresh.vvel       = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'vvel',        qcthresh.vvel);
+qcthresh.hvel       = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'hvel',        qcthresh.hvel);
+qcthresh.ea_thresh  = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh',   qcthresh.ea_thresh);
 
 paramsLog = ['err_vel=' num2str(qcthresh.err_vel) ', pgood=' num2str(qcthresh.pgood) ...
     ', cmag=' num2str(qcthresh.cmag) ', vvel=' num2str(qcthresh.vvel) ...
@@ -195,12 +183,12 @@ if idCspd
 end
 
 % write/update dataset QC parameters
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel',  qcthresh.err_vel);
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'pgood',    qcthresh.pgood);
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'cmag',     qcthresh.cmag);
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'vvel',     qcthresh.vvel);
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'hvel',     qcthresh.hvel);
-writeQCparameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh',qcthresh.ea_thresh);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'err_vel',  qcthresh.err_vel);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'pgood',    qcthresh.pgood);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'cmag',     qcthresh.cmag);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'vvel',     qcthresh.vvel);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'hvel',     qcthresh.hvel);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh',qcthresh.ea_thresh);
         
 end
 

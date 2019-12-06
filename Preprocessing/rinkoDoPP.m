@@ -18,47 +18,37 @@ function sample_data = rinkoDoPP( sample_data, qcLevel, auto )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
 %
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions are met:
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
 %
-%     * Redistributions of source code must retain the above copyright notice,
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright
-%       notice, this list of conditions and the following disclaimer in the
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors
-%       may be used to endorse or promote products derived from this software
-%       without specific prior written permission.
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-% POSSIBILITY OF SUCH DAMAGE.
-%
-error(nargchk(2, 3, nargin));
+narginchk(2, 3);
 
 if ~iscell(sample_data), error('sample_data must be a cell array'); end
 if isempty(sample_data), return;                                    end
 
+% no modification of data is performed on the raw FV00 dataset except
+% local time to UTC conversion
 if strcmpi(qcLevel, 'raw'), return; end
 
 % auto logical in input to enable running under batch processing
 if nargin<3, auto=false; end
 
 ParamFile = ['Preprocessing' filesep 'rinkoDoPP.txt'];
-voltDOLabel     = readProperty('voltDO', ParamFile, ',');
-voltTempDOLabel = readProperty('voltTempDO', ParamFile, ',');
+voltDOLabel     = readProperty('voltDO', ParamFile);
+voltTempDOLabel = readProperty('voltTempDO', ParamFile);
 
 for k = 1:length(sample_data)
     
@@ -86,8 +76,6 @@ for k = 1:length(sample_data)
         end
     end
     
-    psalIdx       = getVar(sam.variables, 'PSAL');
-    
     % volt DO, volt temp DO, and pres/pres_rel or nominal depth not present in data set
     if ~(voltDOIdx && voltTempDOIdx && (isPresVar || isDepthInfo)), continue; end
     
@@ -107,6 +95,11 @@ for k = 1:length(sample_data)
     else
         if depthIdx > 0
             depth = sam.(depthType){depthIdx}.data;
+            
+            % any depth values <= -5 are discarded (reminder, depth is
+            % positive down), this allow use of gsw_p_from_z without error.
+            depth(depth <= -5) = NaN;
+    
             if ~isempty(sam.geospatial_lat_min) && ~isempty(sam.geospatial_lat_max)
                 % compute depth with Gibbs-SeaWater toolbox
                 % relative_pressure ~= gsw_p_from_z(-depth, latitude)
@@ -125,28 +118,45 @@ for k = 1:length(sample_data)
             end
             
         else
-            presRel = sam.instrument_nominal_depth*ones(size(temp));
+            % get the toolbox execution mode
+            mode = readProperty('toolbox.mode');
+            switch mode
+                case 'profile'
+                    dimIdx = getVar(sam.dimensions, 'DEPTH');
+                    if dimIdx == 0
+                        dimIdx = getVar(sam.dimensions, 'MAXZ');
+                    end
+                    
+                case 'timeSeries'
+                    dimIdx = getVar(sam.dimensions, 'TIME');
+                    
+                otherwise
+                    return;
+                    
+            end
+            
+            presRel = sam.instrument_nominal_depth * ones(size(sam.dimensions{dimIdx}.data));
             presName = 'instrument_nominal_depth (assuming 1 m ~ 1 dbar)';
         end
     end
     
     % define Temp DO coefficients
-    A = str2double(readProperty('aTempDO', ParamFile, ','));
-    B = str2double(readProperty('bTempDO', ParamFile, ','));
-    C = str2double(readProperty('cTempDO', ParamFile, ','));
-    D = str2double(readProperty('dTempDO', ParamFile, ','));
+    A = str2double(readProperty('aTempDO', ParamFile));
+    B = str2double(readProperty('bTempDO', ParamFile));
+    C = str2double(readProperty('cTempDO', ParamFile));
+    D = str2double(readProperty('dTempDO', ParamFile));
     
     tempDO = A + B*voltTempDO + C*voltTempDO.^2 + D*voltTempDO.^3;
     
     % define DO coefficients
-    A = str2double(readProperty('aDO', ParamFile, ','));
-    B = str2double(readProperty('bDO', ParamFile, ','));
-    C = str2double(readProperty('cDO', ParamFile, ','));
-    D = str2double(readProperty('dDO', ParamFile, ','));
-    E = str2double(readProperty('eDO', ParamFile, ','));
-    F = str2double(readProperty('fDO', ParamFile, ','));
-    G = str2double(readProperty('gDO', ParamFile, ','));
-    H = str2double(readProperty('hDO', ParamFile, ','));
+    A = str2double(readProperty('aDO', ParamFile));
+    B = str2double(readProperty('bDO', ParamFile));
+    C = str2double(readProperty('cDO', ParamFile));
+    D = str2double(readProperty('dDO', ParamFile));
+    E = str2double(readProperty('eDO', ParamFile));
+    F = str2double(readProperty('fDO', ParamFile));
+    G = str2double(readProperty('gDO', ParamFile));
+    H = str2double(readProperty('hDO', ParamFile));
     
     % RINKO III correction formulae on temperature
     DO = A./(1 + D*(tempDO - 25)) + B./((voltDO - F).*(1 + D*(tempDO - 25)) + C + F);
@@ -155,23 +165,17 @@ for k = 1:length(sample_data)
     DO = G + H*DO;
     
     % correction for pressure
-    DO = DO.*(1 + E*presRel); % DO is in % of dissolved oxygen during calibration at this stage
-    
-    if psalIdx > 0
-        psal = sam.variables{psalIdx}.data;
-        
-        % conversion in concentration using solubility and following garcia & gourdon (1992)
-        solubilityDO = O2sol(psal, tempDO, 'ml/l');
-        concentDO = solubilityDO.*DO/100; % in ml/l
-        concentDO = concentDO*44.660; % in umol/l. 1ml/l = 44.660 umol/l.
-    end
+    DO = DO.*(1 + E*presRel/100); % pressRel/100 => conversion dBar to MPa (see rinko correction formula pdf). DO is in % of dissolved oxygen during calibration at this stage.
     
     % add DO data as new variable in data set
     dimensions = sam.variables{voltDOIdx}.dimensions;
     
-    doComment = ['rinkoDoPP.m: dissolved oxygen in % of saturation derived from rinko dissolved oxygen and temperature voltages and ' presName ' using the RINKO III Correction method on Temperature and Pressure with instrument and calibration coefficients.'];
-    concentDoComment = [doComment ' Garcia and Gordon equations (1992-1993) and ml/l coefficients, assuming 1ml/l = 44.660umol/l, have been used to convert in umol/l.'];
-    tempDoComment = 'rinkoDoPP.m: temperature for dissolved oxygen sensor derived from rinko temperature voltages.';
+    doComment = ['rinkoDoPP.m: dissolved oxygen in % of saturation derived ' ...
+        'from rinko dissolved oxygen and temperature voltages and ' presName ...
+        ' using the RINKO III Correction method on Temperature and Pressure ' ...
+        'with instrument and calibration coefficients.'];
+    tempDoComment = ['rinkoDoPP.m: temperature for dissolved oxygen sensor ' ...
+        'derived from rinko temperature voltages.'];
     
     if isfield(sam.variables{voltDOIdx}, 'coordinates')
         coordinates = sam.variables{voltDOIdx}.coordinates;
@@ -195,24 +199,12 @@ for k = 1:length(sample_data)
         tempDoComment, ...
         coordinates);
     
-    if psalIdx > 0
-        sample_data{k} = addVar(...
-            sample_data{k}, ...
-            'DOX1', ...
-            concentDO, ...
-            dimensions, ...
-            concentDoComment, ...
-            coordinates);
-    end
-    
     history = sample_data{k}.history;
     if isempty(history)
         sample_data{k}.history = sprintf('%s - %s', datestr(now_utc, readProperty('exportNetCDF.dateFormat')), doComment);
         sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), tempDoComment);
-        if psalIdx > 0, sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), concentDoComment); end
     else
         sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), doComment);
         sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), tempDoComment);
-        if psalIdx > 0, sample_data{k}.history = sprintf('%s\n%s - %s', history, datestr(now_utc, readProperty('exportNetCDF.dateFormat')), concentDoComment); end
     end
 end

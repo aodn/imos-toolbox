@@ -50,35 +50,23 @@ function displayManager(windowTitle, sample_data, callbacks)
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  error(nargchk(3,3,nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  narginchk(3,3);
 
   if ~ischar(windowTitle), error('windowTitle must be a string');     end
   if ~iscell(sample_data), error('sample_data must be a cell array'); end
@@ -111,13 +99,11 @@ function displayManager(windowTitle, sample_data, callbacks)
   end
   
   lastState  = '';
-  lastSetIdx = [];
   qcSet      = str2double(readProperty('toolbox.qc_set'));
   badFlag    = imosQCFlag('bad', qcSet, 'flag');
   
-  % get the toolbox execution mode. Values can be 'timeSeries' and 'profile'. 
-  % If no value is set then default mode is 'timeSeries'
-  mode = lower(readProperty('toolbox.mode'));
+  % get the toolbox execution mode
+  mode = readProperty('toolbox.mode');
   
   % define the user options, and create the main window
   states = {'Import', 'Metadata', 'Raw data', 'QC data', 'QC stats', 'Reset manual QC' ...
@@ -126,7 +112,7 @@ function displayManager(windowTitle, sample_data, callbacks)
   mainWindow(windowTitle, sample_data, states, 3, @stateSelectCallback);
       
   function state = stateSelectCallback(event,...
-    panel, updateCallback, state, sample_data, graphType, setIdx, vars)
+    panel, updateCallback, state, sample_data, graphType, setIdx, vars, extraSetIdx, isFlagVisible)
   %STATESELECTCALLBACK Called when the user interacts with the main 
   % window, by changing the state, the selected data set, the selected
   % variables or the selected graph type.
@@ -140,6 +126,8 @@ function displayManager(windowTitle, sample_data, callbacks)
   %   graphType      - currently selected graph type (string).
   %   setIdx         - currently selected sample_data struct (index)
   %   vars           - currently selected variables (indices).
+  %   extraSetIdx    - currently selected extra sample_data struct (index)
+  %   isFlagVisible  - currently selected visibility of flags (boolean)
   %
   % Outputs:
   %   state          - If a state change was forced, tells the main window
@@ -158,7 +146,6 @@ function displayManager(windowTitle, sample_data, callbacks)
     end
     
     lastState  = state;
-    lastSetIdx = setIdx;
     
     function importCallback()
     %IMPORTCALLBACK Called when the user clicks the 'Import' button. Calls
@@ -177,8 +164,13 @@ function displayManager(windowTitle, sample_data, callbacks)
       
       for k = 1:length(sample_data), updateCallback(sample_data{k}); end
       
-      stateSelectCallback('state', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars);
+      switch(lastState)
+          case 'Metadata',        metadataCallback();
+          case 'Raw data',        rawDataCallback();
+          case 'QC data',         qcDataCallback();
+          case 'QC stats',        qcStatsCallback();
+          otherwise,              rawDataCallback();
+      end
       state = lastState;
     end
   
@@ -240,15 +232,28 @@ function displayManager(windowTitle, sample_data, callbacks)
       switch mode
           case 'profile'
               nVar = length(sample_data{setIdx}.variables) - 5;
-          otherwise
+          case 'timeSeries'
               nVar = length(sample_data{setIdx}.variables) - 3;
       end
       vars(vars > nVar) = [];
+      
+      if extraSetIdx
+          extra_sample_data = sample_data{extraSetIdx};
+      else
+          extra_sample_data = [];
+      end
     
       % display selected raw data
+      graphs = [];
       try
         graphFunc = getGraphFunc(graphType, 'graph', '');
-        graphFunc(panel, sample_data{setIdx}, vars);
+        [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars, extra_sample_data);
+        if ~verLessThan('matlab', '9.5')
+            for k = 1:length(graphs)
+                disableDefaultInteractivity(graphs(k));
+                graphs(k).Toolbar.Visible = 'off';
+            end
+        end
       catch e
         errorString = getErrorString(e);
         fprintf('%s\n',   ['Error says : ' errorString]);
@@ -257,6 +262,41 @@ function displayManager(windowTitle, sample_data, callbacks)
           ['Could not display this data set using ' graphType ...
            ' (' e.message '). Try a different graph type.' ], ...
            'Graphing Error');
+      end
+      
+      % save line handles and index in axis userdata 
+      % so the data select callback can retrieve them
+      if ~isempty(graphs)
+          for k = 1:length(graphs)
+              set(graphs(k), 'UserData', {lines(k,:), k});
+          end
+      end
+      
+      % add data selection functionality
+      selectFunc = getGraphFunc(graphType, 'select', '');
+      selectFunc(@dataSelectCallbackDoNothing, @dataClickCallback);
+      
+      function dataClickCallback(ax, type, point)
+      %DATACLICKCALLBACK Called when the user clicks on a region of data.
+      %
+          if ~strcmpi(type, 'normal'), return; end
+          
+          % line handles are stored in the axis userdata
+          ud = get(ax, 'UserData');
+
+          varIdx = ud{2};
+          
+          varName = sample_data{setIdx}.variables{vars(varIdx)}.name;
+          
+          graphFunc = getGraphFunc(graphType, 'graph', varName);
+          if strcmpi(func2str(graphFunc), 'graphTimeSeriesTimeDepth')
+              lineMooring2DVarSection(sample_data{setIdx}, varName, point(1), false, false, '')
+          end
+      end
+      
+      function dataSelectCallbackDoNothing(ax, type, range)
+      %DATASELECTCALLBACKDONOTHING
+      
       end
     end
 
@@ -285,6 +325,12 @@ function displayManager(windowTitle, sample_data, callbacks)
         for k = 1:length(sample_data), updateCallback(sample_data{k}); end
 
       end
+      
+      if extraSetIdx
+          extra_sample_data = sample_data{extraSetIdx};
+      else
+          extra_sample_data = [];
+      end
 
       % redisplay the data
       try 
@@ -294,14 +340,21 @@ function displayManager(windowTitle, sample_data, callbacks)
           flagFunc = [];
         end
         
-        [graphs lines vars] = graphFunc(panel, sample_data{setIdx}, vars);
-        
-        if isempty(flagFunc)
-          warning(['Cannot display QC flags using ' graphType ...
-                   '. Try a different graph type.']);
-          return;
-        else
-          flags = flagFunc( panel, graphs, sample_data{setIdx}, vars);
+        [graphs, lines, vars] = graphFunc(panel, sample_data{setIdx}, vars, extra_sample_data);
+        if ~verLessThan('matlab', '9.5')
+            for k = 1:length(graphs)
+                disableDefaultInteractivity(graphs(k));
+                graphs(k).Toolbar.Visible = 'off';
+            end
+        end
+        if isFlagVisible
+            if isempty(flagFunc)
+                warning(['Cannot display QC flags using ' graphType ...
+                    '. Try a different graph type.']);
+                return;
+            else
+                flags = flagFunc( panel, graphs, sample_data{setIdx}, vars);
+            end
         end
         
       catch e
@@ -319,7 +372,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       % so the data select callback can retrieve them
       for k = 1:length(graphs)
         
-        set(graphs(k), 'UserData', {lines(k), k});
+        set(graphs(k), 'UserData', {lines(k,:), k});
       end
 
       % add data selection functionality
@@ -341,7 +394,7 @@ function displayManager(windowTitle, sample_data, callbacks)
           
           graphFunc = getGraphFunc(graphType, 'graph', varName);
           if strcmpi(func2str(graphFunc), 'graphTimeSeriesTimeDepth')
-              lineMooring2DVarSection(sample_data{1}, varName, point(1), true, false, '')
+              lineMooring2DVarSection(sample_data{setIdx}, varName, point(1), true, false, '')
           end
       end
       
@@ -438,12 +491,22 @@ function displayManager(windowTitle, sample_data, callbacks)
               updateCallback(sample_data{setIdx});
               
               % update graph
-              if ~isempty(flags), delete(flags(flags ~= 0)); end
-              flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
+              if isFlagVisible
+                  if ~isempty(flags), delete(flags(flags ~= 0)); end
+                  flags = flagFunc(panel, graphs, sample_data{setIdx}, vars);
+              end
               
               % write/update manual QC file for this dataset
-              [mqcPath, mqcFile, ~] = fileparts(sample_data{setIdx}.toolbox_input_file);
-              mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
+              mqcFile = [sample_data{setIdx}.toolbox_input_file, '.mqc'];
+              
+              % we need to check first that there is not any remnants from
+              % the old .mqc file naming convention
+              [mqcPath, oldMqcFile, ~] = fileparts(sample_data{setIdx}.toolbox_input_file);
+              oldMqcFile = fullfile(mqcPath, [oldMqcFile, '.mqc']);
+              if exist(oldMqcFile, 'file')
+                  movefile(oldMqcFile, mqcFile);
+              end
+              
               mqc = struct([]);
               
               if exist(mqcFile, 'file'), load(mqcFile, '-mat', 'mqc'); end
@@ -516,8 +579,15 @@ function displayManager(windowTitle, sample_data, callbacks)
                   end
               end
               
-              [mqcPath, mqcFile, ~] = fileparts(sample_data{resetIdx(j)}.toolbox_input_file);
-              mqcFile = fullfile(mqcPath, [mqcFile, '.mqc']);
+              mqcFile = [sample_data{resetIdx(j)}.toolbox_input_file, '.mqc'];
+              
+              % we need to migrate any remnants of the old file naming convention
+              % for .mqc files.
+              [mqcPath, oldMqcFile, ~] = fileparts(sample_data{resetIdx(j)}.toolbox_input_file);
+              oldMqcFile = fullfile(mqcPath, [oldMqcFile, '.mqc']);
+              if exist(oldMqcFile, 'file')
+                  movefile(oldMqcFile, mqcFile);
+              end
               
               if exist(mqcFile, 'file')
                   delete(mqcFile);
@@ -558,8 +628,15 @@ function displayManager(windowTitle, sample_data, callbacks)
                   end
               end
               
-              [pqcPath, pqcFile, ~] = fileparts(sample_data{resetIdx(j)}.toolbox_input_file);
-              pqcFile = fullfile(pqcPath, [pqcFile, '.pqc']);
+              pqcFile = [sample_data{resetIdx(j)}.toolbox_input_file, '.pqc'];
+              
+              % we need to migrate any remnants of the old file naming convention
+              % for .pqc files.
+              [pqcPath, oldPqcFile, ~] = fileparts(sample_data{resetIdx(j)}.toolbox_input_file);
+              oldPqcFile = fullfile(pqcPath, [oldPqcFile, '.pqc']);
+              if exist(oldPqcFile, 'file')
+                  movefile(oldPqcFile, pqcFile);
+              end
               
               if exist(pqcFile, 'file')
                   delete(pqcFile);
@@ -574,7 +651,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       callbacks.exportNetCDFRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars);
+        sample_data, graphType, setIdx, vars, extraSetIdx, isFlagVisible);
       state = lastState;
     end
     
@@ -585,7 +662,7 @@ function displayManager(windowTitle, sample_data, callbacks)
       callbacks.exportRawRequestCallback();
       
       stateSelectCallback('', panel, updateCallback, lastState, ...
-        sample_data, graphType, setIdx, vars);
+        sample_data, graphType, setIdx, vars, extraSetIdx, isFlagVisible);
       state = lastState;
     end
   end

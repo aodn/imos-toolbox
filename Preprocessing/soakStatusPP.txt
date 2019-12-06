@@ -1,8 +1,8 @@
 % This file checks the surface soak
 % minimum and optimal times for pumped sensors
-tempMinSoak, 60
-tempOptSoak, 70
-cndMinSoak, 70
-cndOptSoak, 90
-oxMinSoak, 150
-oxOptSoak, 180
+tempMinSoak = 60
+tempOptSoak = 70
+cndMinSoak  = 70
+cndOptSoak  = 90
+oxMinSoak   = 150
+oxOptSoak   = 180

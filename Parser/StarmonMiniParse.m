@@ -4,13 +4,13 @@ function sample_data = StarmonMiniParse( filename, mode )
 %
 % The files consist of two sections:
 %
-%   - file headerContent       - headerContent information with description of the data structure and content.
-%                         These lines are suffixed with a #.
-%   - data              - rows of data.
+%   - file headerContent - headerContent information with description of the data structure and content.
+%                        These lines are suffixed with a #.
+%   - data               - rows of data.
 %
 % Inputs:
 %   filename    - cell array of files to import (only one supported).
-%   mode        - Toolbox data type mode ('profile' or 'timeSeries').
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - Struct containing sample data.
@@ -19,35 +19,23 @@ function sample_data = StarmonMiniParse( filename, mode )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
 %
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions are met:
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
 %
-%     * Redistributions of source code must retain the above copyright notice,
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright
-%       notice, this list of conditions and the following disclaimer in the
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors
-%       may be used to endorse or promote products derived from this software
-%       without specific prior written permission.
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-% POSSIBILITY OF SUCH DAMAGE.
-%
-error(nargchk(1,2,nargin));
+narginchk(1,2);
 
 if ~iscellstr(filename)
     error('filename must be a cell array of strings');
@@ -69,10 +57,11 @@ sample_data = struct;
 sample_data.toolbox_input_file  = filename;
 sample_data.meta.header         = header;
 
-sample_data.meta.instrument_make    = 'Star ODDI';
-sample_data.meta.instrument_model   = 'Starmon Mini';
+sample_data.meta.instrument_make            = 'Star ODDI';
+sample_data.meta.instrument_model           = 'Starmon Mini';
 sample_data.meta.instrument_sample_interval = median(diff(data.TIME.values*24*3600));
-sample_data.meta.instrument_serial_no = header.serialNo;
+sample_data.meta.instrument_serial_no       = header.serialNo;
+sample_data.meta.featureType                = mode;
 
 sample_data.dimensions = {};
 sample_data.variables  = {};
@@ -251,13 +240,14 @@ for i=1:header.nLines
         case 14 % channel 3 info
             channelInfo = textscan(headerContent{3}{i}, '%s%s%d%d%*s', 'Delimiter', '\t');
             header.param(3).axis = channelInfo{1}{1};
-            header.param(3).column = channelInfo{2}{1};
+            header.param(3).column = genvarname(channelInfo{2}{1});
             header.param(3).nDec = channelInfo{3};
             if channelInfo{4} == 1
                 header.param(3).isPositiveUp = true;
             else
                 header.param(3).isPositiveUp = false;
             end
+            
     end
 end
 end
@@ -317,7 +307,6 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
         case {'Temp0x280xB0C0x29', 'Temp0x280xFFFDC0x29'} %degrees C
             var = 'TEMP';
             values = strrep(DataContent{iContent}, ',', '.');
-%             values = cellfun(@str2double, values);
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
             comment = '';
             if header.isReconverted
@@ -351,7 +340,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).values = (values - 32) * 5/9;
             data.(var).comment = comment;
             
-        case 'Pres(dbar)'
+        case 'Pres0x28dbar0x29'
             var = 'PRES';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
@@ -371,7 +360,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).comment = comment;
             data.(var).applied_offset = applied_offset;
             
-        case 'Depth(m)'
+        case 'Depth0x28m0x29'
             var = 'DEPTH';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
@@ -389,7 +378,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             data.(var).values = values;
             data.(var).comment = comment;
             
-        case 'Sal(psu)'
+        case 'Sal0x28psu0x29'
             var = 'PSAL';
             values = strrep(DataContent{iContent}, ',', '.');
             values = sscanf(sprintf('%s*', values{:}), '%f*'); % ~35x faster than str2double
@@ -416,7 +405,7 @@ for i=1:header.nCol-(1+nColumnTime) % we start after the "n date time"
             
         otherwise
             fprintf('%s\n', ['Warning : ' header.param(i).column ' not supported' ...
-                ' in ' filename '. Contact eMII.']);
+                ' in ' filename '. Contact AODN.']);
             
     end 
 end

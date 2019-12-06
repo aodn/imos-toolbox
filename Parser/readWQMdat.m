@@ -1,4 +1,4 @@
-function sample_data = readWQMdat( filename )
+function sample_data = readWQMdat( filename, mode )
 %readWQMdat parses a .dat file retrieved from a Wetlabs WQM instrument.
 %
 % This function is able to parse data retrieved from a Wetlabs WQM CTD/ECO 
@@ -25,12 +25,13 @@ function sample_data = readWQMdat( filename )
 %   CHL(ug/l)           (floating point chlorophyll, micrograms/Litre)
 %   CHLa(ug/l)          (floating point chlorophyll, micrograms/Litre)
 %   F-Cal-CHL(ug/l)     (floating point factory coefficient chlorophyll, micrograms/Litre)
-%   Fact-CHL(ug/l))     (floating point factory coefficient chlorophyll, micrograms/Litre)
+%   Fact-CHL(ug/l)      (floating point factory coefficient chlorophyll, micrograms/Litre)
 %   U-Cal-CHL(ug/l)     (floating point user coefficient chlorophyll, micrograms/Litre)
 %   RawCHL(Counts)      (integer fluorescence in raw counts)
 %   CHLa(Counts)        (integer fluorescence in raw counts)
 %   NTU                 (floating point turbidity, NTU)
 %   NTU(NTU)            (floating point turbidity, NTU)
+%   Turbidity(NTU)      (floating point turbidity, NTU)
 %   rho                 (floating point density, kg/metre^3)
 %   PAR(umol_phtn/m2/s) (floating point photosynthetically active radiation, micromole of photon/m2/s)
 %
@@ -38,6 +39,7 @@ function sample_data = readWQMdat( filename )
 %
 % Inputs:
 %   filename    - name of the input file to be parsed
+%   mode        - Toolbox data type mode.
 %
 % Outputs:
 %   sample_data - contains a time vector (in matlab numeric format), and a 
@@ -48,12 +50,12 @@ function sample_data = readWQMdat( filename )
 %                   Temperature       ('TEMP'): Degrees Celsius
 %                   Pressure          ('PRES_REL'): Decibars
 %                   Salinity          ('PSAL'): 1e^(-3) (PSS)
-%                   Dissolved Oxygen  ('DOXY'): kg/m^3
+%                   Dissolved Oxygen  ('DOXY'): mg/l
 %                   Dissolved Oxygen  ('DOX1'): mmol/m^3
-%                   Dissolved Oxygen  ('DOX2'): umol/kg
-%                   Chlorophyll       ('CPHL'): mg/m^3
-%                   Chlorophyll       ('CHLU'): mg/m^3   (user coefficient)
-%                   Chlorophyll       ('CHLF'): mg/m^3   (factory coefficient)
+%                   Dissolved Oxygen  ('DOX'): ml/l
+%                   Chlorophyll       ('CPHL','CPHL_2','CPHL_3',...): mg/m^3
+%                   Chlorophyll       ('CPHL','CPHL_2','CPHL_3',...): mg/m^3   (user coefficient)
+%                   Chlorophyll       ('CPHL','CPHL_2','CPHL_3',...): mg/m^3   (factory coefficient)
 %                   Fluorescence      ('FLU2'): raw counts
 %                   Turbidity         ('TURB'): NTU
 %                   Density           ('DENS'): kg/m^3
@@ -75,36 +77,24 @@ function sample_data = readWQMdat( filename )
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-  % ensure that there is exactly one argument
-  error(nargchk(1, 1, nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+  % ensure that there are exactly two arguments
+  narginchk(2, 2);
   if ~ischar(filename), error('filename must contain a string'); end
 
   % Lookup arrays for supported and required fields
@@ -127,54 +117,30 @@ function sample_data = readWQMdat( filename )
   params{end+1} = {'Temp(C)',               {'TEMP', ''}};
   params{end+1} = {'Pres(dbar)',            {'PRES_REL', ''}};
   params{end+1} = {'Sal(PSU)',              {'PSAL', ''}};
-  params{end+1} = {'DO(mg/l)',              {'DOX1_3', ''}};
-  params{end+1} = {'DO(mmol/m^3)',          {'DOX1_1', ''}};
-  params{end+1} = {'DO(ml/l)',              {'DOX1_2', ''}};
-  params{end+1} = {'CHL(ug/l)',             {'CPHL', 'Artificial chlorophyll data '...
-      'computed from bio-optical sensor raw counts measurements. The '...
-      'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-      'photodetector paired with an optical filter which measures everything '...
-      'that fluoresces in the region of 695nm. '...
-      'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};  
-  params{end+1} = {'CHLa(ug/l)',            {'CPHL', 'Artificial chlorophyll data '...
-      'computed from bio-optical sensor raw counts measurements. The '...
-      'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-      'photodetector paired with an optical filter which measures everything '...
-      'that fluoresces in the region of 695nm. '...
-      'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};  
-  params{end+1} = {'F-Cal-CHL(ug/l)',       {'CHLF', 'Artificial chlorophyll data '...
-      'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
-      'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-      'photodetector paired with an optical filter which measures everything '...
-      'that fluoresces in the region of 695nm. '...
-      'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
-  params{end+1} = {'Fact-CHL(ug/l))',       {'CHLF', 'Artificial chlorophyll data '...
-      'computed from bio-optical sensor raw counts measurements using factory calibration coefficient. The '...
-      'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-      'photodetector paired with an optical filter which measures everything '...
-      'that fluoresces in the region of 695nm. '...
-      'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}}; % v1.26 of Host software
-  params{end+1} = {'U-Cal-CHL(ug/l)',       {'CHLU', 'Artificial chlorophyll data '...
-      'computed from bio-optical sensor raw counts measurements using user calibration coefficient. The '...
-      'fluorometre is equipped with a 470nm peak wavelength LED to irradiate and a '...
-      'photodetector paired with an optical filter which measures everything '...
-      'that fluoresces in the region of 695nm. '...
-      'Originally expressed in ug/l, 1l = 0.001m3 was assumed.'}};
+  params{end+1} = {'DO(mg/l)',              {'DOXY', ''}};
+  params{end+1} = {'DO(mmol/m^3)',          {'DOX1', ''}}; % mmol/m3 <=> umol/l
+  params{end+1} = {'DO(ml/l)',              {'DOX', ''}};
+  params{end + 1} = {'CHL(ug/l)', {'CPHL', getCPHLcomment('unknown', '470nm', '695nm')}}; %older files
+  params{end + 1} = {'CHLa(ug/l)', {'CPHL', getCPHLcomment('unknown', '470nm', '695nm')}}; %older files
+  params{end + 1} = {'F-Cal-CHL(ug/l)', {'CPHL', getCPHLcomment('factory', '470nm', '695nm')}};
+  params{end + 1} = {'Fact-CHL(ug/l)', {'CPHL', getCPHLcomment('factory', '470nm', '695nm')}};
+  params{end + 1} = {'U-Cal-CHL(ug/l)', {'CPHL', getCPHLcomment('user', '470nm', '695nm')}};
   params{end+1} = {'RawCHL(Counts)',        {'FLU2', ''}};
   params{end+1} = {'CHLa(Counts)',          {'FLU2', ''}};
   params{end+1} = {'NTU',                   {'TURB', ''}};
   params{end+1} = {'NTU(NTU)',              {'TURB', ''}};
+  params{end+1} = {'Turbidity(NTU)',        {'TURB', ''}};
   params{end+1} = {'rho',                   {'DENS', ''}};
   params{end+1} = {'PAR(umol_phtn/m2/s)',   {'PAR', ''}};
 
   %
   % This array contains the column headers which must be in the input file.
   %
-  required = {
+  required = upper({
     'SN',       'WQM-SN'
     'MMDDYY',   'MM/DD/YY'
     'HHMMSS',   'HH:MM:SS'
-  };
+  });
 
   % open file, get header and use it to generate a 
   % format string which we can pass to textscan
@@ -206,6 +172,7 @@ function sample_data = readWQMdat( filename )
   sample_data.meta.instrument_make      = 'WET Labs';
   sample_data.meta.instrument_model     = 'WQM';
   sample_data.meta.instrument_serial_no = samples{1}{1};
+  sample_data.meta.featureType          = mode;
   
   % convert and save the time data
   time = cellstr(samples{2});
@@ -216,20 +183,6 @@ function sample_data = readWQMdat( filename )
           timeFormat = 'mmddyy HHMMSS';
   end
   time = datenum(time, timeFormat);
-  
-  % WQM instrumensts (or the .DAT conversion sofware) have a habit of
-  % generating erroneous data sometimes, either missing a character , or 
-  % inserting a 0 instead of the correct in the output to .DAT files.
-  % This is a simple check to make sure that all of the timestamps appear
-  % to be correct; there's only so much we can do though.
-  iBadTime = (diff(time) <= 0);
-  iBadTime = [false; iBadTime];
-  time(iBadTime) = [];
-  
-  for k = 1:length(samples)
-    if k == 2, continue; end % time data has already been collected and filtered
-    samples{k}(iBadTime) = []; 
-  end
   
   % Let's find each start of bursts
   dt = [0; diff(time)];
@@ -245,7 +198,7 @@ function sample_data = readWQMdat( filename )
       if numel(timeBurst)>1 % deals with the case of a file with a single sample in a single burst
           sampleIntervalInBurst(i) = median(diff(timeBurst*24*3600));
           firstTimeBurst(i) = timeBurst(1);
-          durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600;
+          durationBurst(i) = (timeBurst(end) - timeBurst(1))*24*3600 + sampleIntervalInBurst(i);
       end
   end
   
@@ -281,48 +234,26 @@ function sample_data = readWQMdat( filename )
   % create a variables struct in sample_data for each field in the file
   % start index at 4 to skip serial, date and time
   isUmolPerL = false;
+
+  tnCHL = sum(contains(fields, 'CHL')) - sum(contains(fields, 'RawCHL'));
+  nCHL = 0;
   
   for k = 4:length(fields)
 
     [name, comment] = getParamDetails(fields{k}, params);  
-    data = samples{k-1};
-    
-    % some fields are not in IMOS uom - scale them so that they are
-    switch fields{k}
-        
-        % WQM provides conductivity S/m; exactly like we want it to be!
-        
-        % WQM can provide Dissolved Oxygen in mmol/m3,
-        % hopefully 1 mmol/m3 = 1 umol/l
-        % exactly like we want it to be!
-        case 'DO(mmol/m^3)' % DOX1_1
-            comment = 'Originally expressed in mmol/m3, 1l = 0.001m3 was assumed.';
-            isUmolPerL = true;
-            
-        % convert dissolved oxygen in ml/l to umol/l
-        case 'DO(ml/l)' % DOX1_2
-            comment = 'Originally expressed in ml/l, 1ml/l = 44.660umol/l was assumed.';
-            isUmolPerL = true;
-            
-            % ml/l -> umol/l
-            %
-            % Conversion factors from Saunders (1986) :
-            % https://darchive.mblwhoilibrary.org/bitstream/handle/1912/68/WHOI-89-23.pdf?sequence=3
-            % 1ml/l = 43.57 umol/kg (with dens = 1.025 kg/l)
-            % 1ml/l = 44.660 umol/l
-            
-            data = data .* 44.660;
-            
-        % convert dissolved oxygen in mg/L to umol/l.
-        case 'DO(mg/l)' % DOX1_3
-            data = data * 44.660/1.429; % O2 density = 1.429 kg/m3
-            comment = 'Originally expressed in mg/l, O2 density = 1.429kg/m3 and 1ml/l = 44.660umol/l were assumed.';
-            isUmolPerL = true;
-            
-        % WQM provides chlorophyll in ug/L; we need it in mg/m^3, 
-        % hopefully it is equivalent.
+    need_chla_numbered = tnCHL > 1 && strcmp(name, 'CPHL');
+
+    if need_chla_numbered
+      nCHL = nCHL + 1;
+
+      if nCHL > 1
+        name = [name '_' num2str(nCHL)];
+      end
+
     end
-        
+
+    data = samples{k-1};
+
     coordinates = 'TIME LATITUDE LONGITUDE NOMINAL_DEPTH';
     
     % dimensions definition must stay in this order : T, Z, Y, X, others;
@@ -335,7 +266,7 @@ function sample_data = readWQMdat( filename )
     sample_data.variables{end}.comment              = comment;
     
     % WQM uses SeaBird pressure sensor
-    if strncmp('PRES_REL', sample_data.variables{k-3}.name, 8)
+    if strncmp('PRES_REL', sample_data.variables{end}.name, 8)
         % let's document the constant pressure atmosphere offset previously 
         % applied by SeaBird software on the absolute presure measurement
         sample_data.variables{end}.applied_offset = sample_data.variables{end}.typeCastFunc(-14.7*0.689476);
@@ -346,67 +277,6 @@ function sample_data = readWQMdat( filename )
   % present, but temp/pressure/salinity data is not)
   sample_data.variables(cellfun(@isempty, sample_data.variables)) = [];
 
-  % Let's add a new parameter
-  if isUmolPerL
-      data = getVar(sample_data.variables, 'DOX1_1');
-      comment = ['Originally expressed in mmol/m3, assuming 1l = 0.001m3 '...
-          'and using density computed from Temperature, Salinity and Pressure '...
-          'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-      if data == 0
-          data = getVar(sample_data.variables, 'DOX1_2');
-          comment = ['Originally expressed in ml/l, assuming 1ml/l = 44.660umol/l '...
-              'and using density computed from Temperature, Salinity and Pressure '...
-              'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-          if data == 0
-              data = getVar(sample_data.variables, 'DOX1_3');
-              comment = ['Originally expressed in mg/l, assuming O2 density = 1.429kg/m3, 1ml/l = 44.660umol/l '...
-                  'and using density computed from Temperature, Salinity and Pressure '...
-                  'with the CSIRO SeaWater library (EOS-80) v1.1.'];
-          end
-      end
-      data = sample_data.variables{data};
-      data = data.data;
-      name = 'DOX2';
-      
-      % umol/l -> umol/kg
-      %
-      % to perform this conversion, we need to calculate the
-      % density of sea water; for this, we need temperature,
-      % salinity, and pressure data to be present
-      temp = getVar(sample_data.variables, 'TEMP');
-      pres = getVar(sample_data.variables, 'PRES_REL');
-      psal = getVar(sample_data.variables, 'PSAL');
-      cndc = getVar(sample_data.variables, 'CNDC');
-      
-      % if any of this data isn't present,
-      % we can't perform the conversion to umol/kg
-      if temp ~= 0 && pres ~= 0 && (psal ~= 0 || cndc ~= 0)
-          temp = sample_data.variables{temp};
-          pres = sample_data.variables{pres};
-          if psal ~= 0
-              psal = sample_data.variables{psal};
-          else
-              cndc = sample_data.variables{cndc};
-              % conductivity is in S/m and gsw_C3515 in mS/cm
-              crat = 10*cndc.data ./ gsw_C3515;
-              
-              psal.data = gsw_SP_from_R(crat, temp.data, pres.data);
-          end
-          
-          % calculate density from salinity, temperature and pressure
-          dens = sw_dens(psal.data, temp.data, pres.data); % cannot use the GSW SeaWater library TEOS-10 as we don't know yet the position
-          
-          % umol/l -> umol/kg (dens in kg/m3 and 1 m3 = 1000 l)
-          data = data .* 1000.0 ./ dens;
-          
-          sample_data.variables{end+1}.dimensions           = 1;
-          sample_data.variables{end}.name                   = name;
-          sample_data.variables{end}.typeCastFunc           = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
-          sample_data.variables{end}.data                   = sample_data.variables{end}.typeCastFunc(data);
-          sample_data.variables{end}.coordinates            = coordinates;
-          sample_data.variables{end}.comment                = comment;
-      end
-  end
 end
 
 function [fields, format, jThere] = getFormat(fid, required, params)
@@ -434,8 +304,8 @@ while ~isThere && ~feof(fid)
     iThere = false(size(required, 1), 1);
     jThere = 1;
     for j=1:size(required, 2)
-        if sum(ismember(required(:,j), fields)) > sum(iThere)
-            iThere = ismember(required(:,j), fields);
+        if sum(ismember(required(:,j), upper(fields))) > sum(iThere)
+            iThere = ismember(required(:,j), upper(fields));
             jThere = j;
         end
         if all(iThere)
@@ -466,14 +336,14 @@ end
 format = '';
 
 % WQM column, if present
-if strcmp('WQM', fields{1})
+if strcmpi('WQM', fields{1})
     format = 'WQM ';
     fields(1) = [];
 end
 
 % serial and time/date
 % try to take into account files with State variable included
-if strcmp('State',fields{2})
+if strcmpi('State', fields{2})
     switch jThere
         case 2
             nChar = 17;
@@ -507,6 +377,9 @@ for k = 4:length(fields)
     end
 end
 
+% handle potential unlabelled last column
+format=strcat(format,'%*s');
+
 %remove unsupported fields from header list
 fields(unsupported) = [];
 end
@@ -524,7 +397,7 @@ function [name, comment] = getParamDetails(field, params)
   entry = {};
   
   for k = 1:length(params)
-    if strcmp(params{k}{1}, field)
+    if strcmpi(params{k}{1}, field)
       entry = params{k};
       break;
     end
@@ -546,7 +419,7 @@ supported = false;
 
   for k = 1:length(params)
 
-    if strcmp(params{k}{1}, field)
+    if strcmpi(params{k}{1}, field)
       supported = true;
       break;
     end

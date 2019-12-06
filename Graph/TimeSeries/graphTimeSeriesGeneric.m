@@ -1,4 +1,4 @@
-function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var, color, xTickProp )
+function [h, labels] = graphTimeSeriesGeneric( ax, sample_data, var, color, xTickProp )
 %GRAPHTIMESERIESGENERIC Plots the given variable as normal, single dimensional, 
 % time series data. If the data are multi-dimensional, multiple lines will be
 % plotted and returned.
@@ -19,104 +19,87 @@ function [h labels] = graphTimeSeriesGeneric( ax, sample_data, var, color, xTick
 %
 
 %
-% Copyright (c) 2009, eMarine Information Infrastructure (eMII) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
 % Marine Observing System (IMOS).
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are met:
-% 
-%     * Redistributions of source code must retain the above copyright notice, 
-%       this list of conditions and the following disclaimer.
-%     * Redistributions in binary form must reproduce the above copyright 
-%       notice, this list of conditions and the following disclaimer in the 
-%       documentation and/or other materials provided with the distribution.
-%     * Neither the name of the eMII/IMOS nor the names of its contributors 
-%       may be used to endorse or promote products derived from this software 
-%       without specific prior written permission.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-% POSSIBILITY OF SUCH DAMAGE.
 %
-error(nargchk(5, 5, nargin));
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3 of the License.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
+%
+narginchk(5, 5);
 
 if ~ishandle(ax),          error('ax must be a graphics handle'); end
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 if ~isnumeric(var),        error('var must be a numeric');        end
 if ~isvector(color),       error('color must be a vector');       end
 
-time = sample_data.variables{var}.dimensions(1);
+iTimeDim = getVar(sample_data.dimensions, 'TIME');
 
-time = sample_data.dimensions{time};
+time = sample_data.dimensions{iTimeDim};
 var  = sample_data.variables {var};
 
 if ischar(var.data), var.data = str2num(var.data); end % we assume data is an array of one single character
 
+visiBadCbh = findobj('Tag', 'visiBadCheckBox');
+isBadHidden = get(visiBadCbh, 'value');
+if isBadHidden
+    % we replace values flagged as bad by NaN before plotting
+    qcSet = str2double(readProperty('toolbox.qc_set'));
+    rawFlag      = imosQCFlag('raw',          qcSet, 'flag');
+    goodFlag     = imosQCFlag('good',         qcSet, 'flag');
+    probGoodFlag = imosQCFlag('probablyGood', qcSet, 'flag');
+    
+    iGood = ismember(var.flags, [rawFlag, goodFlag, probGoodFlag]);
+    
+    var.data(~iGood) = NaN;
+end
+
 h    = line(time.data, var.data, 'Parent', ax, 'Color', color);
 set(ax, 'Tag', 'axis1D');
 
-% for global/regional range display
+% for global/regional range and in/out water display
 mWh = findobj('Tag', 'mainWindow');
-sMh = findobj('Tag', 'samplePopUpMenu');
-iSample = get(sMh, 'Value');
-climatologyRange = get(mWh, 'UserData');
-if ~isempty(climatologyRange)
-    if isfield(climatologyRange, ['rangeMin' var.name])
+qcParam = get(mWh, 'UserData');
+
+iSample = find(arrayfun(@(x) strcmp(x.dataSet, sample_data.toolbox_input_file), qcParam));
+
+if ~isempty(qcParam)
+    if isfield(qcParam, ['rangeMin' var.name])
         hold(ax, 'on');
-        if (length(climatologyRange(iSample).(['rangeMin' var.name])) == 2)
+        if (length(qcParam(iSample).(['rangeMin' var.name])) == 2)
             timeToPlot = [time.data(1); time.data(end)];
         else
             timeToPlot = time.data;
         end
         
-        if isfield(climatologyRange, ['range' var.name])
-            hNominal = line(timeToPlot, climatologyRange(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k');
+        if isfield(qcParam, ['range' var.name])
+            line(timeToPlot, qcParam(iSample).(['range' var.name]), 'Parent', ax, 'Color', 'k');
         end
-        hRegMinMax = line([timeToPlot; NaN; timeToPlot], ...
-            [climatologyRange(iSample).(['rangeMin' var.name]); NaN; climatologyRange(iSample).(['rangeMax' var.name])], ...
+        line([timeToPlot; NaN; timeToPlot], ...
+            [qcParam(iSample).(['rangeMin' var.name]); NaN; qcParam(iSample).(['rangeMax' var.name])], ...
             'Parent', ax, 'Color', 'r');
-%         set(ax, 'YLim', [min(climatologyRange(iSample).(['rangeMin' var.name])) - min(climatologyRange(iSample).(['rangeMin' var.name]))/10, ...
-%             max(climatologyRange(iSample).(['rangeMax' var.name])) + max(climatologyRange(iSample).(['rangeMax' var.name]))/10]);
     end
-end
-
-% Set axis position so that 1D data and 2D data vertically matches on X axis
-mainPanel = findobj('Tag', 'mainPanel');
-last_pos_with_colorbar = get(mainPanel, 'UserData');
-if isempty(last_pos_with_colorbar) % this is to avoid too many calls to colorbar()
-    cb = colorbar();
-    set(get(cb, 'YLabel'), 'String', 'TEST');
-    pos_with_colorbar = get(ax, 'Position');
-    last_pos_with_colorbar = pos_with_colorbar;
-    colorbar(cb, 'off');
-    set(mainPanel, 'UserData', last_pos_with_colorbar);
-else
-    pos_with_colorbar = get(ax, 'Position');
     
-    if pos_with_colorbar(1) == last_pos_with_colorbar(1)
-        pos_with_colorbar(3) = last_pos_with_colorbar(3);
-    else
-        cb = colorbar();
-        set(get(cb, 'YLabel'), 'String', 'TEST');
-        pos_with_colorbar = get(ax, 'Position');
-        last_pos_with_colorbar = pos_with_colorbar;
-        colorbar(cb, 'off');
-        set(mainPanel, 'UserData', last_pos_with_colorbar);
+    if isfield(qcParam, 'inWater')
+        hold(ax, 'on');
+        yLim = get(ax, 'YLim');
+        line([qcParam(iSample).inWater, qcParam(iSample).inWater, NaN, qcParam(iSample).outWater, qcParam(iSample).outWater], ...
+            [yLim, NaN, yLim], ...
+            'Parent', ax, 'Color', 'r');
     end
 end
-set(ax, 'Position', pos_with_colorbar);
 
-% set background to be grey
-set(ax, 'Color', [0.75 0.75 0.75])
+% set background to be transparent (same as background color)
+set(ax, 'Color', 'none')
 
 if strncmp(var.name, 'DEPTH', 4) || strncmp(var.name, 'PRES', 4) || strncmp(var.name, 'PRES_REL', 8)
     set(ax, 'YDir', 'reverse');
