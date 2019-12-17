@@ -178,8 +178,8 @@ function data = readData(rawTextData)
                   'that backscatters in the region of 650nm to 1000nm.'];
               
           case 'Batt.[V]'
-              data.VOLT.values = vertcat(values{:,i});
-              data.VOLT.comment = '';
+              data.BAT_VOLT.values = vertcat(values{:,i});
+              data.BAT_VOLT.comment = '';
               
       end
   end

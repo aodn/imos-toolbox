@@ -247,8 +247,8 @@ function [name, data, comment] = convertData(name, data)
 
         %'Battery Voltage'
         case {'BatteryVoltage'};
-            name = 'VOLT';
-            comment = 'Battery Voltage';
+            name = 'BAT_VOLT';
+            comment = ''; 
 
          %'Absolute Current Speed'
         case {'AbsSpeed'};
