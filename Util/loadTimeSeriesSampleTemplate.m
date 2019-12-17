@@ -21,20 +21,20 @@ function [coordinates, dimensions, variables] = loadTimeSeriesSampleTemplate(tim
 % variables - a structure with all variables prefilled
 %
 % Example:
-% [c,d,v] = loadTimeSeriesSampleTemplate([1,2,3])
+% [coords,dims,vars] = loadTimeSeriesSampleTemplate([1,2,3]);
 % % check coordinates
-% assert(strcmpi(,coordinates,'TIME LATITUDE LONGITUDE NOMINAL_DEPTH'))
+% assert(strcmpi(coords,'TIME LATITUDE LONGITUDE NOMINAL_DEPTH'))
 % % check dimensions
-% assert(len(d)==1)
-% assert(d{1}.name == 'TIME')
-% assert(d{1}.typeCastFunc,@double)
-% assert(isequal(d{1}.data,[1,2,3])
+% assert(length(dims)==1)
+% assert(isequal(dims{1}.name,'TIME'))
+% assert(isequal(dims{1}.typeCastFunc,@double))
+% assert(isequal(dims{1}.data,[1,2,3]))
 % % check variables
-% assert(len(v)==4)
-% assert(v{1}.name == 'TIMESERIES')
-% assert(v{2}.name == 'LATITUDE')
-% assert(v{3}.name == 'LONGITUDE')
-% assert(v{4}.name == 'NOMINAL_DEPTH')
+% assert(length(vars)==4)
+% assert(isequal(vars{1}.name,'TIMESERIES'))
+% assert(isequal(vars{2}.name,'LATITUDE'))
+% assert(isequal(vars{3}.name,'LONGITUDE'))
+% assert(isequal(vars{4}.name,'NOMINAL_DEPTH'))
 %
 %
 % author: hugo.oliveira@utas.edu.au
