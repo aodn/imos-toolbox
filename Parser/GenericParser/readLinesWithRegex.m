@@ -16,12 +16,12 @@ function [lines] = readLinesWithRegex(fid, re_signature, stopfirst)
 %
 % Example:
 %
-% fid = fopen('data/testfiles/JFE/v000/20160112_0419_ACLW-USB_0341_041745_A.csv');
+% fid = fopen([toolboxRootPath() 'data/testfiles/JFE/v000/20160112_0419_ACLW-USB_0341_041745_A.csv']);
 % re_signature = '^((?!\[Item\]).+)$';
-% [lines] = readLinesWithRegex(fid,re_signature,true);
-% assert(contains(lines{1},'//'));
-% assert(contains(lines{2},'Head'));
-% assert(~contains(lines{end},'Item'));
+% [mlines] = readLinesWithRegex(fid,re_signature,true);
+% assert(contains(lower(mlines{1}),'infinity'));
+% assert(any(contains(mlines,'Head')));
+% assert(~any(contains(mlines,'Item')));
 %
 %
 % author: hugo.oliveira@utas.edu.au
