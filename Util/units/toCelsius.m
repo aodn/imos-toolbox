@@ -52,7 +52,7 @@ elseif strcmpi(units, 'celsius')
 elseif strcmpi(units, 'fahr') || strcmpi(units, 'fahrenheit')
     degC = from_fahr(array);
 else
-    error('Converstion from %s to celsius is not possible', units);
+    error('Invalid units %s', units);
 end
 
 end
