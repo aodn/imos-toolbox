@@ -135,7 +135,7 @@ if is_temp_corrected
         cmt = sample_data.variables{k}.comment;
         sample_data.variables{k}.comment = [cmt 'Normal temperature correction applied.'];
     else
-        error("Filename %s do not contain corrected temperature field");
+        error("Filename %s does not contain corrected temperature field");
     end
 end
 
@@ -148,7 +148,7 @@ if is_pres_corrected
         pres_rel.applied_offset = sdata.header_info.pressure_offset_correction / 100;
         sample_data.variables{end + 1} = pres_rel;
     else
-        error("Filename %s do not contain corrected pressure field");
+        error("Filename %s does not contain corrected pressure field");
     end
 
 
@@ -177,7 +177,7 @@ if is_salt_corrected
 
         sample_data.variables{end + 1} = psal_rel;
     else
-        error("Filename %s do not contain corrected salinity field");
+        error("Filename %s does not contain corrected salinity field");
     end
 
 end
