@@ -1,21 +1,33 @@
-function [results] = runAllTests(parallel)
-% function  = runAllTests(parallel)
+function [bool, num] = isnumbered(astr)
+% function [bool,num] = isnumbered(astr)
 %
-% Run all toolbox tests
+% Detect if a string is numbered, i.e.
+% got a underscore followed by a number
 %
 % Inputs:
 %
-% parallel - boolean to run the tests in parallel
-%    - Default to False
-%      Reason: Memory usage is too high and CPU usage is too low.
+% astr - A string
 %
 % Outputs:
 %
-% results - the resulted unittest structure for all tests
-%
+% bool - A boolean to identify a numbered string
+% num - a integer representation of the number
 %
 % Example:
-% runAllTests(4);
+%
+% astr = 'TEMP';
+% [bool] = isnumbered(astr);
+% assert(~bool);
+% astr = 'TEMP_2';
+% [bool] = isnumbered(astr);
+% assert(bool);
+% astr = 'TEMP_ERATURE';
+% [bool] = isnumbered(astr);
+% assert(~bool);
+% astr = 'TEMP_ERATURE_444';
+% [bool,num] = isnumbered(astr);
+% assert(bool);
+% assert(isequal(num,444));
 %
 % author: hugo.oliveira@utas.edu.au
 %
@@ -36,17 +48,9 @@ function [results] = runAllTests(parallel)
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-if nargin < 1
-    parallel = false;
-end
 
-testfolder = [toolboxRootPath() 'test'];
-[~, allfolders] = rdir(testfolder);
-suite = testsuite(allfolders);
-runner = matlab.unittest.TestRunner.withTextOutput();
+split = strsplit(astr, '_');
+num = str2double(split{end});
+bool = ~isnan(num);
 
-if parallel
-    results = runInParallel(runner, suite);
-else
-    results = run(runner, suite);
 end

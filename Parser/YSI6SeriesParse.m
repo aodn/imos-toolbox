@@ -170,7 +170,7 @@ function sample_data = YSI6SeriesParse( filename, mode )
         sample_data.variables{end}.data = sample_data.variables{end}.typeCastFunc(field' / 1.45037738);
         
       case 'battery' % battery voltage
-        sample_data.variables{end}.name           = 'VOLT';
+        sample_data.variables{end}.name           = 'BAT_VOLT';
         sample_data.variables{end}.typeCastFunc   = str2func(netcdf3ToMatlabType(imosParameters(sample_data.variables{end}.name, 'type')));
         sample_data.variables{end}.data           = sample_data.variables{end}.typeCastFunc(field');
         

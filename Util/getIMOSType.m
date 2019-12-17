@@ -1,21 +1,20 @@
-function [results] = runAllTests(parallel)
-% function  = runAllTests(parallel)
+function [mtype] = getIMOSType(imos_parameter_str)
+% function mtype = getIMOSType(imos_parameter_str)
 %
-% Run all toolbox tests
+% A wrapper to get the type of an IMOS parameter
 %
 % Inputs:
 %
-% parallel - boolean to run the tests in parallel
-%    - Default to False
-%      Reason: Memory usage is too high and CPU usage is too low.
+% imos_parameter_str - an IMOS string name
 %
 % Outputs:
 %
-% results - the resulted unittest structure for all tests
-%
+% mtype - a function handle that define the parameter
+%         type
 %
 % Example:
-% runAllTests(4);
+% [mtype] = getIMOSType('TEMP')
+% assert(isequal(mtype,@single))
 %
 % author: hugo.oliveira@utas.edu.au
 %
@@ -36,17 +35,5 @@ function [results] = runAllTests(parallel)
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-if nargin < 1
-    parallel = false;
-end
-
-testfolder = [toolboxRootPath() 'test'];
-[~, allfolders] = rdir(testfolder);
-suite = testsuite(allfolders);
-runner = matlab.unittest.TestRunner.withTextOutput();
-
-if parallel
-    results = runInParallel(runner, suite);
-else
-    results = run(runner, suite);
+mtype = str2func(netcdf3ToMatlabType(imosParameters(imos_parameter_str, 'type')));
 end

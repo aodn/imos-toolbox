@@ -1,21 +1,27 @@
-function [results] = runAllTests(parallel)
-% function  = runAllTests(parallel)
+function [astruct] = argstruct(cell_of_args, fun)
+% function astruct = argstruct(cell_of_args,fun)
 %
-% Run all toolbox tests
+% A wrapper that creates a structure with
+% a cell of strings and a function handle.
 %
 % Inputs:
 %
-% parallel - boolean to run the tests in parallel
-%    - Default to False
-%      Reason: Memory usage is too high and CPU usage is too low.
+% cell_of_args - a cell of strings
+% afunc - an anonymous function/function handle
 %
 % Outputs:
 %
-% results - the resulted unittest structure for all tests
-%
+% astruct - a argument structure.
+% astruct.args - a cell with string argument names
+% astruct.fun - anonymous function that use astruct.args
 %
 % Example:
-% runAllTests(4);
+% cell_of_args = {1,2,3};
+% afunc = @(x,y,z) (x+y+z);
+% [astruct] = argstruct(cell_of_args,afunc);
+% assert(isequal(astruct.args,cell_of_args))
+% assert(isfunctionhandle(astruct.fun))
+% assert(astruct.fun(astruct.args{:})==6)
 %
 % author: hugo.oliveira@utas.edu.au
 %
@@ -36,17 +42,6 @@ function [results] = runAllTests(parallel)
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-if nargin < 1
-    parallel = false;
-end
-
-testfolder = [toolboxRootPath() 'test'];
-[~, allfolders] = rdir(testfolder);
-suite = testsuite(allfolders);
-runner = matlab.unittest.TestRunner.withTextOutput();
-
-if parallel
-    results = runInParallel(runner, suite);
-else
-    results = run(runner, suite);
+astruct.args = cell_of_args;
+astruct.fun = fun;
 end

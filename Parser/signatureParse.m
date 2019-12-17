@@ -48,43 +48,40 @@ switch lower(ext)
         structures = readAD2CPBinary(filename);
         
         acquisitionMode = fieldnames(structures);
-        
         instrumentModel = '';
         % look for the string data record A0
-        iA0 = strncmpi('IdA0', acquisitionMode, 4);
+        iA0 = contains(acquisitionMode,'IdA0');
+
         if any(iA0)
             % this is a string data record
-            if structures.(acquisitionMode{iA0}).Data.Id == 16
-                % looking for instrument model
-                instrumentModel = regexp(structures.(acquisitionMode{iA0}).Data.String, 'Signature[0-9]*', 'match', 'once');
-                
-                % check for magnetic declination
-                stringCell = textscan(structures.(acquisitionMode{iA0}).Data.String, '%s', 'Delimiter', ',');
-                iMagDec = strncmp('DECL=', stringCell{1}, 5);
-                if any(iMagDec)
-                    magDec = stringCell{1}{iMagDec};
-                    magDec = textscan(magDec, 'DECL=%f');
-                    magDec = magDec{1};
-                end
-                
+            if structures.(acquisitionMode{iA0}).Data.Id == 16 || structures.(acquisitionMode{iA0}).Data.Id == 18
+                iA0_Header = structures.(acquisitionMode{iA0}).Data.String;
+                instrumentModel = read_header_key(iA0_Header,'ID','STR','string');
+                magDec = read_header_key(iA0_Header,'GETUSER','DECL','float');
                 structures = rmfield(structures, acquisitionMode{iA0});
                 acquisitionMode(iA0) = [];
             end
         end
+
+        i1A = contains(acquisitionMode,'Id1A');
+        if any(i1A) %ignore extra information and avoid warnings below
+            structures = rmfield(structures,acquisitionMode{i1A});
+            acquisitionMode(i1A) = [];
+        end
         
         % look for burst/average data record version 3
-        i15 = strncmpi('Id15_Version3', acquisitionMode, 13);
-        i16 = strncmpi('Id16_Version3', acquisitionMode, 13);
-        iSupported = i15 | i16;
-        if any(~iSupported)
-            dataRecordNamesNotSupported = acquisitionMode(~iSupported);
-            acquisitionMode(~iSupported) = [];
-            for i=1:length(dataRecordNamesNotSupported)
-                structures = rmfield(structures, dataRecordNamesNotSupported{i});
-                disp(['Warning : data record ' dataRecordNamesNotSupported{i} ' is not supported.']);
-            end
+        i15 = contains(acquisitionMode,'Id15_Version3');
+        i16 = contains(acquisitionMode,'Id16_Version3');
+        is_version3 = i15 | i16;
+        not_supported = {acquisitionMode{~is_version3}}';
+        acquisitionMode = {acquisitionMode{is_version3}}';
+        for k = 1:length(not_supported)
+            dataRecordNamesNotSupported = not_supported{k};
+            structures = rmfield(structures, dataRecordNamesNotSupported);
+            warning('data record %s is not supported.',dataRecordNamesNotSupported);
         end
-        if ~any(iSupported)
+
+        if ~any(is_version3)
             error('Not a single burst/average data record version 3 format found (only format supported).');
         else
             serialNumber = num2str(structures.(acquisitionMode{1}).Data(1).SerialNumber);
@@ -105,7 +102,7 @@ switch lower(ext)
             if length(data.(acquisitionMode{i}).coordSys)  > 1, error('Multiple coordSys values not supported'); end
             if length(data.(acquisitionMode{i}).cellSize)  > 1, error('Multiple cellSize values not supported'); end
             if length(data.(acquisitionMode{i}).blankDist) > 1, error('Multiple blankDist values not supported'); end
-            
+        
             % retrieve sample data
             data.(acquisitionMode{i}).Time               = vertcat(structures.(acquisitionMode{i}).Data.Time);
             data.(acquisitionMode{i}).speedOfSound       = vertcat(structures.(acquisitionMode{i}).Data.SpeedOfSound)*0.1; % m/s
@@ -120,7 +117,6 @@ switch lower(ext)
             data.(acquisitionMode{i}).AmbiguityVel       = vertcat(structures.(acquisitionMode{i}).Data.AmbiguityVel);
             data.(acquisitionMode{i}).TransmitEnergy     = vertcat(structures.(acquisitionMode{i}).Data.TransmitEnergy);
             data.(acquisitionMode{i}).NominalCorrelation = vertcat(structures.(acquisitionMode{i}).Data.NominalCorrelation);
-            
             % support velocity data in ENU or beam coordinates
             data.(acquisitionMode{i}).isVelocityData = false;
             if isfield(structures.(acquisitionMode{i}).Data, 'VelocityData')
@@ -616,20 +612,28 @@ for i=1:nDataset
     % look for most frequents modes
     Ms = unique(round(diffTimeInSec*100)/100); % unique() sorts in order of most frequent
     
-    sample_data{i}.meta.instrument_sample_interval = Ms(1);
-    
     % we look for the second burst (less likely to be chopped) 
     % and we hope it is valid
     dt = [0; diffTimeInSec];
-    iBurst = find(dt >= Ms(2) - 1/100, 2, 'first');
-    if length(iBurst) == 2
+    if length(Ms) > 1
+        iBurst = find(dt >= Ms(2) - 1/100, 2, 'first');
+        sample_data{i}.meta.instrument_sample_interval = Ms(1);
         sample_data{i}.meta.instrument_burst_interval = round((data.(acquisitionMode{i}).Time(iBurst(2)) - ...
             data.(acquisitionMode{i}).Time(iBurst(1)))*24*3600 * 100)/100;
-        
         sample_data{i}.meta.instrument_burst_duration = round((data.(acquisitionMode{i}).Time(iBurst(2)-1) - ...
             data.(acquisitionMode{i}).Time(iBurst(1)))*24*3600 * 100)/100;
+    else % use the header information
+        sample_data{i}.meta.instrument_sample_interval = Ms;
+        sample_data{i}.meta.instrument_burst_interval = 0; %or miAvgInterval
+        sample_data{i}.meta.instrument_burst_duration = 0;
+
     end
-    
+
+    ok_sampling = sample_data{i}.meta.instrument_sample_interval <= sample_data{i}.meta.instrument_burst_duration <= sample_data{i}.meta.instrument_burst_interval;
+    if ~ok_sampling
+        warning("Instrument sampling metadata is inconsistent for file %s",filename);
+    end
+
     switch sample_data{i}.meta.instrument_model
         case 'Signature250'
             sample_data{i}.meta.beam_angle         = 20;
@@ -639,16 +643,16 @@ for i=1:nDataset
 %     if data.(acquisitionMode{i}).isVelocityData
 %         sample_data{i}.meta.beam_to_xyz_transform  = data.(acquisitionMode{i}).Beam2xyz; % need to find out how to compute this matrix for .ad2cp format. See https://pypkg.com/pypi/nortek/f/nortek/files.py
 %     end
-    
+
     % generate distance values
     distance = nan(data.(acquisitionMode{i}).nCells, 1);
     distance(:) = (data.(acquisitionMode{i}).blankDist):  ...
         (data.(acquisitionMode{i}).cellSize): ...
         (data.(acquisitionMode{i}).blankDist + (data.(acquisitionMode{i}).nCells-1) * data.(acquisitionMode{i}).cellSize);
-    
+ 
     % distance between the ADCP's transducers and the middle of each cell
     % See http://www.nortek-bv.nl/en/knowledge-center/forum/current-profilers-and-current-meters/579860330
-    distance = (distance + data.(acquisitionMode{i}).cellSize);
+    distance = (distance + data.(acquisitionMode{i}).cellSize);    
     
     % add dimensions with their data mapped
     iStartOrientation = 26;
@@ -777,7 +781,7 @@ for i=1:nDataset
         'TEMP',             1,              data.(acquisitionMode{i}).Temperature; ...
         'PRES_REL',         1,              data.(acquisitionMode{i}).Pressure; ...
         'SSPD',             1,              data.(acquisitionMode{i}).speedOfSound; ...
-        'VOLT',             1,              data.(acquisitionMode{i}).Battery; ...
+        'BAT_VOLT',         1,              data.(acquisitionMode{i}).Battery; ...
         'PITCH',            1,              data.(acquisitionMode{i}).Pitch; ...
         'ROLL',             1,              data.(acquisitionMode{i}).Roll; ...
         ['HEADING' magExt], 1,              data.(acquisitionMode{i}).Heading; ...
@@ -808,4 +812,65 @@ for i=1:nDataset
         end
     end
     clear vars;
+end
+
+end
+
+
+function [value] = read_header_key(hstr,mode,key,vtype)
+% function value = read_header_key(hstr,mode,key,vtype)
+%
+% Read a nortek value from a `key` name
+% within a `mode` line from the header string `hstr`.
+% The type of the variable is defined by `vtype`.
+% See example.
+%
+% Inputs:
+% 
+% hstr - the header string
+% mode- the name of the mode or the first string in the line
+% key - the name of the key
+% vtype - the textscan type of the value [Optional]
+%      - default: 'float'
+%
+%
+% Outputs:
+% 
+% value - a single value
+%
+% Example:
+%
+% hstr = 'GETAVG1,ABC="CBA",MIAVG=600,ERR=0.00e-10';
+% [value] = read_nortek_key(hstr,'GETAVG1','MIAVG','int');
+% assert(value==600)
+% [value] = read_nortek_key(hstr,'GETAVG1','ABC','str');
+% assert(value==600)
+% [value] = read_nortek_key(hstr,'GETAVG1','ERR','float');
+% assert(value==600)
+%
+% author: hugo.oliveira@utas.edu.au
+%
+narginchk(4,4)
+
+if strcmpi(vtype,'float')
+    mtype = '-?[\d.]+(?:[eE][-?+?\d+]\d+)?';
+    mfun = @str2double;
+elseif strcmpi(vtype,'integer') || strcmpi(vtype,'int')
+    mtype = '\d+';
+    mfun = @str2double;
+else
+    mtype = '".*?"';
+    mfun = @(x) strrep(x,'"','');
+end
+
+%header lines always start with command,key0=value0,key1=value1,...
+re_match = ['(?<mode>(' mode  '))' '(.*?)' key '={1}' '(?<value>(' mtype ')),']; 
+data = regexpi(hstr,re_match,'names');
+
+if ~isempty(data)
+    value = mfun(data.value);
+else
+    error('Could not find key %s with type %s',key,vtype);
+end
+
 end

@@ -1,21 +1,26 @@
-function [results] = runAllTests(parallel)
-% function  = runAllTests(parallel)
+function [degC] = toCelsius(array, units)
+% function degC = toCelsius funcname(celsius)
 %
-% Run all toolbox tests
+% Convert to degree Celsius
 %
 % Inputs:
 %
-% parallel - boolean to run the tests in parallel
-%    - Default to False
-%      Reason: Memory usage is too high and CPU usage is too low.
+% array - array of temperature values
+% units - unit string one of {'celsius','kelvin','fahr','fahrenheit'}
 %
 % Outputs:
 %
-% results - the resulted unittest structure for all tests
-%
+% degC - array in degree celsius
 %
 % Example:
-% runAllTests(4);
+%
+% degC = toCelsius([300.15],'kelvin');
+% assert(degC==27);
+% degC = toCelsius([27],'celsius');
+% assert(degC==27);
+% degC = toCelsius([80.6],'fahr');
+% assert(DegC==27);
+%
 %
 % author: hugo.oliveira@utas.edu.au
 %
@@ -36,17 +41,18 @@ function [results] = runAllTests(parallel)
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-if nargin < 1
-    parallel = false;
+
+from_kelvin = @(x) x - 273.15;
+from_fahr = @(x) (x - 32) .* 5/9;
+
+if strcmpi(units, 'kelvin')
+    degC = from_kelvin(array);
+elseif strcmpi(units, 'celsius')
+    degC = array;
+elseif strcmpi(units, 'fahr') || strcmpi(units, 'fahrenheit')
+    degC = from_fahr(array);
+else
+    error('Invalid units %s', units);
 end
 
-testfolder = [toolboxRootPath() 'test'];
-[~, allfolders] = rdir(testfolder);
-suite = testsuite(allfolders);
-runner = matlab.unittest.TestRunner.withTextOutput();
-
-if parallel
-    results = runInParallel(runner, suite);
-else
-    results = run(runner, suite);
 end

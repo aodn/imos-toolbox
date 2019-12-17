@@ -1,21 +1,24 @@
-function [results] = runAllTests(parallel)
-% function  = runAllTests(parallel)
+function [newname] = resolveIMOSName(vcell, iname)
+% function [newname] = resolveIMOSName(vcell,iname)
 %
-% Run all toolbox tests
+% Generate a unique name generate based on the state
+% content of vcell.
 %
 % Inputs:
 %
-% parallel - boolean to run the tests in parallel
-%    - Default to False
-%      Reason: Memory usage is too high and CPU usage is too low.
+% vcell - original cell containing IMOS toolbox structure variables
+% iname - the IMOS variable name.
 %
 % Outputs:
 %
-% results - the resulted unittest structure for all tests
-%
+% newname - a string.
 %
 % Example:
-% runAllTests(4);
+%
+% vcell = {struct('name','TEMP'),struct('name','TEMP_2')};
+% name = 'TEMP';
+% newname = resolveIMOSName(vcell,name);
+% assert(strcmp(newname,'TEMP_3'));
 %
 % author: hugo.oliveira@utas.edu.au
 %
@@ -36,17 +39,5 @@ function [results] = runAllTests(parallel)
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-if nargin < 1
-    parallel = false;
-end
-
-testfolder = [toolboxRootPath() 'test'];
-[~, allfolders] = rdir(testfolder);
-suite = testsuite(allfolders);
-runner = matlab.unittest.TestRunner.withTextOutput();
-
-if parallel
-    results = runInParallel(runner, suite);
-else
-    results = run(runner, suite);
+newname = resolveString(vcell,iname,@getVar);
 end
