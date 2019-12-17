@@ -15,13 +15,9 @@ function [encoding, machineformat] = detectEncoding(filename)
 % machineformat - the machineformat string
 %
 % Example:
-% filename = 'abc.dat';
-% [encoding,mf] = detectEncoding(filename);
-% assert(strcmp(encoding,'windows-1252'));
-% assert(strcmp(mf,'ieee-le.l64'));
-% % detection
-% filename = 'data/testfiles/RBR/duet3/v000/082533_20190525_0515_eng_rbrduet3.txt'
-% encoding = detectEncoding(filename,true);
+% % automatic detection
+% filename = [toolboxRootPath() 'data/testfiles/RBR/duet3/v000/082533_20190525_0515_eng_rbrduet3.txt']
+% encoding = detectEncoding(filename);
 % assert(strcmp(encoding,'windows-1252'));
 %
 % author: hugo.oliveira@utas.edu.au
