@@ -1,5 +1,5 @@
 function [data] = mapDataNames(procdata, map_rules, header_info)
-% function data = mapDataNames(procdata,header_info,map_rules)
+% function data = mapDataNames(procdata, map_rules, header_info)
 %
 % Map variables names according to rules and the header_information
 %
@@ -16,10 +16,11 @@ function [data] = mapDataNames(procdata, map_rules, header_info)
 %          variables names.
 %
 % Example:
-% >>> sdata.procdata.date = [1,2,3]
-% >>> map_rules.data = @() 'TIME'
-% >>> [data] = MapDataNames(procdata,data)
-% >>> assert(data.TIME == [1,2,3])
+% % Simplest case - just simple mapping
+% sdata.procdata.date = [1,2,3];
+% map_rules.date = @(x) 'TIME';
+% [data] = mapDataNames(sdata.procdata,map_rules);
+% assert(isequal(data.TIME,[1,2,3]));
 %
 % author: hugo.oliveira@utas.edu.au
 %
