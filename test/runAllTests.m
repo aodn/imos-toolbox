@@ -46,7 +46,7 @@ suite = testsuite(allfolders);
 runner = matlab.unittest.TestRunner.withTextOutput();
 
 if parallel
-    results = runIparallel(runner, suite);
+    results = runInParallel(runner, suite);
 else
     results = run(runner, suite);
 end
