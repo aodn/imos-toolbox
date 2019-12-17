@@ -1,11 +1,11 @@
-function [mtype] = getIMOSType(imos_parameter)
-% function mtype = getIMOSType(imos_parameter)
+function [mtype] = getIMOSType(imos_parameter_str)
+% function mtype = getIMOSType(imos_parameter_str)
 %
 % A wrapper to get the type of an IMOS parameter
 %
 % Inputs:
 %
-% imos_parameter - an IMOS string name
+% imos_parameter_str - an IMOS string name
 %
 % Outputs:
 %
@@ -13,7 +13,6 @@ function [mtype] = getIMOSType(imos_parameter)
 %         type
 %
 % Example:
-% imos_parameter =
 % [mtype] = getIMOSType('TEMP')
 % assert(isequal(mtype,@single))
 %
@@ -36,5 +35,5 @@ function [mtype] = getIMOSType(imos_parameter)
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-mtype = str2func(netcdf3ToMatlabType(imosParameters(imos_parameter, 'type')));
+mtype = str2func(netcdf3ToMatlabType(imosParameters(imos_parameter_str, 'type')));
 end
