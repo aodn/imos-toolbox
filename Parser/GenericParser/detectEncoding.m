@@ -37,13 +37,19 @@ for m = 1:length(mflist)
     for n = 1:length(mclist)
         machineformat = mflist{m};
         encoding = mclist{n};
-        fid = fopen(filename, 'r', machineformat, encoding);
+        [fid, ferr] = fopen(filename, 'r', machineformat, encoding);
+
+        if fid < 0
+            error([ferr ': %s'], filename)
+        end
+
         wstr = fscanf(fid, '%s');
 
         for s = 1:length(badstring_list)
             badstring = badstring_list{s};
 
             if ~contains(wstr, badstring)
+                fclose(fid);
                 return
             end
 
@@ -53,6 +59,7 @@ for m = 1:length(mflist)
 
 end
 
+fclose(fid);
 error('Couldn''t detect machineformat/encoding for file %s', filename);
 
 end
