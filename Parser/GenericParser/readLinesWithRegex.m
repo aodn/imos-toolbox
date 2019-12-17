@@ -45,7 +45,7 @@ function [lines] = readLinesWithRegex(fid, re_signature, stopfirst)
 %
 
 if nargin < 2
-    error('Need a valid regular expression')
+    error('Not enough input arguments')
 elseif nargin < 3
     stopfirst = true;
 end
