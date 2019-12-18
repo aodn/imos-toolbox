@@ -19,6 +19,7 @@ import sys
 
 import boto3
 from botocore.exceptions import ClientError
+from botocore.handlers import disable_signing
 from docopt import docopt
 
 DEFAULT_BUCKET = 'imos-toolbox'
@@ -63,7 +64,9 @@ if __name__ == '__main__':
         outdir = DEFAULT_OUTDIR
 
     client = boto3.client('s3')
+    client.meta.events.register('choose-signer.s3.*', disable_signing)
     s3 = boto3.resource('s3')
+    s3.meta.client.meta.events.register('choose-signer.s3.*', disable_signing)
     bucket = s3.Bucket(DEFAULT_BUCKET)
 
     if verbose:
@@ -104,6 +107,7 @@ if __name__ == '__main__':
                 print(f'Downloading {dest_file} | {md5sum}')
                 client.download_file(DEFAULT_BUCKET, kname, dest_file)
             except ClientError:
+                __import__('pdb').set_trace()
                 continue
 
             if not do_md5_check:
@@ -118,5 +122,4 @@ if __name__ == '__main__':
         if ntry == NTRY:
             print('Aborted - try attempt exceeded')
             sys.exit(-1)
-
     print(f'SUCCESS syncing {DEFAULT_BUCKET}')
