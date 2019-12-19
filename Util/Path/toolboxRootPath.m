@@ -37,7 +37,7 @@ where_imos = which('imosToolbox.m');
 if isempty(where_imos)
     error("Could not find the path to imosToolbox.m");
 else
-    root_path = [fileparts(which('imosToolbox.m')) '/'];
+    root_path = [fileparts(which('imosToolbox.m')) filesep];
 end
 
 end
