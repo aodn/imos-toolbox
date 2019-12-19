@@ -35,6 +35,14 @@ function sample_data = StarmonDSTParse( filename, mode )
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
+try
+    sample_data = StaroddiParser(filename,mode);
+    return
+catch e
+    warning("Using the old StarmonDSTParse. Please raise an issue in our github page with this warning msg: %s", e.message)
+end
+
+%TODO remove old code below
 narginchk(1,2);
 
 if ~iscellstr(filename)
