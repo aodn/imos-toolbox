@@ -17,8 +17,7 @@ import hashlib
 import os
 
 import boto3
-from botocore.exceptions import ClientError
-from botocore.handlers import disable_signing
+import botocore
 from docopt import docopt
 
 DEFAULT_BUCKET = 'imos-toolbox'
@@ -78,7 +77,7 @@ def need_md5_check(client: boto3.client, bucket_name: str,
     try:
         md5sum = get_md5(client, DEFAULT_BUCKET, kname)
         do_md5_check = True
-    except (ClientError, KeyError):
+    except (botocore.exceptions.ClientError, KeyError):
         md5sum = None
         do_md5_check = False
 
@@ -141,17 +140,21 @@ if __name__ == '__main__':
     if not outdir:
         outdir = DEFAULT_OUTDIR
 
-    client = boto3.client('s3')
-    client.meta.events.register('choose-signer.s3.*', disable_signing)
-    s3 = boto3.resource('s3')
-    s3.meta.client.meta.events.register('choose-signer.s3.*', disable_signing)
+    #make sure we avoid using any AWS setup credentials
+    aws_unsigned_config = botocore.config.Config(
+        signature_version=botocore.UNSIGNED)
+    aws_vars_to_remove = [x for x in os.environ.keys() if 'AWS_' in x]
+    [os.environ.pop(x) for x in aws_vars_to_remove]
+
+    client = boto3.client('s3', config=aws_unsigned_config)
+    s3 = boto3.resource('s3', config=aws_unsigned_config)
     bucket = s3.Bucket(DEFAULT_BUCKET)
 
     print(f"Getting test files in {DEFAULT_BUCKET} bucket...")
 
     for kname, dest_folder, dest_file in gen_param(bucket):
         do_md5_check, md5sum = need_md5_check(client, DEFAULT_BUCKET, kname)
-        
+
         if not os.path.exists(dest_folder):
             print(f"Creating folder {dest_folder}")
             os.makedirs(dest_folder)
