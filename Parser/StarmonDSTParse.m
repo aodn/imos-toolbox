@@ -38,8 +38,8 @@ function sample_data = StarmonDSTParse( filename, mode )
 try
     sample_data = StaroddiParser(filename,mode);
     return
-catch
-
+catch e
+    warning("Using the old StarmonDSTParse. Please raise an issue in our github page with this warning msg: %s", e.message)
 end
 
 %TODO remove old code below
