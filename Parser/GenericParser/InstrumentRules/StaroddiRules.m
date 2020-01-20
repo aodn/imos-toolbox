@@ -512,7 +512,7 @@ cleanstr = strtrim(astr);
 
 old_reg_exp = '(?<idate0>(^[0-9]))\s(?<idate1>([0-9]))';
 dentry = '(d{2}|m{2}|y{2,4})';
-new_reg_exp = ['^' dentry '\/' dentry '\/' dentry];
+new_reg_exp = ['^' dentry '([\/|\.])' dentry '([\/|\.])' dentry];
 
 sdate = regexpi(cleanstr, old_reg_exp, 'names');
 
