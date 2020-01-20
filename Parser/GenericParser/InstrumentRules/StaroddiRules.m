@@ -230,8 +230,8 @@ first_split = @(x) x{1};
 second_split = @(x) x{2};
 get_software = @(x) first_split(strsplit(x));
 get_version = @(x) second_split(strsplit(x));
-header_oper_rules.sofware = argstruct({'Version'}, get_software);
-header_oper_rules.version = argstruct({'Version'}, get_version);
+header_oper_rules.sofware_name = argstruct({'Version'}, get_software);
+header_oper_rules.software_version = argstruct({'Version'}, get_version);
 
 % Now it's time to define how to read the data block
 % Since we are dealing with text files, most data blocks are simply columnar.
