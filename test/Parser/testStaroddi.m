@@ -18,9 +18,9 @@ classdef testStaroddi < matlab.unittest.TestCase
 
     methods (Test)
         %%TODO REMOVE after old parsers are deprecated.
-        function testCreateMatfilesMiniv000(~, starmon_mini_v000_param, starmon_mini_v000_folder, mode)
-            save_mat(StarmonMiniParse({starmon_mini_v000_param}, mode), starmon_mini_v000_param, fullfile(starmon_mini_v000_folder, 'mat'))
-        end
+        % function testCreateMatfilesMiniv000(~, starmon_mini_v000_param, starmon_mini_v000_folder, mode)
+        %     save_mat(StarmonMiniParse({starmon_mini_v000_param}, mode), starmon_mini_v000_param, fullfile(starmon_mini_v000_folder, 'mat'))
+        % end
 
         %%TODO REMOVE after old parsers are deprecated.
         % function testCreateMatfilesDSTTiltv000(~, starmon_dsttilt_v000_param, starmon_dsttilt_v000_folder, mode)
@@ -32,11 +32,15 @@ classdef testStaroddi < matlab.unittest.TestCase
         %     save_mat(StarmonDSTParse({starmon_dstctd_v000_param}, mode), starmon_dstctd_v000_param, fullfile(starmon_dstctd_v000_folder, 'mat'));
         % end
 
+
         function testCompareOldNewParser_mini_v000(~, starmon_mini_v000_param, starmon_mini_v000_folder, mode)
             old_data = load([fullfile(starmon_mini_v000_folder, 'mat', basename(starmon_mini_v000_param)) '.mat']);
             new_data = StaroddiParser(starmon_mini_v000_param, mode);
 
-            assert(strcmp(new_data.toolbox_input_file, old_data.data.toolbox_input_file));
+            [~,newfile,~] = fileparts(new_data.toolbox_input_file);
+            [~,oldfile,~] = fileparts(old_data.data.toolbox_input_file);
+            assert(strcmp(newfile,oldfile))
+
             [old_meta, old_dimensions, old_variables] = loadfields(old_data.data);
             [new_meta, new_dimensions, new_variables] = loadfields(new_data);
 
@@ -64,7 +68,10 @@ classdef testStaroddi < matlab.unittest.TestCase
             old_data = load([fullfile(starmon_dsttilt_v000_folder, 'mat', basename(starmon_dsttilt_v000_param)) '.mat']);
             new_data = StaroddiParser(starmon_dsttilt_v000_param, mode);
 
-            assert(strcmp(new_data.toolbox_input_file, old_data.data.toolbox_input_file));
+            [~,newfile,~] = fileparts(new_data.toolbox_input_file);
+            [~,oldfile,~] = fileparts(old_data.data.toolbox_input_file);
+            assert(strcmp(newfile,oldfile))
+
             [old_meta, old_dimensions, old_variables] = loadfields(old_data.data);
             [new_meta, new_dimensions, new_variables] = loadfields(new_data);
 
@@ -92,7 +99,10 @@ classdef testStaroddi < matlab.unittest.TestCase
             old_data = load([starmon_dstctd_v000_folder '/mat/' basename(starmon_dstctd_v000_param) '.mat']);
             new_data = StaroddiParser(starmon_dstctd_v000_param, mode);
 
-            assert(strcmp(new_data.toolbox_input_file, old_data.data.toolbox_input_file));
+            [~,newfile,~] = fileparts(new_data.toolbox_input_file);
+            [~,oldfile,~] = fileparts(old_data.data.toolbox_input_file);
+            assert(strcmp(newfile,oldfile))
+
             [old_meta, old_dimensions, old_variables] = loadfields(old_data.data);
             [new_meta, new_dimensions, new_variables] = loadfields(new_data);
 
@@ -238,12 +248,12 @@ function [folder] = get_folder(maker, model, version)
 [~, ~, folder] = get_testfiles(maker, model, version);
 end
 
-function save_mat(data, tparam, outfolder)
-%
-% save a mat file to outfolder/tparam.mat
-%
-fs = char(tparam);
-file = [basename(fs) '.mat'];
-omat = fullfile(outfolder, file);
-save(omat, 'data');
-end
+%function save_mat(data, tparam, outfolder)
+%%
+%% save a mat file to outfolder/tparam.mat
+%%
+%fs = char(tparam);
+%file = [basename(fs) '.mat'];
+%omat = fullfile(outfolder, file);
+%save(omat, 'data');
+%end
