@@ -162,7 +162,7 @@ strcat(header_def_rules.lineid(), ...
 %
 
 %functions
-datestr2datenum = @(x) (datenum(parseMultiDateFormat(x))); % avoid warning from auto datetime
+keep_original_str = @(x) x;
 str2number = @(x) str2double(strtrim(x));
 str2bool = @(x) logical(str2number(x));
 str2bool_rev = @(x)~str2bool(x);
@@ -170,8 +170,8 @@ str2bool_rev = @(x)~str2bool(x);
 header_oper_rules = struct(); % args should match keys read by header_def_rules
 
 %The below structure will ensure fun(header_content{n}.value) is triggered if strcmpi(header_content{n}.key,'Date-Time') is true.
-header_oper_rules.creation_date_time = argstruct({'Date-time'}, datestr2datenum);
-
+header_oper_rules.date_time = argstruct({'Date-time'}, keep_original_str);
+header_oper_rules.created = argstruct({'Created'}, keep_original_str);
 header_oper_rules.recorder = argstruct({'Recorder'}, @StarmonRecorder);
 header_oper_rules.file_type = argstruct({'File type'}, str2bool);
 header_oper_rules.columns = argstruct({'Columns'}, str2number);
@@ -230,8 +230,8 @@ first_split = @(x) x{1};
 second_split = @(x) x{2};
 get_software = @(x) first_split(strsplit(x));
 get_version = @(x) second_split(strsplit(x));
-header_oper_rules.sofware = argstruct({'Version'}, get_software);
-header_oper_rules.version = argstruct({'Version'}, get_version);
+header_oper_rules.sofware_name = argstruct({'Version'}, get_software);
+header_oper_rules.software_version = argstruct({'Version'}, get_version);
 
 % Now it's time to define how to read the data block
 % Since we are dealing with text files, most data blocks are simply columnar.
@@ -339,50 +339,6 @@ rules.header_oper_rules = header_oper_rules;
 rules.data_def_rules = data_def_rules;
 rules.data_oper_rules = data_oper_rules;
 rules.name_map_rules = name_map_rules;
-
-end
-
-function [date] = parseMultiDateFormat(astr)
-%function [date] = parseMultiDateFormat(astr)
-%
-% Parse the multiple create date formats present
-% in several Starmon files.
-%
-% Inputs:
-%
-% astr - a string representing the date
-%
-% Outputs:
-%
-% date - a datetime variable
-%
-%
-% author: hugo.oliveira@utas.edu.au
-%
-
-try
-    date = datetime(astr, 'InputFormat', 'd/MM/yyyy h:mm:ss');
-catch
-
-    try
-        date = datetime(astr, 'InputFormat', 'd/MM/yyyy h:mm:ss a');
-    catch
-
-        try
-            date = datetime(astr, 'InputFormat', 'dd/MM/yyyy hh:mm:ss');
-        catch
-
-            try
-                date = datetime(astr, 'InputFormat', 'dd/MM/yyyy hh:mm:ss a');
-            catch
-                date = datetime(astr);
-            end
-
-        end
-
-    end
-
-end
 
 end
 
@@ -512,7 +468,7 @@ cleanstr = strtrim(astr);
 
 old_reg_exp = '(?<idate0>(^[0-9]))\s(?<idate1>([0-9]))';
 dentry = '(d{2}|m{2}|y{2,4})';
-new_reg_exp = ['^' dentry '\/' dentry '\/' dentry];
+new_reg_exp = ['^' dentry '([\/|\.])' dentry '([\/|\.])' dentry];
 
 sdate = regexpi(cleanstr, old_reg_exp, 'names');
 
