@@ -171,7 +171,7 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt, mode)
       dateFmt = dateFmt(1:end-1);
       extraChar = 'Z';
   end
-  config.start_date    = [datestr(sample_data.time_coverage_start, dateFmt), extraChar];
+  config.start_date    = [datestr(sample_data.time_deployment_start, dateFmt), extraChar];
   
   config.site_code     = sample_data.site_code;
 
@@ -197,7 +197,7 @@ function config = genDefaultFileNameConfig(sample_data, dateFmt, mode)
   config.product_type(config.product_type == '_') = '-';
   
   % <end_date>, <creation_date>
-  config.end_date    = [datestr(sample_data.time_coverage_end, dateFmt), extraChar];
+  config.end_date    = [datestr(sample_data.time_deployment_end, dateFmt), extraChar];
   
   config.creation_date = [datestr(sample_data.date_created, dateFmt), extraChar];
 end
