@@ -183,6 +183,8 @@ function sample_data = netcdfParse( filename, mode )
   sample_data.meta.instrument_model           = '';
   sample_data.meta.instrument_serial_no       = '';
   sample_data.meta.instrument_sample_interval = NaN;
+  sample_data.meta.instrument_burst_duration  = NaN;
+  sample_data.meta.instrument_burst_interval  = NaN;
   sample_data.meta.featureType                = '';
   
   if isfield(sample_data, 'deployment_code')
@@ -217,6 +219,14 @@ function sample_data = netcdfParse( filename, mode )
   
   if isfield(sample_data, 'instrument_sample_interval')
       sample_data.meta.instrument_sample_interval = sample_data.instrument_sample_interval;
+  end
+
+  if isfield(sample_data, 'instrument_burst_duration')
+      sample_data.meta.instrument_burst_duration = sample_data.instrument_burst_duration;
+  end
+
+  if isfield(sample_data, 'instrument_burst_interval')
+      sample_data.meta.instrument_burst_interval = sample_data.instrument_burst_interval;
   end
   
   if isfield(sample_data, 'featureType')
