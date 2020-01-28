@@ -37,7 +37,7 @@ addpath([root_folder filesep 'Util' filesep 'Path'])
 setToolboxPaths(root_folder)
 
 try
-    results = runAllTests(parallel)  %do not supress report output
+    results = runAllTests(parallel)%do not supress report output
 catch
     error('Tests failed')
 end
@@ -45,20 +45,25 @@ end
 failed = {'    Tests failed:\n'};
 c = 2;
 
-for k = 1:length(results)
-    ktest = results(k);
+%pretty print the results of failed tests.
+for k = 1:length(results)% loop through all results
+    ktest = results(k); %get k-results
 
     if ~ktest.Passed
-        fparam = extract_param(ktest.Name);
-        fnames = fieldnames(fparam);
-        fnames = fnames(2:end);
-        fstr = [repmat(' ',1,length(failed{1})) fparam.testname ':\n'];
+        fparam = extract_param(ktest.Name); % extract all test parameters
+        fnames = fieldnames(fparam); %get parameter names
+        fnames = fnames(2:end); % remove the testname from the list
+
+        %now create a pretty string
+        fstr = [repmat(' ', 1, length(failed{1})) fparam.testname ':\n'];
         lfstr = length(fstr)
+
         for kk = 1:length(fnames)
-            fstr = [fstr repmat(' ',1,lfstr) fnames{kk} '->' fparam.(fnames{kk}) '\n'];
+            fstr = [fstr repmat(' ', 1, lfstr) fnames{kk} '->' fparam.(fnames{kk}) '\n'];
         end
+
         fstr = [fstr '\n'];
-        failed{c} = fstr;
+        failed{c} = fstr; % store the string for subsequent failed tests if any
         c = c + 1;
     end
 
@@ -82,8 +87,8 @@ function params = extract_param(namestr)
 %
 % Example:
 %
-% testname='mytest(myparam='abc',myparam2='cba',folder='p__home_user_S');
-% params=extract_param(namestr);
+% testname_str='mytest(myparam='abc',myparam2='cba',folder='p__home_user_S');
+% params=extract_param(testname_str);
 % assert(strcmpi(params.testname,'mytest'))
 % assert(strcmpi(params.myparam,'abc'))
 % assert(strcmpi(params.myparam2,'cba'))
@@ -94,7 +99,7 @@ function params = extract_param(namestr)
 params = struct();
 
 tmp = strsplit(namestr, '(');
-tmp2 = strsplit(tmp{1}, '/');
+tmp2 = strsplit(tmp{1}, fileSep);
 params.testname = tmp2{end};
 
 pcell = strsplit(namestr, ',');
