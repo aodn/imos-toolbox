@@ -32,7 +32,8 @@ function batchTesting(parallel)
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 
-root_folder = pwd;
+csplit = strsplit(mfilename('fullpath'),[ filesep 'batchTesting']);
+root_folder = csplit{1};
 addpath([root_folder filesep 'Util' filesep 'Path'])
 setToolboxPaths(root_folder)
 
