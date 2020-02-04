@@ -107,8 +107,8 @@ converted_variables = convertVariables(data, hvmap, hdmap, coordinates);
 
 sample_data.variables = [sample_data.variables, converted_variables];
 
-is_degF_mini = isfield(sdata.header_info, 'channel_index_1') && isfield(sdata.header_info,'channel_info_1') && strcmp(sdata.header_info.channel_info_1.channel_units, '°F');
-is_degF_dst = isfield(sdata.header_info, 'axis_index_0') && isfield(sdata.header_info,'axis_info_0') && strcmp(sdata.header_info.axis_info_0.axis_units, '°F');
+is_degF_mini = isfield(sdata.header_info, 'channel_index_1') && isfield(sdata.header_info,'channel_info_1') && strcmp(sdata.header_info.channel_info_1.channel_units, [char(176) 'F']);
+is_degF_dst = isfield(sdata.header_info, 'axis_index_0') && isfield(sdata.header_info,'axis_info_0') && strcmp(sdata.header_info.axis_info_0.axis_units, [char(176) 'F']);
 is_temp_fahrenheit = is_degF_mini || is_degF_dst;
 
 if is_temp_fahrenheit
