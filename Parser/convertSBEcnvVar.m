@@ -82,7 +82,7 @@ switch name
       comment = '';
         
     % strain gauge pressure (dbar)
-    case {'pr', 'prM', 'prdM', 'prSM'}
+    case {'pr', 'prM', 'prdM', 'prDM', 'prSM'}
       name = 'PRES_REL';
       comment = '';
       
@@ -192,7 +192,7 @@ switch name
       comment = '';
       
     % Beam Attenuation, Chelsea/Seatech [1/m]
-    case 'bat'
+    case {'bat', 'CStarAt0'}
       name = 'BAT';
       comment = '';
       
@@ -259,7 +259,32 @@ switch name
             data = [];
             comment = '';
         end
-        
+
+    % altimeter (m)
+    case {'altM'}
+      name = 'ALTIMETER';
+      comment = '';
+
+    % latitude (deg)
+    case {'latitude'}
+      name = 'LATITUDE_CAST';
+      comment = '';
+
+    % longitude (deg)
+    case {'longitude'}
+      name = 'LONGITUDE_CAST';
+      comment = '';
+
+    % CStarTr0 (percent)
+    case {'CStarTr0'}
+      name = 'BAT_PERCENT';
+      comment = 'Beam Transmission, WET Labs C-Star [%]';
+
+    % Acceleration (m/s^2)
+    case {'accM'}
+      name = 'ACCELERATION';
+      comment = '';
+      
     otherwise 
       name = '';
       data = [];

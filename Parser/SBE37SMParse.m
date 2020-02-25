@@ -58,46 +58,19 @@ filename = filename{1};
 [~, ~, ext] = fileparts(filename);
 
 if strcmpi(ext, '.cnv')
-    % read in every line in the file, separating
-    % them out into each of the three sections
-    instHeaderLines = {};
-    procHeaderLines = {};
-    try
-        fid = fopen(filename, 'rt');
-        fileContent = textscan(fid, '%s', 'Delimiter', '', 'Whitespace', '');
-        fclose(fid);
-        
-        fileContent = fileContent{1};
-        
-        % we assume the instrument header will always come first with '*'
-        iInst = 1;
-        while strcmp('*', fileContent{iInst}(1))
-            instHeaderLines{iInst} = fileContent{iInst};
-            iInst = iInst + 1;
-        end
-        iLastInst = iInst - 1;
-        
-        % and then the proc header with '#'
-        iProc = 1;
-        while strcmp('#', fileContent{iProc + iLastInst}(1))
-            procHeaderLines{iProc} = fileContent{iProc + iLastInst};
-            iProc = iProc + 1;
-        end
-        
-        % and then we assume the data comes after one more '*' line so we
-        % add +1 below
-        dataLines = fileContent(iProc + 1 + iLastInst : end);
-    catch e
-        if fid ~= -1, fclose(fid); end
-        rethrow(e);
-    end
+
+    [dataLines, instHeaderLines, procHeaderLines] = readSBEcnv( filename, mode );
     
     % read in the raw instrument header
     instHeader = parseInstrumentHeader(instHeaderLines);
     procHeader = parseProcessedHeader( procHeaderLines);
     
-    %BDM (18/2/2011) Use new SBE37 specific cnv reader function
-    [data, comment] = readSBE37cnv(dataLines, instHeader, procHeader, mode);
+    castDate = 0;
+    if isfield(procHeader, 'startTime')
+        castDate = procHeader.startTime;
+    end
+    
+    [data, comment] = readSBEcnvData(dataLines, instHeader, procHeader, castDate, mode);
     
     % create sample data struct,
     % and copy all the data in

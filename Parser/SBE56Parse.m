@@ -55,51 +55,29 @@ filename = filename{1};
 
 [~, ~, ext] = fileparts(filename);
 if strcmpi(ext, '.CNV')
-    % read in every line in the file, separating
-    % them out into each of the three sections
-    instHeaderLines = {};
-    procHeaderLines = {};
-    dataLines       = {};
-    try
-        
-        fid = fopen(filename, 'rt');
-        line = fgetl(fid);
-        while ischar(line)
-            
-            line = deblank(line);
-            if isempty(line)
-                line = fgetl(fid);
-                continue;
-            end
-            
-            if     line(1) == '*', instHeaderLines{end+1} = line;
-            elseif line(1) == '#', procHeaderLines{end+1} = line;
-            else                   dataLines{      end+1} = line;
-            end
-            
-            line = fgetl(fid);
-        end
-        
-        fclose(fid);
-        
-    catch e
-        if fid ~= -1, fclose(fid); end
-        rethrow(e);
-    end
-    
-    % cnv file
+    % have cnv file    
+    [dataLines, instHeaderLines, procHeaderLines] = readSBEcnv( filename, mode );
+
     % read in the raw instrument header
     instHeader = parseInstrumentHeader(instHeaderLines);
     procHeader = parseProcessedHeader( procHeaderLines);
     
-    % use SBE37 specific cnv reader function
-    [data, comment] = readSBE37cnv(dataLines, instHeader, procHeader, mode);
-else
+    castDate = 0;
+    if isfield(procHeader, 'startTime')
+        castDate = procHeader.startTime;
+    end
+
+    [data, comment] = readSBEcnvData(dataLines, instHeader, procHeader, castDate, mode);
+    
+elseif strcmpi(ext, '.CSV')
     % have csv file
     % use SBE56 specific csv data reader function
     [data, comment, csvHeaderLines] = readSBE56csv(filename);
     instHeader = parseInstrumentHeader(csvHeaderLines);
     procHeader = struct;
+    
+else
+    error('SBE56Parse: Unknown file type');
 end
 
 % create sample data struct,
