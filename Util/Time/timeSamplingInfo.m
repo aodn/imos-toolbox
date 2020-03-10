@@ -1,7 +1,9 @@
 function [info] = timeSamplingInfo(time, prec)
     % function [info] = timeSamplingInfo(time, prec)
     %
-    % Report information about a datenum time array.
+    % Report information about a datenum time array given a time precision.
+    % See Examples below to quantise time and to
+    % allow (ignore) round ups (timescales).
     %
     % Inputs:
     %
