@@ -1,25 +1,21 @@
-function [tq] = timeQuantisation(time, prec)
-% function [tq] = timeQuantisation(time, prec)
+function [steps] = stepsInDay(tunit)
+% function [steps] = timeQuantisationStep(prec)
 %
-% Quantize time by a certain precision.
+% How many steps are defined in day, for a given time unit.
+%
 %
 % Inputs:
 %
-% time - a datenum time array - i.e units in days
-% prec - the precision string
+% tunit - string representing a time/precision unit.
 %
 % Outputs:
 %
-% tq - quantize time
+% steps - a floating point number
 %
 % Example:
 %
-% [tq] = timeQuantisation([1,2,3,4+0.001/86400],'microsecond');
-% assert(isequal(tq,[1,2,3,4+0.001/86400]))
-% [tq] = timeQuantisation([1,2,3,4+0.001/86400],'milisecond');
-% assert(isequal(tq,[1,2,3,4+0.001/86400]))
-% [tq] = timeQuantisation([1,2,3,4+0.001/86400],'second');
-% assert(isequal(tq,[1,2,3,4]))
+% [steps] = timeQuantisationStep('minute')
+% assert(isequal(step,1440);
 %
 %
 % author: hugo.oliveira@utas.edu.au
@@ -40,9 +36,20 @@ function [tq] = timeQuantisation(time, prec)
 % You should have received a copy of the GNU General Public License
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
-%
 
-step = stepsInDay(prec);
-tq = uniformQuantise(time, 1 ./ step);
-
+switch tunit
+    case 'microsecond'
+        steps = 8.64e10;
+    case 'milisecond'
+        steps = 8.64e7;
+    case 'second'
+        steps = 8.64e4;
+    case 'minute'
+        steps = 1440;
+    case 'hour'
+        steps = 24;
+    case 'day'
+        steps = 1;
+    otherwise
+        error('%s not supported',prec)
 end
