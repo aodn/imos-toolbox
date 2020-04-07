@@ -1,7 +1,9 @@
 function [info] = timeSamplingInfo(time, prec)
     % function [info] = timeSamplingInfo(time, prec)
     %
-    % Report information about a datenum time array given a time precision.
+    % Report information about a datenum time array
+    % given a time precision, including burst Information, if any.
+    %
     % See Examples below to quantise time and to
     % allow (ignore) round ups (timescales).
     %
@@ -9,19 +11,24 @@ function [info] = timeSamplingInfo(time, prec)
     %
     % time - a datenum time array
     % prec - a time precision string for time interval matching.
-    %        Default to 'second', i.e.
-    %        half-second or lower sampling is quantised/floored.
+    %        Default to 'microsecond', i.e.
+    %        half-microsecond or lower sampling is quantised/floored.
     %
     % Outputs:
     %
     % info - a structure with information regarding time sampling.
+    %
+    %     % sampling information
     %     .assumed_time_precision - the precision
     %     .constant_vector - if time is constant
     %     .number_of_sampling_steps - the number of different samplings at given precision
     %     .sampling_steps - the sampling periods in days
     %     .sampling_steps_in_seconds - ditto but in seconds
-    %     .sampling_step_median - the most frequent value of the sampling dt
-    %     .sampling_step_median_in_seconds - the most frequent value of the sampling dt
+    %     .sampling_steps_median - the most frequent value of sampling dt.
+    %     .sampling_steps_median_in_seconds - ditto but in seconds
+    %     .sampling_step_mode - the most ocurring value of the sampling dt
+    %     .sampling_step_mode_in_seconds - ditto but in seconds
+    %     .consistent_sampling - if median == mode.
     %     .repeated_samples - if the time variable got repeated values
     %     .unique_sampling - if sampling intervals are unique
     %     .uniform_sampling - if sampling intervals are uniform
@@ -29,9 +36,19 @@ function [info] = timeSamplingInfo(time, prec)
     %     .progressive_sampling - values are generally increasing
     %     .regressive_sampling - values are generally decreasing
     %     .non_uniform_sampling_indexes - left-most indexes of non-uniform sampling.
-    %     .jump_magnitude - the index distance between the non-uniform  and the next uniform or non-uniform sampling
-    %     .jump_forward_indexes - the indexes where positive non-uniform sampling is found
-    %     .jump_backward_indexes - as above, but for negative sampling.
+    %     .jump_magnitude - the time distance between the non-uniform  and the next uniform or non-uniform sampling
+    %     .jump_forward_indexes - non_uniform boolean array where positive non-uniform sampling is found
+    %     .jump_backward_indexes - as above, but for negative shifts.
+    %
+    %    %  The burst sampling info.
+    %     .is_burst_sampling - true if burst were detected
+    %     .is_burst_sampling_exact - true if bursts are exact at `.burst_sampling_units`.
+    %     .is_burst_sampling_repeats - true if repeated sampling at burst level, such as repeated timestamps.
+    %     .burst_sampling_units = the precision for burst sampling - may be different from `prec`.
+    %     .burst_sampling_interval - the burst sampling interval.
+    %     .burst_sampling_interval_in_seconds - as above, but in seconds.
+    %     .burst_duration - the burst duration.
+    %     .burst_duration_in_seconds - as above, but in seconds.
     %
     % Example:
     % % basic - ignore small drifts at requested scale
@@ -40,11 +57,11 @@ function [info] = timeSamplingInfo(time, prec)
     % assert(info.uniform_sampling);
     % assert(all([info.unique_sampling,info.monotonic_sampling,info.progressive_sampling]));
     %
-    % % extra reports
+    % % extra reports about sampling
     %
     % info = timeSamplingInfo([1,2,1,3,1,4,1,5,1],'day');
     % assert(~all([info.unique_sampling,info.progressive_sampling,info.regressive_sampling,info.monotonic_sampling]));
-    % assert(isequal(info.sampling_steps_median,[]));
+    % assert(isequal(info.sampling_steps_mode,[]));
     % assert(all(info.jump_forward_indexes==[1 0 1 0 1 0 1 0]));
     % assert(all(info.jump_backward_indexes==[0 1 0 1 0 1 0 1]));
     %
@@ -94,60 +111,69 @@ function [info] = timeSamplingInfo(time, prec)
     % along with this program.
     % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
     %
+
     if nargin < 2
         prec = 'microsecond';
     end
 
     info = struct();
     info.assumed_time_precision = prec;
+    info.number_of_sampling_steps = 0;
+    info.sampling_steps = [];
+    info.sampling_steps_in_seconds = [];
+    info.sampling_steps_median = [];
+    info.sampling_steps_median_in_seconds = [];
+    info.sampling_steps_mode = [];
+    info.sampling_steps_mode_in_seconds = [];
+    info.consistent_sampling = [];
+    info.constant_vector = [];
+    info.repeated_samples = [];
+    info.unique_sampling = [];
+    info.uniform_sampling = [];
+    info.monotonic_sampling = [];
+    info.progressive_sampling = [];
+    info.regressive_sampling = [];
+    info.non_uniform_sampling_indexes = [];
+    info.jump_magnitude = [];
+    info.jump_forward_indexes = [];
+    info.jump_backward_indexes = [];
 
-    tdiff = timeQuantisation(diff(time),prec);
-    udt = unique(tdiff);
-    nss = length(udt);
-
-    info.number_of_sampling_steps = nss;
-    info.sampling_steps = udt;
-    info.sampling_steps_in_seconds = unique(timeQuantisation(tdiff*86400,'second'));
-
-    mfdt = median(tdiff);
-    tdiff_sign = sign(tdiff);
-    mfdt_sign = median(tdiff_sign);
-    tdiff_jumps = tdiff ~= mfdt;
-    if find(mfdt == info.sampling_steps)
-        info.sampling_steps_median = mfdt;
-        info.sampling_steps_median_in_seconds = mfdt*86400;
-    else
-        info.sampling_steps_median = [];
-        info.sampling_steps_median_in_seconds = [];
+    if isempty(time) || length(time) == 1
+        return
     end
 
+    info.unique_sampling = isunique(time);
+
+    tdiff = timeQuantisation(diff(time),prec);
+
+    info.sampling_steps = unique(tdiff);
+    info.number_of_sampling_steps = length(info.sampling_steps);
+    info.sampling_steps_in_seconds = unique(timeQuantisation(tdiff*86400,'second'));
     info.constant_vector = all(info.sampling_steps == 0);
     info.repeated_samples = info.sampling_steps(1) == 0;
-    info.unique_sampling = isunique(time);
     info.uniform_sampling = info.number_of_sampling_steps == 1;
-    info.monotonic_sampling = ~any(diff(tdiff_sign));
+
+    mfdt = median(tdiff);
+    modt = mode(tdiff);
+    tdiff_sign = sign(tdiff);
+
+    info.consistent_sampling = modt == mfdt;
+    info.sampling_steps_median = mfdt;
+    info.sampling_steps_median_in_seconds = mfdt*86400;
+    info.sampling_steps_mode = modt;
+    info.sampling_steps_mode_in_seconds = modt*86400;
+    info.monotonic_sampling = ~all(tdiff_sign==0) && ~any(diff(tdiff_sign));
+
+    mfdt_sign = mode(tdiff_sign); % use median to avoid symmetric false positives
     info.progressive_sampling = mfdt_sign > 0;
     info.regressive_sampling = mfdt_sign < 0;
 
-    jind = find(tdiff_jumps);
-
-    if jind == 0
-        info.non_uniform_sampling_indexes = [];
-    else
-        info.non_uniform_sampling_indexes = jind;
-    end
-
+    tdiff_jumps = tdiff ~= mfdt; % uses median to avoid symmetric false positives
+    info.non_uniform_sampling_indexes = find(tdiff_jumps);
     jval = tdiff(tdiff_jumps);
-
-    no_jumps = isempty(jval);
-
-    if no_jumps
-        info.jump_magnitude = [];
-        info.jump_forward_indexes = [];
-        info.jump_backward_indexes = [];
-    else
+    has_jumps = ~isempty(jval);
+    if has_jumps
         info.jump_magnitude = jval;
-
         if length(jval) > 1
             info.jump_forward_indexes = jval > 0;
             info.jump_backward_indexes = jval < 0;
