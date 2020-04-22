@@ -50,8 +50,6 @@ function [spikes] = imosSpikeClassifierNonBurstSavGolOTSU(signal, window, pdeg, 
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 
-narginchk(1, 5)
-
 if nargin == 1
     window = 5; %minimum filtering
     pdeg = 2; %quadratic polynomial

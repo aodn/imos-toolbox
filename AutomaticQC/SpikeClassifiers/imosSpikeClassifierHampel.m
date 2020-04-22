@@ -45,8 +45,6 @@ function [spikes, fsignal] = imosSpikeClassifierHampel(signal, window, stdfactor
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 
-narginchk(2, 3)
-
 if nargin < 3
     window = 3;
     stdfactor = 10;

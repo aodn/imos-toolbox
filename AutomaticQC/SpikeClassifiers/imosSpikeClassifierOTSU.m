@@ -1,5 +1,5 @@
 function [spikes,threshold] = imosSpikeClassifierOTSU(signal, nbins, oscale, centralize)
-% function [spikes,threshold] = imosSpikeClassifierOTSU(signal, window, pdeg, nbins, oscale, centralize)
+% function [spikes,threshold] = imosSpikeClassifierOTSU(signal, nbins, oscale, centralize)
 %
 % Detect spikes in by using the Otsu threshold method.
 %
@@ -67,14 +67,14 @@ function [spikes,threshold] = imosSpikeClassifierOTSU(signal, nbins, oscale, cen
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 
-narginchk(1, 4)
-
 if nargin == 1
     nbins = 256;
     oscale = 1;
     centralize = true;
 elseif nargin == 2
     oscale = 1;
+    centralize = true;
+elseif nargin == 3
     centralize = true;
 end
 
