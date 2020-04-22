@@ -14,8 +14,8 @@ function [steps] = stepsInDay(tunit)
 %
 % Example:
 %
-% [steps] = timeQuantisationStep('minute')
-% assert(isequal(step,1440);
+% [steps] = stepsInDay('minute');
+% assert(isequal(steps,1440))
 %
 %
 % author: hugo.oliveira@utas.edu.au
