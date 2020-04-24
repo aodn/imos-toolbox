@@ -8,7 +8,7 @@ function imosToolbox(auto, varargin)
 %              toolbox is output. if 'auto', the toolbox is executed
 %              automatically, with no user interaction. Any other string will
 %              result in the toolbox being executed normally.
-%   varargin - In 'auto' mode, any other parameters passed in are passed 
+%   varargin - In 'auto' mode, any other parameters passed in are passed
 %              through to the autoIMOSToolbox function - see the
 %              documentation for that function for details.
 %
@@ -19,7 +19,7 @@ function imosToolbox(auto, varargin)
 %
 
 %
-% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated
 % Marine Observing System (IMOS).
 %
 % This program is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ function imosToolbox(auto, varargin)
 %
 
 % Set current toolbox version
-toolboxVersion = ['2.6.5 - ' computer];
+toolboxVersion = ['2.6.6 - ' computer];
 
 if nargin == 0, auto = 'manual'; end
 
@@ -49,7 +49,7 @@ end
 path = '';
 if ~isdeployed
     [path, ~, ~] = fileparts(which('imosToolbox.m'));
-    
+
     % set Matlab path for this session (add all recursive directories to Matlab
     % path)
     searchPath = textscan(genpath(path), '%s', 'Delimiter', pathsep);
@@ -69,7 +69,7 @@ for j = 1 : length(jars)
     javaaddpath(jars{j});
 end
 
-switch auto  
+switch auto
   case 'auto',    autoIMOSToolbox(toolboxVersion, varargin{:});
   otherwise,      flowManager(toolboxVersion);
 end
