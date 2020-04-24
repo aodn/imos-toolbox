@@ -1,5 +1,5 @@
-function [data, flags, paramsLog] = imosSpikeQC(sample_data, data, k, type, auto)
-%function [data, flags, paramsLog] = imosSpikeQC( sample_data, data, k, type, auto )
+function [data, flags, paramsLog] = imosTimeSeriesSpikeQC(sample_data, data, k, type, auto)
+%function [data, flags, paramsLog] = imosTimeSeriesSpikeQC( sample_data, data, k, type, auto )
 %
 % The top-level function to initialize Spike Tests over data.
 % in and out water time.
@@ -189,7 +189,7 @@ confirmButton = uicontrol(figwindow, 'Style', 'pushbutton', 'String', 'Ok', 'Cal
 state_list = {figwindow, check_box, text_tip, popup, cancelButton, skipButton, confirmButton};
 normalize_units(state_list);
 
-set(figwindow, 'Position', [0.8, 0.5, 0.4, 0.1]);
+set(figwindow, 'Position', [0.3, 0.45, 0.4, 0.1]);
 set(check_box, 'Position', [0.7, 0.32, 0.3, 0.3],'String','Apply to all variables','Callback',@apply_to_all); %[0.25,0.2,.3,.5]);
 set(text_tip, 'Position', [0.23, 0.025, 0.3, 0.6]); %[0.25,0.2,.3,.5]);
 set(popup, 'Position', [0.25, .25, .4, 0.25]);
