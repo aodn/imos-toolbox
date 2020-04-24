@@ -33,7 +33,29 @@ ARCH_NAMES = {
     'maci64': 'Mac64',
     'win64': 'Win64',
 }
-VERSION_FILE = '.standalone_canonical_version'
+VERSION_FILE = ".standalone_canonical_version"
+MATLAB_VERSION = "R2018b"
+MATLAB_TOOLBOXES_TO_INCLUDE = ["signal"]
+
+
+def find_matlab_rootpath(arch_str):
+    """Locate the matlab installation root path."""
+
+    if arch_str == "glnxa64":
+        fname = f"*/MATLAB/{MATLAB_VERSION}"
+        lookup_folders = ["/usr/local/", "/opt", f"/home/{os.environ['USER']}", "/usr"]
+    elif arch_str == "maci64":
+        fname = f"*/MATLAB/{MATLAB_VERSION}"
+        lookup_folders = ["/Applications/", "/Users"]
+    elif arch_str == "win64":
+        fname = f"**\\MATLAB\\{MATLAB_VERSION}"
+        lookup_folders = ["C:\\Program Files\\"]
+
+    for folder in lookup_folders:
+        m_rootpath = list(Path(folder).glob(fname))
+        if m_rootpath:
+            return m_rootpath[0]
+    raise ValueError("Unable to find matlab root path")
 
 
 def run(x: str):
@@ -137,32 +159,45 @@ def create_mcc_call_sig(mcc_path: str, root_path: str, dist_path: str,
     outdir_flag = f"-d {dist_path}"
     clearpath_flag = '-N'
     outname_flag = f"-o {output_name}"
-    verbose_flag = '-v'
-    warning_flag = '-w enable'
-    mfiles_str = ' '.join([f"{file}" for file in mfiles])
-    matfiles_str = ' '.join([f"-a {file}" for file in matfiles])
+    verbose_flag = "-v"
+    warning_flag = "-w enable"
+    mfiles_str = " ".join([f"{file}" for file in mfiles])
+    matfiles_str = " ".join([f"-a {file}" for file in matfiles])
 
-    mcc_arguments = ' '.join([
-        standalone_flags, verbose_flag, outdir_flag, clearpath_flag,
-        outname_flag, verbose_flag, warning_flag, mfiles_str, matfiles_str
-    ])
+    matlab_root_path = find_matlab_rootpath(arch)
+    extra_toolbox_paths = [
+        os.path.join(matlab_root_path, "toolbox", x, x)
+        for x in MATLAB_TOOLBOXES_TO_INCLUDE
+    ]
+    extra_requirements = " ".join(["-I " + x for x in extra_toolbox_paths])
 
-    if arch == 'win64':
-        tmpscript = os.path.join(root_path, 'tmpbuild.m')
-        with open(tmpscript,
-                  'w') as tmpfile:  # overcome cmd.exe limitation of characters
+    mcc_arguments = " ".join(
+        [
+            standalone_flags,
+            verbose_flag,
+            outdir_flag,
+            clearpath_flag,
+            outname_flag,
+            verbose_flag,
+            warning_flag,
+            mfiles_str,
+            matfiles_str,
+            extra_requirements,
+        ]
+    )
+
+    if arch == "win64":
+        tmpscript = os.path.join(root_path, "tmpbuild.m")
+        # overcome cmd.exe limitation of characters by creating a tmp mfile
+        with open(tmpscript, "w") as tmpfile:
             tmpfile.write(f"eval('{mcc_path} {mcc_arguments}')")
-        external_call = f"matlab -nodesktop -nosplash -wait -r \"run('{tmpscript}');exit\""
+        external_call = (
+            f"matlab -nodesktop -nosplash -wait -r \"run('{tmpscript}');exit\""
+        )
         rm_call = f"del {tmpscript}"
         return [external_call, rm_call]
     else:
-        return [
-            ' '.join([
-                mcc_path, standalone_flags, verbose_flag, outdir_flag,
-                clearpath_flag, outname_flag, verbose_flag, warning_flag,
-                mfiles_str, matfiles_str
-            ])
-        ]
+        return [" ".join([mcc_path, mcc_arguments])]
 
 
 def get_args(args: dict) -> (str, str, str, str):
