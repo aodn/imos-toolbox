@@ -36,19 +36,24 @@ ARCH_NAMES = {
 }
 VERSION_FILE = ".standalone_canonical_version"
 MATLAB_VERSION = "R2018b"
-MATLAB_TOOLBOXES_TO_INCLUDE = ["signal"]
+MATLAB_TOOLBOXES_TO_INCLUDE: List[str] = ["signal"]
 
 
 def find_matlab_rootpath(arch_str):
     """Locate the matlab installation root path."""
 
-    if arch_str == "glnxa64":
+    if arch_str != "win64":
         fname = f"*/MATLAB/{MATLAB_VERSION}"
-        lookup_folders = ["/usr/local/", "/opt", f"/home/{os.environ['USER']}", "/usr"]
-    elif arch_str == "maci64":
-        fname = f"*/MATLAB/{MATLAB_VERSION}"
-        lookup_folders = ["/Applications/", "/Users"]
-    elif arch_str == "win64":
+        if arch_str == "glnxa64":
+            lookup_folders = [
+                "/usr/local/",
+                "/opt",
+                f"/home/{os.environ['USER']}",
+                "/usr",
+            ]
+        elif arch_str == "maci64":
+            lookup_folders = ["/Applications/", "/Users"]
+    else:
         fname = f"**\\MATLAB\\{MATLAB_VERSION}"
         lookup_folders = ["C:\\Program Files\\"]
 
@@ -170,12 +175,12 @@ def create_mcc_call_sig(
     mfiles_str = " ".join([f"{file}" for file in mfiles])
     matfiles_str = " ".join([f"-a {file}" for file in matfiles])
 
-    matlab_root_path = find_matlab_rootpath(arch)
-    extra_toolbox_paths = [
-        os.path.join(matlab_root_path, "toolbox", x, x)
-        for x in MATLAB_TOOLBOXES_TO_INCLUDE
-    ]
-    extra_requirements = " ".join(["-I " + x for x in extra_toolbox_paths])
+    if MATLAB_TOOLBOXES_TO_INCLUDE:
+        matlab_root_path = find_matlab_rootpath(arch)
+        extra_toolbox_paths = [
+            os.path.join(matlab_root_path, "toolbox", x, x)
+            for x in MATLAB_TOOLBOXES_TO_INCLUDE
+        ]
 
     mcc_arguments = " ".join(
         [
@@ -188,22 +193,37 @@ def create_mcc_call_sig(
             warning_flag,
             mfiles_str,
             matfiles_str,
-            extra_requirements,
-        ]
+        ],
     )
 
     if arch == "win64":
         tmpscript = os.path.join(root_path, "tmpbuild.m")
         # overcome cmd.exe limitation of characters by creating a tmp mfile
         with open(tmpscript, "w") as tmpfile:
-            tmpfile.write(f"eval('{mcc_path} {mcc_arguments}')")
+            # overcome limitation of spaces within eval.
+            if MATLAB_TOOLBOXES_TO_INCLUDE:
+                # include other paths in the build call
+                extra_requirements = " ".join(
+                    ["-I " + "'" + x + "'" for x in extra_toolbox_paths],
+                )
+                cmdline = f'eval("{mcc_path} {mcc_arguments} {extra_requirements}")'
+            else:
+                cmdline = f'eval("{mcc_path} {mcc_arguments}")'
+
+            tmpfile.write(cmdline)
         external_call = (
             f"matlab -nodesktop -nosplash -wait -r \"run('{tmpscript}');exit\""
         )
         rm_call = f"del {tmpscript}"
-        return [external_call, rm_call]
+        rlist = [external_call, rm_call]
     else:
-        return [" ".join([mcc_path, mcc_arguments])]
+        # no need for extra quotes in linux, since we are in the shell.
+        if MATLAB_TOOLBOXES_TO_INCLUDE:
+            extra_requirements = " ".join(["-I " + x for x in extra_toolbox_paths])
+            rlist = [" ".join([mcc_path, mcc_arguments, extra_requirements])]
+        else:
+            rlist = [" ".join([mcc_path, mcc_arguments])]
+    return rlist
 
 
 def get_args(args: dict) -> Tuple[str, str, str, str]:
