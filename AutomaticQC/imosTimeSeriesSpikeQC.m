@@ -65,9 +65,9 @@ else
     if previous_action_was_to_cancel
         return
     end
-    first_var = k==1;
+    first_var = isempty(button_action_spike_qc) || strcmp(button_action_spike_qc,'ok');
     if first_var % reset options
-        apply_to_all_spike_qc=[];
+        apply_to_all_spike_qc = [];
         button_action_spike_qc='ok';
     end
 end
@@ -104,9 +104,8 @@ classifiers_visible_names('OTSU-Savgol/despiking2') = load_otsu_savgol_opts(defa
 
 %set defaults and ask user
 if isempty(apply_to_all_spike_qc)
-    method_selected_in_popup = 'Hampel';
     button_action_spike_qc = 'ok';
-    init_popup(classifiers_visible_names, selected_variable);
+    method_selected_in_popup = init_popup(classifiers_visible_names, selected_variable);
     method = classifiers_visible_names(method_selected_in_popup);
 else
     button_action_spike_qc = 'ok';
@@ -130,10 +129,10 @@ flags(spikes) = badFlag;
 end
 
 %ok variable can be processed - ask the user what to use.
-function init_popup(method_dict, selected_variable)
+function [method_selected_in_popup] = init_popup(method_dict, selected_variable)
 
+method_selected_in_popup = 'Hampel'; % default and first to be shown
 menu_options = keys(method_dict);
-method_selected_in_popup='Hampel';
 global apply_to_all_spike_qc
 
 figure_opts = {
