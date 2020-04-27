@@ -74,7 +74,7 @@ end
 
 
 
-default_opts_file = ['AutomaticQC' filesep 'imosSpikeQC.txt'];
+default_opts_file = ['AutomaticQC' filesep 'imosTimeSeriesSpikeQC.txt'];
 allowed_variables = strsplit(readProperty('allowed_variables', default_opts_file), ',');
 allowed_variables = cellfun(@strtrim, allowed_variables, 'UniformOutput', false);
 
@@ -118,7 +118,7 @@ if bailout
     return
 end
 
-paramsLog = sprintf('imosSpikeQC: %s method used', func2str(method.fun));
+paramsLog = sprintf('imosTimeSeriesSpikeQC: %s method used', func2str(method.fun));
 all_args = [data, method.args];
 spikes = method.fun(all_args{:});
 
