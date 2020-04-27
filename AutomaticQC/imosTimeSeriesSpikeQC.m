@@ -61,17 +61,17 @@ is_dimension_processing = strcmp(type, 'dimensions');
 if is_dimension_processing
     return
 else
-    previous_action_was_to_cancel = k > 1 && strcmpi(button_action_spike_qc, 'abort');
-    if previous_action_was_to_cancel
-        return
-    end
-    first_var = isempty(button_action_spike_qc) || strcmp(button_action_spike_qc,'ok');
-    if first_var % reset options
+    first_call = k == 1;
+    if first_call
         apply_to_all_spike_qc = [];
-        button_action_spike_qc='ok';
+        button_action_spike_qc = 'ok';
+    else
+        abort_requested = strcmpi(button_action_spike_qc, 'abort');
+        if abort_requested
+            return
+        end
     end
 end
-
 
 
 default_opts_file = ['AutomaticQC' filesep 'imosTimeSeriesSpikeQC.txt'];
@@ -104,8 +104,7 @@ classifiers_visible_names('OTSU-Savgol/despiking2') = load_otsu_savgol_opts(defa
 
 %set defaults and ask user
 if isempty(apply_to_all_spike_qc)
-    button_action_spike_qc = 'ok';
-    method_selected_in_popup = init_popup(classifiers_visible_names, selected_variable);
+    [method_selected_in_popup,button_action_spike_qc] = init_popup(classifiers_visible_names, selected_variable);
     method = classifiers_visible_names(method_selected_in_popup);
 else
     button_action_spike_qc = 'ok';
@@ -129,7 +128,7 @@ flags(spikes) = badFlag;
 end
 
 %ok variable can be processed - ask the user what to use.
-function [method_selected_in_popup] = init_popup(method_dict, selected_variable)
+function [method_selected_in_popup,button_action_spike_qc] = init_popup(method_dict, selected_variable)
 
 method_selected_in_popup = 'Hampel'; % default and first to be shown
 menu_options = keys(method_dict);
