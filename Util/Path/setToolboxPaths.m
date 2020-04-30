@@ -35,37 +35,137 @@ function setToolboxPaths(toolbox_path)
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 
-% This will add all required paths for the toolbox to run
-folders = {
-'AutomaticQC', ...
-'Seawater/TEOS10', ...
-'Seawater/TEOS10/library', ...
-'Seawater/EOS80', ...
-'Util', ...
-'Util/CellUtils', ...
-'Util/StructUtils', ...
-'Util/Path', ...
-'Util/Schema', ...
-'Util/units', ...
-'IMOS', ...
-'NetCDF', ...
-'Parser', ...
-'Parser/GenericParser', ...
-'Parser/GenericParser/InstrumentRules', ...
-'Parser/GenericParser/InstrumentParsers', ...
-'test', ...
-'test/Parser', ...
-'test/Preprocessing', ...
-'test/Util', ...
-'test/Util/Schema', ...
-'test/Util/CellUtils', ...
-'DDB', ...
-'Preprocessing'};
+% Toolbox root level folders and subfolders that contains matlab functions
+folders = { ...
+    frdir(fullfile(toolbox_path, 'AutomaticQC')), ...
+    'DDB', ...
+    'FlowManager', ...
+    'Geomag', ...
+    'Graph', ...
+    'GUI', ...
+    'IMOS', ...
+    'Java', ...
+    'Java/UCanAccess-3.0.2-bin', ...
+    'Java/UCanAccess-3.0.2-bin/lib', ...
+    frdir(fullfile(toolbox_path, 'Java/bin')), ...
+    'NetCDF', ...
+    frdir(fullfile(toolbox_path, 'NetCDF')), ...
+    'Parser', ...
+    frdir(fullfile(toolbox_path, 'Parser')), ...
+    'Preprocessing', ...
+    frdir(fullfile(toolbox_path, 'Preprocessing')), ...
+    'Seawater/TEOS10', ...
+    'Seawater/TEOS10/library', ...
+    'Seawater/EOS80', ...
+    'test', ...
+    frdir(fullfile(toolbox_path, 'test')), ...
+    'Util', ...
+    frdir(fullfile(toolbox_path, 'Util')), ...
+    };
 
 addpath(toolbox_path)
 
 for k = 1:length(folders)
-    addpath(fullfile(toolbox_path,folders{k}));
+
+    if isstring(folders{k}) || ischar(folders{k})
+        addpath(fullfile(toolbox_path, folders{k}));
+    elseif iscell(folders{k})
+        rfolders = folders{k};
+
+        for kk = 1:length(rfolders)
+            addpath(rfolders{kk})
+        end
+
+    end
+
+end
+
+end
+
+%functions required to be in this scope since we
+%may need to call setToolboxPaths from anywhere.
+
+function [folders] = subFolders(path)
+% function files = Folders(path)
+%
+% Return fullpath of sub-folders.
+%
+% Inputs:
+%
+% path - a path string
+%
+% Outputs:
+%
+% folders - a cell with fullpath strings of the subfolders.
+%
+% Example:
+% % assumes /dev/shm got 2 folders, "a","b"
+% path = '/dev/shm';
+% [subfolders] = subFolders(path);
+% assert(any(contains(sf,'a')));
+% assert(any(contains(sf,'b')));
+%
+% author: hugo.oliveira@utas.edu.au
+%
+
+dobj = dir(path);
+folders = cell(0, 0);
+p = 1;
+
+for k = 1:length(dobj)
+    name = dobj(k).name;
+    isfolder = dobj(k).isdir;
+
+    if isfolder &&~strcmp(name, '.') &&~strcmp(name, '..')
+        folders{p} = fullfile(path, name);
+        p = p + 1;
+    end
+
+end
+
+end
+
+function [folders] = frdir(path)
+% function folders = frdir(path)
+%
+% recursive dir - List all children folders given a path
+%
+% Inputs:
+%
+% path - a path string
+%
+% Outputs:
+%
+% `folders` - a cell with fullpath strings of all subfolders at all levels.
+%
+% Example:
+% % assumes /dev/shm/c/d/e/f/g/h/j is a empty folder
+% path = '/dev/shm'
+% [allfiles,allfolders] = rdir(path);
+% assert(strcmp(allfolders{1},'/dev/shm/c'));
+% assert(strcmp(allfolders{2},'/dev/shm/c/d'));
+% assert(strcmp(allfolders{end},'/dev/shm/c/d/e/f/g/h/j'));
+%
+% author: hugo.oliveira@utas.edu.au
+%
+
+[folders] = subFolders(path);
+
+if isempty(folders)
+    return
+end
+
+folders_to_walk = string(folders);
+
+while ~isempty(folders_to_walk)
+    f = folders_to_walk{1};
+    folders_to_walk(1) = [];
+    [newfolders] = frdir(f);
+
+    if ~isempty(newfolders)
+        folders = cat(2, folders, newfolders);
+    end
+
 end
 
 end
