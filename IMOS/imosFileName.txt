@@ -14,7 +14,7 @@
 %
 %   IMOS_<facility_code>_<data_code>_<start_date>_<platform_code>_<file_version>_<product_type>_END<end_date>_C-<creation_date>.nc
 %
-facility_code = 
+facility_code = [ddb Site Sites ResearchActivity]
 data_code     = 
 start_date    = 
 platform_code = 
