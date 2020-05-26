@@ -103,6 +103,7 @@ for k = 1:length(sample_data)
     
     beamAngle = sample_data{k}.meta.beam_angle*pi/180;
     nBins = length(distAlongBeams);
+    time = sample_data{k}.dimensions{1}.data;
     
     if isRDI
         % RDI 4 beams
@@ -162,9 +163,12 @@ for k = 1:length(sample_data)
             % let's now interpolate data values at nominal bin height for
             % each profile
             nonMappedData = sample_data{k}.variables{j}.data;
+            
             mappedData = NaN(size(nonMappedData), 'single');
             for i=1:nSamples
-                mappedData(i,:) = interp1(nonMappedHeightAboveSensor(i,:), nonMappedData(i,:), mappedHeightAboveSensor(i,:));
+%                 mappedData(i,:) = interp1(nonMappedHeightAboveSensor(i,:), nonMappedData(i,:), mappedHeightAboveSensor(i,:));
+                %the LeanInterp code is nearly twice as quick as interp1
+                mappedData(i,:) = LeanInterp(nonMappedHeightAboveSensor(i,:), nonMappedData(i,:), mappedHeightAboveSensor(i,:));
                 % there is a risk of ending up with a NaN for the first bin
                 % while the difference between its nominal and tilted
                 % position is negligeable so we can arbitrarily set it to 
