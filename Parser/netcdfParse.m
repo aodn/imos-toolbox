@@ -204,11 +204,19 @@ function sample_data = netcdfParse( filename, mode )
       [sample_data.meta.instrument_make, sample_data.meta.instrument_model] = strtok(sample_data.instrument, space);
       sample_data.meta.instrument_model = strtrim(sample_data.meta.instrument_model);
   end
-  
+
+  if isfield(sample_data, 'quality_control_log')
+      sample_data.meta.log = sample_data.quality_control_log;
+  end
+
   if isfield(sample_data, 'instrument_serial_no')
       sample_data.meta.instrument_serial_no = sample_data.instrument_serial_no;
   end
-  
+
+  if isfield(sample_data, 'instrument_serial_number')
+      sample_data.meta.instrument_serial_no = sample_data.instrument_serial_number;
+  end
+
   if isfield(sample_data, 'instrument_beam_angle')
       sample_data.meta.beam_angle = sample_data.instrument_beam_angle;
   end
@@ -228,15 +236,16 @@ function sample_data = netcdfParse( filename, mode )
   if isfield(sample_data, 'instrument_burst_interval')
       sample_data.meta.instrument_burst_interval = sample_data.instrument_burst_interval;
   end
-  
+
+  if isfield(sample_data, 'instrument_average_interval')
+      sample_data.meta.instrument_average_interval = sample_data.instrument_average_interval;
+  end
+
   if isfield(sample_data, 'featureType')
       sample_data.meta.featureType = sample_data.featureType;
   end
-  
-  if isfield(sample_data, 'quality_control_log')
-      sample_data.meta.log = sample_data.quality_control_log;
-  end
-  
+
+  %custom dimensions mappings
   iHeightAboveSensor = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
   if iHeightAboveSensor
       sample_data.meta.binSize = diff(sample_data.dimensions{iHeightAboveSensor}.data(1:2));
@@ -250,7 +259,7 @@ end
 
 function timeAtts = getTimeAtts()
   timeAtts = {'date_created', 'time_coverage_start', 'time_coverage_end', ...
-      'time_deployment_start', 'time_deployment_end'};
+      'time_deployment_start', 'time_deployment_end','time_deployment_start_origin','time_deployment_end_origin'};
 
   fid = -1;
   try
