@@ -1058,8 +1058,12 @@ set(hHelpWiki, 'callBack', @openWikiPage);
             if isempty(vars)
                 % enable at most 3 variables initially,
                 % otherwise the graph will be cluttered
-                val = 1;
-                if m-p > 3, val = 0; end
+                %enable only temperature to start
+                if ~isempty(strfind(sam.variables{m}.name,'TEMP'))
+                    val = 1;
+                else
+                    val = 0;
+                end
             else
                 if any(m-p == vars)
                     val = 1;

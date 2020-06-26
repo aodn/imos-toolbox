@@ -103,7 +103,6 @@ for k = 1:length(sample_data)
     
     beamAngle = sample_data{k}.meta.beam_angle*pi/180;
     nBins = length(distAlongBeams);
-    time = sample_data{k}.dimensions{1}.data;
     
     if isRDI
         % RDI 4 beams
