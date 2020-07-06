@@ -41,8 +41,8 @@ if is_data_burst
     cmap('Running-Statistics/imosBurstQC') = load_runningstats_opts(file);
 else
     cmap('Hampel') = load_hampel_opts(file);
-    cmap('OTSU-Thresholding/despiking1') = load_otsu_threshold_opts(file);
-    cmap('OTSU-Savgol/despiking2') = load_otsu_savgol_opts(file);
+    cmap('OTSU-Thresholding/despiking2') = load_otsu_threshold_opts(file);
+    cmap('OTSU-Savgol/despiking1') = load_otsu_savgol_opts(file);
 end
 
 end

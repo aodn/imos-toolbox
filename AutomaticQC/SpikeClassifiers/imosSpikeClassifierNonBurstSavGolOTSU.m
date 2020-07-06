@@ -5,7 +5,7 @@ function [spikes] = imosSpikeClassifierNonBurstSavGolOTSU(signal, window, pdeg, 
 % applied to the noise estimated by a Savitzy Golay Filter applied on the signal.
 %
 % The routine uses the SavGol.m implementation provided by
-% Ken Ridgway.
+% Ken Ridgway and was called despiking1.
 %
 % Inputs:
 %
@@ -57,10 +57,10 @@ if nargin == 1
     oscale = 1; %arbitrary scale used to reduce the otsu threshold
 elseif nargin == 2
     pdeg = 2; %quadratic polynomial
-    nbins = 100; % default bins in despiking1
+    nbins = 100; % default bins from despiking2
     oscale = 1; %arbitrary scale used to reduce the otsu threshold
 elseif nargin == 3
-    nbins = 100; % default bins in despiking1
+    nbins = 100; % default bins from despiking2
     oscale = 1; %arbitrary scale used to reduce the otsu threshold
 elseif nargin == 4
     oscale = 1; %arbitrary scale used to reduce the otsu threshold
@@ -71,10 +71,11 @@ if window <= 2
 end
 
 window = double(window);
-if rem(window,2)
+
+if rem(window, 2)
     fsignal = SavGol(signal, (window - 1) / 2, (window - 1) / 2, pdeg);
 else
-    fsignal = SavGol(signal, window/2, window/2, pdeg);
+    fsignal = SavGol(signal, window / 2, window / 2, pdeg);
 end
 
 noise = signal - fsignal;
@@ -83,9 +84,9 @@ otsu = otsu_threshold(abs_noise, nbins);
 threshold = otsu .* oscale;
 ring_spikes = find(abs_noise > threshold | abs_noise <- threshold);
 
-try
+if ~isempty(ring_spikes)
     spikes = centred_indexes(ring_spikes);
-catch 
+else
     spikes = ring_spikes;
 end
 
@@ -94,10 +95,12 @@ function [cgind] = centred_indexes(sind)
 % consecutive integers in a sorted array of integers.
 
 s_start = sind(1);
-cgind = sind*NaN;
-c=1;
+cgind = sind * NaN;
+c = 1;
+
 for k = 1:length(sind) - 1
     adjacent = sind(k + 1) - sind(k) <= 1;
+
     if adjacent
         continue
     end
@@ -105,7 +108,7 @@ for k = 1:length(sind) - 1
     s_end = sind(k);
     cgind(c) = floor((s_end + s_start) / 2);
     s_start = sind(k + 1);
-    c = c+1;
+    c = c + 1;
 end
 
 s_end = sind(end);
