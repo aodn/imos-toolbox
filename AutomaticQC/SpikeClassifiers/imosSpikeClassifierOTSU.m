@@ -79,9 +79,9 @@ elseif nargin == 3
 end
 
 otsu = otsu_threshold(signal, nbins);
-threshold = otsu / oscale;
+threshold = otsu .* oscale;
 spikes = find(signal > abs(threshold) | signal < -1*abs(threshold));
-if centralize
+if centralize && length(spikes)>3
     spikes = centred_indexes(spikes);
 end
 
