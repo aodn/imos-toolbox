@@ -1,29 +1,38 @@
 % Definitions and descriptions of 2-level thresholds for tilts of ADCPs
+% and Current Meters.
 %
-% These information are used in the ADCP tilt QC test.
-% These thresholds values were taken from RDI and Nortek documentations 
+% These information are used in the TiltVelocityQC test.
+% These thresholds values were taken from RDI and Nortek documentations
 % and exchanges with RDI technicians.
-% 
-% For RDI ADCPs, compass measurements are affected and fail to meet 
-% specifications when the first threshold is exceeded, while when the 
-% second threshold is exceeded coordinates transform and bin-mapping 
+%
+% For RDI ADCPs, compass measurements are affected and fail to meet
+% specifications when the first threshold is exceeded, while when the
+% second threshold is exceeded coordinates transform and bin-mapping
 % operations are also affected.
 %
-% For Nortek ADCPs, velocity data accuracy fails to meet specifications 
-% when the first threshold is exceeded. When the second is exceeded then 
+% For Nortek ADCPs, velocity data accuracy fails to meet specifications
+% when the first threshold is exceeded. When the second is exceeded then
 % velocity data becomes unreliable.
 %
+% For Nortek Current meters, data accuracy fails to meet specifications
+% when beyond 30deg. Some cases appears to still meet reasonable
+% quality when below 45deg.
+%
+% The make/model information in the global attribute instrument
+% that is closest to the below items will be selected.
+
 % Format:
 %
 %   part of make/model information found in global attribute instrument, ...
 %       tilt threshold for specifications not met, ...
 %           tilt threshold for data not reliable, ...
 %               flag for specifications not met from QC set 1, ...
-%                   flag for data not reliable from QC set 1 
+%                   flag for data not reliable from QC set 1
 %
 sentinel,       15,	22,	2, 3
 monitor,        15,	22,	2, 3
 longranger,     15,	50,	2, 3
 long ranger,    15,	50,	2, 3
-quartermaster,	15,	50,	2, 3
+quartermaster,  15,	50,	2, 3
 nortek,         20,	30,	2, 3
+Nortek Aquadopp Current Meter, 30, 45, 2, 3
