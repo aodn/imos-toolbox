@@ -6,7 +6,7 @@ burst_hampel_function = imosSpikeClassifierBurstHampel
 % boolean use windows as bursts instead of samples
 burst_hampel_use_burst_window = 0
 % The number of bursts to consider in a Hampel/Median window
-burst_hampel_half_window_width = 60
+burst_hampel_half_window_width = 1
 %multiplicative factor for the mad within the window
 burst_hampel_madfactor = 5
 %multiplicative factor for the mad within the window
@@ -21,6 +21,6 @@ burst_runningstats_function = imosSpikeClassifierBurstRunningStats
 % the scale statistic function
 burst_runningstats_scalefun = nanmedian
 % the dispersion statistic function
-burst_runningstats_dispersionfun = mad
+burst_runningstats_dispersionfun = nanstd
 % the dispersion scale
 burst_runningstats_dispersion_factor = 2

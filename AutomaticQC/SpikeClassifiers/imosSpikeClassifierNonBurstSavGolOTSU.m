@@ -51,7 +51,7 @@ function [spikes] = imosSpikeClassifierNonBurstSavGolOTSU(signal, window, pdeg, 
 %
 
 if nargin == 1
-    window = 3; %minimum filtering
+    window = 5; %minimum filtering
     pdeg = 2; %quadratic polynomial
     nbins = 100; % default otsu bins
     oscale = 1; %arbitrary scale used to reduce the otsu threshold

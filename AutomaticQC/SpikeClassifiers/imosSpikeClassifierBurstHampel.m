@@ -71,18 +71,18 @@ function [spikes] = imosSpikeClassifierBurstHampel(bindexes, signal, use_burst_w
 narginchk(2, 7)
 
 if nargin == 2
-    use_burst_window = 1;
-    half_window_width = 0;
-    madfactor = 10;
+    use_burst_window = 0;
+    half_window_width = 1;
+    madfactor = 5;
     lower_mad_limit = 0;
     repeated_only = false;
 elseif nargin == 3
-    half_window_width = 0;
-    madfactor = 10;
+    half_window_width = 1;
+    madfactor = 5;
     lower_mad_limit = 0;
     repeated_only = false;
 elseif nargin == 4
-    madfactor = 10;
+    madfactor = 5;
     lower_mad_limit = 0;
     repeated_only = false;
 elseif nargin == 5
@@ -119,7 +119,7 @@ if ~isempty(bspikes)
     bs = bs + blen;
 end
 
-
+h=[];
 series_end_at_next_window = nbursts+1 >= length(bindexes)-nbursts;
 if series_end_at_next_window
     bie = bindexes{nbursts+1}(1);

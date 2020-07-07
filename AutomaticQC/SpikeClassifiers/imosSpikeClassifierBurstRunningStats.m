@@ -47,8 +47,17 @@ function [spikes] = imosSpikeClassifierBurstRunningStats(bindexes, signal, scale
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
-
-%detect bursts
+narginchk(2,5)
+if nargin==2
+	scalefun = @nanmean;
+	dispersionfun = @nanstd;
+	dispersion_factor = 2;
+elseif nargin == 3
+	dispersionfun = @nanstd;
+	dispersion_factor = 2;
+elseif nargin == 4
+	dispersion_factor = 2;
+end
 
 spikes = NaN(size(signal));
 ne = length(bindexes);

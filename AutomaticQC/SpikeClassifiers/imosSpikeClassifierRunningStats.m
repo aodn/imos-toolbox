@@ -46,6 +46,18 @@ function [spikes] = imosSpikeClassifierRunningStats(signal, scalefun, dispersion
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
+narginchk(1,4)
+if nargin==1
+	scalefun = @nanmean;
+	dispersionfun = @nanstd;
+	dispersion_factor = 2;
+elseif nargin == 2
+	dispersionfun = @nanstd;
+	dispersion_factor = 2;
+elseif nargin == 3
+	dispersion_factor = 2;
+end
+
 cscale = scalefun(signal);
 cdispersion = dispersion_factor * dispersionfun(signal);
 above_and_below = (signal > (cscale + cdispersion)) + (signal < (cscale - cdispersion));
