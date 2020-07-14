@@ -15,9 +15,9 @@ function [limits] = imosSpikeClassifiersLimits(len)
 %
 % len = 100
 % [limits] = imosTimeSeriesSpikeQCLimits(len)
-% assert(limits.hampel.window.min==1)
-% assert(limits.hampel.window.max=len/2)
-% assert(limits.otsu_savgol.pdeg.min=2)
+% assert(limits.hampel_half_window_width.min==1)
+% assert(limits.hampel_half_window_width.max==len/2)
+% assert(limits.hampel_madfactor.max = 20)
 %
 % author: hugo.oliveira@utas.edu.au
 %

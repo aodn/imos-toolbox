@@ -1,5 +1,5 @@
 function [spikes, fsignal] = imosSpikeClassifierHampel(signal, half_window_width, madfactor, lower_mad_limit)
-% function spikes, fsignal = imosSpikeClassifierHampel(signal, half_window_width, madfactor)
+% function spikes, fsignal = imosSpikeClassifierHampel(signal, half_window_width, madfactor, lower_mad_limit)
 %
 % A wrapper to Hampel classifier.The hampel method is a robust parametric denoising filter that uses
 % the MAD deviation (scaled) from the median in a pre-defined centred window.
