@@ -36,7 +36,7 @@ ARCH_NAMES = {
 }
 VERSION_FILE = ".standalone_canonical_version"
 MATLAB_VERSION = "R2018b"
-MATLAB_TOOLBOXES_TO_INCLUDE: List[str] = ["signal"]
+MATLAB_TOOLBOXES_TO_INCLUDE: List[str] = ["signal/signal","stats/stats","images/imuitools"]
 
 
 def find_matlab_rootpath(arch_str):
@@ -178,7 +178,7 @@ def create_mcc_call_sig(
     if MATLAB_TOOLBOXES_TO_INCLUDE:
         matlab_root_path = find_matlab_rootpath(arch)
         extra_toolbox_paths = [
-            os.path.join(matlab_root_path, "toolbox", x, x)
+            os.path.join(matlab_root_path, "toolbox", x)
             for x in MATLAB_TOOLBOXES_TO_INCLUDE
         ]
 
