@@ -110,8 +110,8 @@ for k = 1:length(boxValues)
 
     vboxOpts = {'Units', 'normalized', 'Position', boxPosition};
     textboxOpts = {'Style', 'text', 'Value', boxValues{k}, 'String', boxNames{k}, 'FontSize', 10, 'Units', 'normalized', 'Position', textboxPosition};
-
-    vbox{k} = numericInputButton(panel, boxValues{k}, boxFuncs{k}, vboxOpts{:});
+    laterCallback = @(~)(1); % dummy call
+    vbox{k} = numericInputButton(panel, boxValues{k}, boxFuncs{k}, laterCallback, vboxOpts{:});
     textbox{k} = uicontrol(panel, textboxOpts{:});
 
 end
