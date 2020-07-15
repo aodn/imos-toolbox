@@ -9,7 +9,7 @@ classdef spikeWindow < handle
         bottomStripHeight = 0.1;
         okSize = 0.05;
         cancelSize = 0.05;
-        windowOpts = {'Name', 'imosTimeSeriesSpikeQC', 'Visible', 'on', 'MenuBar', 'none', 'Resize', 'on', 'NumberTitle', 'off', 'WindowStyle', 'Modal'};
+        windowOpts = {'Name', 'imosTimeSeriesSpikeQC', 'Visible', 'on', 'MenuBar', 'none', 'Resize', 'on', 'NumberTitle', 'off', 'WindowStyle', 'Modal','Units','normalized','Position',[0.25,0.1,0.5,0.8]};
     end
 
     properties (Access = private)
@@ -69,8 +69,6 @@ classdef spikeWindow < handle
 
         function init_uiwindow(obj)
             obj.ui_window = figure(obj.windowOpts{:});
-            obj.ui_window.Position(3) = obj.ui_window.Position(3) * 1.5;
-            obj.ui_window.Position(4) = obj.ui_window.Position(3) * 1.;
         end
 
         function init_panel(obj, instrument)

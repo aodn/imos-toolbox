@@ -3,7 +3,7 @@ classdef previewWindow < handle
     properties (Constant)
         limits_opts_func = @imosSpikeClassifiersLimits;
 
-        windowOpts = {'Name', 'imosTimeSeriesSpikeQC::Preview', 'Visible', 'on', 'MenuBar', 'none', 'Resize', 'on', 'NumberTitle', 'off', 'WindowStyle', 'Modal'};
+        windowOpts = {'Name', 'imosTimeSeriesSpikeQC::Preview', 'Visible', 'on', 'MenuBar', 'none', 'Resize', 'on', 'NumberTitle', 'off', 'WindowStyle', 'Modal','Units','normalized','Position',[0.1,0.1,.8,.8]};
 
         panelMargin = 0.025;
         buttonMargin = 0.025;
@@ -84,11 +84,12 @@ classdef previewWindow < handle
         function obj = previewWindow(postqc_data, classifier_name, classifier_struct, varargin)
             %function obj = previewWindow(postqc_data, classifier_name, classifier_struct, varargin)
             %
-            % Creates the spike preview window. When the user finishes (ok button)
+            % Creates the spike preview window.
+            % When the user finishes (ok button), the UserData property is set.
             %
             % Inputs:
             %
-            % postqc_data - the toolbox struct
+            % postqc_data - the toolbox struct with data
             % classifier_name - the SpikeClassifier method name
             % classifier_struct - the SpikeClassifier struct
             %
@@ -111,7 +112,7 @@ classdef previewWindow < handle
             obj.ydata = postqc_data.data;
             obj.xdata = postqc_data.time;
 
-            % cut bursts as well.
+            % set bursts info if avail.
             if isfield(obj.postqc_data, 'valid_burst_range')
                 obj.is_data_burst = true;
                 obj.valid_burst_range = obj.postqc_data.valid_burst_range;
@@ -156,8 +157,6 @@ classdef previewWindow < handle
 
         function init_uiwindow(obj)
             obj.ui_window = figure(obj.windowOpts{:});
-            obj.ui_window.Position(3) = obj.ui_window.Position(3) * 2.5;
-            obj.ui_window.Position(4) = obj.ui_window.Position(4) * 1.5;
         end
 
         function init_botpanel(obj)

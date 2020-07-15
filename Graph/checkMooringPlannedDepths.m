@@ -301,8 +301,9 @@ else
     uiwait(hMsgbox);
     
     %select the area to use for comparison
-    [x, ~] = select_points(hAxPress);
-    
+    rec = drawrectangle(hAxPress);
+    x = [rec.Position(1) rec.Position(1)+rec.Position(3)];
+    delete(rec);
     iGood = timeVar >= x(1) & timeVar <= x(2);
 end
 

@@ -43,7 +43,7 @@ classdef numericInputButton
             end
 
             if nargin < 4
-                laterCallback = @(x)(x);
+                laterCallback = @(~)(1); %dummy call
             end
 
             obj.panel = panel;

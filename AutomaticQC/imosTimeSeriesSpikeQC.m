@@ -146,7 +146,7 @@ end
 
 arg_string{l + 1} = [user_input.opts{l + 1} '=' string(user_input.args{l + 1}) '.'];
 
-paramLog = strjoin([sprintf('imosTimeSeriesSpikeQC: %d spikes detected on %s with %s with parameters:', nspikes, varname, fun_name) arg_string{:}]);
+paramLog = char(strjoin([sprintf('%s(%s,', fun_name, varname) arg_string{:}]));
 end
 
 function [ts_variables] = load_timeseries_variables(sample_data)
