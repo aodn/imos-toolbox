@@ -182,9 +182,9 @@ function sample_data = netcdfParse( filename, mode )
   sample_data.meta.instrument_make            = '';
   sample_data.meta.instrument_model           = '';
   sample_data.meta.instrument_serial_no       = '';
-  sample_data.meta.instrument_sample_interval = NaN;
-  sample_data.meta.instrument_burst_duration  = NaN;
-  sample_data.meta.instrument_burst_interval  = NaN;
+  sample_data.meta.instrument_sample_interval = '';
+  sample_data.meta.instrument_burst_duration  = '';
+  sample_data.meta.instrument_burst_interval  = '';
   sample_data.meta.featureType                = '';
 
   %special names mappings
