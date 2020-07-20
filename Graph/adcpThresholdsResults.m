@@ -53,10 +53,10 @@ for a = 1:length(autoQCData)
     iecho2 = getVar(sd.variables, 'ABSIC2');
     iecho3 = getVar(sd.variables, 'ABSIC3');
     iecho4 = getVar(sd.variables, 'ABSIC4');
-    echo1 = sd.variables{iecho1}.data;
-    echo2 = sd.variables{iecho2}.data;
-    echo3 = sd.variables{iecho3}.data;
-    echo4 = sd.variables{iecho4}.data;
+    echo1 = abs(diff(sd.variables{iecho1}.data,[],2));
+    echo2 = abs(diff(sd.variables{iecho2}.data,[],2));
+    echo3 = abs(diff(sd.variables{iecho3}.data,[],2));
+    echo4 = abs(diff(sd.variables{iecho4}.data,[],2));
 
     
     switch type
@@ -66,12 +66,12 @@ for a = 1:length(autoQCData)
             bd = depth(:,ibd+1:end);
             fl = flags(:,ibd+1:end);
             %plot the difference between bins of echo ampl average (not bin mapped)
-            ea = NaN*ones(length(time),length(Bins),4);
+            ea = NaN*ones(length(time),length(Bins)-1,4);
             for b = 1:4
                 eval(['ea(:,:,b) = echo' num2str(b) ';'])
             end
             eaa = squeeze(nanmean(ea,3));
-            eadiff = abs(diff(eaa(:,ibd:end),[],2));
+            eadiff = abs(eaa(:,ibd:end));
             % plot
             figure(5);clf;hold on
             pcolor(time,bd',eadiff');shading flat
@@ -88,7 +88,7 @@ for a = 1:length(autoQCData)
             legend('EchoAmp','Bad data','Surface')
             
             figure(6);clf;hold on
-            bad = speed;
+            bad = v;
             bad(flags==4) = NaN;
             bd = depth;
             bd(flags==4) = NaN;
@@ -100,7 +100,7 @@ for a = 1:length(autoQCData)
             colorbar
             xlabel('Time')
             ylabel('Depth')
-            legend('Speed','Surface')
+            legend('V','Surface')
             
             %check the horizontal and vertical velocity thresholds here too
             %while we have the surface data flagged out
@@ -108,7 +108,7 @@ for a = 1:length(autoQCData)
             plot(bad,bd,'x')
             axis ij
             grid
-            xlabel('Speed')
+            xlabel('V')
             ylabel('Depth')
             
     
@@ -132,17 +132,17 @@ for a = 1:length(autoQCData)
 
             figure(6);clf;hold on
             bd = depth;
-            pcolor(time,bd',speed');shading flat
+            pcolor(time,bd',v');shading flat
             bd(flags<3) = NaN;
             plot(time,bd,'k.')
-            caxis([0 2])
+            caxis([-0.6 0.6])
             axis ij
             grid
             plot([time(1),time(end)],[0,0],'k-')
             colorbar
             xlabel('Time')
             ylabel('Depth')
-            legend('Speed','Surface')
+            legend('V','Surface')
             datetick
             
         case 'cmag'
@@ -170,8 +170,8 @@ for a = 1:length(autoQCData)
             figure(6);clf;hold on
             bd = depth;
             bd(flags<3) = NaN;
-            pcolor(time,depth',speed');shading flat
-            caxis([0 2])
+            pcolor(time,depth',v');shading flat
+            caxis([-0.6 0.6])
             axis ij
             grid
             plot(time,bd,'k.')
@@ -179,9 +179,77 @@ for a = 1:length(autoQCData)
             colorbar
             xlabel('Time')
             ylabel('Depth')
-            legend('Speed','Surface')
+            legend('V current','Surface')
             datetick
             
+        case 'erv'
+            figure(5);clf;hold on
+            pcolor(time,depth',erv');shading flat
+            caxis([60 140])
+            axis ij
+            grid
+            bd = depth;
+            bd(flags<3) = NaN;
+            plot(time,bd,'k.')
+            plot([time(1),time(end)],[0,0],'k-')
+            colorbar
+            title(['Error Velocity and failures'])
+            xlabel('Time')
+            ylabel('Depth')
+            legend('Erv','Bad data','Surface')
+            datetick
+
+            figure(6);clf;hold on
+            bd = depth;
+            bd(flags<3) = NaN;
+            pcolor(time,depth',v');shading flat
+            caxis([-0.6 0.6])
+            axis ij
+            grid
+            plot(time,bd,'k.')
+            plot([time(1),time(end)],[0,0],'k-')
+            colorbar
+            xlabel('Time')
+            ylabel('Depth')
+            legend('v','Surface')
+            datetick
+            
+        case 'echo'
+            ea = NaN*ones(length(time),length(Bins)-1,4);
+            for b = 1:4
+                eval(['ea(:,:,b) = echo' num2str(b) ';'])
+            end
+            eaa = squeeze(nanmean(ea,3));
+            figure(5);clf;hold on
+            pcolor(time,depth(:,2:end)',eaa');shading flat
+            caxis([-20 20])
+            axis ij
+            grid
+            bd = depth;
+            bd(flags<3) = NaN;
+            plot(time,bd,'k.')
+            plot([time(1),time(end)],[0,0],'k-')
+            colorbar
+            title(['Echo amplitude and failures'])
+            xlabel('Time')
+            ylabel('Depth')
+            legend('Echo Amplitude','Bad data','Surface')
+            datetick
+
+            figure(6);clf;hold on
+            bd = depth;
+            bd(flags<3) = NaN;
+            pcolor(time,depth',v');shading flat
+            caxis([-0.6 0.6])
+            axis ij
+            grid
+            plot(time,bd,'k.')
+            plot([time(1),time(end)],[0,0],'k-')
+            colorbar
+            xlabel('Time')
+            ylabel('Depth')
+            legend('v','Surface')
+            datetick
     end
     pause
 end
