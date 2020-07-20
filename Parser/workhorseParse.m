@@ -18,6 +18,7 @@ function sample_data = workhorseParse( filename, tMode )
 % The conversion from the ADCP velocity values currently assumes that the 
 % ADCP is using earth coordinates (see section 13.4 'Velocity Data Format' 
 % of the Workhorse H-ADCP Operation Manual).
+% Add code to convert Beam coordinates to ENU. RC July, 2020.
 % 
 % Inputs:
 %   filename    - raw binary data file retrieved from a Workhorse.
@@ -167,13 +168,42 @@ narginchk(1, 2);
   
   %
   % calculate velocity (speed and direction)
-  % currently assuming earth coordinate transform
+  % check for ENU and Beam coordinates. Instrument coordinates not
+  % considered.
   %
-  
-  veast = velocity.velocity1;
-  vnrth = velocity.velocity2;
-  wvel  = velocity.velocity3;
-  evel  = velocity.velocity4;
+  adcpOrientations = str2num(fixed.systemConfiguration(:, 1)); % str2num is actually more relevant than str2double here
+  adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
+%   if adcpOrientation == 1
+%       txt = 'UP';
+%   else
+%       txt = 'DOWN';
+%   end
+%   str = input(['ADCP ' num2str(fixed.instSerialNumber(1)) ' is oriented ' txt '. Return if this is correct, ''N'' to orient opposite direction: '],'s');
+%   if ~isempty(strmatch('N', upper(str)))
+%       if adcpOrientation == 1
+%           adcpOrientation = 0;
+%           adcpOrientations(adcpOrientations==1)=0;
+%       else
+%           adcpOrientation = 1;
+%           adcpOrientations(adcpOrientations==0)=1;
+%       end
+%   end
+      
+  if mode(fixed.coordinateTransform) == 31 %ENU
+      veast = velocity.velocity1;
+      vnrth = velocity.velocity2;
+      wvel  = velocity.velocity3;
+      evel  = velocity.velocity4;
+  elseif mode(fixed.coordinateTransform) == 7 %Beam coordinates
+      %convert to earth coordinates
+      %concave/convex:
+      cvxccv = mode(str2num(fixed.systemConfiguration(:,5)));
+      [veast,vnrth,wvel,evel]=rdiBeam2Earth(velocity.velocity1,velocity.velocity2,velocity.velocity3,...
+          velocity.velocity4,heading,pitch,roll,mode(fixed.beamAngle),cvxccv,adcpOrientation, distance);
+  else
+      disp('Data not collected in ENU or BEAM coordinates!')
+      return
+  end
   clear velocity;
   
   % set all bad values to NaN.
@@ -311,8 +341,6 @@ narginchk(1, 2);
   end
   
   % add dimensions with their data mapped
-  adcpOrientations = str2num(fixed.systemConfiguration(:, 1)); % str2num is actually more relevant than str2double here
-  adcpOrientation = mode(adcpOrientations); % hopefully the most frequent value reflects the orientation when deployed
   height = distance;
   if adcpOrientation == 0
       % case of a downward looking ADCP -> negative values
