@@ -5,6 +5,7 @@
 % the end - or all together.
 %
 % Bec Cowley, May/June, 2020
+%Have updated workhorseParse to do beam to ENU conversion
 
 % Set up:
 clear
@@ -55,8 +56,10 @@ end
 % now review the results of the flags applied with each test
 % comment out as required
 % adcpThresholdsResults(autoQCData,'surfacetest')
-% adcpThresholdsResults(autoQCData,'echorange')
-adcpThresholdsResults(autoQCData,'cmag')
+adcpThresholdsResults(autoQCData,'echorange')
+% adcpThresholdsResults(autoQCData,'erv')
+% adcpThresholdsResults(autoQCData,'cmag')
+% adcpThresholdsResults(autoQCData,'echo')
 
 %% now we have the thresholds, run the toolbox as is, with the values determined.
 % need to delete the pqc file for the RDIs before doing the imos toobox as
