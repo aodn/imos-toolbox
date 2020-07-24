@@ -71,17 +71,18 @@ for i=1:lenVar
         if strcmpi(paramName, ['ABSIC' cc]), idABSIC{j} = i; end
     end
 end
-idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
-Bins    = sample_data.dimensions{idHeight}.data';
-idDepth = getVar(sample_data.variables, 'DEPTH');
-depth = sample_data.variables{idDepth}.data;
-
 % check if the data is compatible with the QC algorithm
 idMandatory = (idUcur | idVcur | idWcur | idCspd | idCdir);
 for j=1:4
     idMandatory = idMandatory & idABSIC{j};
 end
 if ~idMandatory, return; end
+
+idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
+Bins    = sample_data.dimensions{idHeight}.data';
+idDepth = getVar(sample_data.variables, 'DEPTH');
+depth = sample_data.variables{idDepth}.data;
+
 
 % let's get the associated vertical dimension
 idVertDim = sample_data.variables{idABSIC{1}}.dimensions(2);
