@@ -185,7 +185,7 @@ function postqc = gen_postqc(sample_data, ts_variables, has_burst)
 % sample_data - the toolbox data struct.
 % ts_variables - the time-series variables to process.
 % has_burst - if the data is in burst-mode.
-% 
+%
 % Outputs:
 %
 % postqc - A data structure that is a copycat of sample_data but with clean timeSeries variables only.
@@ -209,6 +209,15 @@ time = sample_data.dimensions{timeId}.data;
 
 postqc.variables = cell(1, n_ts_vars);
 postqc.dimensions = sample_data.dimensions;
+
+try
+    postqc.meta = struct();
+    postqc.meta.instrument_make = sample_data.meta.instrument_make;
+    postqc.meta.instrument_model = sample_data.meta.instrument_model;
+catch
+    warning('Please document instrument make/model in the metadata')
+end
+
 
 if has_burst
     try
