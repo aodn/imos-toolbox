@@ -1,0 +1,2 @@
+ea_thresh = 30
+nBinSize = 0.5

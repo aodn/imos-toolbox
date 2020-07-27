@@ -1,1 +1,1 @@
-ea_fishthresh = 40
+ea_fishthresh = 75
