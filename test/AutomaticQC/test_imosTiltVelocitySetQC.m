@@ -9,8 +9,8 @@ classdef test_imosTiltVelocitySetQC < matlab.unittest.TestCase
         function test_load_nortek_current_meter_values(~)
             ssize = [5, 1];
             sample_data = create_sample_data(ssize);
-            sample_data.variables{end}.data(:, :) = 0.; %roll
-            sample_data.variables{end - 1}.data(:, :) = 90.; %pitch
+            sample_data.variables{end}.data = zeros(5,1); %roll
+            sample_data.variables{end - 1}.data = zeros(5,1)+90; %pitch
             sample_data.instrument = 'Nortek Aquadopp Current Meter';
             e_logentry = 'firstTiltThreshold=30, secondTiltThreshold=45';
             v = sample_data.variables{1}.data * 0;
@@ -38,13 +38,17 @@ classdef test_imosTiltVelocitySetQC < matlab.unittest.TestCase
         function test_load_nortek_adcp(~)
             ssize = [100, 6];
             sample_data = create_sample_data(ssize);
-            sample_data.variables{end}.data(:, :) = 0.; %roll
-            sample_data.variables{end - 1}.data(:, :) = 90.; %pitch
+            sample_data.variables{end}.data = zeros(100,1); %roll
+            sample_data.variables{end - 1}.data = zeros(100,1)+90.; %pitch
+            sample_data.variables{end - 1}.data([1,99]) = 0;
+            sample_data.variables{end - 1}.data([2,98]) = 21;
             sample_data.instrument = 'nortek';
             e_logentry = 'firstTiltThreshold=20, secondTiltThreshold=30';
             v = sample_data.variables{1}.data * 0;
 
             v3 = v + 3;
+            v3([1,99],:) = 1;
+            v3([2,98],:) = 2;
             [pdata, ~, logentry] = imosTiltVelocitySetQC(sample_data, true);
             assert(isequal(pdata.variables{1}.flags, v3))
             assert(isequal(e_logentry, logentry))
@@ -67,8 +71,8 @@ classdef test_imosTiltVelocitySetQC < matlab.unittest.TestCase
         function test_load_sentinel(~)
             ssize = [100, 33];
             sample_data = create_sample_data(ssize);
-            sample_data.variables{end}.data(:, :) = 0.; %roll
-            sample_data.variables{end - 1}.data(:, :) = 90.; %pitch
+            sample_data.variables{end}.data = zeros(100,1); %roll
+            sample_data.variables{end - 1}.data = zeros(100,1)+90.; %pitch
             sample_data.instrument = 'ADCP sentinel abcdefg';
             e_logentry = 'firstTiltThreshold=15, secondTiltThreshold=22';
             v = sample_data.variables{1}.data(:, :) * 0;
@@ -97,8 +101,8 @@ classdef test_imosTiltVelocitySetQC < matlab.unittest.TestCase
             if testCase.testUI
                 ssize = [100, 33];
                 sample_data = create_sample_data(ssize);
-                sample_data.variables{end}.data(:, :) = 0.; %roll
-                sample_data.variables{end - 1}.data(:, :) = 90.; %pitch
+                sample_data.variables{end}.data = zeros(100,1); %roll
+                sample_data.variables{end - 1}.data = zeros(100,1) +90; %pitch
                 sample_data.instrument = 'ADCP sentinel abcdefg';
                 e_logentry = 'firstTiltThreshold=15, secondTiltThreshold=91';
                 disp('Set firstFlagThreshold to be 4 and SecondTiltThreshold to be 91 for this test to pass');
@@ -116,8 +120,8 @@ classdef test_imosTiltVelocitySetQC < matlab.unittest.TestCase
             if testCase.testUI
                 ssize = [100, 33];
                 sample_data = create_sample_data(ssize);
-                sample_data.variables{end}.data(:, :) = 0.; %roll
-                sample_data.variables{end - 1}.data(:, :) = 81.; %pitch
+                sample_data.variables{end}.data = zeros(100,1); %roll
+                sample_data.variables{end - 1}.data = zeros(100,1)+81.; %pitch
                 sample_data.instrument = 'ADCP sentinel abcdefg';
                 e_logentry = 'firstTiltThreshold=15, secondTiltThreshold=80';
                 disp('Set SecondTiltThreshold to be 80 for this test to pass');

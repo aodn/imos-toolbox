@@ -212,19 +212,18 @@ flags = ones(sizeCur, 'int8')*secondFlagThreshold;
 
 % tilt test
 iPass = tilt < secondTiltThreshold;
-if ~isvector(flags)
+if isvector(flags)
   flags(iPass) = firstFlagThreshold;
 else
   flags(iPass,:) = firstFlagThreshold;
 end
 
 iPass = tilt < firstTiltThreshold;
-if ~isvector(flags)
+if isvector(flags)
   flags(iPass) = goodFlag;
 else
   flags(iPass,:) = goodFlag;
 end
-
 
 if idWcur
     sample_data.variables{idWcur}.flags = flags;
