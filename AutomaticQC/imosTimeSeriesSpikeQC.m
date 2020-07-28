@@ -160,12 +160,11 @@ ts_dims = getSampleField(sample_data.variables, 'dimensions');
 c = 1;
 
 for k = 1:length(ts_dims)
-    not_empty = ~isempty(ts_dims{k});
+    no_empty_dims = ~isempty(ts_dims{k});
     not_depth = ~strcmpi(varnames{k}, 'DEPTH');
     var = getVar(sample_data.variables,varnames{k});
-    is_vector = var && isvector(var);
-
-    if not_empty && not_depth && is_vector
+    is_vector = var && isvector(sample_data.variables{var}.data);
+    if no_empty_dims && not_depth && is_vector
         ts_variables{c} = varnames{k};
         c = c + 1;
     end
