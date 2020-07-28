@@ -79,8 +79,8 @@ end
 
 if auto
     user_interaction = struct();
-    spike_methods = load_classifiers(opts_file, has_burst);
-    method = readProperty(opts_file, 'auto_method');
+    spike_methods = loadSpikeClassifiers(opts_file, has_burst);
+    method = readProperty('auto_function',opts_file);
 
     for k = 1:length(ts_variables)
         user_interaction.(ts_variables{k}) = spike_methods(method);
