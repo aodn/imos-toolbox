@@ -47,9 +47,17 @@ time_missing = time_ind == 0;
 
 if (is_profile || time_missing), return, end
 
-has_burst_duration = (isfield(sample_data.meta, 'instrument_burst_duration') &&~isempty(sample_data.meta.instrument_burst_duration)) || (isfield(sample_data, 'instrument_burst_duration') &&~isempty(sample_data.instrument_burst_duration));
-has_burst_interval = (isfield(sample_data.meta, 'instrument_burst_interval') &&~isempty(sample_data.meta.instrument_burst_interval)) || (isfield(sample_data, 'instrument_burst_interval') &&~isempty(sample_data.instrument_burst_interval));
-
+has_burst_duration = false;
+has_burst_interval = false;
+try
+    has_burst_duration = sample_data.meta.instrument_burst_duration;
+    has_burst_interval = sample_data.meta.instrument_burst_interval;
+catch
+    try
+        has_burst_duration = sample_data.instrument_burst_duration;
+        has_burst_interval = sample_data.meta.instrument_burst_interval;
+    end
+end
 has_burst = has_burst_duration || has_burst_interval;
 
 if has_burst
