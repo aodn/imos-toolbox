@@ -137,7 +137,6 @@ function [paramLog] = create_log(varname, user_input)
 % Construct the SpikeQC log strings for each variable
 % and each parameters used.
 %
-nspikes = length(user_input.spikes);
 fun_name = func2str(user_input.fun);
 nargs = length(user_input.args);
 arg_string = cell(1, nargs);
@@ -192,7 +191,7 @@ function postqc = gen_postqc(sample_data, ts_variables, has_burst)
 % sample_data - the toolbox data struct.
 % ts_variables - the time-series variables to process.
 % has_burst - if the data is in burst-mode.
-% 
+%
 % Outputs:
 %
 % postqc - A data structure that is a copycat of sample_data but with clean timeSeries variables only.
@@ -266,20 +265,4 @@ for k = 1:n_ts_vars
     end
 end
 
-end
-
-function [valid_burst_range, max_burst_len] = cut_burst_range(burst_index_ranges, l, r)
-%function [valid_burst_range, max_burst_len] = cut_burst_range(burst_index_ranges, l, r)
-% find the valid burst range and the maximum burst length
-%
-find_burst_ind = @(ind, x)(any(x == ind));
-find_l = @(x)(find_burst_ind(l, x));
-find_r = @(x)(find_burst_ind(r, x));
-first_valid_burst = find(cellfun(find_l, burst_index_ranges));
-last_valid_burst = find(cellfun(find_r, burst_index_ranges));
-
-valid_burst_range = burst_index_ranges(first_valid_burst:last_valid_burst);
-
-compute_burst_len = @(x)(max(x) - min(x));
-max_burst_len = max(cellfun(compute_burst_len, valid_burst_range));
 end
