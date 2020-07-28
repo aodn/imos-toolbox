@@ -1,5 +1,7 @@
 %If auto is on, use the default options from named method
-auto_function = hampel
+auto_function = Hampel
+
+%Hampel
 
 hampel_function = imosSpikeClassifierHampel
 %window of data at each side
@@ -9,7 +11,7 @@ hampel_madfactor = 5
 %clipping_mad
 hampel_lower_mad_limit = 0.0
 
-%SavGol Filter with OTSU Threshold - despiking2
+%OTSU-Savgol/despiking1 
 
 otsu_savgol_function = imosSpikeClassifierNonBurstSavGolOTSU
 %odd window filtering size
@@ -21,7 +23,7 @@ otsu_savgol_nbins = 100
 %scale to reduce the otsu threshold
 otsu_savgol_oscale = 1
 
-%OTSU Threhsold - despiking1
+%OTSU-Thresholding/despiking2
 
 otsu_threshold_function = imosSpikeClassifierOTSU
 %number of histogram bins in otsu thresholding
