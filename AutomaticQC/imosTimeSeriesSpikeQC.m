@@ -47,9 +47,17 @@ time_missing = time_ind == 0;
 
 if (is_profile || time_missing), return, end
 
-has_burst_duration = (isfield(sample_data.meta, 'instrument_burst_duration') &&~isempty(sample_data.meta.instrument_burst_duration)) || (isfield(sample_data, 'instrument_burst_duration') &&~isempty(sample_data.instrument_burst_duration));
-has_burst_interval = (isfield(sample_data.meta, 'instrument_burst_interval') &&~isempty(sample_data.meta.instrument_burst_interval)) || (isfield(sample_data, 'instrument_burst_interval') &&~isempty(sample_data.instrument_burst_interval));
-
+has_burst_duration = false;
+has_burst_interval = false;
+try
+    has_burst_duration = sample_data.meta.instrument_burst_duration;
+    has_burst_interval = sample_data.meta.instrument_burst_interval;
+catch
+    try
+        has_burst_duration = sample_data.instrument_burst_duration;
+        has_burst_interval = sample_data.meta.instrument_burst_interval;
+    end
+end
 has_burst = has_burst_duration || has_burst_interval;
 
 if has_burst
@@ -71,8 +79,8 @@ end
 
 if auto
     user_interaction = struct();
-    spike_methods = load_classifiers(opts_file, has_burst);
-    method = readProperty(opts_file, 'auto_method');
+    spike_methods = loadSpikeClassifiers(opts_file, has_burst);
+    method = readProperty('auto_function',opts_file);
 
     for k = 1:length(ts_variables)
         user_interaction.(ts_variables{k}) = spike_methods(method);
@@ -129,7 +137,6 @@ function [paramLog] = create_log(varname, user_input)
 % Construct the SpikeQC log strings for each variable
 % and each parameters used.
 %
-nspikes = length(user_input.spikes);
 fun_name = func2str(user_input.fun);
 nargs = length(user_input.args);
 arg_string = cell(1, nargs);
@@ -160,12 +167,11 @@ ts_dims = getSampleField(sample_data.variables, 'dimensions');
 c = 1;
 
 for k = 1:length(ts_dims)
-    not_empty = ~isempty(ts_dims{k});
+    no_empty_dims = ~isempty(ts_dims{k});
     not_depth = ~strcmpi(varnames{k}, 'DEPTH');
     var = getVar(sample_data.variables,varnames{k});
-    is_vector = var && isvector(var);
-
-    if not_empty && not_depth && is_vector
+    is_vector = var && isvector(sample_data.variables{var}.data);
+    if no_empty_dims && not_depth && is_vector
         ts_variables{c} = varnames{k};
         c = c + 1;
     end
@@ -185,7 +191,7 @@ function postqc = gen_postqc(sample_data, ts_variables, has_burst)
 % sample_data - the toolbox data struct.
 % ts_variables - the time-series variables to process.
 % has_burst - if the data is in burst-mode.
-% 
+%
 % Outputs:
 %
 % postqc - A data structure that is a copycat of sample_data but with clean timeSeries variables only.
@@ -259,20 +265,4 @@ for k = 1:n_ts_vars
     end
 end
 
-end
-
-function [valid_burst_range, max_burst_len] = cut_burst_range(burst_index_ranges, l, r)
-%function [valid_burst_range, max_burst_len] = cut_burst_range(burst_index_ranges, l, r)
-% find the valid burst range and the maximum burst length
-%
-find_burst_ind = @(ind, x)(any(x == ind));
-find_l = @(x)(find_burst_ind(l, x));
-find_r = @(x)(find_burst_ind(r, x));
-first_valid_burst = find(cellfun(find_l, burst_index_ranges));
-last_valid_burst = find(cellfun(find_r, burst_index_ranges));
-
-valid_burst_range = burst_index_ranges(first_valid_burst:last_valid_burst);
-
-compute_burst_len = @(x)(max(x) - min(x));
-max_burst_len = max(cellfun(compute_burst_len, valid_burst_range));
 end

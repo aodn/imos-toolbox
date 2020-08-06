@@ -1,7 +1,7 @@
 %If auto is on, use the default options from named method
-auto_function = burst_hampel
+auto_function = Hampel-Burst
 
-% burst Hampel filter
+% Hampel-Burst
 burst_hampel_function = imosSpikeClassifierBurstHampel
 % boolean use windows as bursts instead of samples
 burst_hampel_use_burst_window = 0
@@ -15,7 +15,7 @@ burst_hampel_lower_mad_limit = 0
 %detect all not only repeated
 burst_hampel_repeated_only = 0
 
-%Running Statistics
+%Running-Statistics/imosBurstQC
 burst_runningstats_function = imosSpikeClassifierBurstRunningStats
 
 % the scale statistic function
