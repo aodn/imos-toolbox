@@ -49,16 +49,25 @@ end
 path = '';
 if ~isdeployed
     [path, ~, ~] = fileparts(which('imosToolbox.m'));
-
     % set Matlab path for this session (add all recursive directories to Matlab
     % path)
-    searchPath = textscan(genpath(path), '%s', 'Delimiter', pathsep);
-    searchPath = searchPath{1};
-    iPathToRemove = ~cellfun(@isempty, strfind(searchPath, [filesep '.']));
-    searchPath(iPathToRemove) = [];
-    searchPath = cellfun(@(x)([x pathsep]), searchPath, 'UniformOutput', false);
-    searchPath = [searchPath{:}];
-    addpath(searchPath);
+    addpath(fullfile(path,'Util/Path'));
+    addpath(fullfile(path,'Util/CellUtils'));
+    addpath(fullfile(path,'Util/Schema'));
+
+    [~,subfolders] = FilesInFolder(path);
+    ignored_subfolders = {'.git','.mypy_cache','imos-toolbox/snapshot','imos-toolbox/data','imos-toolbox/dist'};
+    [~,ignore_indexes] = inCellPartialMatchString(subfolders,ignored_subfolders);
+    valid_subfolders = popFromCell(subfolders,subfolders([ignore_indexes{:}]));
+
+    rmpath(fullfile(path,'Util/Path'));
+    rmpath(fullfile(path,'Util/CellUtils'));
+    rmpath(fullfile(path,'Util/Schema'));
+
+    cell_of_folders_strings = cellfun(@genpath,valid_subfolders,'UniformOutput',false);
+    all_folders_as_string= cat(2,cell_of_folders_strings{:});
+    addpath(path);
+    addpath(all_folders_as_string);
 end
 if isempty(path), path = pwd; end
 
