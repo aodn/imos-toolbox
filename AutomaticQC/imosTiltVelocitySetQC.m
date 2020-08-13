@@ -176,8 +176,8 @@ end
 
 if isempty(firstTiltThreshold) && auto
     % couldn't find this instrument so quit the test
-    disp(['Warning: imosTiltVelositySetQC could not be performed on ' sample_data.toolbox_input_file ...
-        ' instrument = "' instrument '" => Fill imosTiltVelositySetQC.txt with relevant make/model information if you wish to run this test on this dataset.']);
+    disp(['Warning: imosTiltVelocitySetQC could not be performed on ' sample_data.toolbox_input_file ...
+        ' instrument = "' instrument '" => Fill imosTiltVelocitySetQC.txt with relevant make/model information if you wish to run this test on this dataset.']);
     return;
 end
 
@@ -188,7 +188,7 @@ if ~auto
   names = {'firstTiltThreshold [deg]', 'firstFlagThreshold [imosQCFlag]', 'secondTiltThreshold [deg]', 'secondFlagThreshold [imosQCFlag]'};
   values = {firstTiltThreshold, firstFlagThreshold, secondTiltThreshold, secondFlagThreshold};
   funcs = {isdeg, isvalidQC, isdeg, isvalidQC};
-  results = uiNumericalBox(names,values,funcs,'title','imosTiltVelositySetQC - Threshold Limits','panelTitle',matchedName);
+  results = uiNumericalBox(names,values,funcs,'title','imosTiltVelocitySetQC - Threshold Limits','panelTitle',matchedName);
   [firstTiltThreshold,firstFlagThreshold,secondTiltThreshold,secondFlagThreshold] = results{:};
 end
 
