@@ -52,14 +52,14 @@ if isfield(sample_data.meta,'instrument_burst_duration')
     burst_duration = sample_data.meta.instrument_burst_duration;
     valid_burst_duration = ~isempty(burst_duration) && ~isnan(burst_duration) && burst_duration>0;
 elseif isfield(sample_data,'instrument_burst_duration')
-    burst_duration = sample_data.meta.instrument_burst_duration;
+    burst_duration = sample_data.instrument_burst_duration;
     valid_burst_duration = ~isempty(burst_duration) && ~isnan(burst_duration) && burst_duration>0;
 end
 if isfield(sample_data.meta,'instrument_burst_interval')
     burst_interval = sample_data.meta.instrument_burst_interval;
     valid_burst_interval = ~isempty(burst_interval) && ~isnan(burst_interval) && burst_interval>0;
 elseif isfield(sample_data,'instrument_burst_interval')
-    burst_interval = sample_data.meta.instrument_burst_interval;
+    burst_interval = sample_data.instrument_burst_interval;
     valid_burst_interval = ~isempty(burst_interval) && ~isnan(burst_interval) && burst_interval>0;
 end
 
