@@ -8,22 +8,18 @@ classdef testnetcdfParse < matlab.unittest.TestCase
 
     methods (Test)
 
-        function test_no_error_reading_anmn(testCase, anmn_file)
+        function test_no_error_reading_anmn(~, anmn_file)
             data = netcdfParse({anmn_file}, '');
-            assert(~isempty(data.meta.site_id))
-            assert(~isempty(data.time_coverage_start))
-            assert(~isempty(data.time_coverage_end))
-            assert(isnan(data.meta.instrument_sample_interval) || data.meta.instrument_sample_interval > 0)
-            assert((isnan(data.meta.instrument_burst_interval) || data.meta.instrument_burst_interval > 0) && (isnan(data.meta.instrument_burst_duration) || data.meta.instrument_burst_duration > 0))
+            assert_metadata(data);
+            assert_instrument_sample_interval(data);
+            assert_burst_sampling(data);
         end
 
         function test_no_error_reading_abos(~, abos_file)
             data = netcdfParse({abos_file}, '');
-            assert(~isempty(data.meta.site_id))
-            assert(~isempty(data.time_coverage_start))
-            assert(~isempty(data.time_coverage_end))
-            assert(isnan(data.meta.instrument_sample_interval) || data.meta.instrument_sample_interval > 0)
-            assert((isnan(data.meta.instrument_burst_interval) || data.meta.instrument_burst_interval > 0) && (isnan(data.meta.instrument_burst_duration) || data.meta.instrument_burst_duration > 0))
+            assert_metadata(data);
+            assert_instrument_sample_interval(data);
+            assert_burst_sampling(data);
         end
 
     end
@@ -31,9 +27,8 @@ classdef testnetcdfParse < matlab.unittest.TestCase
 end
 
 function ycell = only_netcdf(xcell)
-ycell = {};
+ycell = cell(1,1000);
 c = 0;
-
 for k = 1:length(xcell)
     item = xcell{k};
 
@@ -43,5 +38,46 @@ for k = 1:length(xcell)
     end
 
 end
+ycell=ycell(1:c);
+end
 
+function assert_metadata(data)
+got_site_id = isfield(data,'meta') && isfield(data.meta,'site_id');
+assert(got_site_id);
+assert_site_id = ~isempty(data.meta.site_id);
+assert(assert_site_id);
+
+got_time_coverage = isfield(data,'time_coverage_start') && isfield(data,'time_coverage_end');
+assert(got_time_coverage);
+assert_time_coverage = ~isempty(data.time_coverage_start) && ~isempty(data.time_coverage_end);
+assert(assert_time_coverage);
+end
+
+function assert_instrument_sample_interval(data)
+if isfield(data,'instrument_sample_interval')
+    if ~isempty(data.instrument_sample_interval) && isfield(data,'meta') && isfield(data.meta,'instrument_sample_interval')
+        assert(data.instrument_sample_interval == data.meta.instrument_sample_interval)
+    end
+else
+    warning('%s missing instrument_sample_interval',data.toolbox_input_file)
+end
+
+end
+
+function assert_burst_sampling(data)
+is_burst = isfield(data,'instrument_burst_interval') || isfield(data,'instrument_burst_duration');
+if is_burst
+    has_burst_interval_but_not_duration = isfield(data,'instrument_burst_interval') && ~isfield(data,'instrument_burst_duration');
+    has_burst_duration_but_not_interval = isfield(data,'instrument_burst_duration') && ~isfield(data,'instrument_burst_interval');
+    if has_burst_interval_but_not_duration || has_burst_duration_but_not_interval
+        warning('%s contains incomplete burst information',data.toolbox_input_file)
+    else
+        assert_burst_interval = (~isnan(data.instrument_burst_interval)) || (data.instrument_burst_interval > 0);
+        assert_burst_duration = (~isnan(data.instrument_burst_duration)) || (data.instrument_burst_duration > 0);
+        assert(assert_burst_interval && assert_burst_duration)
+        if isfield(data,'meta')
+            assert_burst_sampling(data.meta)
+        end
+    end
+end
 end
