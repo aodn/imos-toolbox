@@ -2,19 +2,19 @@
 S, project                      = Integrated Marine Observing System (IMOS)
 S, Conventions                  = CF-1.6,IMOS-1.4
 S, standard_name_vocabulary     = NetCDF Climate and Forecast (CF) Metadata Convention Standard Name Table 45
-S, title                        = 
+S, title                        = Data collected from the 2018 to 2019 deployment of East Australian Current (EAC) moorings
 S, institution                  = 
 D, date_created                 = [mat now_utc]
 D, date_modified                = 
-S, abstract                     = 
+S, abstract                     = The aim of the East Australian Current (EAC) moorings is to capture the mean and time-varying flow of the EAC. This dataset will provide an intensive reference set of measurements of the EAC flow over a sustained period. Ship data collected during the recovery voyage is available from the CSIRO Oceans and Atmosphere Data Centre. The voyage number is IN2019_V05.
 S, comment                      = [ddb Comment]
 S, source                       = [ddb DeploymentType]
 S, instrument                   = [ddb InstrumentID Instruments Make] [ddb InstrumentID Instruments Model]
 S, keywords                     = [ddb InstrumentID Instruments Model], [mat cellStructCons(sample_data.dimensions, 'name', ', ')], [mat cellStructCons(sample_data.variables, 'name', ', ')]
 S, keywords_vocabulary          = IMOS parameter names. See https://github.com/aodn/imos-toolbox/blob/master/IMOS/imosParameters.txt
 S, references                   = http://www.imos.org.au
-S, site_code                    = 
-S, platform_code                = 
+S, site_code                    = [ddb Site Sites SiteName]
+S, platform_code                = [ddb Site Sites SiteName]
 S, deployment_code              = [ddb Site]
 S, featureType                  = [mat sample_data.meta.featureType]
 S, cdm_data_type                = 
@@ -27,8 +27,8 @@ N, instrument_average_interval  = [mat sample_data.meta.instrument_average_inter
 N, instrument_beam_angle        = [mat sample_data.meta.beam_angle]
 N, instrument_burst_interval    = [mat sample_data.meta.instrument_burst_interval]
 N, instrument_burst_duration    = [mat sample_data.meta.instrument_burst_duration]
-S, institution_address          = 
-S, institution_postal_address   = 
+S, institution_address          = Castray Esplanade, Hobart, Tasmania, Australia, 7000
+S, institution_postal_address   = GPO Box 1538, Hobart, Tasmania, Australia, 7001
 
 % these fields are automatically populated upon creation/export
 S, file_version                 = 
@@ -42,9 +42,9 @@ N, geospatial_lat_max       = [ddb Site Sites Latitude]
 N, geospatial_lon_min       = [ddb Site Sites Longitude]
 N, geospatial_lon_max       = [ddb Site Sites Longitude]
 N, instrument_nominal_height= 
-N, instrument_nominal_depth = 
+N, instrument_nominal_depth = [mat sample_data.meta.deployment.InstrumentDepth]
 N, site_nominal_depth       = 
-N, site_depth_at_deployment = 
+N, site_depth_at_deployment = [ddb Site Sites Depth]
 
 % if left empty, these fields are automatically populated upon import 
 % when DEPTH variable exist (if not use depthPP pre-processing routine)
@@ -66,10 +66,10 @@ D, time_coverage_end            =
 % who
 S, data_centre                  = Australian Ocean Data Network (AODN)
 S, data_centre_email            = info@aodn.org.au
-S, author_email                 = 
-S, author                       = 
-S, principal_investigator       = 
-S, principal_investigator_email = 
+S, author_email                 = rebecca.cowley@csiro.au
+S, author                       = Rebecca Cowley
+S, principal_investigator       = Bernadette Sloyan
+S, principal_investigator_email = Bernadette.Sloyan@csiro.au
 S, institution_references       = http://www.imos.org.au/aodn.html
 
 % how

@@ -1,6 +1,6 @@
 % filename or ODBC DSN of MS-ACCESS deployment database
 % ex. : /home/ggalibert/OceanDB.mdb or imos-ddb
-toolbox.ddb = 
+toolbox.ddb = /work/observations/oceanobs_data/EACdata/mooring/EAC1805_1909/data_processing/IMOScsvfiles/
 
 % or full connection details to other kind of deployment database :
 % class name of JDBC database driver
@@ -40,7 +40,7 @@ autoQCManager.autoQCDefaultChain.timeSeries = imosImpossibleDateQC imosImpossibl
 autoQCManager.autoQCDefaultChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
 
 % last selected set of auto QC routines
-autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosCorrMagVelocitySetQC imosHistoricalManualSetQC
+autoQCManager.autoQCChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosCorrMagVelocitySetQC imosEchoIntensityVelocitySetQC imosErrorVelocitySetQC imosPercentGoodVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHistoricalManualSetQC imosSalinityFromPTQC
 autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
 
 % prompt for preprocessing (if false, 
@@ -52,7 +52,7 @@ preprocessManager.preprocessDefaultChain.timeSeries = depthPP salinityPP oxygenP
 preprocessManager.preprocessDefaultChain.profile = depthPP salinityPP oxygenPP
 
 % last selected set of preprocessing routines
-preprocessManager.preprocessChain.timeSeries = depthPP salinityPP oxygenPP absiDecibelBasicPP adcpNortekVelocityEnu2BeamPP adcpBinMappingPP adcpNortekVelocityBeam2EnuPP magneticDeclinationPP velocityMagDirPP
+preprocessManager.preprocessChain.timeSeries = timeDriftPP depthPP adcpBinMappingPP magneticDeclinationPP salinityPP
 preprocessManager.preprocessChain.profile = depthPP salinityPP oxygenPP
 
 % file status dialog formatting styles
@@ -63,20 +63,20 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % last selected values for start dialog
-startDialog.dataDir.timeSeries = 
+startDialog.dataDir.timeSeries = /OSM/HBA/OA_DECADAL_CLIMATE/work/observations/oceanobs_data/EACdata/mooring/EAC1805_1909/raw_data
 startDialog.dataDir.profile = 
-startDialog.fieldTrip.timeSeries = 
+startDialog.fieldTrip.timeSeries = EAC-2019-09-09
 startDialog.fieldTrip.profile = 
-startDialog.lowDate.timeSeries = 
+startDialog.lowDate.timeSeries = 712224
 startDialog.lowDate.profile = 
-startDialog.highDate.timeSeries = 
+startDialog.highDate.timeSeries = 737770.1817
 startDialog.highDate.profile = 
 
 % last selected directory for manual data import
 importManager.manualDir = 
 
 % last selected directory for file export
-exportDialog.defaultDir = 
+exportDialog.defaultDir = /OSM/HBA/OA_DECADAL_CLIMATE/work/observations/oceanobs_data/EACdata/mooring/EAC1805_1909/data_processing/IMOSnetcdf/EAC0500
 
 % prompt user to select parser if an appropriate one 
 % cannot be found (if false, the data is not imported)
@@ -88,8 +88,8 @@ saveGraph.exportDir =
 saveGraph.imgType   = png
 
 % visual QC plots export properties
-visualQC.export = true
-visualQC.fastScatter = true
+visualQC.export = false
+visualQC.fastScatter = false
 
 % default nonspecialized scalar colormap and number of colour steps
 % jet | parula | viridis
