@@ -1,29 +1,24 @@
-function [spikes, fsignal] = imosSpikeClassifierHampel(signal, window, stdfactor)
-% function spikes, fsignal = imosSpikeClassifierHampel(signal, window, stdfactor)
+function [spikes, fsignal] = imosSpikeClassifierHampel(signal, half_window_width, madfactor, lower_mad_limit)
+% function spikes, fsignal = imosSpikeClassifierHampel(signal, half_window_width, madfactor, lower_mad_limit)
 %
-% A wrapper to Hampel, a median windowed filter, for both
-% Burst and Equally spaced time series.
-%
-% The hampel method is a robust parametric denoising filter that uses
-% the MAD deviation (scaled) from the median in a pre-defined
-% indexed centred window.
+% A wrapper to Hampel classifier.The hampel method is a robust parametric denoising filter that uses
+% the MAD deviation (scaled) from the median in a pre-defined centred window.
 %
 % See also hampel.m.
 %
 % Inputs:
 %
 % signal - A 1-d signal.
-% window - A window index range. If signal is in burst mode, this is ignored.
-% stdfactor - A multiplying scale for the standard deviation.
+% half_window_width - A half_window_width index range (the full window size will be 1+2*half_window_width)
+% madfactor - A multiplying scale for the standard deviation.
+% lower_mad_limit - a lower threshold for the MAD values, which values below will be ignored.
 %
 % Outputs:
 %
 % spikes - An array with spikes indexes.
-% fsignal - A filtered signal where the spikes are subsituted
-%           by the median of the window.
+% fsignal - A filtered signal where the spikes are substituted by median values of the window.
 %
 % Example:
-%
 %
 % author: hugo.oliveira@utas.edu.au
 %
@@ -44,14 +39,20 @@ function [spikes, fsignal] = imosSpikeClassifierHampel(signal, window, stdfactor
 % along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
+narginchk(1, 4)
 
-if nargin < 3
-    window = 3;
-    stdfactor = 10;
-elseif nargin < 2
-    stdfactor = 10;
+if nargin == 1
+    half_window_width = 3;
+    madfactor = 10;
+    lower_mad_limit = 0.0;
+elseif nargin == 2
+    madfactor = 10;
+    lower_mad_limit = 0.0;
+elseif nargin == 3
+    lower_mad_limit = 0.0;
 end
 
-[fsignal, bind, ~, ~] = hampel(signal, window, stdfactor);
-spikes = find(bind);
+[fsignal, bind, ~, smad] = hampel(signal, half_window_width, madfactor);
+above_limit = smad > lower_mad_limit;
+spikes = find(bind .* above_limit);
 end
