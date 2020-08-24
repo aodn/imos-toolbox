@@ -3,6 +3,8 @@ function [spikes,threshold] = imosSpikeClassifierOTSU(signal, nbins, oscale, cen
 %
 % Detect spikes in by using the Otsu threshold method.
 %
+% The original version was called despiking2 and provided by Ken Ridgway.
+%
 % Inputs:
 %
 %  signal - the signal.
@@ -21,12 +23,14 @@ function [spikes,threshold] = imosSpikeClassifierOTSU(signal, nbins, oscale, cen
 % [spikes] = imosSpikeClassifierOTSU(signal,3,1,false);
 % assert(spikes==2)
 %
-% %centralized
-% signal = [0,1,1,1,0]
+% %non-centralized
+% signal = [0,0,0,1,0,1,0,0,0,0]
 % [spikes] = imosSpikeClassifierOTSU(signal,3,1,false);
-% assert(spikes==[4,5,6])
+% assert(spikes==[3,4,5,6])
+% centralized
 % [spikes] = imosSpikeClassifierOTSU(signal,3,1,true);
-% assert(spikes==[5])
+% assert(~isequal(spikes,[4,6])) % fail
+% assert(spikes==[4]) % fail
 %
 % %harmonic
 % omega = 2*pi/86400;
@@ -34,19 +38,20 @@ function [spikes,threshold] = imosSpikeClassifierOTSU(signal, nbins, oscale, cen
 % signal = 10*sin(omega*t)
 % signal([10,20]) = max(signal)^3;
 % [spikes] = imosSpikeClassifierOTSU(signal,100,1,true);
-% assert(spikes==[10,20])
+% assert(isequal(spikes,[10,20])
 %
 % %
 % omega = 2*pi/86400;
 % t = 0:3600:86400*5;
-% signal = 10*sin(omega*t)
+% signal = 10*sin(omega*t);
 % signal(20) = signal(20)*2;
 % signal(21:end) = signal(21:end)+signal(20);
 % signal([33,55]) = sign(signal([33,55])).*signal([33,55]).^2;
 % [spikes] = imosSpikeClassifierOTSU(signal,100,1,true);
-% assert(spikes==[33,55])
+% assert(isequal(spikes,[33,55]))
 %
 %
+% author: Ken Ridway
 % author: hugo.oliveira@utas.edu.au [rewrite/refactoring]
 
 %
@@ -78,10 +83,12 @@ elseif nargin == 3
     centralize = true;
 end
 
-otsu = otsu_threshold(signal, nbins);
-threshold = otsu / oscale;
-spikes = find(signal > abs(threshold) | signal < -1*abs(threshold));
-if centralize
+dsignal = abs(diff(signal));
+otsu = otsu_threshold(dsignal, nbins);
+threshold = otsu .* oscale;
+spikes = find(dsignal > threshold);
+
+if centralize && length(spikes)>3
     spikes = centred_indexes(spikes);
 end
 
@@ -103,12 +110,12 @@ for k = 1:length(sind) - 1
     end
 
     s_end = sind(k);
-    cgind(c) = floor((s_end + s_start) / 2);
+    cgind(c) = ceil((s_end + s_start) / 2);
     s_start = sind(k + 1);
     c = c + 1;
 end
 
 s_end = sind(end);
-cgind(end) = floor((s_end + s_start) / 2);
+cgind(end) = ceil((s_end + s_start) / 2);
 cgind = cgind(~isnan(cgind));
 end

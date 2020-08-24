@@ -14,7 +14,7 @@ function [threshold] = otsu_threshold(signal, nbins)
 %
 % Outputs:
 %
-% threshold - The threshold that maximize
+% threshold - The optimized threshold
 %
 % Example:
 %

@@ -5,7 +5,7 @@ function [spikes] = imosSpikeClassifierNonBurstSavGolOTSU(signal, window, pdeg, 
 % applied to the noise estimated by a Savitzy Golay Filter applied on the signal.
 %
 % The routine uses the SavGol.m implementation provided by
-% Ken Ridgway.
+% Ken Ridgway and was called despiking1.
 %
 % Inputs:
 %
@@ -53,37 +53,41 @@ function [spikes] = imosSpikeClassifierNonBurstSavGolOTSU(signal, window, pdeg, 
 if nargin == 1
     window = 5; %minimum filtering
     pdeg = 2; %quadratic polynomial
-    nbins = 256; % default otsu bins
+    nbins = 100; % default otsu bins
     oscale = 1; %arbitrary scale used to reduce the otsu threshold
 elseif nargin == 2
     pdeg = 2; %quadratic polynomial
-    nbins = 256; % default bins in despiking1
+    nbins = 100; % default bins from despiking2
     oscale = 1; %arbitrary scale used to reduce the otsu threshold
 elseif nargin == 3
-    nbins = 256; % default bins in despiking1
+    nbins = 100; % default bins from despiking2
     oscale = 1; %arbitrary scale used to reduce the otsu threshold
 elseif nargin == 4
     oscale = 1; %arbitrary scale used to reduce the otsu threshold
 end
 
-if window <= 3
-    error('Window need to be even and larger than 3')
-else
-
-    if rem(window, 2) == 0
-        window = window - 1;
-    end
-
+if window <= 2
+    error('Window need to be larger than 2')
 end
 
-fsignal = SavGol(signal, (window - 1) / 2, (window - 1) / 2, pdeg);
+window = double(window);
+
+if rem(window, 2)
+    fsignal = SavGol(signal, (window - 1) / 2, (window - 1) / 2, pdeg);
+else
+    fsignal = SavGol(signal, window / 2, window / 2, pdeg);
+end
+
 noise = signal - fsignal;
 abs_noise = abs(noise);
 otsu = otsu_threshold(abs_noise, nbins);
-threshold = otsu / oscale;
+threshold = otsu .* oscale;
 ring_spikes = find(abs_noise > threshold | abs_noise <- threshold);
-spikes = centred_indexes(ring_spikes);
 
+if ~isempty(ring_spikes)
+    spikes = centred_indexes(ring_spikes);
+else
+    spikes = ring_spikes;
 end
 
 function [cgind] = centred_indexes(sind)
@@ -91,11 +95,12 @@ function [cgind] = centred_indexes(sind)
 % consecutive integers in a sorted array of integers.
 
 s_start = sind(1);
-s_end = sind(end);
-cgind = sind*NaN;
-c=1;
+cgind = sind * NaN;
+c = 1;
+
 for k = 1:length(sind) - 1
     adjacent = sind(k + 1) - sind(k) <= 1;
+
     if adjacent
         continue
     end
@@ -103,9 +108,11 @@ for k = 1:length(sind) - 1
     s_end = sind(k);
     cgind(c) = floor((s_end + s_start) / 2);
     s_start = sind(k + 1);
-    c = c+1;
+    c = c + 1;
 end
-cgind(end) = floor((s_end + s_start) / 2);
 
+s_end = sind(end);
+cgind(end) = floor((s_end + s_start) / 2);
 cgind = cgind(~isnan(cgind));
+end
 end
