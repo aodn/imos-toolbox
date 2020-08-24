@@ -36,7 +36,7 @@ ARCH_NAMES = {
 }
 VERSION_FILE = ".standalone_canonical_version"
 MATLAB_VERSION = "R2018b"
-MATLAB_TOOLBOXES_TO_INCLUDE: List[str] = ["signal"]
+MATLAB_TOOLBOXES_TO_INCLUDE: List[str] = ["signal/signal","stats/stats","images/imuitools"]
 
 
 def find_matlab_rootpath(arch_str):
@@ -66,8 +66,7 @@ def find_matlab_rootpath(arch_str):
 
 def run(command: str):
     """Run a command at shell/cmdline."""
-    proc = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE, shell=True, check=True)
-    return proc.stdout.decode("utf-8").strip(), proc.stderr.decode("utf-8").strip()
+    return sp.run(command, shell=True, check=True)
 
 
 def create_java_call_sig_compile(root_path: str) -> str:
@@ -178,7 +177,7 @@ def create_mcc_call_sig(
     if MATLAB_TOOLBOXES_TO_INCLUDE:
         matlab_root_path = find_matlab_rootpath(arch)
         extra_toolbox_paths = [
-            os.path.join(matlab_root_path, "toolbox", x, x)
+            os.path.join(matlab_root_path, "toolbox", x)
             for x in MATLAB_TOOLBOXES_TO_INCLUDE
         ]
 
@@ -287,14 +286,15 @@ if __name__ == "__main__":
     print(repo_info)
 
     print(f"Calling {java_call}..")
-    stdout, stderr = run(java_call)
-    if stderr:
+    ok = run(java_call)
+    if not ok:
         raise Exception(f"{jcall} failed")
 
     print(f"Calling {mcc_call}...")
     for mcall in mcc_call:
-        stdout, stderr = run(mcall)
-        if stderr:
+        print(f"Executing {mcall}")
+        ok = run(mcall)
+        if not ok:
             raise Exception(f"{mcall} failed")
 
     print(f"The toolbox architecture is {ARCH_NAMES[arch]}.")

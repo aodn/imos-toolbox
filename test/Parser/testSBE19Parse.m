@@ -9,6 +9,11 @@ classdef testSBE19Parse < matlab.unittest.TestCase
     properties (TestParameter)
         mode = {'timeSeries'};
         wqm_file = files2namestruct(rdir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE']));
+        beam_transmission_file = prepend_dir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE/19plus/v000'], {'YON20200306CFALDB_with_PAR_and_battery.cnv'});
+        strain_pres_file = prepend_dir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE/19plus/v000'], {'SBE19plus_parser1.cnv', 'YON20200306CFALDB_with_PAR_and_battery.cnv', 'chla_aquaT3_as_aquaUV.cnv'});
+        par_file = prepend_dir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE/19plus/v000'], {'SBE19plus_parser1.cnv', 'YON20200306CFALDB_with_PAR_and_battery.cnv', 'chla_aquaT3_as_aquaUV.cnv'});
+        sbe_37sm_file = prepend_dir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE/37plus/v000'], {'SBE37_parser1.cnv'});
+
     end
 
     methods (Test)
@@ -27,7 +32,58 @@ classdef testSBE19Parse < matlab.unittest.TestCase
 
         end
 
+        function test_read_strain_pressure(~, strain_pres_file, mode)
+            data = SBE19Parse({strain_pres_file}, mode);
+            cols = data.meta.procHeader.columns;
+            assert(inCell(cols, 'pr') || inCell(cols, 'prM') || inCell(cols, 'prdM') || inCell(cols, 'prDM') || inCell(cols, 'prSM'))
+            assert(getVar(data.variables, 'PRES_REL') > 0)
+
+        end
+
+        function test_read_beam_transmission(~, beam_transmission_file, mode)
+            data = SBE19Parse({beam_transmission_file}, mode);
+            cols = data.meta.procHeader.columns;
+            assert(inCell(cols, 'CStarTr0'))
+            assert(getVar(data.variables, 'BAT_PERCENT') > 0)% this name should change.
+        end
+
+        function test_read_par(~, par_file, mode)
+            data = SBE19Parse({par_file}, mode);
+            cols = data.meta.procHeader.columns;
+            assert(inCell(cols, 'par/log') || inCell(cols, 'par') || inCell(cols, 'par/sat/log'))
+            assert(getVar(data.variables, 'PAR') > 0)
+
+        end
+
+        function test_basic_read(~, wqm_file, mode)
+            data = SBE19Parse({wqm_file}, mode);
+            cols = data.meta.procHeader.columns;
+            assert(inCell(cols, 'pr') || inCell(cols, 'prM') || inCell(cols, 'prdM') || inCell(cols, 'prDM') || inCell(cols, 'prSM') || inCell(cols, 'depSM'))
+            assert(getVar(data.variables, 'PRES_REL') > 0 || getVar(data.variables, 'PRES') > 0 || getVar(data.variables, 'DEPTH') > 0)
+            assert(getVar(data.variables, 'TEMP') > 0)
+
+            if ~contains(wqm_file, 'SBE39plus_parser1')%only file missing salinity
+                assert(getVar(data.variables, 'CNDC') > 0 || getVar(data.variables, 'PSAL'))
+            end
+
+        end
+
     end
+
+end
+
+function ycell = prepend_dir(xdir, xcell)
+%prepend a path xdir to all items in xcell.
+n = length(xcell);
+ycell = cell(1, n);
+
+if xdir(end) ~= filesep
+    xdir(end + 1) = filesep;
+end
+
+for k = 1:n
+    ycell{k} = [xdir xcell{k}];
+end
 
 end
 
@@ -45,6 +101,7 @@ table('2016-11-29T063814_SBE0251111CFALDB.cnv') = 'SBE25plus';
 table('chla_aquaT3_as_aquaUV.cnv') = 'SBE19plus';
 table('IMOS_ANMN-NRS_CTP_130130_NRSMAI_FV00_CTDPRO.cnv') = 'SBE19plus';
 table('IMOS_ANMN-NRS_CTP_130130_NRSMAI_FV00_CTDPRO.cnv') = 'SBE19plus';
+table('YON20200306CFALDB_with_PAR_and_battery.cnv') = 'SBE19plus';
 table('in2015_c01_005CFALDB_altimetre.cnv') = 'SBE9';
 table('SBE16plus_oxygen1.cnv') = 'SBE16plus';
 table('SBE16plus_oxygen2.cnv') = 'SBE16plus';

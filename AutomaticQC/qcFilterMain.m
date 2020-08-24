@@ -166,11 +166,24 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             
             % user cancelled
             if ~isempty(cancel) && getappdata(cancel, 'cancel'), return; end
-            
-            % log entries and any data changes that the routine generates
-            % are currently discarded; only the flags are retained.
-            [~, f, l] = filter(sam, data, k, type{m}, auto);
-            clear data
+           
+            if contains(filterName,'SpikeQC')
+              varname = sam.(type{m}){k}.name;
+              if ~exist('varflags','var')
+                [varflags, varlogs] = filter(sam, auto);
+              end
+              processed_vars = fieldnames(varflags);
+              if inCell(processed_vars,varname)
+                f = varflags.(varname);
+                l = varlogs.(varname);
+              else
+                continue;
+              end
+            else
+              % log entries and any data changes that the routine generates
+              % are currently discarded; only the flags are retained.
+              [~, f, l] = filter(sam, data, k, type{m}, auto);
+            end
             
             if isempty(f), continue; end
             
