@@ -162,8 +162,10 @@ for a = setIdx
 
     %mean, stdeviation
     figure(3);clf
-    plot(mn,bdBins);
+%     plot(squeeze(cmag(:,:,1)),bdepth,'b.')
     hold on
+    plot(mn,bdBins);
+
     plot(mn+stx,bdBins,'r-');
     plot(mx,bdBins,'g-');
     plot(mmn,bdBins,'g-');

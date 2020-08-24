@@ -88,7 +88,7 @@ for a = 1:length(autoQCData)
             legend('EchoAmp','Bad data','Surface')
             
             figure(6);clf;hold on
-            bad = v;
+            bad = speed;
             bad(flags==4) = NaN;
             bd = depth;
             bd(flags==4) = NaN;
@@ -100,7 +100,7 @@ for a = 1:length(autoQCData)
             colorbar
             xlabel('Time')
             ylabel('Depth')
-            legend('V','Surface')
+            legend('Speed','Surface')
             
             %check the horizontal and vertical velocity thresholds here too
             %while we have the surface data flagged out
@@ -151,6 +151,13 @@ for a = 1:length(autoQCData)
                 eval(['cm(:,:,b) = cmag' num2str(b) ';'])
             end
             cmm = squeeze(nanmean(cm,3));
+            
+%             figure(4);clf;hold on
+%             plot(cmm,v,'.')
+%             grid
+%             xlabel('Cmag')
+%             ylabel('V')
+            
             figure(5);clf;hold on
             pcolor(time,depth',cmm');shading flat
             caxis([60 140])
@@ -183,13 +190,22 @@ for a = 1:length(autoQCData)
             datetick
             
         case 'erv'
-            figure(5);clf;hold on
-            pcolor(time,depth',erv');shading flat
-            caxis([60 140])
-            axis ij
-            grid
             bd = depth;
             bd(flags<3) = NaN;
+            
+%             figure(4);clf;hold on
+%             plot(erv,depth,'.')
+%             plot(erv,bd,'k.')
+%             grid
+%             xlabel('ERV')
+%             ylabel('depth')
+
+            figure(5);clf;hold on
+            pcolor(time,depth',erv');shading flat
+            caxis([-0.6 0.6])
+            axis ij
+            grid
+
             plot(time,bd,'k.')
             plot([time(1),time(end)],[0,0],'k-')
             colorbar
@@ -220,6 +236,7 @@ for a = 1:length(autoQCData)
                 eval(['ea(:,:,b) = echo' num2str(b) ';'])
             end
             eaa = squeeze(nanmean(ea,3));
+%             eaa = echo1;
             figure(5);clf;hold on
             pcolor(time,depth(:,2:end)',eaa');shading flat
             caxis([-20 20])
@@ -230,10 +247,10 @@ for a = 1:length(autoQCData)
             plot(time,bd,'k.')
             plot([time(1),time(end)],[0,0],'k-')
             colorbar
-            title(['Echo amplitude and failures'])
+            title(['Echo amplitude Difference and failures'])
             xlabel('Time')
             ylabel('Depth')
-            legend('Echo Amplitude','Bad data','Surface')
+            legend('Echo Amplitude Difference','Bad data','Surface')
             datetick
 
             figure(6);clf;hold on

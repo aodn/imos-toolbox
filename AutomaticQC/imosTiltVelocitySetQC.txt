@@ -21,9 +21,9 @@
 %               flag for specifications not met from QC set 1, ...
 %                   flag for data not reliable from QC set 1 
 %
-sentinel,       35,	50,	2, 3
-monitor,        35,	50,	2, 3
-longranger,     35,	50,	2, 3
-long ranger,    35,	50,	2, 3
-quartermaster,	35,	50,	2, 3
+sentinel,       40,	60,	2, 3
+monitor,        40,	60,	2, 3
+longranger,     40,	60,	2, 3
+long ranger,    40,	60,	2, 3
+quartermaster,	40,	60,	2, 3
 nortek,         20,	30,	2, 3
