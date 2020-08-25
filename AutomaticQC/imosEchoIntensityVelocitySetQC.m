@@ -71,6 +71,10 @@ for i=1:lenVar
         if strcmpi(paramName, ['ABSIC' cc]), idABSIC{j} = i; end
     end
 end
+idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
+Bins    = sample_data.dimensions{idHeight}.data';
+idDepth = getVar(sample_data.variables, 'DEPTH');
+depth = sample_data.variables{idDepth}.data;
 
 % check if the data is compatible with the QC algorithm
 idMandatory = (idUcur | idVcur | idWcur | idCspd | idCdir);
@@ -113,6 +117,24 @@ sizeCur = size(sample_data.variables{idUcur}.flags);
 % same flags are given to any variable
 flags = ones(sizeCur, 'int8')*rawFlag;
 
+isUpwardLooking = true;
+if all(Bins <= 0), isUpwardLooking = false; end
+% we handle the case of a downward looking ADCP
+if ~isUpwardLooking
+    if isempty(sample_data.site_nominal_depth) && isempty(sample_data.site_depth_at_deployment)
+        error(['Downward looking ADCP in file ' sample_data.toolbox_input_file ' => Fill site_nominal_depth or site_depth_at_deployment!']);
+    else
+        % the distance between transducer and obstacle is not depth anymore but
+        % (site_nominal_depth - depth)
+        if ~isempty(sample_data.site_nominal_depth)
+        	site_nominal_depth = sample_data.site_nominal_depth;
+        end
+        if ~isempty(sample_data.site_depth_at_deployment)
+        	site_nominal_depth = sample_data.site_depth_at_deployment;
+        end
+    end
+end
+
 % Run QC
 % this test looks at the difference between consecutive vertical bin values of ea and
 % if the value exceeds the threshold, then the bin fails, and all bins
@@ -120,22 +142,41 @@ flags = ones(sizeCur, 'int8')*rawFlag;
 % rid of above/below surface/bottom bins.
 lenTime = sizeCur(1);
 lenBin  = sizeCur(2);
+%Let's refine this to only look at bins within +/- 3 bins of the surface/bottom
+% and profiles where the last bin reaches the surface/bottom
+% currently assumes that there is a depth calcuated.
+binDepth = depth - repmat(Bins,lenTime,1);
+binRange = 3*(Bins(2) - Bins(1));
+if isUpwardLooking
+    iok = binDepth <= binRange ;
+else
+    iok = binDepth >= site_nominal_depth - binRange;
+end
+iok = double(iok);
 
 % if the following test is successfull, the bin gets good
 ib = uint8(abs(diff(squeeze(ea(1, :,:)),1,2)) <= ea_thresh) + ...
      uint8(abs(diff(squeeze(ea(2, :,:)),1,2)) <= ea_thresh) + ...
      uint8(abs(diff(squeeze(ea(3, :,:)),1,2)) <= ea_thresh) + ...
      uint8(abs(diff(squeeze(ea(4, :,:)),1,2)) <= ea_thresh);
+ 
+% allow for NaNs in the ea - false fails where more than 1 beam has NaN
+inan = isnan(abs(diff(squeeze(ea(1, :,:)),1,2))) + ...
+     isnan(abs(diff(squeeze(ea(2, :,:)),1,2))) + ...
+     isnan(abs(diff(squeeze(ea(3, :,:)),1,2))) + ...
+     isnan(abs(diff(squeeze(ea(4, :,:)),1,2)));
 
 % we look for the bins that have 3 or more beams that pass the tests
-ib = ib >= 3;
+ib = ib + uint8(inan) == 4; %these are 'good', no beam sees the surface/bottom
+ib = [true(lenTime, 1), ib]; %add one row at the start to account for diff
+ib(iok == 0) = true; % bins not within -/+ 60m of surface or bottom do not fail
  
-% we assume that the first half of bins should always be good
-ib = [true(lenTime, 1), ib];
-for i=1:round(lenBin/2)
-    ib(:, i) = true;
-end
- 
+% we assume that the first half of bins should always be good and that if
+% at times the last bin is below the surface, the entire profile is good
+% for i=1:round(lenBin/2)
+%     ib(:, i) = true;
+% end
+
 % any good bin further than a bad one should be set bad
 jkf = repmat(single(1:1:lenBin), [lenTime, 1]);
 
