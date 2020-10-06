@@ -1,1 +1,1 @@
-pgood     = 50
+pgood     = 70

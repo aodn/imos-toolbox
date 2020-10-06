@@ -23,6 +23,8 @@ for a = 1:length(autoQCData)
     ivcur = getVar(sd.variables, 'VCUR');
     iwcur = getVar(sd.variables, 'WCUR');
     ierv = getVar(sd.variables, 'ECUR');
+    ipg4 = getVar(sd.variables, 'PERG4');
+    ipg1 = getVar(sd.variables, 'PERG1');
     
     time = sd.dimensions{itime}.data;
     u = sd.variables{iucur}.data;
@@ -57,27 +59,31 @@ for a = 1:length(autoQCData)
     echo2 = abs(diff(sd.variables{iecho2}.data,[],2));
     echo3 = abs(diff(sd.variables{iecho3}.data,[],2));
     echo4 = abs(diff(sd.variables{iecho4}.data,[],2));
-
+    %percent good
+    pg = sd.variables{ipg4}.data+sd.variables{ipg1}.data;
     
     switch type
         case 'surfacetest'
-            ibd = round(length(Bins)/2);
-            %     ibd = 1;
-            bd = depth(:,ibd+1:end);
-            fl = flags(:,ibd+1:end);
+%             ibd = round(length(Bins)/2);
+%             %     ibd = 1;
+%             bd = depth(:,ibd+1:end);
+%             fl = flags(:,ibd+1:end);
             %plot the difference between bins of echo ampl average (not bin mapped)
+            bd = depth(:,2:end);fl = flags;
             ea = NaN*ones(length(time),length(Bins)-1,4);
             for b = 1:4
                 eval(['ea(:,:,b) = echo' num2str(b) ';'])
             end
             eaa = squeeze(nanmean(ea,3));
-            eadiff = abs(eaa(:,ibd:end));
+%             eadiff = abs(eaa(:,ibd:end));
+            eadiff = abs(eaa);
             % plot
             figure(5);clf;hold on
             pcolor(time,bd',eadiff');shading flat
             caxis([0 60])
             axis ij
             grid
+            bd = depth;
             bd(fl<3) = NaN;
             plot(time,bd,'k.')
             plot([time(1),time(end)],[0,0],'k-')
@@ -88,11 +94,14 @@ for a = 1:length(autoQCData)
             legend('EchoAmp','Bad data','Surface')
             
             figure(6);clf;hold on
-            bad = speed;
-            bad(flags==4) = NaN;
+            bad = v;
+%             bad(flags==4) = NaN;
             bd = depth;
-            bd(flags==4) = NaN;
+%             bd(flags==4) = NaN;
             pcolor(time,bd',bad');shading flat
+            bd(fl<3) = NaN;
+            plot(time,bd,'k.')
+            plot([time(1),time(end)],[0,0],'k-')
             caxis([0 2])
             axis ij
             grid
@@ -100,7 +109,7 @@ for a = 1:length(autoQCData)
             colorbar
             xlabel('Time')
             ylabel('Depth')
-            legend('Speed','Surface')
+            legend('V','Surface')
             
             %check the horizontal and vertical velocity thresholds here too
             %while we have the surface data flagged out
@@ -230,6 +239,39 @@ for a = 1:length(autoQCData)
             legend('v','Surface')
             datetick
             
+        case 'pg'
+            bd = depth;
+            bd(flags<3) = NaN;
+            
+            figure(5);clf;hold on
+            pcolor(time,depth',pg');shading flat
+            caxis([0 100])
+            axis ij
+            grid
+
+            plot(time,bd,'k.')
+            plot([time(1),time(end)],[0,0],'k-')
+            colorbar
+            title(['Percent good and failures'])
+            xlabel('Time')
+            ylabel('Depth')
+            legend('PG','Bad data','Surface')
+            datetick
+
+            figure(6);clf;hold on
+            bd = depth;
+            bd(flags<3) = NaN;
+            pcolor(time,depth',v');shading flat
+            caxis([-0.6 0.6])
+            axis ij
+            grid
+            plot(time,bd,'k.')
+            plot([time(1),time(end)],[0,0],'k-')
+            colorbar
+            xlabel('Time')
+            ylabel('Depth')
+            legend('v','Surface')
+            datetick
         case 'echo'
             ea = NaN*ones(length(time),length(Bins)-1,4);
             for b = 1:4

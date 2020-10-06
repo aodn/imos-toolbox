@@ -56,11 +56,11 @@ end
 % now review the results of the flags applied with each test
 % comment out as required
 % adcpThresholdsResults(autoQCData,'surfacetest')
-adcpThresholdsResults(autoQCData,'echorange')
-% adcpThresholdsResults(autoQCData,'erv')
+% adcpThresholdsResults(autoQCData,'echorange')
+adcpThresholdsResults(autoQCData,'erv')
 % adcpThresholdsResults(autoQCData,'cmag')
 % adcpThresholdsResults(autoQCData,'echo')
-
+%  adcpThresholdsResults(autoQCData,'pg')
 %% now we have the thresholds, run the toolbox as is, with the values determined.
 % need to delete the pqc file for the RDIs before doing the imos toobox as
 % I think that the values in pqc are overwriting edits in the

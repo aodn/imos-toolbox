@@ -17,8 +17,16 @@ for a = setIdx
     end
     sd = ppData{a};
     disp([sd.meta.instrument_model ' ' sd.meta.instrument_serial_no ', ' num2str(sd.meta.depth) 'm'])
-    %get the data we need
+    %let's trim the data with in/out water times to just look at in water
+    %data
     itime = getVar(sd.dimensions, 'TIME');
+    time = sd.dimensions{itime}.data;
+    inw = sd.time_deployment_start;
+    outw = sd.time_deployment_end;
+    igood = time >= inw & time <= outw;
+    time = time(igood);
+    
+    %get the data we need
     iheight = getVar(sd.dimensions, 'HEIGHT_ABOVE_SENSOR');
     ipresrel = getVar(sd.variables, 'PRES_REL');
     idepth = getVar(sd.variables, 'DEPTH');
@@ -27,20 +35,19 @@ for a = setIdx
     iwcur = getVar(sd.variables, 'WCUR');
     ierv = getVar(sd.variables, 'ECUR');
     
-    time = sd.dimensions{itime}.data;
-    u = sd.variables{iucur}.data;
-    v = sd.variables{ivcur}.data;
-    w = sd.variables{iwcur}.data;
-    pressure = sd.variables{ipresrel}.data;
-    uflags = sd.variables{iucur}.flags;
-    tflags = sd.dimensions{itime}.flags;
+    u = sd.variables{iucur}.data(igood,:);
+    v = sd.variables{ivcur}.data(igood,:);
+    w = sd.variables{iwcur}.data(igood,:);
+    pressure = sd.variables{ipresrel}.data(igood);
+    uflags = sd.variables{iucur}.flags(igood,:);
+    tflags = sd.dimensions{itime}.flags(igood,:);
     %depth 
     if ~isempty(idepth)
-        depth = sd.variables{idepth}.data;
+        depth = sd.variables{idepth}.data(igood);
         
     else
         habs = sd.dimensions{2}.data;
-        depth = repmat(-1*gsw_z_from_p(pressure,-27),1,length(habs)) + repmat(habs,1,length(time))';
+        depth = repmat(-1*gsw_z_from_p(pressure,-27),1,length(habs)) - repmat(habs,1,length(time))';
     end
     % up or down looking
     Bins    = sd.dimensions{iheight}.data';
@@ -52,19 +59,29 @@ for a = setIdx
     icmag2 = getVar(sd.variables, 'CMAG2');
     icmag3 = getVar(sd.variables, 'CMAG3');
     icmag4 = getVar(sd.variables, 'CMAG4');
-    cmag1 = sd.variables{icmag1}.data;
-    cmag2 = sd.variables{icmag2}.data;
-    cmag3 = sd.variables{icmag3}.data;
-    cmag4 = sd.variables{icmag4}.data;
+    cmag1 = sd.variables{icmag1}.data(igood,:);
+    cmag2 = sd.variables{icmag2}.data(igood,:);
+    cmag3 = sd.variables{icmag3}.data(igood,:);
+    cmag4 = sd.variables{icmag4}.data(igood,:);
     %echo
     iecho1 = getVar(sd.variables, 'ABSIC1');
     iecho2 = getVar(sd.variables, 'ABSIC2');
     iecho3 = getVar(sd.variables, 'ABSIC3');
     iecho4 = getVar(sd.variables, 'ABSIC4');
-    echo1 = sd.variables{iecho1}.data;
-    echo2 = sd.variables{iecho2}.data;
-    echo3 = sd.variables{iecho3}.data;
-    echo4 = sd.variables{iecho4}.data;
+    echo1 = sd.variables{iecho1}.data(igood,:);
+    echo2 = sd.variables{iecho2}.data(igood,:);
+    echo3 = sd.variables{iecho3}.data(igood,:);
+    echo4 = sd.variables{iecho4}.data(igood,:);
+    
+    %PERCENT GOOD
+    ipg1 = getVar(sd.variables, 'PERG1');
+    ipg2 = getVar(sd.variables, 'PERG2');
+    ipg3 = getVar(sd.variables, 'PERG3');
+    ipg4 = getVar(sd.variables, 'PERG4');
+    pg1 = sd.variables{ipg1}.data(igood,:);
+    pg2 = sd.variables{ipg2}.data(igood,:);
+    pg3 = sd.variables{ipg3}.data(igood,:);
+    pg4 = sd.variables{ipg4}.data(igood,:);
 
     %% histogram of the failure values for echo range test:
     [~, ~, ~, df] = imosEchoRangeSetQC(sd, auto );
@@ -118,7 +135,7 @@ for a = setIdx
     figure(2);clf;hold on
     cmag = NaN*ones(length(time),length(Bins),4);
     for b = 1:4
-        eval(['cmag(:,:,b) = echo' num2str(b) ';'])
+        eval(['cmag(:,:,b) = cmag' num2str(b) ';'])
         h=histogram(cmag(:,:,b), edges,'Normalization','pdf');
     end
     
@@ -217,21 +234,35 @@ for a = setIdx
     xlabel('Error Velocity')
     legend('Error Velocity', 'Threshold','location','best')
     %mean, stdeviation
-    figure(5);clf
-    plot(nanmean(erv),Bins);
-    hold on
-    plot(nanmean(erv)+nanstd(erv),Bins,'r');
-    plot(nanmean(erv)-nanstd(erv),Bins,'r')
-    plot(max(erv,[],1),Bins,'g');
-    plot(min(erv,[],1),Bins,'g')
-    line([nanmean(erv(:))+thr,nanmean(erv(:))+thr],range(Bins),'Color','m','linewidth',2);
-    line([nanmean(erv(:))-thr,nanmean(erv(:))-thr],range(Bins),'Color','m','linewidth',2);
+        bdea = bdepth;
+    mn = NaN*zeros(1,length(bdBins));
+    mx = mn;stx = mx;mmn = mx;cmfails = mx;
+    for b = 1:length(bdBins)-1
+        ii = find(bdea >= bdBins(b)  & bdea <= bdBins(b+1));
+        %calculate sum failures, mean, stdev max for this depth, for those within the
+        %edges:
+        x = erv(ii);
+        if isempty(x)
+            continue
+        end
+        mn(b) = nanmean(x);
+        mmn(b) = min(x);
+        mx(b) = max(x);
+        stx(b) = nanstd(x);
+    end
+    figure(5);clf;hold on
+    plot(mn,bdBins);
+    plot(mn-stx,bdBins,'r-',mn+stx,bdBins,'r-');
+    plot(mx,bdBins,'g-',mmn,bdBins,'g-');
+    line([minthr,minthr],[min(bdBins),max(bdBins)],'Color','m','linewidth',2);
+    line([maxthr,maxthr],[min(bdBins),max(bdBins)],'Color','m','linewidth',2);
     title(['Error velocity - ' type])
-    legend('Mean','Std Dev','min/max','Threshold selected','location','se')
+    legend('Mean','Std Dev','min/max','Threshold selected','location','sw')
     ylabel('Depth','fontsize',12)
     xlabel('Error velocity','fontsize',12)
     set(gca,'fontsize',12)
-    orient portrait
+    axis ij
+    grid
 
     %% echo intensity test, surface test, just for surface ADCPs
     if isUpwardLooking
@@ -408,8 +439,8 @@ for a = setIdx
         iroll = getVar(sd.variables, 'ROLL');
         ipitch = getVar(sd.variables, 'PITCH');
 
-    roll = sd.variables{iroll}.data;
-    pitch = sd.variables{ipitch}.data;
+    roll = sd.variables{iroll}.data(igood);
+    pitch = sd.variables{ipitch}.data(igood);
     tilt = acosd(sqrt(1-(sind(roll).^2) - (sind(pitch).^2)));
 
     figure(12);clf
@@ -421,6 +452,67 @@ for a = setIdx
     legend('Tilt','Recommended Threshold')
     xlabel('Time')
     ylabel('Tilt, degrees')
+    
+    %% percent good
+    pg_thr = 10;
+    disp(['Percent good threshold: ' num2str(pg_thr)])
+    ipg = getVar(sd.variables, 'PERG');
+
+    %set the edges vector
+    edges = [0:5:100];
+    figure(13);clf;hold on
+    pg = pg4;
+    h=histogram(pg, edges,'Normalization','pdf');
+    
+    grid
+    line([thr,thr],[0,max(h.Values)],'Color','m','linewidth',2);
+    xlabel('Percent Good')
+    ylabel('Normalized Count')
+    title(['Percent Good - ' type])
+        
+    %look at means/stdev by depth band:
+    BinSize = sd.meta.binSize; %number of bins
+    bdepth = depth - repmat(Bins,length(time),1);
+    if isUpwardLooking
+        bdBins = min(depth)-2*BinSize:BinSize:max(depth);
+    else
+        bdBins = median(depth)-2*BinSize:BinSize:max(max(bdepth));
+    end
+    bdea = bdepth;
+
+    mn = NaN*zeros(1,length(bdBins));
+    mx = mn;stx = mx;mmn = mx;cmfails = mx;
+    for b = 1:length(bdBins)-1
+        ii = find(bdea >= bdBins(b)  & bdea <= bdBins(b+1));
+        %calculate sum failures, mean, stdev max for this depth, for those within the
+        %edges:
+        x = pg(ii);
+        if isempty(x)
+            continue
+        end
+        mn(b) = nanmean(x);
+        mmn(b) = min(x);
+        mx(b) = max(x);
+        stx(b) = nanstd(x);
+    end
+
+    %mean, stdeviation
+    figure(14);clf
+%     plot(squeeze(cmag(:,:,1)),bdepth,'b.')
+    hold on
+    plot(mn,bdBins);
+
+    plot(mn+stx,bdBins,'r-');
+    plot(mx,bdBins,'g-');
+    plot(mmn,bdBins,'g-');
+    line([thr,thr],[min(bdBins),max(bdBins)],'Color','m','linewidth',2);
+    axis ij;grid
+    title(['Percent good by depth - ' type])
+    legend('Mean','Std Dev','max','min','Recommended threshold','location','se')
+    ylabel('Depth','fontsize',12)
+    xlabel('Percent Good','fontsize',12)
+    set(gca,'fontsize',12)
+    
     
     pause
     
