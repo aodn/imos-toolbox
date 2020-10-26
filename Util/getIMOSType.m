@@ -13,7 +13,7 @@ function [mtype] = getIMOSType(imos_parameter_str)
 %         type
 %
 % Example:
-% [mtype] = getIMOSType('TEMP')
+% [mtype] = getIMOSType('TEMP');
 % assert(isequal(mtype,@single))
 %
 % author: hugo.oliveira@utas.edu.au

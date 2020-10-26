@@ -15,14 +15,13 @@ function [files, folders] = FilesInFolder(path)
 % folders - a cell with fullpath strings of the subfolders.
 %
 % Example:
-% % assumes /dev/shm got 4 files, "_a","1b","1_ab","abc.m".
-% path = '/dev/shm';
-% [files] = FilesInFolder(path);
-% assert(any(contains(files,'1_ab')));
-% assert(any(contains(files,'1b')));
-% assert(any(contains(files,'_a')));
-% assert(any(contains(files,'abc.m')));
-
+%
+% [files] = FilesInFolder(toolboxRootPath);
+% assert(any(contains(files,'imosToolbox.m')));
+% assert(any(contains(files,'license.txt')));
+% assert(any(contains(files,'toolboxProperties.txt')));
+%
+%
 % author: hugo.oliveira@utas.edu.au
 %
 
