@@ -1,5 +1,5 @@
-function [clines, number_of_lines] = readUntilMatch(fid, pattern, is_regex, preallocsize)
-%function [clines, number_of_lines] = readUntilMatch(fid, pattern, is_regex, preallocsize)
+function [clines, number_of_lines] = readUntilMatch(fid, pattern, is_regex, stacksize)
+%function [clines, number_of_lines] = readUntilMatch(fid, pattern, is_regex, stacksize)
 %
 % Read a file, line by line, until a pattern is found, returning
 % all lines read and the total number of lines.
@@ -11,7 +11,7 @@ function [clines, number_of_lines] = readUntilMatch(fid, pattern, is_regex, prea
 % pattern - the string pattern to match
 % is_regex - the string pattern is a regex.
 %            Default: False.
-% preallocsize - the preallocation length (N) of the clines cell (1xN).
+% stacksize - the preallocation length (N) of the clines cell (1xN).
 %
 %
 % Outputs:
