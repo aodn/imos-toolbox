@@ -13,8 +13,8 @@ function [lower_prec] = nextLowerTimePrecision(prec)
 %
 % Example:
 %
-% prec = 'microsecond'
-% [lower_prec] = nextLowerTimePrecision(prec)
+% prec = 'microsecond';
+% [lower_prec] = nextLowerTimePrecision(prec);
 % assert(strcmp(lower_prec,'milisecond'))
 %
 % author: hugo.oliveira@utas.edu.au

@@ -1,5 +1,5 @@
 function [result] = uiNumericalBox(boxNames, boxValues, boxFuncs, varargin)
-% function [ocell] = uiNumericalBox(matchedName, names, values, funcs)
+% function [result] = uiNumericalBox(boxNames, boxValues, boxFuncs, varargin)
 %
 % Create a dialog box so user can input some numeric values. The difference here
 % between inputdlg is that input is validated in place and restore to defaults
@@ -26,7 +26,11 @@ function [result] = uiNumericalBox(boxNames, boxValues, boxFuncs, varargin)
 % The new parameters values defined by the user.
 %
 % Example:
-% [one] = input_dialog_box({'0+1=?'},{0},{@(x)(x)},'Title','Math Problem','panelTitle','#1');
+%
+% %manual triggering put a number on the box
+% %[cvalue] = uiNumericalBox({'0+1=?'},{0},{@(x)(x)},'Title','Math Problem','panelTitle','#1');
+% %assert(iscell(cvalue))
+% %assert(isscalar(cvalue{1}))
 %
 % author: hugo.oliveira@utas.edu.au
 %

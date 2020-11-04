@@ -14,11 +14,11 @@ function [named_struct] = files2namestruct(carg)
 %
 % Example:
 % carg = {'/dev/shm/_a','/dev/shm/1b','/dev/shm/1_ab','/dev/shm/abc.m'};
-% [named_struct] = cell2namestruct(carg);
-% assert(strcmpi(cargs.x_a,'/dev/shm/_a'));
-% assert(strcmpi(cargs.x1b,'/dev/shm/1b'));
-% assert(strcmpi(cargs.x1abc,'/dev/shm/1abc'));
-% assert(strcmpi(cargs.abc_m,'/dev/shm/abc.m'));
+% [named_struct] = files2namestruct(carg);
+% assert(strcmpi(named_struct.x_a,'/dev/shm/_a'));
+% assert(strcmpi(named_struct.x1b,'/dev/shm/1b'));
+% assert(strcmpi(named_struct.x1_ab,'/dev/shm/1_ab'));
+% assert(strcmpi(named_struct.abc_m,'/dev/shm/abc.m'));
 %
 % author: hugo.oliveira@utas.edu.au
 %

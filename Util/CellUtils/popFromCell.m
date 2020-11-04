@@ -15,14 +15,18 @@ function [newcell, rm_indexes] = popFromCell(xcell, match)
 % rm_indexes - the indexes where match was found
 %
 % Examples:
+%
+% %basic usage
 % [newcell] = popFromCell({1,2,3},{2,3});
 % assert(isequal(newcell,{1}))
+%
 % % 2nd arg string
 % [newcell] = popFromCell({'a','b'},'b');
 % assert(isequal(newcell,{'a'}))
-% % raise error for empty 2nd arg
-% [newcell] = popFromCell({'a'},'');
-% %error, not found in cell.
+%
+% %raise error for empty 2nd arg
+% try;popFromCell({'a'},'');catch;r=true;end
+% assert(r)
 %
 % author: hugo.oliveira@utas.edu.au
 %
