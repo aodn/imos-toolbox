@@ -40,10 +40,7 @@ for k=1:nfiles
 	[oks(k),~] = testDocstring(file);
 end
 
-failed = ~all(oks);
-if failed
-	ok = false;
-else
+if all(oks)
 	ok = true;
 end
 
