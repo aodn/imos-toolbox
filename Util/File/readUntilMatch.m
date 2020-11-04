@@ -1,5 +1,5 @@
-function [clines, number_of_lines] = read_until_match(fid, pattern, is_regex, preallocsize)
-%function [clines, number_of_lines] = read_until_match(fid, pattern, is_regex, preallocsize)
+function [clines, number_of_lines] = readUntilMatch(fid, pattern, is_regex, stacksize)
+%function [clines, number_of_lines] = readUntilMatch(fid, pattern, is_regex, stacksize)
 %
 % Read a file, line by line, until a pattern is found, returning
 % all lines read and the total number of lines.
@@ -11,7 +11,7 @@ function [clines, number_of_lines] = read_until_match(fid, pattern, is_regex, pr
 % pattern - the string pattern to match
 % is_regex - the string pattern is a regex.
 %            Default: False.
-% preallocsize - the preallocation length (N) of the clines cell (1xN).
+% stacksize - the preallocation length (N) of the clines cell (1xN).
 %
 %
 % Outputs:
@@ -21,28 +21,28 @@ function [clines, number_of_lines] = read_until_match(fid, pattern, is_regex, pr
 %
 % Example:
 % % create
-% tmpfile = [tempdir 'test_read_until_match.txt'];
+% tmpfile = [tempdir 'test_readUntilMatch.txt'];
 % fid = fopen(tmpfile,'w');
 % fprintf(fid,'%c\n%c\n%c\n',['a','X','c']);
 % fclose(fid);
 %
 % % full read
 % fid = fopen(tmpfile,'r');
-% [text,lc] = read_until_match(fid,'X');
+% [text,lc] = readUntilMatch(fid,'X');
 % assert(isequal(text{1},'a'))
 % assert(isequal(text{2},'X'))
 % assert(lc==2)
 %
 % % partial read
 % fid = fopen(tmpfile,'r');
-% [text,lc] = read_until_match(fid,'a');
+% [text,lc] = readUntilMatch(fid,'a');
 % assert(isequal(text{1},'a'))
 % assert(length(text)==1)
 % assert(lc==1)
 %
 % % empty case
 % fid = fopen(tmpfile,'r');
-% [text,lc] = read_until_match(fid,'Z');
+% [text,lc] = readUntilMatch(fid,'Z');
 % assert(isempty(text));
 % assert(lc==4)
 %

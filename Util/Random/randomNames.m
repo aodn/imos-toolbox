@@ -1,5 +1,5 @@
-function rnames = random_names(n, len)
-%function rnames = random_names(n, len)
+function rnames = randomNames(n, len)
+%function rnames = randomNames(n, len)
 %
 % Create `n` random names in a cell, where each
 % name is `len` limited.
@@ -15,7 +15,7 @@ function rnames = random_names(n, len)
 %
 % Example:
 %
-% rnames = random_names(1);
+% rnames = randomNames(1);
 % assert(iscell(rnames))
 % assert(~isempty(rnames))
 % assert(~isempty(rnames{1}))

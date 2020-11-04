@@ -1,5 +1,5 @@
-function [arr] = random_between(a,b,n,type)
-% function [arr] = random_between(a,b,n,type)
+function [arr] = randomBetween(a,b,n,type)
+% function [arr] = randomBetween(a,b,n,type)
 %
 % Draw n numbers from the a-b range (inclusive)
 %
@@ -17,26 +17,26 @@ function [arr] = random_between(a,b,n,type)
 %
 % Example:
 % %from: https://www.mathworks.com/help/matlab/math/floating-point-numbers-within-specific-range.html
-% arr=random_between(0,1,10);
+% arr=randomBetween(0,1,10);
 % assert(min(arr)>0 && max(arr)<1)
 %
 % % random int
-% arr=random_between(0,5,100,'int');
+% arr=randomBetween(0,5,100,'int');
 % assert(all(double(int64(arr))==arr))
 %
 % % random logical
-% arr=random_between(0,1,100,'logical');
+% arr=randomBetween(0,1,100,'logical');
 % assert(min(arr)==0 && max(arr)==1)
 %
 % % random constant
-% arr=random_between(1,1,10,'int');
+% arr=randomBetween(1,1,10,'int');
 % assert(isequal(arr,ones(1,10)));
 %
 %
 % author: hugo.oliveira@utas.edu.au
 %
 
-if nargin>3
+if nargin==4
 	if contains(type,'int')
 		arr = randi([a b],1,n);
 		return
@@ -46,6 +46,7 @@ if nargin>3
 		return
 	end
 end
+
 if nargin<3
 	n = 1;
 end
