@@ -36,7 +36,7 @@ function [arr] = randomBetween(a,b,n,type)
 % author: hugo.oliveira@utas.edu.au
 %
 
-if nargin>3
+if nargin==4
 	if contains(type,'int')
 		arr = randi([a b],1,n);
 		return
@@ -46,6 +46,7 @@ if nargin>3
 		return
 	end
 end
+
 if nargin<3
 	n = 1;
 end
