@@ -1,5 +1,5 @@
-function rntype = random_numeric_typefun(n)
-%function rntype= random_numeric_typefun(n)
+function rntype = randomNumericTypefun(n)
+%function rntype= randomNumericTypefun(n)
 %
 % Create `n` random numeric function handles in a cell.
 %
@@ -13,7 +13,7 @@ function rntype = random_numeric_typefun(n)
 %
 % Example:
 %
-% rntype = random_numeric_typefun(1);
+% rntype = randomNumericTypefun(1);
 % assert(length(rntype)==1);
 % assert(isfunctionhandle(rntype{1}));
 %

@@ -1,5 +1,5 @@
-function [ok, wrong_files] = check_docstrings(folder)
-% function [ok, wrong_files] = check_docstrings(folder)
+function [ok, wrong_files] = checkDocstrings(folder)
+% function [ok, wrong_files] = checkDocstrings(folder)
 %
 % Check all matlab source file IMOS docstrings in a folder.
 %
@@ -15,7 +15,7 @@ function [ok, wrong_files] = check_docstrings(folder)
 % Example:
 %
 % folder = [toolboxRootPath 'Util/TestUtils']
-% [ok,wrong_files] = check_docstrings(folder);
+% [ok,wrong_files] = checkDocstrings(folder);
 % assert(ok)
 % assert(isempty(wrong_files));
 %
@@ -27,7 +27,7 @@ wrong_files = {};
 files = rdir(folder);
 srcfiles = cell2mat(cellfun(@is_matlab,files,'UniformOutput',false));
 matlab_files = files(srcfiles);
-self_calling = contains(matlab_files,'check_docstrings.m');
+self_calling = contains(matlab_files,'checkDocstrings');
 if any(self_calling)
 	matlab_files(self_calling) = [];
 end
@@ -37,7 +37,7 @@ oks = zeros(1,nfiles);
 for k=1:nfiles
 	file = matlab_files{k};
 	fprintf('%s: checking %s\n',mfilename,file)
-	[oks(k),~] = test_docstring(file);
+	[oks(k),~] = testDocstring(file);
 end
 
 failed = ~all(oks);

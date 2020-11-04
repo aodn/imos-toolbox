@@ -1,5 +1,5 @@
-function [ok, msg] = comment_eval_wrapper(cell_of_strings, line_offset, dbreak)
-%function [ok, msg] = comment_eval_wrapper(cell_of_strings)
+function [ok, msg] = commentEvalWrapper(cell_of_strings, line_offset, dbreak)
+%function [ok, msg] = commentEvalWrapper(cell_of_strings)
 %
 % a closure to evaluate commented string entries
 % inside a cell. The function stops at the first
@@ -20,12 +20,12 @@ function [ok, msg] = comment_eval_wrapper(cell_of_strings, line_offset, dbreak)
 %
 % Example:
 %
-% [ok,msg] = comment_eval_wrapper({'%a=10;','%b=a-10.;'});
+% [ok,msg] = commentEvalWrapper({'%a=10;','%b=a-10.;'});
 % assert(ok)
 % assert(isempty(msg))
 %
 % % Manual testing below, since nested calls will trigger a fail
-% % [ok,msg] = comment_eval_wrapper({'%a?x=10;'});
+% % [ok,msg] = commentEvalWrapper({'%a?x=10;'});
 % % assert(~ok)
 % % assert(contains(msg,'Error:'));
 %

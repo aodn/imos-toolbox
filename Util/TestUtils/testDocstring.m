@@ -1,5 +1,5 @@
-function [ok, msg] = test_docstring(filename,dbreak)
-% function [ok,msg] = test_docstring(filename,dbreak)
+function [ok, msg] = testDocstring(filename,dbreak)
+% function [ok,msg] = testDocstring(filename,dbreak)
 %
 % Test the Example block of an IMOS source code matlab file.
 %
@@ -20,10 +20,10 @@ function [ok, msg] = test_docstring(filename,dbreak)
 %
 % Example:
 % % test used functions
-% [ok,msg] = test_docstring('comment_eval_wrapper');
+% [ok,msg] = testDocstring('commentEvalWrapper');
 % assert(ok)
 % assert(isempty(msg))
-% [ok,msg] = test_docstring('read_until_match');
+% [ok,msg] = testDocstring('readUntilMatch');
 % assert(ok)
 % assert(isempty(msg))
 %
@@ -52,17 +52,17 @@ docstring_end_re = '^\s?%\s?author[s]?:';
 %TODO: when licenses are removed from all source files, include the one below.
 %docstring_end_re = '^(?!\s?%).+';
 
-[docstring_text, block_start_line] = read_until_match(fid, docstring_start_re, use_regex);
+[docstring_text, block_start_line] = readUntilMatch(fid, docstring_start_re, use_regex);
 if isempty(docstring_text)
     ok = false;
     msg = sprintf('No docstring Example block found in %s',filename);
     return
 end
 
-text_to_evaluate = read_until_match(fid, docstring_end_re, use_regex);
+text_to_evaluate = readUntilMatch(fid, docstring_end_re, use_regex);
 text_to_evaluate = text_to_evaluate(1:end-1); % remove docstring_end_re match
 
-[ok, msg] = comment_eval_wrapper(text_to_evaluate, block_start_line, dbreak);
+[ok, msg] = commentEvalWrapper(text_to_evaluate, block_start_line, dbreak);
 
 if ~ok
     [~, file] = fileparts(filename);
