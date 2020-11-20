@@ -1,14 +1,16 @@
-function desc = genSampleDataDesc( sam, detailLevel )
-%GENSAMPLEDATADESC Generates a string description of the given sample_data
+function desc = genSampleDataDesc(sam, detailLevel)
+%function desc = genSampleDataDesc(sam, detailLevel)
+%
+% Generates a string description of the given sample_data
 % struct.
 %
-% This function exists so that a uniform sample data description format can
-% be used throughout the toolbox.
-% 
+% This function exists so that a uniform sample data description
+% format can be used throughout the toolbox.
+%
 % Inputs:
 %   sam          - struct containing a data set
-%   detailLevel  - string either 'full', 'medium' or 'short', dictates the level of
-%                details for output sample description
+%   detailLevel  - string either 'full', 'medium' or 'short', dictates
+%                  the level of details for output sample description
 %
 % Outputs:
 %   desc - a string describing the given data set.
@@ -17,7 +19,7 @@ function desc = genSampleDataDesc( sam, detailLevel )
 %
 
 %
-% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
+% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated
 % Marine Observing System (IMOS).
 %
 % This program is free software: you can redistribute it and/or modify
@@ -30,15 +32,40 @@ function desc = genSampleDataDesc( sam, detailLevel )
 % GNU General Public License for more details.
 
 % You should have received a copy of the GNU General Public License
-% along with this program.
+%along with this program.
 % If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
 %
 narginchk(1,2);
 
 if ~isstruct(sam), error('sam must be a struct'); end
 
-if nargin == 1
+user_detailLevel = '';
+try
+    user_detailLevel = readProperty('toolbox.detailLevel');
+catch
+end
+
+simple_call_no_user_config = isempty(user_detailLevel) && nargin < 2;
+simple_call_with_user_config = ~isempty(user_detailLevel) && nargin < 2;
+full_call_with_user_config = ~isempty(user_detailLevel) && nargin > 1;
+
+if simple_call_no_user_config
     detailLevel = 'full';
+elseif simple_call_with_user_config
+    detailLevel = user_detailLevel;
+elseif full_call_with_user_config
+    %disambiguation towards shorter detailed levels
+    scores = containers.Map({'name-only','short','medium','full','id'},{1,2,3,4,5});
+    try
+        user_score = scores(user_detailLevel);
+        call_score = scores(detailLevel);
+        [found,ind] = inCell(scores.values,max(user_score,call_score));
+        if found
+            names = scores.keys;
+            detailLevel = names{ind};
+        end
+    catch
+    end
 end
 
 timeFmt = readProperty('toolbox.timeFormat');
@@ -50,26 +77,47 @@ timeRange = ['from ' datestr(sam.time_coverage_start, timeFmt) ' to ' ...
 
 fName = [fName fSuffix];
 
+
+alias_file = '';
+try
+    alias_file = readProperty('toolbox.instrumentAliases');
+catch
+end
+
+instrument_entry = [sam.meta.instrument_make ' ' sam.meta.instrument_model];
+if ~isempty(alias_file)
+    try
+        map = readMappings(alias_file);
+        instrument_entry = map(instrument_entry);
+    catch
+    end
+end
+
 switch detailLevel
+
+    case 'name-only'
+        desc = [ instrument_entry ];
+
     case 'short'
-        desc = [   sam.meta.instrument_make ...
-            ' '    sam.meta.instrument_model ...
-            ' @'   num2str(sam.meta.depth) 'm'];
-        
+        desc = [ instrument_entry ' @' num2str(sam.meta.depth) 'm'];
+
     case 'medium'
-        desc = [   sam.meta.instrument_make ...
-            ' '    sam.meta.instrument_model ...
+        desc = [   instrument_entry ...
             ' SN=' sam.meta.instrument_serial_no ...
             ' @'   num2str(sam.meta.depth) 'm' ...
             ' ('   fName ')'];
-        
+
+    case 'id'
+        desc = [ '(' fName ')' ' SN=' sam.meta.instrument_serial_no ' @' num2str(sam.meta.depth) 'm'];
+
     otherwise
         % full details
         desc = [   sam.meta.site_id ...
-            ' - '  sam.meta.instrument_make ...
-            ' '    sam.meta.instrument_model ...
+            ' - '  instrument_entry ...
             ' SN=' sam.meta.instrument_serial_no ...
             ' @'   num2str(sam.meta.depth) 'm' ...
             ' '    timeRange ...
             ' ('   fName ')'];
+end
+
 end

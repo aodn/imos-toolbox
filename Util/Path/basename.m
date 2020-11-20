@@ -13,6 +13,7 @@ function [name] = basename(path)
 % name - a string representing the basename
 %
 % Examples:
+%
 % % basename of a file with extension
 % assert(strcmp(basename('/tmp/abc.nc'),'abc.nc'))
 % % basename of a file without extension
@@ -20,7 +21,8 @@ function [name] = basename(path)
 % % basename of a folder is itself
 % assert(strcmp(basename('/tmp/'),'/tmp')) % strip away
 %
-% Author: hugo.oliveira@utas.edu.au
+%
+% author: hugo.oliveira@utas.edu.au
 %
 
 % Copyright (C) 2019, Australian Ocean Data Network (AODN) and Integrated

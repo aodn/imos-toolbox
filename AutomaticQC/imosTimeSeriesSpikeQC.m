@@ -48,43 +48,29 @@ time_missing = time_ind == 0;
 if (is_profile || time_missing), return, end
 
 
-if isfield(sample_data.meta,'instrument_burst_duration')
-    burst_duration = sample_data.meta.instrument_burst_duration;
-    valid_burst_duration = ~isempty(burst_duration) && ~isnan(burst_duration) && burst_duration>0;
-elseif isfield(sample_data,'instrument_burst_duration')
-    burst_duration = sample_data.meta.instrument_burst_duration;
-    valid_burst_duration = ~isempty(burst_duration) && ~isnan(burst_duration) && burst_duration>0;
-end
-if isfield(sample_data.meta,'instrument_burst_interval')
-    burst_interval = sample_data.meta.instrument_burst_interval;
-    valid_burst_interval = ~isempty(burst_interval) && ~isnan(burst_interval) && burst_interval>0;
-elseif isfield(sample_data,'instrument_burst_interval')
-    burst_interval = sample_data.meta.instrument_burst_interval;
-    valid_burst_interval = ~isempty(burst_interval) && ~isnan(burst_interval) && burst_interval>0;
-end
-
-has_burst = (valid_burst_duration) || (valid_burst_interval);
-
-if has_burst
+[is_burst_sampling,is_burst_metadata_valid,burst_interval] = get_burst_metadata(sample_data);
+if is_burst_metadata_valid
     opts_file = ['AutomaticQC' filesep 'imosTimeSeriesSpikeQCBurst.txt'];
-else
+elseif ~is_burst_sampling
     opts_file = ['AutomaticQC' filesep 'imosTimeSeriesSpikeQC.txt'];
+else
+    warning('Invalid burst metadata...skipping');
+    return
 end
 
 ts_variables = load_timeseries_variables(sample_data);
 
 if isempty(ts_variables), return, end
+postqc_data = gen_postqc(sample_data, ts_variables, burst_interval);
 
-postqc_data = gen_postqc(sample_data, ts_variables, has_burst);
-
-if has_burst && numel(postqc_data.burst_index_range) == 1
+if is_burst_sampling && numel(postqc_data.burst_index_range) == 1
     warning('Burst metadata not consistent with TIME variable...skipping')
     return
 end
 
 if auto
     user_interaction = struct();
-    spike_methods = loadSpikeClassifiers(opts_file, has_burst);
+    spike_methods = loadSpikeClassifiers(opts_file, is_burst_sampling);
     method = readProperty('auto_function',opts_file);
 
     for k = 1:length(ts_variables)
@@ -93,7 +79,7 @@ if auto
     end
 
 else
-    wobj = spikeWindow(postqc_data, ts_variables, opts_file, has_burst);
+    wobj = spikeWindow(postqc_data, ts_variables, opts_file, is_burst_sampling);
     uiwait(wobj.ui_window);
     user_interaction = wobj.UserData;
 end
@@ -112,7 +98,7 @@ for k = 1:length(selected_variables)
 
     if isempty(user_input.spikes)%run now if preview was not triggered
 
-        if has_burst
+        if is_burst_sampling
             user_input.spikes = user_input.fun(postqc_var.valid_burst_range, postqc_var.data, user_input.args{:});
         else
             user_input.spikes = user_input.fun(postqc_var.data, user_input.args{:});
@@ -185,7 +171,7 @@ end
 
 end
 
-function postqc = gen_postqc(sample_data, ts_variables, has_burst)
+function postqc = gen_postqc(sample_data, ts_variables, burst_interval)
 %function postqc = gen_postqc(sample_data, ts_variables)
 %
 % Construct a procqc data structure, the input for the SpikeQC window class.
@@ -195,7 +181,7 @@ function postqc = gen_postqc(sample_data, ts_variables, has_burst)
 %
 % sample_data - the toolbox data struct.
 % ts_variables - the time-series variables to process.
-% has_burst - if the data is in burst-mode.
+% burst_interval - the burst interval in seconds. Empty for non-burst data
 %
 % Outputs:
 %
@@ -206,7 +192,7 @@ function postqc = gen_postqc(sample_data, ts_variables, has_burst)
 % postqc.variables{k}.time = The time values.
 % postqc.variables{k}.l - the first index of valid data (from continous invalid ones)
 % postqc.variables{k}.r - the last index of valid data (ditto)
-% postqc.variables{k}.valid_burst_range = the burst index ranges [only if has_burst is true]
+% postqc.variables{k}.valid_burst_range = the burst index ranges [only if burst_interval is not-empty]
 %
 %
 % author: hugo.oliveira@utas.edu.au
@@ -221,13 +207,7 @@ time = sample_data.dimensions{timeId}.data;
 postqc.variables = cell(1, n_ts_vars);
 postqc.dimensions = sample_data.dimensions;
 
-if has_burst
-    try
-        burst_interval = sample_data.meta.instrument_burst_interval;
-    catch
-        burst_interval = sample_data.instrument_burst_interval;
-    end
-
+if ~isempty(burst_interval)
     postqc.burst_precision = precisionBounds(burst_interval / 86400);
     postqc.burst_index_range = findBursts(time, postqc.burst_precision);
 end
@@ -252,7 +232,7 @@ for k = 1:n_ts_vars
         postqc.variables{k}.l = l;
         postqc.variables{k}.r = r;
 
-        if has_burst
+        if ~isempty(burst_interval)
             postqc.variables{k}.valid_burst_range = findBursts(postqc.variables{k}.time, postqc.burst_precision);
         end
 
@@ -263,11 +243,67 @@ for k = 1:n_ts_vars
         postqc.variables{k}.time = time;
         postqc.variables{k}.l = 1;
         postqc.variables{k}.r = numel(pqc_var.data);
-        if has_burst
+        if ~isempty(burst_interval)
             postqc.variables{k}.valid_burst_range = postqc.burst_index_range;
         end
 
     end
 end
+
+end
+
+function [is_burst_sampling,is_burst_metadata_valid,burst_interval] = get_burst_metadata(sample_data)
+%function [is_burst_metadata_valid,burst_interval] = get_burst_metadata(sample_data)
+%
+% Discover if burst metadata is valid, by inspecting metadata at root level
+% and at parser level (meta). If root level is valid, meta level is ignored.
+% The burst_interval is also returned.
+%
+% Inputs:
+%
+% sample_data - the toolbox data struct.
+%
+% Outputs:
+%
+% is_burst_sampling - True if burst data is provided.
+% is_burst_metadata_valid - True if both burst_duration and burst_interval are valid
+% burst_interval - the burst interval value.
+%
+%
+% author: hugo.oliveira@utas.edu.au
+%
+
+
+is_burst_sampling = false;
+burst_interval = [];
+
+valid_burst_duration = false;
+valid_burst_interval = false;
+
+if isfield(sample_data,'instrument_burst_duration') && ~isempty(sample_data.instrument_burst_duration)
+    is_burst_sampling = true;
+    burst_duration = sample_data.instrument_burst_duration;
+    valid_burst_duration = ~isnan(burst_duration) && burst_duration>0;
+end
+
+if ~valid_burst_duration && isfield(sample_data,'meta') && isfield(sample_data.meta,'instrument_burst_duration') && ~isempty(sample_data.meta.instrument_burst_duration)
+    is_burst_sampling = true;
+    burst_duration = sample_data.meta.instrument_burst_duration;
+    valid_burst_duration = ~isnan(burst_duration) && burst_duration>0;
+end
+
+if isfield(sample_data,'instrument_burst_interval') && ~isempty(sample_data.instrument_burst_interval)
+    is_burst_sampling = true;
+    burst_interval = sample_data.instrument_burst_interval;
+    valid_burst_interval = ~isnan(burst_interval) && burst_interval>0;
+end
+
+if ~valid_burst_interval && isfield(sample_data,'meta') && isfield(sample_data.meta,'instrument_burst_interval') && ~isempty(sample_data.meta.instrument_burst_interval)
+    is_burst_sampling = true;
+    burst_interval = sample_data.meta.instrument_burst_interval;
+    valid_burst_interval = ~isempty(burst_interval) && ~isnan(burst_interval) && burst_interval>0;
+end
+
+is_burst_metadata_valid = is_burst_sampling && valid_burst_duration && valid_burst_interval;
 
 end
