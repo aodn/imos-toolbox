@@ -334,7 +334,7 @@ iMethodsSamString = false(nDatasets, 4); % logical array with methodsString of p
 iMethodSam        = zeros(nDatasets, 1); % index of selected method within methodsSamString per dataset
 
 for iCurSam = 1:nDatasets
-    descSam{iCurSam} = genSampleDataDesc(sample_data{iCurSam}, 'medium');
+    descSam{iCurSam} = genSampleDataDesc(sample_data{iCurSam});
     
     iMethodsSamString(iCurSam, 4) = true;
     if useItsOwnPresRel(iCurSam)
@@ -353,7 +353,7 @@ for iCurSam = 1:nDatasets
     descOtherSam{iCurSam}{1} = ' - ';
     nOtherSam = length(nearestInsts{iCurSam});
     for iOtherSam = 1:nOtherSam
-        descOtherSam{iCurSam}{iOtherSam+1} = genSampleDataDesc(sample_data{nearestInsts{iCurSam}(iOtherSam)}, 'short');
+        descOtherSam{iCurSam}{iOtherSam+1} = genSampleDataDesc(sample_data{nearestInsts{iCurSam}(iOtherSam)});
     end
 end
 
