@@ -309,6 +309,7 @@ for a = setIdx
                 nn(b) = max(n);
             end
         end
+        if ~isnan(nansum(nn))
         %put a line where threshold is on each
         %set y axis
         yax = [0 max(nn)];
@@ -323,7 +324,7 @@ for a = setIdx
         subplot(length(bdplot)-1,1,1)
         title(['Echo intensity histogram by depth bin - ' type])
         xlabel('Echo intensity diff')
-        
+        end
         %mean, stdeviation
         figure(7);clf
         plot(mn,bdBins);
