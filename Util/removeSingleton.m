@@ -1,5 +1,5 @@
-function [nssize] = remove_singleton(sizearray)
-% function [nssize] = remove_singleton(sizearray)
+function [nssize] = removeSingleton(sizearray)
+% function [nssize] = removeSingleton(sizearray)
 %
 % Remove the singleton dimension sizes
 % from a sizearray
@@ -14,9 +14,9 @@ function [nssize] = remove_singleton(sizearray)
 %
 % Example:
 %
-% assert(isequal(remove_singleton([1,1,10,30]),[10,30]));
-% assert(isequal(remove_singleton([2,3,4]),[2,3,4]));
-% assert(isempty(remove_singleton([1])))
+% assert(isequal(removeSingleton([1,1,10,30]),[10,30]));
+% assert(isequal(removeSingleton([2,3,4]),[2,3,4]));
+% assert(isempty(removeSingleton([1])))
 %
 % author: hugo.oliveira@utas.edu.au
 %

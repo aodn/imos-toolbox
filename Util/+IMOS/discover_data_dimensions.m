@@ -59,7 +59,7 @@ available_dims_len = IMOS.get_data_numel(tdims);
 available_dims_len_as_array = cell2mat(available_dims_len);
 
 tdata_size = size(tdata);
-non_singleton_var_dims_len = remove_singleton(tdata_size);
+non_singleton_var_dims_len = removeSingleton(tdata_size);
 [discovered_indexes] = whereincell(available_dims_len, num2cell(non_singleton_var_dims_len));
 
 try
