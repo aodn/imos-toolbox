@@ -30,7 +30,7 @@ imosparams = IMOS.params();
 available_names = fieldnames(imosparams);
 
 if ~inCell(available_names, param_name)
-    errormsg('IMOS parameter %s do not exist', param_name)
+    errormsg('IMOS parameter %s does not exist', param_name)
 end
 
 all_values = unique(imosparams.(param_name));

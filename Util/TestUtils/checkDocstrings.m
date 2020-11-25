@@ -26,7 +26,7 @@ wrong_files = {};
 
 files = rdir(folder);
 if isempty(files)
-	errormsg('No files presnet at %s folder',folder)
+	errormsg('No files present at %s folder',folder)
 end
 
 srcfiles = cell2mat(cellfun(@is_matlab,files,'UniformOutput',false));
