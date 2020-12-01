@@ -34,10 +34,12 @@ if isdeployed || license('test', 'Image_Toolbox')
     delete(rec);
 else
     axes(hAx);
-    k = waitforbuttonpress;
+    disableDefaultInteractivity(hAx);
+    waitforbuttonpress;
     point1 = get(gca, 'CurrentPoint'); % button down detected
-    finalRect = rbbox; % return figure units
+    rbbox; % return figure units
     point2 = get(gca, 'CurrentPoint'); % button up detected
+    disableDefaultInteractivity(hAx);
     point1 = point1(1, 1:2); % extract x and y
     point2 = point2(1, 1:2);
     p1 = min(point1, point2); % calculate locations
