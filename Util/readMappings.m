@@ -43,3 +43,7 @@ try
 catch
     error('Mapping file %s is incomplete.', file);
 end
+
+fclose(nf);
+
+end
