@@ -5,11 +5,11 @@ auto_function = Hampel
 
 hampel_function = imosSpikeClassifierHampel
 %window of data at each side
-hampel_half_window_width = 1
+hampel_half_window_width = 194
 %multiplicative factor for the mad within the window
-hampel_madfactor = 5
+hampel_madfactor = 7.149
 %clipping_mad
-hampel_lower_mad_limit = 0.0
+hampel_lower_mad_limit = 0
 
 %OTSU-Savgol/despiking1 
 

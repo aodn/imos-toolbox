@@ -1,6 +1,6 @@
 % filename or ODBC DSN of MS-ACCESS deployment database
 % ex. : /home/ggalibert/OceanDB.mdb or imos-ddb
-toolbox.ddb = /oa-decadal-climate/work/observations/oceanobs_data/EACdata/mooring/IMOScsvfiles/
+toolbox.ddb = /home/cow074/ocean_obs/EACdata/mooring/IMOScsvfiles/
 
 % or full connection details to other kind of deployment database :
 % class name of JDBC database driver
@@ -53,10 +53,10 @@ exportNetCDF.fileDateFormat = yyyymmddTHHMMSSZ
 
 % default set of auto QC routines
 autoQCManager.autoQCDefaultChain.timeSeries = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosSideLobeVelocitySetQC imosTiltVelocitySetQC imosHorizontalVelocitySetQC imosVerticalVelocityQC imosCorrMagVelocitySetQC imosHistoricalManualSetQC
-autoQCManager.autoQCDefaultChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
+autoQCManager.autoQCDefaultChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC imosTimeSeriesSpikeQC
 
 % last selected set of auto QC routines
-autoQCManager.autoQCChain.timeSeries = imosGlobalRangeQC imosHorizontalVelocitySetQC imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosErrorVelocitySetQC imosCorrMagVelocitySetQC imosPercentGoodVelocitySetQC imosSurfaceDetectionSetQC imosTiltVelocitySetQC imosVerticalVelocityQC imosSalinityFromPTQC imosHistoricalManualSetQC
+autoQCManager.autoQCChain.timeSeries = imosErrorVelocitySetQC
 autoQCManager.autoQCChain.profile = imosImpossibleDateQC imosImpossibleLocationSetQC imosInOutWaterQC imosGlobalRangeQC imosImpossibleDepthQC imosSalinityFromPTQC imosHistoricalManualSetQC
 
 % prompt for preprocessing (if false,
@@ -79,7 +79,7 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % last selected values for start dialog
-startDialog.dataDir.timeSeries = /oa-decadal-climate/work/observations/oceanobs_data/EACdata/mooring/EAC1505_1611/raw_data
+startDialog.dataDir.timeSeries = /home/cow074/ocean_obs/EACdata/mooring/EAC1505_1611/raw_data
 startDialog.dataDir.profile = 
 startDialog.fieldTrip.timeSeries = EAC-2016-10-29
 startDialog.fieldTrip.profile = 
@@ -92,7 +92,7 @@ startDialog.highDate.profile =
 importManager.manualDir =
 
 % last selected directory for file export
-exportDialog.defaultDir = /oa-decadal-climate/work/observations/oceanobs_data/EACdata/mooring/EAC1505_1611/data_processing/IMOSnetcdf/EAC2000
+exportDialog.defaultDir = /home/cow074/ocean_obs/EACdata/mooring/EAC1505_1611/data_processing/IMOSnetcdf/extras
 
 % prompt user to select parser if an appropriate one
 % cannot be found (if false, the data is not imported)
