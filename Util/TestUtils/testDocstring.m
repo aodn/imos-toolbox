@@ -69,4 +69,6 @@ if ~ok
     msg = [file msg];
 end
 
+fclose(fid);
+
 end

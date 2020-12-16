@@ -25,6 +25,10 @@ ok = false;
 wrong_files = {};
 
 files = rdir(folder);
+if isempty(files)
+	errormsg('No files present at %s folder',folder)
+end
+
 srcfiles = cell2mat(cellfun(@is_matlab,files,'UniformOutput',false));
 matlab_files = files(srcfiles);
 self_calling = contains(matlab_files,'checkDocstrings');
