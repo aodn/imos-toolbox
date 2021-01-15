@@ -15,9 +15,9 @@ function [pcell] = struct2parameters(astruct)
 %
 % astruct = struct('one',1,'two',2);
 % [pcell] = struct2parameters(astruct);
-% assert(pcell{1}=='one')
+% assert(strcmp(pcell{1},'one'))
 % assert(pcell{2}==1)
-% assert(pcell{3}=='two')
+% assert(strcmp(pcell{3},'two'))
 % assert(pcell{4}==2)
 %
 % author: hugo.oliveira@utas.edu.au
@@ -41,11 +41,12 @@ function [pcell] = struct2parameters(astruct)
 %
 keys = fieldnames(astruct);
 values = struct2cell(astruct);
-pcell = cell(1, length(keys));
-
-for k = 1:2:length(keys)
-    pcell{k} = keys{k};
-    pcell{k + 1} = values{k};
+pcell = cell(1, numel(keys)*2);
+c=-1;
+for k = 1:length(keys)
+    c=c+2;
+    pcell{c} = keys{k};
+    pcell{c + 1} = values{k};
 end
 
 end

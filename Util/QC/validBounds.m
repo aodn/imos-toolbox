@@ -20,31 +20,31 @@ function [l, r] = validBounds(flags, lmin)
 % r - the first contiguous right most index of valid data.
 %
 % Example:
-% flags = int8([4,4,4,4,0,0,0,0])
-% [l,r] = validBounds(flags)
+% flags = int8([4,4,4,4,0,0,0,0]);
+% [l,r] = validBounds(flags);
 % assert(l==5)
 % assert(r==8)
 %
-% flags = int8([0,0,0,0,4,4,4,4])
-% [l,r] = validBounds(flags)
+% flags = int8([0,0,0,0,4,4,4,4]);
+% [l,r] = validBounds(flags);
 % assert(l==1)
 % assert(r==4)
 %
-% flags = int8([4,4,4,4,0,0,0,0,4,0,0,0,0,4,4,4,4])
-% [l,r] = validBounds(flags)
+% flags = int8([4,4,4,4,0,0,0,0,4,0,0,0,0,4,4,4,4]);
+% [l,r] = validBounds(flags);
 % assert(l==5)
 % assert(r==13)
 %
-% flags = int8([4,4,4,4,4,0,4,4,4,4,4])
-% [l,r] = validBounds(flags,1)
+% flags = int8([4,4,4,4,4,0,4,4,4,4,4]);
+% [l,r] = validBounds(flags,1);
 % assert(l==6)
 % assert(r==6)
-% [l,r] = validBounds(flags,2)
+% [l,r] = validBounds(flags,2);
 % assert(isempty(l))
 % assert(isempty(r))
 %
-% flags = int8([4,4,0,0,4,4,4,0,0,4,0,4,4,4])
-% [l,r] = validBounds(flags,2)
+% flags = int8([4,4,0,0,4,4,4,0,0,4,0,4,4,4]);
+% [l,r] = validBounds(flags,2);
 % assert(l==3)
 % assert(r==9)
 %

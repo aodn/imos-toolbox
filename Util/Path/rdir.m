@@ -1,29 +1,24 @@
 function [files, folders] = rdir(path)
 % function files,folders = rdir(path)
 %
-% recursive dir - List all children given a path (files/folders)
+% Recursively list all files/folders in 
+% a given a path.
 %
 % Inputs:
 %
-% path - a path string
+% path [str] - a folder path
 %
 % Outputs:
 %
-% `files` - a cell with fullpath string of all files at all levels.
-% `folders` - a cell with fullpath strings of all subfolders at all levels.
+% files [cell] - file path strings at all root/sub folder levels.
+% folders [cell] - folder path strings at all sub-folder levels.
 %
 % Example:
-% % assumes /dev/shm/a,/dev/shm/b are files
-% % assumes /dev/shm/c/d/e/f/g/h/i is a file
-% % assumes /dev/shm/c/d/e/f/g/h/j is a empty folder
-% path = '/dev/shm'
-% [allfiles,allfolders] = rdir(path);
-% assert(strcmp(allfiles{1}, '/dev/shm/a'));
-% assert(strcmp(allfiles{2}, '/dev/shm/b'));
-% assert(strcmp(allfiles{3}, '/dev/shm/c/d/e/f/g/h/i'));
-% assert(strcmp(allfolders{1},'/dev/shm/c'));
-% assert(strcmp(allfolders{2},'/dev/shm/c/d'));
-% assert(strcmp(allfolders{end},'/dev/shm/c/d/e/f/g/h/j'));
+%
+% %simple test with nest folders
+% [allfiles,allfolders] = rdir([toolboxRootPath 'Java']);
+% assert(sum(contains(allfolders,'Java/bin'))==4)
+% assert(sum(contains(allfiles,'ddb.jar'))==1)
 %
 % author: hugo.oliveira@utas.edu.au
 %

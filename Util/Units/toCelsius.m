@@ -15,11 +15,11 @@ function [degC] = toCelsius(array, units)
 % Example:
 %
 % degC = toCelsius([300.15],'kelvin');
-% assert(degC==27);
+% assert(round(degC)==27);
 % degC = toCelsius([27],'celsius');
-% assert(degC==27);
+% assert(round(degC)==27);
 % degC = toCelsius([80.6],'fahr');
-% assert(DegC==27);
+% assert(round(degC)==27);
 %
 %
 % author: hugo.oliveira@utas.edu.au

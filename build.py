@@ -24,7 +24,6 @@ from getpass import getuser
 from pathlib import Path
 from shutil import copy
 from typing import List, Tuple
-
 from docopt import docopt
 from git import Repo
 
@@ -36,7 +35,11 @@ ARCH_NAMES = {
 }
 VERSION_FILE = ".standalone_canonical_version"
 MATLAB_VERSION = "R2018b"
-MATLAB_TOOLBOXES_TO_INCLUDE: List[str] = ["signal/signal","stats/stats","images/imuitools"]
+MATLAB_TOOLBOXES_TO_INCLUDE: List[str] = [
+    "signal/signal",
+    "stats/stats",
+    "images/imuitools",
+]
 
 
 def find_matlab_rootpath(arch_str):
@@ -122,18 +125,90 @@ def git_info(root_path: str) -> dict:
     return info
 
 
-def find_files(folder: str, ftype: str) -> list:
+def find_files_and_folders(path: str) -> [list, list]:
+    """Find both files and folders recursively in a current path."""
+    pfolder: Path.PosixPath = Path(path)
+    all_folders: list = [
+        x
+        for x in pfolder.glob("**/")
+        if x.is_dir()
+        and "/." not in x.as_posix()
+        and "/dist/" not in x.as_posix()
+        and "/snapshot/" not in x.as_posix()
+    ]
+    all_files: list = [
+        x
+        for x in pfolder.glob("**/*")
+        if x.is_file()
+        and "/." not in x.as_posix()
+        and "/dist/" not in x.as_posix()
+        and "/snapshot" not in x.as_posix()
+    ]
+    return all_folders, all_files
+
+
+def find_items(folder: str) -> dict:
     """Find all the files within the repository that are not testfiles."""
-    for file in Path(folder).glob(os.path.join("**/", ftype)):
-        filepath = file.as_posix()
-        if "data/testfiles" not in filepath and "tmpbuild.m" not in filepath:
-            yield filepath
+    [all_folders, all_files] = find_files_and_folders(folder)
+
+    items = {}
+
+    items["path_folders"] = [
+        x.as_posix()
+        for x in all_folders
+        if "/+" not in x.as_posix() and "testfiles" not in x.parts
+    ]
+
+    items["standard_classes"] = [
+        x.as_posix()
+        for x in all_folders
+        if "/@" in x.as_posix() and "/+" not in x.parent.as_posix()
+    ]
+    items["standard_packages"] = [
+        x.as_posix()
+        for x in all_folders
+        if "/+" in x.as_posix() and "/+" not in x.parent.as_posix()
+    ]
+
+    items["standard_mfiles"] = [
+        x.as_posix()
+        for x in all_files
+        if x.suffix == ".m"
+        and x.parts[-1] != "tmpbuild.m"
+        and "/+" not in x.parent.as_posix()
+    ]
+    items["standard_matfiles"] = [
+        x.as_posix()
+        for x in all_files
+        if x.suffix == ".mat" and "/+" not in x.parent.as_posix()
+    ]
+
+    items["standard_miscfiles"] = [
+        x.as_posix()
+        for x in all_files
+        if "data/testfiles/" not in x.as_posix()
+        and x.suffix != ".mat"
+        and x.suffix != ".m"
+        and x.suffix != ".log"
+        and x.suffix != ".nc"
+        and x.suffix != ".pdf"
+        and x.suffix != ".py"
+        and x.suffix != ".sh"
+        and x.suffix != ".jar"  # automatic added by mcc.
+        and "imosToolbox_" not in x.as_posix()
+        and ".git" not in x.as_posix()
+    ]
+    return items
 
 
 def get_required_files(root_path: str, info: dict) -> (list, list):
     """obtain the mfiles and matfiles for binary compilation."""
-    allmfiles = list(find_files(root_path, "*.m"))
-    allmatfiles = list(find_files(root_path, "*.mat"))
+    items = find_items(root_path)
+    allmfiles = items["standard_mfiles"]
+    allmatfiles = items["standard_matfiles"]
+    allpackages = items["standard_packages"]
+    allmiscfiles = items["standard_miscfiles"]
+
     if info["is_dirty"]:
         print(f"Warning: {root_path} repository is dirty")
     if info["modified_files"]:
@@ -147,21 +222,28 @@ def get_required_files(root_path: str, info: dict) -> (list, list):
                 allmfiles.remove(ufile)
             if ufile in allmatfiles:
                 allmatfiles.remove(ufile)
+            if ufile in allmiscfiles:
+                allmiscfiles.remove(ufile)
 
     mind = [ind for ind, file in enumerate(allmfiles) if "imosToolbox.m" in file]
     mentry = allmfiles.pop(mind[0])
+
     allmfiles = [mentry] + allmfiles
-    return allmfiles, allmatfiles
+    datafiles = allmatfiles + allmiscfiles
+
+    return allmfiles, datafiles, allpackages
 
 
 def create_mcc_call_sig(
     mcc_path: str,
     root_path: str,
     dist_path: str,
-    mfiles: List[str],
-    matfiles: List[str],
     output_name: str,
     arch: str,
+    mfiles: list = None,
+    datafiles: list = None,
+    matpackages: list = None,
+    class_folders: list = None,
 ) -> List[str]:
     """Create the mcc call signature based on argument options."""
     standalone_flags = "-m"
@@ -172,7 +254,8 @@ def create_mcc_call_sig(
     verbose_flag = "-v"
     warning_flag = "-w enable"
     mfiles_str = " ".join([f"{file}" for file in mfiles])
-    matfiles_str = " ".join([f"-a {file}" for file in matfiles])
+    datafiles_str = " ".join([f"-a {file}" for file in datafiles])
+    matpackages_str = " ".join([f"-a {folder}" for folder in matpackages])
 
     if MATLAB_TOOLBOXES_TO_INCLUDE:
         matlab_root_path = find_matlab_rootpath(arch)
@@ -191,7 +274,8 @@ def create_mcc_call_sig(
             verbose_flag,
             warning_flag,
             mfiles_str,
-            matfiles_str,
+            datafiles_str,
+            matpackages_str,
         ],
     )
 
@@ -261,6 +345,7 @@ def write_version(afile: str, version: str) -> None:
         file.writelines([version + "\n"])
 
 
+# TODO: make a state machien class for this mess.
 if __name__ == "__main__":
     args = docopt(__doc__, version="0.1")
 
@@ -275,21 +360,30 @@ if __name__ == "__main__":
     tmp_name = f"imosToolbox_{ARCH_NAMES[arch]}"
 
     print("Gathering files to be included")
-    mfiles, matfiles = get_required_files(root_path, repo_info)
+    mfiles, datafiles, matpackages = get_required_files(root_path, repo_info)
     java_call = create_java_call_sig_compile(root_path)
 
     mcc_call = create_mcc_call_sig(
-        mcc_path, root_path, dist_path, mfiles, matfiles, tmp_name, arch
+        mcc_path,
+        root_path,
+        dist_path,
+        tmp_name,
+        arch,
+        mfiles=mfiles,
+        datafiles=datafiles,
+        matpackages=matpackages,
     )
 
     print("Current repo information:")
     print(repo_info)
 
+    print(f"Building Java dependencies")
     print(f"Calling {java_call}..")
     ok = run(java_call)
     if not ok:
         raise Exception(f"{jcall} failed")
 
+    print(f"Building Matlab dependencies")
     print(f"Calling {mcc_call}...")
     for mcall in mcc_call:
         print(f"Executing {mcall}")
@@ -299,7 +393,6 @@ if __name__ == "__main__":
 
     print(f"The toolbox architecture is {ARCH_NAMES[arch]}.")
     print(f"Git version information string is {repo_info['version']}")
-
     print(f"Updating binary at {root_path}....")
 
     # mcc append .exe to end of file

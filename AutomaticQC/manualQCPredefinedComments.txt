@@ -1,0 +1,8 @@
+% This is a mapping file to predefined ManualQC comments.
+% The first name is an internal name, followed by the comment.
+spike, spike
+sensor_drift, Sensor data is drifting
+climatology_outlier, Sensor data is inconsistent with climatology
+zero_measurements, Sensor data measured is zero
+sensor_instability, Instrument instability
+invalid_data, unexpected sensor data

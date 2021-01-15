@@ -8,9 +8,10 @@ function [root_path] = toolboxRootPath()
 % root_path - a string path of the toolbox root
 %
 % Example:
-% % assumes toolbox is at /home/user/imos-toolbox
-% [root_path] = toolboxRootPath()
-% assert(strcmp('/home/user/imos-toolbox/',root_path)
+%
+% [root_path] = toolboxRootPath();
+% assert(~isempty(root_path))
+% assert(any(contains(FilesInFolder(root_path),'imosToolbox.m')))
 %
 % author: hugo.oliveira@utas.edu.au
 %

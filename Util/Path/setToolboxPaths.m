@@ -12,8 +12,8 @@ function setToolboxPaths(toolbox_path)
 %
 % Example:
 %
-% setToolboxPaths('/home/joe/imos-toolbox')
-% assert(exist('detectType.m','file'))
+% setToolboxPaths(toolboxRootPath)
+% assert(exist('detectType.m','file')==2)
 %
 % author: hugo.oliveira@utas.edu.au
 %
@@ -72,9 +72,11 @@ for k = 1:length(folders)
         addpath(fullfile(toolbox_path, folders{k}));
     elseif iscell(folders{k})
         rfolders = folders{k};
-
         for kk = 1:length(rfolders)
-            addpath(rfolders{kk})
+            [path,folder_name,~] = fileparts(rfolders{kk});
+            if ~strcmp(folder_name(1),'+')
+                addpath(rfolders{kk});
+            end
         end
 
     end
@@ -142,7 +144,7 @@ function [folders] = frdir(path)
 % Example:
 % % assumes /dev/shm/c/d/e/f/g/h/j is a empty folder
 % path = '/dev/shm'
-% [allfiles,allfolders] = rdir(path);
+% [allfiles,allfolders] = frdir(path);
 % assert(strcmp(allfolders{1},'/dev/shm/c'));
 % assert(strcmp(allfolders{2},'/dev/shm/c/d'));
 % assert(strcmp(allfolders{end},'/dev/shm/c/d/e/f/g/h/j'));
