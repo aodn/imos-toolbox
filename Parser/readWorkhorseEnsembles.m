@@ -71,14 +71,19 @@ if isempty(dir(filename)), error([filename ' does not exist']); end
 % read in the whole file into 'data'
 fid = -1;
 data = [];
-try
-    fid = fopen(filename, 'rb');
-    data = fread(fid, inf, '*uint8');
-    fclose(fid);
-catch e
-    if fid ~= -1, fclose(fid); end
-    rethrow e;
-end
+% try
+%     m = memmapfile(filename,'Format','uint8','Writable',false);
+%     data = m.data;
+% catch e
+  try
+      fid = fopen(filename, 'rb');
+      data = fread(fid, inf, '*uint8');
+      fclose(fid);
+  catch e
+      if fid ~= -1, fclose(fid); end
+      rethrow e;
+  end
+% end
 
 % get ensemble start key
 headerID        = 127;      % hexadecimal '7F'
@@ -357,7 +362,7 @@ function [sect, len] = parseFixedLeader(data, idx, cpuEndianness)
 % - - - - - 0 0 1 150-kHz SYSTEM
 % - - - - - 0 1 0 300-kHz SYSTEM
 % - - - - - 0 1 1 600-kHz SYSTEM
-% - - - - - 1 0 0 1200-kHz SYSTEM
+% - - - -data - 1 0 0 1200-kHz SYSTEM
 % - - - - - 1 0 1 2400-kHz SYSTEM
 % - - - - 0 - - - CONCAVE BEAM PAT.
 % - - - - 1 - - - CONVEX BEAM PAT.
@@ -377,10 +382,8 @@ function [sect, len] = parseFixedLeader(data, idx, cpuEndianness)
 % 0 1 0 0 - - - - 4-BEAM JANUS CONFIG
 % 0 1 0 1 - - - - 5-BM JANUS CFIG DEMOD)
 % 1 1 1 1 - - - - 5-BM JANUS CFIG.(2 DEMD)
-  LSB = dec2bin(double(data(idx+4)));
-  MSB = dec2bin(double(data(idx+5)));
-  while(size(LSB, 2) < 8), LSB = [repmat('0', size(LSB, 1), 1) LSB]; end
-  while(size(MSB, 2) < 8), MSB = [repmat('0', size(MSB, 1), 1) MSB]; end
+  LSB = logical(de2bi(data(idx+4),8,'left-msb'));
+  MSB = logical(de2bi(data(idx+5),8,'left-msb'));
   sect.systemConfiguration = [LSB MSB];
   sect.realSimFlag         = double(data(idx+6));
   sect.lagLength           = double(data(idx+7));
@@ -406,14 +409,12 @@ function [sect, len] = parseFixedLeader(data, idx, cpuEndianness)
   % xxxxx1xx = TILTS (PITCH AND ROLL) USED IN SHIP OR EARTH TRANSFORMATION
   % xxxxxx1x = 3-BEAM SOLUTION USED IF ONE BEAM IS BELOW THE CORRELATION THRESHOLD SET BY THE WC command
   % xxxxxxx1 = BIN MAPPING USED
-  sect.coordinateTransform = double(data(idx+25));
+  sect.coordinateTransform = logical(de2bi(data(idx+25),8,'left-msb'));
   block                    = indexData(data, idx+26, idx+29, 'int16', cpuEndianness)';
   sect.headingAlignment    = block(:,1);
   sect.headingBias         = block(:,2);
-  sect.sensorSource        = dec2bin(double(data(idx+30)));
-  while(size(sect.sensorSource, 2) < 8), sect.sensorSource = [repmat('0', size(sect.sensorSource, 1), 1) sect.sensorSource]; end
-  sect.sensorsAvailable    = dec2bin(double(data(idx+31)));
-  while(size(sect.sensorsAvailable, 2) < 8), sect.sensorsAvailable = [repmat('0', size(sect.sensorsAvailable, 1), 1) sect.sensorsAvailable]; end
+  sect.sensorSource        = logical(de2bi(data(idx+30),8,'left-msb'));
+  sect.sensorsAvailable    = logical(de2bi(data(idx+31),8,'left-msb'));
   block                    = indexData(data, idx+32, idx+35, 'uint16', cpuEndianness)';
   sect.bin1Distance        = block(:,1);
   sect.xmitPulseLength     = block(:,2);
