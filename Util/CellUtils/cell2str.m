@@ -58,7 +58,7 @@ function [cstr] = cell2str(xcell, sep)
         elseif ischar(data)
             cstr = [cstr ksep data];
         else
-            swarning('Ignoring entry %d in first argument', k);
+            warnmsg('Ignoring entry %d in first argument', k);
         end
 
         ksep = sep;
