@@ -1,12 +1,24 @@
-function [sample_data, varChecked, paramsLog] = imosEchoIntensityVelocitySetQC( sample_data, auto )
-%IMOSECHOINTENSITYVELOCITYSETQC Quality control procedure for Teledyne Workhorse (and similar)
-% ADCP instrument data, using the echo intensity velocity diagnostic variable.
+function [sample_data, varChecked, paramsLog] = imosSurfaceDetectionSetQC( sample_data, auto )
+%IMOSSURFACEDETECTIONSETQC Quality control procedure for Teledyne Workhorse (and similar)
+% ADCP instrument data, using the echo intensity velocity diagnostic variable,
+% in conjunction with a side-lobe test and enhancements.
 %
 % Echo Amplitude test :
 % this test looks at the difference between consecutive vertical bin values of ea and
 % if the value exceeds the threshold, then the bin fails, and all bins
 % above/below it are also considered to have failed. This test is designed to get 
 % rid of above/below surface/bottom bins.
+% Enhancements to this test (originally imosEchoIntensityVelocitySetQC):
+%   1. only bins within 3 * bin size of the surface/bottom are examined
+%   2. NaN values in bins are counted as a pass
+%   3. Only one beam has to fail the threshold test (was 3)
+%   4. The imosSideLobeVelocitySetQC test is applied for bins that still
+%   have 'good' data that is above the surface + 1 bin (below the bottom - 1 bin)
+%
+% Assumptions: 
+%   1. The echo data has been bin mapped (but it will work without the bin
+%   mapping)
+%   2. The depth is known for each time stamp 
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
@@ -71,17 +83,16 @@ for i=1:lenVar
         if strcmpi(paramName, ['ABSIC' cc]), idABSIC{j} = i; end
     end
 end
+% check if the data is compatible with the QC algorithm, otherwise quit
+% silently
 idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
+% check if the data is compatible with the QC algorithm
+idMandatory = idHeight;
+if ~idMandatory, return; end
+
 Bins    = sample_data.dimensions{idHeight}.data';
 idDepth = getVar(sample_data.variables, 'DEPTH');
 depth = sample_data.variables{idDepth}.data;
-
-% check if the data is compatible with the QC algorithm
-idMandatory = (idUcur | idVcur | idWcur | idCspd | idCdir);
-for j=1:4
-    idMandatory = idMandatory & idABSIC{j};
-end
-if ~idMandatory, return; end
 
 % let's get the associated vertical dimension
 idVertDim = sample_data.variables{idABSIC{1}}.dimensions(2);
@@ -102,15 +113,17 @@ for j=1:4
 end
 
 % read in filter parameters
-propFile  = fullfile('AutomaticQC', 'imosEchoIntensityVelocitySetQC.txt');
+propFile  = fullfile('AutomaticQC', 'imosSurfaceDetectionSetQC.txt');
 ea_thresh = str2double(readProperty('ea_thresh',   propFile));
+nBinSize = str2double(readProperty('nBinSize',   propFile));
 
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest = mfilename;
 ea_thresh = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
+nBinSize = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'nBinSize', nBinSize);
 
-paramsLog = ['ea_thresh=' num2str(ea_thresh)];
+paramsLog = ['ea_thresh=' num2str(ea_thresh) ', nBinSize=' num2str(nBinSize)];
 
 sizeCur = size(sample_data.variables{idUcur}.flags);
 
@@ -146,13 +159,12 @@ lenBin  = sizeCur(2);
 % and profiles where the last bin reaches the surface/bottom
 % currently assumes that there is a depth calcuated.
 binDepth = depth - repmat(Bins,lenTime,1);
-binRange = 3*(Bins(2) - Bins(1));
+binRange = Bins(2) - Bins(1);
 if isUpwardLooking
-    iok = binDepth <= binRange ;
+    isurface = binDepth <= 5*binRange ;
 else
-    iok = binDepth >= site_nominal_depth - binRange;
+    isurface = binDepth >= site_nominal_depth - 5*binRange;
 end
-iok = double(iok);
 
 % if the following test is successfull, the bin gets good
 ib = uint8(abs(diff(squeeze(ea(1, :,:)),1,2)) <= ea_thresh) + ...
@@ -160,31 +172,26 @@ ib = uint8(abs(diff(squeeze(ea(1, :,:)),1,2)) <= ea_thresh) + ...
      uint8(abs(diff(squeeze(ea(3, :,:)),1,2)) <= ea_thresh) + ...
      uint8(abs(diff(squeeze(ea(4, :,:)),1,2)) <= ea_thresh);
  
+
 % allow for NaNs in the ea - false fails where more than 1 beam has NaN
 inan = isnan(abs(diff(squeeze(ea(1, :,:)),1,2))) + ...
      isnan(abs(diff(squeeze(ea(2, :,:)),1,2))) + ...
      isnan(abs(diff(squeeze(ea(3, :,:)),1,2))) + ...
      isnan(abs(diff(squeeze(ea(4, :,:)),1,2)));
 
-% we look for the bins that have 3 or more beams that pass the tests
+% we look for the bins where all bins pass the tests, as we know the depth
+% and we know where the surface is, so any beam that sees is indicates
+% where bad data is.
 ib = ib + uint8(inan) == 4; %these are 'good', no beam sees the surface/bottom
 ib = [true(lenTime, 1), ib]; %add one row at the start to account for diff
-ib(iok == 0) = true; % bins not within -/+ 60m of surface or bottom do not fail
+ib(~isurface) = 4; % bins not within 5*binRange of surface or bottom do not fail
  
-% we assume that the first half of bins should always be good and that if
-% at times the last bin is below the surface, the entire profile is good
-% for i=1:round(lenBin/2)
-%     ib(:, i) = true;
-% end
-
 % any good bin further than a bad one should be set bad
 jkf = repmat(single(1:1:lenBin), [lenTime, 1]);
 
 iii = single(~ib).*jkf;
-clear ib;
 iii(iii == 0) = NaN;
 iif = min(iii, [], 2);
-clear iii;
 iifNotNan = ~isnan(iif);
 
 iPass = true(lenTime, lenBin);
@@ -192,8 +199,47 @@ if any(iifNotNan)
     % all bins further than the first bad one is reset to bad
     iPass(jkf >= repmat(iif, [1, lenBin])) = false;
 end
+clear iifNotNan iif jkf ib iii
+
+% finally, tidy up bins that still have good data above the surface with
+% the side-lobe test:
+% calculate contaminated depth
+%
+% http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes
+%
+% by default substraction of 1/2*BinSize to the non-contaminated height in order to be
+% conservative and be sure that the first bin below the contaminated depth
+% hasn't been computed from any contaminated signal.
+% read in filter parameters
+BinSize = sample_data.meta.binSize;
+ipass = single(iPass).*binDepth; %bin depths that pass
+
+if isUpwardLooking
+    distanceTransducerToObstacle = depth;
+    cDepth = distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - nBinSize*BinSize);
+else
+    distanceTransducerToObstacle=site_nominal_depth - depth;
+    cDepth = site_nominal_depth - (distanceTransducerToObstacle - (distanceTransducerToObstacle * cos(sample_data.meta.beam_angle*pi/180) - nBinSize*BinSize));
+end
+cd = repmat(cDepth, [1, length(Bins)]);
+
+% test bins depths against contaminated depth
+% where ibad, apply the cDepth cutoff:
+if isUpwardLooking
+    % upward looking : all bins above the contaminated depth are flagged,
+    % except where the maximum bin depth is > 0
+    ipass(ipass < cd & ipass <= 0 + binRange)  = NaN;
+else
+    % downward looking : all bins below the contaminated depth are flagged,
+    % except where the maximum bin depth is < bottom
+    ipass(ipass > cd & ipass >= site_nominal_depth - binRange)  = NaN;
+end
+
+%ipass is a matrix of depths that passes
+%fix the pass/fail
+ipass(ipass==0) = NaN;
+iPass = ~isnan(ipass);
 iFail = ~iPass;
-clear iifNotNan iif jkf;
 
 % Run QC filter (iFail) on velocity data
 flags(iFail) = badFlag;
@@ -219,5 +265,6 @@ end
 
 % write/update dataset QC parameters
 writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_thresh', ea_thresh);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'nBinSize', nBinSize);
 
 end

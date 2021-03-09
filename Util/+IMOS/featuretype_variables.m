@@ -52,6 +52,7 @@ switch ft
         p_data = {1, NaN, {'D'}, NaN, NaN, NaN};
         variables = IMOS.gen_variables(IMOS.gen_dimensions(ft), p_names, p_types, p_data, 'comments', '');
     otherwise
+        warnmsg('FeatureType `%s` is not available.',featureType);
         variables = {};
 end
 

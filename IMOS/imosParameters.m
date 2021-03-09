@@ -66,9 +66,11 @@ if isempty(path), path = pwd; end
 path = fullfile(path, 'IMOS');
 
 fid = -1;
-persistent params; % we actually only need to read the parmeters file once and this will improve performances
+if isdeployed
+    persistent params; % we actually only need to read the parmeters file once and this will improve performances
+end
 
-if isempty(params)
+if ~exist('params','var') || isempty(params)
     try
         fid = fopen([path filesep 'imosParameters.txt'], 'rt');
         if fid == -1, return; end
@@ -81,6 +83,7 @@ if isempty(params)
         rethrow(e);
     end
 end
+
 names          = params{1};
 cfCompliance   = params{2};
 standard_names = params{3};

@@ -4,8 +4,7 @@ classdef  dimensions
 		timeseries = timeseries_dims();
 		profile = profile_dims();
 		ad_profile = ad_profile_dims();
-		adcp_raw = adcp_raw_dims();
-		adcp_remapped = adcp_remapped_dims();
+		adcp = adcp_dims();
 	end
 end
 
@@ -27,14 +26,7 @@ dimensions{2} = struct('name','PROFILE','typeCastFunc',getIMOSType('PROFILE'),'d
 dimensions{2}.data = dimensions{2}.typeCastFunc([1,2]);
 end
 
-function [dimensions] = adcp_raw_dims()
+function [dimensions] = adcp_dims()
 dimensions = timeseries_dims();
 dimensions{2} = struct('name','DIST_ALONG_BEAMS','typeCastFunc',getIMOSType('DIST_ALONG_BEAMS'),'data',[]);
 end
-
-function [dimensions] = adcp_remapped_dims()
-dimensions = timeseries_dims();
-dimensions{2} = struct('name','HEIGHT_ABOVE_SENSOR','typeCastFunc',getIMOSType('HEIGHT_ABOVE_SENSOR'),'data',[]);
-end
-
-

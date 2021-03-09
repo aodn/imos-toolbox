@@ -1,7 +1,7 @@
 function [bool] = is_imos_name(name)
 % function [bool] = is_imos_name(name)
 %
-% Check if a name is a bool IMOS name.
+% Check if a name is an IMOS name.
 %
 % Inputs:
 %

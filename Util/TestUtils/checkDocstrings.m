@@ -48,7 +48,7 @@ if all(oks)
 	ok = true;
 end
 
-report = nargout>1 && failed;
+report = ~ok && nargout>1;
 if report
 	wrong_files = matlab_files(~oks);
 end

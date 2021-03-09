@@ -21,7 +21,7 @@ function [mappings] = readMappings(file, delimiter)
 % Example:
 %
 % file = [toolboxRootPath 'GUI/instrumentAliases.txt'];
-% [mappings] = readMappings(file)
+% [mappings] = readMappings(file);
 % assert(mappings.Count>0)
 % keys = mappings.keys;
 % values = mappings.values;

@@ -1,7 +1,13 @@
-function [sample_data, varChecked, paramsLog] = imosCorrMagVelocitySetQC( sample_data, auto )
-%IMOSCORRMAGVELOCITYSETQC Quality control procedure for Teledyne Workhorse (and similar)
-% ADCP instrument data, using the correlation magnitude velocity diagnostic variable.
+function [sample_data, varChecked, paramsLog, df] = imosEchoRangeSetQC( sample_data, auto )
+%IMOSECHORANGEQC Quality control procedure for Teledyne Workhorse (and similar)
+% ADCP instrument data, using the echo intensity diagnostic variable.
 %
+% Echo Range test :
+% This test checks the difference between the highest and lowest values in the 4 beams
+% in each bin (echo intensity range, EIR) at each time stamp. 
+% The echo intensity data should ideally be bin-mapped first using
+% adcpBinMappingPP.m routine.
+% If the difference exceeds a threshold, the entire bin is flagged as bad
 %
 % Inputs:
 %   sample_data - struct containing the entire data set and dimension data.
@@ -14,6 +20,7 @@ function [sample_data, varChecked, paramsLog] = imosCorrMagVelocitySetQC( sample
 %   paramsLog   - string containing details about params' procedure to include in QC log
 %
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
+%               Rebecca Cowley <rebecca.cowley@csiro.au>
 %
 
 %
@@ -48,9 +55,9 @@ idVcur = 0;
 idWcur = 0;
 idCspd = 0;
 idCdir = 0;
-idCMAG = cell(4, 1);
+idABSIC = cell(4, 1);
 for j=1:4
-    idCMAG{j}  = 0;
+    idABSIC{j}  = 0;
 end
 lenVar = length(sample_data.variables);
 for i=1:lenVar
@@ -63,21 +70,21 @@ for i=1:lenVar
     if strncmpi(paramName, 'CDIR', 4),  idCdir = i; end
     for j=1:4
         cc = int2str(j);
-        if strcmpi(paramName, ['CMAG' cc]), idCMAG{j} = i; end
+        if strcmpi(paramName, ['ABSIC' cc]), idABSIC{j} = i; end
     end
 end
 
 % check if the data is compatible with the QC algorithm
 idMandatory = (idUcur | idVcur | idWcur | idCspd | idCdir);
 for j=1:4
-    idMandatory = idMandatory & idCMAG{j};
+    idMandatory = idMandatory & idABSIC{j};
 end
 if ~idMandatory, return; end
 
 % let's get the associated vertical dimension
-idVertDim = sample_data.variables{idCMAG{1}}.dimensions(2);
+idVertDim = sample_data.variables{idABSIC{1}}.dimensions(2);
 if strcmpi(sample_data.dimensions{idVertDim}.name, 'DIST_ALONG_BEAMS')
-    disp(['Warning : imosCorrMagVelocitySetQC applied with a non tilt-corrected CMAGn (no bin mapping) on dataset ' sample_data.toolbox_input_file]);
+    disp(['Warning : imosEchoRangeSetQC applied with a non tilt-corrected ABSICn (no bin mapping) on dataset ' sample_data.toolbox_input_file]);
 end
 
 qcSet           = str2double(readProperty('toolbox.qc_set'));
@@ -85,43 +92,56 @@ badFlag         = imosQCFlag('bad',             qcSet, 'flag');
 goodFlag        = imosQCFlag('good',            qcSet, 'flag');
 rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
 
-%Pull out correlation magnitude
-sizeData = size(sample_data.variables{idCMAG{1}}.data);
+%Pull out echo intensity
+sizeData = size(sample_data.variables{idABSIC{1}}.data);
+ea = nan(4, sizeData(1), sizeData(2));
+for j=1:4
+    ea(j, :, :) = sample_data.variables{idABSIC{j}}.data;
+end
 
 % read in filter parameters
-propFile = fullfile('AutomaticQC', 'imosCorrMagVelocitySetQC.txt');
-cmag     = str2double(readProperty('cmag',   propFile));
+propFile  = fullfile('AutomaticQC', 'imosEchoRangeSetQC.txt');
+ea_fishthresh = str2double(readProperty('ea_fishthresh',   propFile));
 
 % read dataset QC parameters if exist and override previous 
 % parameters file
 currentQCtest = mfilename;
-cmag = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'cmag', cmag);
+ea_fishthresh = readDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_fishthresh', ea_fishthresh);
 
-paramsLog = ['cmag=' num2str(cmag)];
+paramsLog = ['ea_fishthresh=' num2str(ea_fishthresh)];
 
-sizeCur = size(sample_data.variables{idUcur}.flags);
-
-% same flags are given to any variable
-flags = ones(sizeCur, 'int8')*rawFlag;
 
 % Run QC
-isub1 = sample_data.variables{idCMAG{1}}.data > cmag;
-isub2 = sample_data.variables{idCMAG{2}}.data > cmag;
-isub3 = sample_data.variables{idCMAG{3}}.data > cmag;
-isub4 = sample_data.variables{idCMAG{4}}.data > cmag;
-% test nbins bins
-isub_all = isub1+isub2+isub3+isub4;
-clear isub1 isub2 isub3 isub4;
+% Following code is adapted from the UWA 'adcpfishdetection.m' code
 
-% assign pass(1) or fail(0) values
-% Where 2 or more beams pass, then the cmag test is passed
-iPass = isub_all >= 2;
-iFail = ~iPass;
-clear isub_all;
+[n, t, m]=size(ea); % m depth cells, n (4) beams, t timesteps
+% same flags are given to any variable
+bad_ea = ones(n,t,m,'int8')*rawFlag;
+
+% matrix operation of the UW original code which loops over each timestep
+[B, Ix]=sort(ea,1); %sort echo from highest to lowest along each bin
+    %step one - really only useful for data in beam coordinates. If one
+    %beam fails, then can do 3-beam solutions
+if unique(sample_data.meta.fixedLeader.coordinateTransform) ~=7 %7 is the value for ENU setup. Not sure what it is for beam coords. Can be refined here.
+    df = B(4,:,:)-B(1,:,:); %get the difference from highest value to lowest
+    ind=df>ea_fishthresh; % problematic depth cells
+    bad_ea(ind) = true; %flag these as bad (individual cells)
+end
+%step 2: useful for data in both beam and ENU coordinates. Flags entire
+%bin of velocity data
+df = B(4,:,:)-B(2,:,:); %get the difference from highest value to second lowest
+ind=df>ea_fishthresh; % problematic depth cells
+bad_ea(:,ind) = true; %flag the entire bin (all beams) as bad
+
+
+%have flags for entire bins for each beam. Can use values for beam 1 to get single flag
+%per timestamp/depth bin:
+flags = squeeze(bad_ea(1,:,:));
 
 % Run QC filter (iFail) on velocity data
-flags(iFail) = badFlag;
-flags(iPass) = goodFlag;
+
+flags(flags == 1) = badFlag;
+flags(flags == 0) = goodFlag;
 
 sample_data.variables{idUcur}.flags = flags;
 sample_data.variables{idVcur}.flags = flags;
@@ -142,6 +162,6 @@ if idCspd
 end
 
 % write/update dataset QC parameters
-writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'cmag', cmag);
+writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'ea_fishthresh', ea_fishthresh);
 
 end

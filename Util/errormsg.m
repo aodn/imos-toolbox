@@ -17,13 +17,15 @@ function errormsg(msg,varargin)
 %
 % author: hugo.oliveira@utas.edu.au
 %
+if nargin < 1
+    error('Error at errormsg(line 21): msg argument is compulsory')
+end
+
 cstack = dbstack;
 if numel(cstack) == 1
-	name = cstack.name;
-	stack = cstack.stack;
+	name = cstack(1).name;
 else
 	name = cstack(2).name;
-	stack = cstack(2:end);
 end
 
 actualmsg = sprintf(msg,varargin{:});
