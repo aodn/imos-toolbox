@@ -7,8 +7,8 @@ classdef testWorkhorse < matlab.unittest.TestCase
     %
 
     properties (TestParameter)
-        enu_file = FilesInFolder(fpath('v000/enu'));
-        beam_file = FilesInFolder(fpath('v000/beam'));
+        enu_file = FilesInFolder(fpath('v000/enu'),{'.mat','.ppp','.pqc'});
+        beam_file = FilesInFolder(fpath('v000/beam'),{'.mat','.ppp','.pqc'});
 
         quartermaster_file = {fpath('v000/enu/16413000.000'), ...
                             fpath('v000/enu/16923000.000'), ...
