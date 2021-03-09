@@ -14,9 +14,11 @@ function [vparams] = varparams()
 %
 % %basic
 % varinfo = IMOS.varparams();
-% assert(isequal(varinfo.TIME.name,'TIME'))
-% assert(isequal(varinfo.TIME.is_cf_parameter,true))
-% assert(isequal(varinfo.TIME.long_name,'time'))
+% assert(isequal(varinfo.VDIR.name,'VDIR'))
+% assert(isequal(varinfo.VDIR.is_cf_parameter,true))
+% assert(isequal(varinfo.VDIR.long_name,varinfo.VDIR.standard_name))
+% assert(isequal(varinfo.VDIR.long_name,'sea_surface_wave_from_direction'))
+% assert(isequal(varinfo.VDIR.units,'degree'))
 % assert(isequal(varinfo.VDIR.direction_positive,'clockwise'))
 % assert(isequal(varinfo.VDIR.reference_datum,'true north'))
 % assert(isequal(varinfo.VDIR.data_code,'W'))
@@ -39,6 +41,11 @@ function [vparams] = varparams()
 % assert(isnumeric(IMOS.varparams().TIME.valid_max))
 % assert(ischar(IMOS.varparams().TIME.netcdf_ctype))
 %
+% % non-cf entry
+% assert(~IMOS.varparams().PERG1.is_cf_parameter)
+% assert(~isempty(IMOS.varparams().PERG1.long_name))
+% assert(isempty(IMOS.varparams().PERG1.standard_name))
+%
 %
 % author: hugo.oliveira@utas.edu.au
 %
@@ -57,6 +64,12 @@ for k = 1:length(varnames)
         fname = fnames{kk};
         fvalue = fvalues{kk}{k};
         vparams.(varname).(fname) = fvalue;
+    end
+
+    if vparams.(varname).is_cf_parameter
+        vparams.(varname).('standard_name') = vparams.(varname).('long_name');
+    else
+        vparams.(varname).('standard_name') = '';
     end
 
 end
