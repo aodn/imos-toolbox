@@ -7,7 +7,7 @@ function [imap, vel_vars, beam_vars, ts_vars] = import_mappings(sensors, num_bea
 %
 % sensors [struct] - A structure with sensors switches.
 % num_beams [int] - The number of beams of the ADCP
-% name_extension [char] - The variable anme extension for velocity and Heading.
+% name_extension [char] - The variable name extension for velocity and Heading.
 % frame_of_reference [char] - the frame of reference ['earth' | 'beam']
 %
 %

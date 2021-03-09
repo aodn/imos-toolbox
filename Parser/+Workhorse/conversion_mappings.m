@@ -6,7 +6,7 @@ function [cmap] = conversion_mappings(sensors, name_extension, xmit_voltage_scal
 % Inputs:
 %
 % sensors [struct] - A structure with sensors switches.
-% name_extension [char] - The variable anme extension for velocity and Heading.
+% name_extension [char] - The variable name extension for velocity and Heading.
 % xmit_voltage_scale [double] - The transmit voltage scales. See adcp_info structure.
 % frame_of_reference [char] - The frame of reference ['earth' | 'beam']
 %
