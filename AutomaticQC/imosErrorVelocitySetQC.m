@@ -96,8 +96,9 @@ flags = ones(sizeCur, 'int8')*rawFlag;
 
 % NaN for erv doesn't mean data is bad, it is just a 3 beam solution and ECUR is not available
 iNaNerv = isnan(erv);
-% Run QC
-iPass = abs(erv) <= err_vel;
+% Run QC NEED TO edit this as it should be the mean +/- the threshold.
+ervm = nanmean(erv(:));
+iPass = erv >= ervm - err_vel | erv <= ervm + err_vel;
 iPass(iNaNerv) = true;
 
 iFail = ~iPass;

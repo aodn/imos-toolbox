@@ -87,10 +87,6 @@ rawFlag         = imosQCFlag('raw',             qcSet, 'flag');
 
 %Pull out correlation magnitude
 sizeData = size(sample_data.variables{idCMAG{1}}.data);
-cr = nan(4, sizeData(1), sizeData(2));
-for j=1:4;
-    cr(j, :, :) = sample_data.variables{idCMAG{j}}.data;
-end
 
 % read in filter parameters
 propFile = fullfile('AutomaticQC', 'imosCorrMagVelocitySetQC.txt');
@@ -109,10 +105,10 @@ sizeCur = size(sample_data.variables{idUcur}.flags);
 flags = ones(sizeCur, 'int8')*rawFlag;
 
 % Run QC
-isub1 = (cr(1, :, :) > cmag);
-isub2 = (cr(2, :, :) > cmag);
-isub3 = (cr(3, :, :) > cmag);
-isub4 = (cr(4, :, :) > cmag);
+isub1 = sample_data.variables{idCMAG{1}}.data > cmag;
+isub2 = sample_data.variables{idCMAG{2}}.data > cmag;
+isub3 = sample_data.variables{idCMAG{3}}.data > cmag;
+isub4 = sample_data.variables{idCMAG{4}}.data > cmag;
 % test nbins bins
 isub_all = isub1+isub2+isub3+isub4;
 clear isub1 isub2 isub3 isub4;

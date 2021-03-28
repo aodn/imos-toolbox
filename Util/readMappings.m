@@ -21,7 +21,7 @@ function [mappings] = readMappings(file, delimiter)
 % Example:
 %
 % file = [toolboxRootPath 'GUI/instrumentAliases.txt'];
-% [mappings] = readMappings(file)
+% [mappings] = readMappings(file);
 % assert(mappings.Count>0)
 % keys = mappings.keys;
 % values = mappings.values;
@@ -42,4 +42,8 @@ try
     mappings = containers.Map(raw_read(1:2:end), raw_read(2:2:end));
 catch
     error('Mapping file %s is incomplete.', file);
+end
+
+fclose(nf);
+
 end

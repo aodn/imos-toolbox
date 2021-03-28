@@ -1,3 +1,4 @@
+
 function hMenu = setTimeSeriesColorbarContextMenu(ax, var)
 %SETTIMESERIESCOLORBARCONTEXTMENU sets a colorbar uicontextmenu and returns its handle 
 % specific to an axes and a variable.
@@ -55,7 +56,7 @@ end
 switch upper(var.name(1:4))
     case {'UCUR', 'VCUR', 'WCUR', 'ECUR', 'VEL1', 'VEL2', 'VEL3', 'VEL4'} % 0 centred parameters
         colormap(ax, r_b);
-        cbCLimRange('', '', ax, 'full, 0 centred', var.data); % full is chosen to attract attention on any potential outlier
+        cbCLimRange('', '', ax, 'auto, 0 centred', var.data); % full is chosen to attract attention on any potential outlier
         
         % Define a context menu
         hMenu = uicontextmenu;

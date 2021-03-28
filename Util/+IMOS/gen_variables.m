@@ -115,8 +115,16 @@ for k = ns + 1:ndata
     try
         name = v_names{k};
     catch
-        name = random_names(1);
+        name = randomNames(1);
         name = name{1};
+    end
+
+    try
+        data = v_data{k};
+        no_data = false;
+    catch
+        no_data = true;
+        data = [];
     end
 
     try
@@ -125,16 +133,15 @@ for k = ns + 1:ndata
 
         try
             imos_type = IMOS.resolve.imos_type(name);
-        catch
-            imos_type = IMOS.random.imos_type();
+        catch me
+            if no_data
+                imos_type = IMOS.random.imos_type();
+            else
+                disp(me.message);
+                imos_type = str2func(class(data));
+            end
         end
 
-    end
-
-    try
-        data = v_data{k};
-    catch
-        data = [];
     end
 
     if isstring(data) || iscellstr(data)

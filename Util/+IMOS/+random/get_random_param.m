@@ -34,6 +34,6 @@ if ~inCell(available_names, param_name)
 end
 
 all_values = unique(imosparams.(param_name));
-rind = random_between(1, numel(all_values), 1, 'int');
+rind = randomBetween(1, numel(all_values), 1, 'int');
 param = all_values{rind};
 end

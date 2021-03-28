@@ -6,13 +6,21 @@ function dimensions = gen_dimensions(mode, ndims, d_names, d_types, d_datac, var
 %
 % Inputs:
 %
-%  mode - `timeSeries` | `profile`. If empty, 'timeSeries' is used.
-%  ndims - number of dimensions [int]. If empty, 1 is used.
-%  d_names - dimension names [cell{str}]. if empty, randomized named.
-%  d_types - dimension types [cell{@function_handle}].
-%          If d_names matches a toolbox variable, the variable
-%          type will be used, othewise randomized type is used.
-%  d_datac - dimension data [cell{any}]. Ditto as in d_names.
+%  mode [str] - ['timeSeries','profile','adcp_raw','adcp_remapped'].
+%  If empty, 'timeSeries' is used.
+%
+%  ndims [int] - number of dimensions.
+%  If empty, 1 is used.
+%
+%  d_names [cell{str}] - dimension names.
+%  If empty, randomized named.
+%
+%  d_types [cell{@funciton_handle}] - dimension types
+%  If d_names matches a toolbox variable, the variable type
+%  will be used, othewise randomized type is used.
+%
+%  d_datac [cell{any}] - dimension data. Ditto as in d_names.
+%
 %  varargin - extra parameters are cast to all structure fieldnames.
 %
 % Outputs:
@@ -91,10 +99,13 @@ if nargin < 2
     elseif strcmpi(mode, 'ad_profile')
         dimensions = IMOS.templates.dimensions.ad_profile;
         return
+    elseif strcmpi(mode, 'adcp')
+        dimensions = IMOS.templates.dimensions.adcp;
+        return
     else
         ndims = 1;
-        d_names = random_names();
-        d_types = random_numeric_typefun();
+        d_names = randomNames();
+        d_types = randomNumericTypefun();
         typecast = d_types{1};
         d_datac = {typecast(randn(1, 100))};
     end
@@ -113,7 +124,7 @@ for k = 1:ndims
             dimensions{k} = IMOS.templates.dimensions.(mode){k};
             continue;
         catch
-            name = random_names(1);
+            name = randomNames(1);
             name = name{1};
         end
 

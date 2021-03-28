@@ -1,5 +1,5 @@
-function [files, folders] = FilesInFolder(path)
-% function files = FilesInFolder(path)
+function [files, folders] = FilesInFolder(path, exclude_extensions)
+% function files = FilesInFolder(path, exclude_extensions)
 %
 % Return two cells with fullpath of files/folders within
 % a path.
@@ -7,7 +7,10 @@ function [files, folders] = FilesInFolder(path)
 %
 % Inputs:
 %
-% path - a path string
+% path [str] - a path string
+% exclude_extensions [cell{str}] - Optional: a cell with file
+%                                  extensions to exclude.
+% 
 %
 % Outputs:
 %
@@ -21,26 +24,21 @@ function [files, folders] = FilesInFolder(path)
 % assert(any(contains(files,'license.txt')));
 % assert(any(contains(files,'toolboxProperties.txt')));
 %
+% % exclude txt files.
+% [files] = FilesInFolder(toolboxRootPath,{'.txt'});
+% assert(~any(contains(files,'license.txt')))
+%
 %
 % author: hugo.oliveira@utas.edu.au
 %
-
-% Copyright (C) 2019, Australian Ocean Data Network (AODN) and Integrated
-% Marine Observing System (IMOS).
-%
-% This program is free software: you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation version 3 of the License.
-%
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-% GNU General Public License for more details.
-%
-% You should have received a copy of the GNU General Public License
-% along with this program.
-% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
-%
+narginchk(1,2)
+if nargin==1
+    exclude_extensions = {};
+else
+    if ~iscellstr(exclude_extensions)
+        errormsg('Second argument is not a cell of strings')
+    end
+end
 
 dobj = dir(path);
 files = cell(0, 0);
@@ -54,8 +52,17 @@ for k = 1:length(dobj)
 
     if ~isfolder
         fullpath = fullfile(path, name);
-        c = c + 1;
-        files{c} = fullpath;
+        skip = false;
+        for j=1:length(exclude_extensions)
+            if endsWith(fullpath,exclude_extensions{j})
+                skip = true;
+                break
+            end
+        end
+        if ~skip
+            c = c + 1;
+            files{c} = fullpath;
+        end
     else
         not_dots = ~strcmp(name, '.') &&~strcmp(name, '..');
 
