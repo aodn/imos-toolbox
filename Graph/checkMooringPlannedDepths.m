@@ -302,7 +302,6 @@ else
     
     %select the area to use for comparison
     [x, ~] = select_points(hAxPress);
-    
     iGood = timeVar >= x(1) & timeVar <= x(2);
 end
 

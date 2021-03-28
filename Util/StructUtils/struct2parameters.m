@@ -41,7 +41,7 @@ function [pcell] = struct2parameters(astruct)
 %
 keys = fieldnames(astruct);
 values = struct2cell(astruct);
-pcell = cell(1, numel(keys)*numel(values));
+pcell = cell(1, numel(keys)*2);
 c=-1;
 for k = 1:length(keys)
     c=c+2;
