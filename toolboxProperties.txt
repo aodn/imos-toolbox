@@ -80,9 +80,9 @@ dataFileStatusDialog.noFileFormat          = bold
 dataFileStatusDialog.multipleFileFormat    = italic
 
 % last selected values for start dialog
-startDialog.dataDir.timeSeries = /oa-decadal-climate/work/observations/oceanobs_data/EACdata/mooring/EAC1805_1909/raw_data
+startDialog.dataDir.timeSeries = /oa-decadal-climate/work/observations/oceanobs_data/EACdata/mooring/EAC1204_1308/raw_data
 startDialog.dataDir.profile = 
-startDialog.fieldTrip.timeSeries = EAC-2019-09-09
+startDialog.fieldTrip.timeSeries = EAC-2013-08-20
 startDialog.fieldTrip.profile = 
 startDialog.lowDate.timeSeries = 712224
 startDialog.lowDate.profile = 
