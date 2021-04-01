@@ -71,10 +71,11 @@ if isempty(dir(filename)), error([filename ' does not exist']); end
 % read in the whole file into 'data'
 fid = -1;
 data = [];
-% try
-%     m = memmapfile(filename,'Format','uint8','Writable',false);
-%     data = m.data;
-% catch e
+try
+    %reduce a lot of peak memory consumption.
+    m = memmapfile(filename,'Format','uint8','Writable',false);
+    data = m.data;
+catch 
   try
       fid = fopen(filename, 'rb');
       data = fread(fid, inf, '*uint8');
@@ -83,7 +84,7 @@ data = [];
       if fid ~= -1, fclose(fid); end
       rethrow e;
   end
-% end
+end
 
 % get ensemble start key
 headerID        = 127;      % hexadecimal '7F'
