@@ -21,7 +21,18 @@ function [bool] = isinside(obj,items)
 % assert(isinside({'a','b','c'},{'a','b','c'}))
 % assert(~isinside({'a'},{'a','b','c'}))
 %
+% %ignore matlab inconsistent comparison against cell of different shapes
+% assert(isinside({'a','b','c'},{'a','b'}'))
+%
 % author: hugo.oliveira@utas.edu.au
 %
-bool = isequal(unique(intersect(obj,items)),unique(items));
+a = unique(intersect(obj,items));
+b = unique(items);
+
+if iscell(obj) || iscell(items)
+	bool = isequal(a(:),b(:));
+else
+	bool = isequal(a,b);
+end
+
 end
