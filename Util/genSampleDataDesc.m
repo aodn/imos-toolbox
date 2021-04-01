@@ -52,18 +52,36 @@ end
 
 timeFmt = readProperty('toolbox.timeFormat');
 
-timeRange = ['from ' datestr(sam.time_coverage_start, timeFmt) ' to ' ...
-             datestr(sam.time_coverage_end,   timeFmt)];
+try
+    time_coverage_start = sam.time_coverage_start;
+catch
+    time_coverage_start = 0;
+end
+
+try 
+    time_coverage_end = sam.time_coverage_end;
+catch
+    time_coverage_end = 0;
+end
+
+timeRange = ['from ' datestr(time_coverage_start, timeFmt) ' to ' ...
+    datestr(time_coverage_end,   timeFmt)];
+
+try
+    filename = sam.toolbox_input_file;
+catch
+    filename = 'Unknown';
+end
 
 [~, fName, fSuffix] = fileparts(sam.toolbox_input_file);
 
 fName = [fName fSuffix];
 
 
-alias_file = '';
 try
     alias_file = readProperty('toolbox.instrumentAliases');
 catch
+    alias_file = '';
 end
 
 instrument_entry = [sam.meta.instrument_make ' ' sam.meta.instrument_model];
@@ -75,29 +93,47 @@ if ~isempty(alias_file)
     end
 end
 
+try
+    depth = sam.meta.depth;
+catch
+    depth = NaN;
+end
+
+try
+    instrument_serial_no = sam.meta.instrument_serial_no;
+catch
+    instrument_serial_no = 'Unknown';
+end
+
+try
+    site_id = sam.meta.site_id;
+catch
+    site_id = 'Unknown';
+end
+
 switch detailLevel
 
     case 'name-only'
-        desc = [ instrument_entry ];
+        desc = instrument_entry ;
 
     case 'short'
-        desc = [ instrument_entry ' @' num2str(sam.meta.depth) 'm'];
+        desc = [ instrument_entry ' @' num2str(depth) 'm'];
 
     case 'medium'
         desc = [   instrument_entry ...
-            ' SN=' sam.meta.instrument_serial_no ...
-            ' @'   num2str(sam.meta.depth) 'm' ...
+            ' SN=' instrument_serial_no ...
+            ' @'   num2str(depth) 'm' ...
             ' ('   fName ')'];
 
     case 'id'
-        desc = [ '(' fName ')' ' SN=' sam.meta.instrument_serial_no ' @' num2str(sam.meta.depth) 'm'];
+        desc = [ '(' fName ')' ' SN=' instrument_serial_no ' @' num2str(depth) 'm'];
 
     otherwise
         % full details
-        desc = [   sam.meta.site_id ...
+        desc = [   site_id ...
             ' - '  instrument_entry ...
-            ' SN=' sam.meta.instrument_serial_no ...
-            ' @'   num2str(sam.meta.depth) 'm' ...
+            ' SN=' instrument_serial_no ...
+            ' @'   num2str(depth) 'm' ...
             ' '    timeRange ...
             ' ('   fName ')'];
 end
