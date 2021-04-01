@@ -68,7 +68,7 @@ pFile = [rawDataFile, '.', pType];
 % for .pqc files.
 [pPath, oldPFile, ~] = fileparts(rawDataFile);
 oldPFile = fullfile(pPath, [oldPFile, '.', pType]);
-if exist(oldPFile, 'file')
+if exist(oldPFile, 'file') && ~strcmpi(oldPFile,pFile)
     movefile(oldPFile, pFile);
 end
 
