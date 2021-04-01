@@ -363,7 +363,7 @@ function [sect, len] = parseFixedLeader(data, idx, cpuEndianness)
 % - - - - - 0 0 1 150-kHz SYSTEM
 % - - - - - 0 1 0 300-kHz SYSTEM
 % - - - - - 0 1 1 600-kHz SYSTEM
-% - - - -data - 1 0 0 1200-kHz SYSTEM
+% - - - - - 1 0 0 1200-kHz SYSTEM
 % - - - - - 1 0 1 2400-kHz SYSTEM
 % - - - - 0 - - - CONCAVE BEAM PAT.
 % - - - - 1 - - - CONVEX BEAM PAT.
