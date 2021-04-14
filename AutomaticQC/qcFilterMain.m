@@ -167,7 +167,7 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             % user cancelled
             if ~isempty(cancel) && getappdata(cancel, 'cancel'), return; end
            
-            if contains(filterName,'SpikeQC')
+            if contains(filterName,'TimeSeriesSpikeQC')
               varname = sam.(type{m}){k}.name;
               if ~exist('varflags','var')
                 [varflags, varlogs] = filter(sam, auto);
