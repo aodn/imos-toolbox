@@ -17,24 +17,6 @@ function desc = genSampleDataDesc(sam, detailLevel)
 %
 % Author: Paul McCarthy <paul.mccarthy@csiro.au>
 %
-
-%
-% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated
-% Marine Observing System (IMOS).
-%
-% This program is free software: you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation version 3 of the License.
-%
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-% GNU General Public License for more details.
-
-% You should have received a copy of the GNU General Public License
-%along with this program.
-% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
-%
 narginchk(1,2);
 
 if ~isstruct(sam), error('sam must be a struct'); end
@@ -70,18 +52,36 @@ end
 
 timeFmt = readProperty('toolbox.timeFormat');
 
-timeRange = ['from ' datestr(sam.time_coverage_start, timeFmt) ' to ' ...
-             datestr(sam.time_coverage_end,   timeFmt)];
+try
+    time_coverage_start = sam.time_coverage_start;
+catch
+    time_coverage_start = 0;
+end
+
+try 
+    time_coverage_end = sam.time_coverage_end;
+catch
+    time_coverage_end = 0;
+end
+
+timeRange = ['from ' datestr(time_coverage_start, timeFmt) ' to ' ...
+    datestr(time_coverage_end,   timeFmt)];
+
+try
+    filename = sam.toolbox_input_file;
+catch
+    filename = 'Unknown';
+end
 
 [~, fName, fSuffix] = fileparts(sam.toolbox_input_file);
 
 fName = [fName fSuffix];
 
 
-alias_file = '';
 try
     alias_file = readProperty('toolbox.instrumentAliases');
 catch
+    alias_file = '';
 end
 
 instrument_entry = [sam.meta.instrument_make ' ' sam.meta.instrument_model];
@@ -93,29 +93,47 @@ if ~isempty(alias_file)
     end
 end
 
+try
+    depth = sam.meta.depth;
+catch
+    depth = NaN;
+end
+
+try
+    instrument_serial_no = sam.meta.instrument_serial_no;
+catch
+    instrument_serial_no = 'Unknown';
+end
+
+try
+    site_id = sam.meta.site_id;
+catch
+    site_id = 'Unknown';
+end
+
 switch detailLevel
 
     case 'name-only'
-        desc = [ instrument_entry ];
+        desc = instrument_entry ;
 
     case 'short'
-        desc = [ instrument_entry ' @' num2str(sam.meta.depth) 'm'];
+        desc = [ instrument_entry ' @' num2str(depth) 'm'];
 
     case 'medium'
         desc = [   instrument_entry ...
-            ' SN=' sam.meta.instrument_serial_no ...
-            ' @'   num2str(sam.meta.depth) 'm' ...
+            ' SN=' instrument_serial_no ...
+            ' @'   num2str(depth) 'm' ...
             ' ('   fName ')'];
 
     case 'id'
-        desc = [ '(' fName ')' ' SN=' sam.meta.instrument_serial_no ' @' num2str(sam.meta.depth) 'm'];
+        desc = [ '(' fName ')' ' SN=' instrument_serial_no ' @' num2str(depth) 'm'];
 
     otherwise
         % full details
-        desc = [   sam.meta.site_id ...
+        desc = [   site_id ...
             ' - '  instrument_entry ...
-            ' SN=' sam.meta.instrument_serial_no ...
-            ' @'   num2str(sam.meta.depth) 'm' ...
+            ' SN=' instrument_serial_no ...
+            ' @'   num2str(depth) 'm' ...
             ' '    timeRange ...
             ' ('   fName ')'];
 end

@@ -1,0 +1,10 @@
+% the first-order difference ABSIC count threshold
+echo_intensity_threshold = 50
+% a boolean to bound the threshold detection by depth. Turn this on to limit bad markings to bins further away from a specific depth (inclusive). For upward (downward) looking adcps, the Bins deeper (shallower) than a certain depth bound value will always be good.
+bound_by_depth = 0
+% a boolean to bound the threshold detection by index. Turn this on limit bad markings to bins further away from a bin index (inclusive). Bins with index value between 1:bound_value will always be good.
+bound_by_index = 0
+%bound value is positive in meters (bound_by_depth) or in bin index (bound_by_index).
+bound_value = 99999
+% propagate will expand the markings for bins further away. So if bin N from Nbins was marked, N:Nbin will be marked as bad.
+propagate = 0

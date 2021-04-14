@@ -23,12 +23,14 @@ end
 
 cstack = dbstack;
 if numel(cstack) == 1
-	name = cstack(1).name;
+    n = 1;
 else
-	name = cstack(2).name;
+    n = 2;
 end
+name = cstack(n).name;
+line = cstack(n).line;
 
-actualmsg = sprintf(msg,varargin{:});
+actualmsg = sprintf([name '(' num2str(line) '):' msg],varargin{:});
 dotsplit = split(name,'.');
 if numel(dotsplit) == 1
 	name_as_id = sprintf('%s:%s',dotsplit{1},dotsplit{1});

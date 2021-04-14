@@ -37,13 +37,12 @@ end
 nf = fopen(file, 'r');
 raw_read = textscan(nf, '%s', 'Delimiter', delimiter, 'CommentStyle', '%');
 raw_read = raw_read{1};
+fclose(nf);
 
 try
-    mappings = containers.Map(raw_read(1:2:end), raw_read(2:2:end));
+    mappings = containers.Map(strip(raw_read(1:2:end)), strip(raw_read(2:2:end)), 'UniformValues', false);
 catch
     error('Mapping file %s is incomplete.', file);
 end
-
-fclose(nf);
 
 end
