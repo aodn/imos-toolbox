@@ -54,12 +54,18 @@ timeFmt = readProperty('toolbox.timeFormat');
 
 try
     time_coverage_start = sam.time_coverage_start;
+    if isempty(time_coverage_start)
+        time_coverage_start = 0;
+    end
 catch
     time_coverage_start = 0;
 end
 
 try 
     time_coverage_end = sam.time_coverage_end;
+    if isempty(time_coverage_end)
+        time_coverage_end = 0;
+    end
 catch
     time_coverage_end = 0;
 end
@@ -73,7 +79,7 @@ catch
     filename = 'Unknown';
 end
 
-[~, fName, fSuffix] = fileparts(sam.toolbox_input_file);
+[~, fName, fSuffix] = fileparts(filename);
 
 fName = [fName fSuffix];
 
@@ -84,7 +90,19 @@ catch
     alias_file = '';
 end
 
-instrument_entry = [sam.meta.instrument_make ' ' sam.meta.instrument_model];
+try
+    maker = sam.meta.instrument_make;
+catch
+    maker = 'None';
+end
+try
+    model = sam.meta.instrument_model;
+catch
+    model = 'None';
+end
+
+instrument_entry = [maker ' ' model ];
+
 if ~isempty(alias_file)
     try
         map = readMappings(alias_file);

@@ -71,10 +71,22 @@ for i=1:lenVar
         if strcmpi(paramName, ['ABSIC' cc]), idABSIC{j} = i; end
     end
 end
-idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
-Bins    = sample_data.dimensions{idHeight}.data';
-idDepth = getVar(sample_data.variables, 'DEPTH');
-depth = sample_data.variables{idDepth}.data;
+try
+    idHeight = getVar(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
+    Bins    = sample_data.dimensions{idHeight}.data';
+catch
+    dispmsg('No HEIGHT_ABOVE_SENSOR variable. Skipping...')
+    return
+end
+
+try
+    idDepth = getVar(sample_data.variables, 'DEPTH');
+    depth = sample_data.variables{idDepth}.data;
+catch
+    dispmsg('No DEPTH variable. Skipping...')
+    return
+end
+
 
 % check if the data is compatible with the QC algorithm
 idMandatory = (idUcur | idVcur | idWcur | idCspd | idCdir);
