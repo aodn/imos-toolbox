@@ -23,9 +23,8 @@ if ~isstruct(sample_data), error('sample_data must be a struct'); end
 [valid,reason] = IMOS.validate_dataset(sample_data,currentQCtest);
 if ~valid
     %TODO: we may need to include a global verbose flag to avoid pollution here.
-    for k=1:numel(reason)
-        dispmsg('Skipping %s. Reason: \n', sample_data.toolbox_input_file, reason{k})
-    end
+    unwrapped_msg = ['Skipping %s. Reasons: ' cell2str(reason,'')];
+    dispmsg(unwrapped_msg,sample_data.toolbox_input_file)
     return
 end
 
