@@ -8,9 +8,27 @@ classdef testadcpBinMappingPP < matlab.unittest.TestCase
     %
     properties (TestParameter)
         rdi_file = {[toolboxRootPath 'data/testfiles/Teledyne/workhorse/v000/beam/1759001.000.reduced'], };
+        enu_file = {[toolboxRootPath 'data/testfiles/Teledyne/workhorse/v000/enu/16072000.000'], };
+
     end
 
     methods (Test)
+
+		function test_dont_remove_dist_along_beams_when_perg_and_data_is_enu(test)
+			s = workhorseParse(test.enu_file,'');
+			bs = adcpBinMappingPP({s},'');
+			bs = bs{1};
+			dims = IMOS.as_named_struct(bs.dimensions);
+			vars = IMOS.as_named_struct(bs.variables);
+			assert(isfield(dims,'DIST_ALONG_BEAMS'))
+			assert(isfield(dims,'HEIGHT_ABOVE_SENSOR'))
+			expected_coords = 'TIME LATITUDE LONGITUDE DIST_ALONG_BEAMS';
+			for k=1:4
+			    varname = ['PERG' num2str(k)];
+			    assert(isfield(vars,varname))
+			    assert(strcmpi(expected_coords,vars.(varname).coordinates))
+			end
+		end
 
 		function test_mapping_RDI_beam_velocity(test)
 			s = workhorseParse(test.rdi_file,'');
@@ -22,7 +40,7 @@ classdef testadcpBinMappingPP < matlab.unittest.TestCase
 
 			assert(isfield(bs,'history'))
 			assert(contains(bs.history,bin_mapping_string))
-			assert(contains(bs.history,dim_removed_string))
+			assert(~contains(bs.history,dim_removed_string))
 
 			vars_to_check = {'VEL1','VEL2','VEL3','VEL4'};
 			mapped = IMOS.as_named_struct(bs.variables);
