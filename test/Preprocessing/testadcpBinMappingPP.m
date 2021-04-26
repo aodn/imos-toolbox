@@ -1,8 +1,8 @@
 classdef testadcpBinMappingPP < matlab.unittest.TestCase
 
     % Test adcpBinMappingPP refactored code.
-	%
-	% The largest code change
+    %
+    % The largest code change
     %
     % by hugo.oliveira@utas.edu.au
     %
@@ -14,45 +14,49 @@ classdef testadcpBinMappingPP < matlab.unittest.TestCase
 
     methods (Test)
 
-		function test_dont_remove_dist_along_beams_when_perg_and_data_is_enu(test)
-			s = workhorseParse(test.enu_file,'');
-			bs = adcpBinMappingPP({s},'');
-			bs = bs{1};
-			dims = IMOS.as_named_struct(bs.dimensions);
-			vars = IMOS.as_named_struct(bs.variables);
-			assert(isfield(dims,'DIST_ALONG_BEAMS'))
-			assert(isfield(dims,'HEIGHT_ABOVE_SENSOR'))
-			expected_coords = 'TIME LATITUDE LONGITUDE DIST_ALONG_BEAMS';
-			for k=1:4
-			    varname = ['PERG' num2str(k)];
-			    assert(isfield(vars,varname))
-			    assert(strcmpi(expected_coords,vars.(varname).coordinates))
-			end
-		end
+        function test_dont_remove_dist_along_beams_when_perg_and_data_is_enu(test)
+            s = workhorseParse(test.enu_file, '');
+            bs = adcpBinMappingPP({s}, '');
+            bs = bs{1};
+            dims = IMOS.as_named_struct(bs.dimensions);
+            vars = IMOS.as_named_struct(bs.variables);
+            assert(isfield(dims, 'DIST_ALONG_BEAMS'))
+            assert(isfield(dims, 'HEIGHT_ABOVE_SENSOR'))
+            expected_coords = 'TIME LATITUDE LONGITUDE DIST_ALONG_BEAMS';
 
-		function test_mapping_RDI_beam_velocity(test)
-			s = workhorseParse(test.rdi_file,'');
-			bs = adcpBinMappingPP({s},'');
-			bs = bs{1};
+            for k = 1:4
+                varname = ['PERG' num2str(k)];
+                assert(isfield(vars, varname))
+                assert(strcmpi(expected_coords, vars.(varname).coordinates))
+            end
 
-			bin_mapping_string = 'has been vertically bin-mapped to HEIGHT_ABOVE_SENSOR using tilt information';
-			dim_removed_string = 'DIST_ALONG_BEAMS is not used by any variable left and has been removed';
+        end
 
-			assert(isfield(bs,'history'))
-			assert(contains(bs.history,bin_mapping_string))
-			assert(~contains(bs.history,dim_removed_string))
+        function test_mapping_RDI_beam_velocity(test)
+            s = workhorseParse(test.rdi_file, '');
+            bs = adcpBinMappingPP({s}, '');
+            bs = bs{1};
 
-			vars_to_check = {'VEL1','VEL2','VEL3','VEL4'};
-			mapped = IMOS.as_named_struct(bs.variables);
-			raw = IMOS.as_named_struct(s.variables);
-			for k=1:length(vars_to_check)
-				vname = vars_to_check{k};
-				assert(isfield(mapped.(vname),'comment'))
-				assert(contains(mapped.(vname).comment,bin_mapping_string));
-				[~,~,p] = isequal_tol(raw.(vname).data,mapped.(vname).data);
-				assert(p<0.1,'Data similiary larger than 10% - Data is possible not beam mapped')
-			end
-		end
+            bin_mapping_string = 'has been vertically bin-mapped to HEIGHT_ABOVE_SENSOR using tilt information';
+            dim_removed_string = 'DIST_ALONG_BEAMS is not used by any variable left and has been removed';
+
+            assert(isfield(bs, 'history'))
+            assert(contains(bs.history, bin_mapping_string))
+            assert(~contains(bs.history, dim_removed_string))
+
+            vars_to_check = {'VEL1', 'VEL2', 'VEL3', 'VEL4'};
+            mapped = IMOS.as_named_struct(bs.variables);
+            raw = IMOS.as_named_struct(s.variables);
+
+            for k = 1:length(vars_to_check)
+                vname = vars_to_check{k};
+                assert(isfield(mapped.(vname), 'comment'))
+                assert(contains(mapped.(vname).comment, bin_mapping_string));
+                [~, ~, p] = isequal_tol(raw.(vname).data, mapped.(vname).data);
+                assert(p < 0.1, 'Data similiary larger than 10% - Data is possible not beam mapped')
+            end
+
+        end
 
         function testRDI_old_mapping_to_new_mapping_code(test)
             base_file = load([toolboxRootPath 'data/testfiles/Teledyne/workhorse/v000/beam/1759001.000.reduced.old_mapping.mat']);
