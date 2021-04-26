@@ -212,11 +212,9 @@ for k = 1:length(sample_data)
     %remove DIST_ALONG_BEAMS dimension, if dangling.
     detect_dab = @(x)(isinside(x, distAlongBeamsIdx));
     dab_vars = cellfun(detect_dab, IMOS.get(sample_data{k}.variables, 'dimensions'));
-    keep_dab_dim = ~any(dab_vars);
+    remove_dab_dim = ~any(dab_vars);
 
-    if keep_dab_dim
-        continue
-    else
+    if remove_dab_dim
         old_hdim_index = IMOS.find(sample_data{k}.dimensions,'HEIGHT_ABOVE_SENSOR');
         sample_data{k}.dimensions(distAlongBeamsIdx) = []; %pop
         %now fix inconsistency created by the above removal.
