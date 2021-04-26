@@ -60,19 +60,19 @@ classdef testadcpBinMappingPP < matlab.unittest.TestCase
 
         function test_removal_of_dangling_dist_along_beams_dims(test)
             s = workhorseParse(test.rdi_file, '');
-	    %remove perg variables
-	    perg1_ind = IMOS.find(s.variables,'PERG1');
-	    perg2_ind = IMOS.find(s.variables,'PERG2');
-	    perg3_ind = IMOS.find(s.variables,'PERG3');
-	    perg4_ind = IMOS.find(s.variables,'PERG4');
-	    inds = 1:length(s.variables);
-	    no_dab_inds = setxor(inds,[perg1_ind,perg2_ind,perg3_ind,perg4_ind]);
-	    s.variables = s.variables(no_dab_inds);
+            %remove perg variables
+            perg1_ind = IMOS.find(s.variables, 'PERG1');
+            perg2_ind = IMOS.find(s.variables, 'PERG2');
+            perg3_ind = IMOS.find(s.variables, 'PERG3');
+            perg4_ind = IMOS.find(s.variables, 'PERG4');
+            inds = 1:length(s.variables);
+            no_dab_inds = setxor(inds, [perg1_ind, perg2_ind, perg3_ind, perg4_ind]);
+            s.variables = s.variables(no_dab_inds);
 
-	    bs = adcpBinMappingPP({s}, '');
+            bs = adcpBinMappingPP({s}, '');
             bs = bs{1};
 
-	    bin_mapping_string = 'has been vertically bin-mapped to HEIGHT_ABOVE_SENSOR using tilt information';
+            bin_mapping_string = 'has been vertically bin-mapped to HEIGHT_ABOVE_SENSOR using tilt information';
             dim_removed_string = 'DIST_ALONG_BEAMS is not used by any variable left and has been removed';
 
             assert(isfield(bs, 'history'))
