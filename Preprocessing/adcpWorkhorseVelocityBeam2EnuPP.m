@@ -18,7 +18,7 @@ function sample_data = adcpWorkhorseVelocityBeam2EnuPP(sample_data, qcLevel, ~)
 %   sample_data - the same data sets, with updated velocity variables in ENU coordinates.
 %
 %
-% author: hugo.oliveira@utas.edu.au
+% author: hugo.oliveira@utas.edu.au [based on several draft and BecCowley 675 branch]
 %
 narginchk(2, 3)
 
@@ -60,7 +60,7 @@ for k = 1:numel(sind)
 
     if info.coords.used_binmapping
         %compat: The toolbox is silent about this.
-        %warnmsg('Instrument frame of reference is beam but bin_mapping was selected at instrument settings. Performing rotation to earth coordinates anyway...')
+        %dispmsg('Instrument frame of reference is beam but bin_mapping was selected at instrument settings. Performing rotation to earth coordinates anyway...')
         % Even if the EX bit is set for bin mapping,
         % if the data is collected in beam coordinates,
         % bin mapping does not occur on board.

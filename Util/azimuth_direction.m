@@ -22,6 +22,5 @@ function dir = azimuth_direction(u,v)
 % result = azimuth_direction(u,v);
 % assert(all(result==azimuths));
 %
-dir=wrapTo360(360+90-atan2d(v,u));
-dir(dir==360)=0;
+dir=mod(360+90-atan2d(v,u),360);
 end

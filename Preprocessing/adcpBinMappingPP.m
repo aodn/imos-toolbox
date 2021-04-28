@@ -82,6 +82,11 @@ for k = 1:length(sample_data)
     % closer to the surface while beam 2 gets further away.
     %
     distAlongBeams = sample_data{k}.dimensions{distAlongBeamsIdx}.data';
+    if all(diff(distAlongBeams)<0)
+        %invert distAlongBeams so we have increasing values
+        % this is required for the interpolation function.
+        distAlongBeams = distAlongBeams*-1;
+    end
     pitch = sample_data{k}.variables{pitchIdx}.data * pi / 180;
     roll = sample_data{k}.variables{rollIdx}.data * pi / 180;
     beamAngle = sample_data{k}.meta.beam_angle * pi / 180;
@@ -124,8 +129,6 @@ for k = 1:length(sample_data)
     % be done to all variables at once per time step.
     %TODO: remove nested logics to outer loop, by pre-computing the vars/
     % interpolation conditions. This would allow a progress bar here.
-
-    Tlen = size(IMOS.get_data(sample_data{k}.dimensions, 'TIME'), 1);
 
     for n = 1:number_of_beams
         beam_vars = get_beam_vars(sample_data{k}, n);
@@ -209,11 +212,9 @@ for k = 1:length(sample_data)
     %remove DIST_ALONG_BEAMS dimension, if dangling.
     detect_dab = @(x)(isinside(x, distAlongBeamsIdx));
     dab_vars = cellfun(detect_dab, IMOS.get(sample_data{k}.variables, 'dimensions'));
-    keep_dab_dim = ~any(dab_vars);
+    remove_dab_dim = ~any(dab_vars);
 
-    if keep_dab_dim
-        continue
-    else
+    if remove_dab_dim
         old_hdim_index = IMOS.find(sample_data{k}.dimensions,'HEIGHT_ABOVE_SENSOR');
         sample_data{k}.dimensions(distAlongBeamsIdx) = []; %pop
         %now fix inconsistency created by the above removal.

@@ -180,7 +180,9 @@ def find_items(folder: str) -> dict:
     items["standard_matfiles"] = [
         x.as_posix()
         for x in all_files
-        if x.suffix == ".mat" and "/+" not in x.parent.as_posix()
+        if "data/testfiles/" not in x.as_posix()
+        if x.suffix == ".mat"
+        and "/+" not in x.parent.as_posix()
     ]
 
     items["standard_miscfiles"] = [

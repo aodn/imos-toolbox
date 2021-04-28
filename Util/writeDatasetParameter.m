@@ -60,12 +60,11 @@ switch lower(routine(end-1:end))
         return;
 end
 pFile = [rawDataFile, '.', pType];
-
 % we need to migrate any remnants of the old file naming convention
 % for .pqc files.
 [pPath, oldPFile, ~] = fileparts(rawDataFile);
 oldPFile = fullfile(pPath, [oldPFile, '.', pType]);
-if exist(oldPFile, 'file')
+if exist(oldPFile, 'file') && ~strcmpi(oldPFile,pFile)
     movefile(oldPFile, pFile);
 end
 

@@ -22,24 +22,6 @@ function [sample_data, varChecked, paramsLog, df] = imosEchoRangeSetQC( sample_d
 % Author:       Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %               Rebecca Cowley <rebecca.cowley@csiro.au>
 %
-
-%
-% Copyright (C) 2017, Australian Ocean Data Network (AODN) and Integrated 
-% Marine Observing System (IMOS).
-%
-% This program is free software: you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation version 3 of the License.
-%
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-% GNU General Public License for more details.
-
-% You should have received a copy of the GNU General Public License
-% along with this program.
-% If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
-%
 narginchk(1, 2);
 if ~isstruct(sample_data), error('sample_data must be a struct'); end
 
@@ -110,7 +92,7 @@ ea_fishthresh = readDatasetParameter(sample_data.toolbox_input_file, currentQCte
 
 paramsLog = ['ea_fishthresh=' num2str(ea_fishthresh)];
 
-
+%TODO: refactor from below
 % Run QC
 % Following code is adapted from the UWA 'adcpfishdetection.m' code
 
@@ -122,7 +104,18 @@ bad_ea = ones(n,t,m,'int8')*rawFlag;
 [B, Ix]=sort(ea,1); %sort echo from highest to lowest along each bin
     %step one - really only useful for data in beam coordinates. If one
     %beam fails, then can do 3-beam solutions
-if unique(sample_data.meta.fixedLeader.coordinateTransform) ~=7 %7 is the value for ENU setup. Not sure what it is for beam coords. Can be refined here.
+
+try
+    frame_of_reference = sample_data.meta.adcp_info.coords.frame_of_reference;
+    is_enu = strcmpi(frame_of_reference,'enu');
+catch
+    try
+        is_enu = unique(sample_data.meta.fixedLeader.coordinateTransform) ~=7;
+    catch
+        is_enu = false;
+    end
+end
+if is_enu
     df = B(4,:,:)-B(1,:,:); %get the difference from highest value to lowest
     ind=df>ea_fishthresh; % problematic depth cells
     bad_ea(ind) = true; %flag these as bad (individual cells)
