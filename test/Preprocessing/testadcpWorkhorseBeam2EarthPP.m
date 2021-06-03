@@ -60,7 +60,7 @@ classdef testadcpWorkhorseBeam2EarthPP < matlab.unittest.TestCase
             assert(contains(sample_data{1}.history, 'adcpBinMappingPP.m'))
 
             dim_names = IMOS.get(sample_data{1}.dimensions, 'name');
-            assert(~inCell(dim_names, 'DIST_ALONG_BEAMS'))
+            assert(inCell(dim_names, 'DIST_ALONG_BEAMS'))
             assert(inCell(dim_names, 'HEIGHT_ABOVE_SENSOR'))
 
             sample_data = adcpWorkhorseVelocityBeam2EnuPP(sample_data, '');
