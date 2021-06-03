@@ -48,7 +48,29 @@ classdef test_imosEchoIntensitySetQC < matlab.unittest.TestCase
             assert(all(flag(500:600,14:end)==4,'all'))
         end
 
-        function test_bound_by_depth_upward_clean_marked(~,zdim)
+        function test_simple_detection_both_dimensions_mark_only_echo_vars(~)
+            sample_data = create_simple_data('HEIGHT_ABOVE_SENSOR');
+            hdim = sample_data.dimensions{2};
+            new_dim = IMOS.gen_dimensions('', 1, {'DIST_ALONG_BEAMS'}, {@double}, {hdim.data});
+            sample_data.dimensions{end + 1} = new_dim{1};
+            new_var = sample_data.variables{end};
+            new_var.name = 'PERG1';
+            new_var.dimensions = [1, 3]; %cant use gen_variables since dimensions are the dubious.
+            sample_data.variables{end + 1} = new_var;
+
+            new = imosEchoIntensitySetQC(sample_data);
+            v = IMOS.as_named_struct(new.variables);
+            flag = v.('ABSIC1').flags;
+            assert(all(flag(500:600, 1:13) == 1, 'all'))
+            assert(all(flag(500:600, 14) == 4, 'all'))
+            assert(all(flag(500:600, 15:end) == 1, 'all'))
+
+            f = fieldnames(v.('PERG1'));
+            assert(~inCell(f,'flags'))
+
+        end
+
+        function test_bound_by_depth_upward_clean_marked(~, zdim)
             depth_constraint = 30; %only shallower than 30m is allowed markings.
             site_nominal_depth = 170; % 14th bad bin will be at 30m, so will be clear out
             sample_data = create_simple_data(zdim,(10:10:200)',site_nominal_depth);
