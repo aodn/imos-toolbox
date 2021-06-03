@@ -18,11 +18,11 @@ function [depth] = site_bathymetry(sample_data, oper)
 % Example:
 % sample_data.site_nominal_depth = [];
 % sample_data.site_depth_at_deployment = [];
-% assert(isempty(IMOS.meta.get_site_bathymetry(sample_data)))
+% assert(isempty(IMOS.meta.site_bathymetry(sample_data)))
 % sample_data.site_nominal_depth = 20;
-% assert(IMOS.meta.get_site_bathymetry(sample_data)==20)
+% assert(IMOS.meta.site_bathymetry(sample_data)==20)
 % sample_data.site_depth_at_deployment = 10;
-% assert(IMOS.meta.get_site_bathymetry(sample_data)==10)
+% assert(IMOS.meta.site_bathymetry(sample_data)==10)
 %
 % author: hugo.oliveira@utas.edu.au
 %

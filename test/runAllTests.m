@@ -15,7 +15,7 @@ function [results] = runAllTests(parallel)
 %
 %
 % Example:
-% runAllTests(1);
+% %runAllTests(0);
 %
 % author: hugo.oliveira@utas.edu.au
 %

@@ -4,11 +4,11 @@ function [ok, wrong_files] = checkDocstrings(folder)
 % Check all matlab source file IMOS docstrings in a folder.
 %
 % Inputs:
-% 
+%
 % folder [str] - a string with the folder location.
 %
 % Outputs:
-% 
+%
 % ok [bool] - All docstrings are fine.
 % wrong_files - A cell where the evaluation of the docstring failed.
 %
