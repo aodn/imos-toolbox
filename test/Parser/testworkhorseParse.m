@@ -7,8 +7,8 @@ classdef testworkhorseParse < matlab.unittest.TestCase
     %
 
     properties (TestParameter)
-        enu_file = FilesInFolder(fpath('v000/enu'),{'.mat','.ppp','.pqc'});
-        beam_file = FilesInFolder(fpath('v000/beam'),{'.mat','.ppp','.pqc'});
+        enu_file = FilesInFolder(fpath('v000/enu'), {'.mat', '.ppp', '.pqc'});
+        beam_file = FilesInFolder(fpath('v000/beam'), {'.mat', '.ppp', '.pqc'});
 
         quartermaster_file = {fpath('v000/enu/16413000.000'), ...
                             fpath('v000/enu/16923000.000'), ...
@@ -214,31 +214,34 @@ end
 
 function check_vel_names(data, is_enu_dataset)
     vnames = IMOS.get(data.variables, 'name');
-  
+
     enu_with_mag = is_enu_dataset && data.meta.compass_correction_applied ~= 0;
-    enu_without_mag = is_enu_dataset && data.meta.compass_correction_applied ==0;
+    enu_without_mag = is_enu_dataset && data.meta.compass_correction_applied == 0;
 
     if enu_with_mag
-        name0='UCUR';
-        name1='VCUR';
-        name2='WCUR';
-        name3='ECUR';
+        name0 = 'UCUR';
+        name1 = 'VCUR';
+        name2 = 'WCUR';
+        name3 = 'ECUR';
     elseif enu_without_mag
-        name0='UCUR_MAG';
-        name1='VCUR_MAG';
-        name2='WCUR';
-        name3='ECUR';
+        name0 = 'UCUR_MAG';
+        name1 = 'VCUR_MAG';
+        name2 = 'WCUR';
+        name3 = 'ECUR';
     else
-        name0='VEL1';
-        name1='VEL2';
-        name2='VEL3';
-        name3='VEL4';
+        name0 = 'VEL1';
+        name1 = 'VEL2';
+        name2 = 'VEL3';
+        name3 = 'VEL4';
 
     end
+
     assert(inCell(vnames, name0));
     assert(inCell(vnames, name1));
     assert(inCell(vnames, name2));
+
     if data.meta.adcp_info.number_of_beams > 3
         assert(inCell(vnames, name3));
     end
+
 end
