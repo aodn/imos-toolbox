@@ -1,4 +1,4 @@
-classdef testWorkhorse < matlab.unittest.TestCase
+classdef testworkhorseParse < matlab.unittest.TestCase
 
     % Test Reading Workhorse Signature files with the workhorseParse
     % function.
