@@ -291,5 +291,5 @@ vars = IMOS.gen_variables(dims, {'DEPTH', 'UCUR', 'ABSIC1'}, {@double, @double, 
 sample_data.dimensions = dims;
 sample_data.variables = vars;
 sample_data.site_nominal_depth = site_nominal_depth;
-sample_data.toolbox_input_file = 'testdriven';
+sample_data.toolbox_input_file = fullfile(toolboxRootPath, 'tmp', 'testdriven');
 end
