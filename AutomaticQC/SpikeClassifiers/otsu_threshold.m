@@ -18,9 +18,30 @@ function [threshold] = otsu_threshold(signal, nbins)
 %
 % Example:
 %
+% % find different samplings
+% dsignal = diff([0:10:100, 101:110]);
+% [t] = otsu_threshold(dsignal,2);
+% assert(t>1);
+% assert(isequal(find(dsignal>t),1:10))
+% [t] = otsu_threshold(dsignal,100);
+% assert(t>1);
 %
-% [threshold] = compute_otsu_threshold(signal,nbins)
-% assert()
+% % spike simple case
+% x = randn(1,100)*10;
+% spikes = [3,30:40,90];
+% x(spikes) = 100;
+% dsignal = diff(x);
+% t = otsu_threshold(dsignal,2);
+% assert(t<100);
+% assert(abs(x(3)-x(2))>t)
+% assert(abs(x(30)-x(29))>t)
+% assert(abs(x(90)-x(89))>t)
+% 
+% % simple threshold only detects the first
+% % occurence, and with a shifted index given
+% % the difference operation
+% assert(isequal(find(dsignal>t),[2,29,89]))
+%
 %
 % author: hugo.oliveira@utas.edu.au
 %
