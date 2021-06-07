@@ -10,7 +10,7 @@ function batchTesting(parallel)
 %
 % Example:
 %
-% batchTesting(1)
+% %batchTesting(1)
 %
 % author: hugo.oliveira@utas.edu.au
 %
