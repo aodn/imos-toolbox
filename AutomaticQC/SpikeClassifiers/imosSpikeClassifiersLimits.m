@@ -13,11 +13,11 @@ function [limits] = imosSpikeClassifiersLimits(len)
 %
 % Example:
 %
-% len = 100
-% [limits] = imosTimeSeriesSpikeQCLimits(len)
+% len = 100;
+% [limits] = imosSpikeClassifiersLimits(len);
 % assert(limits.hampel_half_window_width.min==1)
 % assert(limits.hampel_half_window_width.max==len/2)
-% assert(limits.hampel_madfactor.max = 20)
+% assert(limits.hampel_madfactor.max==20)
 %
 % author: hugo.oliveira@utas.edu.au
 %
