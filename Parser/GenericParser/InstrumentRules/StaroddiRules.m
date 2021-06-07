@@ -23,8 +23,9 @@ function [rules] = StaroddiRules()
 % The outputs are used by the respective `Instrument`Parser function
 % to read the data into the Toolbox structure.
 %
-% For more information, see comments in the StaroddiRules.m file, which
-% explains all the functionality.
+% Example:
+% %For more information, see comments below which
+% %explains all the grammar functionality.
 %
 % author: hugo.oliveira@utas.edu.au
 
