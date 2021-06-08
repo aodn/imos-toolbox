@@ -4,7 +4,7 @@
 Support both Linux and Windows. See the `--arch` flag.
 
 Usage:
-    build.py --arch=<architecture> [--check-repo-only --dry-run --build-java-deps  --root_path=<imostoolboxpath> --matlab_path=<mccpath> --dist_path=<distpath>]
+    build.py [--arch=<architecture> --check-repo-only --dry-run --build-java-deps  --root_path=<imostoolboxpath> --matlab_path=<mccpath> --dist_path=<distpath>]
 
 Options:
     -h --help    Show this screen.
@@ -21,6 +21,7 @@ Options:
 
 import os
 import sys
+import platform
 import subprocess as sp
 from socket import gethostname
 from getpass import getuser
@@ -38,10 +39,12 @@ ARCH_NAMES = {
 }
 VERSION_FILE = ".standalone_canonical_version"
 MATLAB_VERSION = "R2018b"
+
+#below are the toolboxes root folder within R2018b/
 MATLAB_TOOLBOXES_TO_INCLUDE: List[str] = [
-    "signal/signal",
-    "stats/stats",
-    "images/imuitools",
+    ['signal','signal'],
+    ['stats','stats'],
+    ['images','imuitools'],
 ]
 
 DEFAULT_MATLAB_ROOT_PATH = {
@@ -269,7 +272,7 @@ def create_mcc_call_sig(
 
     if MATLAB_TOOLBOXES_TO_INCLUDE:
         extra_toolbox_paths = [
-            os.path.join(matlab_root_path, "toolbox", x)
+            os.path.join(matlab_root_path, "toolbox", *x) #beware of path joins in windows
             for x in MATLAB_TOOLBOXES_TO_INCLUDE
         ]
 
@@ -289,8 +292,11 @@ def create_mcc_call_sig(
     )
 
     if arch == "win64":
+        # overcome the incapacity to execute a file with a valid full path in windows
+        mcc_path = 'mcc'
+        # overcome cmd.exe char limitation creating a tmp mfile and asking
+        # matlab to evaluate a string. (yes...)
         tmpscript = os.path.join(root_path, "tmpbuild.m")
-        # overcome cmd.exe limitation of characters by creating a tmp mfile
         with open(tmpscript, "w") as tmpfile:
             # overcome limitation of spaces within eval.
             if MATLAB_TOOLBOXES_TO_INCLUDE:
@@ -334,13 +340,26 @@ def get_args(args: dict) -> Tuple[str, str, str, str, str, str]:
     else:
         dist_path = args["--dist_path"]
 
-    if args["--arch"] in VALID_ARCHS:
-        ind = VALID_ARCHS.index(args["--arch"])
-        arch = VALID_ARCHS[ind]
+
+    if not args["--arch"]:
+        bits,linkage = platform.architecture()
+        if bits != '64bit':
+            raise Exception("32bit platforms are not supported.")
+
+        if linkage == 'ELF':
+            arch = 'glnxa64'
+        elif linkage == 'WindowsPE':
+            arch = 'win64'
+        else:
+            raise Exception(f"Architecture {linkage} is not supported")
     else:
-        raise Exception(
-            f"{args['--arch']} is not one of the valid architectures {VALID_ARCHS}",
-        )
+        if args["--arch"] in VALID_ARCHS:
+            ind = VALID_ARCHS.index(args["--arch"])
+            arch = VALID_ARCHS[ind]
+        else:
+            raise Exception(
+                f"{args['--arch']} is not one of the valid architectures {VALID_ARCHS}",
+            )
 
     compiler_filename = MATLAB_COMPILER_FILENAME[arch]
 
@@ -353,7 +372,6 @@ def get_args(args: dict) -> Tuple[str, str, str, str, str, str]:
         mcc_path = Path(matlab_root_path, "bin", compiler_filename)
 
     if not mcc_path.exists():
-        __import__("pdb").set_trace()
         raise Exception(
             f"Missing the mcc compiler at {matlab_root_path}. Please install the Matlab compiler toolbox."
         )
