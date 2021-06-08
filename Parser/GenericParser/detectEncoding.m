@@ -16,7 +16,7 @@ function [encoding, machineformat] = detectEncoding(filename)
 %
 % Example:
 % % automatic detection
-% filename = [toolboxRootPath() 'data/testfiles/RBR/duet3/v000/082533_20190525_0515_eng_rbrduet3.txt']
+% filename = [toolboxRootPath() 'data/testfiles/RBR/duet3/v000/082533_20190525_0515_eng_rbrduet3.txt'];
 % encoding = detectEncoding(filename);
 % assert(strcmp(encoding,'windows-1252'));
 %
