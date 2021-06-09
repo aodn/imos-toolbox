@@ -1,7 +1,7 @@
 classdef test_SpikeClassifiers < matlab.unittest.TestCase
 
     properties (TestParameter)
-        plot_figure = {true}; %,false};
+        plot_figure = {ismember('plot_test_figures',who('global'))};
     end
 
     methods (Test)
@@ -208,7 +208,7 @@ classdef test_SpikeClassifiers < matlab.unittest.TestCase
             burst_interval = 3600/86400;
             bind = {[1,60], [61,120], [121,180],[181,240]};
             time = [0:1:59, 3600:1:3659, 7200:1:7259, 10800:1:10859];
-            osig = [12+randc(1,60),12+randc(1,60),18+randc(1,60),18+randc(1,60)];
+            osig = [12+randomBetween(-.5,.5,60),12+randomBetween(-.5,.5,60),18+randomBetween(-.5,.5,60),18+randomBetween(-.5,.5,60)];
             ssig = osig;
             spikes = 121;
             ssig(spikes) = 25;
@@ -239,7 +239,7 @@ classdef test_SpikeClassifiers < matlab.unittest.TestCase
             burst_interval = 3600/86400;
             bind = {[1,60], [61,120], [121,180],[181,240]};
             time = [0:1:59, 3600:1:3659, 7200:1:7259, 10800:1:10859];
-            osig = [12+randc(1,60),12+randc(1,60),18+randc(1,60),18+randc(1,60)];
+            osig = [12+randomBetween(-.5,.5,60),12+randomBetween(-.5,.5,60),18+randomBetween(-.5,-.5,60),18+randomBetween(-.5,.5,60)];
             ssig = osig;
             spikes = 121;
             ssig(spikes) = 25;
