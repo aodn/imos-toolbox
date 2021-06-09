@@ -54,13 +54,20 @@ docstring_end_re = '^\s?%\s?author[s]?:';
 
 [docstring_text, block_start_line] = readUntilMatch(fid, docstring_start_re, use_regex);
 if isempty(docstring_text)
-    ok = false;
-    msg = sprintf('No docstring Example block found in %s',filename);
+    ok = true;
+    msg = sprintf('No docstring block found in %s',filename);
+    fclose(fid);
     return
 end
 
 text_to_evaluate = readUntilMatch(fid, docstring_end_re, use_regex);
 text_to_evaluate = text_to_evaluate(1:end-1); % remove docstring_end_re match
+if isempty(text_to_evaluate)
+    ok = true;
+    msg = sprintf('No docstring Example block found in %s',filename);
+    fclose(fid);
+    return
+end
 
 [ok, msg] = commentEvalWrapper(text_to_evaluate, block_start_line, dbreak);
 
