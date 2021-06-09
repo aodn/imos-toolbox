@@ -1,5 +1,5 @@
-function runTestCoverage(parallel,print_stats)
-% function runTestCoverage(parallel)
+function batchTesting(parallel,print_stats)
+% function batchTesting(parallel)
 %
 % Execute all the xunit Test functions
 % and docstring tests
@@ -43,7 +43,7 @@ elseif nargin == 1
     print_stats = true;
 end
 
-csplit = strsplit(mfilename('fullpath'), [filesep 'batchTesting']);
+csplit = strsplit(mfilename('fullpath'), 'batchTesting');
 root_folder = csplit{1};
 addpath([root_folder filesep 'Util' filesep 'Path'])
 setToolboxPaths(root_folder)
@@ -163,9 +163,10 @@ end
 function file = get_testfile(r)
 
 try
-    file = r.Details.DiagnosticRecord.Exception.stack(1).file;
+    file = r.Details.DiagnosticRecord.Stack(1).file;
 catch
-    file = 'Unknown file';
+    sname = split(r.Name,'/');
+    file = sname{1};
 end
 
 end
