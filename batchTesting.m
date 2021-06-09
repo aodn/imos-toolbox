@@ -93,9 +93,10 @@ end
 sdisp('    ')
 sdisp('    ')
 sdisp('----IMOS toolbox Test Coverage Summary----')
-sdisp('    Total number of tests: %d (%d xunit, %d docstrings)',total_tests,total_xunit_tests,total_docstring_tests);
-sdisp('    Total number of failed tests: %d (%d xunit, %d docstrings)',total_failed,xunit_n_failed,docstring_n_failed);
-sdisp('    Total number of skipped tests: %d (%d xunit, %d docstrings)',total_skipped,xunit_n_skipped,docstring_n_skipped);
+sdisp('----XUnit` test statistics and `docstrings` inspection in all matlab files in the repository----')
+sdisp('    Total number of tests evaluations: %d (%d `xunit` tests and %d docstrings',total_tests,total_xunit_tests,total_docstring_tests);
+sdisp('    Total number of failed tests: %d (%d xunit, %d source files)',total_failed,xunit_n_failed,docstring_n_failed);
+sdisp('    Total number of skipped tests: %d (%d xunit, %d source files)',total_skipped,xunit_n_skipped,docstring_n_skipped);
 sdisp('    ');
 if total_failed > 0
     sdisp('Failed tests are:')
