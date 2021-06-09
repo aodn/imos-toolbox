@@ -1,7 +1,7 @@
 classdef test_imosTiltVelocitySetQC < matlab.unittest.TestCase
 
-    properties
-        testUI = true;
+    properties (TestParameter)
+        interactive = {ismember('interactive_tests',who('global'))};
     end
 
     methods (Test)
@@ -97,41 +97,34 @@ classdef test_imosTiltVelocitySetQC < matlab.unittest.TestCase
             assert(isequal(e_logentry, logentry))
         end
 
-        function test_below_secondThreshold_ui(testCase)
-            if testCase.testUI
-                ssize = [100, 33];
-                sample_data = create_sample_data(ssize);
-                sample_data.variables{end}.data = zeros(100,1); %roll
-                sample_data.variables{end - 1}.data = zeros(100,1) +90; %pitch
-                sample_data.instrument = 'ADCP sentinel abcdefg';
-                e_logentry = 'firstTiltThreshold=15, secondTiltThreshold=91';
-                disp('Set firstFlagThreshold to be 4 and SecondTiltThreshold to be 91 for this test to pass');
-                v = zeros(ssize)+4;
-                [pdata, ~, logentry] = imosTiltVelocitySetQC(sample_data, false);
-                assert(isequal(pdata.variables{1}.flags, v))
-                assert(isequal(e_logentry, logentry))
-            else
-                disp("testUI is False...skipping UI testing")
-            end
-
+        function test_below_secondThreshold_ui(testCase,interactive)
+            testCase.assumeTrue(interactive,'Interactive test skipped')
+            ssize = [100, 33];
+            sample_data = create_sample_data(ssize);
+            sample_data.variables{end}.data = zeros(100,1); %roll
+            sample_data.variables{end - 1}.data = zeros(100,1) +90; %pitch
+            sample_data.instrument = 'ADCP sentinel abcdefg';
+            e_logentry = 'firstTiltThreshold=15, secondTiltThreshold=91';
+            disp('Set firstFlagThreshold to be 4 and SecondTiltThreshold to be 91 for this test to pass');
+            v = zeros(ssize)+4;
+            [pdata, ~, logentry] = imosTiltVelocitySetQC(sample_data, false);
+            assert(isequal(pdata.variables{1}.flags, v))
+            assert(isequal(e_logentry, logentry))
         end
 
-        function test_above_secondThreshold_ui(testCase)
-            if testCase.testUI
-                ssize = [100, 33];
-                sample_data = create_sample_data(ssize);
-                sample_data.variables{end}.data = zeros(100,1); %roll
-                sample_data.variables{end - 1}.data = zeros(100,1)+81.; %pitch
-                sample_data.instrument = 'ADCP sentinel abcdefg';
-                e_logentry = 'firstTiltThreshold=15, secondTiltThreshold=80';
-                disp('Set SecondTiltThreshold to be 80 for this test to pass');
-                v = zeros(ssize)+3;
-                [pdata, ~, logentry] = imosTiltVelocitySetQC(sample_data, false);
-                assert(isequal(pdata.variables{1}.flags, v))
-                assert(isequal(e_logentry, logentry))
-            else
-                disp("testUI is False...skipping UI testing")
-            end
+        function test_above_secondThreshold_ui(testCase,interactive)
+            testCase.assumeTrue(interactive,'Interactive test skipped')
+            ssize = [100, 33];
+            sample_data = create_sample_data(ssize);
+            sample_data.variables{end}.data = zeros(100,1); %roll
+            sample_data.variables{end - 1}.data = zeros(100,1)+81.; %pitch
+            sample_data.instrument = 'ADCP sentinel abcdefg';
+            e_logentry = 'firstTiltThreshold=15, secondTiltThreshold=80';
+            disp('Set SecondTiltThreshold to be 80 for this test to pass');
+            v = zeros(ssize)+3;
+            [pdata, ~, logentry] = imosTiltVelocitySetQC(sample_data, false);
+            assert(isequal(pdata.variables{1}.flags, v))
+            assert(isequal(e_logentry, logentry))
         end
 
     end
