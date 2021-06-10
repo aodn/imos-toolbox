@@ -32,9 +32,14 @@ end
 
 sind = TeledyneADCP.find_teledyne_beam_datasets(sample_data,'HEIGHT_ABOVE_SENSOR');
 dind = TeledyneADCP.find_teledyne_beam_datasets(sample_data,'DIST_ALONG_BEAMS');
-if any(dind)
+if ~isempty(dind)
     for k=1:length(dind)
-        warnmsg('Performing beam2earth converison without bin-mapping/tilt correction for data in %s',sample_data{dind(k)}.toolbox_input_file)
+        dataset = sample_data{dind(k)};
+        warn_vars = IMOS.adcp.beam_vars(dataset);
+        for l=1:length(warn_vars)
+            vname = warn_vars{l};
+            dispmsg('Performing beam2earth converison without bin-mapping/tilt correction for variable %s in dataset %s',vname,dataset.toolbox_input_file);
+        end
     end
     sind = union(sind, dind);
 end
@@ -92,7 +97,6 @@ for k = 1:numel(sind)
 
     Beam2EnuComment = ['adcpWorkhorseVelocityBeam2EnuPP.m: velocity data in Easting Northing Up (ENU) coordinates has been calculated from velocity data in Beams coordinates ' ...
         'using heading and tilt information and instrument coordinate transform matrix.'];
- 
 
     %change in place.
     sample_data{ind}.variables{vel1_ind}.name = vel_vars{1};
@@ -119,7 +123,8 @@ for k = 1:numel(sind)
 
     no_toolbox_tilt_correction = isfield(sample_data{ind}, 'history') && ~contains(sample_data{ind}.history, 'adcpBinMappingPP');
     if no_toolbox_tilt_correction
-        warnmsg('WARNING: Bin-Mapping not applied for %s. Data is converted to ENU coordinates without tilt corrections.',sample_data{ind}.toolbox_input_file)
+        %TODO: using warnmsg here would be too verbose - we probably need another function with the scope report level as argument.
+        dispmsg('WARNING: Bin-Mapping not applied for %s. Data is converted to ENU coordinates without tilt corrections.',sample_data{ind}.toolbox_input_file)
         % compat: Change dimensions to HEIGHT_ABOVE_SENSOR, since this would be done at adcpBinMappingPP.
         %
         % height_above_sensor_ind = IMOS.find(sample_data{ind}.dimensions,'HEIGHT_ABOVE_SENSOR');

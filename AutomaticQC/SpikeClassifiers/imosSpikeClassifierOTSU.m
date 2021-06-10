@@ -21,24 +21,26 @@ function [spikes,threshold] = imosSpikeClassifierOTSU(signal, nbins, oscale, cen
 %
 % signal = [0,1,0];
 % [spikes] = imosSpikeClassifierOTSU(signal,3,1,false);
-% assert(spikes==2)
+% %limitation of otsu method - signal difference influence markups
+% assert(isequal(spikes,[1,2]))
 %
 % %non-centralized
-% signal = [0,0,0,1,0,1,0,0,0,0]
+% signal = [0,0,0,1,0,1,0,0,0,0];
 % [spikes] = imosSpikeClassifierOTSU(signal,3,1,false);
-% assert(spikes==[3,4,5,6])
-% centralized
+% assert(isequal(spikes,[3,4,5,6]))
+%
+% %centralized
 % [spikes] = imosSpikeClassifierOTSU(signal,3,1,true);
 % assert(~isequal(spikes,[4,6])) % fail
-% assert(spikes==[4]) % fail
+% assert(spikes==5) % fail
 %
 % %harmonic
 % omega = 2*pi/86400;
 % t = 0:3600:86400*5;
-% signal = 10*sin(omega*t)
+% signal = 10*sin(omega*t);
 % signal([10,20]) = max(signal)^3;
 % [spikes] = imosSpikeClassifierOTSU(signal,100,1,true);
-% assert(isequal(spikes,[10,20])
+% assert(isequal(spikes,[10,20]))
 %
 % %
 % omega = 2*pi/86400;

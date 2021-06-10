@@ -14,10 +14,10 @@ function [above] = FolderAbove(path, level)
 % above - a string with the folder above `level`.
 %
 % Example:
-% path = '/dev/shm/';
+% path = [toolboxRootPath() filesep 'Util'];
 % level = 1;
 % [above] = FolderAbove(path,level);
-% assert(strcmp(above,'/dev/'));
+% assert(contains(toolboxRootPath(),above));
 %
 % path = '/';
 % levle = 10;

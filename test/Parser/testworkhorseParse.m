@@ -1,4 +1,4 @@
-classdef testWorkhorse < matlab.unittest.TestCase
+classdef testworkhorseParse < matlab.unittest.TestCase
 
     % Test Reading Workhorse Signature files with the workhorseParse
     % function.
@@ -7,8 +7,8 @@ classdef testWorkhorse < matlab.unittest.TestCase
     %
 
     properties (TestParameter)
-        enu_file = FilesInFolder(fpath('v000/enu'),{'.mat','.ppp','.pqc'});
-        beam_file = FilesInFolder(fpath('v000/beam'),{'.mat','.ppp','.pqc'});
+        enu_file = FilesInFolder(fpath('v000/enu'), {'.mat', '.ppp', '.pqc'});
+        beam_file = FilesInFolder(fpath('v000/beam'), {'.mat', '.ppp', '.pqc'});
 
         quartermaster_file = {fpath('v000/enu/16413000.000'), ...
                             fpath('v000/enu/16923000.000'), ...
@@ -22,7 +22,6 @@ classdef testWorkhorse < matlab.unittest.TestCase
                             };
 
         sentinel_file = {fpath('/v000/enu/16679000.000')};
-
         %TODO: search for dvs files
         %dvs = {};
 
@@ -32,6 +31,35 @@ classdef testWorkhorse < matlab.unittest.TestCase
     end
 
     methods (Test)
+
+        function testReadingENU_version_regression(~)
+            %This test regression/issue #741
+            %https://github.com/aodn/imos-toolbox/issues/741
+            %by comparing UVEL and VVEL in a sentinel file
+            %data loaded with the toolbox version 2.6.9
+
+            sentinel_file = fpath('/v000/enu/16679000.000');
+            sentinel_mat_file = fpath('/v000/mat/16679000.000_v2.6.9.mat');
+
+            previous_data = load(sentinel_mat_file);
+            pvars = IMOS.as_named_struct(previous_data.sample_data.variables);
+
+            new_data = workhorseParse({sentinel_file},'');
+            nvars = IMOS.as_named_struct(new_data.variables);
+
+            p_ucur = pvars.UCUR_MAG.data;
+            n_ucur = nvars.UCUR_MAG.data;
+            assert(isequal_tol(p_ucur,n_ucur)); 
+
+            p_vcur = pvars.VCUR_MAG.data;
+            n_vcur = nvars.VCUR_MAG.data;
+            assert(isequal_tol(p_vcur,n_vcur));
+
+            p_heading = pvars.HEADING_MAG.data;
+            n_heading = nvars.HEADING_MAG.data;
+            assert(isequal_tol(p_heading,n_heading)) % this pass
+
+        end
 
         function testReadingENU(~, enu_file)
             data = workhorseParse({enu_file}, '');
@@ -214,31 +242,34 @@ end
 
 function check_vel_names(data, is_enu_dataset)
     vnames = IMOS.get(data.variables, 'name');
-  
+
     enu_with_mag = is_enu_dataset && data.meta.compass_correction_applied ~= 0;
-    enu_without_mag = is_enu_dataset && data.meta.compass_correction_applied ==0;
+    enu_without_mag = is_enu_dataset && data.meta.compass_correction_applied == 0;
 
     if enu_with_mag
-        name0='UCUR';
-        name1='VCUR';
-        name2='WCUR';
-        name3='ECUR';
+        name0 = 'UCUR';
+        name1 = 'VCUR';
+        name2 = 'WCUR';
+        name3 = 'ECUR';
     elseif enu_without_mag
-        name0='UCUR_MAG';
-        name1='VCUR_MAG';
-        name2='WCUR';
-        name3='ECUR';
+        name0 = 'UCUR_MAG';
+        name1 = 'VCUR_MAG';
+        name2 = 'WCUR';
+        name3 = 'ECUR';
     else
-        name0='VEL1';
-        name1='VEL2';
-        name2='VEL3';
-        name3='VEL4';
+        name0 = 'VEL1';
+        name1 = 'VEL2';
+        name2 = 'VEL3';
+        name3 = 'VEL4';
 
     end
+
     assert(inCell(vnames, name0));
     assert(inCell(vnames, name1));
     assert(inCell(vnames, name2));
+
     if data.meta.adcp_info.number_of_beams > 3
         assert(inCell(vnames, name3));
     end
+
 end

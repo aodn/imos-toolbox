@@ -1,25 +1,29 @@
 #!/usr/bin/env python3
-"""Build the imos stand-alone toolbox GUI using only the Matlab compiler.
+"""This script will build the imos stand-alone toolbox GUI using the Matlab compiler.
 
-This script ignores untracked and testfiles within the repository and weakly
-attach a string version to the binary filename.
-The string is related to the repo state.
+Support both Linux and Windows. See the `--arch` flag.
 
 Usage:
-  build.py  --arch=<architecture> [--root_path=<imostoolboxpath> --mcc_path=<mccpath> --dist_path=<distpath>]
+    build.py [--arch=<architecture> --check-repo-only --dry-run --build-java-deps  --root_path=<imostoolboxpath> --matlab_path=<mccpath> --dist_path=<distpath>]
 
 Options:
-  -h --help     Show this screen.
-  --version     Show version.
-  --mcc_path=<mccpath>           The Matlab runtime Path
-  --root_path=<imostoolboxpath>  The repository root path
-  --dist_path=<distpath>  Where Compiled items should be stored
-  --arch=<architecture>   One of win64,glnxa64,maci64
+    -h --help    Show this screen.
+    --version    Show version.
+    --arch=<architecture>    One of win64,glnxa64,maci64.
+    --check-repo-only   Just do a Repository check, no build steps.
+    --dry-run   Just do all the checks, but don't build anything
+    --build-java-deps    Build of java libraries.
+    --matlab_path=<matlabpath>    The Matlab install path.
+    --root_path=<imostoolboxpath>    The repository root path
+    --dist_path=<distpath>    Where Compiled items should be stored
 
 """
 
 import os
+import sys
+import platform
 import subprocess as sp
+from socket import gethostname
 from getpass import getuser
 from pathlib import Path
 from shutil import copy
@@ -35,41 +39,54 @@ ARCH_NAMES = {
 }
 VERSION_FILE = ".standalone_canonical_version"
 MATLAB_VERSION = "R2018b"
+
+#below are the toolboxes root folder within R2018b/
 MATLAB_TOOLBOXES_TO_INCLUDE: List[str] = [
-    "signal/signal",
-    "stats/stats",
-    "images/imuitools",
+    ['signal','signal'],
+    ['stats','stats'],
+    ['images','imuitools'],
 ]
+
+DEFAULT_MATLAB_ROOT_PATH = {
+    "glnxa64": os.path.join("/opt/MATLAB/", MATLAB_VERSION),
+    "maci64": os.path.join("/Applications/MATLAB/", MATLAB_VERSION),
+    "win64": os.path.join("C:\\Program Files\\", "\\MATLAB\\", MATLAB_VERSION),
+}
+
+MATLAB_ROOT_PATH_OPTS = {
+    "glnxa64": [
+        "/opt/",
+        "/usr/local/",
+        os.path.join("/home", getuser()),
+        os.path.join("/home", getuser(), "." + gethostname(), "apps"),
+    ],
+    "maci64": ["/Applications/", "/Users", "/"],
+    "win64": ["C:\\Program Files\\"],
+}
+
+MATLAB_COMPILER_FILENAME = {"glnxa64": "mcc", "maci64": "mcc", "win64": "mcc.bat"}
 
 
 def find_matlab_rootpath(arch_str):
     """Locate the matlab installation root path."""
 
-    if arch_str != "win64":
-        fname = f"*/MATLAB/{MATLAB_VERSION}"
-        if arch_str == "glnxa64":
-            lookup_folders = [
-                "/usr/local/",
-                "/opt",
-                f"/home/{os.environ['USER']}",
-                "/usr",
-            ]
-        elif arch_str == "maci64":
-            lookup_folders = ["/Applications/", "/Users"]
-    else:
-        fname = f"**\\MATLAB\\{MATLAB_VERSION}"
-        lookup_folders = ["C:\\Program Files\\"]
+    default_root_path = Path(DEFAULT_MATLAB_ROOT_PATH[arch_str])
+    if default_root_path.exists():
+        return str(default_root_path)
 
+    print(f"Matlab is not installed in the default directory. Searching some common options for arch={arch_str}...")
+
+    lookup_folders = MATLAB_ROOT_PATH_OPTS[arch_str]
     for folder in lookup_folders:
-        m_rootpath = list(Path(folder).glob(fname))
-        if m_rootpath:
-            return m_rootpath[0]
+        rootpath = Path(folder, "MATLAB", MATLAB_VERSION)
+        if rootpath.exists():
+            return rootpath
     raise ValueError("Unable to find matlab root path")
 
 
 def run(command: str):
     """Run a command at shell/cmdline."""
-    return sp.run(command, shell=True, check=True)
+    return sp.run(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
 
 
 def create_java_call_sig_compile(root_path: str) -> str:
@@ -116,16 +133,16 @@ def git_info(root_path: str) -> dict:
         version += info["tag"]
     else:
         version += info["branch"]
-        version += "-" + info["username"]
-        version += "-" + info["tag"]
+        version += "|" + info["username"]
+        version += "|" + info["tag"]
         if info["is_dirty"]:
-            version += "-dirty"
+            version += "|dirty"
 
     info["version"] = version
     return info
 
 
-def find_files_and_folders(path: str) -> [list, list]:
+def find_files_and_folders(path: str) -> (list, list):
     """Find both files and folders recursively in a current path."""
     pfolder: Path.PosixPath = Path(path)
     all_folders: list = [
@@ -181,8 +198,7 @@ def find_items(folder: str) -> dict:
         x.as_posix()
         for x in all_files
         if "data/testfiles/" not in x.as_posix()
-        if x.suffix == ".mat"
-        and "/+" not in x.parent.as_posix()
+        if x.suffix == ".mat" and "/+" not in x.parent.as_posix()
     ]
 
     items["standard_miscfiles"] = [
@@ -211,12 +227,6 @@ def get_required_files(root_path: str, info: dict) -> (list, list):
     allpackages = items["standard_packages"]
     allmiscfiles = items["standard_miscfiles"]
 
-    if info["is_dirty"]:
-        print(f"Warning: {root_path} repository is dirty")
-    if info["modified_files"]:
-        print(f"Warning: {root_path} got modified files not staged")
-    if info["staged_files"]:
-        print(f"Warning: {root_path} got staged files not commited")
     if info["untracked_files"]:
         print(f"Warning: {root_path} got untracked files - Ignoring them all...")
         for ufile in info["untracked_files"]:
@@ -237,6 +247,7 @@ def get_required_files(root_path: str, info: dict) -> (list, list):
 
 
 def create_mcc_call_sig(
+    matlab_root_path: str,
     mcc_path: str,
     root_path: str,
     dist_path: str,
@@ -260,9 +271,8 @@ def create_mcc_call_sig(
     matpackages_str = " ".join([f"-a {folder}" for folder in matpackages])
 
     if MATLAB_TOOLBOXES_TO_INCLUDE:
-        matlab_root_path = find_matlab_rootpath(arch)
         extra_toolbox_paths = [
-            os.path.join(matlab_root_path, "toolbox", x)
+            os.path.join(matlab_root_path, "toolbox", *x) #beware of path joins in windows
             for x in MATLAB_TOOLBOXES_TO_INCLUDE
         ]
 
@@ -282,8 +292,11 @@ def create_mcc_call_sig(
     )
 
     if arch == "win64":
+        # overcome the incapacity to execute a file with a valid full path in windows
+        mcc_path = 'mcc'
+        # overcome cmd.exe char limitation creating a tmp mfile and asking
+        # matlab to evaluate a string. (yes...)
         tmpscript = os.path.join(root_path, "tmpbuild.m")
-        # overcome cmd.exe limitation of characters by creating a tmp mfile
         with open(tmpscript, "w") as tmpfile:
             # overcome limitation of spaces within eval.
             if MATLAB_TOOLBOXES_TO_INCLUDE:
@@ -311,9 +324,9 @@ def create_mcc_call_sig(
     return rlist
 
 
-def get_args(args: dict) -> Tuple[str, str, str, str]:
-    """process the cmdline arguments to return the root_path, dist_path, mcc binary, and
-    architecture."""
+def get_args(args: dict) -> Tuple[str, str, str, str, str, str]:
+    """process the cmdline arguments."""
+
     if not args["--root_path"]:
         root_path = os.getcwd()
     else:
@@ -327,19 +340,52 @@ def get_args(args: dict) -> Tuple[str, str, str, str]:
     else:
         dist_path = args["--dist_path"]
 
-    if not args["--mcc_path"]:
-        mcc_path = "mcc"
-    else:
-        mcc_path = args["--mcc_path"]
 
-    if args["--arch"] in VALID_ARCHS:
-        ind = VALID_ARCHS.index(args["--arch"])
-        arch = VALID_ARCHS[ind]
+    if not args["--arch"]:
+        bits,linkage = platform.architecture()
+        if bits != '64bit':
+            raise Exception("32bit platforms are not supported.")
+
+        if linkage == 'ELF':
+            arch = 'glnxa64'
+        elif linkage == 'WindowsPE':
+            arch = 'win64'
+        else:
+            raise Exception(f"Architecture {linkage} is not supported")
     else:
+        if args["--arch"] in VALID_ARCHS:
+            ind = VALID_ARCHS.index(args["--arch"])
+            arch = VALID_ARCHS[ind]
+        else:
+            raise Exception(
+                f"{args['--arch']} is not one of the valid architectures {VALID_ARCHS}",
+            )
+
+    compiler_filename = MATLAB_COMPILER_FILENAME[arch]
+
+    if args["--matlab_path"] and isinstance(args["--matlab_path"], str):
+        matlab_root_path = Path(args["--matlab_path"])
+        if matlab_root_path.exists():
+            mcc_path = Path(matlab_root_path, "bin", compiler_filename)
+    else:
+        matlab_root_path = find_matlab_rootpath(arch)
+        mcc_path = Path(matlab_root_path, "bin", compiler_filename)
+
+    if not mcc_path.exists():
         raise Exception(
-            f"{args['--arch']} is not one of the valid architectures {VALID_ARCHS}",
+            f"Missing the mcc compiler at {matlab_root_path}. Please install the Matlab compiler toolbox."
         )
-    return root_path, dist_path, mcc_path, arch
+    else:
+        mcc_path = str(mcc_path)
+
+    return (
+        root_path,
+        dist_path,
+        matlab_root_path,
+        mcc_path,
+        arch,
+        args["--build-java-deps"],
+    )
 
 
 def write_version(afile: str, version: str) -> None:
@@ -351,21 +397,45 @@ def write_version(afile: str, version: str) -> None:
 if __name__ == "__main__":
     args = docopt(__doc__, version="0.1")
 
-    root_path, dist_path, mcc_path, arch = get_args(args)
+    root_path, dist_path, matlab_root_path, mcc_path, arch, build_java = get_args(args)
     repo_info = git_info(root_path)
 
-    print("Starting build process.")
-    print(f"Marking {repo_info['version']} as the standalone version")
-    write_version(VERSION_FILE, repo_info["version"])
+    print(f"Starting build process for {ARCH_NAMES[arch]}")
+    print(
+        f"The repository version mashup [branch|user|tag|rstatus] is : {repo_info['version']}"
+    )
+    print("Current repo information:")
+    for k, v in repo_info.items():
+        print(f"    {k}:{v}")
+
+    if not repo_info["untracked_files"]:
+        print("Warning: Untracked files in the repository. These will NOT be included.")
+
+    if not repo_info["staged_files"]:
+        print(
+            "Warning: Found non-commited changes! These modifications will be included in the stand-alone app!"
+        )
+
+    if not repo_info["modified_files"]:
+        print(
+            "Warning: Found non-staged files in the repository! These modifications will be included in the stand-alone app!"
+        )
+
+    if args['--check-repo-only']:
+        sys.exit()
+
+    if not args['--dry-run']:
+        write_version(VERSION_FILE, repo_info["version"])
 
     # output name of binary is restricted in mcc
     tmp_name = f"imosToolbox_{ARCH_NAMES[arch]}"
 
-    print("Gathering files to be included")
+    print("Gathering files to be included...")
     mfiles, datafiles, matpackages = get_required_files(root_path, repo_info)
     java_call = create_java_call_sig_compile(root_path)
 
     mcc_call = create_mcc_call_sig(
+        matlab_root_path,
         mcc_path,
         root_path,
         dist_path,
@@ -376,37 +446,40 @@ if __name__ == "__main__":
         matpackages=matpackages,
     )
 
-    print("Current repo information:")
-    print(repo_info)
-
-    print(f"Building Java dependencies")
-    print(f"Calling {java_call}..")
-    ok = run(java_call)
-    if not ok:
-        raise Exception(f"{jcall} failed")
+    if build_java:
+        print(f"Building Java dependencies")
+        print(f"Calling `{java_call}`")
+        if not args['--dry-run']:
+            rstatus = run(java_call)
+            if rstatus.returncode is not 0:
+                raise Exception(f"`{java_call}` command failed. Stderr is: {rstatus.stderr}")
+            else:
+                if not rstatus.stdout:
+                    print(f"{rstatus.stdout}")
+    else:
+        print(f"Building Java dependencies skipped.")
 
     print(f"Building Matlab dependencies")
-    print(f"Calling {mcc_call}...")
+    print(f"Calling `{mcc_call}`")
     for mcall in mcc_call:
-        print(f"Executing {mcall}")
-        ok = run(mcall)
-        if not ok:
-            raise Exception(f"{mcall} failed")
+        print(f"Executing the mcc call: {mcall}")
+        if not args['--dry-run']:
+            ok = run(mcall)
+            if not ok:
+                raise Exception(f"{mcall} failed")
 
-    print(f"The toolbox architecture is {ARCH_NAMES[arch]}.")
-    print(f"Git version information string is {repo_info['version']}")
-    print(f"Updating binary at {root_path}....")
-
+    print(f"Updating binary at {root_path}")
     # mcc append .exe to end of file
-    if arch == "win64":
-        copy(
-            os.path.join(dist_path, tmp_name + ".exe"),
-            os.path.join(root_path, tmp_name + ".exe"),
-        )
-    else:
-        copy(
-            os.path.join(dist_path, tmp_name),
-            os.path.join(root_path, tmp_name + ".bin"),
-        )
+    if not args['--dry-run']:
+        if arch == "win64":
+            copy(
+                os.path.join(dist_path, tmp_name + ".exe"),
+                os.path.join(root_path, tmp_name + ".exe"),
+            )
+        else:
+            copy(
+                os.path.join(dist_path, tmp_name),
+                os.path.join(root_path, tmp_name + ".bin"),
+            )
 
     print("Build Finished.")

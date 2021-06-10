@@ -15,7 +15,7 @@ function [sample_data, varChecked, paramsLog] = imosEchoIntensitySetQC(sample_da
 % bad markings are bounded by the `bound_value` option.
 % This is useful to filter the echo amplitude QC markings to only
 % further specific depths or bin indexes.
-% 
+%
 % See imosEchoIntensitySetQC.txt options.
 %
 %
@@ -61,17 +61,15 @@ bound_value = options('bound_value');
 
 nt = numel(IMOS.get_data(sample_data.dimensions, 'TIME'));
 
+
 if IMOS.adcp.is_along_beam(sample_data)
     bin_dist = IMOS.get_data(sample_data.dimensions, 'DIST_ALONG_BEAMS');
-    dims_tz = {'TIME', 'DIST_ALONG_BEAMS'};
-    nbeams = numel(absic_vars);
 else
     bin_dist = IMOS.get_data(sample_data.dimensions, 'HEIGHT_ABOVE_SENSOR');
-    dims_tz = {'TIME', 'HEIGHT_ABOVE_SENSOR'};
-    nbeams = numel(absic_vars);
 end
 
-flag_vars = IMOS.variables_with_dimensions(sample_data.dimensions, sample_data.variables, dims_tz);
+nbeams = numel(absic_vars);
+flag_vars = IMOS.adcp.echo_intensity_variables(sample_data);
 
 switch nbeams
     case 3
@@ -163,7 +161,6 @@ goodFlag = imosQCFlag('good', qcSet, 'flag');
 
 flags = ones(size(beyond_threshold), 'int8') * goodFlag;
 flags(beyond_threshold) = badFlag;
-
 flag_vars_inds = IMOS.find(sample_data.variables, flag_vars);
 for k = 1:numel(flag_vars_inds)
     vind = flag_vars_inds(k);
@@ -176,7 +173,5 @@ near_bad_bin = find(nbadbins, 1, 'first');
 further_bad_bin = find(nbadbins, 1, 'last');
 
 paramsLog = ['echo_intensity_threshold=' threshold, 'propagate=', propagate, 'near_bad_bin=' near_bad_bin, 'further_bad_bin=' further_bad_bin];
-
 writeDatasetParameter(sample_data.toolbox_input_file, currentQCtest, 'echo_intensity_threshold', threshold);
-
 end

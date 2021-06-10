@@ -18,6 +18,24 @@ classdef test_imosSurfaceDetectionByDepthSetQC < matlab.unittest.TestCase
             assert(first_bin_at_surface == 10);
         end
 
+        function test_simple_detection_both_dimensions_present(~)
+            sample_data = create_simple_data('HEIGHT_ABOVE_SENSOR');
+            hdim = sample_data.dimensions{2};
+            new_dim = IMOS.gen_dimensions('', 1, {'DIST_ALONG_BEAMS'}, {@double}, {hdim.data});
+            sample_data.dimensions{end + 1} = new_dim{1};
+            new_var = sample_data.variables{end};
+            new_var.name = 'PERG1';
+            new_var.dimensions = [1, 3]; %cant use gen_variables since dimensions are the dubious.
+            sample_data.variables{end + 1} = new_var;
+
+            new = imosSurfaceDetectionByDepthSetQC(sample_data);
+            flag = new.variables{1}.flags;
+            first_bin_at_surface = find(sum(flag == 1, 1) == 0, 1, 'first');
+            assert(first_bin_at_surface == 10);
+            assert(~isfield(new.variables{end},'flags'))
+        end
+
+
         function test_raw_file_downward_adcp_bottom_detection(~)
             adcp_file = fullfile(toolboxRootPath, 'data/testfiles/Teledyne/workhorse/v000/beam/16072000.000.reduced');
             sample_data = workhorseParse({adcp_file},'');

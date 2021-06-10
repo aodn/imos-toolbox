@@ -7,7 +7,7 @@ function [sample_data, varChecked, paramsLog] = imosSurfaceDetectionByDepthSetQC
 % observable water column height. Any bin beyond this height
 % is marked as bad.
 %
-% This test only works for datasets with available TIME dimension, 
+% This test only works for datasets with available TIME dimension,
 % HEIGHT_ABOVE_SENSOR or DIST_ALONG_BEAMS dimensions, DEPTH variable,
 % and adcp_site_nominal_depth or site_depth_at_deployment metadata.
 %
@@ -51,11 +51,11 @@ goodFlag = imosQCFlag('good', qcSet, 'flag');
 flags = ones(size(wbins), 'int8') * badFlag;
 flags(wbins) = goodFlag;
 
-if along_beams
+if along_height
+    dims_tz = {'TIME','HEIGHT_ABOVE_SENSOR'};
+else
     dims_tz = {'TIME','DIST_ALONG_BEAMS'};
     dispmsg('No bin-mapping performed. Surface Detections will be contaminated by missing tilt corrections.')
-else
-    dims_tz = {'TIME','HEIGHT_ABOVE_SENSOR'};
 end
 
 vars_tz = IMOS.variables_with_dimensions(sample_data.dimensions,sample_data.variables,dims_tz);

@@ -11,7 +11,11 @@ function sample_data = signatureParse( filename, tMode )
 % Outputs:
 %   sample_data - Struct containing sample data.
 %
-% Author: 		Guillaume Galibert <guillaume.galibert@utas.edu.au>
+% Example:
+%
+% % for tests, see tests/Parser/testSignature.m
+%
+% author: Guillaume Galibert <guillaume.galibert@utas.edu.au>
 %
 
 %

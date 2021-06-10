@@ -15,17 +15,17 @@ function [mib] = memuse(asize, atype)
 %
 % Example:
 %
-% x = memuse(1048576,'logical')
+% x = memuse(1048576,'logical');
 % assert(x==1)
-% x = memuse(1048576,'double')
+% x = memuse(1048576,'double');
 % assert(x==8)
-% x = memuse(1048576,'single')
+% x = memuse(1048576,'single');
 % assert(x==4)
 %
 % %we dont introspect content for cells/struct
-% x = memuse(1,'struct')
+% x = memuse(1,'struct');
 % assert(isinf(x))
-% x = memuse(1,'cell')
+% x = memuse(1,'cell');
 % assert(isinf(x))
 %
 %

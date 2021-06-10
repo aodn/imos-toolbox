@@ -25,8 +25,7 @@ function [spikes] = imosSpikeClassifierBurstRunningStats(bindexes, signal, scale
 % z = randn(1,10);
 % z(10) = 10000;
 % [spikes] = imosSpikeClassifierRunningStats(z,@mean,@std,2);
-% assert(spikes(10)==1)
-% assert(spikes(1:9)==0)
+% assert(spikes==10)
 %
 % author: hugo.oliveira@utas.edu.au
 %

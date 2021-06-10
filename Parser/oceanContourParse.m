@@ -15,8 +15,9 @@ function [sample_data] = oceanContourParser(filename_in_cell, toolbox_mode)
 %
 % Example:
 %
-% [data] = OceanContourParser(file,mode)
-% assert()
+% % this is a wrapper,
+% % check the `OceanContour.readOceanContourFile`
+% % docstring for tests.
 %
 % author: hugo.oliveira@utas.edu.au
 %

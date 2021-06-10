@@ -6,10 +6,12 @@ classdef testDepthPP < matlab.unittest.TestCase
     %
     properties (TestParameter)
         mode = {'profile','timeSeries'};
+        interactive = {ismember('interactive_tests',who('global'))};
     end
 
     methods (Test)
-        function testDepthPPOverwriteDepth(~, mode)
+        function testDepthPPOverwriteDepth(testCase, mode, interactive)
+            testCase.assumeTrue(interactive,'Interactive test skipped')
             d = IMOS.gen_dimensions(mode,1,{'TIME'},{@double},{randn(100,1)});
             parr = 100*ones(100,1);
             darr = randn(100,1);
