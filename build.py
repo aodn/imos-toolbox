@@ -4,7 +4,7 @@
 Support both Linux and Windows. See the `--arch` flag.
 
 Usage:
-    build.py [--arch=<architecture> --check-repo-only --dry-run --build-java-deps  --root_path=<imostoolboxpath> --matlab_path=<mccpath> --dist_path=<distpath>]
+    build.py [--arch=<architecture> --check-repo-only --dry-run --build-java-deps  --root_path=<imostoolboxpath> --matlab_path=<matlabpath> --dist_path=<distpath>]
 
 Options:
     -h --help    Show this screen.
