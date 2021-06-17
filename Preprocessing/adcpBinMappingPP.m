@@ -91,7 +91,7 @@ for k = 1:length(sample_data)
     roll = sample_data{k}.variables{rollIdx}.data * pi / 180;
     beamAngle = sample_data{k}.meta.beam_angle * pi / 180;
 
-    %TODO: the adjusted distances should be exported 
+    %TODO: the adjusted distances should be exported
     % as variables to enable further diagnostic plots and debugging.
     %TODO: the adjusted distances should be a Nx4 array or Nx3 array.
     if isRDI% RDI 4 beams
@@ -131,7 +131,7 @@ for k = 1:length(sample_data)
     % interpolation conditions. This would allow a progress bar here.
 
     for n = 1:number_of_beams
-        beam_vars = get_beam_vars(sample_data{k}, n);
+        beam_vars = IMOS.adcp.beam_vars(sample_data{k}, n);
         [all_beam_vars] = IMOS.concatenate_variables(sample_data{k}.variables, beam_vars);
 
         switch n
@@ -237,61 +237,4 @@ for k = 1:length(sample_data)
 
 end
 
-end
-
-function [ibvars] = get_beam_vars(sample_data, n)
-%function [ibvars] = get_beam_vars(sample_data,n)
-%
-% Get the available beam variable names
-% based on the beam number.
-%
-% Inputs:
-%
-% sample_data [struct] - the toolbox struct.
-% n [double] - the beam number [1-4]
-%
-% Outputs:
-%
-% ibvars [cell{str}] - the variable names associated
-%                      with the beam number.
-%
-%
-% author: hugo.oliveira@utas.edu.au
-%
-%
-
-narginchk(2, 2)
-
-if ~isstruct(sample_data)
-    error('Frist argument not a toolbox struct')
-end
-
-switch n
-    case 1
-        beam_vars = {'ABSI1', 'ABSIC1', 'CMAG1', 'SNR1', 'VEL1'};
-    case 2
-        beam_vars = {'ABSI2', 'ABSIC2', 'CMAG2', 'SNR2', 'VEL2'};
-    case 3
-        beam_vars = {'ABSI3', 'ABSIC3', 'CMAG3', 'SNR3', 'VEL3'};
-    case 4
-        beam_vars = {'ABSI4', 'ABSIC4', 'CMAG4', 'VEL4'};
-    otherwise
-        errormsg('Second argument not a valid beam number')
-end
-
-ibvars = cell(1, length(beam_vars));
-is_a_beam_var = @(sample_data, varname)(IMOS.var_contains_dim(sample_data, varname, 'DIST_ALONG_BEAMS'));
-
-c = 0;
-
-for k = 1:length(beam_vars)
-
-    if is_a_beam_var(sample_data, beam_vars{k})
-        c = c + 1;
-        ibvars{c} = beam_vars{k};
-    end
-
-end
-
-ibvars = ibvars(1:c);
 end

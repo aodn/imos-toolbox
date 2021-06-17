@@ -10,7 +10,7 @@ function [spikes] = imosSpikeClassifierBurstHampel(bindexes, signal, use_burst_w
 % signal - A Burst 1-d signal.
 % use_burst_window  - a boolean to consider the half_window_width applied at burst scale. If false, will consider the burst series as continuous.
 % half_window_width - The half_window_width burst range (the full window size will be 1+2*half_window_width)
-% madfactor -  A multipling scale for the MAD.
+% madfactor - a scale for the mean absolute deviation which values above will be marked as a spike.
 % repeated_only - a boolean to mark spikes in burst only if they are detected more than one time (only for half_window_width>0).
 % lower_mad_limit - a lower threshold for the MAD values, which values below will be ignored.
 %
@@ -23,13 +23,11 @@ function [spikes] = imosSpikeClassifierBurstHampel(bindexes, signal, use_burst_w
 %
 % % simple spikes
 % x = randn(1,100)*1e-2;
-% spikes = [3,7,33,92,99]
+% spikes = [3,7,33,92,99];
 % x(spikes) = 1000;
 % bduration = 6;
 % v = 1:bduration:length(x)+bduration;
-% for k=1:length(v)-1;
-% bind{k} = [v(k),min(v(k+1)-1,length(x))];
-% end
+% for k=1:length(v)-1; bind{k} = [v(k),min(v(k+1)-1,length(x))]; end
 % [dspikes] = imosSpikeClassifierBurstHampel(bind,x);
 % assert(isequal(dspikes,spikes));
 % % equal to Hampel
@@ -38,12 +36,18 @@ function [spikes] = imosSpikeClassifierBurstHampel(bindexes, signal, use_burst_w
 % assert(isequal(dspikes,spikes));
 % assert(isequal(dspikes,dspikes2));
 %
-% % detecting entire burst as spike
+% % by ignoring the burst nature, we need to be aware
+% % that entire bursts as spike will be missing.
+%
 % x = randn(1,100)*1e-2;
-% fullburst_spiked = [3,7,13,14,15,16,17,18,33,92,99]
+% fullburst_spiked = [3,7,13,14,15,16,17,18,33,92,99];
 % x(fullburst_spiked) = 1000;
-% [dspikes] = imosSpikeClassifierBurstHampel(bind,x);
+% half_window_width = 1; % 3 point window
+% madfactor = mad([1000,0,0]); %pick only big spikes. 
+% [dspikes] = imosSpikeClassifierBurstHampel(bind,x,false,1,madfactor);
 % assert(isequal(dspikes,[3,7,33,92,99]));
+%
+% %considering the burst nature of sampling fix this
 % [dspikes2] = imosSpikeClassifierBurstHampel(bind,x,true,2);
 % assert(isequal(dspikes2,fullburst_spiked))
 %

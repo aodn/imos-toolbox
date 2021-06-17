@@ -5,10 +5,10 @@ function updateMappings(fname, name, value)
 % preserving the previous state of the file,
 % including comments.
 %
-% A mapping/property file is a text file with the 
+% A mapping/property file is a text file with the
 % the first column of the file is a key,
 % the second column is a value.
-% 
+%
 % The function will fail if the property can't be found.
 %
 %
@@ -23,7 +23,7 @@ function updateMappings(fname, name, value)
 %
 % Example:
 %
-% file = [toolboxRootPath 'test_updateMappings'];
+% file = [toolboxRootPath 'tmp/test_updateMappings'];
 % nf = fopen(file,'w');
 % fprintf(nf,'%s\n','%1st line is a comment');
 % fprintf(nf,'%s\n','zero = a');

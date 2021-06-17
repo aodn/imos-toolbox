@@ -151,11 +151,13 @@ function [e] = chla_inputs(varargin)
 %
 fullpath = @fullfile;
 
-e.root_folder = toolboxRootPath();    
+exclude_extensions = {'.pqc','.mqc','.ppp'};
+find_valid_test_files = @(x)(FilesInFolder(x,exclude_extensions));
+
+e.root_folder = toolboxRootPath();
 e.ecot_folder = fullpath(e.root_folder, 'data/testfiles/ECOTriplet/v000/');
 
-ecot_v000 = FilesInFolder(e.ecot_folder);
-
+ecot_v000 = find_valid_test_files(e.ecot_folder);
 c = 0;
 for k = 1:length(ecot_v000)
 
@@ -168,50 +170,50 @@ end
 e.ecot_v000_param = files2namestruct(e.ecot_v000_files);
 
 e.jfe_folder = fullpath(e.root_folder, 'data/testfiles/JFE/v000/');
-e.jfe_v000_files = FilesInFolder(e.jfe_folder);
+e.jfe_v000_files = find_valid_test_files(e.jfe_folder);
 e.jfe_v000_param = files2namestruct(e.jfe_v000_files);
 
 e.solo_folder = fullpath(e.root_folder, 'data/testfiles/RBR/solo/v000/');
-e.solo_v000_files = FilesInFolder(e.solo_folder);
+e.solo_v000_files = find_valid_test_files(e.solo_folder);
 e.solo_v000_param = files2namestruct(e.solo_v000_files);
 % e.tr1060_folder = fullpath(e.root_folder, 'data/testfiles/RBR/TR-1060/v000/');
-% e.tr1060_v000_files = FilesInFolder(e.tr1060_folder);
+% e.tr1060_v000_files = find_valid_test_files(e.tr1060_folder);
 % e.tr1060_v000_param = files2namestruct(e.tr1060_v000_files);
 
 e.tdr2050_folder = fullpath(e.root_folder, 'data/testfiles/RBR/TDR-2050/v000/');
-e.tdr2050_v000_files = FilesInFolder(e.tdr2050_folder);
+e.tdr2050_v000_files = find_valid_test_files(e.tdr2050_folder);
 e.tdr2050_v000_param = files2namestruct(e.tdr2050_v000_files);
 
 e.twr2050_folder = fullpath(e.root_folder, 'data/testfiles/RBR/TWR-2050/v000/');
-e.twr2050_v000_files = FilesInFolder(e.twr2050_folder);
+e.twr2050_v000_files = find_valid_test_files(e.twr2050_folder);
 e.twr2050_v000_param = files2namestruct(e.twr2050_v000_files);
 
 e.xr420_folder = fullpath(e.root_folder, 'data/testfiles/RBR/XR420/v000/');
-e.xr420_v000_files = FilesInFolder(e.xr420_folder);
+e.xr420_v000_files = find_valid_test_files(e.xr420_folder);
 e.xr420_v000_param = files2namestruct(e.xr420_v000_files);
 
 e.xr620_folder = fullpath(e.root_folder, 'data/testfiles/RBR/XR620/v000/');
-e.xr620_v000_files = FilesInFolder(e.xr620_folder);
+e.xr620_v000_files = find_valid_test_files(e.xr620_folder);
 e.xr620_v000_param = files2namestruct(e.xr620_v000_files);
 
 e.sbe19p_folder = fullpath(e.root_folder, 'data/testfiles/Sea_Bird_Scientific/SBE/19plus/v000/');
-e.sbe19p_v000_files = FilesInFolder(e.sbe19p_folder);
+e.sbe19p_v000_files = find_valid_test_files(e.sbe19p_folder);
 e.sbe19p_v000_param = files2namestruct(e.sbe19p_v000_files);
 
 e.sbe25p_folder = fullpath(e.root_folder, 'data/testfiles/Sea_Bird_Scientific/SBE/25plus/v000/');
-e.sbe25p_v000_files = FilesInFolder(e.sbe25p_folder);
+e.sbe25p_v000_files = find_valid_test_files(e.sbe25p_folder);
 e.sbe25p_v000_param = files2namestruct(e.sbe25p_v000_files);
 
 e.sbe9p_folder = fullpath(e.root_folder, 'data/testfiles/Sea_Bird_Scientific/SBE/9plus/v000/');
-e.sbe9p_v000_files = FilesInFolder(e.sbe9p_folder);
+e.sbe9p_v000_files = find_valid_test_files(e.sbe9p_folder);
 e.sbe9p_v000_param = files2namestruct(e.sbe9p_v000_files);
 
 e.wqmraw_folder = fullpath(e.root_folder, 'data/testfiles/Sea_Bird_Scientific/WQM/RAW/v000/');
-e.wqmraw_v000_files = FilesInFolder(e.wqmraw_folder);
+e.wqmraw_v000_files = find_valid_test_files(e.wqmraw_folder);
 e.wqmraw_v000_param = files2namestruct(e.wqmraw_v000_files);
 
 e.wqmdat_folder = fullpath(e.root_folder, 'data/testfiles/Sea_Bird_Scientific/WQM/DAT/v000/');
-e.wqmdat_v000_files = FilesInFolder(e.wqmdat_folder);
+e.wqmdat_v000_files = find_valid_test_files(e.wqmdat_folder);
 e.wqmdat_v000_param = files2namestruct(e.wqmdat_v000_files);
 end
 

@@ -26,7 +26,7 @@ function [sample_data, sdata] = StaroddiParser(filename, mode)
 %
 % Example:
 %
-% idata = StaroddiParser({'0-4T3769.DAT'},'timeSeries');
+% %see test/Parser/testStaroddi.m
 %
 % author: hugo.oliveira@utas.edu.au
 %

@@ -16,7 +16,7 @@ function [delimiter] = detectMappingDelimiter(fname)
 % %basic usage
 % comma_file = [toolboxRootPath 'GUI/instrumentAliases.txt'];
 % assert(isequal(detectMappingDelimiter(comma_file),','))
-% equal_file = [toolboxRootPath 'AutomaticQC/imosEchoIntensityQC.txt'];
+% equal_file = [toolboxRootPath 'AutomaticQC/imosEchoIntensitySetQC.txt'];
 % assert(isequal(detectMappingDelimiter(equal_file),'='))
 %
 %
@@ -38,7 +38,7 @@ try
 catch
 end
 
-try 
+try
 	equal_opts = readMappings(fname,'=');
 	equal_ok = true;
 catch
@@ -53,7 +53,7 @@ if comma_ok && equal_ok
 	return
 elseif comma_ok
 	delimiter = ',';
-elseif equal_ok 
+elseif equal_ok
 	delimiter = '=';
 end
 

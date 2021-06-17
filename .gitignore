@@ -1,4 +1,6 @@
 *.ppp
+*.mqc
+*.pqc
 .mypy_cache/*
 Java/bin
 *.pyc
@@ -8,3 +10,10 @@ data
 dist
 data/*
 dist/*
+Geomag/sample_coords.txt
+Geomag/sample_out_IGRF13.txt
+.python-version
+.standalone_canonical_version
+.build.py@*
+*.nc
+tmp/test_*

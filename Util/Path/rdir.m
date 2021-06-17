@@ -17,7 +17,7 @@ function [files, folders] = rdir(path)
 %
 % %simple test with nest folders
 % [allfiles,allfolders] = rdir([toolboxRootPath 'Java']);
-% assert(sum(contains(allfolders,'Java/bin'))==4)
+% assert(sum(contains(allfolders,['Java' filesep 'src' filesep 'org']))==3)
 % assert(sum(contains(allfiles,'ddb.jar'))==1)
 %
 % author: hugo.oliveira@utas.edu.au

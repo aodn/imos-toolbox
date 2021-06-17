@@ -1,8 +1,13 @@
 classdef test_spikePreview < matlab.unittest.TestCase
 
+    properties (TestParameter)
+        interactive = {ismember('interactive_tests',who('global'))};
+    end
+
     methods (Test)
 
-        function test_abort_is_empty(~)
+        function test_abort_is_empty(testCase,interactive)
+            testCase.assumeTrue(interactive,'Interactive test skipped')
             [postqc_data] = gen_postqc_data;
             spikeqc = struct();
             spikeqc.fun = @imosSpikeClassifierOTSU;
@@ -14,7 +19,8 @@ classdef test_spikePreview < matlab.unittest.TestCase
             assert(isempty(fieldnames(z.UserData)))
         end
 
-        function test_otsu_threshold(~)
+        function test_otsu_threshold(testCase,interactive)
+            testCase.assumeTrue(interactive,'Interactive test skipped')
             [postqc_data] = gen_postqc_data;
             spikeqc = struct();
             spikeqc.fun = @imosSpikeClassifierOTSU;
@@ -26,7 +32,8 @@ classdef test_spikePreview < matlab.unittest.TestCase
             assert(isequal(z.UserData.args, {50, 0.8, 1}));
         end
 
-        function test_otsu_savgol(~)
+        function test_otsu_savgol(testCase,interactive)
+            testCase.assumeTrue(interactive,'Interactive test skipped')
             [postqc_data] = gen_postqc_data();
             spikeqc = struct();
             spikeqc.fun = @imosSpikeClassifierNonBurstSavGolOTSU;
@@ -38,7 +45,8 @@ classdef test_spikePreview < matlab.unittest.TestCase
             assert(isequal(z.UserData.args, {int64(10), 3, int64(3), 0.2}));
         end
 
-        function test_hampel(~)
+        function test_hampel(testCase,interactive)
+            testCase.assumeTrue(interactive,'Interactive test skipped')
             [postqc_data] = gen_postqc_data();
             spikeqc = struct();
             spikeqc.fun = @imosSpikeClassifierHampel;
@@ -50,7 +58,8 @@ classdef test_spikePreview < matlab.unittest.TestCase
             assert(isequal(z.UserData.args, {2, 1, 0.01}));
         end
 
-        function test_burst_hampel(~)
+        function test_burst_hampel(testCase,interactive)
+            testCase.assumeTrue(interactive,'Interactive test skipped')
             [postqc_data] = gen_burst_data();
             spikeqc = struct();
             spikeqc.fun = @imosSpikeClassifierBurstHampel;
@@ -62,7 +71,8 @@ classdef test_spikePreview < matlab.unittest.TestCase
             assert(isequal(z.UserData.args, {1, 1, 3, 0.01, 0}));
         end
 
-        function test_burst_runningstats(~)
+        function test_burst_runningstats(testCase,interactive)
+            testCase.assumeTrue(interactive,'Interactive test skipped')
             [postqc_data] = gen_burst_data();
             spikeqc = struct();
             spikeqc.fun = @imosSpikeClassifierBurstRunningStats;
@@ -124,5 +134,5 @@ end
 
 function [postqc_data] = gen_burst_data()
 [bind, time, tsignal] = gen_burst_signal();
-postqc_data = struct('name', 'TEMP', 'data', tsignal, 'time', time,'l',1,'r',length(tsignal),'valid_burst_range',{bind}); 
+postqc_data = struct('name', 'TEMP', 'data', tsignal, 'time', time,'l',1,'r',length(tsignal),'valid_burst_range',{bind});
 end

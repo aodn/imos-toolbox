@@ -8,7 +8,7 @@ classdef testSBE19Parse < matlab.unittest.TestCase
 
     properties (TestParameter)
         mode = {'timeSeries'};
-        wqm_file = files2namestruct(rdir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE']));
+        wqm_file = files2namestruct(filter_extensions(rdir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE']),{'.pqc','.mqc','.ppp'}));
         beam_transmission_file = prepend_dir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE/19plus/v000'], {'YON20200306CFALDB_with_PAR_and_battery.cnv'});
         strain_pres_file = prepend_dir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE/19plus/v000'], {'SBE19plus_parser1.cnv', 'YON20200306CFALDB_with_PAR_and_battery.cnv', 'chla_aquaT3_as_aquaUV.cnv'});
         par_file = prepend_dir([toolboxRootPath 'data/testfiles/Sea_Bird_Scientific/SBE/19plus/v000'], {'SBE19plus_parser1.cnv', 'YON20200306CFALDB_with_PAR_and_battery.cnv', 'chla_aquaT3_as_aquaUV.cnv'});

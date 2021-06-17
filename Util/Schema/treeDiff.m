@@ -223,7 +223,7 @@ function [isdiff, finalmsg] = treeDiff(a, b, stopfirst, func, this_root, n),
             msg{end + 1} = compose(this_root, [': Content mismatch - evaluation of `' func2str(func) '( arg1' strtrim(asinput) ', arg2' strtrim(asinput) ')`'' failed\n']);
         else
             disp(asinput)
-            msg{end + 1} = compose(this_root, [': Content mismatch - evaluation of `' func2str(func) '( a' strtrim(asinput) ', b' strtrim(asinput) ')`'' failed\n']);
+            msg{end + 1} = compose(this_root, [': Content mismatch - evaluation of `' func2str(func) '( a[' type_a ']' strtrim(asinput) ', b[' type_b ']' strtrim(asinput) ')`'' failed\n']);
         end
 
         finalmsg = compose(this_root, gather(msg, stopfirst));
@@ -425,8 +425,7 @@ function [msg] = len_within_mismatch(len_within_a, len_within_b),
         b_len_within_larger = len_within_b{k} > len_within_a{k};
 
         if a_len_within_larger || b_len_within_larger,
-            msg = [': Length of entries mismatch - expected ' num2str(len_within_a{k}) ' got ' num2str(len_within_b{k}) '\n'];
-            return;
+            msg = [': Length of entries mismatch at cellindex/fieldname n=' num2str(k) '. Expected ' num2str(len_within_a{k}) ' got ' num2str(len_within_b{k}) '\n'];            return;
         end
 
     end

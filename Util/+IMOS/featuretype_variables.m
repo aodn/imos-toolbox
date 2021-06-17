@@ -40,17 +40,17 @@ switch ft
         ts_names = {'TIMESERIES', 'LATITUDE', 'LONGITUDE', 'NOMINAL_DEPTH'};
         ts_types = cellfun(@getIMOSType, ts_names, 'UniformOutput', false);
         ts_data = {1, NaN, NaN, NaN};
-        variables = IMOS.gen_variables(IMOS.gen_dimensions(ft), ts_names, ts_types, ts_data, 'comments', '');
+        variables = IMOS.gen_variables(IMOS.gen_dimensions(ft), ts_names, ts_types, ts_data, 'comment', '');
     case 'ad_profile'
         p_names = {'TIME', 'DIRECTION', 'LATITUDE', 'LONGITUDE', 'BOT_DEPTH'};
         p_types = cellfun(@getIMOSType, p_names, 'UniformOutput', false);
         p_data = {NaN, {'A', 'D'}, [NaN NaN], [NaN NaN], [NaN NaN]};
-        variables = IMOS.gen_variables(IMOS.gen_dimensions(ft), p_names, p_types, p_data, 'comments', '');
+        variables = IMOS.gen_variables(IMOS.gen_dimensions(ft), p_names, p_types, p_data, 'comment', '');
     case 'profile'
         p_names = {'PROFILE', 'TIME', 'DIRECTION', 'LATITUDE', 'LONGITUDE', 'BOT_DEPTH'};
         p_types = cellfun(@getIMOSType, p_names, 'UniformOutput', false);
         p_data = {1, NaN, {'D'}, NaN, NaN, NaN};
-        variables = IMOS.gen_variables(IMOS.gen_dimensions(ft), p_names, p_types, p_data, 'comments', '');
+        variables = IMOS.gen_variables(IMOS.gen_dimensions(ft), p_names, p_types, p_data, 'comment', '');
     otherwise
         warnmsg('FeatureType `%s` is not available.',featureType);
         variables = {};

@@ -26,7 +26,7 @@ function [spikes] = imosSpikeClassifierNonBurstSavGolOTSU(signal, window, pdeg, 
 % signal = 10*sin(omega*t);
 % signal([20]) = max(signal).^3;
 % [spikes] = imosSpikeClassifierNonBurstSavGolOTSU(signal,5,2,100,5);
-% assert(spikes,20)
+% assert(spikes==20)
 %
 % author: Unknown
 % author: Ken Ridgway

@@ -102,7 +102,13 @@ function sample_data = workhorseParse( filename, ~)
     vaddr = imap.(vname);
     ogroup = vaddr{1};
     ovar = vaddr{2};
-    imported.(vname) = ensembles.(ogroup).(ovar);
+    try
+      imported.(vname) = ensembles.(ogroup).(ovar);
+    catch
+      %raise a nice error msg in case the ensembles functionality is changed 
+      % and we didn't update the import maps, or the import mapping is outdated.
+      errormsg('Trying to associate vname=%s with associated with ogroup=%s and ovar=%s failed!',vname,ogroup,ovar)
+    end
     ensembles.(ogroup) = rmfield(ensembles.(ogroup),ovar);
   end
 
@@ -196,7 +202,11 @@ function sample_data = workhorseParse( filename, ~)
       vars2d_vel = cell(1,numel(all_vel_vars));
       for k=1:numel(all_vel_vars)
         vname = all_vel_vars{k};
-        vars2d_vel{k} = struct('name',vname,'typeCastFunc',IMOS.resolve.imos_type(vname),'dimensions',earth_dims,'data',imported.(vname),'coordinates',coords2d_vel);
+        %force conversion for backward compatibility - this incur in at least 4 type-conversion from original data to netcdf - madness!
+        typecast_func = IMOS.resolve.imos_type(vname);
+        type_converted_var = typecast_func(imported.(vname));
+        imported = rmfield(imported,vname);
+        vars2d_vel{k} = struct('name',vname,'typeCastFunc',typecast_func,'dimensions',earth_dims,'data',type_converted_var,'coordinates',coords2d_vel);
       end          
     otherwise 
          errormsg('Frame of reference `%s` not supported',meta.adcp_info.coords.frame_of_reference)
@@ -266,7 +276,7 @@ function sample_data = workhorseParse( filename, ~)
       dims = {
           'TIME',                   waveData.param.time,    ['Time stamp corresponds to the start of the measurement which lasts ' num2str(avgInterval) ' seconds.']; ...
           'FREQUENCY',              waveData.Dspec.freq,    ''; ...
-          ['DIR' magExt],           waveData.Dspec.dir,     ''
+          ['DIR' magdec_name_extension],           waveData.Dspec.dir,     ''
           };
 
       nDims = size(dims, 1);
@@ -277,7 +287,7 @@ function sample_data = workhorseParse( filename, ~)
           sample_data{2}.dimensions{i}.data         = sample_data{2}.dimensions{i}.typeCastFunc(dims{i, 2});
           if strcmpi(dims{i, 1}, 'DIR')
               sample_data{2}.dimensions{i}.compass_correction_applied = meta.compass_correction_applied;
-              sample_data{2}.dimensions{i}.comment  = magdec_name_comment;
+              sample_data{2}.dimensions{i}.comment  = magdec_attrs.comment;
           end
       end
       clear dims;
@@ -293,13 +303,13 @@ function sample_data = workhorseParse( filename, ~)
           'NOMINAL_DEPTH',  [],         NaN; ...
           'WSSH',           1,          waveData.param.Hs; ...   % Significant Wave Height Hs = 4 sqrt(M0)
           'WPPE',           1,          waveData.param.Tp; ...   % Peak Wave Period (seconds) - period associated with the largest peak in the power spectrum
-          ['WPDI' magExt],  1,          waveData.param.Dp; ...   % Peak Wave Direction (degrees) - peak direction at the peak period
+          ['WPDI' magdec_name_extension],  1,          waveData.param.Dp; ...   % Peak Wave Direction (degrees) - peak direction at the peak period
           'WWSH',           1,          waveData.param.Hs_W; ... % Significant Wave Height in the sea region of the power spectrum
           'WWPP',           1,          waveData.param.Tp_W; ... % Peak Sea Wave Period (seconds) - period associated with the largest peak in the sea region of the power spectrum
-          ['WWPD' magExt],  1,          waveData.param.Dp_W; ... % Peak Sea Wave Direction (degrees) - peak sea direction at the peak period in the sea region
+          ['WWPD' magdec_name_extension],  1,          waveData.param.Dp_W; ... % Peak Sea Wave Direction (degrees) - peak sea direction at the peak period in the sea region
           'SWSH',           1,          waveData.param.Hs_S; ... % Significant Wave Height in the swell region of the power spectrum
           'SWPP',           1,          waveData.param.Tp_S; ... % Peak Swell Wave Period (seconds) - period associated with the largest peak in the swell region of the power spectrum
-          ['SWPD' magExt],  1,          waveData.param.Dp_S; ... % Peak Swell Wave Direction (degrees) - peak swell direction at the peak period in the swell region
+          ['SWPD' magdec_name_extension],  1,          waveData.param.Dp_S; ... % Peak Swell Wave Direction (degrees) - peak swell direction at the peak period in the swell region
           % ht is in mm
           'DEPTH',          1,          waveData.param.ht/1000; ...
           'WMXH',           1,          waveData.param.Hmax; ...  % Maximum wave height (meters) as determined by Zero-Crossing analysis of the surface track time series
@@ -310,13 +320,13 @@ function sample_data = workhorseParse( filename, ~)
           'WPMH',           1,          waveData.param.Tmn; ...   % The period associated with the mean significant wave height of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
           'WHTE',           1,          waveData.param.Hte; ...   % Significant wave height of the largest 1/10 of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
           'WPTE',           1,          waveData.param.Tte; ...   % The period associated with the peak wave height of the largest 1/10 of the waves in the field as determined by Zero-Crossing analysis of the surface track time series
-          ['VDIR' magExt],  1,          waveData.param.Dmn; ...   % Mean Peak Wave Direction
+          ['VDIR' magdec_name_extension],  1,          waveData.param.Dmn; ...   % Mean Peak Wave Direction
           % Vspec is in mm/sqrt(Hz)
           'VDEV',           [1 2],      (waveData.Vspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_velocity
           'VDEP',           [1 2],      (waveData.Pspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_pressure
           'VDES',           [1 2],      (waveData.Sspec.data/1000).^2; ... % sea_surface_wave_variance_spectral_density_from_range_to_surface
           % Dspec is in mm^2/Hz/deg
-          ['SSWV' magExt],  [1 2 3],    waveData.Dspec.data/1000.^2 % sea_surface_wave_directional_variance_spectral_density
+          ['SSWV' magdec_name_extension],  [1 2 3],    waveData.Dspec.data/1000.^2 % sea_surface_wave_directional_variance_spectral_density
           };
       clear waveData;
 
@@ -336,7 +346,7 @@ function sample_data = workhorseParse( filename, ~)
           sample_data{2}.variables{i}.data         = sample_data{2}.variables{i}.typeCastFunc(vars{i, 3});
           if any(strcmpi(vars{i, 1}, {'WPDI', 'WWPD', 'SWPD', 'VDIR', 'SSWV'}))
               sample_data{2}.variables{i}.compass_correction_applied = meta.compass_correction_applied;
-              sample_data{2}.variables{i}.comment  = magdec_name_comment;
+              sample_data{2}.variables{i}.comment  = magdec_attrs.comment;
           end
       end
       clear vars;
