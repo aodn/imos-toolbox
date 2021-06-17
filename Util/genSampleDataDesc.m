@@ -74,7 +74,11 @@ timeRange = ['from ' datestr(time_coverage_start, timeFmt) ' to ' ...
     datestr(time_coverage_end,   timeFmt)];
 
 try
-    filename = sam.toolbox_input_file;
+    if isfield(sam, 'toolbox_input_file')
+        filename = sam.toolbox_input_file;
+    else
+        filename = sam.meta.raw_data_file;
+    end
 catch
     filename = 'Unknown';
 end

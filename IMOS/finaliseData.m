@@ -50,11 +50,11 @@ function sam = finaliseData(sam, rawFiles, flagVal, toolboxVersion)
   mode = readProperty('toolbox.mode');
   
   % turn raw data files a into semicolon separated string
-  rawFiles = cellfun(@(x)([x ';']), rawFiles, 'UniformOutput', false);
+  rawFiles = strjoin(rawFiles, ';');
   
   sam.meta.log           = {};
   sam.meta.QCres         = {};
-  sam.meta.raw_data_file = [rawFiles{:}];
+  sam.meta.raw_data_file = rawFiles;
   
   if isfield(sam.meta, 'site')
       if ~isempty(fieldnames(sam.meta.site)), sam.meta.site_name = sam.meta.site.SiteName; end
