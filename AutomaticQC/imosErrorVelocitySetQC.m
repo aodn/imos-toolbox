@@ -98,7 +98,7 @@ flags = ones(sizeCur, 'int8')*rawFlag;
 iNaNerv = isnan(erv);
 % Run QC NEED TO edit this as it should be the mean +/- the threshold.
 ervm = nanmean(erv(:));
-iPass = erv >= ervm - err_vel | erv <= ervm + err_vel;
+iPass = erv >= ervm - err_vel & erv <= ervm + err_vel;
 iPass(iNaNerv) = true;
 
 iFail = ~iPass;
