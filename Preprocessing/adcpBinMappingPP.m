@@ -62,7 +62,7 @@ for k = 1:length(sample_data)
         end
 
     end
-
+    
     % We apply tilt corrections to project DIST_ALONG_BEAMS onto the vertical
     % axis HEIGHT_ABOVE_SENSOR.
     %
@@ -80,16 +80,25 @@ for k = 1:length(sample_data)
     % each other. When pitch is positive beam 1 is closer to the surface
     % while beams 2 and 3 get further away. When roll is positive beam 3 is
     % closer to the surface while beam 2 gets further away.
-    %
+    
+    isUpwardLooking = true;
+    
     distAlongBeams = sample_data{k}.dimensions{distAlongBeamsIdx}.data';
     if all(diff(distAlongBeams)<0)
         %invert distAlongBeams so we have increasing values
         % this is required for the interpolation function.
         distAlongBeams = distAlongBeams*-1;
+        isUpwardLooking = false;
     end
+    
     pitch = sample_data{k}.variables{pitchIdx}.data * pi / 180;
     roll = sample_data{k}.variables{rollIdx}.data * pi / 180;
     beamAngle = sample_data{k}.meta.beam_angle * pi / 180;
+
+    %adjust pitch
+    info = sample_data{k}.meta.adcp_info;
+    pitch_bit = info.sensors_settings.Pitch;
+    pitch = TeledyneADCP.gimbal_pitch(pitch,roll, pitch_bit);
     
     % Signs for upward and downfacing instruments
     if ~isUpwardLooking %for down facing adcps
