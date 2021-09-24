@@ -91,6 +91,11 @@ for k = 1:length(sample_data)
     roll = sample_data{k}.variables{rollIdx}.data * pi / 180;
     beamAngle = sample_data{k}.meta.beam_angle * pi / 180;
 
+    %adjust pitch
+    info = sample_data{k}.meta.adcp_info;
+    pitch_bit = info.sensors_settings.Pitch;
+    pitch = TeledyneADCP.gimbal_pitch(pitch,roll, pitch_bit);
+
     %TODO: the adjusted distances should be exported
     % as variables to enable further diagnostic plots and debugging.
     %TODO: the adjusted distances should be a Nx4 array or Nx3 array.
