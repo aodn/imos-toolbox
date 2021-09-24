@@ -90,6 +90,13 @@ for k = 1:length(sample_data)
     pitch = sample_data{k}.variables{pitchIdx}.data * pi / 180;
     roll = sample_data{k}.variables{rollIdx}.data * pi / 180;
     beamAngle = sample_data{k}.meta.beam_angle * pi / 180;
+    
+    % Signs for upward and downfacing instruments
+    if ~isUpwardLooking %for down facing adcps
+        sg1 = 1; sg3 = 1;
+    else %for up looking
+        sg1 = 1; sg3 = -1;
+    end
 
     %TODO: the adjusted distances should be exported
     % as variables to enable further diagnostic plots and debugging.
@@ -99,13 +106,13 @@ for k = 1:length(sample_data)
         %TODO: block function.
         CP = cos(pitch);
         % H[TxB] = P[T] x (+-R[T] x B[B])
-        nonMappedHeightAboveSensorBeam1 = CP .* (cos(beamAngle + roll) / cos(beamAngle) .* distAlongBeams);
-        nonMappedHeightAboveSensorBeam2 = CP .* (cos(beamAngle - roll) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam1 = CP .* (cos(beamAngle + sg1*roll) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam2 = CP .* (cos(beamAngle - sg1*roll) / cos(beamAngle) .* distAlongBeams);
 
         % H[TxB] = R[T] x (-+P[T] x B[B])
         CR = cos(roll);
-        nonMappedHeightAboveSensorBeam3 = CR .* (cos(beamAngle - pitch) / cos(beamAngle) .* distAlongBeams);
-        nonMappedHeightAboveSensorBeam4 = CR .* (cos(beamAngle + pitch) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam3 = CR .* (cos(beamAngle + sg3*pitch) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam4 = CR .* (cos(beamAngle - sg3*pitch) / cos(beamAngle) .* distAlongBeams);
     else
         number_of_beams = 3;
         nBins = length(distAlongBeams);
