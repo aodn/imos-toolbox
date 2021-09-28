@@ -152,6 +152,7 @@ for k = 1:length(sample_data)
     % % need to re-sort the bad_ea matrix back to match beam order:
     [~,be_sorted] = sort3d(bad_ea,1,Ix);
     
+    
     % % %very slow option
     % be = bad_ea;
     % for a = 1:t
@@ -162,7 +163,7 @@ for k = 1:length(sample_data)
     % end
     
     % Keep the flags for each velocity parameter (beam)
-    flags = bad_ea;
+    flags = be_sorted;
     flags(flags == 1) = badFlag;
     flags(flags == 0) = goodFlag;
     
