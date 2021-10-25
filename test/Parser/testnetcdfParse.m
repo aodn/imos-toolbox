@@ -2,7 +2,7 @@ classdef testnetcdfParse < matlab.unittest.TestCase
 
     properties (TestParameter)
         anmn_file = files2namestruct(only_netcdf(rdir([toolboxRootPath 'data/testfiles/aodn/ANMN'])))
-        abos_file = files2namestruct(only_netcdf(rdir([toolboxRootPath 'data/testfiles/aodn/ABOS'])))
+        dwm_file = files2namestruct(only_netcdf(rdir([toolboxRootPath 'data/testfiles/aodn/DWM'])))
         meta_fields = {'level', 'file_name', 'site_id', 'survey', 'station', 'instrument_make', 'insturment_model', 'instrument_serial_no', 'instrument_sample_interval', 'instrument_burst_duration', 'instrument_burst_interval', 'featureType'}
     end
 
@@ -15,8 +15,8 @@ classdef testnetcdfParse < matlab.unittest.TestCase
             assert_burst_sampling(data);
         end
 
-        function test_no_error_reading_abos(~, abos_file)
-            data = netcdfParse({abos_file}, '');
+        function test_no_error_reading_dwm(~, dwm_file)
+            data = netcdfParse({dwm_file}, '');
             assert_metadata(data);
             assert_instrument_sample_interval(data);
             assert_burst_sampling(data);
