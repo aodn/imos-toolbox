@@ -1,4 +1,4 @@
-function sample_data_averaged=adcpWorkhorseRDIensembleAveragingPP(sample_data, qcLevel, ~)
+function sample_data=adcpWorkhorseRDIensembleAveragingPP(sample_data, qcLevel, ~)
 % function sample_data_averaged=adcpWorkhorseRDIensembleAveragingPP(sample_data, qcLevel, ~)
 % Uses a moving average to smooth the data, then interpolates to new time
 % grid
@@ -142,6 +142,10 @@ for k = 1:length(sample_data)
             num2str(sample_data_averaged{k}.dimensions{1}.seconds_to_middle_of_measurement)];
         sample_data_averaged{k}.dimensions{1}.seconds_to_middle_of_measurement = 0;
     end
+    
+    %assign sample_data_averaged back to sample_data
+    sample_data{k} = sample_data_averaged{k};
+    
     % write/update dataset QC parameters
     writeDatasetParameter(sample_data{k}.toolbox_input_file, currentQCtest, 'binIntPP', binInt);
     binavecomment = ['adcpWorkhorseRDIbinAveragingPP.m: Ensemble averaging to ' num2str(binInt) 'seconds preprocessing applied.'];
