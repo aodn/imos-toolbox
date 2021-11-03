@@ -21,7 +21,12 @@ function dimensions = gen_dimensions(mode, ndims, d_names, d_types, d_datac, var
 %
 %  d_datac [cell{any}] - dimension data. Ditto as in d_names.
 %
-%  varargin - extra parameters are cast to all structure fieldnames.
+%  varargin [char,cell{cell{str,any}}] - extra parameters to cast to the individual dimensions.
+%                                   - If extra arguments are string pairs - e.g. ...,'comment','abc' - 
+%                                     the pair will be cast to all dimensions equally.
+%                                   - If extra arguments is a cell , it is assumed that individual
+%                                     attributes are provided - sub-cells - with strings pairs and
+%                                     that empty entries or missing entries are ignored.
 %
 % Outputs:
 %
@@ -50,6 +55,21 @@ function dimensions = gen_dimensions(mode, ndims, d_names, d_types, d_datac, var
 % %raise error when same dimension name is used
 % try;IMOS.gen_dimensions('timeSeries',3,{'A','B','A'});catch;r=true;end;
 % assert(r);
+%
+% %cast cell attributes to all dimensions
+% dims = IMOS.gen_dimensions('timeSeries',2,{'A','B'},{},{},{'calendar','a','offset',10})
+% assert(isequal(dims{1}.calendar,'a'))
+% assert(isequal(dims{2}.calendar,'a'))
+% assert(isequal(dims{1}.offset,10))
+% assert(isequal(dims{2}.offset,10))
+%
+% %cast cell attributes to individual dimensions
+% dims = IMOS.gen_dimensions('timeSeries',3,{'A','B','C'},{},{},{{'calendar','a','offset',10},{'calendar','b','offset',20}});
+% assert(isequal(dims{1}.calendar,'a'))
+% assert(isequal(dims{2}.calendar,'b'))
+% assert(isequal(dims{1}.offset,10))
+% assert(isequal(dims{2}.offset,20))
+% assert(numel(fieldnames(dims{3}))==3) % name,typecast and data only.
 %
 %
 % author: hugo.oliveira@utas.edu.au
@@ -151,7 +171,6 @@ for k = 1:ndims
     if ~isnumeric(data)
         errormsg('%s dimension data is not numeric.', name)
     end
-
     if ~isempty(data) && ~isscalar(data)
 
         if isrow(data)
@@ -163,7 +182,28 @@ for k = 1:ndims
 
     end
 
-    dimensions{k} = struct('name', name, 'typeCastFunc', type, 'data', data, varargin{:});
+    %lovely varargin handling...
+    if isempty(varargin)
+        dimensions{k} = struct('name', name, 'typeCastFunc', type, 'data', data);
+    elseif ~iscell(varargin{1})
+        dimensions{k} = struct('name', name, 'typeCastFunc', type, 'data', data, varargin{:});
+    else
+        d_varargin = varargin{1}; 
+        if ~iscell(d_varargin{1})
+            dimensions{k} = struct('name',name,'typeCastFunc',type,'data',data,d_varargin{:});
+        else
+            try
+                d_varargin{k};
+            catch
+                dimensions{k} = struct('name', name, 'typeCastFunc', type, 'data', data);                   
+                continue
+            end        
+            try            
+                dimensions{k} = struct('name', name, 'typeCastFunc', type, 'data', data, d_varargin{k}{:});
+            catch                                   
+                dimensions{k} = struct('name', name, 'typeCastFunc', type, 'data', data);                               
+            end                    
+    end        
 end
 
 end
