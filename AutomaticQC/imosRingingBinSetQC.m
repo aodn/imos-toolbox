@@ -37,7 +37,7 @@ else
 end
 
 
-flag_vars = IMOS.adcp.echo_intensity_variables(sample_data);
+flag_vars = IMOS.adcp.current_variables(sample_data);
 qcSet = str2double(readProperty('toolbox.qc_set'));
 badFlag = imosQCFlag('bad', qcSet, 'flag');
 goodFlag = imosQCFlag('good', qcSet, 'flag');
