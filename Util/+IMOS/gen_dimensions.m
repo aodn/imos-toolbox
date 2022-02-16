@@ -6,7 +6,7 @@ function dimensions = gen_dimensions(mode, ndims, d_names, d_types, d_datac, var
 %
 % Inputs:
 %
-%  mode [str] - ['timeSeries','profile','adcp_raw','adcp_remapped'].
+%  mode [str] - ['timeSeries','profile','adcp'].
 %  If empty, 'timeSeries' is used.
 %
 %  ndims [int] - number of dimensions.
@@ -89,20 +89,10 @@ if got_any_name
 end
 
 if nargin < 2
-
-    if strcmpi(mode, 'timeSeries')
-        dimensions = IMOS.templates.dimensions.timeseries;
+    try
+        dimensions = IMOS.templates.dimensions.(mode);
         return
-    elseif strcmpi(mode, 'profile')
-        dimensions = IMOS.templates.dimensions.profile;
-        return
-    elseif strcmpi(mode, 'ad_profile')
-        dimensions = IMOS.templates.dimensions.ad_profile;
-        return
-    elseif strcmpi(mode, 'adcp')
-        dimensions = IMOS.templates.dimensions.adcp;
-        return
-    else
+    catch
         ndims = 1;
         d_names = randomNames();
         d_types = randomNumericTypefun();
