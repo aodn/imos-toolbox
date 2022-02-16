@@ -35,6 +35,13 @@ if ~ischar(imos_name)
 end
 
 params = IMOS.params();
+
+[is_numbered,base_name] = IMOS.resolve.is_numbered_var(imos_name);
+
+if is_numbered
+    imos_name = base_name;
+end
+
 [name_exist, name_ind] = inCell(params.name, imos_name);
 
 if ~name_exist
