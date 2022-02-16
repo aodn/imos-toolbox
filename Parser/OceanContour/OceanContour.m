@@ -96,7 +96,7 @@ classdef OceanContour
             if custom_magnetic_declination
                 %TODO: This is probably unecessary
                 %I believe OceanContourDouble-check if OceanContour will change variable names if custom magnetic declination is used.
-                warning('%s: Assigning non ENU Velocities to ENU variables. Verify the magnetic declination angles.')
+                dispmsg('%s: Assigning non ENU Velocities to ENU variables. Verify the magnetic declination angles.')
                 ucur_name = 'UCUR_MAG';
                 vcur_name = 'VCUR_MAG';
                 heading_name = 'HEADING_MAG';
@@ -138,11 +138,10 @@ classdef OceanContour
         function warning_failed(failed_items, filename)
             %just raise a proper warning for failed variable reads
             for k = 1:numel(failed_items)
-                warning('%s: Couldn''t read variable `%s` in %s', mfilename, failed_items{k}, filename)
+                dispmsg('%s: Couldn''t read variable `%s` in %s', mfilename, failed_items{k}, filename)
             end
 
         end
-
 
         function [attmap] = get_attmap(ftype, group_name)
             %function [attmap] = get_attmap(ftype, group_name)
@@ -189,9 +188,11 @@ classdef OceanContour
             attmap.('beam_angle') = 'DataInfo_slantAngles';
             attmap.('beam_interval') = 'DataInfo_slantAngles';
             attmap.('coordinate_system') = OceanContour.build_instrument_name(group_name, 'coordSystem');
+            attmap.('converted_to_enu') = 'DataInfo_transformsAndCorrections_addENU';            
             attmap.('nBeams') = OceanContour.build_instrument_name(group_name, 'nBeams');
             attmap.('activeBeams') = OceanContour.build_instrument_name(group_name, 'activeBeams'); %no previous name
             attmap.('magDec') = 'Instrument_user_decl';
+            attmap.('binMapping') = 'DataInfo_transformsAndCorrections_binMapping';            
 
             if strcmpi(ftype, 'mat')
                 attmap.('instrument_serial_no') = 'Instrument_serialNumberDoppler';
@@ -218,7 +219,7 @@ classdef OceanContour
 
         end
 
-        function [varmap] = get_varmap(ftype, group_name, nbeams, custom_magnetic_declination)
+        function [varmap] = get_varmap(ftype, group_name, nbeams, custom_magnetic_declination, binmapped)
             %function [varmap] = get_varmap(ftype, group_name,nbeams,custom_magnetic_declination)
             %
             % Generate dynamical variable mappings for a certain
@@ -258,18 +259,20 @@ classdef OceanContour
             %
             % author: hugo.oliveira@utas.edu.au
             %
-            narginchk(4, 4)
+            narginchk(5, 5)
 
             if ~ischar(ftype)
                 errormsg('First argument is not a string')
             elseif ~strcmpi(ftype, 'mat') && ~strcmpi(ftype, 'netcdf')
                 errormsg('First argument %s is an invalid ftype. Accepted file types are ''mat'' and ''netcdf''.', ftype)
             elseif ~ischar(group_name)
-                errormsg('First argument is not a string')
+                errormsg('Second argument is not a string')
             elseif ~isscalar(nbeams)
-                errormsg('Second argument is not a scalar')
+                errormsg('Third argument is not a scalar')
             elseif ~islogical(custom_magnetic_declination)
-                errormsg('Third argument is not logical')
+                errormsg('Fourth argument is not logical')
+            elseif ~islogical(binmapped)
+                errormsg('Fifth argument is not logical')
             end
 
             is_netcdf = strcmpi(ftype, 'netcdf');
@@ -278,33 +281,40 @@ classdef OceanContour
             varmap = struct();
             varmap.('binSize') = 'CellSize';
             varmap.('TIME') = 'MatlabTimeStamp';
+            
+            prefix = '';
+            if binmapped
+                prefix = 'BinMap';
+            end
 
             if is_netcdf
                 varmap.('instrument_serial_no') = 'SerialNumber';
                 %TODO: reinforce uppercase at first letter? nEed to see more files.
-                varmap.('HEIGHT_ABOVE_SENSOR') = [group_name 'VelocityENU_Range'];
+                varmap.('HEIGHT_ABOVE_SENSOR') = [prefix group_name 'VelocityENU_Range'];
                 %TODO: Handle magnetic & along beam cases.
                 %varmap.('DIST_ALONG_BEAMS') = [group_name 'Velocity???_Range'];
                 %TODO: evaluate if when magnetic declination is provided, the
-                %velocity fields will be corrected or not (as well as any rename/comments added).
-                varmap.(ucur_name) = 'Vel_East';
-                varmap.(vcur_name) = 'Vel_North';
+                %velocity fields will be corrected or not (as well as any rename/comments added).                
+                varmap.(ucur_name) = [prefix 'Vel_East'];
+                varmap.(vcur_name) = [prefix 'Vel_North'];
                 varmap.(heading_name) = 'Heading';
-                varmap.('WCUR') = 'Vel_Up1';
-                varmap.('ABSI1') = 'Amp_Beam1';
-                varmap.('ABSI2') = 'Amp_Beam2';
-                varmap.('ABSI3') = 'Amp_Beam3';
-                varmap.('CMAG1') = 'Cor_Beam1';
-                varmap.('CMAG2') = 'Cor_Beam2';
-                varmap.('CMAG3') = 'Cor_Beam3';
+                varmap.('WCUR') = [prefix 'Vel_Up1'];
+                varmap.('ABSI1') = [prefix 'Amp_Beam1'];
+                varmap.('ABSI2') = [prefix 'Amp_Beam2'];
+                varmap.('ABSI3') = [prefix 'Amp_Beam3'];
+                varmap.('CMAG1') = [prefix 'Cor_Beam1'];
+                varmap.('CMAG2') = [prefix 'Cor_Beam2'];
+                varmap.('CMAG3') = [prefix 'Cor_Beam3'];
 
                 if nbeams > 3
-                    varmap.('WCUR_2') = 'Vel_Up2';
-                    varmap.('ABSI4') = 'Amp_Beam4';
-                    varmap.('CMAG4') = 'Cor_Beam4';
+                    varmap.('WCUR_2') = [prefix 'Vel_Up2'];
+                    varmap.('ABSI4') = [prefix 'Amp_Beam4'];
+                    varmap.('CMAG4') = [prefix 'Cor_Beam4'];
                 end
 
-            else
+                else
+                %TODO: check if norteks also change the variable names
+                %when exporting to matlab.
                 %instrument_serial_no is on metadata for matfiles.
                 varmap.('HEIGHT_ABOVE_SENSOR') = 'Range';
                 varmap.(ucur_name) = 'VelEast';
@@ -335,8 +345,7 @@ classdef OceanContour
             varmap.('ERROR') = 'Error';
             varmap.('AMBIG_VEL') = 'Ambiguity';
             varmap.('TRANSMIT_E') = 'TransmitEnergy';
-            varmap.('NOMINAL_CORR') = 'NominalCor';
-
+            varmap.('NOMINAL_CORR') = 'NominalCor'; 
         end
 
         function [imap] = get_importmap(nbeams, custom_magnetic_declination)
@@ -539,10 +548,13 @@ classdef OceanContour
 
                 meta.magDec = get_att('magDec');
                 custom_magnetic_declination = logical(meta.magDec);
-
+                meta.binMapping = get_att('binMapping');
+                binmapped = logical(meta.binMapping);                                               
                 %Now that we know some preliminary info, we can load the variable
                 % name mappings and the list of variables to import.
-                var_mapping = OceanContour.get_varmap(ftype, group_name, nBeams, custom_magnetic_declination);
+                
+                
+                var_mapping = OceanContour.get_varmap(ftype, group_name, nBeams, custom_magnetic_declination,binmapped);
                 import_mapping = OceanContour.get_importmap(nBeams, custom_magnetic_declination);
 
                 %subset the global metadata fields to only the respective group.
@@ -556,7 +568,7 @@ classdef OceanContour
                     meta.dim_meta = data_metadata.(group_name).Dimensions;
                     meta.var_meta = data_metadata.(group_name).Variables;
                     gid = dataset_groups(k);
-                    get_var = @(x)(nc_get_var(gid, var_mapping.(x)));
+                    get_var = @(x)(nc_get_var(gid, var_mapping.(x)));                   
                 else
                     fname = getindex(dataset_groups, k);
                     get_var = @(x)(transpose(matdata.(fname).(var_mapping.(x))));
@@ -567,17 +579,24 @@ classdef OceanContour
                 meta.instrument_model = get_att('instrument_model');
 
                 if is_netcdf
-                    inst_serial_no = unique(get_var('instrument_serial_no'));
-                else
+                    inst_serial_numbers = get_var('instrument_serial_no');    
+                    if numel(unique(inst_serial_numbers)) > 1
+                        dispmsg('Multi instrument serial numbers found in %s. Assuming the most frequent is the right one...', filename)    
+                        inst_serial_no = mode(inst_serial_numbers);
+                    else
+                        inst_serial_no = inst_serial_numbers(1);
+                    end                                                                        
+                else                                        
                     %serial no is at metadata/Config level in the mat files.
-                    instr_serial_no = unique(get_att('instrument_serial_no'));
+                    inst_serial_numbers = get_att('instrument_serial_no');                    
+                    if numel(unique(inst_serial_numbers)) > 1
+                        dispmsg('Multi instrument serial numbers found in %s. Assuming the most frequent is the right one...', filename)    
+                        inst_serial_no = mode(inst_serial_numbers);
+                    else
+                        inst_serial_no = inst_serial_numbers(1);
+                    end                                                                        
                 end
-
-                try
-                    assert(numel(inst_serial_no) == 1)
-                catch
-                    errormsg('Multi instrument serial numbers found in %s.', filename)
-                end
+                                                        
                 meta.instrument_serial_no = num2str(inst_serial_no);
 
                 try
@@ -590,6 +609,7 @@ classdef OceanContour
                 default_beam_angle = OceanContour.beam_angles.(meta.instrument_model);
                 instrument_beam_angles = single(get_att('beam_angle'));
                 try
+                    %the attribute may contain 5 beams (e.g. wave).
                     dataset_beam_angles = instrument_beam_angles(1:meta.nBeams);
                     assert(isequal(unique(dataset_beam_angles), default_beam_angle))
                     %TODO: workaround for inconsistent beam_angles. need more files.
@@ -609,22 +629,27 @@ classdef OceanContour
                     actual_sample_interval = single(mode(diff(time)) * 86400.);
                     assert(isequal(meta.('instrument_sample_interval'), actual_sample_interval))
                 catch
-                    expected = meta.('instrument_sample_interval');
-                    got = actual_sample_interval;
-                    errormsg('Inconsistent instrument sampling interval in %s . Metadata is set to %d, while time variable indicates %d', filename, expected, got);
+                    expected = meta.('instrument_sample_interval');                    
+                    dispmsg('Inconsistent instrument sampling interval in %s . Metadata is set to %d, while time variable indicates %d. Using variable estimates...', filename, expected, actual_sample_interval);
+                    meta.('instrument_sample_interval') = actual_sample_interval;                    
                 end
 
-                meta.coordinate_system = get_att('coordinate_system');
-
-                try
-                    assert(strcmp(meta.coordinate_system, 'ENU'))
-                    %TODO: support other CS. need more files.
-                catch
-                    errormsg('Unsuported coordinates. %s contains non-ENU data.', filename)
+                coordinate_system = get_att('coordinate_system');
+                switch coordinate_system
+                    case 'XYZ'
+                        if logical(get_att('converted_to_enu'))
+                            meta.coordinate_system = 'ENU';
+                        else
+                            errormsg('Unsuported coordinates. %s contains non-ENU data.', filename)
+                        end                    
+                    case 'ENU'
+                        meta.coordinate_system = 'ENU';
+                        % OK                                                
+                    otherwise
+                        errormsg('Unsuported coordinates. %s contains non-ENU data.', filename)
                 end
-
-                z = get_var('HEIGHT_ABOVE_SENSOR');
-
+              
+                z = get_var('HEIGHT_ABOVE_SENSOR');              
                 try
                     assert(all(z > 0));
                 catch
@@ -632,19 +657,24 @@ classdef OceanContour
                     %TODO: plan any workaround for diff ranges. files!?
                 end
 
-                meta.binSize = unique(get_var('binSize'));
-
-                try
-                    assert(numel(meta.binSize) == 1)
-                catch
-                    errormsg('Nonuniform CellSizes in %s', mfilename, filename)
-                    %TODO: plan any workaround for nonuniform cells. need files.
-                end
+                binSize = get_var('binSize');                
+                if numel(unique(binSize)) > 1
+                    dispmsg('Inconsistent binSizes in %s. Assuming the most frequent is the right one...',filename)                    
+                    meta.binSize = mode(binSize);                    
+                else                    
+                    meta.binSize = binSize;
+                end                                   
 
                 meta.file_meta = file_metadata;
                 meta.dataset_meta = dataset_meta;
-
-                dimensions = IMOS.templates.dimensions.adcp_remapped;
+                                
+                switch meta.coordinate_system
+                    case 'ENU'                
+                        dimensions = IMOS.gen_dimensions('adcp_enu');                                                        
+                    otherwise                        
+                        dimensions = IMOS.gen_dimensions('adcp');
+                end
+                
                 dimensions{1}.data = time;
                 dimensions{1}.comment = 'time imported from matlabTimeStamp variable';
                 dimensions{2}.data = z;
@@ -691,7 +721,6 @@ classdef OceanContour
 
                 sample_data{k} = dataset;
             end
-
         end
 
     end
