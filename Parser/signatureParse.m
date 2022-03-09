@@ -62,6 +62,7 @@ switch lower(ext)
                 iA0_Header = structures.(acquisitionMode{iA0}).Data.String;
                 instrumentModel = read_header_key(iA0_Header,'ID','STR','string');
                 magDec = read_header_key(iA0_Header,'GETUSER','DECL','float');
+                Beam2xyz = TransferMatrix(iA0_Header);
                 structures = rmfield(structures, acquisitionMode{iA0});
                 acquisitionMode(iA0) = [];
             end
@@ -131,7 +132,9 @@ switch lower(ext)
                         data.(acquisitionMode{i}).Velocity_E      = squeeze(velocity(1,:,:))'.*velocityScaling; % m/s
                         data.(acquisitionMode{i}).Velocity_N      = squeeze(velocity(2,:,:))'.*velocityScaling;
                         data.(acquisitionMode{i}).Velocity_U      = squeeze(velocity(3,:,:))'.*velocityScaling;
-                        data.(acquisitionMode{i}).Velocity_U2     = squeeze(velocity(4,:,:))'.*velocityScaling;
+                        if data.(acquisitionMode{i}).nBeams == 4
+                            data.(acquisitionMode{i}).Velocity_U2     = squeeze(velocity(4,:,:))'.*velocityScaling;
+                        end
                         clear velocity velocityScaling;
                         
                         data.(acquisitionMode{i}).isVelocityData = true;
@@ -157,14 +160,18 @@ switch lower(ext)
                 data.(acquisitionMode{i}).Backscatter1    = squeeze(amplitude(1,:,:))'; % count
                 data.(acquisitionMode{i}).Backscatter2    = squeeze(amplitude(2,:,:))';
                 data.(acquisitionMode{i}).Backscatter3    = squeeze(amplitude(3,:,:))';
-                data.(acquisitionMode{i}).Backscatter4    = squeeze(amplitude(4,:,:))';
+                if data.(acquisitionMode{i}).nBeams == 4
+                    data.(acquisitionMode{i}).Backscatter4    = squeeze(amplitude(4,:,:))';
+                end
                 clear amplitude;
                 
                 correlation     = cat(3, structures.(acquisitionMode{i}).Data.CorrelationData);
                 data.(acquisitionMode{i}).Correlation1    = squeeze(correlation(1,:,:))'; % percent [0 - 100]
                 data.(acquisitionMode{i}).Correlation2    = squeeze(correlation(2,:,:))';
                 data.(acquisitionMode{i}).Correlation3    = squeeze(correlation(3,:,:))';
-                data.(acquisitionMode{i}).Correlation4    = squeeze(correlation(4,:,:))';
+                if data.(acquisitionMode{i}).nBeams == 4
+                   data.(acquisitionMode{i}).Correlation4    = squeeze(correlation(4,:,:))';
+                end
                 clear correlation;
             end
             
@@ -335,6 +342,7 @@ switch lower(ext)
         
         data = struct;
         nDataset = size(acquisitionMode, 2);
+        nBeams = 4; % default
         for i=1:nDataset
             data.(acquisitionMode{1, i}).Time = structures.Data.([acquisitionMode{1, i} 'Time']);
             
@@ -343,6 +351,7 @@ switch lower(ext)
             data.(acquisitionMode{1, i}).nSamples    = length(data.(acquisitionMode{1, i}).Time);
             data.(acquisitionMode{1, i}).nCells      = double(structures.Config.([acquisitionMode{1, i} 'NCells']));
             data.(acquisitionMode{1, i}).nBeams      = double(structures.Config.([acquisitionMode{1, i} 'NBeams']));
+            nBeams = data.(acquisitionMode{1, i}).nBeams;
             
             data.(acquisitionMode{1, i}).cellSize    = structures.Config.([acquisitionMode{1, i} 'CellSize']);
             data.(acquisitionMode{1, i}).blankDist   = structures.Config.([acquisitionMode{1, i} 'BlankingDistance']);
@@ -359,7 +368,9 @@ switch lower(ext)
                 data.(acquisitionMode{1, i}).Velocity_E  = squeeze(structures.Data.([acquisitionMode{1, i} 'Velocity_ENU'])(:, 1, :));
                 data.(acquisitionMode{1, i}).Velocity_N  = squeeze(structures.Data.([acquisitionMode{1, i} 'Velocity_ENU'])(:, 2, :));
                 data.(acquisitionMode{1, i}).Velocity_U  = squeeze(structures.Data.([acquisitionMode{1, i} 'Velocity_ENU'])(:, 3, :));
-                data.(acquisitionMode{1, i}).Velocity_U2 = squeeze(structures.Data.([acquisitionMode{1, i} 'Velocity_ENU'])(:, 4, :));
+                if( nBeams == 4 )
+                    data.(acquisitionMode{1, i}).Velocity_U2 = squeeze(structures.Data.([acquisitionMode{1, i} 'Velocity_ENU'])(:, 4, :));
+                end
                 
                 data.(acquisitionMode{1, i}).isVelocityData = true;
                 data.(acquisitionMode{1, i}).coordSys = 'ENU';
@@ -371,7 +382,9 @@ switch lower(ext)
                 else
                     data.(acquisitionMode{1, i}).Velocity_U = structures.Data.([acquisitionMode{1, i} 'VelUp1']);
                 end
-                data.(acquisitionMode{1, i}).Velocity_U2    = structures.Data.([acquisitionMode{1, i} 'VelUp2']);
+                if( nBeams == 4 )
+                    data.(acquisitionMode{1, i}).Velocity_U2    = structures.Data.([acquisitionMode{1, i} 'VelUp2']);
+                end
                 
                 data.(acquisitionMode{1, i}).isVelocityData = true;
                 data.(acquisitionMode{1, i}).coordSys = 'ENU';
@@ -390,23 +403,31 @@ switch lower(ext)
                     data.(acquisitionMode{1, i}).Backscatter1 = squeeze(structures.Data.([acquisitionMode{1, i} 'Amplitude_Beam'])(:, 1, :))*2; % looks like the .mat format is giving dB by default with dB = raw counts * 0.5
                     data.(acquisitionMode{1, i}).Backscatter2 = squeeze(structures.Data.([acquisitionMode{1, i} 'Amplitude_Beam'])(:, 2, :))*2;
                     data.(acquisitionMode{1, i}).Backscatter3 = squeeze(structures.Data.([acquisitionMode{1, i} 'Amplitude_Beam'])(:, 3, :))*2;
-                    data.(acquisitionMode{1, i}).Backscatter4 = squeeze(structures.Data.([acquisitionMode{1, i} 'Amplitude_Beam'])(:, 4, :))*2;
+                    if( nBeams == 4 )
+                        data.(acquisitionMode{1, i}).Backscatter4 = squeeze(structures.Data.([acquisitionMode{1, i} 'Amplitude_Beam'])(:, 4, :))*2;
+                    end
                 elseif isfield(structures.Data, [acquisitionMode{1, i} 'AmpBeam1'])
                     data.(acquisitionMode{1, i}).Backscatter1 = structures.Data.([acquisitionMode{1, i} 'AmpBeam1'])*2;
                     data.(acquisitionMode{1, i}).Backscatter2 = structures.Data.([acquisitionMode{1, i} 'AmpBeam2'])*2;
                     data.(acquisitionMode{1, i}).Backscatter3 = structures.Data.([acquisitionMode{1, i} 'AmpBeam3'])*2;
-                    data.(acquisitionMode{1, i}).Backscatter4 = structures.Data.([acquisitionMode{1, i} 'AmpBeam4'])*2;
+                    if( nBeams == 4 )
+                        data.(acquisitionMode{1, i}).Backscatter4 = structures.Data.([acquisitionMode{1, i} 'AmpBeam4'])*2;
+                    end
                 end
                 if isfield(structures.Data, [acquisitionMode{1, i} 'Correlation_Beam'])
                     data.(acquisitionMode{1, i}).Correlation1 = squeeze(structures.Data.([acquisitionMode{1, i} 'Correlation_Beam'])(:, 1, :));
                     data.(acquisitionMode{1, i}).Correlation2 = squeeze(structures.Data.([acquisitionMode{1, i} 'Correlation_Beam'])(:, 2, :));
                     data.(acquisitionMode{1, i}).Correlation3 = squeeze(structures.Data.([acquisitionMode{1, i} 'Correlation_Beam'])(:, 3, :));
-                    data.(acquisitionMode{1, i}).Correlation4 = squeeze(structures.Data.([acquisitionMode{1, i} 'Correlation_Beam'])(:, 4, :));
+                    if( nBeams == 4 )
+                        data.(acquisitionMode{1, i}).Correlation4 = squeeze(structures.Data.([acquisitionMode{1, i} 'Correlation_Beam'])(:, 4, :));
+                    end
                 elseif isfield(structures.Data, [acquisitionMode{1, i} 'CorBeam1'])
                     data.(acquisitionMode{1, i}).Correlation1 = structures.Data.([acquisitionMode{1, i} 'CorBeam1']);
                     data.(acquisitionMode{1, i}).Correlation2 = structures.Data.([acquisitionMode{1, i} 'CorBeam2']);
                     data.(acquisitionMode{1, i}).Correlation3 = structures.Data.([acquisitionMode{1, i} 'CorBeam3']);
-                    data.(acquisitionMode{1, i}).Correlation4 = structures.Data.([acquisitionMode{1, i} 'CorBeam4']);
+                    if( nBeams == 4 )
+                        data.(acquisitionMode{1, i}).Correlation4 = structures.Data.([acquisitionMode{1, i} 'CorBeam4']);
+                    end
                 end
             end
             
@@ -613,6 +634,7 @@ for i=1:nDataset
     
     diffTimeInSec = diff(data.(acquisitionMode{i}).Time*24*3600);
     
+    
     % look for most frequents modes
     Ms = unique(round(diffTimeInSec*100)/100); % unique() sorts in order of most frequent
     
@@ -641,12 +663,19 @@ for i=1:nDataset
     switch sample_data{i}.meta.instrument_model
         case 'Signature250'
             sample_data{i}.meta.beam_angle         = 20;
+        case 'Signature55'
+            sample_data{i}.meta.beam_angle         = 20;
         otherwise % Signature500 and Signature1000
             sample_data{i}.meta.beam_angle         = 25;
     end
-%     if data.(acquisitionMode{i}).isVelocityData
-%         sample_data{i}.meta.beam_to_xyz_transform  = data.(acquisitionMode{i}).Beam2xyz; % need to find out how to compute this matrix for .ad2cp format. See https://pypkg.com/pypi/nortek/f/nortek/files.py
-%     end
+     if data.(acquisitionMode{i}).isVelocityData
+         switch lower(ext)
+             case '.mat'
+                sample_data{i}.meta.beam_to_xyz_transform  = data.(acquisitionMode{i}).Beam2xyz; % need to find out how to compute this matrix for .ad2cp format. See https://pypkg.com/pypi/nortek/f/nortek/files.py
+             case '.ad2cp'
+                 sample_data{i}.meta.beam_to_xyz_transform  = Beam2xyz;
+         end
+     end
 
     % generate distance values
     distance = nan(data.(acquisitionMode{i}).nCells, 1);
@@ -733,12 +762,20 @@ for i=1:nDataset
     if data.(acquisitionMode{i}).isVelocityData
         switch data.(acquisitionMode{i}).coordSys
             case 'ENU'
-                vars = [vars; {
-                    ['VCUR' magExt],    [1 iDimVel],    data.(acquisitionMode{i}).Velocity_N; ... % V
-                    ['UCUR' magExt],    [1 iDimVel],    data.(acquisitionMode{i}).Velocity_E; ... % U
-                    'WCUR',             [1 iDimVel],    data.(acquisitionMode{i}).Velocity_U; ...
-                    'WCUR_2',           [1 iDimVel],    data.(acquisitionMode{i}).Velocity_U2
-                    }];
+                if data.(acquisitionMode{i}).nBeams == 4
+                    vars = [vars; {
+                        ['VCUR' magExt],    [1 iDimVel],    data.(acquisitionMode{i}).Velocity_N; ... % V
+                        ['UCUR' magExt],    [1 iDimVel],    data.(acquisitionMode{i}).Velocity_E; ... % U
+                        'WCUR',             [1 iDimVel],    data.(acquisitionMode{i}).Velocity_U; ...
+                        'WCUR_2',           [1 iDimVel],    data.(acquisitionMode{i}).Velocity_U2
+                        }];
+                else
+                    vars = [vars; {
+                        ['VCUR' magExt],    [1 iDimVel],    data.(acquisitionMode{i}).Velocity_N; ... % V
+                        ['UCUR' magExt],    [1 iDimVel],    data.(acquisitionMode{i}).Velocity_E; ... % U
+                        'WCUR',             [1 iDimVel],    data.(acquisitionMode{i}).Velocity_U
+                         }];
+                end
         
             case 'BEAM'
                 vars = [vars; {
@@ -749,6 +786,8 @@ for i=1:nDataset
                     }];
                 
         end
+        
+        if data.(acquisitionMode{i}).nBeams == 4
         vars = [vars; {
             'ABSIC1',           [1 iDimDiag],   data.(acquisitionMode{i}).Backscatter1; ...
             'ABSIC2',           [1 iDimDiag],   data.(acquisitionMode{i}).Backscatter2; ...
@@ -763,6 +802,19 @@ for i=1:nDataset
             'CMAG3',            [1 iDimDiag],   data.(acquisitionMode{i}).Correlation3; ...
             'CMAG4',            [1 iDimDiag],   data.(acquisitionMode{i}).Correlation4
             }];
+        else
+        vars = [vars; {
+            'ABSIC1',           [1 iDimDiag],   data.(acquisitionMode{i}).Backscatter1; ...
+            'ABSIC2',           [1 iDimDiag],   data.(acquisitionMode{i}).Backscatter2; ...
+            'ABSIC3',           [1 iDimDiag],   data.(acquisitionMode{i}).Backscatter3; ...
+            'ABSI1',            [1 iDimDiag],   data.(acquisitionMode{i}).Backscatter1*0.5; ... % 1 count = 0.5 dB according to manual
+            'ABSI2',            [1 iDimDiag],   data.(acquisitionMode{i}).Backscatter2*0.5; ...
+            'ABSI3',            [1 iDimDiag],   data.(acquisitionMode{i}).Backscatter3*0.5; ...
+            'CMAG1',            [1 iDimDiag],   data.(acquisitionMode{i}).Correlation1; ...
+            'CMAG2',            [1 iDimDiag],   data.(acquisitionMode{i}).Correlation2; ...
+            'CMAG3',            [1 iDimDiag],   data.(acquisitionMode{i}).Correlation3; ...
+            }];
+        end
     end
     
     if data.(acquisitionMode{i}).isAltimeterData
@@ -821,6 +873,68 @@ end
 end
 
 
+%-----------------------------------------------------------------
+% get transfer function from adcp config command GETXFAVG
+% regexp doesn't like the last parameter on the line as it runs into the
+% next line.
+% ie M33=-0.3547GETUSER,POFF=9.50,..
+%------------------------------------------------------------------
+function [Beam2xyz] = TransferMatrix(iA0_Header)
+    r = read_header_key(iA0_Header,'GETXFAVG','ROWS','int');
+    Beam2xyz = zeros(r,r);
+       
+    Beam2xyz(1,1) = read_header_key(iA0_Header,'GETXFAVG','M11','float');
+    Beam2xyz(1,2) = read_header_key(iA0_Header,'GETXFAVG','M12','float');
+    Beam2xyz(1,3) = read_header_key(iA0_Header,'GETXFAVG','M13','float');
+    Beam2xyz(2,1) = read_header_key(iA0_Header,'GETXFAVG','M21','float');
+    Beam2xyz(2,2) = read_header_key(iA0_Header,'GETXFAVG','M22','float');
+    Beam2xyz(2,3) = read_header_key(iA0_Header,'GETXFAVG','M23','float');
+    Beam2xyz(3,1) = read_header_key(iA0_Header,'GETXFAVG','M31','float');
+    Beam2xyz(3,2) = read_header_key(iA0_Header,'GETXFAVG','M32','float');
+    if r==3
+        Beam2xyz(3,3) = read_header_key2(iA0_Header,'M33');
+    else
+        Beam2xyz(3,3) = read_header_key(iA0_Header,'GETXFAVG','M33','float');
+    end
+    
+    if r==4
+        Beam2xyz(1,4) = read_header_key(iA0_Header,'GETXFAVG','M14','float');
+        Beam2xyz(2,4) = read_header_key(iA0_Header,'GETXFAVG','M24','float');
+        Beam2xyz(3,4) = read_header_key(iA0_Header,'GETXFAVG','M34','float');
+        
+        Beam2xyz(4,1) = read_header_key(iA0_Header,'GETXFAVG','M41','float');
+        Beam2xyz(4,2) = read_header_key(iA0_Header,'GETXFAVG','M42','float');
+        Beam2xyz(4,3) = read_header_key(iA0_Header,'GETXFAVG','M43','float');
+        Beam2xyz(4,4) = read_header_key2(iA0_Header,'M44');
+    end
+end
+
+%--------------------------------------------------------------
+function [x] = read_header_key2(header,key)
+
+    mode='GETXFAVG';
+    
+    mtype = '-?[\d.^\D]+';
+    re_match = ['(?<mode>(' mode  '))' '(.*?)' key '={1}' '(?<value>(' mtype ')),']; 
+    data = regexpi(header,re_match,'names');
+
+    % '-0.3547GETUSER,POFF=9.50'
+    aa = strsplit(data.value, ',');
+    s = char(aa(1));
+    ss = '';
+    for i=1:length(s)
+         c = s(i);
+         if c=='-' || c=='.' || ~isempty(str2num(c))
+             ss = [ss c];
+         end
+     end
+
+    x = str2double(ss);
+end
+    
+    
+
+%----------------------------------------------------------------
 function [value] = read_header_key(hstr,mode,key,vtype)
 % function value = read_header_key(hstr,mode,key,vtype)
 %
@@ -878,3 +992,4 @@ else
 end
 
 end
+
