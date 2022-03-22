@@ -62,7 +62,7 @@ for k = 1:length(sample_data)
         end
 
     end
-
+    
     % We apply tilt corrections to project DIST_ALONG_BEAMS onto the vertical
     % axis HEIGHT_ABOVE_SENSOR.
     %
@@ -80,16 +80,34 @@ for k = 1:length(sample_data)
     % each other. When pitch is positive beam 1 is closer to the surface
     % while beams 2 and 3 get further away. When roll is positive beam 3 is
     % closer to the surface while beam 2 gets further away.
-    %
+    
+    isUpwardLooking = true;
+    
     distAlongBeams = sample_data{k}.dimensions{distAlongBeamsIdx}.data';
     if all(diff(distAlongBeams)<0)
         %invert distAlongBeams so we have increasing values
         % this is required for the interpolation function.
         distAlongBeams = distAlongBeams*-1;
+        isUpwardLooking = false;
     end
+    
     pitch = sample_data{k}.variables{pitchIdx}.data * pi / 180;
     roll = sample_data{k}.variables{rollIdx}.data * pi / 180;
     beamAngle = sample_data{k}.meta.beam_angle * pi / 180;
+
+    % Signs for upward and downfacing instruments
+    if ~isUpwardLooking %for down facing adcps
+        sg1 = 1; sg3 = 1;
+        nmh = -1;
+        CP = cos(-pitch);
+        roll = roll-pi;
+        CR = cos(roll);
+    else %for up looking
+        sg1 = 1; sg3 = -1;
+        nmh = 1;
+        CP = cos(pitch);
+        CR = cos(roll);
+    end
 
     %TODO: the adjusted distances should be exported
     % as variables to enable further diagnostic plots and debugging.
@@ -97,15 +115,13 @@ for k = 1:length(sample_data)
     if isRDI% RDI 4 beams
         number_of_beams = 4;
         %TODO: block function.
-        CP = cos(pitch);
         % H[TxB] = P[T] x (+-R[T] x B[B])
-        nonMappedHeightAboveSensorBeam1 = CP .* (cos(beamAngle + roll) / cos(beamAngle) .* distAlongBeams);
-        nonMappedHeightAboveSensorBeam2 = CP .* (cos(beamAngle - roll) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam1 = CP .* (cos(beamAngle + sg1*roll) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam2 = CP .* (cos(beamAngle - sg1*roll) / cos(beamAngle) .* distAlongBeams);
 
         % H[TxB] = R[T] x (-+P[T] x B[B])
-        CR = cos(roll);
-        nonMappedHeightAboveSensorBeam3 = CR .* (cos(beamAngle - pitch) / cos(beamAngle) .* distAlongBeams);
-        nonMappedHeightAboveSensorBeam4 = CR .* (cos(beamAngle + pitch) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam3 = CR .* (cos(beamAngle + sg3*pitch) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam4 = CR .* (cos(beamAngle - sg3*pitch) / cos(beamAngle) .* distAlongBeams);
     else
         number_of_beams = 3;
         nBins = length(distAlongBeams);
@@ -136,13 +152,13 @@ for k = 1:length(sample_data)
 
         switch n
             case 1
-                dvar = nonMappedHeightAboveSensorBeam1;
+                dvar = nonMappedHeightAboveSensorBeam1 * nmh;
             case 2
-                dvar = nonMappedHeightAboveSensorBeam2;
+                dvar = nonMappedHeightAboveSensorBeam2 * nmh;
             case 3
-                dvar = nonMappedHeightAboveSensorBeam3;
+                dvar = nonMappedHeightAboveSensorBeam3 * nmh;
             case 4
-                dvar = nonMappedHeightAboveSensorBeam4;
+                dvar = nonMappedHeightAboveSensorBeam4 * nmh;
             otherwise
                 errormsg('Beam number %s not supported', num2str(n))
         end
