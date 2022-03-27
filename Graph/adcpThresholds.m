@@ -1,3 +1,4 @@
+function adcpThresholds(ppData)
 % some plots to assist with selecting threshold values for RDI adcp data
 %need to look at:
 % echo amplitude threshold for range test (should be around 50)
@@ -11,7 +12,7 @@
 % horizontal velocity
 % vertical velocity
 % tilt: nominally > 30 degrees fails
-for a = setIdx
+for a = 2%1:length(ppData)
     if isempty(findstr(ppData{a}.instrument,'RDI'))
         continue
     end
@@ -20,12 +21,22 @@ for a = setIdx
     %get the data we need
     itime = getVar(sd.dimensions, 'TIME');
     iheight = getVar(sd.dimensions, 'HEIGHT_ABOVE_SENSOR');
+    if iheight == 0
+    iheight = getVar(sd.dimensions, 'DIST_ALONG_BEAMS');
+    end        
     ipresrel = getVar(sd.variables, 'PRES_REL');
     idepth = getVar(sd.variables, 'DEPTH');
     iucur = getVar(sd.variables, 'UCUR');
     ivcur = getVar(sd.variables, 'VCUR');
     iwcur = getVar(sd.variables, 'WCUR');
     ierv = getVar(sd.variables, 'ECUR');
+    if iucur == 0
+        %data is raw
+        iucur = getVar(sd.variables, 'VEL1');
+        ivcur = getVar(sd.variables, 'VEL2');
+        iwcur = getVar(sd.variables, 'VEL3');
+        ierv = getVar(sd.variables, 'VEL4');        
+    end
     
     time = sd.dimensions{itime}.data;
     u = sd.variables{iucur}.data;
@@ -35,13 +46,14 @@ for a = setIdx
     uflags = sd.variables{iucur}.flags;
     tflags = sd.dimensions{itime}.flags;
     %depth 
-    if ~isempty(idepth)
+    if idepth > 0
         depth = sd.variables{idepth}.data;
         
     else
         habs = sd.dimensions{2}.data;
-        depth = repmat(-1*gsw_z_from_p(pressure,-27),1,length(habs)) + repmat(habs,1,length(time))';
+        depth = -1*gsw_z_from_p(pressure,-27);
     end
+    depth = double(depth);
     % up or down looking
     Bins    = sd.dimensions{iheight}.data';
     isUpwardLooking = true;
@@ -67,7 +79,12 @@ for a = setIdx
     echo4 = sd.variables{iecho4}.data;
 
     %% histogram of the failure values for echo range test:
-    [~, ~, ~, df] = imosEchoRangeSetQC(sd, auto );
+    if idepth == 0
+        [ ~, df] = adcpWorkhorseEchoRangePP({sd}, '' );
+    else
+        %use the QC tool, not the pp tool
+        [~, ~, ~, df] = imosEchoRangeSetQC( sd, 0 );
+    end
     %df is the differences between the highest and lowest echo amplitude values
     %for each of the 4 beams in each bin.
     % we need to know what threshold to use
@@ -107,18 +124,18 @@ for a = setIdx
     type = sd.instrument;
     switch type
         case 'RDI WHS300-I-UG306'
-            thr = 80;
+            thr = 64;
         otherwise
-            thr = 80;
+            thr = 64;
     end
     disp(['Correlation Mag Threshold value: ' num2str(thr)])
 
     %set the edges vector
-    edges = [0:5:220];
+    edges = [0:5:150];
     figure(2);clf;hold on
     cmag = NaN*ones(length(time),length(Bins),4);
     for b = 1:4
-        eval(['cmag(:,:,b) = echo' num2str(b) ';'])
+        eval(['cmag(:,:,b) = cmag' num2str(b) ';'])
         h=histogram(cmag(:,:,b), edges,'Normalization','pdf');
     end
     
@@ -135,9 +152,9 @@ for a = setIdx
     BinSize = sd.meta.binSize; %number of bins
     bdepth = depth - repmat(Bins,length(time),1);
     if isUpwardLooking
-        bdBins = min(depth)-2*BinSize:BinSize:max(depth);
+        bdBins = nanmin(depth)-2*BinSize:BinSize:nanmax(depth);
     else
-        bdBins = median(depth)-2*BinSize:BinSize:max(max(bdepth));
+        bdBins = nanmedian(depth)-2*BinSize:BinSize:nanmax(max(bdepth));
     end
     bdea = NaN*ones(length(time),length(Bins),4);
     for b = 1:4
@@ -252,7 +269,7 @@ for a = setIdx
             bdea(:,:,b) = bdepth(:,2:end);
         end
         
-        bdBins = 0-2*BinSize:BinSize:max(depth);
+        bdBins = 0-2*BinSize:BinSize:nanmax(depth);
         bdplot = 0-2*BinSize:BinSize:0+5*BinSize;
         figure(6);clf
         nn = NaN*zeros(1,length(bdBins));
@@ -422,4 +439,5 @@ for a = setIdx
     
     pause
     
+end
 end
