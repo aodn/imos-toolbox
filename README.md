@@ -12,7 +12,8 @@ See our [wiki page](https://github.com/aodn/imos-toolbox/wiki) page for more det
 
 The **stable** releases may be obtained [here](https://github.com/aodn/imos-toolbox/releases). The releases contain both the source code and binary applications (executables).
 
-
+## Licensing
+This project is licensed under the terms of the GNU GPLv3 license.
 # Requirements
 
 We support Windows and Linux. The toolbox may be used as a **Matlab stand-alone library** or **stand-alone application** (**No Matlab is required**).
