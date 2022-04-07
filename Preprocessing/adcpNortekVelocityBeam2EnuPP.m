@@ -77,7 +77,7 @@ for k = 1:length(sample_data)
     
     % do not process if more than 3 beams
     vel4Idx  = getVar(sample_data{k}.variables, 'VEL4');
-    if vel4Idx, continue; end
+    %if vel4Idx, continue; end
     
     % do not process if transformation matrix not known
     if isfield(sample_data{k}.meta, 'beam_to_xyz_transform')
@@ -89,6 +89,7 @@ for k = 1:length(sample_data)
     vel1 = sample_data{k}.variables{vel1Idx}.data;
     vel2 = sample_data{k}.variables{vel2Idx}.data;
     vel3 = sample_data{k}.variables{vel3Idx}.data;
+	if vel4Idx, vel4 = sample_data{k}.variables{vel4Idx}.data; end
     
     heading = sample_data{k}.variables{headingIdx}.data;
     pitch = sample_data{k}.variables{pitchIdx}.data;
@@ -103,53 +104,162 @@ for k = 1:length(sample_data)
     
     % If instrument is pointing down dist is negative and
     % rows 2 and 3 must change sign
-    if all(sign(dist) == -1),
+	%% only good for 3 beams ?? %%
+    if all(sign(dist) == -1)
         beam2xyz(2,:) = -beam2xyz(2,:);
         beam2xyz(3,:) = -beam2xyz(3,:);
     end
     
     [nSample, nBin] = size(vel1);
-    velENU = NaN(3, nSample, nBin);
-    for i=1:nSample
-        % heading, pitch and roll are the angles output in the data in degrees
-        hh = (heading(i) - 90) * pi/180;
-        pp = pitch(i) * pi/180;
-        rr = roll(i) * pi/180;
+	
+	if ~vel4Idx
+		% 3 beams
+		velENU = NaN(3, nSample, nBin);
+		for i=1:nSample
+			% heading, pitch and roll are the angles output in the data in degrees
+			hh = (heading(i) - 90) * pi/180;
+			pp = pitch(i) * pi/180;
+			rr = roll(i) * pi/180;
+			
+			% heading matrix
+			H = [cos(hh) sin(hh) 0; ...
+				-sin(hh) cos(hh) 0; ...
+				 0       0       1];
+			
+			% tilt matrix
+			P = [cos(pp) -sin(pp)*sin(rr) -cos(rr)*sin(pp); ...
+				 0       cos(rr)          -sin(rr); ...
+				 sin(pp) sin(rr)*cos(pp)  cos(pp)*cos(rr)];
+			
+			% resulting transformation matrix
+			R = H*P*beam2xyz;
+			
+			% Given Beam velocities, ENU coordinates are calculated as
+			for j=1:nBin
+				velBeam = [vel1(i, j); vel2(i, j); vel3(i, j)];
+				velENU(:, i, j) = R*velBeam;
+			end
+		end
+    else
+        % debug
+%             fname = ['beam' jStr '.mat'];
+%             beam = sample_data{k}.variables{end}.data;
+%             save(fname,'beam');
+%             save('beam1a.mat','vel1');
+%             save('beam2a.mat','vel2');
+%             save('beam3a.mat','vel3');
+%             save('beam4a.mat','vel4');
+%             
+		% 4 beam conversion
+		velENU = NaN(4, nSample, nBin);
+		
+		% from Nortek script "Sig4beam_transform.m"		
+		% Transform attitude data to radians
+		hh = pi * (heading-90)/180;
+		pp = pi * pitch/180;
+		rr = pi * roll/180;
+		
+		
+		[row,col] = size(vel1);
+		Tmat = repmat(beam2xyz,[1 1 row]);
+
+		clear beam2xyz;
+		
+		% Make heading/tilt matrices
+		Hmat = zeros(3,3,row);
+		Pmat = zeros(3,3,row);
+
+		for i = 1:row
+			Hmat(:,:,i) = [ cos(hh(i)) sin(hh(i))     0; ...
+						   -sin(hh(i)) cos(hh(i))     0; ...
+									 0          0     1];
+			Pmat(:,:,i) = [cos(pp(i)) -sin(pp(i))*sin(rr(i)) -cos(rr(i))*sin(pp(i)); ...
+							   0              cos(rr(i))            -sin(rr(i))    ; ...
+						   sin(pp(i))  sin(rr(i))*cos(pp(i))  cos(pp(i))*cos(rr(i))];
+		end
+
+		clear heading pitch roll hh pp rr;
+		
+		% Add a fourth line in the matrix based on Transformation matrix by 
+		% copying line 3, and set (3,4) and (4,3) to 0. B3 and B4 will contribute 
+		% equally to the X and Y components, so (1,3) and (1,4) = (1,3)/2. The 
+		% same goes for (2,3) and (2,4)
+		% (1,1) (1,2) (1,3) (1,4)
+		% (2,1) (2,2) (2,3) (2,4)
+		% (3,1) (3,2) (3,3) (3,4)
+		% (4,1) (4,2) (4,3) (4,4)
+
+		% Make resulting transformation matrix
+		R1mat = zeros(4,4,row);
+		for i = 1:row
+			R1mat(1:3,1:3,i) = Hmat(:,:,i)*Pmat(:,:,i);
+			R1mat(4,1:4,i) = R1mat(3,1:4,i);
+			R1mat(1:4,4,i) = R1mat(1:4,3,i);
+		end
+
+		R1mat(3,4,:) = 0; R1mat(4,3,:) = 0;
+        % added to nortek code
+        R1mat(1,4,:) = R1mat(1,3,:)/2.0; 
+        R1mat(1,3,:) = R1mat(1,3,:)/2.0;
+        R1mat(2,4,:) = R1mat(2,3,:)/2.0; 
+        R1mat(2,3,:) = R1mat(2,3,:)/2.0;
         
-        % heading matrix
-        H = [cos(hh) sin(hh) 0; ...
-            -sin(hh) cos(hh) 0; ...
-             0       0       1];
-        
-        % tilt matrix
-        P = [cos(pp) -sin(pp)*sin(rr) -cos(rr)*sin(pp); ...
-             0       cos(rr)          -sin(rr); ...
-             sin(pp) sin(rr)*cos(pp)  cos(pp)*cos(rr)];
-        
-        % resulting transformation matrix
-        R = H*P*beam2xyz;
-        
-        % Given Beam velocities, ENU coordinates are calculated as
-        for j=1:nBin
-            velBeam = [vel1(i, j); vel2(i, j); vel3(i, j)];
-            velENU(:, i, j) = R*velBeam;
-        end
-    end
+		for i = 1:row
+			Rmat(:,:,i) = R1mat(:,:,i)*Tmat(:,:,i);
+		end
+
+		clear Hmat Pmat R1mat;
+		
     
+		%% BEAM to ENU [E; N; U1; U2] = R * [B1; B2; B3; B4]
+		ENU = zeros(row,col,4);
+		for i = 1:row
+			for j = 1:col
+				ENU(i,j,:) = Rmat(:,:,i) * [vel1(i,j); vel2(i,j); vel3(i,j); vel4(i,j)];
+			end
+		end
+		%E = ENU(:,:,1); N = ENU(:,:,2);
+		%U1 = ENU(:,:,3); U2 = ENU(:,:,4);
+		velENU(1, :, :) = ENU(:,:,1);
+		velENU(2, :, :) = ENU(:,:,2);
+		velENU(3, :, :) = ENU(:,:,3);
+		velENU(4, :, :) = ENU(:,:,4);
+		
+		clear i j row col v1 v2 v3 v4 ENU Rmat Tmat
+	end
+	
     Beam2EnuComment = ['adcpNortekVelocityBeam2EnuPP.m: velocity data in Easting Northing Up (ENU) coordinates has been calculated from velocity data in Beams coordinates ' ...
         'using heading and tilt information and instrument coordinate transform matrix.'];
     
     % we update the velocity values in ENU coordinates
-    vars = {'UCUR', 'VCUR', 'WCUR'};
-    varSuffix = {'', '', ''};
-    if ~isMagCorrected, varSuffix = {'_MAG', '_MAG', ''}; end
+    if ~vel4Idx
+		vars = {'UCUR', 'VCUR', 'WCUR'}; 
+		if ~isMagCorrected
+			varSuffix = {'_MAG', '_MAG', ''};
+		else
+			varSuffix = {'', '', ''};
+		end
+	else
+		vars = {'UCUR', 'VCUR', 'WCUR', 'WCUR_2'}; 
+		if ~isMagCorrected
+			varSuffix = {'_MAG', '_MAG', '', ''};
+		else
+			varSuffix = {'', '', '', ''};
+		end
+	end
+    
+	
     for l=1:length(vars)
         varName = [vars{l} varSuffix{l}];
         curIdx = getVar(sample_data{k}.variables, varName);
         if curIdx
             % we update the velocity values in ENU coordinates
             sample_data{k}.variables{curIdx}.data = squeeze(velENU(l, :, :));
-        
+% debug            
+%              fname = [varName '.mat'];
+%              vel = sample_data{k}.variables{curIdx}.data;
+%              save(fname,'vel');
+                      
             % need to update the dimensions/coordinates in case velocity in Beam
             % coordinates would have been previously bin-mapped
             sample_data{k}.variables{curIdx}.dimensions = sample_data{k}.variables{vel1Idx}.dimensions;

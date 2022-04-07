@@ -40,7 +40,7 @@ for k = 1:length(sample_data)
 
     % do not process if Nortek with more than 3 beams
     absic4Idx = getVar(sample_data{k}.variables, 'ABSIC4');
-    if absic4Idx && isNortek, continue; end
+    %if absic4Idx && isNortek, continue; end
 
     % do not process if dist_along_beams, pitch or roll are missing from dataset
     distAlongBeamsIdx = getVar(sample_data{k}.dimensions, 'DIST_ALONG_BEAMS');
@@ -94,7 +94,7 @@ for k = 1:length(sample_data)
     %TODO: the adjusted distances should be exported
     % as variables to enable further diagnostic plots and debugging.
     %TODO: the adjusted distances should be a Nx4 array or Nx3 array.
-    if isRDI% RDI 4 beams
+    if isRDI    %|| absic4Idx	% RDI 4 beams
         number_of_beams = 4;
         %TODO: block function.
         CP = cos(pitch);
@@ -106,7 +106,23 @@ for k = 1:length(sample_data)
         CR = cos(roll);
         nonMappedHeightAboveSensorBeam3 = CR .* (cos(beamAngle - pitch) / cos(beamAngle) .* distAlongBeams);
         nonMappedHeightAboveSensorBeam4 = CR .* (cos(beamAngle + pitch) / cos(beamAngle) .* distAlongBeams);
-    else
+    elseif absic4Idx && isNortek
+        % signature 250,500
+        % Signature beams are 1,2,3,4 clockwise from X axis
+        % X (beam1) up gives positive pitch, Y (beam4) up gives positive roll
+        number_of_beams = 4;
+        CP = cos(pitch);
+        CR = cos(roll);
+        nonMappedHeightAboveSensorBeam1 = CR .* (cos(beamAngle - pitch) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam3 = CR .* (cos(beamAngle + pitch) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam4 = CP .* (cos(beamAngle - roll) / cos(beamAngle) .* distAlongBeams);
+        nonMappedHeightAboveSensorBeam2 = CP .* (cos(beamAngle + roll) / cos(beamAngle) .* distAlongBeams);
+        
+%         nonMappedHeightAboveSensorBeam1 = CR .* (cos(beamAngle - pitch) .* distAlongBeams);
+%         nonMappedHeightAboveSensorBeam3 = CR .* (cos(beamAngle + pitch) .* distAlongBeams);
+%         nonMappedHeightAboveSensorBeam4 = CP .* (cos(beamAngle - roll) .* distAlongBeams);
+%         nonMappedHeightAboveSensorBeam2 = CP .* (cos(beamAngle + roll) .* distAlongBeams);
+    else 
         number_of_beams = 3;
         nBins = length(distAlongBeams);
         %TODO: block function, include tests.
@@ -156,9 +172,14 @@ for k = 1:length(sample_data)
         mapped_beam_data = NaN(size(all_beam_vars),arrtype);
 
         for i = 1:nSamples
-            interpFunction.GridVectors = {dvar(i, :), Ndim};
-            interpFunction.Values = squeeze(all_beam_vars(i, :, :));
-            mapped_beam_data(i, :, :) = interpFunction(new_pos);
+            if any( diff(dvar(i,:))<0 )
+                % needs to be ascending
+                mapped_beam_data(i, :, :) = NaN;
+            else
+                interpFunction.GridVectors = {dvar(i, :), Ndim};
+                interpFunction.Values = squeeze(all_beam_vars(i, :, :));
+                mapped_beam_data(i, :, :) = interpFunction(new_pos);
+            end
         end
         %compat: follow previous hack/"RDI hack",
         %where first bin value is restore to the original bin value.
