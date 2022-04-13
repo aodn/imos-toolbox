@@ -69,9 +69,9 @@ for k = 1:length(sample_data)
     % RDI 4 beams ADCPs:
     % It is assumed that the beams are in a convex configuration such as beam 1
     % and 2 (respectively 3 and 4) are aligned on the pitch (respectively roll)
-    % axis. When pitch is positive beam 3 is closer to the surface while beam 4
-    % gets further away. When roll is positive beam 2 is closer to the surface
-    % while beam 1 gets further away.
+    % axis. For an upward looking ADCP, when pitch is positive beam 3 is closer 
+    % to the surface while beam 4 gets further away. When roll is positive beam 
+    % 2 is closer to the surface while beam 1 gets further away.
     %
     % Nortek 3 beams ADCPs:
     % It is assumed that the beams are in a convex configuration such as beam 1
@@ -81,11 +81,16 @@ for k = 1:length(sample_data)
     % while beams 2 and 3 get further away. When roll is positive beam 3 is
     % closer to the surface while beam 2 gets further away.
     %
+
+    % Set pitch sign to deal with downward facing ADCPs
+    pitchSign = 1;
+
     distAlongBeams = sample_data{k}.dimensions{distAlongBeamsIdx}.data';
     if all(diff(distAlongBeams)<0)
         %invert distAlongBeams so we have increasing values
         % this is required for the interpolation function.
         distAlongBeams = distAlongBeams*-1;
+        pitchSign = -1;
     end
     pitch = sample_data{k}.variables{pitchIdx}.data * pi / 180;
     roll = sample_data{k}.variables{rollIdx}.data * pi / 180;
@@ -93,35 +98,16 @@ for k = 1:length(sample_data)
 
     %TODO: the adjusted distances should be exported
     % as variables to enable further diagnostic plots and debugging.
-    %TODO: the adjusted distances should be a Nx4 array or Nx3 array.
-    if isRDI% RDI 4 beams
+    if isRDI && absic4Idx ~= 0 % RDI 4 beams
         number_of_beams = 4;
-        %TODO: block function.
-        CP = cos(pitch);
-        % H[TxB] = P[T] x (+-R[T] x B[B])
-        nonMappedHeightAboveSensorBeam1 = CP .* (cos(beamAngle + roll) / cos(beamAngle) .* distAlongBeams);
-        nonMappedHeightAboveSensorBeam2 = CP .* (cos(beamAngle - roll) / cos(beamAngle) .* distAlongBeams);
 
-        % H[TxB] = R[T] x (-+P[T] x B[B])
-        CR = cos(roll);
-        nonMappedHeightAboveSensorBeam3 = CR .* (cos(beamAngle - pitch) / cos(beamAngle) .* distAlongBeams);
-        nonMappedHeightAboveSensorBeam4 = CR .* (cos(beamAngle + pitch) / cos(beamAngle) .* distAlongBeams);
-    else
+        nonMappedHeightAboveSensorBeam = TeledyneADCP.adcp_adjusted_distances_rdi4beam(roll, pitch, pitchSign, distAlongBeams, beamAngle, number_of_beams);        
+
+    elseif isNortek && absic4Idx == 0 % Nortek 3 beams
         number_of_beams = 3;
-        nBins = length(distAlongBeams);
-        %TODO: block function, include tests.
-        % Nortek 3 beams
-        nonMappedHeightAboveSensorBeam1 = (cos(beamAngle - pitch) / cos(beamAngle)) * distAlongBeams;
-        nonMappedHeightAboveSensorBeam1 = repmat(cos(roll), 1, nBins) .* nonMappedHeightAboveSensorBeam1;
 
-        beamAngleX = atan(tan(beamAngle) * cos(60 * pi / 180)); % beams 2 and 3 angle projected on the X axis
-        beamAngleY = atan(tan(beamAngle) * cos(30 * pi / 180)); % beams 2 and 3 angle projected on the Y axis
+        nonMappedHeightAboveSensorBeam = NortekADCP.adcp_adjusted_distances_nortek3beam(roll, pitch, distAlongBeams, beamAngle, number_of_beams);
 
-        nonMappedHeightAboveSensorBeam2 = (cos(beamAngleX + pitch) / cos(beamAngleX)) * distAlongBeams;
-        nonMappedHeightAboveSensorBeam2 = repmat(cos(beamAngleY + roll) / cos(beamAngleY), 1, nBins) .* nonMappedHeightAboveSensorBeam2;
-
-        nonMappedHeightAboveSensorBeam3 = (cos(beamAngleX + pitch) / cos(beamAngleX)) * distAlongBeams;
-        nonMappedHeightAboveSensorBeam3 = repmat(cos(beamAngleY - roll) / cos(beamAngleY), 1, nBins) .* nonMappedHeightAboveSensorBeam3;
     end
 
     nSamples = length(pitch);
@@ -136,13 +122,13 @@ for k = 1:length(sample_data)
 
         switch n
             case 1
-                dvar = nonMappedHeightAboveSensorBeam1;
+                dvar = nonMappedHeightAboveSensorBeam(:,:,n);
             case 2
-                dvar = nonMappedHeightAboveSensorBeam2;
+                dvar = nonMappedHeightAboveSensorBeam(:,:,n);
             case 3
-                dvar = nonMappedHeightAboveSensorBeam3;
+                dvar = nonMappedHeightAboveSensorBeam(:,:,n);
             case 4
-                dvar = nonMappedHeightAboveSensorBeam4;
+                dvar = nonMappedHeightAboveSensorBeam(:,:,n);
             otherwise
                 errormsg('Beam number %s not supported', num2str(n))
         end
