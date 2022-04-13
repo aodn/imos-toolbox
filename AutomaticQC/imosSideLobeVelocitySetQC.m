@@ -202,7 +202,8 @@ end
 
 % calculate contaminated depth
 %
-% http://www.nortekusa.com/usa/knowledge-center/table-of-contents/doppler-velocity#Sidelobes
+% Link to the wiki:
+% https://github.com/aodn/imos-toolbox/wiki/QCProcedures#adcp-side-lobe-contamination-test---imossidelobevelocitysetqc---compulsory
 %
 % by default substraction of 1/2*BinSize to the non-contaminated height in order to be
 % conservative and be sure that the first bin below the contaminated depth
