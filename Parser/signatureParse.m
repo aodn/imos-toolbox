@@ -1,11 +1,12 @@
 function sample_data = signatureParse( filename, tMode )
 %SIGNATUREPARSE Parses ADCP data from a raw Nortek Signature 
-% binary (.ad2cp) file.
+% binary (.ad2cp) file or a .mat that has extracted from the 
+% Nortek instrument software(faster).
 %
 %
 % Inputs:
 %   filename    - Cell array containing the name of the raw signature
-%                 file to parse.
+%                 file to parse (either .ad2cp or .mat).
 %   tMode       - Toolbox data type mode.
 % 
 % Outputs:
@@ -60,9 +61,9 @@ switch lower(ext)
             % this is a string data record
             if structures.(acquisitionMode{iA0}).Data.Id == 16 || structures.(acquisitionMode{iA0}).Data.Id == 18
                 iA0_Header = structures.(acquisitionMode{iA0}).Data.String;
-                instrumentModel = read_header_key(iA0_Header,'ID','STR','string');
-                magDec = read_header_key(iA0_Header,'GETUSER','DECL','float');
-                Beam2xyz = TransferMatrix(iA0_Header);
+                instrumentModel = Nortek.read_nortek_header_key(iA0_Header,'ID','STR','string');
+                magDec = Nortek.read_nortek_header_key(iA0_Header,'GETUSER','DECL','float');
+                Beam2xyz = Nortek.transfer_matrix(iA0_Header);
                 structures = rmfield(structures, acquisitionMode{iA0});
                 acquisitionMode(iA0) = [];
             end
@@ -342,7 +343,7 @@ switch lower(ext)
         
         data = struct;
         nDataset = size(acquisitionMode, 2);
-        nBeams = 4; % default
+        nBeams = 4; % default -- WHY IS THIS NEEDED - I don't think it is needed due to l.354 nBeams = blah
         for i=1:nDataset
             data.(acquisitionMode{1, i}).Time = structures.Data.([acquisitionMode{1, i} 'Time']);
             
@@ -634,7 +635,6 @@ for i=1:nDataset
     
     diffTimeInSec = diff(data.(acquisitionMode{i}).Time*24*3600);
     
-    
     % look for most frequents modes
     Ms = unique(round(diffTimeInSec*100)/100); % unique() sorts in order of most frequent
     
@@ -665,13 +665,19 @@ for i=1:nDataset
             sample_data{i}.meta.beam_angle         = 20;
         case 'Signature55'
             sample_data{i}.meta.beam_angle         = 20;
-        otherwise % Signature500 and Signature1000
+        case 'Signature100'
+            sample_data{i}.meta.beam_angle         = 20;
+        case 'Signature500'
             sample_data{i}.meta.beam_angle         = 25;
+        case 'Signature1000'
+            sample_data{i}.meta.beam_angle         = 25;
+        otherwise % send error message 
+            error('Signature not supported');
     end
      if data.(acquisitionMode{i}).isVelocityData
          switch lower(ext)
              case '.mat'
-                sample_data{i}.meta.beam_to_xyz_transform  = data.(acquisitionMode{i}).Beam2xyz; % need to find out how to compute this matrix for .ad2cp format. See https://pypkg.com/pypi/nortek/f/nortek/files.py
+                sample_data{i}.meta.beam_to_xyz_transform  = data.(acquisitionMode{i}).Beam2xyz; 
              case '.ad2cp'
                  sample_data{i}.meta.beam_to_xyz_transform  = Beam2xyz;
          end
@@ -872,124 +878,4 @@ end
 
 end
 
-
-%-----------------------------------------------------------------
-% get transfer function from adcp config command GETXFAVG
-% regexp doesn't like the last parameter on the line as it runs into the
-% next line.
-% ie M33=-0.3547GETUSER,POFF=9.50,..
-%------------------------------------------------------------------
-function [Beam2xyz] = TransferMatrix(iA0_Header)
-    r = read_header_key(iA0_Header,'GETXFAVG','ROWS','int');
-    Beam2xyz = zeros(r,r);
-       
-    Beam2xyz(1,1) = read_header_key(iA0_Header,'GETXFAVG','M11','float');
-    Beam2xyz(1,2) = read_header_key(iA0_Header,'GETXFAVG','M12','float');
-    Beam2xyz(1,3) = read_header_key(iA0_Header,'GETXFAVG','M13','float');
-    Beam2xyz(2,1) = read_header_key(iA0_Header,'GETXFAVG','M21','float');
-    Beam2xyz(2,2) = read_header_key(iA0_Header,'GETXFAVG','M22','float');
-    Beam2xyz(2,3) = read_header_key(iA0_Header,'GETXFAVG','M23','float');
-    Beam2xyz(3,1) = read_header_key(iA0_Header,'GETXFAVG','M31','float');
-    Beam2xyz(3,2) = read_header_key(iA0_Header,'GETXFAVG','M32','float');
-    if r==3
-        Beam2xyz(3,3) = read_header_key2(iA0_Header,'M33');
-    else
-        Beam2xyz(3,3) = read_header_key(iA0_Header,'GETXFAVG','M33','float');
-    end
-    
-    if r==4
-        Beam2xyz(1,4) = read_header_key(iA0_Header,'GETXFAVG','M14','float');
-        Beam2xyz(2,4) = read_header_key(iA0_Header,'GETXFAVG','M24','float');
-        Beam2xyz(3,4) = read_header_key(iA0_Header,'GETXFAVG','M34','float');
-        
-        Beam2xyz(4,1) = read_header_key(iA0_Header,'GETXFAVG','M41','float');
-        Beam2xyz(4,2) = read_header_key(iA0_Header,'GETXFAVG','M42','float');
-        Beam2xyz(4,3) = read_header_key(iA0_Header,'GETXFAVG','M43','float');
-        Beam2xyz(4,4) = read_header_key2(iA0_Header,'M44');
-    end
-end
-
-%--------------------------------------------------------------
-function [x] = read_header_key2(header,key)
-
-    mode='GETXFAVG';
-    
-    mtype = '-?[\d.^\D]+';
-    re_match = ['(?<mode>(' mode  '))' '(.*?)' key '={1}' '(?<value>(' mtype ')),']; 
-    data = regexpi(header,re_match,'names');
-
-    % '-0.3547GETUSER,POFF=9.50'
-    aa = strsplit(data.value, ',');
-    s = char(aa(1));
-    ss = '';
-    for i=1:length(s)
-         c = s(i);
-         if c=='-' || c=='.' || ~isempty(str2num(c))
-             ss = [ss c];
-         end
-     end
-
-    x = str2double(ss);
-end
-    
-    
-
-%----------------------------------------------------------------
-function [value] = read_header_key(hstr,mode,key,vtype)
-% function value = read_header_key(hstr,mode,key,vtype)
-%
-% Read a nortek value from a `key` name
-% within a `mode` line from the header string `hstr`.
-% The type of the variable is defined by `vtype`.
-% See example.
-%
-% Inputs:
-% 
-% hstr - the header string
-% mode- the name of the mode or the first string in the line
-% key - the name of the key
-% vtype - the textscan type of the value [Optional]
-%      - default: 'float'
-%
-%
-% Outputs:
-% 
-% value - a single value
-%
-% Example:
-%
-% hstr = 'GETAVG1,ABC="CBA",MIAVG=600,ERR=0.00e-10';
-% [value] = read_nortek_key(hstr,'GETAVG1','MIAVG','int');
-% assert(value==600)
-% [value] = read_nortek_key(hstr,'GETAVG1','ABC','str');
-% assert(value==600)
-% [value] = read_nortek_key(hstr,'GETAVG1','ERR','float');
-% assert(value==600)
-%
-% author: hugo.oliveira@utas.edu.au
-%
-narginchk(4,4)
-
-if strcmpi(vtype,'float')
-    mtype = '-?[\d.]+(?:[eE][-?+?\d+]\d+)?';
-    mfun = @str2double;
-elseif strcmpi(vtype,'integer') || strcmpi(vtype,'int')
-    mtype = '\d+';
-    mfun = @str2double;
-else
-    mtype = '".*?"';
-    mfun = @(x) strrep(x,'"','');
-end
-
-%header lines always start with command,key0=value0,key1=value1,...
-re_match = ['(?<mode>(' mode  '))' '(.*?)' key '={1}' '(?<value>(' mtype ')),']; 
-data = regexpi(hstr,re_match,'names');
-
-if ~isempty(data)
-    value = mfun(data.value);
-else
-    error('Could not find key %s with type %s',key,vtype);
-end
-
-end
 
