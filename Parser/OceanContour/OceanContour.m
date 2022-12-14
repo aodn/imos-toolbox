@@ -447,7 +447,7 @@ classdef OceanContour
             %
             % %read from netcdf
             % file = [toolboxRootPath 'data/testfiles/netcdf/Nortek/OceanContour/Signature/s500_enu_avg.nc'];
-            % [sample_data] = readOceanContour(file);
+            % [sample_data] = OceanContour.readOceanContourFile(file);
             % assert(strcmpi(sample_data{1}.meta.instrument_model,'Signature500'))
             % assert(isequal(sample_data{1}.meta.instrument_avg_interval,60))
             % assert(isequal(sample_data{1}.meta.instrument_sample_interval,600))
@@ -458,7 +458,7 @@ classdef OceanContour
             %
             % % read from matfile
             % file = [toolboxRootPath 'data/testfiles/mat/Nortek/OceanContour/Signature/s500_enu_avg.mat'];
-            % [sample_data] = readOceanContour(file);
+            % [sample_data] = OceanContour.readOceanContourFile(file);
             % assert(strcmpi(sample_data{1}.meta.instrument_model,'Signature500'))
             % assert(isequal(sample_data{1}.meta.instrument_avg_interval,60))
             % assert(isequal(sample_data{1}.meta.instrument_sample_interval,600))
@@ -548,12 +548,16 @@ classdef OceanContour
 
                 meta.magDec = get_att('magDec');
                 custom_magnetic_declination = logical(meta.magDec);
-                meta.binMapping = get_att('binMapping');
-                binmapped = logical(meta.binMapping);                                               
+                try
+                    meta.binMapping = get_att('binMapping');
+                    binmapped = logical(meta.binMapping);
+                catch
+                    binmapped = false;
+                end
+                                
                 %Now that we know some preliminary info, we can load the variable
                 % name mappings and the list of variables to import.
-                
-                
+                                
                 var_mapping = OceanContour.get_varmap(ftype, group_name, nBeams, custom_magnetic_declination,binmapped);
                 import_mapping = OceanContour.get_importmap(nBeams, custom_magnetic_declination);
 
@@ -568,7 +572,7 @@ classdef OceanContour
                     meta.dim_meta = data_metadata.(group_name).Dimensions;
                     meta.var_meta = data_metadata.(group_name).Variables;
                     gid = dataset_groups(k);
-                    get_var = @(x)(nc_get_var(gid, var_mapping.(x)));                   
+                    get_var = @(x)(nc_get_var(gid, var_mapping.(x))); 
                 else
                     fname = getindex(dataset_groups, k);
                     get_var = @(x)(transpose(matdata.(fname).(var_mapping.(x))));
