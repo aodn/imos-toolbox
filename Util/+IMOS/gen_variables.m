@@ -1,5 +1,5 @@
 function [variables] = gen_variables(dimensions, v_names, v_types, v_data, varargin)
-% function [variables] = gen_variables(dimensions,v_names, v_types,v_data,varargin)
+% function [variables] = gen_variables(dimensions, v_names, v_types, v_data, varargin)
 %
 % Generate a toolbox variable cell of structs. Empty or incomplete
 % arguments will trigger random (names/types) or empty entries (data).
@@ -14,8 +14,12 @@ function [variables] = gen_variables(dimensions, v_names, v_types, v_data, varar
 %           the respective imos type is used, otherwise
 %           a random type is used.
 % v_data -  a cell with the variable array values. ditto as in v_names.
-% varargin - extra fieldname,fieldvalue to add to each variable.
-%            for example: 'comment','test' -> variables.comment = test.
+%  varargin [char,cell{cell{str,any}}] - extra parameters to cast to the individual variables.
+%                                   - If extra arguments are string pairs - e.g. ...,'comment','abc' - 
+%                                     the pair will be cast to all dimensions equally.
+%                                   - If extra arguments is a cell , it is assumed that individual
+%                                     attributes are provided - sub-cells - with strings pairs and
+%                                     that empty entries or missing entries are ignored.
 %
 % Outputs:
 %
@@ -53,13 +57,11 @@ function [variables] = gen_variables(dimensions, v_names, v_types, v_data, varar
 % assert(isequal(variables{1}.typeCastFunc,@double))
 % assert(isequal(variables{1}.data,ones(10,1)))
 % assert(isequal(variables{1}.dimensions,2))
-% assert(isempty(variables{1}.comment))
 % %missing dims of variable vectors are assigned to empty and data is typecast
 % assert(strcmp(variables{end}.name,'VALID'))
 % assert(isequal(variables{end}.typeCastFunc,@logical))
 % assert(isequal(variables{end}.data,true))
 % assert(isempty(variables{end}.dimensions))
-% assert(isempty(variables{end}.comment))
 %
 % %missing dimensions on multi-dimensional variable arrays trigger an error
 % names = {'INVALID_COLUMN','INVALID_ROW','INVALID_MULTIARRAY'};
@@ -67,6 +69,19 @@ function [variables] = gen_variables(dimensions, v_names, v_types, v_data, varar
 % try;IMOS.gen_variables(mydims,names,{},data);catch;r=true;end;
 % assert(r)
 %
+% %single attributes broadcast to all variables
+% mydims = IMOS.gen_dimensions('timeSeries',2,{'TIME','X'},{},{zeros(60,1),[1:10]'},'comment','123');
+% variables = IMOS.gen_variables(mydims,{'Y','Z','VALID'},{},{ones(10,1),zeros(60,1),1},'comment','a');
+% assert(isequal(variables{1}.comment,'a'))
+% assert(isequal(variables{2}.comment,'a'))
+% assert(isequal(variables{3}.comment,'a'))
+%
+% %multi attribute assignment to individual variables
+% mydims = IMOS.gen_dimensions('timeSeries',2,{'TIME','X'},{},{zeros(60,1),[1:10]'},'comment','123');
+% variables = IMOS.gen_variables(mydims,{'Y','Z','VALID'},{},{ones(10,1),zeros(60,1),1},{{'comment','y'},{'comment','z'}});
+% assert(isequal(variables{1}.comment,'y'))
+% assert(isequal(variables{2}.comment,'z'))
+% assert(numel(fieldnames(variables{3}))==4) %name,typecastfunc,dimensions,data only
 %
 % author: hugo.oliveira@utas.edu.au
 %
@@ -100,10 +115,6 @@ end
 
 if nargin < 2
     return
-end
-
-if isempty(varargin)
-    varargin = {'comment', ''};
 end
 
 ns = numel(variables);
@@ -154,12 +165,33 @@ for k = ns + 1:ndata
         end
 
         data = {data}; %wrap in double-cell for struct assignment.
-        variables{k} = struct('name', name, 'typeCastFunc', imos_type, 'dimensions', dim_indexes, 'data', data, varargin{:});
+       
     else
-        dim_indexes = IMOS.discover_data_dimensions(data, dimensions);
-        variables{k} = struct('name', name, 'typeCastFunc', imos_type, 'dimensions', dim_indexes, 'data', imos_type(data), varargin{:});
+        dim_indexes = IMOS.discover_data_dimensions(data, dimensions);         
+        data = imos_type(data);
     end
-
+  
+    if isempty(varargin)
+       variables{k} = struct('name', name, 'typeCastFunc', imos_type, 'dimensions', dim_indexes, 'data', data);            
+    elseif ~iscell(varargin{1})
+       variables{k} = struct('name', name, 'typeCastFunc', imos_type, 'dimensions', dim_indexes, 'data', data, varargin{:});            
+    else
+       v_varargin = varargin{1};       
+       if ~iscell(v_varargin{1})
+           variables{k} = struct('name', name, 'typeCastFunc', imos_type, 'dimensions', dim_indexes, 'data', data, varargin{:});            
+       else
+           try 
+               v_varargin{k};
+           catch
+              variables{k} = struct('name', name, 'typeCastFunc', imos_type, 'dimensions', dim_indexes, 'data', data);                
+              continue
+           end
+           try
+              variables{k} = struct('name', name, 'typeCastFunc', imos_type, 'dimensions', dim_indexes, 'data', data, v_varargin{k}{:});           
+           catch
+              variables{k} = struct('name', name, 'typeCastFunc', imos_type, 'dimensions', dim_indexes, 'data', data);                
+           end       
+    end                        
 end
 
 end
