@@ -51,7 +51,7 @@ classdef spikeWindow < handle
             obj.spike_classifiers = loadSpikeClassifiers(obj.opts_file, obj.has_burst);
 
             try
-                obj.instrument_name = [obj.sample_data.meta.instrument_make ':' obj.sample_data.meta.instrument_model];
+                obj.instrument_name = genSampleDataDesc(sample_data, 'short');
             catch
                 obj.instrument_name = '';
             end
@@ -72,8 +72,14 @@ classdef spikeWindow < handle
         end
 
         function init_panel(obj, instrument)
-            obj.panel_opts = {'Parent', obj.ui_window, 'title', sprintf('%s - select variables/methods for Spike detection', instrument), 'Units', 'normalized', 'Position', [obj.panelMargin, obj.cancelSize, 1 - obj.panelMargin * 2, 1 - obj.cancelSize - obj.panelMargin]};
+            obj.panel_opts = {'Parent', obj.ui_window, ...
+                'title', 'Select variables/methods for Spike detection', ...
+                'Units', 'normalized', ...
+                'Position', [obj.panelMargin, obj.cancelSize, 1 - obj.panelMargin * 2, 1 - obj.cancelSize - obj.panelMargin - obj.okSize]};
             obj.ui_panel = uipanel(obj.panel_opts{:});
+            uicontrol(obj.ui_window, 'Style', 'text', 'String', obj.instrument_name, ...
+                'Units', 'normalized', ...
+                'Position', [obj.panelMargin, 1 - obj.cancelSize - obj.panelMargin, 1 - obj.panelMargin * 2, obj.okSize]);
         end
 
         function pos = move_pos_down(obj, pos)

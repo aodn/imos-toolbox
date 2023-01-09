@@ -206,6 +206,7 @@ time = sample_data.dimensions{timeId}.data;
 
 postqc.variables = cell(1, n_ts_vars);
 postqc.dimensions = sample_data.dimensions;
+postqc.meta = sample_data.meta;
 
 if ~isempty(burst_interval)
     postqc.burst_precision = precisionBounds(burst_interval / 86400);
