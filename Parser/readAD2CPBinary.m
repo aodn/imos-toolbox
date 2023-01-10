@@ -513,12 +513,13 @@ end
 
 end
 
-function sect = readBottomTrack(data, idx, cpuEndianness)
+function [sect, len, off] = readBottomTrack(data, idx, cpuEndianness)
 %READBOTTOMTRACK
 % Id=0x17, Bottom Track Data Record
 
 sect = struct;
-[sect.Header, ~, off] = readHeader(data, idx, cpuEndianness);
+[sect.Header, len, off] = readHeader(data, idx, cpuEndianness);
+len = len + sect.Header.DataSize;
 
 idx = idx+off;
 
@@ -542,7 +543,7 @@ sect.Data.Roll              = bytecast(data(idx+28:idx+29), 'L', 'int16', cpuEnd
 sect.Data.Beams_CoordSys_Cells = dec2bin(bytecast(data(idx+30:idx+31), 'L', 'uint16', cpuEndianness), 16);
 iStartBeam = 13;
 iEndBeam = 16;
-sect.Data.nBeams            = bin2dec(sect.Beams_CoordSys_Cells(end-iEndBeam+1:end-iStartBeam+1));
+sect.Data.nBeams            = bin2dec(sect.Data.Beams_CoordSys_Cells(end-iEndBeam+1:end-iStartBeam+1));
 
 sect.Data.CellSize          = bytecast(data(idx+32:idx+33), 'L', 'uint16', cpuEndianness); % 1 mm
 sect.Data.Blanking          = bytecast(data(idx+34:idx+35), 'L', 'uint16', cpuEndianness); % 1 mm
@@ -555,32 +556,33 @@ sect.Data.MagRawZ           = bytecast(data(idx+44:idx+45), 'L', 'int16', cpuEnd
 sect.Data.AccRawX           = bytecast(data(idx+46:idx+47), 'L', 'int16', cpuEndianness); % accelerometer Raw, X axis value in last measurement interval (16384 = 1.0)
 sect.Data.AccRawY           = bytecast(data(idx+48:idx+49), 'L', 'int16', cpuEndianness);
 sect.Data.AccRawZ           = bytecast(data(idx+50:idx+51), 'L', 'int16', cpuEndianness);
-sect.Data.AmbiguityVel      = bytecast(data(idx+52:idx+53), 'L', 'uint16', cpuEndianness); % 10^(Velocity scaling) m/s ; corrected for sound velocity
-sect.Data.DatasetDesc       = dec2bin(bytecast(data(idx+54:idx+55), 'L', 'uint16', cpuEndianness), 16);
-sect.Data.TransmitEnergy    = bytecast(data(idx+56:idx+57), 'L', 'uint16', cpuEndianness);
-sect.Data.VelocityScaling   = bytecast(data(idx+58), 'L', 'int8', cpuEndianness);
-sect.Data.PowerLevel        = bytecast(data(idx+59), 'L', 'int8', cpuEndianness); % dB
-sect.Data.MagTemperature    = bytecast(data(idx+60:idx+61), 'L', 'int16', cpuEndianness); % uncalibrated
-sect.Data.RTCTemperature    = bytecast(data(idx+62:idx+63), 'L', 'int16', cpuEndianness); % 0.01 deg C
-sect.Data.Error             = bytecast(data(idx+64:idx+67), 'L', 'uint32', cpuEndianness);
-sect.Status                 = dec2bin(bytecast(data(idx+68:idx+71), 'L', 'uint32', cpuEndianness), 32);
-sect.Data.EnsembleCounter   = bytecast(data(idx+72:idx+75), 'L', 'uint32', cpuEndianness); % counts the number of ensembles in both averaged and burst data
+sect.Data.AmbiguityVel      = bytecast(data(idx+52:idx+55), 'L', 'uint32', cpuEndianness); % 10^(Velocity scaling) m/s ; corrected for sound velocity
+sect.Data.DatasetDesc       = dec2bin(bytecast(data(idx+56:idx+57), 'L', 'uint16', cpuEndianness), 16);
+sect.Data.TransmitEnergy    = bytecast(data(idx+58:idx+59), 'L', 'uint16', cpuEndianness);
+sect.Data.VelocityScaling   = bytecast(data(idx+60), 'L', 'int8', cpuEndianness);
+sect.Data.PowerLevel        = bytecast(data(idx+61), 'L', 'int8', cpuEndianness); % dB
+sect.Data.MagTemperature    = bytecast(data(idx+62:idx+63), 'L', 'int16', cpuEndianness); % uncalibrated
+sect.Data.RTCTemperature    = bytecast(data(idx+64:idx+65), 'L', 'int16', cpuEndianness); % 0.01 deg C
+sect.Data.Error             = bytecast(data(idx+66:idx+69), 'L', 'uint32', cpuEndianness);
+sect.Data.Status            = dec2bin(bytecast(data(idx+70:idx+73), 'L', 'uint32', cpuEndianness), 32);
+sect.Data.EnsembleCounter   = bytecast(data(idx+74:idx+77), 'L', 'uint32', cpuEndianness); % counts the number of ensembles in both averaged and burst data
 
-off = 75;
+off = 77;
 if isVelocity
-    sect.VelocityData       = bytecast(data(idx+off+1:idx+off+sect.nBeams*4), 'L', 'int32', cpuEndianness); % 10^(velocity scaling) m/s
-    off = off+sect.nBeams*4;
+    sect.Data.VelocityData       = bytecast(data(idx+off+1:idx+off+sect.Data.nBeams*4), 'L', 'int32', cpuEndianness); % 10^(velocity scaling) m/s
+    off = off+sect.Data.nBeams*4;
 end
 
 if isDistance
-    sect.DistanceData       = bytecast(data(idx+off+1:idx+off+sect.nBeams*4), 'L', 'int32', cpuEndianness); % mm
-    off = off+sect.nBeams*4;
+    sect.Data.DistanceData       = bytecast(data(idx+off+1:idx+off+sect.Data.nBeams*4), 'L', 'int32', cpuEndianness); % mm
+    off = off+sect.Data.nBeams*4;
 end
 
 if isFigureOfMerit
-    sect.FigureOfMeritData  = bytecast(data(idx+off+1:idx+off+sect.nBeams*2), 'L', 'uint16', cpuEndianness);
+    sect.Data.FigureOfMeritData  = bytecast(data(idx+off+1:idx+off+sect.Data.nBeams*2), 'L', 'uint16', cpuEndianness);
 end
 
+off = len;
 end
 
 function [sect, len, off] = readString(data, idx, cpuEndianness)

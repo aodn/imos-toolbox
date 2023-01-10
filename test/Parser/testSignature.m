@@ -11,6 +11,7 @@ classdef testSignature < matlab.unittest.TestCase
         s250_file = files2namestruct(rdir([toolboxRootPath 'data/testfiles/Nortek/signature_250/v000']));
         s500_file = files2namestruct(rdir([toolboxRootPath 'data/testfiles/Nortek/signature_500/v000']));
         s1000_file = files2namestruct(rdir([toolboxRootPath 'data/testfiles/Nortek/signature_1000/v000']));
+        bottomtracking_file = files2namestruct(rdir([toolboxRootPath 'data/testfiles/Nortek/bottom_tracking']));
 
     end
 
@@ -37,6 +38,13 @@ classdef testSignature < matlab.unittest.TestCase
             assert(data{1}.meta.beam_angle==25);
         end
 
+        function testBottomTracking(~, bottomtracking_file, mode)
+            data = signatureParse({bottomtracking_file},mode);
+            assert(strcmp(data{1}.meta.instrument_model,'Signature250'));
+            assert(strcmp(data{1}.meta.instrument_make,'Nortek'));
+            assert(data{1}.meta.beam_angle==20);
+            assert(round(min(data{1}.variables{11, 1}.data)) == 20);
+        end
 
     end
 
