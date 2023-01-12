@@ -4,6 +4,9 @@
 # Storage of the files should follow imos-data rules,
 # mainly the md5 metadata entry.
 #
+# set the aws profiles prior to run the script by typing:
+# export AWS_PROFILE=production-projectofficer
+#
 # $1 - the input file
 #
 # Example:
