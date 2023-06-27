@@ -623,8 +623,20 @@ function displayManager(windowTitle, sample_data, callbacks)
           
           for j=1:length(resetIdx)
               for i=1:length(sample_data{resetIdx(j)}.variables)
-                  if isfield(sample_data{resetIdx(j)}.variables(i), 'ancillary_comment')
-                      sample_data{resetIdx(j)}.variables(i) = rmfield(sample_data{resetIdx(j)}.variables(i), 'ancillary_comment');
+                  % previous code could not run since it was using variables(i) instead of variables{i}.
+                  % TODO ask @ggalibert about this
+                  if isfield(sample_data{resetIdx(j)}.variables{i}, 'ancillary_comment')
+                      sample_data{resetIdx(j)}.variables{i} = rmfield(sample_data{resetIdx(j)}.variables{i}, 'ancillary_comment');
+                  end
+                                    
+                  % delete the flag_tests previous results so that we don't
+                  % sum up again the failed QC routines. The good thing is
+                  % that all QC routines a reset anyway, which makes our
+                  % life easier
+                  if isfield(sample_data{resetIdx(j)}.variables{i}, 'flag_tests')
+                      % we don't bother doing heavy calculation.
+                      % We simply delete the "flag_tests" variable
+                      sample_data{resetIdx(j)}.variables{i} = rmfield(sample_data{resetIdx(j)}.variables{i}, 'flag_tests');                   
                   end
               end
               

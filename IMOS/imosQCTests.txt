@@ -1,0 +1,36 @@
+%
+% A list of all the toolbox QC routines flag values. This list is intended
+% to by used by the qcFilterMain.m function to tag, for each data point,
+% which QC test failed
+% 
+% the positional integer value has to be strictly above 0 since 0 is used 
+% as a _FillValue
+%
+% QC routine,                       positional integer
+userManualQC,                       1
+imosCorrMagVelocitySetQC,           2
+imosDensityInversionSetQC,          3
+imosEchoIntensitySetQC,             4
+imosEchoIntensityVelocitySetQC,     5
+imosEchoRangeSetQC,                 6
+imosErrorVelocitySetQC,             7
+imosGlobalRangeQC,                  8
+imosHistoricalManualSetQC,          9
+imosHorizontalVelocitySetQC,        10
+imosImpossibleDateQC,               11
+imosImpossibleDepthQC,              12
+imosImpossibleLocationSetQC,        13
+imosInOutWaterQC,                   14
+imosPercentGoodVelocitySetQC,       15
+imosRateOfChangeQC,                 16
+imosRegionalRangeQC,                17
+imosSalinityFromPTQC,               18 
+imosSideLobeVelocitySetQC,          19
+imosStationarityQC,                 20 
+imosSurfaceDetectionByDepthSetQC,   21 
+imosTier2ProfileVelocitySetQC,      22
+imosTiltVelocitySetQC_probably_good,23
+imosTiltVelocitySetQC_bad_data,     24
+imosTimeSeriesSpikeQC,              25
+imosVerticalSpikeQC,                26
+imosVerticalVelocityQC,             27

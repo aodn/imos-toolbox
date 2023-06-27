@@ -1,0 +1,15 @@
+S, long_name                            = quality control failed tests for [mat imosParameters(sample_data.variables{k}.name, 'long_name')]
+S, standard_name                        = [mat regexprep(strcat(imosParameters(sample_data.variables{k}.name, 'standard_name'), ' status_flag'),  '^ .*', '')]
+Q, _FillValue                           = 0 
+N, add_offset                           = 
+N, scale_factor                         = 
+S, comment                              = variable to inform on which QC routines was responsible for not flagging a data point as Good. The result value is the sum of flag_values associated to each QC routine. Every number needs to be split into the sum of power 2 to match witch every flag_values/flag_meanings
+S, history                              = 
+S, references                           = 
+S, quality_control_conventions          = [mat imosQCFlag('', str2double(readProperty('toolbox.qc_set', 'toolboxProperties.txt')), 'set_desc')]
+
+% these fields are automatically populated upon NetCDF export
+Q, flag_values                          = 
+S, flag_meanings                        = 
+#S, quality_control_global_conventions   = Argo reference table 2a (see http://www.cmar.csiro.au/argo/dmqc/user_doc/QC_flags.html), applied on data in position only (between global attributes time_deployment_start and time_deployment_end)
+Q, quality_control_global               = 

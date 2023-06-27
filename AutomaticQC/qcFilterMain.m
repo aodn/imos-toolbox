@@ -71,6 +71,10 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             probBadIdx  = fsam.(type{m}){k}.flags == probBadFlag;
             badIdx      = fsam.(type{m}){k}.flags == badFlag;
             
+            % call the sub fuction to add the results of the failed tests
+            % into a new variable
+            addFailedTestsFlags() 
+            
             if ~strcmpi(func2str(filter), 'imosHistoricalManualSetQC') % imosHistoricalManualSetQC can downgrade flags
                 % otherwise we can only upgrade flags
                 % set current flag areas
@@ -84,6 +88,10 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
                 probGoodIdx = canBeFlagProbGoodIdx & probGoodIdx;
                 probBadIdx  = canBeFlagProbBadIdx & probBadIdx;
                 badIdx      = canBeFlagBadIdx & badIdx;
+                
+                % call the sub fuction to add the results of the failed tests
+                % into a new variable
+                addFailedTestsFlags()             
             end
             
             sam.(type{m}){k}.flags(goodIdx)     = fsam.(type{m}){k}.flags(goodIdx);
@@ -206,6 +214,10 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             probBadIdx  = f == probBadFlag;
             badIdx      = f == badFlag;
             
+            % call the sub fuction to add the results of the failed tests
+            % into a new variable
+            addFailedTestsFlags() 
+            
             % update new flags in current variable
             goodIdx     = canBeFlagGoodIdx & goodIdx;
             probGoodIdx = canBeFlagProbGoodIdx & probGoodIdx;
@@ -268,4 +280,87 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
         end
     end
   end
+  
+    function addFailedTestsFlags()
+        % addFailedTestsFlags inherits all the variable available in the
+        % workspace. 
+        %
+        % we now have for the test filterName the result (good, probgood, probBad, bad) value for each variable and each datapoint.
+        % For most QC routines, a failed test is where data is not flagged
+        % as good.
+        % However, more information is available on
+        % https://github.com/aodn/imos-toolbox/wiki/QCProcedures 
+        %
+        % This function aims to store, in a new variable named "flag_tests"
+        % the result of why a data point wasn't flagged as good, i.e. which 
+        % QC routine was responsible for "rejecting" a data point.
+        %
+        % To do so, each failed QC routine is linked to the power of 2 of
+        % an integer. 
+        % For example: 
+        % manualQC is linked to 2^1
+        % imosCorrMagVelocitySetQC is linked to 2^2
+        % ...
+        % Any integer can be written as the sum of disting powers of 2
+        % numbers (see various proofs online
+        % https://math.stackexchange.com/questions/176678/strong-induction-proof-every-natural-number-sum-of-distinct-powers-of-2)
+        %
+        %
+        % Note that QC tests can be rerun by the user multiple times. This
+        % however should be dealt in the FlowManager/displayManager.m
+        % function
+        %
+        %
+        % the failed tests depends on the test. It is not always the same
+        % for all. See table for each individual test at
+        % https://github.com/aodn/imos-toolbox/wiki/QCProcedures
+        if strcmp(filterName, 'imosTiltVelocitySetQC')  % see https://github.com/aodn/imos-toolbox/wiki/QCProcedures#adcp-tilt-test---imostiltvelocitysetqc---compulsory
+            % For the imosTiltVelocitySetQC, users would like to know if the
+            % failed test is because the data was flagged as bad or as probably
+            % good
+            % this test (imosTiltVelocitySetQC)
+            % there is a two level flag for failed tests. We're taking this
+            % into account below
+            failedTestsIdx_probGood = probGoodIdx;
+            failedTestsIdx_bad = badIdx;
+        elseif strcmp(filterName, 'imosErrorVelocitySetQC') % see https://github.com/aodn/imos-toolbox/wiki/QCProcedures#adcp-error-velocity-test---imoserrorvelocitysetqc---optional
+            % a pass test for this test only is if the data is flagged good
+            % or probably good if ECUR is NaN
+            
+            % TODO: implement this scenario
+            
+            strcmp(sam.(type{m}){k}.name, 'ECUR') ;
+            failedTestsIdx = badIdx;
+        else
+            failedTestsIdx = probGoodIdx | probBadIdx | badIdx; % result matrice for all variables
+        end
+        
+        
+        if strcmp(filterName, 'imosTiltVelocitySetQC')
+            failedTests_probGood = zeros(size(failedTestsIdx_probGood));
+            failedTests_probGood(logical(failedTestsIdx_probGood)) = imosQCTest(strcat(filterName, '_probably_good'));
+            
+            failedTests_bad = zeros(size(failedTestsIdx_bad));
+            failedTests_bad(logical(failedTestsIdx_bad)) = imosQCTest(strcat(filterName, '_bad_data'));
+            
+            if ~isfield(sam.(type{m}){k}, 'flag_tests')  % if the flat_tests field does not exist yet
+                                                sam.(type{m}){k}.flag_tests = failedTests_bad + failedTests_probGood;
+                                
+            else                
+                sam.(type{m}){k}.flag_tests = sam.(type{m}){k}.flag_tests + failedTests_bad + failedTests_probGood;
+            end
+        else
+
+            failedTests = zeros(size(failedTestsIdx));
+            failedTests(logical(failedTestsIdx)) = imosQCTest(filterName);
+            
+            if ~isfield(sam.(type{m}){k},'flag_tests')  % if the flat_tests field does not exist yet
+                sam.(type{m}){k}.flag_tests = failedTests;
+            else 
+                % if it already exists, we sum the previous array with the new one
+                sam.(type{m}){k}.flag_tests = sam.(type{m}){k}.flag_tests + failedTests;
+             
+            end
+        end
+    end
 end
