@@ -71,10 +71,6 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             probBadIdx  = fsam.(type{m}){k}.flags == probBadFlag;
             badIdx      = fsam.(type{m}){k}.flags == badFlag;
             
-            % call the sub fuction to add the results of the failed tests
-            % into a new variable
-            addFailedTestsFlags() 
-            
             if ~strcmpi(func2str(filter), 'imosHistoricalManualSetQC') % imosHistoricalManualSetQC can downgrade flags
                 % otherwise we can only upgrade flags
                 % set current flag areas
@@ -87,12 +83,12 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
                 goodIdx     = canBeFlagGoodIdx & goodIdx;
                 probGoodIdx = canBeFlagProbGoodIdx & probGoodIdx;
                 probBadIdx  = canBeFlagProbBadIdx & probBadIdx;
-                badIdx      = canBeFlagBadIdx & badIdx;
-                
-                % call the sub fuction to add the results of the failed tests
-                % into a new variable
-                addFailedTestsFlags()             
+                badIdx      = canBeFlagBadIdx & badIdx;        
             end
+            
+            % call the sub fuction to add the results of the failed tests
+            % into a new variable
+            addFailedTestsFlags()     
             
             sam.(type{m}){k}.flags(goodIdx)     = fsam.(type{m}){k}.flags(goodIdx);
             sam.(type{m}){k}.flags(probGoodIdx) = fsam.(type{m}){k}.flags(probGoodIdx);
