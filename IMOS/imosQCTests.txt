@@ -7,30 +7,30 @@
 % as a _FillValue
 %
 % QC routine,                       positional integer
-userManualQC,                       1
-imosCorrMagVelocitySetQC,           2
-imosDensityInversionSetQC,          3
-imosEchoIntensitySetQC,             4
-imosEchoIntensityVelocitySetQC,     5
-imosEchoRangeSetQC,                 6
-imosErrorVelocitySetQC,             7
-imosGlobalRangeQC,                  8
-imosHistoricalManualSetQC,          9
-imosHorizontalVelocitySetQC,        10
-imosImpossibleDateQC,               11
-imosImpossibleDepthQC,              12
-imosImpossibleLocationSetQC,        13
-imosInOutWaterQC,                   14
-imosPercentGoodVelocitySetQC,       15
-imosRateOfChangeQC,                 16
-imosRegionalRangeQC,                17
-imosSalinityFromPTQC,               18 
-imosSideLobeVelocitySetQC,          19
-imosStationarityQC,                 20 
-imosSurfaceDetectionByDepthSetQC,   21 
-imosTier2ProfileVelocitySetQC,      22
-imosTiltVelocitySetQC_probably_good,23
-imosTiltVelocitySetQC_bad_data,     24
-imosTimeSeriesSpikeQC,              25
-imosVerticalSpikeQC,                26
-imosVerticalVelocityQC,             27
+userManualQC,                       0
+imosCorrMagVelocitySetQC,           1
+imosDensityInversionSetQC,          2
+imosEchoIntensitySetQC,             3
+imosEchoIntensityVelocitySetQC,     4
+imosEchoRangeSetQC,                 5
+imosErrorVelocitySetQC,             6
+imosGlobalRangeQC,                  7
+imosHistoricalManualSetQC,          8
+imosHorizontalVelocitySetQC,        9
+imosImpossibleDateQC,               10
+imosImpossibleDepthQC,              11
+imosImpossibleLocationSetQC,        12
+imosInOutWaterQC,                   13
+imosPercentGoodVelocitySetQC,       14
+imosRateOfChangeQC,                 15
+imosRegionalRangeQC,                16
+imosSalinityFromPTQC,               17 
+imosSideLobeVelocitySetQC,          18
+imosStationarityQC,                 19 
+imosSurfaceDetectionByDepthSetQC,   20 
+imosTier2ProfileVelocitySetQC,      21
+imosTiltVelocitySetQC_probably_good,22
+imosTiltVelocitySetQC_bad_data,     23
+imosTimeSeriesSpikeQC,              24
+imosVerticalSpikeQC,                25
+imosVerticalVelocityQC,             26

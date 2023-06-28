@@ -666,11 +666,6 @@ function vid = addQCFlagsVar(...
 %                 created.
 %
   switch(type)
-    % same as addQCVar function, it doesn't seem that the template
-    % "flag_coord" is ever being triggered ?
-    %case 'dimensions'
-    %  var = sample_data.dimensions{varIdx};
-    %  template = 'flag_coord';
     case 'variables'
       var = sample_data.variables{varIdx};
       template = 'flag';
@@ -692,7 +687,7 @@ function vid = addQCFlagsVar(...
     fullfile(path, [template '_attributes.txt']), sample_data, varIdx);
   
   % get qc flag values
-  qcFlags = imosQCTests;  %g('', qcSet, 'values');
+  qcFlags = imosQCTests; 
   nQcFlags = length(qcFlags{1});
   qcDescs = cell(nQcFlags, 1);
   
@@ -701,7 +696,24 @@ function vid = addQCFlagsVar(...
     qcDescs{k} = qcFlags{1}{k};
   end
   
-  qcAtts.flag_values = qcFlags{2};
+  % see
+  % http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#flags
+  % The flag_masks and flag_meanings attributes describe a number of 
+  % independent Boolean conditions using bit field notation by setting 
+  % unique bits in each flag_masks value. The flag_masks attribute is the 
+  % same type as the variable to which it is attached, and contains a list 
+  % of values matching unique bit fields. The flag_meanings attribute is 
+  % defined as above, one for each flag_masks value. A flagged condition is
+  % identified by performing a bitwise AND of the variable value and each 
+  % flag_masks value; a non-zero result indicates a true condition. Thus, 
+  % any or all of the flagged conditions may be true, depending on the 
+  % variable bit settings. The following example illustrates the use of 
+  % flag_masks to express six sensor status conditions.
+  %
+  % In the case of this [variable]_failed_tests variable, we're using the
+  % flag_masks rather than flag_values
+  
+  qcAtts.flag_masks = qcFlags{2};
   
   % turn descriptions into space separated string
   qcDescs = cellfun(@(x)(sprintf('%s ', x)), qcDescs, 'UniformOutput', false);
