@@ -324,13 +324,28 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             failedTestsIdx_probGood = probGoodIdx;
             failedTestsIdx_bad = badIdx;
         elseif strcmp(filterName, 'imosErrorVelocitySetQC') % see https://github.com/aodn/imos-toolbox/wiki/QCProcedures#adcp-error-velocity-test---imoserrorvelocitysetqc---optional
-            % a pass test for this test only is if the data is flagged good
-            % or probably good if ECUR is NaN
+            % for this specific QC routine, a test is considerer to be pass 
+            % if the data is flagged good or probably good if ECUR is NaN
             
-            % TODO: implement this scenario
+            % find variable index for ECUR
+            notdone = true;
+            while notdone
+                for kk = 1:length(sam.(type{m}))
+                    if strcmp(sam.(type{m}){kk}.name, 'ECUR')
+                        notdone = false;
+                        break                        
+                    end
+                end
+            end
             
-            strcmp(sam.(type{m}){k}.name, 'ECUR') ;
-            failedTestsIdx = badIdx;
+            if not(notdone)
+                if all(isnan(sam.(type{m}){kk}.data(:)))
+                    failedTestsIdx = badIdx | probBadIdx;
+                else
+                    failedTestsIdx = badIdx | probBadIdx | probGoodIdx ;
+                end
+            end                            
+            
         else
             failedTestsIdx = probGoodIdx | probBadIdx | badIdx; % result matrice for all variables
         end
