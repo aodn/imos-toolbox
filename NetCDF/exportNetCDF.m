@@ -713,7 +713,7 @@ function vid = addQCFlagsVar(...
   % In the case of this [variable]_failed_tests variable, we're using the
   % flag_masks rather than flag_values
   
-  qcAtts.flag_masks = qcFlags{2};
+  qcAtts.flag_masks = int64(qcFlags{2});
   
   % turn descriptions into space separated string
   qcDescs = cellfun(@(x)(sprintf('%s ', x)), qcDescs, 'UniformOutput', false);

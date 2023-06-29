@@ -350,9 +350,11 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
         if strcmp(filterName, 'imosTiltVelocitySetQC')
             failedTests_probGood = zeros(size(failedTestsIdx_probGood));
             failedTests_probGood(logical(failedTestsIdx_probGood)) = imosQCTest(strcat(filterName, '_probably_good'));
+            failedTests_probGood = int64(failedTests_probGood);
             
             failedTests_bad = zeros(size(failedTestsIdx_bad));
             failedTests_bad(logical(failedTestsIdx_bad)) = imosQCTest(strcat(filterName, '_bad_data'));
+            failedTests_bad = int64(failedTests_bad);
             
             if ~isfield(sam.(type{m}){k}, 'flag_tests')  % if the flat_tests field does not exist yet
                                                 sam.(type{m}){k}.flag_tests = failedTests_bad + failedTests_probGood;
@@ -364,12 +366,14 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
 
             failedTests = zeros(size(failedTestsIdx));
             failedTests(logical(failedTestsIdx)) = imosQCTest(filterName);
+            failedTests = int64(failedTests);
             
             if ~isfield(sam.(type{m}){k},'flag_tests')  % if the flat_tests field does not exist yet
                 sam.(type{m}){k}.flag_tests = failedTests;
             else 
-                % if it already exists, we sum the previous array with the new one
+                % if it already exists, we sum the previous array with the new one                
                 sam.(type{m}){k}.flag_tests = sam.(type{m}){k}.flag_tests + failedTests;
+
              
             end
         end
