@@ -8,6 +8,7 @@
 %
 % QC routine,                       positional integer
 userManualQC,                       0
+imosHistoricalManualSetQC,          0
 imosCorrMagVelocitySetQC,           1
 imosDensityInversionSetQC,          2
 imosEchoIntensitySetQC,             3
@@ -15,8 +16,7 @@ imosEchoIntensityVelocitySetQC,     4
 imosEchoRangeSetQC,                 5
 imosErrorVelocitySetQC,             6
 imosGlobalRangeQC,                  7
-imosHistoricalManualSetQC,          8
-imosHorizontalVelocitySetQC,        9
+imosHorizontalVelocitySetQC,        8
 imosImpossibleDateQC,               10
 imosImpossibleDepthQC,              11
 imosImpossibleLocationSetQC,        12
@@ -30,7 +30,7 @@ imosStationarityQC,                 19
 imosSurfaceDetectionByDepthSetQC,   20 
 imosTier2ProfileVelocitySetQC,      21
 imosTiltVelocitySetQC_probably_good,22
-imosTiltVelocitySetQC_bad_data,     23
+imosTiltVelocitySetQC_bad,          23
 imosTimeSeriesSpikeQC,              24
 imosVerticalSpikeQC,                25
 imosVerticalVelocityQC,             26

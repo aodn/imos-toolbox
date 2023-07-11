@@ -160,7 +160,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       dimAtts = rmfield(dimAtts, {'data', 'name'});
       if isfield(dimAtts, 'typeCastFunc'), dimAtts = rmfield(dimAtts, 'typeCastFunc'); end
       if isfield(dimAtts, 'flags'), dimAtts = rmfield(dimAtts, 'flags'); end
-      if isfield(dimAtts, 'flag_tests'), dimAtts = rmfield(dimAtts, 'flag_tests'); end % QC variable is not CF for dimensions
+      if isfield(dimAtts, 'failed_tests'), dimAtts = rmfield(dimAtts, 'failed_tests'); end % QC variable is not CF for dimensions
       if isfield(dimAtts, 'FillValue_'), dimAtts = rmfield(dimAtts, 'FillValue_'); end % _FillValues for dimensions are not CF
       dimAtts = rmfield(dimAtts, 'stringlen');
       
@@ -307,7 +307,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       varAtts = rmfield(varAtts, {'data', 'dimensions', 'stringlen', 'name'});
       if isfield(varAtts, 'typeCastFunc'),      varAtts = rmfield(varAtts, 'typeCastFunc');     end
       if isfield(varAtts, 'flags'),             varAtts = rmfield(varAtts, 'flags');            end
-      if isfield(varAtts, 'flag_tests'),        varAtts = rmfield(varAtts, 'flag_tests'); end
+      if isfield(varAtts, 'failed_tests'),        varAtts = rmfield(varAtts, 'failed_tests'); end
       if isfield(varAtts, 'ancillary_comment'), varAtts = rmfield(varAtts, 'ancillary_comment');end
       
       if isfield(vars{m}, 'flags') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
@@ -316,7 +316,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
           varAtts.ancillary_variables = [varname '_quality_control'];
       end
       
-      if isfield(vars{m}, 'flag_tests') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
+      if isfield(vars{m}, 'failed_tests') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
           % add the *_failed_tests variable (defined below)
           % to the ancillary variables attribute
           varAtts.ancillary_variables = [varAtts.ancillary_variables ,' ' ,varname '_failed_tests'];
@@ -339,7 +339,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       end
       
  
-      if isfield(vars{m}, 'flag_tests') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
+      if isfield(vars{m}, 'failed_tests') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
           % create the ancillary *_failed_tests variable
           qcflagvid = addQCFlagsVar(...
               fid, sample_data, m, [qcDimId dids], 'variables', qcFlagType, qcSet, dateFmt, mode);
@@ -464,16 +464,16 @@ function filename = exportNetCDF( sample_data, dest, mode )
           netcdf.putVar(fid, qcvid, flags);
       end
       
-      if isfield(vars{m}, 'flag_tests') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
-          flag_tests   = vars{m}.flag_tests;
+      if isfield(vars{m}, 'failed_tests') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
+          failed_tests   = vars{m}.failed_tests;
           qcflagvid   = vars{m}.qcflagvid;
 
           typeCastFunction = str2func(netcdf3ToMatlabType(qcFlagType));
-          flag_tests = typeCastFunction(flag_tests);
+          failed_tests = typeCastFunction(failed_tests);
           
-          if nDims > 1, flag_tests = permute(flag_tests, nDims:-1:1); end
+          if nDims > 1, failed_tests = permute(failed_tests, nDims:-1:1); end
           
-          netcdf.putVar(fid, qcflagvid, flag_tests);
+          netcdf.putVar(fid, qcflagvid, failed_tests);
       end
     end
 
@@ -668,7 +668,7 @@ function vid = addQCFlagsVar(...
   switch(type)
     case 'variables'
       var = sample_data.variables{varIdx};
-      template = 'flag';
+      template = 'failed_tests';
     otherwise
       error(['invalid type: ' type]);
   end
@@ -713,7 +713,7 @@ function vid = addQCFlagsVar(...
   % In the case of this [variable]_failed_tests variable, we're using the
   % flag_masks rather than flag_values
   
-  qcAtts.flag_masks = int64(qcFlags{2});
+  qcAtts.flag_masks = int32(qcFlags{2});
   
   % turn descriptions into space separated string
   qcDescs = cellfun(@(x)(sprintf('%s ', x)), qcDescs, 'UniformOutput', false);

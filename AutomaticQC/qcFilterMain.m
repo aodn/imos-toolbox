@@ -287,7 +287,7 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
         % However, more information is available on
         % https://github.com/aodn/imos-toolbox/wiki/QCProcedures 
         %
-        % This function aims to store, in a new variable named "flag_tests"
+        % This function aims to store, in a new variable named "failed_tests"
         % the result of why a data point wasn't flagged as good, i.e. which 
         % QC routine was responsible for "rejecting" a data point.
         %
@@ -350,29 +350,29 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
         if strcmp(filterName, 'imosTiltVelocitySetQC')
             failedTests_probGood = zeros(size(failedTestsIdx_probGood));
             failedTests_probGood(logical(failedTestsIdx_probGood)) = imosQCTest(strcat(filterName, '_probably_good'));
-            failedTests_probGood = int64(failedTests_probGood);
+            failedTests_probGood = int32(failedTests_probGood);
             
             failedTests_bad = zeros(size(failedTestsIdx_bad));
-            failedTests_bad(logical(failedTestsIdx_bad)) = imosQCTest(strcat(filterName, '_bad_data'));
-            failedTests_bad = int64(failedTests_bad);
+            failedTests_bad(logical(failedTestsIdx_bad)) = imosQCTest(strcat(filterName, '_bad'));
+            failedTests_bad = int32(failedTests_bad);
             
-            if ~isfield(sam.(type{m}){k}, 'flag_tests')  % if the flat_tests field does not exist yet
-                                                sam.(type{m}){k}.flag_tests = failedTests_bad + failedTests_probGood;
+            if ~isfield(sam.(type{m}){k}, 'failed_tests')  % if the flat_tests field does not exist yet
+                                                sam.(type{m}){k}.failed_tests = failedTests_bad + failedTests_probGood;
                                 
             else                
-                sam.(type{m}){k}.flag_tests = sam.(type{m}){k}.flag_tests + failedTests_bad + failedTests_probGood;
+                sam.(type{m}){k}.failed_tests = sam.(type{m}){k}.failed_tests + failedTests_bad + failedTests_probGood;
             end
         else
 
             failedTests = zeros(size(failedTestsIdx));
             failedTests(logical(failedTestsIdx)) = imosQCTest(filterName);
-            failedTests = int64(failedTests);
+            failedTests = int32(failedTests);
             
-            if ~isfield(sam.(type{m}){k},'flag_tests')  % if the flat_tests field does not exist yet
-                sam.(type{m}){k}.flag_tests = failedTests;
+            if ~isfield(sam.(type{m}){k},'failed_tests')  % if the flat_tests field does not exist yet
+                sam.(type{m}){k}.failed_tests = failedTests;
             else 
                 % if it already exists, we sum the previous array with the new one                
-                sam.(type{m}){k}.flag_tests = sam.(type{m}){k}.flag_tests + failedTests;
+                sam.(type{m}){k}.failed_tests = sam.(type{m}){k}.failed_tests + failedTests;
 
              
             end

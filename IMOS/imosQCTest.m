@@ -46,7 +46,7 @@ try
   
   [~, idx] = ismember(testName, sets{1,1});
   
-  value = int64(2^sets{1,2}(idx));  % return the 
+  value = int32(2^sets{1,2}(idx));  % return the 
     
 
 catch e
