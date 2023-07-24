@@ -341,6 +341,15 @@ function flowManager(toolboxVersion)
     % we update the flags values
     autoQCData{setIdx}.variables{varIdx}.flags(dataIdx) = flag;
     
+    % update the failed_tests field containing information on failed tests
+    % with manual QC information
+    if isfield(autoQCData{setIdx}.variables{varIdx}, 'failed_tests')
+        autoQCData{setIdx}.variables{varIdx}.failed_tests(dataIdx) = imosQCTest('userManualQC');  % if manual QC done on a point, we overwrite previous failed QC routine information
+    else
+        autoQCData{setIdx}.variables{varIdx}.failed_tests(dataIdx) = zeros(size(dataIdx));  % initialise array
+        autoQCData{setIdx}.variables{varIdx}.failed_tests(dataIdx) = imosQCTest('userManualQC'); 
+    end
+        
     qcSet = str2double(readProperty('toolbox.qc_set'));
     rawFlag = imosQCFlag('raw', qcSet, 'flag');
     

@@ -83,8 +83,12 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
                 goodIdx     = canBeFlagGoodIdx & goodIdx;
                 probGoodIdx = canBeFlagProbGoodIdx & probGoodIdx;
                 probBadIdx  = canBeFlagProbBadIdx & probBadIdx;
-                badIdx      = canBeFlagBadIdx & badIdx;
+                badIdx      = canBeFlagBadIdx & badIdx;        
             end
+            
+            % call the sub fuction to add the results of the failed tests
+            % into a new variable
+            addFailedTestsFlags()     
             
             sam.(type{m}){k}.flags(goodIdx)     = fsam.(type{m}){k}.flags(goodIdx);
             sam.(type{m}){k}.flags(probGoodIdx) = fsam.(type{m}){k}.flags(probGoodIdx);
@@ -206,6 +210,10 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
             probBadIdx  = f == probBadFlag;
             badIdx      = f == badFlag;
             
+            % call the sub fuction to add the results of the failed tests
+            % into a new variable
+            addFailedTestsFlags() 
+            
             % update new flags in current variable
             goodIdx     = canBeFlagGoodIdx & goodIdx;
             probGoodIdx = canBeFlagProbGoodIdx & probGoodIdx;
@@ -268,4 +276,110 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
         end
     end
   end
+  
+    function addFailedTestsFlags()
+        % addFailedTestsFlags inherits all the variable available in the
+        % workspace. 
+        %
+        % we now have for the test filterName the result (good, probgood, probBad, bad) value for each variable and each datapoint.
+        % For most QC routines, a failed test is where data is not flagged
+        % as good.
+        % However, more information is available on
+        % https://github.com/aodn/imos-toolbox/wiki/QCProcedures 
+        %
+        % This function aims to store, in a new variable named "failed_tests"
+        % the result of why a data point wasn't flagged as good, i.e. which 
+        % QC routine was responsible for "rejecting" a data point.
+        %
+        % To do so, each failed QC routine is linked to the power of 2 of
+        % an integer. 
+        % For example: 
+        % manualQC is linked to 2^1
+        % imosCorrMagVelocitySetQC is linked to 2^2
+        % ...
+        % Any integer can be written as the sum of disting powers of 2
+        % numbers (see various proofs online
+        % https://math.stackexchange.com/questions/176678/strong-induction-proof-every-natural-number-sum-of-distinct-powers-of-2)
+        %
+        %
+        % Note that QC tests can be rerun by the user multiple times. This
+        % however should be dealt in the FlowManager/displayManager.m
+        % function
+        %
+        %
+        % the failed tests depends on the test. It is not always the same
+        % for all. See table for each individual test at
+        % https://github.com/aodn/imos-toolbox/wiki/QCProcedures
+        if strcmp(filterName, 'imosTiltVelocitySetQC')  % see https://github.com/aodn/imos-toolbox/wiki/QCProcedures#adcp-tilt-test---imostiltvelocitysetqc---compulsory
+            % For the imosTiltVelocitySetQC, users would like to know if the
+            % failed test is because the data was flagged as bad or as probably
+            % good
+            % this test (imosTiltVelocitySetQC)
+            % there is a two level flag for failed tests. We're taking this
+            % into account below
+            failedTestsIdx_probGood = probGoodIdx;
+            failedTestsIdx_bad = badIdx;
+        elseif strcmp(filterName, 'imosErrorVelocitySetQC') % see https://github.com/aodn/imos-toolbox/wiki/QCProcedures#adcp-error-velocity-test---imoserrorvelocitysetqc---optional
+            % for this specific QC routine, a test is considerer to be pass 
+            % if the data is flagged good or probably good if ECUR is NaN
+            
+            % find variable index for ECUR
+            notdone = true;
+            while notdone
+                for kk = 1:length(sam.(type{m}))
+                    if strcmp(sam.(type{m}){kk}.name, 'ECUR')
+                        notdone = false;
+                        break                        
+                    end
+                end
+            end
+            
+            if not(notdone)
+                if all(isnan(sam.(type{m}){kk}.data(:)))
+                    failedTestsIdx = badIdx | probBadIdx;
+                else
+                    failedTestsIdx = badIdx | probBadIdx | probGoodIdx ;
+                end
+            end                            
+            
+        else
+            failedTestsIdx = probGoodIdx | probBadIdx | badIdx; % result matrice for all variables
+        end
+        
+        
+        if strcmp(filterName, 'imosTiltVelocitySetQC')
+            failedTests_probGood = zeros(size(failedTestsIdx_probGood));
+            failedTests_probGood(logical(failedTestsIdx_probGood)) = imosQCTest(strcat(filterName, '_probably_good'));
+            failedTests_probGood = int32(failedTests_probGood);
+            
+            failedTests_bad = zeros(size(failedTestsIdx_bad));
+            failedTests_bad(logical(failedTestsIdx_bad)) = imosQCTest(strcat(filterName, '_bad'));
+            failedTests_bad = int32(failedTests_bad);
+            
+            if ~isfield(sam.(type{m}){k}, 'failed_tests')  % if the flat_tests field does not exist yet
+                                                sam.(type{m}){k}.failed_tests = failedTests_bad + failedTests_probGood;
+                                
+            else                
+                sam.(type{m}){k}.failed_tests = sam.(type{m}){k}.failed_tests + failedTests_bad + failedTests_probGood;
+            end
+        else
+
+            failedTests = zeros(size(failedTestsIdx));
+            if strcmp(filterName, 'imosHistoricalManualSetQC')
+                failedTests(logical(failedTestsIdx)) = imosQCTest('userManualQC');  % we replace imosHistoricalManualSetQC with userManualQC so that we only have 1 flag_value/flag_meaning combo in the NetCDF for something very similar in the end
+            else                
+                failedTests(logical(failedTestsIdx)) = imosQCTest(filterName);
+            end
+            failedTests = int32(failedTests);
+            
+            if ~isfield(sam.(type{m}){k},'failed_tests')  % if the flat_tests field does not exist yet
+                sam.(type{m}){k}.failed_tests = failedTests;
+            else 
+                % if it already exists, we sum the previous array with the new one                
+                sam.(type{m}){k}.failed_tests = sam.(type{m}){k}.failed_tests + failedTests;
+
+             
+            end
+        end
+    end
 end

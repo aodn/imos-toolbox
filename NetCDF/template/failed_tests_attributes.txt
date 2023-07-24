@@ -1,0 +1,12 @@
+S, long_name                            = failed tests for [mat imosParameters(sample_data.variables{k}.name, 'long_name')]
+S, standard_name                        = [mat regexprep(strcat(imosParameters(sample_data.variables{k}.name, 'standard_name'), ' status_flag'),  '^ .*', '')]
+Q, _FillValue                           = [mat int32(0)] 
+N, add_offset                           = 
+N, scale_factor                         = 
+S, comment                              = The flag_masks attribute is the same type as the variable to which it is attached, and contains a list of values matching unique bit fields. The flag_meanings attribute is defined as above, one for each flag_masks value. A flagged condition is identified by performing a bitwise AND of the variable value and each flag_masks value; a non-zero result indicates a true condition. Thus, any or all of the flagged conditions may be true, depending on the variable bit settings.
+S, history                              = 
+S, references                           = 
+
+% these fields are automatically populated upon NetCDF export
+Q, flag_masks                           = 
+S, flag_meanings                        = 

@@ -61,6 +61,13 @@ function filename = exportNetCDF( sample_data, dest, mode )
   dateFmt = readProperty('exportNetCDF.dateFormat');
   qcSet   = str2double(readProperty('toolbox.qc_set'));
   qcType  = imosQCFlag('', qcSet, 'type');
+  
+  % lbesnard: tried the following
+  % qcFlagType = 'NC_INT';  % as described in  
+  % https://au.mathworks.com/help/matlab/ref/netcdf.defvar.html  however it
+  % breaks the code in the netcdf3tomatlabtype function. TODO: ask
+  % @ggalibert why it was coded this way.
+  qcFlagType = 'int'; 
   qcDimId = [];
   
   try  
@@ -153,6 +160,7 @@ function filename = exportNetCDF( sample_data, dest, mode )
       dimAtts = rmfield(dimAtts, {'data', 'name'});
       if isfield(dimAtts, 'typeCastFunc'), dimAtts = rmfield(dimAtts, 'typeCastFunc'); end
       if isfield(dimAtts, 'flags'), dimAtts = rmfield(dimAtts, 'flags'); end
+      if isfield(dimAtts, 'failed_tests'), dimAtts = rmfield(dimAtts, 'failed_tests'); end % QC variable is not CF for dimensions
       if isfield(dimAtts, 'FillValue_'), dimAtts = rmfield(dimAtts, 'FillValue_'); end % _FillValues for dimensions are not CF
       dimAtts = rmfield(dimAtts, 'stringlen');
       
@@ -299,12 +307,19 @@ function filename = exportNetCDF( sample_data, dest, mode )
       varAtts = rmfield(varAtts, {'data', 'dimensions', 'stringlen', 'name'});
       if isfield(varAtts, 'typeCastFunc'),      varAtts = rmfield(varAtts, 'typeCastFunc');     end
       if isfield(varAtts, 'flags'),             varAtts = rmfield(varAtts, 'flags');            end
+      if isfield(varAtts, 'failed_tests'),        varAtts = rmfield(varAtts, 'failed_tests'); end
       if isfield(varAtts, 'ancillary_comment'), varAtts = rmfield(varAtts, 'ancillary_comment');end
       
       if isfield(vars{m}, 'flags') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
           % add the QC variable (defined below)
           % to the ancillary variables attribute
           varAtts.ancillary_variables = [varname '_quality_control'];
+      end
+      
+      if isfield(vars{m}, 'failed_tests') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
+          % add the *_failed_tests variable (defined below)
+          % to the ancillary variables attribute
+          varAtts.ancillary_variables = [varAtts.ancillary_variables ,' ' ,varname '_failed_tests'];
       end
 
       % add the attributes
@@ -322,10 +337,25 @@ function filename = exportNetCDF( sample_data, dest, mode )
       else
           qcvid = NaN;
       end
+      
+ 
+      if isfield(vars{m}, 'failed_tests') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
+          % create the ancillary *_failed_tests variable
+          qcflagvid = addQCFlagsVar(...
+              fid, sample_data, m, [qcDimId dids], 'variables', qcFlagType, qcSet, dateFmt, mode);
+          
+          if ~isempty(dimLen)
+              netcdf.defVarChunking(fid, qcflagvid, 'CHUNKED', dimLen);
+              netcdf.defVarDeflate(fid, qcflagvid, true, true, compressionLevel);
+          end
+      else
+          qcflagvid = NaN;
+      end
     
       % save variable IDs for later reference
       sample_data.variables{m}.vid   = vid;
       sample_data.variables{m}.qcvid = qcvid;
+      sample_data.variables{m}.qcflagvid = qcflagvid;
     end
 
     % we're finished defining dimensions/attributes/variables
@@ -433,6 +463,18 @@ function filename = exportNetCDF( sample_data, dest, mode )
           
           netcdf.putVar(fid, qcvid, flags);
       end
+      
+      if isfield(vars{m}, 'failed_tests') && sample_data.meta.level > 0 && ~isempty(vars{m}.dimensions) % ancillary variables for coordinate scalar variable is not CF
+          failed_tests   = vars{m}.failed_tests;
+          qcflagvid   = vars{m}.qcflagvid;
+
+          typeCastFunction = str2func(netcdf3ToMatlabType(qcFlagType));
+          failed_tests = typeCastFunction(failed_tests);
+          
+          if nDims > 1, failed_tests = permute(failed_tests, nDims:-1:1); end
+          
+          netcdf.putVar(fid, qcflagvid, failed_tests);
+      end
     end
 
     %
@@ -470,7 +512,7 @@ function vid = addQCVar(...
 %
   switch(type)
     case 'dimensions'
-      var = sample_data.dimensions{varIdx};
+      var = sample_data.dimensions{varIdx}; % when is this even triggered? (Loz, 20230624)
       template = 'qc_coord';
     case 'variables'
       var = sample_data.variables{varIdx};
@@ -599,6 +641,89 @@ function vid = addQCVar(...
   vid = netcdf.defVar(fid, varname, netcdfType, dims);
   putAtts(fid, vid, var, qcAtts, template, netcdfType, dateFmt, '');
 end
+
+
+
+function vid = addQCFlagsVar(...
+  fid, sample_data, varIdx, dims, type, netcdfType, ~, dateFmt, ~)
+%addQCFlagsVar Adds an ancillary variable, containing failed QC routines info
+% for the variable with the given index.
+%
+% Inputs:
+%   fid         - NetCDF file identifier
+%   sample_data - Struct containing entire data set
+%   varIdx      - Index into sample_data.variables, specifying the
+%                 variable.
+%   dims        - Vector of NetCDF dimension identifiers.
+%   type        - either 'dimensions' or 'variables', to differentiate between
+%                 coordinate variables and data variables.
+%   netcdfType  - The netCDF type in which the flags should be output.
+%   dateFmt     - Date format in which date attributes should be output.
+%   mode        - Toolbox processing mode.
+%
+% Outputs:
+%   vid         - NetCDF variable identifier of the QC variable that was 
+%                 created.
+%
+  switch(type)
+    case 'variables'
+      var = sample_data.variables{varIdx};
+      template = 'failed_tests';
+    otherwise
+      error(['invalid type: ' type]);
+  end
+  
+  path = readProperty('toolbox.templateDir');
+  if isempty(path) || ~exist(path, 'dir')
+    path = '';
+    if ~isdeployed, [path, ~, ~] = fileparts(which('imosToolbox.m')); end
+    if isempty(path), path = pwd; end
+    path = fullfile(path, 'NetCDF', 'template');
+  end
+  
+  varname = [var.name '_failed_tests'];
+  
+  qcAtts = parseNetCDFTemplate(...
+    fullfile(path, [template '_attributes.txt']), sample_data, varIdx);
+  
+  % get qc flag values
+  qcFlags = imosQCTests; 
+  nQcFlags = length(qcFlags{1});
+  qcDescs = cell(nQcFlags, 1);
+  
+  % get flag descriptions
+  for k = 1:nQcFlags
+    qcDescs{k} = qcFlags{1}{k};
+  end
+  
+  % see
+  % http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#flags
+  % The flag_masks and flag_meanings attributes describe a number of 
+  % independent Boolean conditions using bit field notation by setting 
+  % unique bits in each flag_masks value. The flag_masks attribute is the 
+  % same type as the variable to which it is attached, and contains a list 
+  % of values matching unique bit fields. The flag_meanings attribute is 
+  % defined as above, one for each flag_masks value. A flagged condition is
+  % identified by performing a bitwise AND of the variable value and each 
+  % flag_masks value; a non-zero result indicates a true condition. Thus, 
+  % any or all of the flagged conditions may be true, depending on the 
+  % variable bit settings. The following example illustrates the use of 
+  % flag_masks to express six sensor status conditions.
+  %
+  % In the case of this [variable]_failed_tests variable, we're using the
+  % flag_masks rather than flag_values
+  
+  qcAtts.flag_masks = int32(qcFlags{2});
+  
+  % turn descriptions into space separated string
+  qcDescs = cellfun(@(x)(sprintf('%s ', x)), qcDescs, 'UniformOutput', false);
+  qcDescs{end}(end) = [];
+  qcAtts.flag_meanings = [qcDescs{:}];
+
+  vid = netcdf.defVar(fid, varname, netcdfType, dims);
+  putAtts(fid, vid, var, qcAtts, template, netcdfType, dateFmt, '');  % netcdf.getAtt(fid,vid,'flag_values') check why it's doing something funky
+end
+
 
 function putAtts(fid, vid, var, template, templateFile, netcdfType, dateFmt, mode)
 %PUTATTS Puts all the attributes from the given template into the given NetCDF
