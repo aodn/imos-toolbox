@@ -8,7 +8,6 @@
 %
 % QC routine,                       positional integer
 userManualQC,                       0
-imosHistoricalManualSetQC,          0
 imosCorrMagVelocitySetQC,           1
 imosDensityInversionSetQC,          2
 imosEchoIntensitySetQC,             3

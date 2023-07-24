@@ -365,7 +365,11 @@ function sam = qcFilterMain(sam, filterName, auto, rawFlag, goodFlag, probGoodFl
         else
 
             failedTests = zeros(size(failedTestsIdx));
-            failedTests(logical(failedTestsIdx)) = imosQCTest(filterName);
+            if strcmp(filterName, 'imosHistoricalManualSetQC')
+                failedTests(logical(failedTestsIdx)) = imosQCTest('userManualQC');  % we replace imosHistoricalManualSetQC with userManualQC so that we only have 1 flag_value/flag_meaning combo in the NetCDF for something very similar in the end
+            else                
+                failedTests(logical(failedTestsIdx)) = imosQCTest(filterName);
+            end
             failedTests = int32(failedTests);
             
             if ~isfield(sam.(type{m}){k},'failed_tests')  % if the flat_tests field does not exist yet
