@@ -346,7 +346,7 @@ function flowManager(toolboxVersion)
     if isfield(autoQCData{setIdx}.variables{varIdx}, 'failed_tests')
         autoQCData{setIdx}.variables{varIdx}.failed_tests(dataIdx) = imosQCTest('userManualQC');  % if manual QC done on a point, we overwrite previous failed QC routine information
     else
-        autoQCData{setIdx}.variables{varIdx}.failed_tests(dataIdx) = zeros(size(dataIdx));  % initialise array
+        autoQCData{setIdx}.variables{varIdx}.failed_tests = zeros(size(dataIdx));  % initialise array
         autoQCData{setIdx}.variables{varIdx}.failed_tests(dataIdx) = imosQCTest('userManualQC'); 
     end
         
