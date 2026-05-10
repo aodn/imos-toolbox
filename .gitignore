@@ -12,8 +12,22 @@ data/*
 dist/*
 Geomag/sample_coords.txt
 Geomag/sample_out_IGRF13.txt
-.python-version
+/.python-version
+!/python/.python-version
 .standalone_canonical_version
 .build.py@*
 *.nc
 tmp/test_*
+
+# Python port workspace
+python/.venv/
+python/.pytest_cache/
+python/.ruff_cache/
+python/.mypy_cache/
+python/.coverage
+python/.coverage.*
+python/htmlcov/
+python/build/
+python/dist/
+python/*.egg-info/
+python/**/__pycache__/

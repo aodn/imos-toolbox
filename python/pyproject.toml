@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling>=1.20.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "imos-toolbox"
+version = "0.1.0"
+description = "Python port of the IMOS Toolbox for oceanographic data processing"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "GPL-3.0-only"}
+authors = [{name = "IMOS Toolbox Contributors"}]
+keywords = ["oceanography", "netcdf", "imos", "qc", "adcp", "ctd"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "click>=8.1",
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "xarray>=2023.1",
+  "netCDF4>=1.6",
+  "gsw>=3.6",
+  "seabird>=0.12",
+  "SQLAlchemy>=2.0",
+  "jsonschema>=4.23",
+]
+
+[project.optional-dependencies]
+ui = ["dash>=2.16", "plotly>=5.18"]
+dev = ["pytest>=7.4", "ruff>=0.3", "mypy>=1.7"]
+
+[project.scripts]
+imos-toolbox = "imos_toolbox.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/imos_toolbox"]
+
+[tool.mypy]
+ignore_missing_imports = true
